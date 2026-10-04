@@ -1,102 +1,96 @@
 // ============= THEME: ROMANTIC BLUSH =============
-// Hồng phấn · kem trắng · nâu espresso. Nét riêng: mục mở đầu xếp theo lối thiệp
-// in (tên thư pháp → hàng ngày giờ → nơi tổ chức → hàng chip nhảy nhanh → ảnh);
-// toàn thiệp không dùng hình trang trí, chỉ có chữ và khoảng trắng.
-//
-// File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu
-// (hàng ngày giờ ở mục mở đầu, chip nhảy nhanh, lưới ảnh). Phần "chạy" nằm ở
-// core/helpers/theme-boot.js, nạp sau file này.
-//
-// Bọc trong IIFE, chỉ lộ CX_THEME + renderWedding: `const` cấp cao nhất của
-// script cổ điển là biến toàn cục, trùng tên với trang khác là vỡ trang đó.
+// Thiệp dạng SLIDE kiểu tạp chí: các .rb-screen nằm chồng tại chỗ, vuốt thì màn
+// sau hiện dần đè lên màn trước; chữ và ảnh mang data-a chạy hiệu ứng mỗi lần màn hiện.
+// Phần đặc thù: rải ảnh album vào các màn trang trí (_fillPhotos), lịch tháng,
+// đếm ngược, chuyện tình chia tối đa 3 màn. Bọc IIFE, chỉ lộ
+// CX_THEME + renderWedding.
 
 (function () {
   window.CX_THEME = {
     id: "romantic-blush",
 
-    // Độ dài mốc chuyện tình XuXi viết (xem base-theme). Chữ hiện dần từng ký tự như đang viết tay — đoạn dài là khách chờ lâu.
+    // Chữ mốc chuyện tình nằm cạnh ảnh, cột hẹp, hai mốc một màn — đoạn ngắn mới vừa.
     loveStory: "short",
 
-    // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
-    wishesMode: "comment",
+    wishesMode: "card",
 
-    // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
-    // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
-    giftBox: "floral_pink",
+    // Hộp mừng cưới khi chủ thiệp chưa chọn — phong bì đỏ hợp tông đỏ đô.
+    giftBox: "phongbi_do_hy",
 
-    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-    music: { variant: "mini", chrome: "fixed-corner", art: "couple" },
+    // Đĩa nhạc neo góc phải trên, như mẫu gốc.
+    music: { variant: "disc", chrome: "fixed-corner", art: "couple" },
 
     // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
     // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
     // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
     // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
     palette: {
-      heading: "#4a3229",
-      body: "#8a6f64",
-      accent: "#c98a8e",
-      accent_soft: "#e8b4b8",
+      heading: "#4f1418",
+      body: "#7d4a4f",
+      accent: "#8a1a20",
+      accent_soft: "#d4a0a3",
       on_accent: "#ffffff",
       on_image: "#ffffff",
       on_lightbox: "#ffffff",
-      card_bg: "#fdf8f5",
-      page_bg: "#fbf4f0",
-      surface: "#fbf4f0",
-      band: "#fff5f0",
+      card_bg: "#fffcfa",
+      page_bg: "#efe6e3",
+      surface: "#f8f1ef",
+      band: "#fbf5f3",
       panel: "#ffffff",
-      panel_warm: "#fffcf7",
-      cover: "#fdf8f5",
-      cover_mid: "#f6e5e1",
-      cover_veil: "#f6e5e1",
+      panel_warm: "#fffaf8",
+      cover: "#efe6e3",
+      cover_mid: "#e3d0cd",
+      cover_veil: "#2a1517",
       lightbox_bg: "#000000",
-      line: "#f0d5d3",
+      line: "#5c2c30",
       shadow: "#000000",
       scrim: "#000000",
-      deco: "#d4a5a5",
-      deco_soft: "#f5d5d8",
-      deco_2: "#d4a5a5",
-      deco_2_soft: "#f5d5d8",
+      deco: "#8a1a20",
+      deco_soft: "#f0d6d8",
+      deco_2: "#b48a5a",
+      deco_2_soft: "#f1e6d8",
       shine_from: "#ffffff",
-      shine_mid: "#fdf5ec",
-      shine_to: "#e6d8ca",
+      shine_mid: "#f8e4e6",
+      shine_to: "#b48a5a",
     },
 
-    // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
-    // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
     swatches: [
-      "#4a3229",
-      "#6b4c3f",
-      "#8a6f64",
-      "#2e1f1a",
-      "#c98a8e",
-      "#e0a4a8",
-      "#e8bcbb",
-      "#f0d5d3",
-      "#faeae7",
-      "#fbf4f0",
-      "#ffffff",
+      "#8a1a20",
+      "#6e1418",
+      "#4f1418",
+      "#7d4a4f",
+      "#d4a0a3",
+      "#b48a5a",
+      "#f0d6d8",
+      "#efe6e3",
+      "#fffcfa",
+      "#2a1517",
     ],
 
-    // Mục mở đầu KHÔNG hiện dần: nó là thứ khách thấy ngay khi mở link, cho
-    // trượt vào thì có một nhịp trống trước đã.
-    reveal: ["#main-card section:not(#section-hero)"],
+    wishes: {},
 
-    // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true).
+    // Hiệu ứng của mẫu là data-a theo từng màn (_slides), không dùng hiện-dần
+    // chung của theme-boot. Selector này cố ý không khớp gì (mảng rỗng làm
+    // querySelectorAll("") ném lỗi).
+    reveal: ["#main-card .rb-reveal"],
+
     suggest: "#section-gift",
 
-    // Mẫu vẽ đủ mọi mục nên trang Thiết lập không phải bỏ bước nào.
-    skipSteps: [],
+    // Mẫu không có màn album: ảnh album rải vào các màn trang trí (_fillPhotos),
+    // nên bước Ảnh dẫn tới màn ảnh đầu tiên. Chuyện tình chia nhiều màn trong mục.
+    focus: { photos: ["#section-forever"], love_story: ["#love-story-list .rb-screen"] },
 
-    // id các mục trùng bảng mặc định của preview-focus-helper.js nên không cần
-    // khai `focus`.
+    skipSteps: [],
 
     onOpen: null,
   };
 
   const _isGroom = isGroomSide();
+  const _pad = (n) => String(n).padStart(2, "0");
+  const _day = (s) => (s ? new Date(s + "T00:00:00") : null);
+  const _SIGN = "Brief is life, but love is long.";
 
   // ============= ĐỔ DỮ LIỆU LÊN THIỆP =============
-  // Gọi theo đúng thứ tự các mục trong index.html.
 
   function renderWedding(w) {
     if (!w || !w.is_active) return;
@@ -105,11 +99,24 @@
     const partyDate = w[`${side}_party_date`];
     const partyLocation = w[`${side}_party_location`];
 
-    // --- Mở đầu ---
-    // Chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận src, mà
-    // setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi chạy —
-    // để nó đi trước là ảnh phải xếp hàng sau.
+    const isVuQuy = !_isGroom && cxEnabled(w.vu_quy_enabled);
+    const ceremonyName = isVuQuy ? "Lễ Vu Quy" : w.ceremony_name || "Lễ Thành Hôn";
+    const ceremonyTime = isVuQuy ? w.vu_quy_time : w.ceremony_time;
+    const ceremonyLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
+
+    // --- Màn 1 (mẫu không có màn bìa) --- chạy TRƯỚC setupMusic để ảnh màn đầu nhận src trước
     renderHero(w, false);
+    const cd = _day(w.ceremony_date);
+    setText("rb-hero-event", ceremonyName);
+    setText("rb-hero-d", cd ? _pad(cd.getDate()) : "", "--");
+    setText("rb-hero-m", cd ? _pad(cd.getMonth() + 1) : "", "--");
+    setText("rb-hero-y", cd ? String(cd.getFullYear()) : "", "----");
+    setText("rb-hero-place", partyLocation || ceremonyLoc, "");
+
+    // Ảnh trang trí của mọi màn lấy từ album
+    _fillPhotos(w);
+
+    // --- Màn Forever ---
     renderStoryQuote(w.story_quote);
 
     // --- Nhạc nền ---
@@ -117,719 +124,584 @@
 
     // --- Gia đình ---
     renderCoupleInfo(w);
+    _call("rb-groom-call", w.groom_phone);
+    _call("rb-bride-call", w.bride_phone);
+    cxToggle("groom-address", !!w.groom_address);
+    cxToggle("bride-address", !!w.bride_address);
     cxToggle("section-family", cxEnabled(w.enable_family));
 
-    // --- Thư mời: nhà gái bật Vu Quy thì thay toàn bộ phần lễ ---
-    const isVuQuy = !_isGroom && cxEnabled(w.vu_quy_enabled);
-    const ceremonyName = isVuQuy
-      ? "Lễ Vu Quy"
-      : w.ceremony_name || "Lễ Thành Hôn";
-    const ceremonyTime = isVuQuy ? w.vu_quy_time : w.ceremony_time;
-    const ceremonyLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
-
-    setText("invite-groom", w.groom_name, "----------");
-    setText("invite-bride", w.bride_name, "----------");
+    // --- Thư mời (màn Time) ---
     setText("ceremony-event-name", ceremonyName);
     renderCeremonyDate(w.ceremony_date, ceremonyTime, w.ceremony_lunar);
+    setText(
+      "rb-ceremony-date",
+      cd ? `${_pad(cd.getDate())}.${_pad(cd.getMonth() + 1)}.${cd.getFullYear()}` : "",
+      "--.--.----",
+    );
     if (ceremonyLoc) {
       setText("ceremony-location-text", ceremonyLoc);
       cxToggle("ceremony-location-wrap", true);
     }
+    _renderCalendar(w.ceremony_date, partyDate);
 
-    // Hàng ngày giờ + nơi tổ chức ở mục mở đầu — lấy NGÀY LỄ và nơi ĐÃI TIỆC,
-    // đúng cặp thông tin khách cần trước nhất.
-    renderHeroBanner(w.ceremony_date, ceremonyTime, partyLocation);
-
-    // Khối tóm tắt trong trình phát nhạc (kéo tay nắm xuống mới thấy) — dùng
-    // CHÍNH phần lễ đang hiển thị để nhà gái bật Vu Quy thì tóm tắt cũng đổi.
     renderMusicSummary(w, {
       ceremonyName,
       ceremonyTime,
       ceremonyLocation: ceremonyLoc,
     });
 
-    // --- Tiệc cưới (mỗi nhà một ngày/giờ/nơi riêng) ---
-    setText("party-section-label", "Tiệc Mừng " + ceremonyName);
-    renderPartyDate(
-      partyDate,
-      w[`${side}_party_time`],
-      w[`${side}_party_lunar`],
-      partyLocation,
-      "full",
-    );
+    // --- Tiệc cưới ---
+    setText("party-section-label", "Tiệc mừng " + ceremonyName.toLowerCase());
+    renderPartyDate(partyDate, w[`${side}_party_time`], w[`${side}_party_lunar`], partyLocation, "full");
     cxToggle("section-party", cxEnabled(w.enable_party));
 
-    // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
-    setupMiniCalendar(w.ceremony_date, partyDate);
+    // --- Địa điểm ---
+    renderVenueMaps(w, side);
 
-    // --- Xác nhận tham dự ---
+    // --- Xác nhận tham dự --- (lời nhắn riêng thay cho đoạn chữ mặc định)
     const rsvp = document.getElementById("rsvp-section");
     if (rsvp) rsvp.style.display = cxEnabled(w.rsvp_enabled) ? "flex" : "none";
     if (w.rsvp_message) {
-      const msg = document.getElementById("rsvp-custom-message");
-      if (msg) {
-        msg.textContent = w.rsvp_message;
-        msg.classList.remove("hidden");
-      }
+      setText("rsvp-custom-message", w.rsvp_message);
+      cxToggle("rsvp-custom-message", true);
+      cxToggle("rb-rsvp-lines", false);
     }
-
-    // --- Lịch trình ngày cưới ---
-    const hasTimeline = cxEnabled(w.enable_timeline);
-    if (hasTimeline) {
-      renderTimeline(
-        w.timeline,
-        side,
-        partyDate,
-        w.ceremony_date,
-        ceremonyName,
-      );
-      cxToggle("section-timeline", true);
-    }
+    _startCountdown(w.ceremony_date, ceremonyTime);
 
     // --- Chuyện tình yêu ---
     if (cxEnabled(w.enable_love_story)) {
-      renderLoveStory(w.love_story);
+      _renderStory(w.love_story);
     } else {
       cxToggle("love-story", false);
     }
 
-    // --- Album ảnh ---
-    const hasPhotos = cxEnabled(w.enable_photos);
-    if (hasPhotos) {
-      renderGallery(w.gallery_images, w.image_focal_points?.gallery_images);
-    } else {
-      cxToggle("section-photos", false);
+    // --- Lịch trình ---
+    if (cxEnabled(w.enable_timeline)) {
+      renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
+      cxToggle("section-timeline", true);
     }
 
     // --- Hộp mừng cưới ---
-    const hasGift = cxEnabled(w.enable_gift);
     renderQRCodes(w);
-    cxToggle("section-gift", hasGift);
-
-    // --- Bản đồ: tiệc, thêm bản đồ lễ khi hai nơi khác nhau ---
-    renderVenueMaps(w, side);
-
-    // Chip nhảy nhanh chỉ giữ lại mục thật sự có trên thiệp.
-    syncQuickNav({
-      timeline: hasTimeline,
-      photos: hasPhotos,
-      map: true,
-      gift: hasGift,
-    });
+    cxToggle("section-gift", cxEnabled(w.enable_gift));
 
     // --- Lời cảm ơn ---
     if (w.footer_text) setText("footer-text", w.footer_text);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
+
+    // Màn dựng động (album, chuyện tình) cần được theo dõi thêm
+    _slides();
   }
 
   window.renderWedding = renderWedding;
 
-  // ============= HÀNG NGÀY GIỜ + NƠI TỔ CHỨC (mục mở đầu) =============
-  // Định dạng riêng của mẫu ("THỨ BẢY · 20 / 07.2025 · 17.00") nên không dùng
-  // renderCeremonyDate — hàm đó đổ vào các id của mục Thư mời.
+  // ============= CHỒNG MÀN + HIỆU ỨNG =============
+  // Cờ .rb-fx/.rb-stack đặt sẵn ở <head> (tab Giao diện không có → thiệp trải dài
+  // như trang thường). Mọi màn nằm chồng tại chỗ; đổi màn = màn mới hiện dần đè
+  // lên màn cũ, không cuộn. Màn đang hiện mang .rb-on (hiệu ứng chạy), rời đi thì
+  // gỡ để lần quay lại chạy lại từ đầu, như slideshow.
+  const _fx = () => document.documentElement.classList.contains("rb-fx");
+  const _FADE_MS = 900;
+  const _SLIDE_SEL = ".rb-screen, .rb-body > .cx-custom-block, .rb-body > #cx-wish-sec";
+  let _list = [];
+  let _curEl = null;
+  let _busyUntil = 0;
 
-  function renderHeroBanner(ceremonyDate, ceremonyTime, venue) {
-    if (ceremonyDate) {
-      const d = new Date(ceremonyDate);
-      setText("hero-weekday", WEEKDAYS[d.getDay()]);
-      setText("hero-day", String(d.getDate()).padStart(2, "0"));
-      setText(
-        "hero-month-year",
-        `${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`,
+  // Danh sách màn theo THỨ TỰ HIỂN THỊ: mục lời chúc và khối văn bản tự thêm đứng
+  // chỗ của mình bằng flex `order`, nên xếp theo order của con trực tiếp .rb-body
+  // trước rồi mới tới thứ tự DOM. Màn đang tắt (display:none) thì bỏ.
+  function _collect() {
+    const body = document.querySelector("#main-card .rb-body");
+    if (!body) return [];
+    _pack(body);
+    const top = (el) => {
+      let t = el;
+      while (t.parentElement && t.parentElement !== body) t = t.parentElement;
+      return Number(getComputedStyle(t).order) || 0;
+    };
+    const nodes = Array.from(body.querySelectorAll(_SLIDE_SEL));
+    nodes.forEach((n) => n.classList.add("rb-slide"));
+    return nodes
+      .map((el, i) => ({ el, i, o: top(el) }))
+      .filter((x) => x.el.offsetParent !== null)
+      .sort((a, b) => a.o - b.o || a.i - b.i)
+      .map((x) => x.el);
+  }
+
+  // Màn thưa ghép vào màn khác: mục lời chúc (helper dựng thành một mục riêng,
+  // đứng một màn thì trống trải) chuyển vào màn Hộp mừng cưới; tắt quà thì vào
+  // màn Lời cảm ơn. Helper chỉ tìm mục theo id nên dời chỗ không ảnh hưởng; dựng
+  // lại (đổi dạng lời chúc) thì nó gắn vào cuối thân thiệp → MutationObserver
+  // gọi lại đây và mục được dời tiếp.
+  function _pack(body) {
+    const wish = document.getElementById("cx-wish-sec");
+    if (!wish) return;
+    const host = ["section-gift", "section-footer"]
+      .map((id) => document.getElementById(id))
+      .find((s) => s && getComputedStyle(s).display !== "none");
+    document.querySelectorAll(".rb-packed").forEach((s) => s !== host && s.classList.remove("rb-packed"));
+    if (!host) {
+      if (wish.parentElement !== body) body.appendChild(wish);
+      wish.classList.remove("rb-pack");
+      return;
+    }
+    host.classList.add("rb-packed");
+    if (wish.parentElement === host) return;
+    wish.classList.remove("rb-slide", "is-cur", "is-prev", "rb-on");
+    wish.classList.add("rb-pack");
+    host.appendChild(wish);
+  }
+
+  // Gọi sau mỗi lần dựng lại (render, mở thiệp, helper chèn thêm mục): gắn .rb-slide
+  // cho màn mới, giữ màn đang xem nếu nó vẫn còn, không thì về màn đầu.
+  function _slides() {
+    if (!_fx()) return;
+    _list = _collect();
+    if (!_list.length) return;
+    if (!_curEl || _list.indexOf(_curEl) < 0) _show(_list[0], true);
+    else _progress();
+  }
+
+  function _show(next, instant) {
+    if (!next || next === _curEl) return;
+    const prev = _curEl;
+    _list.forEach((s) => s !== prev && s !== next && s.classList.remove("is-prev", "rb-on"));
+    if (prev) {
+      prev.classList.remove("is-cur");
+      prev.classList.add("is-prev");
+      clearTimeout(prev._rbT);
+      prev._rbT = setTimeout(
+        () => prev !== _curEl && prev.classList.remove("is-prev", "rb-on"),
+        instant ? 0 : _FADE_MS,
       );
     }
-    // Giờ ghi kiểu thiệp in: "17.00" thay cho "17:00".
-    setText("hero-time", (ceremonyTime || "").replace(":", "."), "--.--");
-
-    // Nơi tổ chức là MỘT chuỗi ("White Palace, 194 Hoàng Văn Thụ, Phú Nhuận").
-    // Tách ở dấu phẩy đầu tiên: vế trước là tên, phần còn lại là địa chỉ.
-    const parts = (venue || "").split(",");
-    const name = parts.shift()?.trim() || "";
-    const address = parts.join(",").trim();
-    setText("hero-venue-name", name, "------------");
-    setText("hero-venue-address", address, "");
+    clearTimeout(next._rbT);
+    next.classList.remove("is-prev");
+    next.scrollTop = 0;
+    _activate(next);
+    next.classList.add("is-cur");
+    _curEl = next;
+    _progress();
   }
 
-  // ============= CHIP NHẢY NHANH (mục mở đầu) =============
-  // Mỗi chip là một liên kết #section-… ; mục bị tắt trong Thiết lập thì ẩn chip
-  // đi, và không còn chip nào thì ẩn cả hàng cho khỏi hở một khoảng trống.
+  // Thanh điều hướng đáy thiệp: vạch chia đoạn theo số màn + bảng chọn màn.
+  // Lần đầu bung sẵn rồi tự thu (khách biết có nó); chạm vạch là bung lại.
+  let _nav = null;
+  let _navKey = "";
+  let _navT = 0;
 
-  function syncQuickNav(state) {
-    let any = false;
-    Object.keys(state).forEach((key) => {
-      cxToggle("quicknav-" + key, state[key]);
-      if (state[key]) any = true;
+  function _label(el, i) {
+    if (el.dataset.rbLabel) return el.dataset.rbLabel;
+    if (el.id === "cx-wish-sec") return "Lời chúc";
+    if (el.classList.contains("cx-custom-block")) return "Lời nhắn";
+    return "Màn " + (i + 1);
+  }
+
+  function _navOpen(open, ms) {
+    if (!_nav) return;
+    clearTimeout(_navT);
+    const was = _nav.classList.contains("is-open");
+    _nav.classList.toggle("is-open", open);
+    // Đang mở mà thu lại → vạch nảy đón bảng (is-land gỡ đi để lần sau chạy lại).
+    if (was && !open) {
+      _nav.classList.remove("is-land");
+      void _nav.offsetWidth;
+      _nav.classList.add("is-land");
+      clearTimeout(_nav._landT);
+      _nav._landT = setTimeout(() => _nav.classList.remove("is-land"), 1400);
+    }
+    _nav.querySelector(".rb-nav-bar").setAttribute("aria-expanded", String(open));
+    if (open && ms) _navT = setTimeout(() => _navOpen(false), ms);
+  }
+
+  // Gom màn theo MỤC (con trực tiếp của .rb-body): Our Story nhiều trang chỉ là
+  // một bước trên thanh. Nhãn bước = nhãn của mục, mục không khai thì của màn đầu.
+  let _groups = [];
+  function _group() {
+    const body = document.querySelector("#main-card .rb-body");
+    const out = [];
+    _list.forEach((el, i) => {
+      let top = el;
+      while (top.parentElement && top.parentElement !== body) top = top.parentElement;
+      const last = out[out.length - 1];
+      if (last && last.top === top) last.slides.push(el);
+      else out.push({ top, slides: [el], label: (top !== el && top.dataset.rbLabel) || _label(el, i) });
     });
-    cxToggle("hero-quicknav", any);
+    return out;
   }
 
-  // ============= ALBUM ẢNH (phần đặc thù của mẫu) =============
-  // Dàn đúng theo cặp trang của album ảnh in trong mẫu tham chiếu:
-  //   · Trang A — ảnh tràn viền cả trang; đè lên nửa dưới, lệch sang phải là một
-  //     THẺ TRẮNG: ảnh nhỏ ở trên, hai dòng chữ viết tay (dòng sau có cụm nhỏ
-  //     hơn), rồi mấy dòng chữ xám li ti.
-  //   · Trang B — trang giấy trắng: ảnh ngang ở trên; dưới là ảnh ĐỨNG bên trái
-  //     và ảnh thấp hơn bên phải, cụm chữ viết tay canh phải lấp khoảng trắng
-  //     hụt dưới ảnh phải, dòng cuối nhỏ hơn hẳn.
-  //   · Trang C — biến tấu để album không lặp style: lưới ảnh đứng + hai ảnh
-  //     vuông ở trên, dải ảnh ngang có chữ đè lên ở dưới.
-  // Chữ trên album là văn bản CỐ ĐỊNH của mẫu (RB_CARD_TEXTS / RB_SCRIPT_TEXTS)
-  // — slogan của khách đã hiện ở mục mở đầu rồi.
-
-  const RB_CARD_TEXTS = [
-    {
-      lead: "When soul",
-      tail: "fall",
-      em: "in love",
-      sub: "And when our eyes met, I knew. I wasn't just looking at you — I was looking at my soul mate.",
-    },
-    {
-      lead: "Two hearts",
-      tail: "one",
-      em: "story",
-      sub: "Ngày mình gặp nhau, cả thế giới bỗng dịu lại. Từ hôm ấy, mỗi ngày bình thường đều hoá đặc biệt.",
-    },
-  ];
-
-  const RB_SCRIPT_TEXTS = [
-    ["Your soul", "is what", "makes you", "attractive"],
-    ["Every day", "with you", "is my", "favourite day"],
-    ["Together", "is our", "favourite", "place"],
-  ];
-
-  function rbShot(url, fp, i, cls) {
-    return `
-      <div class="rb-shot ${cls || ""}" data-lb="${i}">
-        <img src="${cxImgSrc(url)}" alt="" class="w-full h-full object-cover"
-          style="object-position:${cxFocal(fp)}" loading="lazy" />
-      </div>`;
-  }
-
-  // Cụm chữ viết tay canh phải; dòng CUỐI nhỏ hơn hẳn như chữ ký khép lại.
-  function rbScriptLines(lines) {
-    return `<div class="rb-album-script">${lines
+  function _navBuild() {
+    const card = document.getElementById("main-card");
+    if (!card) return;
+    if (!_nav) {
+      _nav = document.createElement("nav");
+      _nav.className = "rb-nav";
+      _nav.setAttribute("aria-label", "Chuyển màn");
+      _nav.innerHTML =
+        '<div class="rb-nav-panel"><div class="rb-nav-hint">Chạm để tới màn bất kỳ</div>' +
+        '<x-button variant="bare" icon-only class="rb-nav-x" aria-label="Đóng danh sách màn">' +
+        '<i data-lucide="x" class="cx-ic"></i></x-button>' +
+        '<div class="rb-nav-list"></div></div>' +
+        '<button type="button" class="rb-nav-bar" aria-label="Danh sách màn" aria-expanded="false"></button>';
+      card.appendChild(_nav);
+      window.lucide?.createIcons({ root: _nav });
+      // Uỷ quyền qua _nav: lúc dựng trang còn "loading" nên <x-button> đợi
+      // DOMContentLoaded mới thay mình bằng <button> — gắn thẳng là mất listener.
+      _nav.addEventListener("click", (e) => {
+        if (e.target.closest?.(".rb-nav-x")) _navOpen(false);
+      });
+      _nav.querySelector(".rb-nav-bar").addEventListener("click", () =>
+        _navOpen(!_nav.classList.contains("is-open"), 0),
+      );
+      _nav.querySelector(".rb-nav-list").addEventListener("click", (e) => {
+        const chip = e.target.closest(".rb-nav-chip");
+        if (!chip) return;
+        _show(_groups[Number(chip.dataset.g)]?.slides[0]); // tới màn ĐẦU của mục
+        _navOpen(true, 1200); // để khách thấy mình đã tới đâu rồi mới thu
+      });
+      // Chạm ra ngoài bảng thì thu lại.
+      card.addEventListener("click", (e) => {
+        if (_nav.classList.contains("is-open") && !_nav.contains(e.target)) _navOpen(false);
+      });
+      // Mới vào: bảng ẩn, đợi màn đầu chạy xong hiệu ứng chính mới mọc lên từ vạch,
+      // để một lúc cho khách đọc rồi thu gọn về lại vạch tiến độ.
+      _navT = setTimeout(() => _navOpen(true, 3000), 1600); // khách đã tự chạm vạch thì huỷ
+    }
+    _groups = _group();
+    const key = _groups.map((g) => g.label + ":" + g.slides.length).join("|");
+    if (key === _navKey) return;
+    _navKey = key;
+    _nav.querySelector(".rb-nav-list").innerHTML = _groups
       .map(
-        (l, i) =>
-          `<span${i === lines.length - 1 ? ' class="rb-script-last"' : ""}>${escapeHtml(l)}</span>`,
+        (g, i) =>
+          `<button type="button" class="rb-nav-chip" data-g="${i}"><b>${_pad(i + 1)}</b><span>${escapeHtml(g.label)}</span></button>`,
       )
-      .join("")}</div>`;
-  }
-
-  // Mỗi kiểu trang nhận (take, shot, card, script): take() lấy chỉ số ảnh kế
-  // tiếp (hết ảnh trả null), shot() dựng một ô ảnh, card/script là văn bản của
-  // trang. Kiểu nào cũng phải ăn ÍT NHẤT một ảnh, không thì vòng dựng trang
-  // không bao giờ dừng. Khổ từng ô do theme.css chia (mọi trang cao bằng nhau)
-  // nên ở đây KHÔNG khai tỉ lệ ảnh.
-  const RB_ALBUM_LAYOUTS = [
-    // Trang A — ảnh tràn viền + thẻ trắng đè lên.
-    (take, shot, card) => {
-      const bg = take();
-      const inner = take();
-      return `
-      <div class="rb-page-bleed">
-        ${shot(bg)}
-        <div class="rb-quote-card">
-          ${shot(inner, "rb-card-shot")}
-          <div class="rb-card-lead">${escapeHtml(card.lead)}</div>
-          <div class="rb-card-tail">${escapeHtml(card.tail)}
-            <span class="rb-card-em">${escapeHtml(card.em)}</span>
-          </div>
-          <p class="rb-card-sub">${escapeHtml(card.sub)}</p>
-        </div>
-      </div>`;
-    },
-
-    // Trang B — trang giấy trắng.
-    (take, shot, card, script) => {
-      const wide = take();
-      const l = take();
-      const r = take();
-      return `
-      <div class="rb-page">
-        ${shot(wide)}
-        ${
-          l !== null
-            ? `<div class="rb-page-pair">
-          ${shot(l)}
-          <div class="rb-pair-side">
-            ${shot(r)}
-            ${rbScriptLines(script)}
-          </div>
-        </div>`
-            : rbScriptLines(script)
-        }
-      </div>`;
-    },
-
-    // Trang C — lưới ảnh ở trên, dải ảnh có chữ ở dưới.
-    (take, shot, card, script) => {
-      const tall = take();
-      const a = take();
-      const b = take();
-      const band = take();
-      return `
-      <div class="rb-page">
-        <div class="rb-split-grid">
-          ${shot(tall, "rb-shot-tall")}
-          ${shot(a)}
-          ${shot(b)}
-        </div>
-        ${
-          band !== null
-            ? `<div class="rb-band">
-          ${shot(band)}
-          <div class="rb-band-line">${escapeHtml(script.slice(0, 2).join(" "))}</div>
-        </div>`
-            : rbScriptLines(script)
-        }
-      </div>`;
-    },
-  ];
-
-  function rbAlbumPages(urls, fpOf) {
-    const pages = [];
-    let i = 0;
-    let b = 0;
-    const take = () => (i < urls.length ? i++ : null);
-    const shot = (idx, cls) =>
-      idx === null ? "" : rbShot(urls[idx], fpOf(idx), idx, cls);
-
-    while (i < urls.length) {
-      const layout = RB_ALBUM_LAYOUTS[b % RB_ALBUM_LAYOUTS.length];
-      pages.push(
-        layout(
-          take,
-          shot,
-          RB_CARD_TEXTS[b % RB_CARD_TEXTS.length],
-          RB_SCRIPT_TEXTS[b % RB_SCRIPT_TEXTS.length],
-        ),
-      );
-      b += 1;
-    }
-    return pages.join("");
-  }
-
-  function renderGallery(images, focalPoints) {
-    const grid = document.getElementById("gallery-grid");
-    if (!grid) return;
-
-    // Chưa có ảnh → vài ô minh hoạ, để khách hình dung bố cục lúc đang soạn.
-    const urls = images?.length
-      ? images.map(getImageUrl)
-      : Array(5)
-          .fill(null)
-          .map(() => createPlaceholderSVG("Chưa có ảnh"));
-
-    // Kho ảnh của lightbox dùng chung — phải khớp thứ tự với lưới.
-    lightboxImages.length = 0;
-    lightboxImages.push(...urls);
-
-    grid.innerHTML = rbAlbumPages(urls, (i) => focalPoints?.[images?.[i]]);
-    grid.querySelectorAll("[data-lb]").forEach((el) => {
-      el.addEventListener("click", () => openLightbox(Number(el.dataset.lb)));
-    });
-
-    rbSetupAlbumDots();
-    rbSetupAlbumSwipe();
-  }
-
-  // ============= ALBUM: CHẤM CHỈ SỐ ẢNH =============
-  // Mỗi khung hình một chấm; chấm đang xem dài ra. Bấm chấm thì trượt tới khung
-  // đó. Chấm đang xem xác định bằng khung nào gần TÂM dải nhất (dải canh giữa).
-
-  let rbDotsCleanup = null;
-
-  function rbSetupAlbumDots() {
-    rbDotsCleanup?.();
-    rbDotsCleanup = null;
-
-    const album = document.getElementById("gallery-grid");
-    const bar = document.getElementById("album-dots");
-    if (!album || !bar) return;
-
-    const cards = [...album.children];
-    bar.innerHTML = "";
-    if (cards.length < 2) return;
-
-    cards.forEach((card, i) => {
-      const dot = document.createElement("button");
-      dot.type = "button";
-      dot.className = "rb-dot";
-      dot.setAttribute("aria-label", `Khung hình ${i + 1}`);
-      dot.addEventListener("click", () => {
-        album.scrollTo({
-          left: card.offsetLeft - (album.clientWidth - card.offsetWidth) / 2,
-          behavior: "smooth",
-        });
-      });
-      bar.appendChild(dot);
-    });
-
-    const dots = [...bar.children];
-    let ticking = false;
-    const sync = () => {
-      ticking = false;
-      const mid = album.scrollLeft + album.clientWidth / 2;
-      let best = 0;
-      let min = Infinity;
-      cards.forEach((c, i) => {
-        const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid);
-        if (d < min) {
-          min = d;
-          best = i;
-        }
-      });
-      dots.forEach((d, i) => d.classList.toggle("is-on", i === best));
-    };
-
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(sync);
-    };
-
-    album.addEventListener("scroll", onScroll, { passive: true });
-    sync();
-
-    rbDotsCleanup = () => album.removeEventListener("scroll", onScroll);
-  }
-
-  // ============= ALBUM: VUỐT DỌC = TRƯỢT SANG ẢNH KẾ =============
-  // Khi dải album đang chắn ngang màn mà khách CHƯA xem hết, cử chỉ cuộn dọc bị
-  // giữ lại và đổi thành TRƯỢT MỀM sang khung hình kế tiếp — một cử chỉ đi một
-  // khung, có chuyển động rõ ràng nên không ai tưởng trang bị đơ. Xem tới ảnh
-  // cuối mới nhả cho trang đi tiếp. Lúc bắt đầu giữ, dải được kéo về GIỮA MÀN
-  // HÌNH một lần cho khách xem trọn khung.
-  // CHỈ giữ cử chỉ cuộn XUỐNG. Cuộn LÊN luôn cho trang chạy bình thường: giữ cả
-  // hai chiều thì khách muốn quay lại phải vuốt ngược hết dải ảnh mới thoát ra
-  // được.
-  // Không cộng thẳng vào scrollLeft: dải có scroll-snap mandatory, cộng từng ít
-  // một sẽ bị snap kéo lại, nhìn như treo.
-  // Phải nghe với { passive: false } thì preventDefault mới có tác dụng.
-
-  const RB_SWIPE_MIN = 34; // px vuốt dọc tối thiểu để tính là một cử chỉ
-  // Số lần cử chỉ dọc được đổi thành trượt ngang trong MỘT lượt ghé album: đủ
-  // để khách thấy có trang thứ hai (tức là tự hiểu vuốt ngang xem tiếp được),
-  // hết lượt thì trả cuộn dọc về trang. Rời album rồi quay lại là tính lại lượt.
-  const RB_SWIPE_MAX = 1;
-  let rbSwipeCleanup = null;
-
-  function rbSetupAlbumSwipe() {
-    rbSwipeCleanup?.();
-    rbSwipeCleanup = null;
-
-    const album = document.getElementById("gallery-grid");
-    if (!album) return;
-    // Máy tắt hiệu ứng chuyển động: giữ cuộn dọc nguyên bản, khỏi giữ khách lại.
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-
-    // Dải đang chắn ngang màn (cắt qua khoảng giữa) thì mới giữ cử chỉ — và
-    // không giữ khi đang mở ảnh phóng to, kẻo khách không cuộn được trong đó.
-    const engaged = () => {
-      if (!document.getElementById("lightbox")?.classList.contains("hidden"))
-        return false;
-      const r = album.getBoundingClientRect();
-      const h = window.innerHeight || 0;
-      return r.top < h * 0.4 && r.bottom > h * 0.6;
-    };
-
-    // Chỉ nhận chiều XUỐNG (dir > 0), khi dải còn ảnh chưa xem và lượt giữ chưa
-    // dùng hết.
-    const room = (dir) => {
-      if (dir <= 0 || used >= RB_SWIPE_MAX) return false;
-      const max = album.scrollWidth - album.clientWidth;
-      return max > 1 && album.scrollLeft < max - 2;
-    };
-
-    let busy = false;
-    let centered = false;
-    let used = 0;
-
-    // Kéo dải về giữa màn hình MỘT LẦN mỗi lượt vào tầm giữ — không lặp lại thì
-    // sẽ đánh nhau với chính cú cuộn của khách. Rời khỏi tầm thì cho phép lại.
-    const centerOnce = () => {
-      if (centered) return;
-      centered = true;
-      album.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "nearest",
-      });
-    };
-
-    const onPageScroll = () => {
-      if (engaged()) {
-        centerOnce();
-        return;
-      }
-      // Ra khỏi tầm giữ → nạp lại lượt cho lần ghé sau.
-      centered = false;
-      used = 0;
-    };
-
-    // Trượt tới khung hình kế tiếp, canh giữa dải.
-    const slide = () => {
-      const mid = album.scrollLeft + album.clientWidth / 2;
-      const next = [...album.children].find(
-        (c) => c.offsetLeft + c.offsetWidth / 2 > mid + 8,
-      );
-      if (!next) return false;
-
-      busy = true;
-      used += 1;
-      album.scrollTo({
-        left: next.offsetLeft - (album.clientWidth - next.offsetWidth) / 2,
-        behavior: "smooth",
-      });
-      setTimeout(() => {
-        busy = false;
-      }, 420);
-      return true;
-    };
-
-    const gesture = (dir, e) => {
-      if (!engaged() || !room(dir)) return;
-      e.preventDefault();
-      centerOnce();
-      if (busy) return;
-      slide();
-    };
-
-    let acc = 0;
-    const onWheel = (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      if (!engaged() || !room(Math.sign(e.deltaY))) {
-        acc = 0;
-        return;
-      }
-      e.preventDefault();
-      centerOnce();
-      if (busy) return;
-      // Chuột lăn cho delta lớn, bàn di cho hàng chục delta nhỏ → cộng dồn.
-      acc += e.deltaY;
-      if (acc < RB_SWIPE_MIN) return;
-      if (slide()) acc = 0;
-    };
-
-    let y0 = 0;
-    let x0 = 0;
-    const onTouchStart = (e) => {
-      y0 = e.touches[0].clientY;
-      x0 = e.touches[0].clientX;
-    };
-    const onTouchMove = (e) => {
-      const dy = y0 - e.touches[0].clientY;
-      const dx = x0 - e.touches[0].clientX;
-      // Vuốt ngang thật thì để dải tự cuộn theo kiểu của trình duyệt.
-      if (Math.abs(dx) > Math.abs(dy)) return;
-      // Vuốt LÊN (dy < 0) để nguyên cho trang cuộn ngược ra khỏi album.
-      if (dy <= 0) return;
-      if (dy < RB_SWIPE_MIN) {
-        // Vẫn phải chặn ngay từ đoạn vuốt đầu, không thì trang kịp trôi xuống.
-        if (engaged() && room(1)) e.preventDefault();
-        return;
-      }
-      y0 = e.touches[0].clientY;
-      x0 = e.touches[0].clientX;
-      gesture(Math.sign(dy), e);
-    };
-
-    window.addEventListener("scroll", onPageScroll, { passive: true });
-    window.addEventListener("wheel", onWheel, { passive: false });
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
-
-    rbSwipeCleanup = () => {
-      window.removeEventListener("scroll", onPageScroll);
-      window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
-    };
-  }
-
-  // ============= CHUYỆN TÌNH YÊU (phần đặc thù của mẫu) =============
-  // Ghi đè renderLoveStory của render-helper.js (nạp TRƯỚC file này): mỗi mẩu
-  // chuyện là MỘT tờ giấy rách mép, góc trái trên cong lên. Chữ hiện dần từng
-  // ký tự như đang viết; MỘT cây bút máy chạy theo đầu con chữ rồi mờ đi khi
-  // viết xong (không gác lại trên giấy).
-  // Giữ .cx-hd/.cx-ac trên từng dòng chữ để màu vẫn theo tab Giao diện; riêng
-  // FONT bị ghim ở theme.css cho ra nét viết tay.
-
-  const RB_INK_MS = 26; // nhịp hiện mỗi ký tự
-
-  // MỘT cây bút máy dùng chung cho cả mục, nằm trong #love-story-list và chỉ
-  // hiện lúc đang viết — viết xong thì mờ đi, không gác lại trên giấy.
-  const RB_PEN = `
-    <svg class="rb-pen" viewBox="0 0 160 22" fill="none" aria-hidden="true">
-      <path d="M2 11 24 5.5v11L2 11Z" fill="#15120f" />
-      <path d="M12 11h9" stroke="#6b6b6b" stroke-width="1" />
-      <rect x="24" y="4.5" width="10" height="13" rx="2" fill="#3a342e" />
-      <rect x="34" y="3.5" width="88" height="15" rx="7.5" fill="#15120f" />
-      <rect x="40" y="6" width="70" height="3" rx="1.5" fill="#fff" opacity=".14" />
-      <rect x="118" y="3.5" width="40" height="15" rx="7.5" fill="#0d0b09" />
-      <rect x="116" y="3.5" width="4" height="15" fill="#8c8c8c" opacity=".7" />
-      <rect x="130" y="1" width="4" height="12" rx="2" fill="#8c8c8c" opacity=".8" />
-    </svg>`;
-
-  // Cắt chuỗi thành từng ký tự bọc <span> để hiện dần. Dấu cách để nguyên (không
-  // bọc) cho trình duyệt còn chỗ ngắt dòng như văn bản thường.
-  function rbInk(str) {
-    return [...String(str)]
-      .map((ch) =>
-        ch === " " ? " " : `<span class="rb-ink">${escapeHtml(ch)}</span>`,
-      )
+      .join("");
+    _nav.querySelector(".rb-nav-bar").innerHTML = _groups
+      .map((_, i) => `<i style="--n:${i}"></i>`)
       .join("");
   }
 
-  // Hiện dần từng ký tự, bút bám theo ký tự vừa hiện rồi biến mất khi viết xong.
-  // Toạ độ tính trong #love-story-list vì cây bút neo theo khung đó.
-  function rbWrite(wrap, pen, done) {
-    const chars = wrap.querySelectorAll(".rb-ink");
-    const stage = pen?.parentElement;
-    let i = 0;
-
-    const finish = () => {
-      chars.forEach((el) => el.classList.add("is-inked"));
-      if (pen) pen.style.opacity = "0";
-      done?.();
-    };
-
-    const step = () => {
-      // Cuộn vượt qua tờ giấy giữa chừng thì viết nốt ngay, khỏi giữ cây bút ở
-      // một chỗ khách không còn nhìn thấy.
-      if (i >= chars.length || !rbInView(wrap)) {
-        finish();
-        return;
-      }
-      const el = chars[i++];
-      el.classList.add("is-inked");
-      if (pen && stage) {
-        const r = el.getBoundingClientRect();
-        const s = stage.getBoundingClientRect();
-        // transform-origin của bút đặt ngay đầu ngòi (theme.css) nên translate
-        // chính là toạ độ đầu ngòi; nhấc lên vài px cho ngòi chạm chân chữ.
-        pen.style.transform =
-          `translate(${r.right - s.left}px, ${r.bottom - s.top - 7}px)` +
-          " perspective(340px) rotateX(26deg) rotateZ(-24deg)";
-        pen.style.opacity = "1";
-      }
-      setTimeout(step, RB_INK_MS);
-    };
-    step();
+  function _progress() {
+    if (!_curEl) return;
+    _navBuild();
+    if (!_nav) return;
+    const cur = _groups.findIndex((g) => g.slides.includes(_curEl));
+    _nav.querySelectorAll(".rb-nav-bar i").forEach((n, i) => n.classList.toggle("is-done", i <= cur));
+    const list = _nav.querySelector(".rb-nav-list");
+    list.querySelectorAll(".rb-nav-chip").forEach((n, i) => {
+      n.classList.toggle("is-cur", i === cur);
+      if (i === cur) n.setAttribute("aria-current", "step");
+      else n.removeAttribute("aria-current");
+    });
+    // Tự cuộn dải chip cho màn đang xem nằm giữa — đặt scrollLeft, đừng dùng
+    // scrollIntoView (nó cuộn lây cả màn chứa thanh).
+    const chip = list.children[cur];
+    if (chip) list.scrollLeft = chip.offsetLeft - (list.clientWidth - chip.offsetWidth) / 2;
+    _nav.classList.toggle("is-dark", _curEl.dataset.rbTone === "dark");
   }
 
-  function rbInView(el) {
-    const r = el.getBoundingClientRect();
-    return r.bottom > 0 && r.top < (window.innerHeight || 0);
+  function _step(dir) {
+    if (Date.now() < _busyUntil) return;
+    _list = _collect();
+    const i = _list.indexOf(_curEl);
+    const next = _list[Math.max(0, Math.min(_list.length - 1, (i < 0 ? 0 : i) + dir))];
+    if (!next || next === _curEl) return;
+    _busyUntil = Date.now() + _FADE_MS;
+    _show(next);
   }
 
-  // Chỉ MỘT tờ được viết tại một thời điểm: vuốt nhanh làm nhiều tờ cùng lọt vào
-  // tầm nhìn, để chạy song song thì cây bút (chỉ có một) nhảy loạn giữa các tờ.
-  // Tờ đến lượt mà đã cuộn qua mất thì hiện thẳng chữ.
-  const rbQueue = [];
-  let rbBusy = false;
-
-  function rbEnqueue(wrap, pen) {
-    rbQueue.push(wrap);
-    rbPump(pen);
+  function _activate(screen) {
+    screen.classList.remove("rb-on");
+    screen.querySelectorAll('[data-a^="ch"]').forEach(_split);
+    void screen.offsetWidth; // gỡ rồi gắn lại trong cùng nhịp vẫn chạy lại animation
+    screen.classList.add("rb-on");
   }
 
-  function rbPump(pen) {
-    if (rbBusy) return;
-    const wrap = rbQueue.shift();
-    if (!wrap) return;
+  // Màn đang xem cuộn được bên trong thì chỉ đổi màn khi đã chạm mép theo hướng vuốt.
+  function _atEdge(dir) {
+    const s = _curEl;
+    if (!s || s.scrollHeight <= s.clientHeight + 2) return true;
+    return dir > 0
+      ? s.scrollTop + s.clientHeight >= s.scrollHeight - 2
+      : s.scrollTop <= 2;
+  }
 
-    if (!rbInView(wrap)) {
-      wrap
-        .querySelectorAll(".rb-ink")
-        .forEach((el) => el.classList.add("is-inked"));
-      rbPump(pen);
-      return;
+  function _wireGestures() {
+    const card = document.getElementById("main-card");
+    if (!card) return;
+
+    // Vuốt dọc. Mép được chốt lúc BẮT ĐẦU chạm: vuốt tới cuối màn dài thì lần vuốt
+    // đó chỉ cuộn, lần sau mới sang màn.
+    let sx = 0;
+    let sy = 0;
+    let edge = { 1: true, "-1": true };
+    card.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches[0];
+        sx = t.clientX;
+        sy = t.clientY;
+        edge = { 1: _atEdge(1), "-1": _atEdge(-1) };
+      },
+      { passive: true },
+    );
+    // Màn không cuộn được thì chặn kéo dọc để trình duyệt khỏi nảy cả trang.
+    card.addEventListener(
+      "touchmove",
+      (e) => {
+        const t = e.touches[0];
+        if (Math.abs(t.clientY - sy) <= Math.abs(t.clientX - sx)) return;
+        if (e.target.closest?.("textarea, input")) return;
+        const s = _curEl;
+        if (s && s.scrollHeight <= s.clientHeight + 2 && e.cancelable) e.preventDefault();
+      },
+      { passive: false },
+    );
+    card.addEventListener(
+      "touchend",
+      (e) => {
+        const t = e.changedTouches[0];
+        const dy = sy - t.clientY;
+        const dx = sx - t.clientX;
+        if (Math.abs(dy) < 40 || Math.abs(dy) < Math.abs(dx)) return;
+        const dir = dy > 0 ? 1 : -1;
+        if (edge[dir]) _step(dir);
+      },
+      { passive: true },
+    );
+
+    // Lăn chuột / bàn di: dồn deltaY cho đủ một nấc rồi mới đổi màn.
+    let acc = 0;
+    let accT = 0;
+    card.addEventListener(
+      "wheel",
+      (e) => {
+        const dir = e.deltaY > 0 ? 1 : -1;
+        if (!_atEdge(dir)) return;
+        e.preventDefault();
+        if (Date.now() < _busyUntil) return;
+        acc += e.deltaY;
+        clearTimeout(accT);
+        accT = setTimeout(() => (acc = 0), 200);
+        if (Math.abs(acc) > 40) {
+          acc = 0;
+          _step(dir);
+        }
+      },
+      { passive: false },
+    );
+
+    document.addEventListener("keydown", (e) => {
+      if (e.target.closest?.("textarea, input")) return;
+      if (["ArrowDown", "PageDown", " "].includes(e.key)) _step(1);
+      else if (["ArrowUp", "PageUp"].includes(e.key)) _step(-1);
+      else return;
+      e.preventDefault();
+    });
+
+    // Helper chèn mục sau khi dựng (lời chúc, khối văn bản) → cập nhật danh sách màn.
+    const body = card.querySelector(".rb-body");
+    if (body && typeof MutationObserver === "function") {
+      new MutationObserver(() => _slides()).observe(body, { childList: true });
     }
 
-    rbBusy = true;
-    rbWrite(wrap, pen, () => {
-      rbBusy = false;
-      rbPump(pen);
+    // Trang Thiết lập gửi {type:"cx-focus", key} để tới mục đang chỉnh. Helper
+    // chung chỉ biết cuộn trang (vô tác dụng ở đây) → tìm mục rồi mở màn chứa nó.
+    window.addEventListener("message", (ev) => {
+      if (ev.source !== window.parent || ev.data?.type !== "cx-focus" || !ev.data.key) return;
+      const key = String(ev.data.key);
+      let tries = 0;
+      const run = () => {
+        _list = _collect();
+        if (key === "couple") return _show(_list[0]);
+        const el = typeof _cxFocusFind === "function" ? _cxFocusFind(key) : null;
+        if (!el) {
+          if (++tries < 8) setTimeout(run, 120);
+          return;
+        }
+        _show(el.closest(".rb-slide"));
+      };
+      run();
     });
   }
 
-  // Chỉ viết khi tờ giấy vào tầm nhìn — lúc đó bố cục đã ổn định, toạ độ đo mới đúng.
-  // Máy tắt hiệu ứng chuyển động thì hiện thẳng chữ, không chạy bút.
-  function rbSetupWriter(wrap, pen) {
-    const reduced = window.matchMedia?.(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    const start = () => {
-      if (reduced) {
-        wrap
-          .querySelectorAll(".rb-ink")
-          .forEach((el) => el.classList.add("is-inked"));
-        return;
-      }
-      requestAnimationFrame(() => rbEnqueue(wrap, pen));
-    };
-
-    if (!("IntersectionObserver" in window)) {
-      start();
-      return;
-    }
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (!e.isIntersecting) return;
-          io.disconnect();
-          start();
-        });
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(wrap);
+  // Tách chữ trơn thành từng ký tự (--i = thứ tự) để chạy hiệu ứng lần lượt.
+  // Gom theo từ (inline-block nowrap) cho khỏi xuống dòng giữa một từ. Chữ bị
+  // setText ghi đè sau đó thì lần kích hoạt sau tách lại.
+  const _seg =
+    typeof Intl !== "undefined" && Intl.Segmenter
+      ? new Intl.Segmenter("vi", { granularity: "grapheme" })
+      : null;
+  function _split(el) {
+    if (el.children.length || !el.textContent.trim()) return;
+    const text = el.textContent.replace(/\s+/g, " ").trim();
+    const chars = (word) =>
+      _seg ? Array.from(_seg.segment(word), (x) => x.segment) : Array.from(word.normalize("NFC"));
+    el.textContent = "";
+    let i = 0;
+    text.split(" ").forEach((word, wi) => {
+      if (wi) el.appendChild(document.createTextNode(" "));
+      const w = document.createElement("span");
+      w.className = "rb-w";
+      chars(word).forEach((c) => {
+        const s = document.createElement("span");
+        s.className = "rb-ch";
+        s.textContent = c;
+        s.style.setProperty("--i", i++);
+        w.appendChild(s);
+      });
+      el.appendChild(w);
+    });
   }
 
-  function rbRenderLoveStory(events) {
-    const section = document.getElementById("love-story");
-    if (!section) return;
+  // Mẫu không có màn bìa: hiện màn 1 ngay khi nạp (đặt SAU _split — _activate cần nó).
+  if (_fx()) {
+    _wireGestures();
+    _slides();
+  }
 
-    if (!Array.isArray(events) || events.length === 0) {
+  // Tên khách của link mời — trước nằm ở màn bìa, nay ở màn 1. Helper chung điền
+  // #cover-guest-name; link chung (không ?name=) thì khối này giấu hẳn.
+  if (
+    new URLSearchParams(location.search).has("name") &&
+    !(typeof isPreviewMode === "function" && isPreviewMode())
+  ) {
+    // cxToggle nằm ở theme-boot.js (nạp SAU file này) → gỡ class trực tiếp.
+    document.getElementById("rb-guest")?.classList.remove("hidden");
+  }
+
+  // ============= ẢNH TRANG TRÍ =============
+  // <img data-rb-g="N"> nhận ảnh thứ N của album, quay vòng khi album ít ảnh hơn;
+  // data-rb-g="cover" (hoặc album rỗng) lấy ảnh bìa.
+  function _fillPhotos(w) {
+    const imgs = Array.isArray(w.gallery_images) ? w.gallery_images.filter(Boolean) : [];
+    const fps = w.image_focal_points || {};
+    document.querySelectorAll("img[data-rb-g]").forEach((el) => {
+      const k = el.dataset.rbG;
+      let file = w.cover_image_url;
+      let fp = fps.cover_image_url;
+      if (k !== "cover" && imgs.length) {
+        file = imgs[Number(k) % imgs.length];
+        fp = fps.gallery_images?.[file];
+      }
+      el.src = getImageUrl(file);
+      el.style.objectPosition = cxFocal(fp);
+    });
+  }
+
+  // Nút gọi: có số thì thành link tel:, không thì giấu hẳn (.rb-call-off).
+  function _call(id, phone) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const num = String(phone || "").replace(/[^\d+]/g, "");
+    if (num) el.setAttribute("href", "tel:" + num);
+    else el.removeAttribute("href");
+    el.classList.toggle("rb-call-off", !num);
+  }
+
+  // ============= LỊCH THÁNG (tuần bắt đầu thứ Hai) =============
+  function _renderCalendar(dateStr, partyStr) {
+    const grid = document.getElementById("rb-cal-grid");
+    if (!grid) return;
+    const d = _day(dateStr) || new Date();
+    const y = d.getFullYear();
+    const m = d.getMonth();
+    setText("rb-cal-d", dateStr ? _pad(d.getDate()) : "--");
+    setText("rb-cal-m", _pad(m + 1));
+    setText("rb-cal-year", y);
+
+    const p = _day(partyStr);
+    const partyDay = p && p.getFullYear() === y && p.getMonth() === m ? p.getDate() : 0;
+    const mark = dateStr ? d.getDate() : 0;
+    const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+    const days = new Date(y, m + 1, 0).getDate();
+
+    let html = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+      .map((n) => `<div class="rb-cal-hd">${n}</div>`)
+      .join("");
+    html += "<div></div>".repeat(lead);
+    for (let i = 1; i <= days; i++) {
+      const cls = i === mark ? " is-day" : i === partyDay ? " is-party" : "";
+      html += `<div class="rb-cal-c${cls}"><span>${i}</span></div>`;
+    }
+    grid.innerHTML = html;
+  }
+
+  // ============= ĐẾM NGƯỢC =============
+  let _cdTimer = 0;
+  function _startCountdown(dateStr, timeStr) {
+    clearInterval(_cdTimer);
+    const hm = /^(\d{1,2}):(\d{2})/.exec(String(timeStr || ""));
+    const at = dateStr
+      ? Date.parse(`${dateStr}T${hm ? _pad(hm[1]) + ":" + hm[2] : "00:00"}:00`)
+      : NaN;
+    const tick = () => {
+      let s = Number.isFinite(at) ? Math.max(0, Math.floor((at - Date.now()) / 1000)) : 0;
+      setText("rb-cd-d", _pad(Math.floor(s / 86400)));
+      s %= 86400;
+      setText("rb-cd-h", _pad(Math.floor(s / 3600)));
+      s %= 3600;
+      setText("rb-cd-m", _pad(Math.floor(s / 60)));
+      setText("rb-cd-s", _pad(s % 60));
+    };
+    tick();
+    if (Number.isFinite(at) && at > Date.now()) _cdTimer = setInterval(tick, 1000);
+  }
+
+  // ============= OUR STORY — tối đa 3 màn =============
+  // Các mốc chia đều vào ≤3 màn (màn đầu nhận phần dư). Bố cục theo số mốc một
+  // màn: 1 = ảnh lớn + chữ dưới, 2 = ảnh lệch khối đỏ so le, 3+ = hàng gọn.
+  const _STORY_PAGES = 3;
+
+  function _renderStory(events) {
+    const section = document.getElementById("love-story");
+    const list = document.getElementById("love-story-list");
+    if (!section || !list) return;
+    if (!Array.isArray(events) || !events.length) {
       section.style.display = "none";
       return;
     }
     section.style.display = "";
 
-    const list = document.getElementById("love-story-list");
-    if (!list) return;
+    const item = (ev, i, k) => {
+      const img = ev.image_url
+        ? `<div class="rb-st-ph" data-a="${i % 2 ? "right" : "left"}" data-d="${2 + k * 3}">
+             <div class="rb-st-block"></div>
+             <img src="${cxImgSrc(ev.image_url)}" alt="" style="object-position:${cxFocal(ev.focal_point)}" />
+           </div>`
+        : "";
+      return `
+        <div class="rb-st-item${i % 2 ? " rb-st-rev" : ""}${img ? "" : " rb-st-noimg"}">
+          ${img}
+          <div class="rb-st-txt" data-a="up" data-d="${3 + k * 3}">
+            ${ev.date ? `<div class="rb-st-date">${escapeHtml(ev.date)}</div>` : ""}
+            ${ev.title ? `<div class="rb-st-title cx-h">${escapeHtml(ev.title)}</div>` : ""}
+            ${ev.content ? `<div class="rb-st-content cx-t">${escapeHtml(ev.content)}</div>` : ""}
+          </div>
+        </div>`;
+    };
 
-    list.innerHTML = events
-      .map((ev) => {
-        const img = ev.image_url ? getImageUrl(ev.image_url) : null;
-        const fp = ev.focal_point
-          ? ` style="object-position:${cxFocal(ev.focal_point)}"`
-          : "";
-        return `
-      <div class="rb-paper-wrap">
-        <div class="rb-paper text-left">
-          ${ev.date ? `<div class="rb-story-date cx-ac">${rbInk(ev.date)}</div>` : ""}
-          ${ev.title ? `<div class="rb-story-title cx-hd">${rbInk(ev.title)}</div>` : ""}
-          ${ev.content ? `<div class="rb-story-text cx-hd">${rbInk(ev.content)}</div>` : ""}
-          ${img ? `<img class="rb-story-photo" src="${cxImgSrc(img)}" alt=""${fp} loading="lazy" />` : ""}
-        </div>
-      </div>`;
-      })
-      .join("");
-
-    // Vẽ lại danh sách (xem trước ở trang Thiết lập) → bỏ hàng đợi cũ.
-    rbQueue.length = 0;
-    rbBusy = false;
-
-    list.insertAdjacentHTML("beforeend", RB_PEN);
-    const pen = list.querySelector(".rb-pen");
-    list
-      .querySelectorAll(".rb-paper-wrap")
-      .forEach((wrap) => rbSetupWriter(wrap, pen));
+    const n = events.length;
+    const pages = Math.min(_STORY_PAGES, n);
+    let at = 0;
+    let html = "";
+    for (let p = 0; p < pages; p++) {
+      const size = Math.floor(n / pages) + (p < n % pages ? 1 : 0);
+      const mode = size === 1 ? "one" : size === 2 ? "two" : "many";
+      const items = events
+        .slice(at, at + size)
+        .map((ev, k) => item(ev, at + k, k))
+        .join("");
+      html += `
+        <div class="rb-screen rb-st-screen rb-st-${mode}" data-rb-label="Chuyện tình ${p + 1}">
+          <h2 class="rb-title rb-title-red" data-a="ch-drop">Our Story</h2>
+          <div class="rb-kicker" data-a="up" data-d="1">Chương ${_pad(p + 1)} / ${_pad(pages)}</div>
+          <div class="rb-st-list">${items}</div>
+          <div class="rb-sign" data-a="wipe" data-d="11">${_SIGN}</div>
+        </div>`;
+      at += size;
+    }
+    list.innerHTML = html;
   }
-
-  window.renderLoveStory = rbRenderLoveStory;
 })();

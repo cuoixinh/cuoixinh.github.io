@@ -1366,18 +1366,11 @@ const WISH_MODES = [
     desc: "Các thẻ cùng khổ vuốt ngang, chữ dài thì bấm Xem thêm",
   },
   {
-    id: "comment",
-    name: "Bình luận",
-    icon: "message-square",
-    tone: "cx-add-ico-blue",
-    desc: "Một mục ngay trên hộp mừng cưới, liệt kê hết và tự cuộn",
-  },
-  {
     id: "paged",
     name: "Phân trang",
     icon: "book-open",
     tone: "cx-add-ico-amber",
-    desc: "Cũng ở chỗ đó nhưng mỗi lần vài lời, khách tự bấm sang trang",
+    desc: "Một mục ngay trên hộp mừng cưới, mỗi lần vài lời, khách tự bấm sang trang",
   },
   {
     id: "live",

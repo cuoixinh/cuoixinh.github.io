@@ -1,35 +1,42 @@
-/* Bảng màu + CSS riêng của ROMANTIC BLUSH — hồng phấn · kem trắng · nâu espresso.
-   CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css)
-   → dựng mẫu không phải đụng tailwind.themes.config.js hay styles/_colors.css.
-
-   Ba phần:
-     1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
-        nút xác nhận tham dự). Mặc định ở styles/_common.css.
-     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng; màu
-        của chúng đi theo bộ token ở trên → đổi tông cả thiệp = sửa mỗi file này.
-     3. .rb-*  phần riêng của mẫu (chữ thư pháp, chip điều hướng, khung ảnh). */
+/* ROMANTIC BLUSH — thiệp SLIDE kiểu tạp chí cưới: nền giấy ngà, khối đỏ đô,
+   tiêu đề Playfair in hoa cỡ lớn, nội dung Cormorant, nhãn Josefin giãn rộng,
+   chữ ký TheHamstter (chỉ cho chữ tiếng Anh). CSS THUẦN, nạp sau styles/themes.css; mọi màu qua --cx-*.
+   Mỗi .rb-screen cao đúng một màn (--sh), ảnh tính theo --sh để lọt khung nhìn.
+   Hiệu ứng (data-a / data-d) ở cuối file. */
 
 :root {
-  --cx-accent-rgb: 201 138 142; /* hồng rose — ngày cưới, chấm mốc, icon */
-  --cx-on-accent-rgb: 255 255 255; /* chữ nằm TRÊN nền nhấn */
-  --cx-heading-rgb: 74 50 41; /* nâu espresso */
-  --cx-body-rgb: 138 111 100; /* nâu sữa nhạt */
-  --cx-line-rgb: 240 213 211; /* vạch dọc, viền mảnh */
-  --cx-surface-rgb: 251 244 240; /* nền phụ của ô nhỏ */
-  --cx-cover-rgb: 253 248 245; /* nền màn bìa: hai đầu dải */
-  --cx-cover-mid-rgb: 246 229 225; /* …và điểm giữa */
+  --cx-heading-rgb: 79 20 24;
+  --cx-body-rgb: 125 74 79;
+  --cx-accent-rgb: 138 26 32; /* khối đỏ, tiêu đề, ngày cưới */
+  --cx-accent-soft-rgb: 212 160 163;
+  --cx-on-accent-rgb: 255 255 255;
+  --cx-on-image-rgb: 255 255 255;
+  --cx-on-lightbox-rgb: 255 255 255;
 
-  --cx-card-bg-rgb: 253 248 245; /* nền thân thiệp */
-  --cx-panel-rgb: 255 255 255; /* thẻ con: album, lịch, polaroid, sơ đồ chỗ */
-  --cx-panel-warm-rgb: 255 252 247; /* giấy thư — ngà hơn thẻ con một chút */
-  --cx-on-image-rgb: 255 255 255; /* chữ nằm trên ảnh */
-  --cx-scrim-rgb: 0 0 0; /* bóng chữ trên ảnh */
-  --cx-shine-from-rgb: 255 255 255; /* mép phong bì: trắng → kem → nâu nhạt */
-  --cx-shine-mid-rgb: 253 245 236;
-  --cx-shine-to-rgb: 230 216 202;
-  /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
-     thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js) để thiệp
-     không chọn bộ màu vẫn khớp với thiệp có chọn. */
+  --cx-card-bg-rgb: 255 252 250;
+  --cx-page-bg-rgb: 239 230 227;
+  --cx-surface-rgb: 248 241 239;
+  --cx-band-rgb: 251 245 243;
+  --cx-panel-rgb: 255 255 255;
+  --cx-panel-warm-rgb: 255 250 248;
+  --cx-cover-rgb: 239 230 227;
+  --cx-cover-mid-rgb: 227 208 205;
+  --cx-cover-veil-rgb: 42 21 23;
+  --cx-lightbox-bg-rgb: 0 0 0;
+
+  --cx-line-rgb: 92 44 48; /* khung viền mảnh quanh ảnh */
+  --cx-shadow-rgb: 0 0 0;
+  --cx-scrim-rgb: 0 0 0;
+
+  --cx-deco-rgb: 138 26 32;
+  --cx-deco-soft-rgb: 240 214 216;
+  --cx-deco-2-rgb: 180 138 90; /* nhũ vàng: dấu &, vạch mảnh */
+  --cx-deco-2-soft-rgb: 241 230 216;
+  --cx-shine-from-rgb: 255 255 255;
+  --cx-shine-mid-rgb: 248 228 230;
+  --cx-shine-to-rgb: 180 138 90;
+
+  /* Bảng --music-* theo đúng công thức bộ màu suy ra (CX_PALETTE_MUSIC). */
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
   --music-widget-fg-rgb: var(--cx-heading-rgb);
@@ -45,10 +52,12 @@
   --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
   --music-art-from-rgb: var(--cx-accent-rgb);
   --music-art-to-rgb: var(--cx-heading-rgb);
-}
 
-html {
-  scroll-behavior: smooth; /* chip điều hướng ở mục mở đầu nhảy tới từng mục */
+  /* Bộ chữ của mẫu */
+  --rb-display: "Playfair Display", "Times New Roman", serif;
+  --rb-serif: "Cormorant Infant", "Times New Roman", serif;
+  --rb-sans: "Josefin Sans", system-ui, sans-serif;
+  --rb-script: "TheHamstter", cursive; /* font tự host, chỉ dùng cho chữ tiếng Anh */
 }
 
 body {
@@ -56,834 +65,2045 @@ body {
 }
 
 #main-card {
+  /* Chiều cao một màn — qua --vh (core/helpers/vh-lock.js), đừng dùng dvh trần. */
+  --sh: calc(var(--vh, 1svh) * 100);
   background-color: rgb(var(--cx-card-bg-rgb));
 }
 
-/* ── Ba lớp ngữ nghĩa ──────────────────────────────────────────────────────
-   .cx-h và .cx-t đặt CẢ font-family, chỉ dành cho chữ. Tô màu icon thì dùng
-   .cx-a (nhấn) hoặc .cx-hd/.cx-bd (chỉ có color, khai ở styles/_common.css). */
-
-.cx-h {
-  font-family: "Cormorant Garamond", serif;
+/* ── Chế độ CHỒNG MÀN (.rb-stack, do <head> đặt; tab Giao diện không có) ───
+   Trang không cuộn: thiệp cao đúng một màn, mọi màn (.rb-slide, index.js gắn)
+   nằm chồng tại chỗ. Đổi màn = màn mới (.is-cur) hiện dần đè lên màn cũ
+   (.is-prev, vẫn đứng nguyên bên dưới), xong mới giấu màn cũ — không trượt. */
+html.rb-stack,
+html.rb-stack body {
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
-.cx-t {
-  font-family: "Quicksand", sans-serif;
+/* Trên máy tính trang ngoài hoá thành khung điện thoại (theme-boot), thiệp chạy
+   trong iframe — trang ngoài giữ cuộn bình thường. */
+html.cx-pshell-host.rb-stack,
+html.cx-pshell-host.rb-stack body {
+  height: auto;
+  overflow: visible;
 }
 
-/* ── Chữ thư pháp ──────────────────────────────────────────────────────────
-   Nét nhận dạng của mẫu (tên cô dâu chú rể, câu slogan), cố định — khách muốn
-   khác thì bấm thẳng vào dòng chữ đó trên thiệp mà chỉnh riêng.
-   Font tự host khai tập trung ở styles/_fonts.css — ở đây chỉ gọi tên họ. */
-
-.rb-script {
-  font-family: "PerfectBeloved", cursive;
-  color: rgb(var(--cx-heading-rgb));
-  line-height: 1.05;
+.rb-stack #main-card {
+  height: var(--sh);
+  min-height: 0;
 }
 
-/* Chữ in hoa dàn thưa: "THE WEDDING OF", tên nơi tổ chức, nhãn chip, tiêu đề
-   mục. CỐ Ý không đặt font/màu — luôn đi kèm .cx-t (nội dung) hoặc .cx-h (tiêu
-   đề) để chữ vẫn theo font/màu khách chọn ở tab Giao diện. */
+.rb-stack .rb-body {
+  position: relative;
+  height: 100%;
+}
 
-.rb-caps {
-  letter-spacing: 0.24em;
+/* Màn đang ẩn nằm XA NGOÀI khung thiệp (#main-card cắt mất) chứ không chỉ
+   visibility:hidden: IntersectionObserver không xét visibility, để chồng tại chỗ
+   là mọi mục đều "lọt vào tầm nhìn" ngay khi mở — bảng đề xuất mẫu (bám
+   #section-gift) bung luôn từ màn đầu. Đừng đặt left:100%: mép chạm mép vẫn bị
+   IntersectionObserver tính là đang giao (diện tích 0 nhưng isIntersecting=true). */
+.rb-stack .rb-slide {
+  position: absolute;
+  top: 0;
+  left: 200%;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  /* Màn dài hơn khung (hai bản đồ, lịch trình dài…) cuộn bên trong chính nó. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 0;
+}
+
+.rb-stack .rb-slide::-webkit-scrollbar {
+  display: none;
+}
+
+.rb-stack .rb-slide.is-prev {
+  left: 0;
+  opacity: 1;
+  visibility: visible;
+  z-index: 1;
+}
+
+.rb-stack .rb-slide.is-cur {
+  left: 0;
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
+  transition: opacity 0.9s ease;
+}
+
+/* Khối văn bản tự thêm và mục lời chúc cũng thành một màn: căn giữa, nền thiệp. */
+.rb-stack .cx-custom-block.rb-slide,
+.rb-stack #cx-wish-sec.rb-slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: none;
+  padding: 32px 16px;
+  background: rgb(var(--cx-card-bg-rgb));
+}
+
+/* Thanh điều hướng đáy thiệp (index.js dựng, chỉ có ở chế độ chồng màn): mỗi
+   đoạn là một màn. Mới mở thiệp thì bung sẵn danh sách màn rồi tự thu về vạch
+   mảnh — khách biết có nó; chạm vạch là bung lại, chọn màn nào tới màn đó.
+   Màn ảnh tối (data-rb-tone="dark") đổi vạch sang màu chữ trên ảnh. */
+.rb-nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.rb-nav-panel {
+  position: relative;
+  margin: 0 12px;
+  padding: 12px 0 8px;
+  border-radius: 16px;
+  background: rgb(var(--cx-panel-rgb) / 0.94);
+  box-shadow: 0 12px 40px rgb(var(--cx-shadow-rgb) / 0.18);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  /* Thu = bảng ép dẹt rồi chui xuống vạch (gốc biến hình ở mép dưới); mở là
+     ngược lại, bảng mọc lên từ vạch. Chữ mờ đi sau cùng để thấy được đà thu. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(28px) scale(0.86, 0.04);
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.6s cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 0.25s ease 0.38s,
+    visibility 0s linear 0.63s;
+}
+
+.rb-nav.is-open .rb-nav-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  pointer-events: auto;
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1.2, 0.36, 1),
+    opacity 0.2s ease;
+}
+
+/* Bảng vừa chui xuống: các đoạn vạch nảy một nhịp như vừa "nhận" lấy nó. */
+.rb-nav.is-land .rb-nav-bar i {
+  animation: cx-rb-land 0.55s cubic-bezier(0.22, 0.8, 0.24, 1) 0.45s both;
+  animation-delay: calc(0.45s + var(--n, 0) * 25ms);
+}
+
+@keyframes cx-rb-land {
+  0%, 100% { transform: scaleY(1); }
+  40% { transform: scaleY(3.2); }
+}
+
+.rb-nav-hint {
+  padding: 0 48px 8px; /* chừa chỗ nút đóng hai bên cho chữ vẫn ở giữa */
+  font-family: var(--rb-sans);
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  text-align: center;
+  color: rgb(var(--cx-body-rgb));
 }
 
-/* ── Tiêu đề mục: chữ in hoa giữa hai nét kẻ mảnh ──────────────────────────
-   Thay cho đường kẻ ngăn mục — mỗi mục tự mở đầu bằng "── TÊN MỤC ──" nên các
-   mục tách nhau mà không cần border. Giữ .cx-h/.rb-caps trên thẻ để font và màu
-   vẫn theo tab Giao diện. */
+/* Nút đóng góc phải bảng — vùng chạm 40px, icon nhỏ. */
+.rb-nav-x {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: rgb(var(--cx-body-rgb));
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
 
+.rb-nav-x:active {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-nav-x:focus-visible {
+  outline: 2px solid rgb(var(--cx-accent-rgb));
+  outline-offset: -4px;
+}
+
+.rb-nav-list {
+  display: flex;
+  gap: 8px;
+  padding: 0 12px 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.rb-nav-list::-webkit-scrollbar {
+  display: none;
+}
+
+.rb-nav-chip {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 64px;
+  min-height: 52px;
+  padding: 6px 12px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.25);
+  border-radius: 12px;
+  background: transparent;
+  color: rgb(var(--cx-heading-rgb));
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.rb-nav-chip b {
+  font-family: var(--rb-display);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1;
+  font-variant-numeric: lining-nums;
+}
+
+.rb-nav-chip span {
+  font-family: var(--rb-serif);
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.rb-nav-chip.is-cur {
+  border-color: transparent;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.rb-nav-chip:focus-visible,
+.rb-nav-bar:focus-visible {
+  outline: 2px solid rgb(var(--cx-accent-rgb));
+  outline-offset: 2px;
+}
+
+/* Vạch: vùng chạm cao 40px nhưng chỉ vẽ một dải mảnh sát đáy. */
+.rb-nav-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px 10px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.rb-nav-bar i {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgb(var(--cx-accent-rgb) / 0.18);
+  transform-origin: 50% 100%;
+  transition:
+    background-color 0.4s ease,
+    transform 0.45s cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+.rb-nav-bar i.is-done {
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.rb-nav.is-open .rb-nav-bar i {
+  transform: scaleY(2);
+}
+
+/* Vạch nằm thẳng trên ảnh ở màn tối; bung ra thì về màu thường (nền bảng sáng). */
+.rb-nav.is-dark .rb-nav-bar i {
+  background: rgb(var(--cx-on-image-rgb) / 0.3);
+}
+
+.rb-nav.is-dark .rb-nav-bar i.is-done {
+  background: rgb(var(--cx-on-image-rgb) / 0.95);
+}
+
+.rb-nav.is-open .rb-nav-bar i {
+  background: rgb(var(--cx-accent-rgb) / 0.18);
+}
+
+.rb-nav.is-open .rb-nav-bar i.is-done {
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.cx-h,
+.cx-t {
+  font-family: var(--rb-serif);
+}
+
+/* ── Khung chung của một màn ───────────────────────────────────────────── */
+
+.rb-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.rb-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: var(--sh);
+  padding: 24px 16px 48px; /* đáy chừa vạch điều hướng (.rb-nav-bar cao 40px) */
+  overflow: hidden; /* cắt phần ảnh trượt vào từ ngoài màn */
+  background: rgb(var(--cx-card-bg-rgb));
+}
+
+/* VỪA MỘT MÀN ở mọi khổ (thấp nhất tính cho 391×722): chữ giữ cỡ của nó, ẢNH
+   CHÍNH của màn là phần co giãn (flex: 1 1 0 + min-height chặn dưới) ăn hết chỗ
+   còn lại. Không đủ chỗ cả với ảnh nhỏ nhất thì .rb-slide cuộn bên trong, không
+   cắt mất chữ. Ảnh trong khối co giãn cũng là flex item, đừng dùng height:% —
+   ở tab Giao diện màn chỉ có min-height nên % không có gốc để tính. */
+
+/* Lớp của mẫu tự khai display → .hidden của Tailwind thua thứ tự nạp. */
+.rb-screen.hidden,
+.rb-loc.hidden,
+.rb-ad-empty.hidden {
+  display: none;
+}
+
+/* Tiêu đề màn: Playfair in hoa cỡ lớn — nét nhận dạng kiểu bìa tạp chí. */
 .rb-title {
+  font-family: var(--rb-display);
+  font-weight: 400;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.rb-title-red {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-title-light {
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+/* Dải đỏ tràn mép ở đầu màn (bù lại padding của .rb-screen). */
+.rb-band {
+  margin: -24px -16px 16px;
+  padding: 20px 16px 16px;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  text-align: center;
+}
+
+.rb-band-sub {
+  margin-top: 10px;
+  font-family: var(--rb-sans);
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* Nhãn nhỏ: Josefin in hoa giãn rộng, kẹp giữa hai vạch mảnh. */
+.rb-kicker {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+  font-family: var(--rb-sans);
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgb(var(--cx-body-rgb));
 }
 
-.rb-title::before,
-.rb-title::after {
+.rb-kicker::before,
+.rb-kicker::after {
   content: "";
-  flex: 1;
-  max-width: 70px;
+  flex: none;
+  width: 20px;
   height: 1px;
+  background: rgb(var(--cx-deco-2-rgb));
+}
+
+/* Chữ ký cuối màn — margin-top:auto đẩy xuống đáy. */
+.rb-sign {
+  margin-top: auto;
+  padding-top: 12px;
+  font-family: var(--rb-script);
+  font-size: 22px;
+  line-height: 1.3;
+  text-align: center;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.rb-sign-light {
+  color: rgb(var(--cx-on-accent-rgb) / 0.9);
+}
+
+.rb-bw {
+  filter: grayscale(1) contrast(1.05);
+}
+
+.rb-loc {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: center;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.rb-loc .cx-ic {
+  flex: none;
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+/* Chữ xoay dọc (tiếng Việt nằm nghiêng, đọc từ trên xuống). */
+.rb-vt,
+.rb-fr-vt {
+  writing-mode: vertical-rl;
+  font-family: var(--rb-serif);
+  font-style: italic;
+  font-size: 15px;
+  letter-spacing: 0.2em;
+}
+
+/* Nút/lối bấm của mẫu: viền nét, chữ nhãn, đủ 44px cho ngón tay. */
+.rb-call,
+.rb-qr-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-accent-rgb));
+  font-family: var(--rb-sans);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.rb-call:active,
+.rb-qr-save:active {
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.rb-call:focus-visible,
+.rb-qr-save:focus-visible,
+.rb-rv-btn:focus-visible,
+.rb-ad-map:focus-visible {
+  outline: 2px solid rgb(var(--cx-accent-rgb));
+  outline-offset: 3px;
+}
+
+/* ── Màn 1 · Mở đầu — bìa tạp chí: ảnh tràn màn, chữ hai đầu ──────────── */
+
+.rb-hero {
+  padding: 0;
+  background: rgb(var(--cx-cover-veil-rgb));
+  color: rgb(var(--cx-on-image-rgb));
+  text-align: center;
+}
+
+.rb-full-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Màn phủ đậm dần hai đầu để chữ trắng đủ tương phản trên mọi ảnh. */
+.rb-hero-veil,
+.rb-rv-veil {
+  position: absolute;
+  inset: 0;
   background: linear-gradient(
-    90deg,
-    rgb(var(--cx-line-rgb) / 0),
-    rgb(var(--cx-accent-rgb) / 0.7),
-    rgb(var(--cx-line-rgb) / 0)
+    to bottom,
+    rgb(var(--cx-scrim-rgb) / 0.5) 0%,
+    rgb(var(--cx-scrim-rgb) / 0.12) 26%,
+    rgb(var(--cx-scrim-rgb) / 0) 42%,
+    rgb(var(--cx-scrim-rgb) / 0.2) 58%,
+    rgb(var(--cx-scrim-rgb) / 0.72) 100%
   );
 }
 
-/* ── Đường phân cách có hạt ngọc giữa ──────────────────────────────────── */
+.rb-hero-top {
+  position: relative;
+  z-index: 2;
+  padding: 44px 28px 0;
+}
 
-.rb-rule {
+.rb-hero-kicker {
+  padding-left: 0.6em;
+  font-family: var(--rb-sans);
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.6em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+/* Tên lễ: in hoa toàn bộ, Playfair giãn rộng, hai vạch mảnh hai bên. */
+.rb-hero-event {
+  margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  width: 100%;
+  gap: 14px;
+  font-family: var(--rb-display);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.3;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 16px rgb(var(--cx-scrim-rgb) / 0.35);
 }
 
-.rb-rule::before,
-.rb-rule::after {
+.rb-hero-event::before,
+.rb-hero-event::after {
   content: "";
-  flex: 1;
-  max-width: 90px;
+  flex: none;
+  width: 28px;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(var(--cx-line-rgb)),
-    transparent
-  );
+  background: rgb(var(--cx-on-image-rgb) / 0.7);
 }
 
-/* ── Chip điều hướng nhanh (Lịch trình · Album · Bản đồ · Quà) ──────────── */
+/* Ngày: số Cormorant thẳng hàng, ngăn bằng vạch chéo mảnh. */
+.rb-hero-date {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-family: var(--rb-serif);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  font-variant-numeric: lining-nums;
+  text-shadow: 0 2px 16px rgb(var(--cx-scrim-rgb) / 0.35);
+}
 
-.rb-chip {
+.rb-hero-date i {
+  width: 1px;
+  height: 28px;
+  background: rgb(var(--cx-on-image-rgb) / 0.75);
+  transform: rotate(20deg);
+}
+
+.rb-hero-bottom {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  padding: 0 32px 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rb-hero-script {
+  margin-bottom: 12px;
+  font-family: "TheHamstter", cursive;
+  font-size: 60px;
+  line-height: 1.2;
+  transform: rotate(-6deg);
+  text-shadow: 0 2px 16px rgb(var(--cx-scrim-rgb) / 0.35);
+}
+
+.rb-hero-names {
+  font-family: "Noto Serif", serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 12px rgb(var(--cx-scrim-rgb) / 0.35);
+}
+
+.rb-hero-amp {
+  margin: 0 12px;
+  font-family: "Cinzel", serif;
+  font-size: 22px;
+}
+
+.rb-hero-rule {
+  width: 48px;
+  height: 1px;
+  margin: 16px 0 12px;
+  background: rgb(var(--cx-on-image-rgb) / 0.7);
+}
+
+.rb-hero-place {
+  font-family: var(--rb-sans);
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1.7;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.rb-hero-en {
+  max-width: 300px;
+  margin-top: 12px;
+  font-family: var(--rb-serif);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.rb-guest {
+  margin-top: 12px;
+  font-family: var(--rb-serif);
+  font-size: 16px;
+}
+
+.rb-guest #cover-guest-name {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--rb-display);
+  font-style: italic;
+  font-size: 22px;
+}
+
+/* ── Màn 2 · Invitation — chân dung đôi có khung lệch ─────────────────── */
+
+.rb-duo {
+  flex: 1 1 0;
+  min-height: 320px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.rb-duo-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Khung nét đỏ lệch sau ảnh — mô-típ lặp lại ở mọi màn. */
+.rb-duo-ph {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 8px);
+  margin: 0 8px 8px 0;
+}
+
+.rb-duo-ph::before {
+  content: "";
+  position: absolute;
+  inset: 8px -8px -8px 8px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.6);
+}
+
+.rb-duo-ph img {
+  position: relative;
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  object-fit: cover;
+}
+
+.rb-duo-role {
+  margin-top: 12px;
+  font-family: var(--rb-sans);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-duo-name {
+  margin-top: 4px;
+  font-family: var(--rb-display);
+  font-size: 20px;
+  line-height: 1.25;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rb-duo-par {
+  margin-top: 4px;
+  font-size: 0; /* giấu dấu "·" nối hai tên: mỗi người một dòng, không vỡ dòng giữa tên */
+  line-height: 1.35;
+  color: rgb(var(--cx-heading-rgb) / 0.85);
+}
+
+.rb-duo-par span {
+  display: block;
+  font-size: 14px;
+}
+
+.rb-duo-addr {
+  margin-top: 4px;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.rb-call {
+  margin-top: 10px;
+}
+
+/* Chưa nhập số điện thoại → giấu hẳn nút gọi, hoạ tiết ngay sau nó hiện lên
+   thế chỗ: vạch mảnh — hình thoi nhũ vàng — vạch mảnh, ngăn tên với đoạn thơ. */
+.rb-call.rb-call-off {
+  display: none;
+}
+
+.rb-duo-orn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.rb-call-off + .rb-duo-orn {
+  display: flex;
+}
+
+.rb-duo-orn::before,
+.rb-duo-orn::after {
+  content: "";
+  width: 32px;
+  height: 1px;
+  background: rgb(var(--cx-deco-2-rgb));
+}
+
+.rb-duo-orn i {
+  width: 6px;
+  height: 6px;
+  border: 1px solid rgb(var(--cx-accent-rgb));
+  transform: rotate(45deg);
+}
+
+/* Dòng cuối mờ dần như mẫu gốc (mask chỉ dùng kênh alpha). */
+.rb-verse {
+  margin-top: 16px;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: center;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* ── Màn 3 · Forever ───────────────────────────────────────────────────── */
+
+.rb-fv-top {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 0 0;
+  margin: 0 -16px 0 0;
+}
+
+.rb-fv-block {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 38%;
+  height: 92%;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.rb-fv-a {
+  position: relative;
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  object-fit: cover;
+}
+
+.rb-fv-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 16px;
+}
+
+.rb-fv-b {
+  display: block;
+  width: 100%;
+  height: calc(var(--sh) * 0.2);
+  object-fit: cover;
+}
+
+.rb-fv-quote {
+  margin-top: 12px;
+  padding-left: 12px;
+  border-left: 1px solid rgb(var(--cx-deco-2-rgb));
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.5;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Cột hẹp: "FOREVER" phải lọt một dòng (chữ tách từng ký tự, không ngắt được). */
+.rb-fv-right .rb-title {
+  margin-bottom: 12px;
+  font-size: 30px;
+  text-align: left;
+}
+
+.rb-fv-c {
+  display: block;
+  width: 100%;
+  height: calc(var(--sh) * 0.28);
+  object-fit: cover;
+}
+
+/* ── Màn 4 · Khoảnh khắc ───────────────────────────────────────────────── */
+
+.rb-mo-stage {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 320px;
+  margin: 0 -16px;
+}
+
+.rb-mo-frame {
+  position: absolute;
+  top: 0;
+  left: 8%;
+  width: 86%;
+  height: 58%;
+  border: 1px solid rgb(var(--cx-line-rgb) / 0.7);
+}
+
+.rb-mo-a {
+  position: absolute;
+  top: 4%;
+  left: 0;
+  width: 84%;
+  height: 80%;
+  object-fit: cover;
+}
+
+.rb-mo-en {
+  position: absolute;
+  top: 7%;
+  right: 20%;
+  width: 56%;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: right;
+  color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 1px 10px rgb(var(--cx-scrim-rgb) / 0.55);
+}
+
+.rb-mo-b {
+  position: absolute;
+  top: 58%;
+  right: 4%;
+  width: 52%;
+  height: 42%;
+  object-fit: cover;
+  border: 8px solid rgb(var(--cx-card-bg-rgb));
+  box-shadow: 0 12px 32px rgb(var(--cx-shadow-rgb) / 0.12);
+}
+
+.rb-mo-vi {
+  margin-top: 16px;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* ── Màn 5 · Forever / Love you (tiệc cưới) ────────────────────────────── */
+
+.rb-pt-kicker {
+  padding-left: 0.6em;
+  font-family: var(--rb-sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.6em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.rb-pt-stage {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 280px;
+  margin: 16px -16px 0;
+}
+
+.rb-pt-red {
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 80%;
+  height: 100%;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.rb-pt-a,
+.rb-pt-b {
+  position: absolute;
+  height: 42%;
+  object-fit: cover;
+  box-shadow: 0 12px 32px rgb(var(--cx-shadow-rgb) / 0.18);
+}
+
+.rb-pt-a {
+  top: 6%;
+  right: 0;
+  width: 76%;
+}
+
+.rb-pt-b {
+  top: 52%;
+  left: 5%;
+  width: 74%;
+}
+
+.rb-pt-word {
+  position: absolute;
+  writing-mode: vertical-rl;
+  font-family: var(--rb-sans);
+  font-weight: 200;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.rb-pt-w1 {
+  top: 7%;
+  left: 13.5%;
+}
+
+.rb-pt-w2 {
+  top: 53%;
+  left: 81%;
+}
+
+.rb-pt-info {
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  flex: 1;
-  min-width: 0;
+  text-align: center;
 }
 
-.rb-chip-icon {
+.rb-pt-info .rb-loc {
+  margin-top: 6px;
+}
+
+.rb-pt-dt {
+  font-family: var(--rb-display);
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-pt-lunar {
+  font-style: italic;
+  font-size: 15px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* ── Màn 7 · Address ───────────────────────────────────────────────────── */
+
+.rb-address {
+  padding-bottom: 72px;
+}
+
+.rb-ad-head {
+  flex: 1 1 0;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  margin: -24px -16px 0;
+  padding: 20px 16px 0;
+  background: linear-gradient(rgb(var(--cx-accent-rgb)), rgb(var(--cx-accent-rgb))) top / 100% 62% no-repeat;
+}
+
+.rb-ad-head .rb-title {
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.rb-ad-ph {
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  margin-top: 16px;
+  object-fit: cover;
+  box-shadow: 0 16px 40px rgb(var(--cx-shadow-rgb) / 0.18);
+}
+
+/* Chữ ký nằm trước tên địa điểm trong DOM (tên + bản đồ phải đứng cuối mục). */
+.rb-ad-sign {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 28px;
+}
+
+.rb-ad-kicker {
+  margin-top: 20px;
+}
+
+.rb-ad-name {
+  margin-top: 8px;
+  font-family: var(--rb-display);
+  font-size: 18px;
+  line-height: 1.45;
+  text-align: center;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Chỉ bản đồ, trải hết bề ngang. */
+.rb-ad-map {
+  margin-top: 16px;
+  display: grid;
+  height: calc(var(--sh) * 0.26);
+}
+
+.rb-ad-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(var(--cx-line-rgb) / 0.25);
+}
+
+/* Hai bản đồ (lễ và tiệc khác nơi): mỗi bản đồ thấp lại. */
+.cx-map-dual .rb-ad-map {
+  height: calc(var(--sh) * 0.2);
+}
+
+/* Hai bản đồ chiếm chỗ của ảnh đầu màn. */
+.cx-map-dual .rb-ad-head {
+  flex: none;
+  min-height: 0;
+  padding-bottom: 16px;
+  background-size: 100% 100%;
+}
+
+.cx-map-dual .rb-ad-ph {
+  display: none;
+}
+
+.rb-ad-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  background: rgb(var(--cx-surface-rgb));
+  color: rgb(var(--cx-body-rgb));
+}
+
+.rb-ad-go {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 9999px;
-  background-color: rgb(var(--cx-surface-rgb));
-  border: 1px solid rgb(var(--cx-line-rgb));
-  color: rgb(var(--cx-accent-rgb));
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  border-radius: 50%;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  font-size: 18px;
+  box-shadow: 0 6px 16px rgb(var(--cx-shadow-rgb) / 0.25);
 }
 
-.rb-chip:active .rb-chip-icon {
-  transform: scale(0.92);
-}
+/* ── Màn 8 · Khung ảnh chồng + chữ dọc ─────────────────────────────────── */
 
-.rb-chip:hover .rb-chip-icon {
-  box-shadow: 0 4px 14px rgb(var(--cx-accent-rgb) / 0.22);
-}
-
-/* ── Mục mở đầu: ảnh cưới làm NỀN ─────────────────────────────────────────
-   Ảnh phủ kín mục, chữ nằm đè lên. Ảnh và lớp phủ để z-index: -1 nên phải có
-   isolation: isolate ở mục — thiếu nó, hai lớp âm chui xuống dưới nền thân
-   thiệp và mất hút. Lớp phủ dùng ::after (không phải ::before) để được vẽ SAU
-   ảnh; cùng z-index âm thì thứ tự vẽ theo thứ tự cây. */
-
-.rb-hero {
+.rb-fr-stage {
   position: relative;
-  isolation: isolate;
+  flex: 1 1 0;
+  min-height: 380px;
+  margin: 0 -16px;
 }
 
-.rb-hero-bg {
+.rb-fr-line {
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
+  top: 3%;
+  left: 7%;
+  width: 78%;
+  height: 64%;
+  border: 1px solid rgb(var(--cx-line-rgb) / 0.7);
+}
+
+.rb-fr-a {
+  position: absolute;
+  top: 5%;
+  left: 3%;
+  width: 78%;
+  height: 36%;
   object-fit: cover;
-  /* Tan dần ở đáy để không để lại đường cắt ngang giữa mục mở đầu và mục kế. */
-  -webkit-mask-image: linear-gradient(
-    180deg,
-    #000 0%,
-    #000 68%,
-    rgb(0 0 0 / 0) 100%
-  );
-  mask-image: linear-gradient(180deg, #000 0%, #000 68%, rgb(0 0 0 / 0) 100%);
 }
 
-/* Phủ màu nền thiệp: đậm ở hai đầu cho chữ đọc rõ, nhạt ở giữa để còn thấy ảnh. */
-
-.rb-hero::after {
-  content: "";
+.rb-fr-red {
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(
-    180deg,
-    rgb(var(--cx-card-bg-rgb) / 0.94) 0%,
-    rgb(var(--cx-card-bg-rgb) / 0.72) 38%,
-    rgb(var(--cx-card-bg-rgb) / 0.8) 66%,
-    rgb(var(--cx-card-bg-rgb) / 1) 100%
-  );
+  top: 43%;
+  left: 10%;
+  width: 56%;
+  height: 50%;
+  background: rgb(var(--cx-accent-rgb));
 }
 
-/* Câu slogan neo ở đáy mục mở đầu — để absolute chứ không dùng margin-top:auto
-   vì mục đang justify-center, một lề auto sẽ hút hết chỗ trống và đẩy phần còn
-   lại lên đỉnh. Lề hai bên bằng px-7 của mục. */
-
-.rb-hero-quote {
+.rb-fr-b {
   position: absolute;
-  right: 28px;
-  bottom: 32px;
-  left: 28px;
+  top: 46%;
+  left: 15%;
+  width: 72%;
+  height: 54%;
+  object-fit: cover;
+  box-shadow: 0 16px 40px rgb(var(--cx-shadow-rgb) / 0.18);
 }
 
-/* ── Dải nền nhoè hai đầu (thay cho đường kẻ ngăn mục) ─────────────────────
-   Mục chạy hết bề ngang, nền tự tan dần ở mép trên và mép dưới nên hai mục giao
-   nhau mềm, không cần border. Màu khai bằng --cx-band-rgb (+ --rb-band-a nếu
-   muốn nhạt) ở từng mục — phải là bộ số RGB rời để còn đặt alpha 0 cho hai đầu;
-   dùng từ khoá "transparent" ở đây sẽ chuyển màu qua xám đen. */
-
-.rb-band-fade {
-  --cx-band-rgb: var(--cx-surface-rgb);
-  --rb-band-a: 1;
-
-  background-image: linear-gradient(
-    180deg,
-    rgb(var(--cx-band-rgb) / 0) 0%,
-    rgb(var(--cx-band-rgb) / var(--rb-band-a)) 15%,
-    rgb(var(--cx-band-rgb) / var(--rb-band-a)) 85%,
-    rgb(var(--cx-band-rgb) / 0) 100%
-  );
-}
-
-#section-party {
-  --cx-band-rgb: 255 255 255;
-  --rb-band-a: 0.55;
-}
-
-/* ── Album ảnh ─────────────────────────────────────────────────────────────
-   CẢ album nằm trên MỘT tấm nền trắng (.rb-album) chạy hết bề ngang thiệp; bên
-   trong là các trang do renderGallery ở index.js dựng, xếp NGANG, MỌI TRANG CAO
-   BẰNG NHAU.
-   Ràng buộc dễ vấp: chuỗi cha–con phải có CHIỀU CAO XÁC ĐỊNH suốt — dải có
-   height, trang height:100%, ô ảnh chia chỗ bằng flex-basis/grid-row kèm
-   min-height:0. Dùng % chiều cao trên khối cha cao auto là ô rơi về khổ nội
-   dung và trang vỡ. */
-
-.rb-album {
-  display: flex;
-  /* Dải NGANG cao cố định: khách vuốt sang để xem, trang vẫn cuộn dọc bình
-     thường. Mỗi trang dừng đúng giữa khi vuốt (scroll-snap). */
-  height: min(72dvh, 460px);
-  align-items: stretch;
-  gap: 14px;
-  padding: 12px 14px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  background-color: rgb(var(--cx-panel-rgb));
-  box-shadow:
-    0 10px 22px rgb(var(--cx-heading-rgb) / 0.13),
-    0 2px 4px rgb(var(--cx-heading-rgb) / 0.07);
-}
-
-.rb-album::-webkit-scrollbar {
-  display: none;
-}
-
-/* Một trang album. */
-
-.rb-page,
-.rb-page-bleed {
-  position: relative;
-  flex: none;
-  width: min(78vw, 320px);
-  height: 100%;
-  overflow: hidden;
-  scroll-snap-align: center;
-}
-
-.rb-page {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-}
-
-.rb-shot {
-  overflow: hidden;
-  min-height: 0;
-  cursor: pointer;
-  background-color: rgb(var(--cx-surface-rgb));
-}
-
-/* Trang A: ảnh phủ kín trang, thẻ trắng đè lên. */
-
-.rb-page-bleed > .rb-shot {
-  width: 100%;
-  height: 100%;
-}
-
-/* Chia chỗ theo chiều dọc trong trang giấy trắng. Phần dư ở đáy là LỀ TRẮNG cố
-   ý, đúng như trang phải của mẫu tham chiếu. */
-
-.rb-page > .rb-shot {
-  flex: 0 0 32%;
-}
-
-.rb-page > .rb-page-pair {
-  flex: 0 0 60%;
-  min-height: 0;
-}
-
-.rb-page > .rb-split-grid {
-  flex: 0 0 56%;
-  min-height: 0;
-}
-
-.rb-page > .rb-band {
-  flex: 1 0 30%;
-  min-height: 0;
-}
-
-/* Trang B: ảnh đứng bên trái cao hết khối, cột phải là ảnh thấp hơn rồi tới cụm
-   chữ lấp đúng khoảng trắng hụt. */
-
-.rb-page-pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 100%;
-  gap: 8px;
-}
-
-.rb-page-pair > .rb-shot {
-  height: 100%;
-}
-
-.rb-pair-side {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-height: 0;
-}
-
-.rb-pair-side > .rb-shot {
-  flex: 0 0 72%;
-}
-
-/* Trang C: ảnh đứng cao bên trái, hai ảnh vuông xếp chồng bên phải. */
-
-.rb-split-grid {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 8px;
-}
-
-.rb-split-grid > .rb-shot {
-  height: 100%;
-}
-
-.rb-shot-tall {
-  grid-row: 1 / span 2;
-}
-
-/* Trang C: dải ảnh ngang có chữ đè lên. */
-
-.rb-band {
-  position: relative;
-}
-
-.rb-band > .rb-shot {
-  width: 100%;
-  height: 100%;
-}
-
-.rb-band-line {
+.rb-fr-vt {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 10px;
-  font-family: "BethanWhite", cursive;
-  font-style: italic;
-  font-size: 24px;
-  line-height: 1.05;
-  color: rgb(var(--cx-on-image-rgb));
-  text-shadow: 0 2px 10px rgb(var(--cx-scrim-rgb) / 0.45);
-}
-
-/* Thẻ trắng của trang A: chừa nhiều chỗ bên TRÁI, sát mép phải, nằm ở nửa dưới
-   — đúng vị trí thẻ "When soul fall in love" của mẫu. */
-
-.rb-quote-card {
-  position: absolute;
-  right: 10px;
-  bottom: 10%;
-  left: 24%;
-  padding: 8px 8px 11px;
-  background-color: rgb(var(--cx-panel-rgb));
-  box-shadow: 0 6px 18px rgb(var(--cx-heading-rgb) / 0.22);
-}
-
-.rb-card-shot {
-  aspect-ratio: 4 / 3;
-}
-
-/* Hai dòng chữ viết tay trong thẻ: dòng dưới có cụm nhỏ hơn đi kèm. */
-
-.rb-card-lead,
-.rb-card-tail {
-  font-family: "BethanWhite", cursive;
-  font-style: italic;
-  font-size: 21px;
-  line-height: 1.05;
   color: rgb(var(--cx-accent-rgb));
 }
 
-.rb-card-lead {
-  margin-top: 8px;
+.rb-fr-vt1 {
+  top: 8%;
+  right: 3%;
 }
 
-.rb-card-em {
-  margin-left: 4px;
-  font-size: 16px;
-  opacity: 0.9;
+.rb-fr-vt2 {
+  top: 24%;
+  right: 10%;
 }
 
-/* Mấy dòng chữ xám li ti khép lại thẻ. */
+/* ── Màn 9 · Time (ngày lễ + lịch) ─────────────────────────────────────── */
 
-.rb-card-sub {
-  margin-top: 7px;
-  font-size: 8px;
-  line-height: 1.55;
-  color: rgb(var(--cx-body-rgb) / 0.85);
-}
-
-/* Cụm chữ viết tay canh phải, lấp khoảng trắng dưới ảnh bên phải. */
-
-.rb-album-script {
+.rb-time-head {
   display: flex;
-  flex-direction: column;
   align-items: flex-end;
-  justify-content: flex-end;
-  min-height: 0;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(var(--cx-line-rgb) / 0.2);
+}
+
+.rb-time-head .rb-title {
+  font-size: 48px;
+  text-align: left;
+}
+
+.rb-time-meta {
+  font-size: 14px;
+  line-height: 1.5;
   text-align: right;
-  font-family: "BethanWhite", cursive;
-  font-style: italic;
-  font-size: 19px;
-  line-height: 0.8;
-  color: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-body-rgb));
 }
 
-/* Dòng cuối nhỏ hơn hẳn, như chữ ký khép lại cụm. */
-
-.rb-album-script .rb-script-last {
-  font-size: 13px;
-  opacity: 0.9;
-}
-
-/* Chấm chỉ số khung hình dưới album (rbSetupAlbumDots dựng). */
-
-.rb-dots {
+.rb-time-photos {
+  flex: 1 1 0;
+  min-height: 140px;
+  margin-top: 16px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  margin-top: -6px;
+  gap: 12px;
 }
 
-.rb-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 9999px;
-  background-color: rgb(var(--cx-line-rgb));
-  transition:
-    width 0.25s ease,
-    background-color 0.25s ease;
+.rb-tp-a {
+  display: block;
+  flex: 1.45 1 0;
+  min-width: 0;
+  object-fit: cover;
 }
 
-.rb-dot.is-on {
-  width: 18px;
-  background-color: rgb(var(--cx-accent-rgb));
-}
-
-/* .rb-chip đặt display:flex mà theme.css nạp SAU themes.css → phải tự thắng lại
-   .hidden của Tailwind, không thì cxToggle() ẩn chip không ăn. */
-
-.rb-chip.hidden {
-  display: none;
-}
-
-/* ── Khung ảnh cha mẹ kiểu polaroid ────────────────────────────────────── */
-
-.rb-polaroid {
-  width: 100%;
-  padding: 8px;
-  background-color: rgb(var(--cx-panel-rgb));
-  border-radius: 4px;
-  box-shadow: 0 6px 18px rgb(var(--cx-heading-rgb) / 0.14);
-}
-
-.rb-polaroid-l {
-  transform: rotate(-3deg);
-}
-
-.rb-polaroid-r {
-  transform: rotate(3deg);
-}
-
-/* Ảnh dựng đứng, cắt giữa — khổ cố định để hai khung luôn bằng nhau. */
-
-.rb-polaroid-img {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  background-color: rgb(var(--cx-surface-rgb));
-}
-
-/* ── Lịch 2 tờ (markup do index.js sinh ra) ────────────────────────────────
-   Hai tờ hẹp hơn khung: tờ tháng kế tiếp dán sát mép PHẢI, tờ tháng cưới sát
-   mép TRÁI — chồng nhau ở giữa nên tờ sau vẫn lộ gần nửa lưới ngày. Đổi bề
-   ngang tờ (--rb-cal-w) là đổi luôn phần hở. */
-
-.rb-cal {
-  --rb-cal-w: 68%;
-  position: relative;
-  margin: 14px 0 6px;
-  /* Tờ sau nằm absolute nên không cộng vào chiều cao: chừa chỗ cho phần dịch
-     xuống (22px) + tháng nhiều hơn một hàng (26px/hàng). */
-  padding-bottom: 48px;
-}
-
-.rb-cal-sheet {
-  width: var(--rb-cal-w);
-  background-color: rgb(var(--cx-panel-rgb));
-  border-radius: 3px;
-  padding: 12px 10px 8px;
-  box-shadow:
-    0 14px 30px rgb(var(--cx-heading-rgb) / 0.16),
-    0 2px 6px rgb(var(--cx-heading-rgb) / 0.08);
-}
-
-.rb-cal-back {
-  position: absolute;
-  right: 0;
-  top: 22px;
-  /* Ngược chiều kim đồng hồ: mép trên bên phải hếch lên, như ảnh mẫu. */
-  transform: rotate(-6deg);
-}
-
-/* Tờ tháng cưới để THẲNG, chỉ tờ sau xoay — giống ảnh mẫu. */
-
-.rb-cal-front {
+.rb-tp-b-wrap {
   position: relative;
   z-index: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 28px;
 }
 
-.rb-cal-orn {
+.rb-tp-b {
   display: block;
-  width: 96px;
-  height: 18px;
-  margin: 0 auto;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  object-fit: cover;
+}
+
+.rb-time-cal {
+  position: relative;
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 8px;
+}
+
+.rb-time-vt {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.rb-vt {
+  font-size: 14px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.rb-vt-2 {
+  margin-top: 32px;
+}
+
+.rb-cal-wrap {
+  position: relative;
+  padding: 0 12px 12px 0;
+}
+
+.rb-cal-red {
+  position: absolute;
+  top: -64px;
+  right: -16px;
+  bottom: 0;
+  width: 46%;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.rb-cal {
+  position: relative;
+  overflow: hidden;
+  padding: 12px 10px 8px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
+  background: rgb(var(--cx-card-bg-rgb));
+  box-shadow: 0 16px 40px rgb(var(--cx-shadow-rgb) / 0.12);
+}
+
+.rb-cal-md {
+  font-family: var(--rb-display);
+  font-style: italic;
+  font-size: 28px;
+  line-height: 1;
   color: rgb(var(--cx-accent-rgb));
 }
 
-.rb-cal-title {
-  margin: 10px 0 12px;
+.rb-cal-md i {
+  margin: 0 6px;
+  font-style: normal;
+  font-size: 22px;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+.rb-cal-year {
+  position: absolute;
+  top: 44%;
+  left: 0;
+  right: 0;
+  font-family: var(--rb-display);
+  font-size: 72px;
+  letter-spacing: 0.04em;
   text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-accent-rgb) / 0.07);
+  pointer-events: none;
 }
 
 .rb-cal-grid {
+  position: relative;
+  margin-top: 8px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  row-gap: 0;
+  text-align: center;
+  font-family: var(--rb-sans);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
-.rb-cal-dow {
-  margin-bottom: 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgb(var(--cx-line-rgb));
-  font-size: 10px;
-  letter-spacing: 0.06em;
+.rb-cal-hd {
+  padding: 0 0 2px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-cal-c span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding-top: 2px; /* Josefin đứng cao hơn tâm hộp */
+  border-radius: 50%;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rb-cal-c.is-day span {
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  font-weight: 400;
+}
+
+.rb-cal-c.is-party span {
+  box-shadow: inset 0 0 0 1px rgb(var(--cx-deco-2-rgb));
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* ── Màn 10 · RSVP + đếm ngược ─────────────────────────────────────────── */
+
+.rb-rsvp {
+  padding: 0;
+}
+
+.rb-rsvp .rb-rv-veil {
+  background: linear-gradient(rgb(var(--cx-scrim-rgb) / 0.4), rgb(var(--cx-scrim-rgb) / 0.6));
+}
+
+.rb-rv-inner {
+  position: relative;
+  flex: 1;
+  padding: 48px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.rb-rv-lines {
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.7;
+  color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 1px 10px rgb(var(--cx-scrim-rgb) / 0.5);
+}
+
+.rb-rv-form {
+  width: 100%;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rb-rv-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rb-rv-btn {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid rgb(var(--cx-on-image-rgb) / 0.55);
+  background: rgb(var(--cx-scrim-rgb) / 0.15);
+  color: rgb(var(--cx-on-image-rgb));
+  font-family: var(--rb-sans);
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.rb-rv-btn:active {
+  transform: scale(0.98);
+}
+
+.rb-rv-yes {
+  border-color: transparent;
+  background: rgb(var(--cx-accent-rgb) / 0.92);
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.rb-rv-msg {
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+/* Câu tiếng Việt: serif nghiêng thay cho chữ viết tay. */
+.rb-rv-script {
+  font-family: var(--rb-display);
+  font-style: italic;
+  font-size: 24px;
+  line-height: 1.3;
+  color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 2px 16px rgb(var(--cx-scrim-rgb) / 0.4);
+}
+
+.rb-count {
+  position: relative;
+  padding: 20px 16px 48px;
+  background: rgb(var(--cx-accent-rgb) / 0.94);
+  text-align: center;
+}
+
+/* Đếm ngược: số Playfair lớn, ngăn bằng vạch mảnh — không hộp bo. */
+.rb-cd {
+  display: flex;
+  justify-content: center;
+}
+
+.rb-cd-box {
+  flex: 1;
+  max-width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.rb-cd-box + .rb-cd-box {
+  border-left: 1px solid rgb(var(--cx-on-accent-rgb) / 0.3);
+}
+
+.rb-cd-box b {
+  font-family: var(--rb-display);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.rb-cd-box span {
+  font-family: var(--rb-sans);
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.rb-count .rb-sign {
+  margin-top: 16px;
+  padding-top: 0;
+}
+
+/* ── Our Story — tối đa 3 màn, bố cục theo số mốc (rb-st-one/two/many) ── */
+
+.rb-st-screen .rb-kicker {
+  margin-top: 12px;
+}
+
+.rb-st-list {
+  flex: 1 1 auto;
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+}
+
+.rb-st-item {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.rb-st-noimg {
+  grid-template-columns: 1fr;
+  padding-left: 16px;
+  border-left: 2px solid rgb(var(--cx-accent-rgb));
+}
+
+.rb-st-ph {
+  position: relative;
+  padding: 12px 12px 0 0;
+}
+
+.rb-st-block {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 70%;
+  height: 80%;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.rb-st-ph img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: calc(var(--sh) * 0.24);
+  object-fit: cover;
+}
+
+.rb-st-rev .rb-st-ph {
+  order: 2;
+  padding: 12px 0 0 12px;
+}
+
+.rb-st-rev .rb-st-block {
+  right: auto;
+  left: 0;
+}
+
+.rb-st-rev .rb-st-txt {
+  text-align: right;
+}
+
+.rb-st-date {
+  font-family: var(--rb-sans);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-st-title {
+  margin: 6px 0 8px;
+  font-family: var(--rb-display);
+  font-size: 19px;
+  line-height: 1.3;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rb-st-content {
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Một mốc: ảnh lớn tràn ngang, chữ căn giữa bên dưới. */
+.rb-st-one .rb-st-item {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  gap: 20px;
+  text-align: center;
+}
+
+.rb-st-one .rb-st-list {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.rb-st-one .rb-st-ph,
+.rb-st-one .rb-st-rev .rb-st-ph {
+  order: 0;
+  flex: 1 1 0;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  margin: 0 8px;
+}
+
+.rb-st-one .rb-st-ph img {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+}
+
+.rb-st-one .rb-st-txt,
+.rb-st-one .rb-st-rev .rb-st-txt {
+  padding: 0 8px;
+  text-align: center;
+}
+
+.rb-st-one .rb-st-title {
+  font-size: 24px;
+}
+
+.rb-st-one .rb-st-content {
+  font-style: italic;
+  font-size: 16px;
+}
+
+.rb-st-one .rb-st-noimg {
+  padding-left: 0;
+  border-left: 0;
+}
+
+/* Ba mốc trở lên: hàng gọn, ảnh nhỏ. */
+.rb-st-many .rb-st-list {
+  gap: 20px;
+}
+
+.rb-st-many .rb-st-item {
+  grid-template-columns: 0.8fr 1fr;
+}
+
+.rb-st-many .rb-st-ph img {
+  height: calc(var(--sh) * 0.15);
+}
+
+.rb-st-many .rb-st-title {
+  margin: 4px 0;
+  font-size: 17px;
+}
+
+.rb-st-many .rb-st-content {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* ── Lịch trình ────────────────────────────────────────────────────────── */
+
+.rb-schedule .rb-kicker {
+  margin: 12px 0 24px;
+}
+
+.rb-tl {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+/* ── Hộp mừng cưới (+ lời chúc ghép vào, xem _pack ở index.js) ─────────── */
+
+/* Đầu màn: nền đỏ phủ nửa trên, ảnh đè xuống phần nền thiệp — như màn Address. */
+.rb-gift-head {
+  flex: 1 1 0;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  margin: -24px -16px 0;
+  padding: 20px 16px 0;
+  background: linear-gradient(rgb(var(--cx-accent-rgb)), rgb(var(--cx-accent-rgb))) top / 100% 58% no-repeat;
+  color: rgb(var(--cx-on-accent-rgb));
+  text-align: center;
+}
+
+.rb-gift-ph {
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  margin-top: 16px;
+  object-fit: cover;
+  box-shadow: 0 16px 40px rgb(var(--cx-shadow-rgb) / 0.18);
+}
+
+/* Hộp quà do gift-box-helper chèn CUỐI mục; chữ ký luôn xuống đáy, lời chúc
+   đứng giữa hộp quà và chữ ký. */
+.rb-gift > .cx-gb {
+  padding-top: 20px;
+}
+
+.rb-gift > .rb-sign,
+.rb-footer > .rb-sign {
+  order: 10;
+}
+
+/* Màn đã nhận thêm lời chúc: bỏ ảnh, đầu màn gọn lại cho đủ chỗ. */
+.rb-gift.rb-packed .rb-gift-head {
+  flex: none;
+  min-height: 0;
+  padding-bottom: 16px;
+  background-size: 100% 100%;
+}
+
+.rb-gift.rb-packed .rb-gift-ph {
+  display: none;
+}
+
+/* Đã ghép lời chúc: hộp quà / QR nhỏ lại, bỏ chữ ký để cả màn vừa khung. */
+.rb-gift.rb-packed .cx-gb-btn {
+  max-width: 132px;
+}
+
+.rb-gift.rb-packed .rb-qr-box {
+  max-width: 120px;
+}
+
+.rb-gift.rb-packed > .rb-sign {
+  display: none;
+}
+
+.rb-gift.rb-packed > .cx-gb {
+  padding-top: 16px;
+}
+
+.rb-footer.rb-packed .rb-ft-ph {
+  min-height: 140px;
+}
+
+.rb-footer.rb-packed > .rb-sign {
+  display: none;
+}
+
+.rb-footer.rb-packed .rb-ft-script {
+  margin-top: 16px;
+  font-size: 48px;
+}
+
+.rb-screen > .cx-wsec.rb-pack {
+  order: 5;
+  max-width: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.rb-fx .rb-pack {
+  opacity: 0;
+}
+
+.rb-fx .rb-on .rb-pack {
+  animation: cx-rb-up 0.9s cubic-bezier(0.22, 0.8, 0.24, 1) 0.9s both;
+}
+
+
+.rb-qr-grid {
+  padding-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.rb-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.rb-qr-who {
+  font-family: var(--rb-sans);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-qr-bank {
+  font-size: 15px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.rb-qr-box {
+  width: 100%;
+  max-width: 168px;
+  padding: 8px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.3);
+}
+
+.rb-qr-box img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.rb-qr-num {
+  font-family: var(--rb-display);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rb-qr-owner {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rb-qr-save {
+  margin-top: 6px;
+  padding: 0 16px;
+}
+
+/* ── Lời cảm ơn ────────────────────────────────────────────────────────── */
+
+.rb-ft-ph {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  margin: 8px 0 0;
+  padding: 16px 16px 0 0;
+}
+
+.rb-ft-red {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 85%;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.rb-ft-ph img {
+  position: relative;
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  object-fit: cover;
+}
+
+.rb-ft-script {
+  margin-top: 20px;
+  font-family: var(--rb-script);
+  font-size: 56px;
+  line-height: 1.2;
   text-align: center;
   color: rgb(var(--cx-accent-rgb));
 }
 
-.rb-cal-day {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 26px;
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: rgb(var(--cx-heading-rgb));
-}
-
-/* Ngày của tháng bên cạnh — vẫn hiện cho lưới đủ hàng như lịch in. */
-
-.rb-cal-day.is-out {
-  opacity: 0.26;
-}
-
-/* Ngày cưới / ngày tiệc: chấm tròn màu nhấn vẽ bằng ::before nên số vẫn nằm
-   trên (z-index âm chỉ lùi trong chính tờ lịch, không xuyên qua nền giấy). */
-
-.rb-cal-day.is-on {
-  font-weight: 600;
-  color: rgb(var(--cx-on-accent-rgb));
-}
-
-.rb-cal-day.is-on::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  width: 24px;
-  height: 24px;
-  border-radius: 9999px;
-  background-color: rgb(var(--cx-accent-rgb));
-  box-shadow: 0 2px 8px rgb(var(--cx-accent-rgb) / 0.4);
-}
-
-/* ── Nhãn tiêu đề mục có nền bo tròn ("Trân trọng kính mời dự…", "Tiệc Mừng…")
-   Nằm giữa mục dù mục là flex-column stretch → tự canh bằng align-self. */
-
-.rb-label {
-  align-self: center;
-  max-width: 100%;
-  padding: 8px 22px;
-  border-radius: 9999px;
-  line-height: 1.9;
-  background-color: rgb(var(--cx-accent-rgb) / 0.12);
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.22);
-}
-
-/* ── Nút xác nhận tham dự: bóng đổ xuống sát chân nút như vật đặt trên mặt ── */
-
-.rb-sit {
-  background-color: rgb(var(--cx-panel-rgb));
-  box-shadow:
-    0 6px 10px -5px rgb(var(--cx-heading-rgb) / 0.45),
-    0 2px 4px -2px rgb(var(--cx-heading-rgb) / 0.22);
-}
-
-.rb-sit:active {
-  box-shadow: 0 2px 5px -3px rgb(var(--cx-heading-rgb) / 0.45);
-}
-
-/* ── Hàng ngày giờ ở mục mở đầu ────────────────────────────────────────────
-   Ghim font Merriweather: nét nhận dạng của mẫu. Nhắm qua thẻ cha để thắng
-   .cx-h/.cx-t chung; khách muốn khác thì bấm thẳng vào dòng đó mà chỉnh riêng
-   (ghi đè từng dòng nhắm theo #id nên vẫn thắng rule này). */
-
-.rb-hero-date .cx-h,
-.rb-hero-date .cx-t {
-  font-family: "Merriweather", serif;
-}
-
-/* ── Chuyện tình yêu: mỗi mẩu chuyện một tờ giấy ───────────────────────────
-   Giấy thủ công: bốn mép deckle (răng cưa biên độ 1–3px, không phải xé toạc),
-   nền kem có vân giấy + bóng ấm ở đáy, góc TRÁI TRÊN gấp cong lên.
-   Vài ràng buộc dễ vấp:
-     · clip-path CẮT cả box-shadow lẫn con bên trong → bóng vẽ bằng
-       filter: drop-shadow, còn cây bút và mảnh góc gấp phải nằm NGOÀI .rb-paper.
-     · Đổi --rb-curl thì phải đổi hai điểm đầu của clip-path cho khớp. */
-
-.rb-paper-wrap {
-  --rb-curl: 26px;
-  position: relative;
-}
-
-.rb-paper {
-  position: relative;
-  padding: 34px 24px 30px 28px;
-  color: rgb(var(--cx-heading-rgb));
-  background-color: rgb(var(--cx-panel-warm-rgb));
-  /* Vân giấy: hai lớp sọc rất mờ đan chéo + quầng sáng trên, quầng ấm dưới. */
-  background-image:
-    radial-gradient(
-      120% 80% at 50% 0%,
-      rgb(var(--cx-panel-rgb) / 0.9),
-      rgb(var(--cx-panel-rgb) / 0) 62%
-    ),
-    radial-gradient(
-      130% 110% at 50% 108%,
-      rgb(var(--cx-accent-rgb) / 0.09),
-      rgb(var(--cx-panel-rgb) / 0) 60%
-    ),
-    repeating-linear-gradient(
-      96deg,
-      rgb(var(--cx-heading-rgb) / 0.028) 0 1px,
-      transparent 1px 7px
-    ),
-    repeating-linear-gradient(
-      6deg,
-      rgb(var(--cx-heading-rgb) / 0.022) 0 1px,
-      transparent 1px 9px
-    );
-  filter: drop-shadow(0 14px 20px rgb(var(--cx-heading-rgb) / 0.18))
-    drop-shadow(0 3px 4px rgb(var(--cx-heading-rgb) / 0.12));
-  clip-path: polygon(
-    0 var(--rb-curl),
-    var(--rb-curl) 0,
-    34% 1.8px,
-    42% 0.9px,
-    50% 1.6px,
-    58% 3px,
-    66% 2px,
-    74% 1.6px,
-    82% 2.6px,
-    90% 2.7px,
-    98% 0.2px,
-    calc(100% - 3px) 8%,
-    calc(100% - 0.6px) 20%,
-    calc(100% - 0.6px) 32%,
-    calc(100% - 3px) 44%,
-    calc(100% - 0.2px) 56%,
-    calc(100% - 1.2px) 68%,
-    calc(100% - 0.1px) 80%,
-    calc(100% - 0.2px) 92%,
-    94% calc(100% - 2px),
-    86% calc(100% - 2.8px),
-    78% calc(100% - 2.4px),
-    70% calc(100% - 2.2px),
-    62% calc(100% - 0.2px),
-    54% calc(100% - 1.9px),
-    46% calc(100% - 1.5px),
-    38% calc(100% - 0.6px),
-    30% calc(100% - 2.7px),
-    22% calc(100% - 0.2px),
-    14% calc(100% - 2.4px),
-    6% calc(100% - 0.4px),
-    0.1px 92%,
-    2.1px 80%,
-    2.2px 68%,
-    2.6px 56%,
-    2.5px 44%,
-    2.5px 32%,
-    2.2px 20%
-  );
-}
-
-/* Mảnh giấy gấp cong lên ở góc trái trên: tam giác lật ngược, tối dần về phía
-   nếp gấp, bóng đổ xuống dưới-phải cho ra khối. */
-
-.rb-paper-wrap::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  width: var(--rb-curl);
-  height: var(--rb-curl);
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  border-bottom-right-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgb(var(--cx-shine-from-rgb)) 0%,
-    rgb(var(--cx-shine-mid-rgb)) 46%,
-    rgb(var(--cx-shine-to-rgb)) 100%
-  );
-  /* box-shadow bị chính clip-path cắt mất → bóng phải vẽ bằng filter. */
-  filter: drop-shadow(2px 3px 5px rgb(var(--cx-heading-rgb) / 0.3));
-  transform: rotate(-4deg) translate(-1px, -1px);
-}
-
-/* Cây bút máy: MỘT cây cho cả mục, neo trong #love-story-list, chỉ hiện lúc
-   đang viết. index.js đặt vị trí bằng transform; transform-origin nằm ngay đầu
-   ngòi (toạ độ 2,11 của viewBox 160x22 → ~1px,5.2px ở khổ 78px) nên translate
-   chính là toạ độ đầu ngòi trong khung. */
-
-.rb-pen {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 78px;
-  height: auto;
-  transform-origin: 1px 5.2px;
-  opacity: 0;
-  transition:
-    transform 0.12s linear,
-    opacity 0.35s ease;
-  filter: drop-shadow(0 3px 5px rgb(var(--cx-heading-rgb) / 0.3));
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* ── Từng dòng chữ trong tờ giấy ─────────────────────────────────────────── */
-
-.rb-story-date,
-.rb-story-title,
-.rb-story-text {
-  font-family: "BethanWhite", cursive;
+.rb-ft-text {
+  margin-top: 8px;
+  padding: 0 16px;
   font-style: italic;
-  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.6;
+  text-align: center;
+  color: rgb(var(--cx-body-rgb));
 }
 
-/* Ngày: nhỏ, có gạch chân ngắn màu nhấn cho ra dáng đề ngày trên thư tay. */
+/* ══ HIỆU ỨNG ══════════════════════════════════════════════════════════════
+   data-a = kiểu, data-d = nhịp trễ (1 = 0.15s). Chỉ chạy khi <html> có .rb-fx
+   và màn đang .rb-on (index.js gắn/gỡ theo vị trí cuộn → quay lại là chạy lại).
+   Kiểu "ch-*" là hiệu ứng TỪNG KÝ TỰ: index.js tách chữ thành .rb-ch mang --i.
+   Phần tử có transform riêng (chữ ký nghiêng) chỉ dùng kiểu không đụng transform
+   (wipe, fade, blur…), không thì animation đè mất góc nghiêng. */
 
-.rb-story-date {
-  font-size: 19px;
-  letter-spacing: 0.04em;
-  opacity: 0.85;
+[data-a] {
+  --rb-k: cx-rb-fade;
+  --rb-t: 0.9s;
+  --rb-e: cubic-bezier(0.22, 0.8, 0.24, 1);
+  --rb-d: 0s;
 }
 
-.rb-story-date::after {
-  content: "";
-  display: block;
-  width: 34px;
-  height: 1px;
-  margin: 6px 0 10px;
-  background-color: rgb(var(--cx-accent-rgb) / 0.55);
-}
-
-.rb-story-title {
-  font-size: 29px;
-  line-height: 1.25;
-}
-
-.rb-story-text {
-  font-size: 26px;
-  line-height: 1;
-  opacity: 0.92;
-}
-
-/* Ảnh trên trang giấy: chiếm trọn bề ngang tờ giấy, chỉ đổ bóng. */
-
-.rb-story-photo {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  margin: 14px 0 4px;
-  box-shadow: 0 8px 18px rgb(var(--cx-heading-rgb) / 0.22);
-}
-
-/* Ghim font viết tay: theme-setting-helper bơm font khách chọn kèm !important
-   nên phải nhắm qua thẻ cha để thắng độ ưu tiên. BethanWhite là font tự host,
-   khai ở styles/_fonts.css. */
-
-.rb-paper .cx-hd,
-.rb-paper .cx-ac {
-  font-family: "BethanWhite", cursive !important;
-  font-style: italic;
-}
-
-/* Chữ hiện dần từng ký tự như đang được viết (index.js gắn .is-inked). */
-
-.rb-ink {
+.rb-fx [data-a] {
   opacity: 0;
 }
 
-.rb-ink.is-inked {
+.rb-fx .rb-on [data-a] {
+  animation: var(--rb-k) var(--rb-t) var(--rb-e) var(--rb-d) both;
+}
+
+.rb-fx .rb-on [data-a^="ch"] {
   opacity: 1;
-  animation: cx-rb-ink 0.22s ease-out both;
+  animation: none;
 }
 
-@keyframes cx-rb-ink {
-  from {
-    opacity: 0;
-    filter: blur(2px);
+.rb-w {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.rb-ch {
+  display: inline-block;
+}
+
+.rb-fx .rb-on .rb-ch {
+  animation: var(--rb-ck) var(--rb-ct) var(--rb-ce)
+    calc(var(--rb-d) + var(--i, 0) * var(--rb-step)) both;
+}
+
+[data-a="up"] { --rb-k: cx-rb-up; }
+[data-a="down"] { --rb-k: cx-rb-down; }
+[data-a="left"] { --rb-k: cx-rb-left; --rb-t: 1.1s; }
+[data-a="right"] { --rb-k: cx-rb-right; --rb-t: 1.1s; }
+[data-a="fade"] { --rb-k: cx-rb-fade; --rb-t: 1.4s; }
+[data-a="pop"] { --rb-k: cx-rb-pop; --rb-t: 0.8s; --rb-e: ease-out; }
+[data-a="flip"] { --rb-k: cx-rb-flip; --rb-t: 0.9s; }
+[data-a="blur"] { --rb-k: cx-rb-blur; --rb-t: 1.4s; }
+[data-a="spread"] { --rb-k: cx-rb-spread; --rb-t: 1.4s; }
+[data-a="zoomout"] { --rb-k: cx-rb-zoomout; --rb-t: 2.4s; --rb-e: cubic-bezier(0.2, 0.6, 0.2, 1); }
+[data-a="wipe"] { --rb-k: cx-rb-wipe; --rb-t: 1.8s; --rb-e: cubic-bezier(0.6, 0.1, 0.3, 1); }
+[data-a="wipe-down"] { --rb-k: cx-rb-wipe-down; --rb-t: 1s; --rb-e: cubic-bezier(0.7, 0, 0.3, 1); }
+
+[data-a="ch-type"] {
+  --rb-ck: cx-rb-fade;
+  --rb-ct: 0.25s;
+  --rb-ce: linear;
+  --rb-step: 70ms;
+}
+
+[data-a="ch-rise"] {
+  --rb-ck: cx-rb-ch-rise;
+  --rb-ct: 0.6s;
+  --rb-ce: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --rb-step: 45ms;
+}
+
+[data-a="ch-drop"] {
+  --rb-ck: cx-rb-ch-drop;
+  --rb-ct: 0.8s;
+  --rb-ce: ease-out;
+  --rb-step: 90ms;
+}
+
+/* Đoạn dài (slogan, lời cảm ơn) gõ nhanh hơn cho khỏi chờ. */
+[data-step="fast"] {
+  --rb-step: 28ms;
+}
+
+[data-d="1"] { --rb-d: 0.15s; }
+[data-d="2"] { --rb-d: 0.3s; }
+[data-d="3"] { --rb-d: 0.45s; }
+[data-d="4"] { --rb-d: 0.6s; }
+[data-d="5"] { --rb-d: 0.75s; }
+[data-d="6"] { --rb-d: 0.9s; }
+[data-d="7"] { --rb-d: 1.05s; }
+[data-d="8"] { --rb-d: 1.2s; }
+[data-d="9"] { --rb-d: 1.35s; }
+[data-d="10"] { --rb-d: 1.5s; }
+[data-d="11"] { --rb-d: 1.65s; }
+[data-d="12"] { --rb-d: 1.8s; }
+[data-d="13"] { --rb-d: 1.95s; }
+[data-d="14"] { --rb-d: 2.1s; }
+
+@keyframes cx-rb-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cx-rb-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes cx-rb-down {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes cx-rb-left {
+  from { opacity: 0; transform: translateX(-64px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes cx-rb-right {
+  from { opacity: 0; transform: translateX(64px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes cx-rb-pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  70% { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes cx-rb-flip {
+  from { opacity: 0; transform: perspective(600px) rotateX(-90deg); }
+  to { opacity: 1; transform: perspective(600px) rotateX(0); }
+}
+
+@keyframes cx-rb-blur {
+  from { opacity: 0; filter: blur(12px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+/* Không khai letter-spacing ở `to` → chạy về đúng giá trị của phần tử. */
+@keyframes cx-rb-spread {
+  from { opacity: 0; letter-spacing: -0.5em; filter: blur(4px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+@keyframes cx-rb-zoomout {
+  from { opacity: 0; transform: scale(1.3); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes cx-rb-wipe {
+  from { opacity: 1; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+@keyframes cx-rb-wipe-down {
+  from { opacity: 1; clip-path: inset(0 0 100% 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+@keyframes cx-rb-ch-rise {
+  from { opacity: 0; transform: translateY(0.7em); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes cx-rb-ch-drop {
+  0% { opacity: 0; transform: translateY(-1.4em) rotate(-20deg) scale(1.6); }
+  60% { opacity: 1; transform: translateY(0.1em) rotate(4deg) scale(0.95); }
+  100% { opacity: 1; transform: none; }
+}
+
+
+/* Máy bật "giảm chuyển động": bỏ hiệu ứng, mọi thứ hiện ngay ở trạng thái cuối. */
+@media (prefers-reduced-motion: reduce) {
+  .rb-fx .rb-on [data-a],
+  .rb-fx .rb-on .rb-ch,
+  .rb-fx .rb-on .rb-pack {
+    animation-duration: 0.01ms;
+    animation-delay: 0s;
   }
-  to {
-    opacity: 1;
-    filter: none;
+
+  .rb-stack .rb-slide.is-cur {
+    transition-duration: 0.3s;
+  }
+
+  .rb-nav-panel,
+  .rb-nav-bar i {
+    transition: none;
+  }
+
+  .rb-nav.is-land .rb-nav-bar i {
+    animation: none;
   }
 }

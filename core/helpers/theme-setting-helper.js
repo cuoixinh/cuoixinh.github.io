@@ -786,7 +786,7 @@ function _cxRender() {
     const cs = getComputedStyle(parent);
     if (!(cs.display.indexOf("flex") !== -1 && cs.flexDirection === "column"))
       return;
-    // .cx-wsec = mục lời chúc dạng comment (wishes-helper) — cũng append cuối rồi
+    // .cx-wsec = mục lời chúc trong thân thiệp (wishes-helper) — cũng append cuối rồi
     // tự xếp order, đếm nó vào đây là nó nhảy xuống đáy thiệp.
     const reals = Array.from(parent.children).filter(
       (c) =>
@@ -811,7 +811,7 @@ function _cxRender() {
     });
   });
 
-  // Vừa đánh lại order cho cả cột → mục lời chúc dạng comment phải chen lại vào
+  // Vừa đánh lại order cho cả cột → mục lời chúc trong thân thiệp phải chen lại vào
   // trước hộp mừng cưới.
   window.cxWishPlace?.();
 }

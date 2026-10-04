@@ -139,8 +139,7 @@ class TemplatesDAL {
   /**
    * Ép hai nguồn về cùng một shape. Giá giữ NGUYÊN `null` khi nguồn không có —
    * mã không được bịa một con số dự phòng: mẫu thiếu hàng `template_pricing`
-   * mà vẫn hiện giá là khách bấm mua theo giá không có thật. Bên gọi vẽ bằng
-   * `cxPriceHtml()` nên `null` chỉ thành chữ "Liên hệ". Worker cũ (chưa deploy
+   * mà vẫn hiện giá là khách bấm mua theo giá không có thật. Worker cũ (chưa deploy
    * bản mới) còn trả `thumbnail`, mà worker deploy độc lập với web nên đừng tin
    * nó đang chạy bản nào.
    */
@@ -153,14 +152,5 @@ class TemplatesDAL {
     }));
   }
 }
-
-/**
- * Cụm giá của thẻ mẫu (trang chủ và /theme-template dùng chung markup `.tt-*`).
- * Không có giá thì hiện "Liên hệ", không hiện 0đ.
- */
-window.cxPriceHtml = (v) =>
-  Number.isFinite(v)
-    ? `${Number(v).toLocaleString("vi-VN")}<span class="tt-cur">đ</span>`
-    : "Liên hệ";
 
 window.templatesDAL = new TemplatesDAL();

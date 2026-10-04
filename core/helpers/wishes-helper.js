@@ -1,5 +1,5 @@
-// Lời chúc của khách mời trên trang thiệp: một mục trong thân thiệp (thẻ, bình
-// luận, phân trang) hoặc dải nổi ghim đáy khung nhìn (livestream) + ô gửi. Gọi
+// Lời chúc của khách mời trên trang thiệp: một mục trong thân thiệp (thẻ, phân
+// trang) hoặc dải nổi ghim đáy khung nhìn (livestream) + ô gửi. Gọi
 // một lần từ loadWeddingData (wedding-helper).
 //
 // Mẫu thiệp KHÔNG phải sửa gì: có #cx-wishes-list thì helper mount vào đó, không
@@ -42,10 +42,6 @@ const CX_WISH_MODE_DEFAULT = "card";
 
 // Dạng "paged": mỗi trang mấy lời chúc.
 const CX_WISH_PAGE_SIZE = 3;
-
-// Dạng comment: nghỉ bao lâu (ms) sau khi lời chúc cuối khuất hẳn rồi mới chiếu
-// lại từ đầu. Dải nổi nghỉ CX_WISH_REPLAY_MS.
-const CX_WISH_SEC_REPLAY_MS = 2000;
 
 // Năm ô màu của lời chúc, FIX CỨNG theo từng mẫu: mẫu khai gì (CX_THEME.wishes)
 // thì lấy nấy, không khai thì rơi về token chung của thiệp. Mỗi khoá ứng với một
@@ -216,14 +212,14 @@ function _cxWishItemHtml(w) {
 // teardown bên dưới không còn chỗ nào rẽ nhánh theo tên dạng.
 //   mount(canWrite)  dựng vỏ (dải nổi, hay mục trong thân thiệp)
 //   render(mount)    đổ danh sách _cxWishItems vào #cx-wishes-list
-//   stop()           tắt hiệu ứng đang chạy — gọi trước mỗi lượt render và khi
-//                    đổi dạng; phải chịu được gọi cả lúc chưa dựng gì
+//   stop()           tắt hiệu ứng đang chạy (bỏ trống nếu dạng không có) — gọi
+//                    trước mỗi lượt render và khi đổi dạng; phải chịu được gọi cả
+//                    lúc chưa dựng gì
 //   section          true = dùng chung vỏ mục trong thân thiệp (_cxWishBuildSection)
 //   secClass         class thêm vào vỏ mục, để CSS nhận ra dạng
 //   pager            true = vỏ mục có thêm hàng chuyển trang
 //   dots             true = vỏ mục có dãy chấm chỉ vị trí dải thẻ
 //   roll             true = danh sách là một lượt chiếu trôi lên (_cxWishStartRoll)
-//   replay           nghỉ bao lâu (ms) giữa hai lượt chiếu — bỏ trống là CX_WISH_REPLAY_MS
 const CX_WISH_MODES = {
   card: {
     mount: _cxWishBuildSection,
@@ -239,19 +235,9 @@ const CX_WISH_MODES = {
     stop: _cxWishStopRoll,
     roll: true,
   },
-  comment: {
-    mount: _cxWishBuildSection,
-    render: _cxWishRenderSection,
-    stop: _cxWishStopAutoScroll,
-    section: true,
-    secClass: "cx-wsec-comment",
-    roll: true,
-    replay: CX_WISH_SEC_REPLAY_MS,
-  },
   paged: {
     mount: _cxWishBuildSection,
     render: _cxWishRenderPaged,
-    stop: _cxWishStopAutoScroll,
     section: true,
     secClass: "cx-wsec-paged",
     pager: true,
@@ -266,7 +252,6 @@ function _cxWishRender() {
   const mount = document.getElementById("cx-wishes-list");
   if (!mount) return;
   _cxWishStopRoll();
-  _cxWishStopAutoScroll();
   _cxWishStopCards();
   _cxWishDef().render(mount);
 }
@@ -312,7 +297,7 @@ function _cxWishRenderDock(mount) {
   _cxWishStartRoll();
 }
 
-// Một lượt chiếu (dải nổi và dạng comment): danh sách vào từ mép DƯỚI khung, đi
+// Một lượt chiếu của dải nổi: danh sách vào từ mép DƯỚI khung, đi
 // lên cho tới khi lời chúc cuối khuất hẳn, nghỉ một nhịp rồi chạy lại từ đầu. Quãng đường phải đo
 // bằng px (chiều cao khung + chiều cao danh sách) vì `translateY(%)` tính theo
 // chính thẻ track — hai thứ có kích thước khác nhau.
@@ -356,7 +341,7 @@ function _cxWishStartRoll() {
         // Danh sách có thể đã được vẽ lại (khách vừa gửi lời chúc) — thẻ track
         // rời DOM thì bỏ lượt này, lượt mới do _cxWishRender lo.
         if (track.isConnected) _cxWishStartRoll();
-      }, _cxWishDef().replay || CX_WISH_REPLAY_MS);
+      }, CX_WISH_REPLAY_MS);
     },
     { once: true },
   );
@@ -371,38 +356,7 @@ window.addEventListener("resize", () => {
   _cxWishResizeTimer = setTimeout(_cxWishStartRoll, 200);
 });
 
-// ── Vỏ MỤC trong thân thiệp (thẻ, comment, paged), ngay trên hộp mừng cưới ──
-// Dạng comment chạy CHUNG lượt chiếu với dải nổi (_cxWishStartRoll): lời chúc vào
-// từ mép dưới khung, trôi lên rồi mờ dần ở mép trên, hết danh sách thì nghỉ
-// CX_WISH_SEC_REPLAY_MS và chiếu lại. Khác dải nổi đúng một điểm: chỉ trôi khi
-// khung đang trong tầm nhìn — mục nằm giữa thân thiệp, trôi lúc khách chưa cuộn
-// tới thì tới nơi đã chiếu quá nửa.
-
-let _cxWishSecIO = null;
-
-function _cxWishStopAutoScroll() {
-  _cxWishSecIO?.disconnect();
-  _cxWishSecIO = null;
-}
-
-// Khung ra khỏi tầm nhìn thì dừng lượt chiếu tại chỗ (.is-paused), quay lại thì
-// trôi tiếp. Track dựng sẵn cờ .is-paused nên chưa tới nơi thì danh sách nằm chờ
-// dưới mép khung, khách cuộn tới là thấy lời đầu tiên trôi lên.
-function _cxWishWatchSecRoll(view) {
-  _cxWishStopAutoScroll();
-  if (!window.IntersectionObserver) {
-    view.querySelector(".cx-wish-track")?.classList.remove("is-paused");
-    return;
-  }
-  _cxWishSecIO = new IntersectionObserver(
-    (ents) => {
-      const vis = ents.some((e) => e.isIntersecting);
-      view.querySelector(".cx-wish-track")?.classList.toggle("is-paused", !vis);
-    },
-    { threshold: 0.35 },
-  );
-  _cxWishSecIO.observe(view);
-}
+// ── Vỏ MỤC trong thân thiệp (thẻ, paged), ngay trên hộp mừng cưới ─────────
 
 // Tiêu đề mục (kèm số lời chúc) — dùng chung cho mọi dạng có vỏ mục.
 function _cxWishSyncSecTitle() {
@@ -422,22 +376,6 @@ function _cxWishFillList(mount, items) {
   mount.innerHTML = items.length
     ? items.map(_cxWishItemHtml).join("")
     : CX_WISH_EMPTY_HTML;
-}
-
-// Dạng "comment": cả danh sách trong một thẻ track, chiếu trôi lên như dải nổi.
-function _cxWishRenderSection(mount) {
-  _cxWishSyncSecTitle();
-  if (!_cxWishItems.length) {
-    _cxWishFillList(mount, _cxWishItems);
-    return;
-  }
-  mount.classList.remove("is-empty");
-  mount.innerHTML =
-    '<div class="cx-wish-track is-paused">' +
-    _cxWishItems.map(_cxWishItemHtml).join("") +
-    "</div>";
-  _cxWishStartRoll();
-  _cxWishWatchSecRoll(mount);
 }
 
 // ── Dạng "card": dải ngang các thẻ cùng khổ ──────────────────────────────────
@@ -1290,7 +1228,6 @@ function _cxWishTeardown() {
   // Dọn hiệu ứng của MỌI dạng, không chỉ dạng đang bật: teardown cũng là bước
   // đầu của lượt đổi dạng.
   _cxWishStopRoll();
-  _cxWishStopAutoScroll();
   _cxWishStopCards();
   _cxWishUnwatchReveal();
   ["cx-wish-dock", "cx-wdock-spacer", "cx-wish-all", "cx-wish-sec"].forEach((id) =>

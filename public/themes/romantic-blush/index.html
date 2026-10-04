@@ -7,11 +7,8 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Cưới Xinh — Thiệp Cưới</title>
-    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
-         địa chỉ, số điện thoại và QR tài khoản của khách. Bản MẪU (không có slug)
-         thì vẫn cho lập chỉ mục vì đó là hàng đang bán. Phải xét lúc chạy: hai bản
-         dùng CHUNG một URL, khác nhau đúng tham số này — đặt meta tĩnh vào file là
-         chặn nhầm cả bản mẫu. -->
+    <!-- Thiệp THẬT (URL có ?slug=) không được lên kết quả tìm kiếm; bản MẪU thì
+         vẫn cho lập chỉ mục. Hai bản dùng chung URL nên phải xét lúc chạy. -->
     <script>
       (function () {
         if (!new URLSearchParams(location.search).has("slug")) return;
@@ -20,515 +17,212 @@
         m.content = "noindex,nofollow";
         document.head.appendChild(m);
       })();
+      // Cờ chồng màn (.rb-stack) + hiệu ứng (.rb-fx) đặt TRƯỚC khi vẽ để chữ không
+      // nháy lên rồi mới ẩn. Tab Giao diện (edit=1) tắt cả hai: ở đó thiệp phải trải
+      // dài như trang thường để kéo thả, chỉnh từng phần tử.
+      if (new URLSearchParams(location.search).get("edit") !== "1") {
+        document.documentElement.classList.add("rb-fx", "rb-stack");
+      }
     </script>
     <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Merriweather:wght@300;400;700&family=Quicksand:wght@300;400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400&family=Cormorant+Infant:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Josefin+Sans:wght@200;300;400&family=Noto+Serif:wght@400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
       rel="stylesheet"
     />
-    <!-- Chữ thư pháp (Signora) là font TỰ HOST ở assets/fonts/, khai @font-face
-         tập trung ở styles/_fonts.css — không lấy từ Google. -->
+    <!-- Bộ chữ kiểu tạp chí: Playfair Display (tiêu đề) · Cormorant Infant (nội dung) ·
+         Josefin Sans (nhãn nhỏ). Riêng tên đôi ở màn 1 dùng Noto Serif + Cinzel; chữ
+         ký tiếng Anh dùng TheHamstter (tự host, styles/_fonts.css). -->
     <link rel="stylesheet" href="../../../styles/themes.css" />
     <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
     <link rel="stylesheet" href="theme.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
-    <script
-      src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js"
-      integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m"
-      crossorigin="anonymous"
-    ></script>
-    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
-         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: markup chèn động phải tự gọi lucide.createIcons({ root }). -->
     <script>
-      document.addEventListener("DOMContentLoaded", () =>
-        window.lucide?.createIcons(),
-      );
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
     </script>
     <script src="../../../core/x-button.js"></script>
-    <!-- Markup trình phát nhạc. Dạng dùng ở mẫu này khai tại CX_THEME.music
-         (index.js), theme-boot.js dựng vào #cx-music-mount. -->
+    <!-- Markup trình phát nhạc; dạng khai ở CX_THEME.music (index.js). -->
     <script src="../../../core/components/music-player.js"></script>
     <script src="../../../core/helpers/no-zoom.js"></script>
   </head>
 
-  <!-- ROMANTIC BLUSH — hồng phấn · kem trắng · nâu espresso.
-       Nét riêng: mục mở đầu xếp theo lối thiệp in (tên thư pháp → hàng ngày giờ
-       → nơi tổ chức → hàng chip nhảy nhanh tới từng mục → ảnh cưới); toàn thiệp
-       không dùng hình trang trí, chỉ có chữ và khoảng trắng.
-       Dựng từ public/themes/base-theme/ — xem hướng dẫn ở đầu file đó. -->
+  <!-- ROMANTIC BLUSH — thiệp dạng SLIDE: mỗi .rb-screen là một màn, các màn nằm
+       CHỒNG tại chỗ, vuốt thì màn sau hiện dần đè lên màn trước (không cuộn).
+       Phần tử mang data-a (kiểu hiệu ứng) + data-d (nhịp trễ, 1 = 0.15s) chạy lại
+       mỗi lần màn hiện — xem phần "CHỒNG MÀN" ở index.js, keyframes ở theme.css.
+       Ảnh trang trí lấy lần lượt từ album: data-rb-g = thứ tự ảnh, quay vòng. -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
-    <!-- ═══ Trình phát nhạc (enable_music) ═══════════════════════════════
-         Dạng khai ở CX_THEME.music, theme-boot.js dựng vào đây. Thẻ phải
-         là con ĐẦU TIÊN của <body>: bong bóng thu gọn dùng position:fixed
-         nên tổ tiên có transform sẽ neo nó sai chỗ. -->
+    <!-- Trình phát nhạc — phải là con ĐẦU TIÊN của <body>. -->
     <div id="cx-music-mount"></div>
 
-    <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
-         #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục.
-         Không có màn bìa: mở link là vào thẳng mục mở đầu, nên #main-card không
-         đặt display:none và openInvitation() không làm gì (nó cần #cover-screen). -->
+    <!-- ═══ THÂN THIỆP — #main-card + ĐÚNG MỘT thẻ con flex-column ═════════ -->
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
     >
-      <div class="flex flex-col gap-14 pb-14 text-center">
-        <!-- ═══ MỤC: Mở đầu ════════════════════════════════════════════════
-             Dựng theo lối thiệp in: tên thư pháp, hàng ngày giờ chia ba ô, nơi
-             tổ chức, rồi hàng chip nhảy nhanh tới từng mục — tất cả nằm TRÊN
-             ảnh cưới làm nền, cao trọn một màn (.rb-hero + .cx-screen-h — dùng
-             chung công thức svh/--vh với các mẫu khác, xem styles/_common.css).
-             #main-photo là ảnh của màn đầu tiên nên được ưu tiên tải. -->
-        <section
-          id="section-hero"
-          class="rb-hero cx-screen-h px-7 py-12 flex flex-col items-center justify-center gap-6"
-        >
-          <img
-            id="main-photo"
-            fetchpriority="high"
-            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-            alt="Ảnh cưới"
-            class="rb-hero-bg"
-          />
+      <div class="rb-body">
+        <!-- ═══ MÀN 1 · Mở đầu — ảnh bìa tràn màn ═══════════════════════════ -->
+        <section id="section-hero" data-rb-label="Mở đầu" class="rb-screen rb-hero" data-rb-tone="dark">
+          <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="rb-full-img" alt="Ảnh cưới" fetchpriority="high" data-a="zoomout" />
+          <div class="rb-hero-veil"></div>
 
-          <div class="cx-t rb-caps text-[10px]">The Wedding Of</div>
-
-          <div class="rb-script text-[60px] flex flex-col items-center gap-1">
-            <span id="couple-names-groom">----------</span>
-            <span class="cx-a text-[30px] leading-none">&</span>
-            <span id="couple-names-bride">----------</span>
-          </div>
-
-          <div class="rb-rule">
-            <i data-lucide="leaf" class="cx-ic cx-a text-[11px]"></i>
-          </div>
-
-          <!-- Hàng ngày giờ: thứ · ngày lớn + tháng.năm · giờ.
-               .rb-hero-date ghim font Merriweather cho cả hàng (xem theme.css). -->
-          <div
-            class="rb-hero-date w-full flex items-stretch justify-center gap-4"
-          >
-            <div class="flex-1 flex items-center justify-center">
-              <span class="cx-t rb-caps text-[11px]" id="hero-weekday"
-                >------</span
-              >
-            </div>
-            <div class="w-px cx-bg-line"></div>
-            <div class="flex flex-col items-center gap-0.5 px-1">
-              <span
-                class="cx-h text-[42px] font-semibold leading-none"
-                id="hero-day"
-                >--</span
-              >
-              <span class="cx-t text-[11px] tracking-[1px]" id="hero-month-year"
-                >--.----</span
-              >
-            </div>
-            <div class="w-px cx-bg-line"></div>
-            <div class="flex-1 flex items-center justify-center">
-              <span class="cx-t rb-caps text-[11px]" id="hero-time">--.--</span>
+          <div class="rb-hero-top">
+            <div class="rb-hero-kicker" data-a="ch-type">Invitation</div>
+            <div class="rb-hero-event" id="rb-hero-event" data-a="spread" data-d="4">Lễ Thành Hôn</div>
+            <div class="rb-hero-date" data-a="blur" data-d="6">
+              <span id="rb-hero-d">--</span><i></i><span id="rb-hero-m">--</span><i></i><span id="rb-hero-y">----</span>
             </div>
           </div>
 
-          <!-- Nơi tổ chức: tách tên riêng ra khỏi địa chỉ ở index.js -->
-          <div class="flex flex-col items-center gap-1.5">
-            <div
-              class="cx-h rb-caps text-[13px] font-semibold"
-              id="hero-venue-name"
-            >
-              ------------
+          <div class="rb-hero-bottom">
+            <div class="rb-hero-script" data-a="wipe" data-d="6">Forever Love</div>
+            <div class="rb-hero-names" data-a="up" data-d="9">
+              <span id="couple-names-groom">----------</span>
+              <span class="rb-hero-amp">&amp;</span>
+              <span id="couple-names-bride">----------</span>
             </div>
-            <div
-              class="cx-t text-[11px] leading-relaxed max-w-[260px]"
-              id="hero-venue-address"
-            >
-              ------------------------
+            <div class="rb-hero-rule" data-a="spread" data-d="10"></div>
+            <div class="rb-hero-place" id="rb-hero-place" data-a="up" data-d="10">------------------------</div>
+            <!-- Tên khách của link mời (helper điền #cover-guest-name); index.js chỉ
+                 hiện khối này khi link có ?name=. -->
+            <div id="rb-guest" class="hidden rb-guest" data-a="up" data-d="11">
+              <span data-cx-invite>Trân trọng kính mời</span>
+              <span id="cover-guest-name"></span>
             </div>
-          </div>
-
-          <!-- Chip nhảy nhanh tới từng mục. Mục nào bị tắt trong Thiết lập thì
-               index.js ẩn luôn chip tương ứng. -->
-          <div
-            id="hero-quicknav"
-            class="w-full flex items-start justify-center gap-2 pt-2"
-          >
-            <a href="#section-timeline" class="rb-chip" id="quicknav-timeline">
-              <span class="rb-chip-icon"
-                ><i data-lucide="calendar-days" class="cx-ic text-[15px]"></i></span>
-              <span class="cx-t rb-caps text-[8px]">Lịch trình</span>
-            </a>
-            <a href="#section-photos" class="rb-chip" id="quicknav-photos">
-              <span class="rb-chip-icon"
-                ><i data-lucide="images" class="cx-ic text-[15px]"></i></span>
-              <span class="cx-t rb-caps text-[8px]">Album ảnh</span>
-            </a>
-            <a href="#section-map" class="rb-chip" id="quicknav-map">
-              <span class="rb-chip-icon"
-                ><i data-lucide="map-pin" class="cx-ic text-[15px]"></i></span>
-              <span class="cx-t rb-caps text-[8px]">Bản đồ</span>
-            </a>
-            <a href="#section-gift" class="rb-chip" id="quicknav-gift">
-              <span class="rb-chip-icon"
-                ><i data-lucide="gift" class="cx-ic text-[15px]"></i></span>
-              <span class="cx-t rb-caps text-[8px]">Quà</span>
-            </a>
-          </div>
-
-          <!-- Câu slogan (story_quote) — neo ở ĐÁY mục (xem .rb-hero-quote),
-               để phần còn lại vẫn nằm giữa màn. -->
-          <div
-            id="story-quote"
-            class="rb-hero-quote rb-script text-[20px] leading-tight px-6 max-w-[320px] mx-auto"
-          >
-            Love Story
+            <div class="rb-hero-en" data-a="ch-type" data-d="11" data-step="fast">Even if the lover is across the mountain and the sea, the mountain and the sea can be levelled</div>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Gia đình (enable_family) ═══════════════════════════════
-             Hai khung ảnh kiểu polaroid nghiêng nhẹ, tên thư pháp nằm trong
-             khung; dưới khung là nhà trai/nhà gái + tên cha mẹ. -->
-        <section id="section-family" class="px-7 flex flex-col gap-8">
-          <h2 class="rb-title cx-h rb-caps text-[12px]">Gia đình</h2>
+        <!-- ═══ MÀN 2 · Invitation — cô dâu chú rể + hai họ (enable_family) ═ -->
+        <section id="section-family" data-rb-label="Thư mời" class="rb-screen rb-family">
+          <div class="rb-band" data-a="wipe-down">
+            <h2 class="rb-title" data-a="ch-drop" data-d="2">Invitation</h2>
+            <div class="rb-band-sub" data-a="fade" data-d="5">The wedding of</div>
+          </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <!-- Nhà trai -->
-            <div class="flex flex-col items-center gap-4">
-              <div class="cx-t rb-caps text-[9px]">Chú Rể</div>
-              <div class="rb-polaroid rb-polaroid-l">
-                <div class="rb-polaroid-img">
-                  <img
-                    id="groom-photo"
-                    loading="lazy"
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    alt="Chú Rể"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-                <div
-                  class="rb-script text-[24px] text-center pt-3 pb-1"
-                  id="groom-name-label"
-                >
-                  ----------
-                </div>
+          <div class="rb-duo">
+            <div class="rb-duo-item" data-a="left" data-d="3">
+              <div class="rb-duo-ph">
+                <img id="groom-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Chú rể" />
               </div>
-              <div class="flex flex-col items-center gap-1.5">
-                <div class="cx-a rb-caps text-[9px]">Nhà Trai</div>
-                <div
-                  class="cx-h rb-caps text-[10px] font-medium leading-relaxed text-center"
-                  id="groom-father"
-                >
-                  --------------------
-                </div>
-                <div
-                  class="cx-h rb-caps text-[10px] font-medium leading-relaxed text-center"
-                  id="groom-mother"
-                >
-                  --------------------
-                </div>
+              <div class="rb-duo-role">Chú rể</div>
+              <div class="rb-duo-name cx-h" id="groom-name-label">----------</div>
+              <div class="rb-duo-par cx-t">
+                <span id="groom-father">----------</span> · <span id="groom-mother">----------</span>
               </div>
+              <div class="rb-duo-addr cx-t" id="groom-address">------------------------</div>
+              <a id="rb-groom-call" class="rb-call rb-call-off">
+                <i data-lucide="phone" class="cx-ic"></i>
+                <span>Nhà trai</span>
+              </a>
+              <!-- Hoạ tiết thế chỗ nút gọi khi chưa có số (CSS chỉ hiện sau .rb-call-off). -->
+              <div class="rb-duo-orn" aria-hidden="true"><i></i></div>
             </div>
+            <div class="rb-duo-item" data-a="right" data-d="4">
+              <div class="rb-duo-ph">
+                <img id="bride-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cô dâu" />
+              </div>
+              <div class="rb-duo-role">Cô dâu</div>
+              <div class="rb-duo-name cx-h" id="bride-name-label">----------</div>
+              <div class="rb-duo-par cx-t">
+                <span id="bride-father">----------</span> · <span id="bride-mother">----------</span>
+              </div>
+              <div class="rb-duo-addr cx-t" id="bride-address">------------------------</div>
+              <a id="rb-bride-call" class="rb-call rb-call-off">
+                <i data-lucide="phone" class="cx-ic"></i>
+                <span>Nhà gái</span>
+              </a>
+              <!-- Hoạ tiết thế chỗ nút gọi khi chưa có số (CSS chỉ hiện sau .rb-call-off). -->
+              <div class="rb-duo-orn" aria-hidden="true"><i></i></div>
+            </div>
+          </div>
 
-            <!-- Nhà gái -->
-            <div class="flex flex-col items-center gap-4">
-              <div class="cx-t rb-caps text-[9px]">Cô Dâu</div>
-              <div class="rb-polaroid rb-polaroid-r">
-                <div class="rb-polaroid-img">
-                  <img
-                    id="bride-photo"
-                    loading="lazy"
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    alt="Cô Dâu"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-                <div
-                  class="rb-script text-[24px] text-center pt-3 pb-1"
-                  id="bride-name-label"
-                >
-                  ----------
-                </div>
-              </div>
-              <div class="flex flex-col items-center gap-1.5">
-                <div class="cx-a rb-caps text-[9px]">Nhà Gái</div>
-                <div
-                  class="cx-h rb-caps text-[10px] font-medium leading-relaxed text-center"
-                  id="bride-father"
-                >
-                  --------------------
-                </div>
-                <div
-                  class="cx-h rb-caps text-[10px] font-medium leading-relaxed text-center"
-                  id="bride-mother"
-                >
-                  --------------------
-                </div>
-              </div>
+          <div class="rb-verse cx-t">
+            <p data-a="up" data-d="6">Thương nhau đã lâu, nay thành ước nguyện</p>
+            <p data-a="up" data-d="7">Trân trọng mời những người thương quý nhất</p>
+            <p data-a="up" data-d="8">Đến chung vui trong ngày cưới của chúng mình</p>
+          </div>
+        </section>
+
+        <!-- ═══ MÀN 3 · Forever — ảnh xếp lệch + slogan (story_quote) ═══════ -->
+        <section id="section-forever" data-rb-label="Forever" class="rb-screen rb-forever">
+          <div class="rb-fv-top">
+            <div class="rb-fv-block" data-a="wipe-down"></div>
+            <img data-rb-g="0" class="rb-fv-a" data-a="right" data-d="2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+          </div>
+          <div class="rb-fv-grid">
+            <div class="rb-fv-left">
+              <img data-rb-g="1" class="rb-fv-b rb-bw" data-a="left" data-d="4" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+              <div id="story-quote" class="rb-fv-quote cx-t" data-a="ch-type" data-d="7" data-step="fast">"Giữa muôn vạn vì sao, chẳng có ánh sáng nào dịu dàng hơn em."</div>
+            </div>
+            <div class="rb-fv-right">
+              <h2 class="rb-title rb-title-red" data-a="spread" data-d="3">Forever</h2>
+              <img data-rb-g="2" class="rb-fv-c rb-bw" data-a="up" data-d="5" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            </div>
+          </div>
+          <div class="rb-sign" data-a="wipe" data-d="10">Brief is life, but love is long.</div>
+        </section>
+
+        <!-- ═══ MÀN 4 · Khoảnh khắc — khung mảnh, ảnh màu đè ảnh đen trắng ═ -->
+        <section id="section-moment" data-rb-label="Khoảnh khắc" class="rb-screen rb-moment">
+          <div class="rb-mo-stage">
+            <div class="rb-mo-frame" data-a="fade"></div>
+            <img data-rb-g="3" class="rb-mo-a" data-a="left" data-d="1" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            <div class="rb-mo-en cx-t" data-a="blur" data-d="5">Even if the lover is across the mountain and the sea, the mountain and the sea can be levelled</div>
+            <img data-rb-g="4" class="rb-mo-b rb-bw" data-a="pop" data-d="3" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+          </div>
+          <div class="rb-mo-vi cx-t">
+            <p data-a="ch-rise" data-d="6">Đi qua bao dòng người tấp nập</p>
+            <p data-a="ch-rise" data-d="9">Ta gặp lại nhau giữa mùa hạ rực rỡ</p>
+            <p data-a="ch-rise" data-d="12">Em biết không, cả núi đồi này nở hoa vì em</p>
+          </div>
+          <div class="rb-sign" data-a="wipe" data-d="14">Brief is life, but love is long.</div>
+        </section>
+
+        <!-- ═══ Our Story (enable_love_story) — tối đa 3 màn ═════════════════
+             _renderStory chia các mốc vào ≤3 màn .rb-screen trong #love-story-list. -->
+        <section id="love-story" class="rb-story" data-rb-label="Our Story" style="display: none">
+          <div id="love-story-list"></div>
+        </section>
+
+        <!-- ═══ MÀN 5 · Forever / Love you — tiệc cưới (enable_party) ═══════ -->
+        <section id="section-party" data-rb-label="Tiệc cưới" class="rb-screen rb-party">
+          <div class="rb-pt-kicker" data-a="ch-type">Invitation</div>
+          <div class="rb-pt-stage">
+            <div class="rb-pt-red" data-a="wipe-down" data-d="1"></div>
+            <img data-rb-g="5" class="rb-pt-a" data-a="right" data-d="3" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            <div class="rb-pt-word rb-pt-w1" data-a="ch-drop" data-d="4">Forever</div>
+            <img data-rb-g="6" class="rb-pt-b" data-a="left" data-d="5" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            <div class="rb-pt-word rb-pt-w2" data-a="ch-drop" data-d="7">Love you</div>
+          </div>
+          <div class="rb-pt-info">
+            <div id="party-section-label" class="rb-kicker" data-a="up" data-d="9">Tiệc mừng lễ thành hôn</div>
+            <div id="party-datetime" class="rb-pt-dt cx-h" data-a="spread" data-d="10">--:-- - --.--.----</div>
+            <div id="party-lunar" class="rb-pt-lunar cx-t" data-a="fade" data-d="11">(----)</div>
+            <div class="rb-loc" data-a="up" data-d="12">
+              <i data-lucide="map-pin" class="cx-ic cx-a"></i>
+              <span id="party-location" class="cx-t">------------------------</span>
             </div>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Thư mời — lễ thành hôn / vu quy ════════════════════════
-             Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức.
-             Mục chạy hết bề ngang thiệp (không bo khung); dải nền tự nhoè dần ở
-             hai đầu (.rb-band-fade) nên không cần đường kẻ ngăn cách. -->
-        <section
-          id="section-ceremony"
-          class="rb-band-fade px-7 flex flex-col gap-5"
-        >
-          <div class="rb-label cx-t rb-caps text-[10px]">
-            Trân trọng kính mời dự<br />
-            <span id="ceremony-event-name">Lễ Thành Hôn</span>
+        <!-- ═══ MÀN 6 · Address ═════════════════════════════════════════════
+             #map-location-name + #map-link phải đứng CUỐI mục (renderVenueMaps);
+             chữ ký đặt trước chúng, CSS đưa xuống đáy màn. -->
+        <section id="section-map" data-rb-label="Địa điểm" class="rb-screen rb-address">
+          <div class="rb-ad-head" data-a="wipe-down">
+            <h2 class="rb-title" data-a="ch-drop" data-d="2">Address</h2>
+            <img data-rb-g="7" class="rb-ad-ph" data-a="zoomout" data-d="2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
           </div>
-
-          <div class="rb-script text-[40px] flex flex-col items-center gap-0.5">
-            <span id="invite-groom">----------</span>
-            <span class="cx-a text-[22px] leading-none">&</span>
-            <span id="invite-bride">----------</span>
-          </div>
-
-          <div class="flex items-center justify-center gap-7">
-            <div class="flex flex-col items-center gap-1">
-              <div
-                class="cx-a text-[44px] font-semibold leading-none"
-                id="invite-day"
-              >
-                --
-              </div>
-              <div class="cx-t rb-caps text-[9px]" id="invite-month-year">
-                Tháng -- · ----
-              </div>
-            </div>
-            <div class="w-px h-12 cx-bg-line"></div>
-            <div class="flex flex-col items-center gap-1">
-              <div class="cx-t rb-caps text-[9px]" id="invite-weekday">
-                ------
-              </div>
-              <div class="cx-h text-[26px]" id="invite-time">--:--</div>
-            </div>
-          </div>
-
-          <div class="cx-h italic text-[13px]" id="invite-lunar">
-            --------------------
-          </div>
-
-          <!-- Nơi làm lễ — index.js gỡ .hidden khi có dữ liệu -->
-          <div
-            id="ceremony-location-wrap"
-            class="hidden flex items-start gap-1 justify-center"
-          >
-            <i data-lucide="map-pin" class="cx-ic cx-a text-[10px] mt-0.5"></i>
-            <span id="ceremony-location-text" class="cx-t text-[11px]"></span>
-          </div>
-        </section>
-
-        <!-- ═══ MỤC: Tiệc cưới (enable_party) ═══════════════════════════════ -->
-        <section
-          id="section-party"
-          class="rb-band-fade px-7 flex flex-col gap-5"
-        >
-          <div
-            id="party-section-label"
-            class="rb-label cx-t rb-caps text-[10px]"
-          >
-            Tiệc Mừng Lễ Thành Hôn
-          </div>
-
-          <div class="cx-a text-[26px] font-medium" id="party-datetime">
-            --:-- - --.--.----
-          </div>
-          <div class="cx-h italic text-[15px] opacity-80" id="party-lunar">
-            (Ngày âm lịch)
-          </div>
-
-          <div class="flex items-start gap-2 justify-center">
-            <i data-lucide="map-pin" class="cx-ic cx-a text-sm"></i>
-            <div class="cx-t text-[13px]" id="party-location">
-              ------------------------
-            </div>
-          </div>
-
-          <!-- Lịch nhỏ đánh dấu ngày lễ + ngày tiệc (calendar-helper.js) -->
-          <div id="mini-calendar" class="w-full"></div>
-
-          <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ═════════════════════ -->
-          <div
-            id="rsvp-section"
-            class="flex flex-col gap-4"
-            style="display: none"
-          >
-            <div class="text-[12px] tracking-[3px] uppercase shimmer-text">
-              Xác nhận tham dự
-            </div>
-            <div
-              id="rsvp-custom-message"
-              class="hidden cx-h italic text-[13px] leading-relaxed"
-            ></div>
-
-            <div class="flex flex-wrap justify-center gap-3">
-              <x-button
-                variant="bare"
-                onclick="confirmAttend(true)"
-                id="btn-attend"
-                class="rb-sit flex-row items-center gap-2 px-5 py-2.5 border cx-border active:scale-95 transition-all"
-              >
-                <i data-lucide="circle-check" class="cx-ic cx-a text-[15px]"></i>
-                <span class="cx-h italic text-[13px] whitespace-nowrap"
-                  >Tham dự</span
-                >
-              </x-button>
-              <x-button
-                variant="bare"
-                onclick="confirmAttend(false)"
-                id="btn-decline"
-                class="rb-sit flex-row items-center gap-2 px-5 py-2.5 border cx-border active:scale-95 transition-all"
-              >
-                <i data-lucide="circle-x" class="cx-ic cx-bd text-[15px]"></i>
-                <span class="cx-h italic text-[13px] whitespace-nowrap"
-                  >Không tham dự</span
-                >
-              </x-button>
-            </div>
-
-            <div id="attend-msg" class="cx-a italic text-[14px] hidden"></div>
-          </div>
-        </section>
-
-        <!-- ═══ MỤC: Lịch trình ngày cưới (enable_timeline) ═════════════════
-             renderTimeline() (render-helper.js) tự lọc mốc theo nhà trai/gái. -->
-        <section
-          id="section-timeline"
-          class="hidden px-7 flex flex-col gap-5 scroll-mt-16"
-        >
-          <h2 class="rb-title cx-h rb-caps text-[12px]">Lịch Trình</h2>
-          <div id="timeline-list-render" class="flex flex-col"></div>
-        </section>
-
-        <!-- ═══ MỤC: Album ảnh (enable_photos) ══════════════════════════════ -->
-        <!-- Album chạy hết bề ngang thiệp nên px-7 đặt ở TIÊU ĐỀ, không đặt ở
-             section — để tấm nền trắng chạm sát hai mép. -->
-        <section id="section-photos" class="flex flex-col gap-5 scroll-mt-16">
-          <h2 class="rb-title cx-h rb-caps text-[12px] px-7">Album Ảnh</h2>
-          <!-- MỘT tấm nền trắng cho cả album, cao đúng một màn: các khối dàn
-               ảnh (renderGallery trong index.js) xếp NGANG, khách vuốt sang để
-               xem, trang vẫn cuộn dọc bình thường. -->
-          <div id="gallery-grid" class="rb-album"></div>
-          <!-- Chấm chỉ số khung hình, do rbSetupAlbumDots trong index.js dựng. -->
-          <div id="album-dots" class="rb-dots"></div>
-        </section>
-
-        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════════
-             Mỗi mẩu chuyện nằm trên một tờ giấy rách mép, chữ viết tay hiện dần
-             theo nét bút. Markup do renderLoveStory trong index.js vẽ. -->
-        <section
-          id="love-story"
-          class="px-7 flex flex-col gap-5"
-          style="display: none"
-        >
-          <h2 class="rb-title cx-h rb-caps text-[12px]">Chuyện Tình Yêu</h2>
-
-          <!-- Mỗi mẩu chuyện là MỘT tờ giấy riêng — renderLoveStory trong
-               index.js dựng giấy + cây bút. relative: cây bút neo theo khung này. -->
-          <div id="love-story-list" class="relative flex flex-col gap-8"></div>
-        </section>
-
-        
-
-        <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════ -->
-        <section
-          id="section-gift"
-          class="px-7 flex flex-col gap-6 scroll-mt-16"
-        >
-          <h2 class="rb-title cx-h rb-caps text-[12px]">Hộp Mừng Cưới</h2>
-
-          <div data-cx-gift="qr" class="grid grid-cols-2 gap-4">
-            <!-- Chú rể -->
-            <div class="flex flex-col gap-2 items-center">
-              <div class="cx-t text-[11px]">
-                Chú Rể · <span id="groom-bank-label">----------</span>
-              </div>
-              <div
-                class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]"
-              >
-                <img
-                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                  id="groom-qr-img"
-                  loading="lazy"
-                  alt="QR Chú Rể"
-                  class="w-full aspect-square object-cover"
-                />
-              </div>
-              <div class="cx-t text-[11px]" id="groom-bank-name">
-                ----------------
-              </div>
-              <div class="cx-h text-[13px] font-medium" id="groom-bank-number">
-                ------------
-              </div>
-              <div class="cx-h text-[12px] font-semibold" id="groom-bank-owner">
-                --------------------
-              </div>
-              <x-button
-                variant="bare"
-                onclick="saveQR('groom-qr-img')"
-                class="gap-2 px-4 py-2 border cx-border cx-t text-[12px]"
-              >
-                <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
-                Lưu QR
-              </x-button>
-            </div>
-
-            <!-- Cô dâu -->
-            <div class="flex flex-col gap-2 items-center">
-              <div class="cx-t text-[11px]">
-                Cô Dâu · <span id="bride-bank-label">----------</span>
-              </div>
-              <div
-                class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]"
-              >
-                <img
-                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                  id="bride-qr-img"
-                  loading="lazy"
-                  alt="QR Cô Dâu"
-                  class="w-full aspect-square object-cover"
-                />
-              </div>
-              <div class="cx-t text-[11px]" id="bride-bank-name">
-                ----------------
-              </div>
-              <div class="cx-h text-[13px] font-medium" id="bride-bank-number">
-                ------------
-              </div>
-              <div class="cx-h text-[12px] font-semibold" id="bride-bank-owner">
-                --------------------
-              </div>
-              <x-button
-                variant="bare"
-                onclick="saveQR('bride-qr-img')"
-                class="gap-2 px-4 py-2 border cx-border cx-t text-[12px]"
-              >
-                <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
-                Lưu QR
-              </x-button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ═══════════════════════════════ -->
-        <section id="section-map" class="px-7 flex flex-col gap-4 scroll-mt-16">
-          <h2 class="rb-title cx-h rb-caps text-[12px]">Địa Điểm</h2>
-          <div class="cx-h text-[15px]" id="map-location-name">
-            ------------------------
-          </div>
-
-          <a
-            id="map-link"
-            href="#"
-            target="_blank"
-            class="w-full relative overflow-hidden rounded-[22px] active:scale-[0.98] transition-transform shadow-md block"
-          >
-            <div class="w-full h-40 relative overflow-hidden">
+          <div class="rb-sign rb-ad-sign" data-a="wipe" data-d="10">Brief is life, but love is long.</div>
+          <div class="rb-kicker rb-ad-kicker" data-cx-map-dual="Hai nơi tổ chức" data-a="up" data-d="4">Nơi tổ chức</div>
+          <div class="rb-ad-name cx-h" id="map-location-name" data-a="blur" data-d="5">------------------------</div>
+          <a id="map-link" href="#" target="_blank" class="rb-ad-map">
+            <div class="rb-ad-frame" data-a="up" data-d="6">
               <iframe
                 id="map-thumbnail-iframe"
                 src=""
@@ -538,86 +232,193 @@
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
               ></iframe>
-
-              <!-- Chưa có dữ liệu bản đồ → hiện minh hoạ thay cho iframe trắng -->
-              <div
-                id="map-placeholder"
-                class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface"
-              >
-                <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
-                <span class="cx-t rb-caps text-[10px]">Chưa có bản đồ</span>
+              <div id="map-placeholder" class="hidden rb-ad-empty">
+                <i data-lucide="map-pinned" class="cx-ic cx-a"></i>
+                <span class="cx-t">Chưa có bản đồ</span>
               </div>
-            </div>
-
-            <div
-              class="flex items-center justify-between px-4 py-3 cx-bg-panel-70"
-            >
-              <div class="cx-t rb-caps text-[9px]">Địa điểm tổ chức</div>
-              <div class="flex items-center gap-1 cx-a">
-                <span class="text-[11px]">Mở Maps</span>
-                <i data-lucide="chevron-right" class="cx-ic text-xs"></i>
+              <div class="rb-ad-go">
+                <i data-lucide="navigation" class="cx-ic"></i>
               </div>
             </div>
           </a>
         </section>
 
-        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═════════════════════════════ -->
-        <section
-          id="section-footer"
-          class="px-7 pt-4 pb-16 flex flex-col items-center gap-4"
-        >
-          <div class="rb-script text-[44px]">Thank You</div>
-          <div
-            id="footer-text"
-            class="cx-t text-[13px] leading-relaxed px-4 max-w-[290px]"
-          >
-            Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
+        <!-- ═══ MÀN 7 · Khung ảnh chồng + chữ dọc ═══════════════════════════ -->
+        <section id="section-frame" data-rb-label="Kỷ niệm" class="rb-screen rb-frame">
+          <div class="rb-fr-stage">
+            <div class="rb-fr-line" data-a="fade"></div>
+            <img data-rb-g="9" class="rb-fr-a" data-a="left" data-d="1" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            <div class="rb-fr-red" data-a="wipe-down" data-d="3"></div>
+            <img data-rb-g="10" class="rb-fr-b" data-a="right" data-d="4" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            <div class="rb-fr-vt rb-fr-vt1 cx-t" data-a="ch-type" data-d="6">Em là vầng trăng giấu sau mây</div>
+            <div class="rb-fr-vt rb-fr-vt2 cx-t" data-a="ch-type" data-d="9">Là báu vật anh tìm cả đời</div>
           </div>
+          <div class="rb-sign" data-a="wipe" data-d="12">Brief is life, but love is long.</div>
+        </section>
+
+        <!-- ═══ MÀN 8 · Time — ngày lễ + lịch tháng ══════════════════════════
+             Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức. -->
+        <section id="section-ceremony" data-rb-label="Thời gian" class="rb-screen rb-time">
+          <div class="rb-time-head">
+            <h2 class="rb-title rb-title-red" data-a="ch-drop">Time</h2>
+            <div class="rb-time-meta cx-t">
+              <div data-a="left" data-d="2"><span id="invite-weekday">------</span> · <span id="rb-ceremony-date">--.--.----</span></div>
+              <div id="invite-lunar" data-a="left" data-d="3">--------------------</div>
+              <div data-a="left" data-d="4"><span id="ceremony-event-name">Lễ Thành Hôn</span> · <span id="invite-time">--:--</span></div>
+            </div>
+          </div>
+
+          <div class="rb-time-photos">
+            <img data-rb-g="11" class="rb-tp-a" data-a="left" data-d="3" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            <div class="rb-tp-b-wrap">
+              <img data-rb-g="12" class="rb-tp-b" data-a="down" data-d="4" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            </div>
+          </div>
+
+          <div class="rb-time-cal">
+            <div class="rb-time-vt">
+              <div class="rb-vt cx-t" data-a="ch-type" data-d="7">Hạnh phúc là những ngày bình yên</div>
+              <div class="rb-vt rb-vt-2 cx-t" data-a="ch-type" data-d="9">Yêu thương cất giữ trong khói lửa nhân gian</div>
+            </div>
+            <div class="rb-cal-wrap">
+              <div class="rb-cal-red" data-a="wipe-down" data-d="5"></div>
+              <div class="rb-cal" data-a="flip" data-d="6">
+                <div class="rb-cal-md"><span id="rb-cal-d">--</span><i>/</i><span id="rb-cal-m">--</span></div>
+                <div class="rb-cal-year" id="rb-cal-year">----</div>
+                <div id="rb-cal-grid" class="rb-cal-grid"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nơi làm lễ — index.js gỡ .hidden khi có dữ liệu -->
+          <div id="ceremony-location-wrap" class="hidden rb-loc" data-a="up" data-d="10">
+            <i data-lucide="map-pin" class="cx-ic cx-a"></i>
+            <span id="ceremony-location-text" class="cx-t"></span>
+          </div>
+        </section>
+
+        <!-- ═══ MÀN 9 · RSVP + đếm ngược ════════════════════════════════════
+             #rsvp-section chỉ là khối nút (rsvp_enabled); đếm ngược luôn hiện. -->
+        <section id="section-rsvp" data-rb-label="Xác nhận" class="rb-screen rb-rsvp" data-rb-tone="dark">
+          <img data-rb-g="cover" class="rb-full-img" data-a="zoomout" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+          <div class="rb-rv-veil"></div>
+          <div class="rb-rv-inner">
+            <h2 class="rb-title rb-title-light" data-a="ch-drop" data-d="1">R.S.V.P</h2>
+            <div id="rb-rsvp-lines" class="rb-rv-lines cx-t">
+              <p data-a="up" data-d="3">Gửi những người thân yêu nhất</p>
+              <p data-a="up" data-d="4">Cảm ơn bạn giữa bộn bề vẫn dành thời gian</p>
+              <p data-a="up" data-d="5">đến chung vui cùng chúng mình</p>
+              <p data-a="up" data-d="6">Có bạn, khoảnh khắc ấy thêm trọn vẹn</p>
+            </div>
+            <div id="rsvp-custom-message" class="hidden rb-rv-lines cx-t" data-a="ch-type" data-d="3" data-step="fast"></div>
+
+            <div id="rsvp-section" class="rb-rv-form" style="display: none">
+              <div class="rb-rv-btns" data-a="up" data-d="7">
+                <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="rb-rv-btn rb-rv-yes">
+                  Mình sẽ tham dự
+                </x-button>
+                <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="rb-rv-btn">
+                  Rất tiếc, mình không đến được
+                </x-button>
+              </div>
+              <div id="attend-msg" class="hidden rb-rv-msg cx-t"></div>
+            </div>
+
+            <div class="rb-rv-script" data-a="wipe" data-d="9">Hẹn gặp bạn ở lễ cưới!</div>
+          </div>
+
+          <div class="rb-count" data-a="up" data-d="10">
+            <div class="rb-cd">
+              <div class="rb-cd-box" data-a="flip" data-d="11"><b id="rb-cd-d">00</b><span>Ngày</span></div>
+              <div class="rb-cd-box" data-a="flip" data-d="12"><b id="rb-cd-h">00</b><span>Giờ</span></div>
+              <div class="rb-cd-box" data-a="flip" data-d="13"><b id="rb-cd-m">00</b><span>Phút</span></div>
+              <div class="rb-cd-box" data-a="flip" data-d="14"><b id="rb-cd-s">00</b><span>Giây</span></div>
+            </div>
+            <div class="rb-sign rb-sign-light">Brief is life, but love is long.</div>
+          </div>
+        </section>
+
+        <!-- ═══ Lịch trình ngày cưới (enable_timeline) ══════════════════════ -->
+        <section id="section-timeline" data-rb-label="Lịch trình" class="hidden rb-screen rb-schedule">
+          <h2 class="rb-title rb-title-red" data-a="ch-drop">Schedule</h2>
+          <div class="rb-kicker" data-a="up" data-d="3">Lịch trình ngày vui</div>
+          <div id="timeline-list-render" class="rb-tl" data-a="up" data-d="5"></div>
+          <div class="rb-sign" data-a="wipe" data-d="8">Brief is life, but love is long.</div>
+        </section>
+
+        <!-- ═══ Hộp mừng cưới (enable_gift) ═════════════════════════════════
+             data-cx-gift="qr" = khối bị hộp quà che; hộp do gift-box-helper.js vẽ. -->
+        <section id="section-gift" data-rb-label="Mừng cưới" class="rb-screen rb-gift">
+          <div class="rb-gift-head" data-a="wipe-down">
+            <h2 class="rb-title" data-a="ch-drop" data-d="2">Gift</h2>
+            <div class="rb-band-sub" data-a="fade" data-d="4">Hộp mừng cưới</div>
+            <!-- Ảnh ẩn khi màn đã nhận thêm mục lời chúc (.rb-packed). -->
+            <img data-rb-g="14" class="rb-gift-ph" data-a="zoomout" data-d="2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+          </div>
+
+          <div data-cx-gift="qr" class="rb-qr-grid">
+            <div class="rb-qr">
+              <div class="rb-qr-who cx-t">Chú rể · <span id="groom-bank-label">----------</span></div>
+              <div class="cx-bg-qr rb-qr-box">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="QR Chú rể" />
+              </div>
+              <div class="rb-qr-bank cx-t" id="groom-bank-name">----------------</div>
+              <div class="rb-qr-num cx-h" id="groom-bank-number">------------</div>
+              <div class="rb-qr-owner cx-h" id="groom-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="rb-qr-save">
+                <i data-lucide="download" class="cx-ic"></i>
+                Lưu QR
+              </x-button>
+            </div>
+            <div class="rb-qr">
+              <div class="rb-qr-who cx-t">Cô dâu · <span id="bride-bank-label">----------</span></div>
+              <div class="cx-bg-qr rb-qr-box">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="QR Cô dâu" />
+              </div>
+              <div class="rb-qr-bank cx-t" id="bride-bank-name">----------------</div>
+              <div class="rb-qr-num cx-h" id="bride-bank-number">------------</div>
+              <div class="rb-qr-owner cx-h" id="bride-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="rb-qr-save">
+                <i data-lucide="download" class="cx-ic"></i>
+                Lưu QR
+              </x-button>
+            </div>
+          </div>
+
+          <div class="rb-sign" data-a="wipe" data-d="7">Brief is life, but love is long.</div>
+        </section>
+
+        <!-- ═══ Lời cảm ơn (enable_footer) ══════════════════════════════════ -->
+        <section id="section-footer" data-rb-label="Cảm ơn" class="rb-screen rb-footer">
+          <div class="rb-ft-ph">
+            <div class="rb-ft-red" data-a="wipe-down"></div>
+            <img data-rb-g="13" data-a="zoomout" data-d="1" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+          </div>
+          <div class="rb-ft-script" data-a="wipe" data-d="4">Thank you</div>
+          <div id="footer-text" class="rb-ft-text cx-t" data-a="ch-type" data-d="7" data-step="fast">Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng mình</div>
+          <div class="rb-sign" data-a="wipe" data-d="12">Brief is life, but love is long.</div>
         </section>
       </div>
     </div>
 
     <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
-    <div
-      id="lightbox"
-      class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center"
-    >
-      <x-button
-        variant="bare"
-        onclick="closeLightbox()"
-        class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10"
-      >
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
         <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
       </x-button>
-      <div
-        id="lb-counter"
-        class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"
-      ></div>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
       <div class="w-full h-full flex items-center justify-center px-[8px]">
-        <img
-          id="lb-img"
-          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-          alt=""
-          class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200"
-        />
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
       </div>
-      <x-button
-        variant="bare"
-        onclick="lightboxPrev()"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn"
-      >
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
         <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
       </x-button>
-      <x-button
-        variant="bare"
-        onclick="lightboxNext()"
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn"
-      >
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
         <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
       </x-button>
     </div>
 
-    <!-- ═══ Thứ tự nạp script — GIỮ NGUYÊN khi chép sang mẫu mới ═══════════ -->
+    <!-- ═══ Thứ tự nạp script — giữ nguyên như base-theme ═════════════════ -->
     <script src="../preview-data.js"></script>
     <script src="../../../core/cache-util.js"></script>
     <script src="../../../core/dal/templates-dal.js"></script>
@@ -629,7 +430,6 @@
       crossorigin="anonymous"
     ></script>
 
-    <!-- DAL → BL → khởi tạo instance -->
     <script src="../../../core/dal/wedding-dal.js"></script>
     <script src="../../../core/dal/guest-dal.js"></script>
     <script src="../../../core/dal/storage-dal.js"></script>
@@ -641,12 +441,10 @@
     <script src="../../../core/helpers/vh-lock.js"></script>
     <script src="../../../core/utils.js"></script>
 
-    <!-- Helper dùng chung -->
     <script src="../../../core/helpers/youtube-helper.js"></script>
     <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
     <script src="../../../core/helpers/music-player-helper.js"></script>
-    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper
-         (runtime thành phần ở đó đọc window.CX_ELEMENTS) -->
+    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper -->
     <script src="../../../core/helpers/element-color-enum.js"></script>
     <script src="../../../core/helpers/element-helper.js"></script>
     <script src="../../../core/helpers/lightbox-helper.js"></script>
@@ -659,12 +457,10 @@
     <script src="../../../core/helpers/gift-box-helper.js"></script>
     <script src="../../../core/helpers/wishes-helper.js"></script>
     <script src="../../../core/helpers/qr-mobile-helper.js"></script>
-    <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
     <script src="../../../core/helpers/preview-focus-helper.js"></script>
 
     <!-- Bản khai của mẫu + renderWedding -->
     <script src="index.js"></script>
-    <!-- Chrome giả lập điện thoại của khung xem thử trên máy tính. -->
     <script src="../../../core/helpers/phone-chrome.js"></script>
     <!-- Khởi động. Phải nạp SAU index.js. -->
     <script src="../../../core/helpers/theme-boot.js"></script>

@@ -222,10 +222,8 @@
       /* Ô xám lúc chờ tải — phải cùng khổ với .tt-media, nếu không lưới nhảy
          chiều cao khi dữ liệu về. */
       .tt-skel-media {
-        aspect-ratio: 9 / 16;
+        aspect-ratio: 391 / 722;
         width: 100%;
-        max-height: calc(var(--vh, 1vh) * 70 - 190px);
-        max-height: calc(var(--vh, 1svh) * 70 - 190px);
       }
 
       /* Nút "Bắt đầu miễn phí" — MỘT style cho cả hai chỗ đứng: thẻ nổi giữa
@@ -374,34 +372,30 @@
           <!-- Skeletons -->
           <div>
             <div class="skeleton tt-skel-media"></div>
-            <div class="mt-3 space-y-2">
+            <div class="mt-3 space-y-3">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
-              <div class="skeleton h-2.5 rounded w-full"></div>
-              <div class="skeleton h-3 rounded w-1/3"></div>
+              <div class="skeleton h-7 rounded-full w-full"></div>
             </div>
           </div>
           <div>
             <div class="skeleton tt-skel-media"></div>
-            <div class="mt-3 space-y-2">
+            <div class="mt-3 space-y-3">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
-              <div class="skeleton h-2.5 rounded w-full"></div>
-              <div class="skeleton h-3 rounded w-1/3"></div>
+              <div class="skeleton h-7 rounded-full w-full"></div>
             </div>
           </div>
           <div class="hidden md:block">
             <div class="skeleton tt-skel-media"></div>
-            <div class="mt-3 space-y-2">
+            <div class="mt-3 space-y-3">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
-              <div class="skeleton h-2.5 rounded w-full"></div>
-              <div class="skeleton h-3 rounded w-1/3"></div>
+              <div class="skeleton h-7 rounded-full w-full"></div>
             </div>
           </div>
           <div class="hidden xl:block">
             <div class="skeleton tt-skel-media"></div>
-            <div class="mt-3 space-y-2">
+            <div class="mt-3 space-y-3">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
-              <div class="skeleton h-2.5 rounded w-full"></div>
-              <div class="skeleton h-3 rounded w-1/3"></div>
+              <div class="skeleton h-7 rounded-full w-full"></div>
             </div>
           </div>
         </div>
@@ -608,9 +602,6 @@
       integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
       crossorigin="anonymous"
     ></script>
-    <!-- Khoá "một màn" thành px cho --vh: .tt-media kẹp khổ ảnh theo đó, thiếu
-         script này là thẻ đổi khổ mỗi lần Chrome ẩn/hiện thanh URL. -->
-    <script src="../core/helpers/vh-lock.js"></script>
     <!-- Icon riêng (logo XuXi ở nút CTA của navbar) — phải nạp TRƯỚC navbar.js
          vì thanh điều hướng dựng HTML icon ngay lúc gọi CXNavbar. -->
     <script src="../core/helpers/icon.js"></script>
