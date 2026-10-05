@@ -28,7 +28,7 @@
       card_bg: "#ffffff",
       page_bg: "#fbeef2",
       surface: "#fff7f9",
-      band: "#fbe4ec",
+      band: "#f3c4d3",
       panel: "#ffffff",
       panel_warm: "#fff7f9",
       cover: "#ffffff",
@@ -38,7 +38,7 @@
       line: "#f3d6e0",
       shadow: "#000000",
       scrim: "#000000",
-      deco: "#e07a9b",
+      deco: "#d65c87",
       deco_soft: "#f8d6e2",
       deco_2: "#96b48c",
       deco_2_soft: "#d6e6ce",
@@ -129,10 +129,12 @@
       ceremonyLocation: ceremonyLoc,
     });
 
+    // --- Lịch tháng đè ảnh + đếm ngược (theo ngày giờ lễ) ---
+    const partyDate = w[`${side}_party_date`];
+    hdRenderCalendar(w.ceremony_date, partyDate);
     hdCountdown(w.ceremony_date, ceremonyTime);
 
     // --- Tiệc cưới (mỗi nhà một ngày/giờ/nơi riêng) ---
-    const partyDate = w[`${side}_party_date`];
     setText("party-section-label", "Tiệc Mừng " + ceremonyName);
     renderPartyDate(
       partyDate,
@@ -216,6 +218,38 @@
       // Ảnh trong #main-card của mẫu có bìa KHÔNG lazy (xem CLAUDE.md).
       slot.innerHTML = hdShotImg(images[idx], focal?.[images[idx]], true);
     });
+  }
+
+  // ============= LỊCH THÁNG ĐÈ ẢNH =============
+  // Tuần bắt đầu Thứ Hai; ngày lễ (+ ngày tiệc nếu cùng tháng) khoanh bằng trái tim.
+
+  function hdRenderCalendar(ceremonyDate, partyDate) {
+    const box = document.getElementById("hd-calendar");
+    if (!box || !ceremonyDate) return;
+    const d = new Date(ceremonyDate);
+    const y = d.getFullYear();
+    const m = d.getMonth();
+    const marked = new Set([d.getDate()]);
+    if (partyDate) {
+      const p = new Date(partyDate);
+      if (p.getFullYear() === y && p.getMonth() === m) marked.add(p.getDate());
+    }
+    const md = document.getElementById("hd-cal-md");
+    if (md) md.innerHTML = `${_pad(d.getDate())}<small>/${_pad(m + 1)}</small>`;
+    setText("hd-cal-year", `-${y}-`);
+
+    const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+    const days = new Date(y, m + 1, 0).getDate();
+    const heads = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+      .map((h) => `<div class="hd-cal-h">${h}</div>`)
+      .join("");
+    let cells = "<div></div>".repeat(lead);
+    for (let i = 1; i <= days; i++) {
+      cells += marked.has(i)
+        ? `<div class="hd-cal-d is-on"><svg aria-hidden="true"><use href="#hd-heart"/></svg><span>${i}</span></div>`
+        : `<div class="hd-cal-d"><span>${i}</span></div>`;
+    }
+    box.innerHTML = heads + cells;
   }
 
   // ============= ĐẾM NGƯỢC =============
