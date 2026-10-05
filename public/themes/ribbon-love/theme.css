@@ -209,10 +209,10 @@ body {
 }
 .rl-cover-ribbon {
   position: absolute;
-  left: -26.667%;
-  top: -20%;
-  width: 153.333%;
-  height: 140%;
+  left: -40%;
+  top: -25%;
+  width: 180%;
+  height: 145%;
   overflow: visible;
   pointer-events: none;
   color: rgb(var(--cx-deco-rgb));
