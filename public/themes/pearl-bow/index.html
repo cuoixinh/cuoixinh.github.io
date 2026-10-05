@@ -161,18 +161,15 @@
          Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="pb-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
-        <div class="cx-h cx-a pb-cover-tag">Wedding Invitation</div>
-
-        <div class="pb-cover-frame">
-          <div class="pb-cover-photo">
-            <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
-          </div>
-          <svg class="pb-cover-bow" aria-hidden="true"><use href="#pb-bow" /></svg>
-          <svg class="pb-pearl pb-cover-p1" aria-hidden="true"><use href="#pb-pearl" /></svg>
-          <svg class="pb-pearl pb-cover-p2" aria-hidden="true"><use href="#pb-pearl" /></svg>
+        <!-- Ảnh bìa tràn kín màn; nửa dưới phủ dần màu nền để chữ mời đọc được. -->
+        <div class="pb-cover-photo">
+          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
         </div>
+        <div class="pb-cover-veil" aria-hidden="true"></div>
+        <div class="cx-h pb-cover-tag">Wedding Invitation</div>
 
         <div class="pb-cover-text">
+          <svg class="pb-cover-bow" aria-hidden="true"><use href="#pb-bow" /></svg>
           <div data-cx-invite class="cx-t pb-cover-invite">Trân trọng kính mời</div>
           <div class="cx-t pb-cover-guest" id="cover-guest-name">----------</div>
           <div data-cx-invite-to class="cx-t pb-cover-invite">đến dự lễ thành hôn của</div>

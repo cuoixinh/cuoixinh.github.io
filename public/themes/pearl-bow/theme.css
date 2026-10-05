@@ -182,54 +182,53 @@ body {
   aspect-ratio: 702 / 856;
 }
 
-/* ── Màn bìa ──────────────────────────────────────────────────────────── */
+/* ── Màn bìa: ảnh tràn kín màn, chữ mời nằm trên lớp phủ màu nền ở đáy ── */
 .pb-cover {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
-  padding: 48px 28px 40px;
-}
-.pb-cover-tag {
-  font-size: 13px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-}
-.pb-cover-frame {
   position: relative;
-  width: 64%;
-  padding: 8px;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.45);
-  border-radius: 999px 999px 0 0;
 }
 .pb-cover-photo {
-  aspect-ratio: 3 / 4.2;
-  overflow: hidden;
-  border-radius: 999px 999px 0 0;
+  position: absolute;
+  inset: 0;
   background: rgb(var(--cx-surface-rgb));
 }
-.pb-cover-bow {
+.pb-cover-veil {
   position: absolute;
-  left: 50%;
-  top: -40px;
-  width: 112px;
-  height: 84px;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 56%;
+  background: linear-gradient(
+    to top,
+    rgb(var(--cx-card-bg-rgb)) 0%,
+    rgb(var(--cx-card-bg-rgb) / 0.94) 42%,
+    rgb(var(--cx-card-bg-rgb) / 0) 100%
+  );
+  pointer-events: none;
+}
+.pb-cover-tag {
+  position: absolute;
+  top: 56px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 1px 8px rgb(var(--cx-shadow-rgb) / 0.45);
+}
+.pb-cover-bow {
+  width: 100px;
+  height: 75px;
+  margin-bottom: 4px;
   overflow: visible;
 }
-.pb-cover-p1,
-.pb-cover-p2 {
-  position: absolute;
-  bottom: -7px;
-}
-.pb-cover-p1 {
-  left: -7px;
-}
-.pb-cover-p2 {
-  right: -7px;
-}
 .pb-cover-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  padding: 0 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
