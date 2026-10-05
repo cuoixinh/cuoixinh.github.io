@@ -1,4 +1,4 @@
-// Mẫu HỒNG DUYÊN — thiệp lật trang tông hồng, hoạ tiết sen. Chỉ KHAI BÁO:
+// Mẫu HỒNG DUYÊN — thiệp lật trang tông đỏ, hoạ tiết sen vàng. Chỉ KHAI BÁO:
 // window.CX_THEME + renderWedding + phần đặc thù (ảnh xen, chữ lồng tên, mỗi mốc
 // chuyện tình một trang, băng ảnh vuốt ngang, đếm ngược, bộ điều khiển lật trang).
 // Phần "chạy" nằm ở core/helpers/theme-boot.js. Bọc IIFE: `const` cấp cao nhất là biến toàn cục.
@@ -9,7 +9,7 @@
     id: "hong-duyen",
 
     wishesMode: "card",
-    giftBox: "phongbi_hong_no",
+    giftBox: "hop_trai_tim",
 
     music: { variant: "disc", chrome: "fixed-corner", art: "couple" },
 
@@ -18,53 +18,53 @@
     // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
     // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
     palette: {
-      heading: "#5e2a3d",
-      body: "#7a4a5a",
-      accent: "#c94c78",
-      accent_soft: "#f6c9d8",
+      heading: "#5a141e",
+      body: "#6e3238",
+      accent: "#aa182a",
+      accent_soft: "#f0c8c4",
       on_accent: "#ffffff",
       on_image: "#ffffff",
       on_lightbox: "#ffffff",
       card_bg: "#ffffff",
-      page_bg: "#fef6f8",
-      surface: "#fff7f9",
-      band: "#fdecf2",
+      page_bg: "#f8f0ec",
+      surface: "#faf5f2",
+      band: "#8b0014",
       panel: "#ffffff",
-      panel_warm: "#fff7f9",
+      panel_warm: "#fff7f2",
       cover: "#ffffff",
-      cover_mid: "#fff7f9",
+      cover_mid: "#faf5f2",
       cover_veil: "#ffffff",
       lightbox_bg: "#000000",
-      line: "#f3d6e0",
+      line: "#ecd6cc",
       shadow: "#000000",
       scrim: "#000000",
-      deco: "#d65c87",
-      deco_soft: "#fadee8",
-      deco_2: "#96b48c",
-      deco_2_soft: "#d6e6ce",
+      deco: "#e8c480",
+      deco_soft: "#f8e4be",
+      deco_2: "#c8a060",
+      deco_2_soft: "#f4e2c0",
       shine_from: "#ffffff",
-      shine_mid: "#fbe4ec",
-      shine_to: "#e07a9b",
+      shine_mid: "#faecce",
+      shine_to: "#e8c480",
     },
 
     swatches: [
-      "#5e2a3d",
-      "#7a4a5a",
-      "#c94c78",
-      "#e07a9b",
-      "#f6c9d8",
-      "#fbe4ec",
-      "#d6e6ce",
-      "#fff7f9",
+      "#5a141e",
+      "#6e3238",
+      "#8b0014",
+      "#aa182a",
+      "#e8c480",
+      "#f8e4be",
+      "#f0c8c4",
+      "#faf5f2",
       "#ffffff",
     ],
 
-    // Lời chúc theo tông hồng của mẫu (khách không chỉnh được).
+    // Lời chúc theo tông đỏ của mẫu (khách không chỉnh được).
     wishes: {
-      bubble: "#fff7f9",
-      text: "#7a4a5a",
-      accent: "#c94c78",
-      btn: "#c94c78",
+      bubble: "#fff7f2",
+      text: "#6e3238",
+      accent: "#aa182a",
+      btn: "#aa182a",
     },
 
     // Hiệu ứng hiện dần do hdSlides lo theo TỪNG TRANG (chạy lại mỗi lần lật

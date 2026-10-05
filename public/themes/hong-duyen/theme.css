@@ -4,28 +4,28 @@
    nét = `color`, cánh = --hd-petal / --hd-petal-hi, lá = --hd-leaf. */
 
 :root {
-  --cx-accent-rgb: 201 76 120; /* hồng sen đậm — tiêu đề, ngày, nút */
-  --cx-accent-soft-rgb: 246 201 216;
+  --cx-accent-rgb: 170 24 42; /* đỏ son — tiêu đề, ngày, nút trên nền trắng */
+  --cx-accent-soft-rgb: 240 200 196;
   --cx-on-accent-rgb: 255 255 255;
-  --cx-heading-rgb: 94 42 61;
-  --cx-body-rgb: 122 74 90;
-  --cx-line-rgb: 243 214 224;
-  --cx-surface-rgb: 255 247 249;
-  --cx-band-rgb: 253 236 242; /* MẢNG HỒNG PASTEL siêu nhạt khối sau ảnh mỗi trang */
+  --cx-heading-rgb: 90 20 30;
+  --cx-body-rgb: 110 50 56;
+  --cx-line-rgb: 236 214 204;
+  --cx-surface-rgb: 250 245 242;
+  --cx-band-rgb: 139 0 20; /* MẢNG ĐỎ ĐÔ khối sau ảnh mỗi trang */
   --cx-panel-rgb: 255 255 255;
-  --cx-panel-warm-rgb: 255 247 249;
+  --cx-panel-warm-rgb: 255 247 242;
   --cx-cover-rgb: 255 255 255;
-  --cx-cover-mid-rgb: 255 247 249;
+  --cx-cover-mid-rgb: 250 245 242;
   --cx-cover-veil-rgb: 255 255 255;
   --cx-card-bg-rgb: 255 255 255;
-  --cx-page-bg-rgb: 254 246 248;
-  --cx-deco-rgb: 214 92 135; /* sen tô đậm + nét hoa */
-  --cx-deco-soft-rgb: 250 222 232; /* cánh sen */
-  --cx-deco-2-rgb: 150 180 140; /* lá sen */
-  --cx-deco-2-soft-rgb: 214 230 206;
+  --cx-page-bg-rgb: 248 240 236;
+  --cx-deco-rgb: 232 196 128; /* VÀNG nhạt — sen tô đậm, nét hoa */
+  --cx-deco-soft-rgb: 248 228 190; /* cánh sen + chữ nằm trên mảng đỏ */
+  --cx-deco-2-rgb: 200 160 96; /* lá sen */
+  --cx-deco-2-soft-rgb: 244 226 192;
   --cx-shine-from-rgb: 255 255 255;
-  --cx-shine-mid-rgb: 251 228 236;
-  --cx-shine-to-rgb: 224 122 155;
+  --cx-shine-mid-rgb: 250 236 206;
+  --cx-shine-to-rgb: 232 196 128;
 
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
@@ -160,19 +160,19 @@ body {
   width: 56px;
   height: 44px;
 }
-/* Sen ĐẬM (chỗ nhấn thay cho chữ trang trí lớn của mẫu): cánh hồng đậm, nét trắng. */
+/* Sen ĐẬM (chỗ nhấn thay cho chữ trang trí lớn của mẫu): cánh vàng, nét trắng. */
 .hd-solid {
   --hd-petal: rgb(var(--cx-deco-rgb));
   --hd-petal-hi: color-mix(in srgb, rgb(var(--cx-deco-rgb)) 62%, rgb(var(--cx-card-bg-rgb)));
   color: rgb(var(--cx-card-bg-rgb));
   filter: drop-shadow(0 6px 10px rgb(var(--cx-accent-rgb) / 0.25));
 }
-/* Cành sen CHÌM nằm trên mảng hồng. */
+/* Cành sen CHÌM nằm trên mảng đỏ. */
 .hd-ghost {
-  --hd-petal: rgb(var(--cx-card-bg-rgb) / 0.3);
-  --hd-petal-hi: rgb(var(--cx-card-bg-rgb) / 0.18);
-  --hd-leaf: rgb(var(--cx-card-bg-rgb) / 0.22);
-  color: rgb(var(--cx-accent-rgb) / 0.5);
+  --hd-petal: rgb(var(--cx-deco-rgb) / 0.12);
+  --hd-petal-hi: rgb(var(--cx-deco-rgb) / 0.06);
+  --hd-leaf: rgb(var(--cx-deco-rgb) / 0.08);
+  color: rgb(var(--cx-deco-rgb) / 0.45);
 }
 /* Chữ luôn nổi trên hoạ tiết sen tuyệt đối (z-index 0) khi màn thấp làm chúng chạm nhau. */
 .hd-page .cx-t,
@@ -210,7 +210,7 @@ html.hd-on {
   padding: 0 24px calc(var(--hd-screen) * 0.06);
   overflow: hidden;
 }
-/* Mảng hồng khối sau ảnh — mỗi trang khai --band-top / --band-h (theo % chiều cao trang). */
+/* Mảng đỏ khối sau ảnh — mỗi trang khai --band-top / --band-h (theo % chiều cao trang). */
 .hd-page::before {
   content: "";
   position: absolute;
@@ -417,7 +417,7 @@ html.hd-on {
   font-style: italic;
 }
 
-/* ── Trang 1: mở đầu — mảng hồng nửa trên, ảnh kéo xuống phần trắng ─── */
+/* ── Trang 1: mở đầu — mảng đỏ nửa trên, ảnh kéo xuống phần trắng ─── */
 .hd-hero {
   --band-h: 55%;
   padding-top: calc(var(--hd-screen) * 0.15);
@@ -504,7 +504,7 @@ html.hd-on {
   margin-top: 16px;
 }
 
-/* ── Trang 2: gia đình — ảnh trên nền trắng, chữ trên mảng hồng dưới ── */
+/* ── Trang 2: gia đình — ảnh trên nền trắng, chữ trên mảng đỏ dưới ── */
 .hd-family {
   --band-top: 46%;
   --band-h: 54%;
@@ -582,7 +582,7 @@ html.hd-on {
   bottom: calc(var(--hd-screen) * 0.02);
 }
 
-/* ── Trang 3: hai ảnh ngang chồng qua hai mép mảng hồng giữa ────────── */
+/* ── Trang 3: hai ảnh ngang chồng qua hai mép mảng đỏ giữa ────────── */
 .hd-duo {
   --band-top: 17%;
   --band-h: 67%;
@@ -609,7 +609,7 @@ html.hd-on {
   scale: -1 1;
 }
 
-/* ── Chuyện tình: mỗi mốc một trang, mảng hồng đổi trên/dưới so le ───── */
+/* ── Chuyện tình: mỗi mốc một trang, mảng đỏ đổi trên/dưới so le ───── */
 .hd-stack {
   display: flex;
   flex-direction: column;
@@ -662,7 +662,7 @@ html.hd-on {
   scale: 1 1;
 }
 
-/* ── Thư mời: mảng hồng nửa trên, lịch tháng đè ảnh ─────────────────── */
+/* ── Thư mời: mảng đỏ nửa trên, lịch tháng đè ảnh ─────────────────── */
 .hd-time {
   --band-h: 56%;
   padding-top: calc(var(--hd-screen) * 0.08);
@@ -762,7 +762,7 @@ html.hd-on {
   color: rgb(var(--cx-heading-rgb));
 }
 
-/* ── Tiệc cưới: ảnh trên nền trắng, chữ trên mảng hồng dưới ─────────── */
+/* ── Tiệc cưới: ảnh trên nền trắng, chữ trên mảng đỏ dưới ─────────── */
 .hd-party {
   --band-top: 46%;
   --band-h: 54%;
@@ -806,7 +806,7 @@ html.hd-on {
   font-style: italic;
 }
 
-/* ── Bản đồ: ảnh lệch trái chồng mép, bản đồ viên thuốc trên mảng hồng ─ */
+/* ── Bản đồ: ảnh lệch trái chồng mép, bản đồ viên thuốc trên mảng đỏ ─ */
 .hd-map {
   --band-top: 47%;
   --band-h: 53%;
@@ -853,7 +853,7 @@ html.hd-on {
   height: 84px;
 }
 
-/* ── Lịch trình: tiêu đề trên mảng hồng, danh sách trên nền trắng ────── */
+/* ── Lịch trình: tiêu đề trên mảng đỏ, danh sách trên nền trắng ────── */
 .hd-plan {
   --band-h: 30%;
   padding-top: calc(var(--hd-screen) * 0.1);
@@ -896,7 +896,7 @@ html.hd-on {
   color: rgb(var(--cx-body-rgb));
 }
 
-/* ── Album: băng ảnh vuốt ngang trên mảng hồng giữa ─────────────────── */
+/* ── Album: băng ảnh vuốt ngang trên mảng đỏ giữa ─────────────────── */
 .hd-album {
   --band-top: 20%;
   --band-h: 62%;
@@ -936,7 +936,7 @@ html.hd-on {
   color: rgb(var(--cx-accent-rgb));
 }
 
-/* ── Đếm ngược: ảnh lớn chồng xuống mảng hồng dưới, số ở góc phải ───── */
+/* ── Đếm ngược: ảnh lớn chồng xuống mảng đỏ dưới, số ở góc phải ───── */
 .hd-count {
   --band-top: 46%;
   --band-h: 46%;
@@ -978,7 +978,7 @@ html.hd-on {
   color: rgb(var(--cx-heading-rgb));
 }
 
-/* ── Xác nhận tham dự: mảng hồng gần kín trang, nút ở mép dưới ──────── */
+/* ── Xác nhận tham dự: mảng đỏ gần kín trang, nút ở mép dưới ──────── */
 .hd-rsvp {
   --band-h: 82%;
   flex-direction: column;
@@ -1024,7 +1024,7 @@ html.hd-on {
   background: rgb(var(--cx-card-bg-rgb));
 }
 
-/* ── Hộp mừng cưới: tiêu đề trên mảng hồng, thẻ QR trắng chồng xuống ─── */
+/* ── Hộp mừng cưới: tiêu đề trên mảng đỏ, thẻ QR trắng chồng xuống ─── */
 .hd-gift {
   --band-h: 36%;
   padding-top: calc(var(--hd-screen) * 0.08);
@@ -1066,7 +1066,7 @@ html.hd-on {
   color: rgb(var(--cx-heading-rgb));
 }
 
-/* ── Lời cảm ơn: ảnh trên nền trắng, chữ trên mảng hồng dưới ────────── */
+/* ── Lời cảm ơn: ảnh trên nền trắng, chữ trên mảng đỏ dưới ────────── */
 .hd-footer {
   --band-top: 52%;
   --band-h: 48%;
@@ -1094,4 +1094,50 @@ html.hd-on {
 .hd-footer .hd-poem {
   margin-top: 8px;
   color: rgb(var(--cx-heading-rgb));
+}
+
+/* ── Chữ nằm trên mảng đỏ: đổi sang vàng nhạt cho đủ tương phản ──────── */
+.hd-hero-names,
+.hd-hero .hd-tag,
+.hd-family .hd-parents,
+.hd-family .hd-side,
+.hd-family .hd-address,
+.hd-family .hd-poem,
+.hd-duo-line,
+.hd-ls .hd-title,
+.hd-ls.is-flip .hd-ls-date,
+.hd-ls.is-flip .hd-ls-title,
+.hd-ls.is-flip .hd-ls-body,
+.hd-party-text .hd-label,
+.hd-party-text .hd-date,
+.hd-party-text .hd-sub,
+.hd-map .hd-title,
+.hd-map-name,
+.hd-plan .hd-title,
+.hd-cd span,
+.hd-cd small,
+.hd-rsvp #rsvp-custom-message,
+.hd-gift > .hd-title,
+.hd-gift > .hd-sub,
+.hd-thanks,
+.hd-footer .hd-poem {
+  color: rgb(var(--cx-deco-soft-rgb));
+}
+/* Nút "Sẽ tham dự" nằm trên mảng đỏ: nền vàng nhạt, chữ đỏ. */
+.hd-rsvp #btn-attend {
+  background: rgb(var(--cx-deco-soft-rgb));
+  border-color: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--cx-accent-rgb));
+}
+/* Mốc so le có tiêu đề trên nền trắng → giữ màu đỏ. */
+.hd-ls.is-flip .hd-title {
+  color: rgb(var(--cx-accent-rgb));
+}
+/* Chấm chỉ trang + mũi tên vuốt nằm trên cả nền trắng lẫn mảng đỏ: viền sáng + bóng để luôn thấy. */
+.hd-dots button {
+  box-shadow: 0 0 0 1px rgb(var(--cx-card-bg-rgb) / 0.75);
+}
+.hd-hint {
+  color: rgb(var(--cx-deco-rgb));
+  filter: drop-shadow(0 1px 2px rgb(var(--cx-shadow-rgb) / 0.45));
 }
