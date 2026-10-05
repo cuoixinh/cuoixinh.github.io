@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Hẹn Ước</title>
+    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
+         địa chỉ, số điện thoại và QR tài khoản của khách. Bản MẪU (không có slug)
+         thì vẫn cho lập chỉ mục vì đó là hàng đang bán. Phải xét lúc chạy: hai bản
+         dùng CHUNG một URL, khác nhau đúng tham số này — đặt meta tĩnh vào file là
+         chặn nhầm cả bản mẫu. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Noto+Serif:wght@400;500;600&family=Dancing+Script:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <!-- Markup trình phát nhạc. Dạng dùng ở mẫu này khai tại CX_THEME.music
+         (index.js), theme-boot.js dựng vào #cx-music-mount. -->
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+  </head>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       HẸN ƯỚC — thiệp LẬT TRANG nền trắng, khối đỏ son: mỗi .hu-page cao đúng
+       một màn, vuốt dọc thì trượt sang trang kế (scroll-snap — trang vẫn cuộn
+       thường nên xem trực tiếp, lời chúc, khối chèn thêm chạy như mọi mẫu). Phần
+       tử .hu-a chạy hiệu ứng mỗi lần trang được lật tới (huSlides ở index.js, bật
+       qua CX_THEME.onOpen). Hoạ tiết (huy hiệu, dây treo, tim, tháp ly) ở #hu-defs.
+       Ràng buộc chung của mẫu: xem đầu file public/themes/base-theme/index.html.
+       ══════════════════════════════════════════════════════════════════════ -->
+
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <!-- Trình phát nhạc — dạng khai ở CX_THEME.music. Phải là con ĐẦU TIÊN của <body>. -->
+    <div id="cx-music-mount"></div>
+
+    <!-- Hoạ tiết: nét/khối = `color`, phần sáng = --cx-on-accent, ruột ly = --cx-deco-soft. -->
+    <svg id="hu-defs" width="0" height="0" aria-hidden="true" style="position: absolute">
+      <defs>
+        <!-- Huy hiệu viền bông, đôi nhẫn lồng nhau + hạt kim cương -->
+        <symbol id="hu-emblem" viewBox="0 0 80 80">
+          <g fill="currentColor">
+            <circle cx="40" cy="40" r="30" />
+            <circle cx="40" cy="9" r="8" /><circle cx="55.5" cy="13.2" r="8" /><circle cx="66.8" cy="24.5" r="8" />
+            <circle cx="71" cy="40" r="8" /><circle cx="66.8" cy="55.5" r="8" /><circle cx="55.5" cy="66.8" r="8" />
+            <circle cx="40" cy="71" r="8" /><circle cx="24.5" cy="66.8" r="8" /><circle cx="13.2" cy="55.5" r="8" />
+            <circle cx="9" cy="40" r="8" /><circle cx="13.2" cy="24.5" r="8" /><circle cx="24.5" cy="13.2" r="8" />
+          </g>
+          <circle cx="40" cy="40" r="27" fill="none" style="stroke: rgb(var(--cx-on-accent-rgb) / 0.55)" stroke-width="0.9" stroke-dasharray="1.6 2.4" />
+          <g fill="none" style="stroke: rgb(var(--cx-on-accent-rgb))" stroke-width="3.2">
+            <circle cx="33" cy="44" r="11" />
+            <circle cx="47" cy="44" r="11" />
+          </g>
+          <path style="fill: rgb(var(--cx-on-accent-rgb))" d="M40 19 L44.5 24.5 L40 30 L35.5 24.5 Z" />
+        </symbol>
+
+        <!-- Dây treo dọc: huy hiệu + tim + tua -->
+        <symbol id="hu-pendant" viewBox="0 0 44 132">
+          <path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" d="M22 0 V14 M22 56 V68" />
+          <use href="#hu-emblem" x="0" y="13" width="44" height="44" />
+          <path fill="currentColor" d="M22 92 C 12 85 8 79 11 74 C 14 69 19 70 22 75 C 25 70 30 69 33 74 C 36 79 32 85 22 92 Z" />
+          <rect x="18" y="94" width="8" height="5" rx="1.5" fill="currentColor" />
+          <path fill="currentColor" d="M18.5 99 H25.5 L29 128 C 26 130 18 130 15 128 Z" />
+          <path fill="none" style="stroke: rgb(var(--cx-on-accent-rgb) / 0.5)" stroke-width="0.7" d="M20 102 L18.5 126 M22 102 V127 M24 102 L25.5 126" />
+        </symbol>
+
+        <!-- Tim nét cọ -->
+        <symbol id="hu-heart" viewBox="0 0 64 60">
+          <path fill="currentColor" d="M30 50 C 10 37 3 24 8 13 C 13 3 26 4 30 15 C 34 3 48 2 53 12 C 59 24 50 37 30 50 Z" />
+          <path fill="none" style="stroke: rgb(var(--cx-on-accent-rgb) / 0.55)" stroke-width="2" stroke-linecap="round" d="M14 15 C 11 20 12 26 16 31" />
+          <path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M30 50 C 33 56 44 58 58 50 M40 7 C 46 0 58 2 61 9" />
+        </symbol>
+
+        <!-- Tim viền khoanh ngày trong lịch -->
+        <symbol id="hu-heart-o" viewBox="0 0 40 36">
+          <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M20 33 C 6 24 1 15 5 8 C 9 1 17 2 20 9 C 23 2 31 1 35 8 C 39 15 34 24 20 33 Z" />
+          <path fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" d="M31 4 C 36 1 40 4 39 8" />
+        </symbol>
+
+        <!-- Tháp ly sâm panh -->
+        <symbol id="hu-glass" viewBox="0 0 20 22">
+          <path style="fill: rgb(var(--cx-deco-soft-rgb))" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" d="M1.5 2 H18.5 C 18 7 14.5 9.5 10 9.5 C 5.5 9.5 2 7 1.5 2 Z" />
+          <path fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" d="M10 9.5 V17 M5.5 19.5 C 7 18 13 18 14.5 19.5" />
+        </symbol>
+        <symbol id="hu-toast" viewBox="0 0 64 62">
+          <use href="#hu-glass" x="22" y="4" width="20" height="22" />
+          <use href="#hu-glass" x="12" y="21" width="20" height="22" />
+          <use href="#hu-glass" x="32" y="21" width="20" height="22" />
+          <use href="#hu-glass" x="2" y="38" width="20" height="22" />
+          <use href="#hu-glass" x="22" y="38" width="20" height="22" />
+          <use href="#hu-glass" x="42" y="38" width="20" height="22" />
+          <g fill="currentColor"><circle cx="29" cy="2" r="1.1" /><circle cx="35" cy="1" r="0.8" /><circle cx="33" cy="3.5" r="0.7" /></g>
+        </symbol>
+      </defs>
+    </svg>
+
+    <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
+         Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
+      <div class="hu-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
+        <div class="hu-cover-photo">
+          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+        </div>
+        <div class="hu-cover-veil" aria-hidden="true"></div>
+        <div class="hu-head hu-cover-head">
+          <span class="cx-h cx-a hu-cap">Invitation</span>
+          <svg class="hu-emblem cx-a" aria-hidden="true"><use href="#hu-emblem" /></svg>
+          <span class="cx-h cx-a hu-cap">Wedding</span>
+        </div>
+
+        <div class="hu-cover-text">
+          <div data-cx-invite class="cx-t hu-cover-invite">Trân trọng kính mời</div>
+          <div class="cx-t hu-cover-guest" id="cover-guest-name">----------</div>
+          <div data-cx-invite-to class="cx-t hu-cover-invite">đến buổi hẹn lãng mạn của</div>
+          <div class="cx-h cx-a hu-cover-names">
+            <span id="cover-groom-name">----------</span>
+            <span class="hu-amp">&amp;</span>
+            <span id="cover-bride-name">----------</span>
+          </div>
+          <x-button
+            variant="bare"
+            onclick="openInvitation()"
+            class="open-btn hu-btn relative overflow-hidden active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          >
+            <span class="relative z-10 pointer-events-none flex items-center gap-2">
+              <i data-lucide="mail-open" class="cx-ic"></i>
+              Mở Thiệp
+            </span>
+            <div class="btn-shimmer pointer-events-none"></div>
+          </x-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
+         #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục. -->
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      style="display: none"
+    >
+      <div class="hu-flow flex flex-col">
+        <!-- Khối đỏ son đặt LỆCH sau ảnh (.hu-block) và khung ảnh viền đỏ dày (.hu-framed)
+             là hai nét chính; ảnh trong trang đo theo chiều cao màn (--hu-screen). -->
+
+        <!-- ═══ Trang 1 — Mở đầu: dòng tiêu đề + ảnh lớn + chữ viết tay ═════ -->
+        <section id="section-hero" class="hu-page hu-hero">
+          <div class="hu-head hu-a hu-fade">
+            <span class="cx-h cx-a hu-cap">Invitation</span>
+            <svg class="hu-emblem cx-a" aria-hidden="true"><use href="#hu-emblem" /></svg>
+            <span class="cx-h cx-a hu-cap">Wedding</span>
+          </div>
+          <div class="hu-hero-sub hu-a hu-fade" style="--d: 1">
+            <span class="cx-t"><span id="couple-names-groom">----------</span> &amp; <span id="couple-names-bride">----------</span></span>
+            <span class="cx-t" id="hu-hero-date">----.--.--</span>
+          </div>
+          <div class="hu-hero-photo hu-a hu-zoom">
+            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" />
+          </div>
+          <div class="hu-script hu-hero-script hu-a hu-write" style="--d: 3">
+            <span class="cx-h cx-a">“Cùng nhau đi</span>
+            <span class="cx-h cx-a">một buổi hẹn lãng mạn”</span>
+          </div>
+          <svg class="hu-heart cx-a hu-hero-heart hu-a hu-pop" style="--d: 5" aria-hidden="true"><use href="#hu-heart" /></svg>
+          <div class="cx-h cx-a hu-cap hu-welcome hu-a hu-up" style="--d: 4">Welcome to our wedding</div>
+        </section>
+
+        <!-- ═══ Trang 2 — Lời ngỏ: thơ, tháp ly, ảnh trên khối đỏ, dây treo hai bên ═ -->
+        <section class="hu-page hu-intro">
+          <div class="cx-h cx-a hu-title hu-a hu-up">Nhà Có · Tin Vui</div>
+          <div class="cx-t hu-poem hu-a hu-up" style="--d: 1">
+            Từ rung động đầu tiên, đến hẹn ước trọn đời<br />
+            Bao dịu dàng mong đợi, nay về chung một nhà<br />
+            Ngày lành tháng tốt, tiệc vui đã sẵn<br />
+            Mong bạn ghé chơi, chung vui cùng chúng mình
+          </div>
+          <svg class="hu-toast cx-a hu-a hu-pop" style="--d: 2" aria-hidden="true"><use href="#hu-toast" /></svg>
+          <div class="hu-stage hu-intro-stage">
+            <div class="hu-block hu-intro-block hu-a hu-grow" style="--d: 3"></div>
+            <div class="hu-photo hu-intro-photo hu-a hu-zoom" style="--d: 2" data-hu-shot="0"></div>
+            <svg class="hu-pendant cx-a hu-pendant-l hu-a hu-swing" style="--d: 4" aria-hidden="true"><use href="#hu-pendant" /></svg>
+            <svg class="hu-pendant cx-a hu-pendant-r hu-a hu-swing" style="--d: 4" aria-hidden="true"><use href="#hu-pendant" /></svg>
+          </div>
+          <div class="cx-t hu-line hu-a hu-up" style="--d: 5">Một chặng đường dài, may mắn có nhau — phần đời còn lại, xin được nắm tay</div>
+        </section>
+
+        <!-- ═══ Trang — Gia đình (enable_family) ═════════════════════════════ -->
+        <section id="section-family" class="hu-page hu-family">
+          <div class="cx-h cx-a hu-cap hu-family-cap hu-a hu-up">Our Family</div>
+          <div class="hu-stage hu-pair">
+            <div class="hu-block hu-pair-block hu-a hu-grow" style="--d: 2"></div>
+            <div class="hu-photo hu-pair-photo hu-pair-g hu-a hu-left" style="--d: 1"><img id="groom-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Chú Rể" class="w-full h-full object-cover" /></div>
+            <div class="hu-photo hu-pair-photo hu-pair-b hu-a hu-right" style="--d: 1"><img id="bride-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cô Dâu" class="w-full h-full object-cover" /></div>
+          </div>
+          <div class="hu-names2 hu-a hu-up" style="--d: 3">
+            <div class="hu-person"><span class="cx-h cx-a hu-role">Chú Rể</span><span class="cx-t hu-person-name" id="groom-name-label">----------</span></div>
+            <svg class="hu-emblem hu-emblem-sm cx-a" aria-hidden="true"><use href="#hu-emblem" /></svg>
+            <div class="hu-person"><span class="cx-h cx-a hu-role">Cô Dâu</span><span class="cx-t hu-person-name" id="bride-name-label">----------</span></div>
+          </div>
+          <div class="hu-parents-grid hu-a hu-up" style="--d: 4">
+            <div class="cx-t hu-parents">
+              <span class="cx-a hu-side">Nhà Trai</span>
+              <span id="groom-father">--------------------</span>
+              <span id="groom-mother">--------------------</span>
+              <span class="hu-address" id="groom-address">----------------------------------------</span>
+            </div>
+            <div class="cx-t hu-parents">
+              <span class="cx-a hu-side">Nhà Gái</span>
+              <span id="bride-father">--------------------</span>
+              <span id="bride-mother">--------------------</span>
+              <span class="hu-address" id="bride-address">----------------------------------------</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ Trang — Save the date: ảnh ngang đầu trang, ảnh viền đỏ chồng mép ═ -->
+        <section class="hu-page hu-save">
+          <div class="hu-photo hu-save-top hu-a hu-fade" data-hu-shot="7"></div>
+          <div class="hu-save-left">
+            <div class="cx-h cx-a hu-save-cap hu-a hu-left" style="--d: 2">Save<br />the<br />date</div>
+            <div class="cx-h cx-a hu-vertical hu-a hu-up" style="--d: 4">Niềm<br />vui<br />nhỏ<br />của<br />đôi<br />mình</div>
+          </div>
+          <div class="hu-framed hu-save-framed hu-a hu-rise" style="--d: 1" data-hu-shot="1"></div>
+          <div class="hu-save-right">
+            <svg class="hu-heart cx-a hu-a hu-pop" style="--d: 3" aria-hidden="true"><use href="#hu-heart" /></svg>
+            <svg class="hu-emblem cx-a hu-a hu-pop" style="--d: 4" aria-hidden="true"><use href="#hu-emblem" /></svg>
+          </div>
+          <div id="story-quote" class="cx-t hu-line hu-save-line hu-a hu-up" style="--d: 5">May mắn tìm được người thương để nắm tay, cả đời này cứ thế dính lấy nhau chẳng rời.</div>
+        </section>
+
+        <!-- ═══ Trang… — Chuyện tình yêu (enable_love_story) ═════════════════
+             Mỗi mốc là MỘT trang — dựng ở huRenderLoveStory (index.js). -->
+        <section id="love-story" class="hu-stack" style="display: none">
+          <div id="love-story-list" class="hu-stack"></div>
+        </section>
+
+        <!-- ═══ Trang — Thư mời: ảnh tràn màn, lịch tháng trên lớp trắng mờ dần ═
+             Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức. -->
+        <section id="section-ceremony" class="hu-page hu-time">
+          <div class="hu-time-photo hu-a hu-zoom">
+            <div class="hu-fill" data-hu-shot="2"></div>
+          </div>
+          <div class="hu-cal hu-a hu-up" style="--d: 2">
+            <div class="hu-cal-top">
+              <span class="cx-h cx-a hu-cal-md" id="hu-cal-md">--<small> / --</small></span>
+              <span class="cx-h cx-a hu-cal-year" id="hu-cal-year">-----</span>
+            </div>
+            <div id="hu-calendar" class="hu-cal-grid"></div>
+          </div>
+          <div class="hu-time-text hu-a hu-up" style="--d: 3">
+            <div class="cx-t hu-invite">
+              Trân trọng kính mời dự <span id="ceremony-event-name" class="cx-a">Lễ Thành Hôn</span>
+              của <span id="invite-groom">----------</span> &amp; <span id="invite-bride">----------</span>
+            </div>
+            <div class="cx-t hu-date-line">
+              <span id="invite-weekday">------</span>, ngày <span id="invite-day">--</span> · <span id="invite-month-year">Tháng -- · ----</span>
+            </div>
+            <div class="cx-t hu-date-line"><span id="invite-lunar">--------------------</span> · <span id="invite-time">--:--</span></div>
+            <div id="ceremony-location-wrap" class="hidden cx-t hu-small">
+              <span id="ceremony-location-text"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ Trang — Đếm ngược: ảnh có lề, ô số chồng mép, ảnh thứ hai trên khối đỏ ═
+             Không có ngày lễ thì index.js ẩn cả trang. -->
+        <section id="section-countdown" class="hu-page hu-count">
+          <div class="hu-photo hu-count-photo hu-a hu-zoom" data-hu-shot="5"></div>
+          <div class="hu-cd hu-a hu-up" style="--d: 2">
+            <div><span class="cx-h" id="cd-days">00</span><small class="cx-t">Ngày</small></div>
+            <div><span class="cx-h" id="cd-hours">00</span><small class="cx-t">Giờ</small></div>
+            <div><span class="cx-h" id="cd-minutes">00</span><small class="cx-t">Phút</small></div>
+            <div><span class="cx-h" id="cd-seconds">00</span><small class="cx-t">Giây</small></div>
+          </div>
+          <div class="cx-t hu-line hu-a hu-up" style="--d: 3">
+            Bao dịu dàng góp nhặt, bao lãng mạn cất riêng<br />
+            đều muốn trao trọn cho người mình thương
+          </div>
+          <div class="hu-stage hu-count-stage">
+            <div class="hu-block hu-count-block hu-a hu-grow" style="--d: 4"></div>
+            <div class="hu-photo hu-count-photo2 hu-a hu-up" style="--d: 3" data-hu-shot="8"></div>
+          </div>
+        </section>
+
+        <!-- ═══ Trang — Tiệc cưới (enable_party) ═════════════════════════════ -->
+        <section id="section-party" class="hu-page hu-party">
+          <div class="cx-h cx-a hu-cap hu-a hu-up">Wedding Party</div>
+          <div class="hu-stage hu-party-stage">
+            <div class="hu-framed hu-party-framed hu-a hu-rise" style="--d: 1" data-hu-shot="4"></div>
+            <svg class="hu-pendant cx-a hu-pendant-l hu-a hu-swing" style="--d: 3" aria-hidden="true"><use href="#hu-pendant" /></svg>
+            <svg class="hu-heart cx-a hu-party-heart hu-a hu-pop" style="--d: 4" aria-hidden="true"><use href="#hu-heart" /></svg>
+          </div>
+          <div class="hu-party-text hu-a hu-up" style="--d: 3">
+            <div id="party-section-label" class="cx-h cx-a hu-title hu-title-sm">Tiệc Mừng Lễ Thành Hôn</div>
+            <div class="cx-t hu-date-line" id="party-datetime">--:-- - --.--.----</div>
+            <div class="cx-t hu-small" id="party-lunar">(Ngày âm lịch)</div>
+            <div class="cx-t hu-small" id="party-location">------------------------</div>
+          </div>
+        </section>
+
+        <!-- ═══ Trang — Lịch trình ngày cưới (enable_timeline) ══════════════
+             Dựng ở huRenderTimeline (index.js). -->
+        <section id="section-timeline" class="hidden hu-page hu-plan">
+          <div class="hu-photo hu-plan-top hu-a hu-fade" data-hu-shot="3"></div>
+          <div class="cx-h cx-a hu-cap hu-a hu-up" style="--d: 1">Wedding Day</div>
+          <div class="cx-h cx-a hu-title hu-title-sm hu-a hu-up" style="--d: 1">Lịch trình ngày vui</div>
+          <div id="timeline-list-render" class="hu-plan-list hu-a hu-up" style="--d: 2"></div>
+        </section>
+
+        <!-- ═══ Trang — Album ảnh (enable_photos) ═══════════════════════════
+             Băng ảnh vuốt ngang trên khối đỏ — dựng ở renderGallery (index.js). -->
+        <section id="section-photos" class="hu-page hu-album">
+          <div class="cx-h cx-a hu-cap hu-a hu-up">Our Moments</div>
+          <div class="cx-h cx-a hu-title hu-title-sm hu-a hu-up">Khoảnh khắc của chúng mình</div>
+          <div class="hu-album-stage">
+            <div class="hu-block hu-album-block hu-a hu-grow" style="--d: 2"></div>
+            <div id="gallery-grid" class="hu-reel hu-a hu-fade" style="--d: 1"></div>
+          </div>
+          <div class="cx-t hu-reel-count hu-a hu-fade" style="--d: 3"><span id="hu-reel-i">1</span> / <span id="hu-reel-n">1</span></div>
+        </section>
+
+        <!-- ═══ Trang — Bản đồ: ảnh tràn đầu trang, địa chỉ trên nền đỏ, bản đồ viền đỏ ═
+             #map-location-name + #map-link phải đứng CUỐI mục (renderVenueMaps). -->
+        <section id="section-map" class="hu-page hu-map">
+          <div class="hu-map-photo hu-a hu-zoom"><div class="hu-fill" data-hu-shot="6"></div></div>
+          <svg class="hu-pendant cx-a hu-map-pl hu-a hu-swing" style="--d: 3" aria-hidden="true"><use href="#hu-pendant" /></svg>
+          <svg class="hu-pendant cx-a hu-map-pr hu-a hu-swing" style="--d: 3" aria-hidden="true"><use href="#hu-pendant" /></svg>
+          <div class="hu-map-spacer"></div>
+          <div class="cx-t hu-map-name hu-a hu-up" style="--d: 2" id="map-location-name">------------------------</div>
+          <a id="map-link" href="#" target="_blank" class="hu-map-card hu-a hu-up" style="--d: 3">
+            <div class="hu-map-box">
+              <iframe id="map-thumbnail-iframe" src="" width="100%" height="100%" class="border-0 pointer-events-none" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
+                <i data-lucide="map-pinned" class="cx-ic cx-a"></i>
+                <span class="cx-t hu-small">Chưa có bản đồ</span>
+              </div>
+            </div>
+          </a>
+        </section>
+
+        <!-- ═══ Trang — Xác nhận tham dự (rsvp_enabled): hai ảnh trên dải đỏ ═ -->
+        <section id="rsvp-section" class="hu-page hu-rsvp" style="display: none">
+          <div class="hu-rsvp-band hu-a hu-grow" style="--d: 2"></div>
+          <div class="hu-rsvp-pair">
+            <div class="hu-photo hu-rsvp-photo hu-a hu-left" style="--d: 1" data-hu-shot="2"></div>
+            <div class="hu-photo hu-rsvp-photo hu-a hu-right" style="--d: 1" data-hu-shot="9"></div>
+          </div>
+          <div class="cx-h cx-a hu-cap hu-rsvp-cap hu-a hu-up" style="--d: 3">Stay with you</div>
+          <div class="cx-t hu-line hu-a hu-up" style="--d: 3">
+            Mai sau bốn mùa xoay vần, xuân thu đổi thay<br />
+            ba bữa cơm, sớm chiều có nhau — mọi điều đẹp đẽ đều muốn cùng nhau đi qua
+          </div>
+          <div id="rsvp-custom-message" class="hidden cx-t hu-small hu-a hu-up" style="--d: 4"></div>
+          <div class="hu-rsvp-btns hu-a hu-up" style="--d: 4">
+            <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="hu-btn hu-btn-wide active:scale-95 transition-all">
+              <span>Mình sẽ đến</span>
+            </x-button>
+            <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="hu-btn hu-btn-ghost hu-btn-wide active:scale-95 transition-all">
+              <span>Tiếc quá, không đến được</span>
+            </x-button>
+          </div>
+          <div id="attend-msg" class="cx-a cx-t hu-small hidden"></div>
+        </section>
+
+        <!-- ═══ Trang — Hộp mừng cưới (enable_gift) ═════════════════════════
+             Hộp do gift-box-helper.js vẽ theo CX_THEME.giftBox — mẫu KHÔNG tự vẽ hộp. -->
+        <section id="section-gift" class="hu-page hu-gift">
+          <svg class="hu-emblem cx-a hu-a hu-pop" aria-hidden="true"><use href="#hu-emblem" /></svg>
+          <div class="cx-h cx-a hu-cap hu-a hu-up" style="--d: 1">With Love</div>
+          <div class="cx-h cx-a hu-title hu-title-sm hu-a hu-up" style="--d: 1">Gửi trao yêu thương</div>
+          <div class="cx-t hu-small hu-a hu-up" style="--d: 2">Chút lộc mừng gửi đến đôi mình</div>
+          <div class="hu-gift-stage">
+            <!-- Khối đỏ nằm TRONG khối QR để ẩn theo khi hộp mừng cưới đang đóng. -->
+            <div data-cx-gift="qr" class="hu-gift-grid hu-a hu-up" style="--d: 3">
+              <div class="hu-block hu-gift-block"></div>
+              <div class="hu-gift-col">
+                <div class="cx-t hu-small">Chú Rể · <span id="groom-bank-label">----------</span></div>
+                <div class="cx-bg-qr hu-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="QR Chú Rể" class="w-full aspect-square object-cover" /></div>
+                <div class="cx-t hu-small" id="groom-bank-name">----------------</div>
+                <div class="cx-t hu-bank-no" id="groom-bank-number">------------</div>
+                <div class="cx-t hu-small" id="groom-bank-owner">--------------------</div>
+                <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="hu-btn hu-btn-ghost hu-btn-sm"><i data-lucide="download" class="cx-ic"></i> Lưu QR</x-button>
+              </div>
+              <div class="hu-gift-col">
+                <div class="cx-t hu-small">Cô Dâu · <span id="bride-bank-label">----------</span></div>
+                <div class="cx-bg-qr hu-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="QR Cô Dâu" class="w-full aspect-square object-cover" /></div>
+                <div class="cx-t hu-small" id="bride-bank-name">----------------</div>
+                <div class="cx-t hu-bank-no" id="bride-bank-number">------------</div>
+                <div class="cx-t hu-small" id="bride-bank-owner">--------------------</div>
+                <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="hu-btn hu-btn-ghost hu-btn-sm"><i data-lucide="download" class="cx-ic"></i> Lưu QR</x-button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ Trang cuối — Lời cảm ơn (enable_footer) ═════════════════════ -->
+        <section id="section-footer" class="hu-page hu-footer">
+          <div class="hu-footer-photo hu-a hu-zoom"><div class="hu-fill" data-hu-shot="last"></div></div>
+          <div class="hu-footer-text">
+            <div class="hu-script hu-footer-script hu-a hu-write" style="--d: 1"><span class="cx-h cx-a">Hẹn gặp bạn nhé!</span></div>
+            <svg class="hu-heart cx-a hu-footer-heart hu-a hu-pop" style="--d: 3" aria-hidden="true"><use href="#hu-heart" /></svg>
+            <div id="footer-text" class="cx-t hu-line hu-a hu-up" style="--d: 2">Sự hiện diện của bạn là niềm hạnh phúc của chúng mình.</div>
+            <div class="cx-h cx-a hu-cap hu-a hu-up" style="--d: 3">Thank you</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Chấm chỉ trang + gợi ý vuốt — chỉ hiện khi thiệp đã mở (huSlides ở index.js). -->
+    <nav id="hu-dots" class="hu-dots" aria-hidden="true"></nav>
+    <div id="hu-hint" class="hu-hint" aria-hidden="true"><i data-lucide="chevrons-up" class="cx-ic"></i></div>
+
+
+    <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
+      </x-button>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
+      <div class="w-full h-full flex items-center justify-center px-[8px]">
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
+      </div>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — GIỮ NGUYÊN khi chép sang mẫu mới ═══════════ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- DAL → BL → khởi tạo instance -->
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <!-- Helper dùng chung -->
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper
+         (runtime thành phần ở đó đọc window.CX_ELEMENTS) -->
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <!-- Bản khai của mẫu + renderWedding -->
+    <script src="index.js"></script>
+    <!-- Chrome giả lập điện thoại của khung xem thử trên máy tính. -->
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <!-- Khởi động. Phải nạp SAU index.js. -->
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>

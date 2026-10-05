@@ -1,0 +1,1264 @@
+/* Bảng màu + CSS riêng của HẸN ƯỚC — CSS THUẦN, nạp sau styles/themes.css.
+   Thiệp lật trang nền trắng: mỗi .hu-page cao đúng một màn (qua --vh), ảnh trong trang
+   đo theo chiều cao màn để trang nào cũng vừa khung. Hai nét chính: khối đỏ son đặt
+   lệch sau ảnh (.hu-block) và khung ảnh viền đỏ dày (.hu-framed). Hoạ tiết ở #hu-defs. */
+
+:root {
+  --cx-accent-rgb: 160 0 28; /* đỏ son — tiêu đề, khối sau ảnh, nút */
+  --cx-accent-soft-rgb: 248 214 218;
+  --cx-on-accent-rgb: 255 255 255;
+  --cx-heading-rgb: 110 0 20;
+  --cx-body-rgb: 60 44 46;
+  --cx-line-rgb: 236 214 216;
+  --cx-surface-rgb: 250 246 245;
+  --cx-band-rgb: 160 0 28; /* KHỐI ĐỎ sau ảnh + viền khung ảnh */
+  --cx-panel-rgb: 255 255 255;
+  --cx-panel-warm-rgb: 251 243 243;
+  --cx-cover-rgb: 255 255 255;
+  --cx-cover-mid-rgb: 250 246 245;
+  --cx-cover-veil-rgb: 255 255 255;
+  --cx-card-bg-rgb: 255 255 255;
+  --cx-page-bg-rgb: 245 244 246;
+  --cx-deco-rgb: 160 0 28; /* huy hiệu, tim, dây treo */
+  --cx-deco-soft-rgb: 248 214 218; /* ruột ly sâm panh */
+  --cx-deco-2-rgb: 200 40 60;
+  --cx-deco-2-soft-rgb: 251 238 240;
+  --cx-shine-from-rgb: 255 255 255;
+  --cx-shine-mid-rgb: 251 238 240;
+  --cx-shine-to-rgb: 248 214 218;
+
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-rgb);
+  --music-bubble-to-rgb: var(--cx-heading-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-rgb);
+  --music-art-to-rgb: var(--cx-heading-rgb);
+
+  --hu-screen: calc(var(--vh, 1svh) * 100);
+  --hu-ease: cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+}
+
+#main-card,
+.hu-cover {
+  background-color: rgb(var(--cx-card-bg-rgb));
+}
+
+/* ── Chữ ──────────────────────────────────────────────────────────────── */
+.cx-h,
+.cx-t {
+  font-family: "Noto Serif", serif;
+}
+/* Nhãn tiếng Anh in hoa (Cinzel không có dấu tiếng Việt — chỉ dùng cho chữ Anh). */
+.hu-cap {
+  font-family: "Cinzel", serif;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.hu-script,
+.hu-script .cx-h {
+  font-family: "Dancing Script", cursive;
+  font-weight: 600;
+}
+.hu-amp {
+  margin: 0 6px;
+  font-style: italic;
+}
+.hu-title {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 6px;
+  text-align: center;
+}
+.hu-title-sm {
+  font-size: 18px;
+  letter-spacing: 2px;
+  line-height: 1.4;
+}
+.hu-poem {
+  font-size: 13px;
+  line-height: 2.1;
+  text-align: center;
+}
+.hu-line {
+  max-width: 340px;
+  font-size: 13px;
+  line-height: 1.9;
+  text-align: center;
+}
+.hu-small {
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+  opacity: 0.85;
+}
+.hu-date-line {
+  font-size: 14px;
+  line-height: 1.8;
+  text-align: center;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* ── Nút (x-button bare) ──────────────────────────────────────────────── */
+.hu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 32px;
+  border-radius: 4px;
+  font-family: "Noto Serif", serif;
+  font-size: 15px;
+  letter-spacing: 1px;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  border: 1px solid rgb(var(--cx-accent-rgb));
+}
+.hu-btn-ghost {
+  background: rgb(var(--cx-card-bg-rgb));
+  color: rgb(var(--cx-accent-rgb));
+}
+.hu-btn-wide {
+  width: 100%;
+  padding-left: 12px;
+  padding-right: 12px;
+  white-space: nowrap;
+}
+.hu-btn-sm {
+  padding: 6px 16px;
+  font-size: 12px;
+}
+
+/* ── Hoạ tiết ─────────────────────────────────────────────────────────── */
+.hu-emblem {
+  width: 64px;
+  height: 64px;
+  flex: none;
+}
+.hu-emblem-sm {
+  width: 40px;
+  height: 40px;
+}
+.hu-pendant {
+  width: 30px;
+  height: 90px;
+}
+.hu-heart {
+  width: 40px;
+  height: 38px;
+}
+.hu-toast {
+  width: 48px;
+  height: 46px;
+  flex: none;
+}
+
+/* ── Ảnh + khối đỏ ────────────────────────────────────────────────────── */
+.hu-page .cx-t,
+.hu-page .cx-h {
+  position: relative;
+  z-index: 1;
+}
+.hu-photo,
+.hu-framed,
+.hu-fill {
+  overflow: hidden;
+  background: rgb(var(--cx-surface-rgb));
+}
+.hu-photo,
+.hu-framed {
+  position: relative;
+  z-index: 1;
+}
+.hu-framed {
+  border: 8px solid rgb(var(--cx-band-rgb));
+}
+.hu-fill {
+  position: absolute;
+  inset: 0;
+}
+.hu-block {
+  position: absolute;
+  background: rgb(var(--cx-band-rgb));
+}
+.hu-stage {
+  position: relative;
+  width: 100%;
+  flex: none;
+}
+.hu-stage > .hu-photo,
+.hu-stage > .hu-framed {
+  position: absolute;
+}
+
+/* ── Lật trang ────────────────────────────────────────────────────────── */
+/* Trang cuộn thường + bắt dính từng trang: vuốt một lần = sang đúng một trang. */
+html.hu-on {
+  scroll-snap-type: y mandatory;
+}
+.hu-flow {
+  gap: 0;
+}
+.hu-page,
+#main-card .cx-wsec {
+  position: relative;
+  min-height: var(--hu-screen);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+.hu-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  overflow: hidden;
+}
+#main-card .cx-wsec {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hu-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hiệu ứng vào trang: chỉ ẩn sẵn khi bộ lật trang đã bật (html.hu-on), trang
+   đang mở (.is-active) thì phần tử .hu-a hiện vào theo thứ tự --d. */
+.hu-a {
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s ease,
+    clip-path 0.45s ease;
+}
+.hu-on .hu-a {
+  opacity: 0;
+}
+.hu-on .hu-up {
+  transform: translateY(28px);
+}
+.hu-on .hu-left {
+  transform: translateX(-40px);
+}
+.hu-on .hu-right {
+  transform: translateX(40px);
+}
+.hu-on .hu-zoom {
+  transform: scale(0.96);
+}
+.hu-on .hu-rise {
+  transform: translateY(48px) scale(0.94);
+}
+.hu-on .hu-pop {
+  transform: scale(0.4) rotate(-12deg);
+}
+.hu-on .hu-swing {
+  transform: rotate(14deg);
+  transform-origin: 50% 0;
+}
+/* Khối đỏ kéo ngang từ trái sang. */
+.hu-on .hu-grow {
+  opacity: 1;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+/* Chữ viết tay hiện dần từ trái sang như đang viết. */
+.hu-on .hu-write {
+  opacity: 1;
+  clip-path: inset(-20% 100% -20% -20%);
+}
+.hu-on .is-active .hu-a,
+.hu-on .is-tall .hu-a {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 1s var(--hu-ease),
+    transform 1.1s var(--hu-ease),
+    clip-path 1.6s ease-in-out;
+  transition-delay: calc(var(--d, 0) * 140ms + 120ms);
+}
+.hu-on .is-active .hu-swing {
+  transition:
+    opacity 0.6s ease,
+    transform 1.6s cubic-bezier(0.3, 1.6, 0.4, 1);
+  transition-delay: calc(var(--d, 0) * 140ms + 120ms);
+}
+/* Chỉ chữ viết tay mới cắt khung — clip-path trên phần tử khác sẽ xén mất phần thò ra ngoài. */
+.hu-on .is-active .hu-write,
+.hu-on .is-tall .hu-write {
+  clip-path: inset(-20% -20% -20% -20%);
+}
+/* Ảnh trôi chậm (Ken Burns) suốt lúc trang mở. */
+.hu-on .hu-zoom img {
+  transform: scale(1.12);
+  transition: transform 0.6s ease;
+}
+.hu-on .is-active .hu-zoom img {
+  transform: scale(1);
+  transition: transform 7s var(--hu-ease);
+}
+
+.hu-dots {
+  position: fixed;
+  top: 50%;
+  right: max(6px, calc(50% - 215px + 6px));
+  z-index: 40;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  transform: translateY(-50%);
+}
+.hu-on .hu-dots {
+  display: flex;
+}
+.hu-dots button {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: rgb(var(--cx-accent-rgb) / 0.28);
+  box-shadow: 0 0 0 1px rgb(var(--cx-card-bg-rgb) / 0.7);
+  transition:
+    height 0.4s var(--hu-ease),
+    background 0.4s ease;
+}
+.hu-dots button.is-on {
+  height: 20px;
+  background: rgb(var(--cx-accent-rgb));
+}
+.hu-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 8px;
+  z-index: 40;
+  display: none;
+  font-size: 22px;
+  color: rgb(var(--cx-accent-rgb) / 0.85);
+  filter: drop-shadow(0 0 4px rgb(var(--cx-card-bg-rgb)));
+  transform: translateX(-50%);
+  transition: opacity 0.4s ease;
+  animation: cx-hu-nudge 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+.hu-on .hu-hint {
+  display: block;
+}
+.hu-hint.is-end {
+  opacity: 0;
+}
+@keyframes cx-hu-nudge {
+  0%,
+  100% {
+    translate: 0 0;
+    opacity: 0.5;
+  }
+  50% {
+    translate: 0 -8px;
+    opacity: 1;
+  }
+}
+@media (min-width: 768px) {
+  .hu-dots {
+    right: max(6px, calc(50% - 384px + 12px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hu-on .hu-a,
+  .hu-on .hu-zoom img {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    transition: none;
+  }
+  .hu-hint {
+    animation: none;
+  }
+}
+
+/* ── Dòng tiêu đề "INVITATION · huy hiệu · WEDDING" (bìa + trang mở đầu) ── */
+.hu-head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  padding: calc(var(--hu-screen) * 0.024 + 12px) 20px 0;
+}
+.hu-head .hu-cap {
+  flex: 1;
+  padding-bottom: 12px;
+}
+.hu-head .hu-cap:last-child {
+  text-align: right;
+}
+.hu-head .hu-emblem {
+  margin: 0 8px;
+}
+
+/* ── Màn bìa: ảnh tràn màn giữa hai lớp trắng mờ trên/dưới ──────────── */
+.hu-cover-photo {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--cx-surface-rgb));
+}
+.hu-cover-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.85) 10%, rgb(var(--cx-card-bg-rgb) / 0) 24%),
+    linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.94) 30%, rgb(var(--cx-card-bg-rgb) / 0) 52%);
+  pointer-events: none;
+}
+.hu-cover-head {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.hu-cover-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0 28px;
+  text-align: center;
+}
+.hu-cover-invite {
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.hu-cover-guest {
+  font-size: 24px;
+  line-height: 1.3;
+  color: rgb(var(--cx-heading-rgb));
+}
+.hu-cover-names {
+  margin-bottom: 8px;
+  font-size: 26px;
+}
+
+/* ── Trang mở đầu: ảnh lớn mờ hai đầu, chữ viết tay đè chân ảnh ─────── */
+.hu-hero {
+  justify-content: flex-start;
+  padding: 0;
+}
+.hu-hero-sub {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 28px 0;
+  font-size: 13px;
+  color: rgb(var(--cx-heading-rgb));
+}
+.hu-hero-photo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--hu-screen) * 0.13);
+  bottom: calc(var(--hu-screen) * 0.08);
+  overflow: hidden;
+  background: rgb(var(--cx-surface-rgb));
+}
+.hu-hero-photo::before,
+.hu-hero-photo::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.hu-hero-photo::before {
+  top: 0;
+  height: 20%;
+  background: linear-gradient(to bottom, rgb(var(--cx-card-bg-rgb)), rgb(var(--cx-card-bg-rgb) / 0));
+}
+.hu-hero-photo::after {
+  bottom: 0;
+  height: 40%;
+  background: linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.85) 40%, rgb(var(--cx-card-bg-rgb) / 0));
+}
+.hu-hero-script {
+  position: absolute;
+  left: 7%;
+  bottom: calc(var(--hu-screen) * 0.15);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  font-size: 34px;
+  line-height: 1.15;
+  rotate: -6deg;
+}
+.hu-hero-script span:last-child {
+  padding-left: 28px;
+}
+.hu-hero-heart {
+  position: absolute;
+  right: 8%;
+  bottom: calc(var(--hu-screen) * 0.24);
+  z-index: 2;
+}
+.hu-hero .hu-welcome {
+  position: absolute;
+  bottom: calc(var(--hu-screen) * 0.035 + 24px);
+  left: 0;
+  right: 0;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+/* ── Lời ngỏ: thơ + tháp ly + ảnh giữa trên khối đỏ, dây treo hai bên ── */
+.hu-intro .hu-poem {
+  margin-top: calc(var(--hu-screen) * 0.022);
+}
+.hu-intro .hu-toast {
+  margin-top: calc(var(--hu-screen) * 0.014);
+}
+.hu-intro-stage {
+  height: calc(var(--hu-screen) * 0.42);
+  margin: 0 -24px;
+  width: calc(100% + 48px);
+}
+.hu-intro-photo {
+  left: 21%;
+  width: 58%;
+  top: 0;
+  height: calc(var(--hu-screen) * 0.39);
+}
+.hu-intro-block {
+  left: calc(21% - 16px);
+  right: calc(21% - 16px);
+  top: calc(var(--hu-screen) * 0.24);
+  bottom: 0;
+}
+.hu-pendant-l,
+.hu-pendant-r {
+  position: absolute;
+  top: calc(var(--hu-screen) * 0.12);
+}
+.hu-pendant-l {
+  left: 5%;
+}
+.hu-pendant-r {
+  right: 5%;
+}
+.hu-intro .hu-line {
+  margin-top: calc(var(--hu-screen) * 0.026);
+}
+
+/* ── Gia đình: hai chân dung trên dải đỏ, tên + song thân bên dưới ───── */
+.hu-pair {
+  height: calc(var(--hu-screen) * 0.36);
+  margin: calc(var(--hu-screen) * 0.02) -24px 0;
+  width: calc(100% + 48px);
+}
+.hu-pair-photo {
+  top: 0;
+  width: 42%;
+  height: calc(var(--hu-screen) * 0.32);
+}
+.hu-pair-g {
+  left: 6%;
+}
+.hu-pair-b {
+  right: 6%;
+}
+.hu-pair-block {
+  left: 0;
+  right: 0;
+  top: calc(var(--hu-screen) * 0.18);
+  bottom: 0;
+}
+.hu-names2 {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: calc(var(--hu-screen) * 0.024);
+}
+.hu-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.hu-role {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.hu-person-name {
+  font-size: 20px;
+  color: rgb(var(--cx-heading-rgb));
+}
+.hu-parents-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  margin-top: calc(var(--hu-screen) * 0.026);
+}
+.hu-parents {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+.hu-side {
+  margin-bottom: 4px;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.hu-address {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* ── Save the date: ảnh ngang đầu trang, ảnh viền đỏ chồng mép ──────── */
+.hu-save {
+  justify-content: flex-start;
+  padding: 0;
+}
+.hu-save-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--hu-screen) * 0.37);
+}
+.hu-save-framed {
+  position: absolute;
+  left: 29%;
+  width: 50%;
+  top: calc(var(--hu-screen) * 0.33);
+  height: calc(var(--hu-screen) * 0.42);
+  z-index: 2;
+}
+.hu-save-left {
+  position: absolute;
+  left: 0;
+  width: 29%;
+  top: calc(var(--hu-screen) * 0.395);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hu-save-cap {
+  font-family: "Cinzel", serif;
+  font-size: min(17px, calc(var(--hu-screen) * 0.022));
+  line-height: 1.95;
+  letter-spacing: 1px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.hu-vertical {
+  margin-top: calc(var(--hu-screen) * 0.03);
+  font-size: min(17px, calc(var(--hu-screen) * 0.022));
+  line-height: 1.45;
+  text-align: center;
+}
+.hu-save-right {
+  position: absolute;
+  right: 0;
+  width: 21%;
+  top: calc(var(--hu-screen) * 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--hu-screen) * 0.04);
+}
+.hu-save-right .hu-emblem {
+  width: 52px;
+  height: 52px;
+}
+.hu-save .hu-save-line {
+  position: absolute;
+  top: calc(var(--hu-screen) * 0.785);
+  left: 32px;
+  right: 32px;
+  max-width: none;
+}
+
+/* ── Chuyện tình: mỗi mốc một trang, ảnh trên khối đỏ lệch, ngày dựng đứng ─ */
+.hu-ls-stage {
+  height: calc(var(--hu-screen) * 0.52);
+  margin: calc(var(--hu-screen) * 0.024) -24px 0;
+  width: calc(100% + 48px);
+}
+.hu-ls-photo {
+  top: 0;
+  left: 10%;
+  width: 62%;
+  height: calc(var(--hu-screen) * 0.48);
+}
+.hu-ls-block {
+  left: calc(10% + 20px);
+  width: 62%;
+  top: calc(var(--hu-screen) * 0.04);
+  bottom: 0;
+}
+.hu-ls .hu-ls-date {
+  position: absolute;
+  right: 6%;
+  top: calc(var(--hu-screen) * 0.04);
+  font-family: "Cinzel", serif;
+  font-size: 24px;
+  letter-spacing: 4px;
+  writing-mode: vertical-rl;
+}
+.hu-ls.is-flip .hu-ls-photo {
+  left: auto;
+  right: 10%;
+}
+.hu-ls.is-flip .hu-ls-block {
+  left: auto;
+  right: calc(10% + 20px);
+}
+.hu-ls.is-flip .hu-ls-date {
+  right: auto;
+  left: 6%;
+}
+.hu-ls-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: calc(var(--hu-screen) * 0.03);
+}
+
+/* ── Thư mời: ảnh tràn màn, lịch tháng trên lớp trắng mờ dần ─────────── */
+.hu-time {
+  padding: 0;
+}
+.hu-time-photo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--hu-screen) * 0.86);
+  overflow: hidden;
+}
+.hu-time-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--cx-card-bg-rgb) / 0) 26%,
+    rgb(var(--cx-card-bg-rgb) / 0.78) 46%,
+    rgb(var(--cx-card-bg-rgb) / 0.94) 64%,
+    rgb(var(--cx-card-bg-rgb)) 100%
+  );
+  pointer-events: none;
+}
+.hu-cal {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: calc(var(--hu-screen) * 0.42);
+  z-index: 1;
+}
+.hu-cal-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 4px 8px;
+}
+.hu-cal-md {
+  font-family: "Cinzel", serif;
+  font-size: 34px;
+  line-height: 1;
+}
+.hu-cal-md small {
+  font-size: 18px;
+}
+.hu-cal-year {
+  font-family: "Cinzel", serif;
+  font-size: 18px;
+}
+.hu-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: min(30px, calc(var(--hu-screen) * 0.036));
+  align-items: center;
+  text-align: center;
+}
+.hu-cal-h {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgb(var(--cx-accent-rgb) / 0.6);
+  font-family: "Noto Serif", serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--cx-accent-rgb));
+}
+.hu-cal-d {
+  position: relative;
+  font-family: "Noto Serif", serif;
+  font-size: 13px;
+  color: rgb(var(--cx-body-rgb) / 0.75);
+}
+.hu-cal-d span {
+  position: relative;
+}
+.hu-cal-d svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32px;
+  height: 29px;
+  color: rgb(var(--cx-accent-rgb));
+  transform: translate(-50%, -48%);
+}
+.hu-cal-d.is-on span {
+  font-weight: 600;
+  color: rgb(var(--cx-accent-rgb));
+}
+.hu-time-text {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: calc(var(--hu-screen) * 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.hu-invite {
+  margin-bottom: 4px;
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* ── Đếm ngược: ảnh có lề, ô số chồng mép, ảnh thứ hai trên khối đỏ ──── */
+.hu-count {
+  padding: 0;
+}
+.hu-count-photo {
+  width: 90%;
+  height: calc(var(--hu-screen) * 0.34);
+  flex: none;
+}
+.hu-cd {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 12px;
+  margin-top: calc(var(--hu-screen) * -0.032);
+}
+.hu-cd div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 54px;
+  border-radius: 4px;
+  background: rgb(var(--cx-band-rgb));
+  box-shadow: 0 8px 16px -8px rgb(var(--cx-accent-rgb) / 0.6);
+}
+.hu-cd span {
+  font-size: 20px;
+  line-height: 1.1;
+  color: rgb(var(--cx-on-accent-rgb));
+}
+.hu-cd small {
+  font-size: 10px;
+  color: rgb(var(--cx-on-accent-rgb) / 0.85);
+}
+.hu-count .hu-line {
+  margin-top: calc(var(--hu-screen) * 0.022);
+  padding: 0 24px;
+}
+.hu-count-stage {
+  height: calc(var(--hu-screen) * 0.34 + 12px);
+  margin-top: calc(var(--hu-screen) * 0.03);
+}
+.hu-count-photo2 {
+  left: 5%;
+  width: 90%;
+  top: 0;
+  height: calc(var(--hu-screen) * 0.34);
+}
+.hu-count-block {
+  left: 2.5%;
+  right: 2.5%;
+  top: calc(var(--hu-screen) * 0.2);
+  bottom: 0;
+}
+
+/* ── Tiệc cưới: ảnh viền đỏ giữa trang, dây treo + tim hai bên ──────── */
+.hu-party-stage {
+  height: calc(var(--hu-screen) * 0.5);
+  margin: calc(var(--hu-screen) * 0.024) -24px 0;
+  width: calc(100% + 48px);
+}
+.hu-party-framed {
+  top: 0;
+  left: 20%;
+  width: 60%;
+  height: calc(var(--hu-screen) * 0.5);
+}
+.hu-party-stage .hu-pendant-l {
+  top: calc(var(--hu-screen) * 0.06);
+}
+.hu-party-heart {
+  position: absolute;
+  right: 6%;
+  bottom: calc(var(--hu-screen) * 0.08);
+}
+.hu-party-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: calc(var(--hu-screen) * 0.03);
+}
+.hu-party-text .hu-title {
+  margin-bottom: 4px;
+}
+
+/* ── Lịch trình: ảnh ngang đầu trang, danh sách giờ — việc ──────────── */
+.hu-plan {
+  justify-content: flex-start;
+  padding-top: calc(var(--hu-screen) * 0.24);
+  padding-bottom: calc(var(--hu-screen) * 0.05);
+}
+.hu-plan-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--hu-screen) * 0.3);
+}
+.hu-plan-top::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0) 50%);
+}
+.hu-plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--hu-screen) * 0.02);
+  width: 100%;
+  max-width: 340px;
+  margin-top: calc(var(--hu-screen) * 0.02);
+}
+.hu-plan-label {
+  margin-bottom: 4px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgb(var(--cx-accent-rgb) / 0.4);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+.hu-plan-row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 12px;
+  padding: 4px 0;
+}
+.hu-plan-time {
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+.hu-plan-title {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ── Album: băng ảnh vuốt ngang trên khối đỏ ─────────────────────────── */
+.hu-album .hu-title {
+  margin-top: 4px;
+}
+.hu-album-stage {
+  position: relative;
+  width: calc(100% + 48px);
+  margin: calc(var(--hu-screen) * 0.03) -24px 0;
+}
+.hu-album-block {
+  left: 0;
+  right: 0;
+  top: 22%;
+  height: 56%;
+}
+.hu-reel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 12px;
+  padding: 0 18%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.hu-reel::-webkit-scrollbar {
+  display: none;
+}
+.hu-reel-cell {
+  flex: none;
+  width: 100%;
+  height: calc(var(--hu-screen) * 0.52);
+  overflow: hidden;
+  background: rgb(var(--cx-surface-rgb));
+  border: 6px solid rgb(var(--cx-card-bg-rgb));
+  scroll-snap-align: center;
+  cursor: zoom-in;
+}
+.hu-reel-count {
+  margin-top: calc(var(--hu-screen) * 0.02);
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* ── Bản đồ: ảnh tràn đầu trang, địa chỉ trên nền đỏ, bản đồ viền đỏ ─── */
+.hu-map {
+  justify-content: flex-start;
+  padding: 0 0 calc(var(--hu-screen) * 0.06);
+}
+.hu-map-photo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--hu-screen) * 0.7);
+  overflow: hidden;
+}
+.hu-map-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.7) 18%, rgb(var(--cx-card-bg-rgb) / 0) 42%);
+}
+.hu-map-pl,
+.hu-map-pr {
+  position: absolute;
+  top: calc(var(--hu-screen) * 0.6);
+  z-index: 1;
+}
+.hu-map-pl {
+  left: 4%;
+}
+.hu-map-pr {
+  right: 4%;
+}
+.hu-map-spacer {
+  flex: none;
+  height: calc(var(--hu-screen) * 0.56);
+}
+#map-location-name,
+#map-location-name-2 {
+  position: relative;
+  z-index: 1;
+  width: 66%;
+  padding: 10px 14px;
+  background: rgb(var(--cx-band-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+.hu-map-card {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 66%;
+  border: 6px solid rgb(var(--cx-band-rgb));
+  border-top: 0;
+  background: rgb(var(--cx-surface-rgb));
+}
+.hu-map-box {
+  position: relative;
+  height: calc(var(--hu-screen) * 0.2);
+}
+.hu-map .cx-map-tag {
+  position: relative;
+  z-index: 1;
+  margin: 12px 0 6px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* ── Xác nhận tham dự: hai ảnh trên dải đỏ, nút đỏ rộng ──────────────── */
+.hu-rsvp {
+  justify-content: flex-start;
+  padding: calc(var(--hu-screen) * 0.03) 0 calc(var(--hu-screen) * 0.05);
+}
+.hu-rsvp-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--hu-screen) * 0.25);
+  height: calc(var(--hu-screen) * 0.14 + 12px);
+  background: rgb(var(--cx-band-rgb));
+}
+.hu-rsvp-pair {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 2.4%;
+  width: 100%;
+  padding: 0 2%;
+}
+.hu-rsvp-photo {
+  flex: 1;
+  height: calc(var(--hu-screen) * 0.36);
+}
+.hu-rsvp-cap {
+  margin-top: calc(var(--hu-screen) * 0.05);
+}
+.hu-rsvp .hu-line {
+  margin-top: calc(var(--hu-screen) * 0.018);
+  padding: 0 24px;
+}
+.hu-rsvp #rsvp-custom-message {
+  margin-top: 8px;
+  padding: 0 32px;
+}
+.hu-rsvp-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 64%;
+  margin-top: calc(var(--hu-screen) * 0.03);
+}
+.hu-rsvp #attend-msg {
+  margin-top: 8px;
+}
+
+/* ── Hộp mừng cưới: thẻ QR trắng nằm trên khối đỏ ────────────────────── */
+.hu-gift .hu-emblem {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 8px;
+}
+.hu-gift .hu-title {
+  margin: 4px 0;
+}
+.hu-gift-stage {
+  position: relative;
+  width: calc(100% + 48px);
+  margin: calc(var(--hu-screen) * 0.03) -24px 0;
+  padding: 0 24px calc(var(--hu-screen) * 0.03);
+}
+.hu-gift-block {
+  left: -24px;
+  right: -24px;
+  top: 34%;
+  bottom: calc(var(--hu-screen) * -0.03);
+}
+.hu-gift-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.hu-gift-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  background: rgb(var(--cx-panel-rgb));
+  box-shadow: 0 12px 24px -16px rgb(var(--cx-shadow-rgb) / 0.4);
+}
+.hu-qr {
+  width: 100%;
+  max-width: 132px;
+  margin: 4px 0;
+  padding: 6px;
+  border: 1px solid rgb(var(--cx-line-rgb));
+}
+.hu-bank-no {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: rgb(var(--cx-heading-rgb));
+}
+.hu-gift-col .hu-btn {
+  margin-top: 6px;
+}
+
+/* ── Lời cảm ơn: ảnh tràn mờ chân, chữ viết tay + lời cảm ơn ──────────── */
+.hu-footer {
+  justify-content: flex-end;
+  padding-bottom: calc(var(--hu-screen) * 0.06);
+}
+.hu-footer-photo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--hu-screen) * 0.74);
+  overflow: hidden;
+}
+.hu-footer-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0) 14%),
+    linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.8) 22%, rgb(var(--cx-card-bg-rgb) / 0) 48%);
+}
+.hu-footer-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.hu-footer-script {
+  font-size: 40px;
+  line-height: 1.2;
+  rotate: -4deg;
+}
+.hu-footer .hu-footer-heart {
+  position: absolute;
+  top: -20px;
+  right: 10%;
+}
