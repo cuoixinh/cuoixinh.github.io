@@ -11,16 +11,16 @@
   --cx-body-rgb: 122 74 90;
   --cx-line-rgb: 243 214 224;
   --cx-surface-rgb: 255 247 249;
-  --cx-band-rgb: 243 196 211; /* MẢNG HỒNG PHẤN khối sau ảnh mỗi trang */
+  --cx-band-rgb: 253 236 242; /* MẢNG HỒNG PASTEL siêu nhạt khối sau ảnh mỗi trang */
   --cx-panel-rgb: 255 255 255;
   --cx-panel-warm-rgb: 255 247 249;
   --cx-cover-rgb: 255 255 255;
   --cx-cover-mid-rgb: 255 247 249;
   --cx-cover-veil-rgb: 255 255 255;
   --cx-card-bg-rgb: 255 255 255;
-  --cx-page-bg-rgb: 251 238 242;
+  --cx-page-bg-rgb: 254 246 248;
   --cx-deco-rgb: 214 92 135; /* sen tô đậm + nét hoa */
-  --cx-deco-soft-rgb: 248 214 226; /* cánh sen */
+  --cx-deco-soft-rgb: 250 222 232; /* cánh sen */
   --cx-deco-2-rgb: 150 180 140; /* lá sen */
   --cx-deco-2-soft-rgb: 214 230 206;
   --cx-shine-from-rgb: 255 255 255;
@@ -172,7 +172,7 @@ body {
   --hd-petal: rgb(var(--cx-card-bg-rgb) / 0.3);
   --hd-petal-hi: rgb(var(--cx-card-bg-rgb) / 0.18);
   --hd-leaf: rgb(var(--cx-card-bg-rgb) / 0.22);
-  color: rgb(var(--cx-accent-rgb) / 0.42);
+  color: rgb(var(--cx-accent-rgb) / 0.5);
 }
 /* Chữ luôn nổi trên hoạ tiết sen tuyệt đối (z-index 0) khi màn thấp làm chúng chạm nhau. */
 .hd-page .cx-t,
