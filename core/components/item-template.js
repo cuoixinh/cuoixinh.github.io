@@ -1,6 +1,7 @@
 // Thẻ MỘT mẫu thiệp (.tt-card) — dùng ở dải "Mẫu thiệp" của trang chủ
 // (js/section-templates.js) và lưới của /theme-template. Style ở
-// styles/tailwind-src.css (mục "THẺ MẪU THIỆP"); cần cxPriceHtml (core/utils.js).
+// styles/tailwind-src.css (mục "THẺ MẪU THIỆP"). Thẻ chỉ có ảnh, tên và cặp nút
+// — không hiện giá/mô tả.
 // Hành vi KHÔNG viết vào onclick: trang gọi CXItemTemplate.bind(khung, {…}) một
 // lần rồi mọi thẻ chèn về sau tự chạy (uỷ quyền sự kiện).
 (function () {
@@ -26,7 +27,7 @@
   }
 
   /**
-   * t: { id, theme, name, description, price, originalPrice, category }
+   * t: { id, theme, name }
    * opts.cardClass  class thêm cho vỏ thẻ (dải trang chủ dùng .cx-tplcard).
    * opts.tagLabel   nhãn danh mục — không truyền thì thẻ không có hàng nhãn.
    * opts.fav        true/false = hiện sao yêu thích và trạng thái của nó;
@@ -47,13 +48,6 @@
     const tagrow =
       tag || fav ? `<div class="tt-tagrow">${tag}${fav}</div>` : "";
 
-    // Hàng giá gốc LUÔN có mặt (mẫu không giảm giá thì rỗng) để mọi thẻ cùng
-    // chiều cao, lưới/dải không so le.
-    const off =
-      Number.isFinite(t.price) && t.originalPrice > t.price
-        ? `<span class="tt-price-old">${cxPriceHtml(t.originalPrice)}</span>`
-        : "";
-
     return `
     <article class="tt-card${opts.cardClass ? " " + opts.cardClass : ""}" data-id="${esc(t.id)}" data-theme="${esc(t.theme)}">
       <div class="tt-media" role="button" tabindex="0" aria-label="Xem trước ${name}" data-tpl-act="preview">
@@ -64,13 +58,6 @@
 
       <div class="tt-cardbody">
         <h3 class="tt-name">${name}</h3>
-        <p class="tt-desc">${esc(t.description || "")}</p>
-        <div class="mt-2 h-[16px]">${off}</div>
-        <div class="mt-1.5 flex items-center justify-between gap-2">
-          <span class="tt-price">${cxPriceHtml(t.price)}</span>
-          <span class="tt-chip tt-chip-sm">trọn đời</span>
-        </div>
-
         <div class="tt-cardbtns mt-3">
           <x-button size="xs" variant="bare" class="tt-btn-preview" data-tpl-act="preview">${ICON_EYE}Xem trước</x-button>
           <x-button size="xs" variant="bare" class="tt-btn-use" data-tpl-act="use">${ICON_USE}Dùng ngay</x-button>

@@ -10,7 +10,7 @@
     id: "serene-parchment",
 
     // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
-    wishesMode: "comment",
+    wishesMode: "card",
 
     // Hộp mừng cưới mặc định — id trong CX_GIFT_BOXES hoặc "none".
     giftBox: "minimalism_brown",

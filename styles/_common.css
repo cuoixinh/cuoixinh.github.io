@@ -729,7 +729,7 @@ svg.cx-ic {
 /* Một thẻ = khổ NGANG 280px — vừa một thẻ + mép thẻ sau trên điện thoại 360px,
    đủ rộng để cột chữ đọc được ở 12px. Ảnh chụp sẵn của mẫu
    (/assets/images/templates/*.jpg, cùng bộ ảnh với lưới mẫu ở trang chủ) cắt
-   khổ DỌC 9:16 (dáng màn điện thoại) đầy cột trái, tên + mô tả ở cột phải.
+   khổ DỌC 391:722 (dáng màn điện thoại, đúng khổ ảnh chụp) đầy cột trái, tên + mô tả ở cột phải.
    Bấm cả thẻ = xem thử (chuột/ngón tay); bàn phím đi qua nút "Xem trước".
    Thẻ trôi lên khi lớp phủ mở, lệch nhịp nhau cho ra dáng "rơi vào chỗ". */
 
@@ -779,7 +779,7 @@ svg.cx-ic {
   flex: 0 0 auto;
   height: 100%;
   width: auto;
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 391 / 722;
   object-fit: cover;
   object-position: top center;
   border-radius: 12px 0 0 12px;
@@ -2078,7 +2078,7 @@ button.cx-pchrome-btn:hover {
    LỜI CHÚC CỦA KHÁCH MỜI (core/helpers/wishes-helper.js)
    Dùng trên TRANG THIỆP nên viết CSS thuần + màu qua token --cx-*-rgb: mẫu
    thiệp chỉ nạp styles/themes.css, không có utility của trang ứng dụng.
-   Hai kiểu vỏ: MỤC trong thân thiệp (.cx-wsec — thẻ, bình luận, phân trang) ngay
+   Hai kiểu vỏ: MỤC trong thân thiệp (.cx-wsec — thẻ, phân trang) ngay
    trên hộp mừng cưới, hoặc DẢI NỔI ghim đáy khung nhìn (.cx-wdock — livestream,
    chỉ khi chủ thiệp tự chọn). Cả hai kết bằng ô "Gửi lời chúc" (.cx-wdock-card).
    ══════════════════════════════════════════════════════════════════════════ */
@@ -2230,8 +2230,7 @@ button.cx-pchrome-btn:hover {
 
 /* Chạm/rê vào là dừng để đọc cho kịp. */
 .cx-wfeed:hover .cx-wish-track.is-rolling,
-.cx-wfeed:active .cx-wish-track.is-rolling,
-.cx-wish-track.is-paused {
+.cx-wfeed:active .cx-wish-track.is-rolling {
   animation-play-state: paused;
 }
 
@@ -2436,7 +2435,7 @@ button.cx-pchrome-btn:hover {
 }
 
 /* Chip bút: dấu hiệu "chỗ này gõ được" cho chỗ nào còn dùng viên thuốc lúc nghỉ.
-   Cả dải nổi lẫn dạng comment đều mở sẵn ô gõ nên đang ẩn ở cả hai. */
+   Dải nổi lẫn mục trong thân thiệp đều mở sẵn ô gõ nên đang ẩn ở cả hai. */
 .cx-wdock-chip {
   display: flex;
   align-items: center;
@@ -2591,7 +2590,7 @@ button.cx-pchrome-btn:hover {
   display: none;
 }
 
-/* Ô nhập của DẢI NỔI cũng MỞ SẴN như ở dạng comment: ô gõ và mũi tên Gửi có mặt
+/* Ô nhập của DẢI NỔI cũng MỞ SẴN như ở mục trong thân thiệp: ô gõ và mũi tên Gửi có mặt
    từ đầu, bấm vào chỉ đặt con trỏ chứ hình dạng không đổi — thẻ dài hết hàng nên
    chẳng còn gì để "nở ra", mà nở ra thì cả dải nhảy một nhịp ngay dưới ngón tay.
    Khai SAU khối .cx-wdock-card.is-open ở trên để đè được (cùng độ đặc hiệu). */
@@ -2620,7 +2619,7 @@ button.cx-pchrome-btn:hover {
 
 /* Chip bút là dấu hiệu "chỗ này gõ được" của viên thuốc lúc nghỉ — ô gõ đã mở
    sẵn thì nó chỉ làm hàng soạn thụt vào một khúc. Lời xác nhận sau khi gửi dồn
-   vào dòng chữ (.is-sent bên dưới), giống dạng comment. */
+   vào dòng chữ (.is-sent bên dưới), giống mục trong thân thiệp. */
 .cx-wdock .cx-wdock-chip {
   display: none;
 }
@@ -2803,11 +2802,9 @@ button.cx-pchrome-btn:hover {
   );
 }
 
-/* ── Dạng COMMENT: mục nằm trong thân thiệp, ngay trên hộp mừng cưới ────────
-   wishes-helper dựng khi theme_setting.wishes_mode = "comment" (thay cho dải
-   nổi). Không có gì ghim màn hình: một khung cuộn liệt kê hết lời chúc, tự bò
-   khi khách cuộn tới, ô gửi nằm ngay trên. Mục được append CUỐI thân thiệp rồi
-   đẩy lên bằng flex `order` — xem _cxWishPlaceSection. */
+/* ── Mục lời chúc trong thân thiệp (dạng thẻ, phân trang), trên hộp mừng cưới ──
+   Không có gì ghim màn hình, ô gửi nằm ngay trên danh sách. Mục được append CUỐI
+   thân thiệp rồi đẩy lên bằng flex `order` — xem _cxWishPlaceSection. */
 .cx-wsec {
   display: flex;
   flex-direction: column;
@@ -2845,8 +2842,8 @@ button.cx-pchrome-btn:hover {
 
 /* Khung danh sách: cao tối đa nửa màn (qua --vh, không dùng dvh/svh trần — xem
    vh-lock.js). Ngắn hơn thì co theo nội dung, không để một khoảng trống. Hai
-   dải mờ trên/dưới cho chữ tan dần thay vì bị cắt ngang. Dạng thẻ, phân trang
-   và bình luận đều ghi đè một phần ở khối riêng bên dưới. */
+   dải mờ trên/dưới cho chữ tan dần thay vì bị cắt ngang. Dạng thẻ và phân trang
+   ghi đè một phần ở khối riêng bên dưới. */
 .cx-wsec-list {
   display: flex;
   flex-direction: column;
@@ -2923,60 +2920,8 @@ button.cx-pchrome-btn:hover {
   backdrop-filter: none;
 }
 
-/* ── Dạng "bình luận" (.cx-wsec-comment) ───────────────────────────────────
-   Cùng lượt chiếu với dải nổi (_cxWishStartRoll): cả danh sách là MỘT thẻ track
-   trôi từ dưới mép khung lên, lời chúc mờ dần rồi khuất ở mép trên, hết lượt
-   nghỉ rồi chiếu lại. Khung là "màn chiếu" nên phải cao CỐ ĐỊNH (danh sách không
-   được đẩy nó phình ra) và KHÔNG cuộn tay — track đi bằng transform. Dải mờ hai
-   đầu dài hơn khung cuộn thường để lời chúc hiện ra / tan đi từ từ. */
-.cx-wsec-comment .cx-wsec-list {
-  height: min(calc(var(--vh, 1vh) * 50), 360px);
-  height: min(calc(var(--vh, 1svh) * 50), 360px);
-  max-height: none;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0,
-    #000 18%,
-    #000 82%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0,
-    #000 18%,
-    #000 82%,
-    transparent 100%
-  );
-}
-
-/* Chưa có lời chúc: chỉ một dòng mời gửi, không có gì để chiếu. */
-.cx-wsec-comment .cx-wsec-list.is-empty {
-  height: auto;
-}
-
-.cx-wsec-comment .cx-wish-track {
-  align-items: stretch;
-  gap: 12px;
-}
-
-/* Chạm/rê vào là dừng để đọc cho kịp — như dải nổi. */
-.cx-wsec-comment .cx-wsec-list:hover .cx-wish-track.is-rolling,
-.cx-wsec-comment .cx-wsec-list:active .cx-wish-track.is-rolling {
-  animation-play-state: paused;
-}
-
-/* Giảm chuyển động: không trôi (xem khối cuối mục) thì phải cuộn tay được. */
-@media (prefers-reduced-motion: reduce) {
-  .cx-wsec-comment .cx-wsec-list {
-    overflow-y: auto;
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-}
-
 /* ── Dạng "phân trang" (.cx-wsec-paged) ─────────────────────────────────────
-   Cùng vỏ mục với dạng bình luận, khác đúng hai điểm: khung KHÔNG cuộn (mỗi lượt
+   Cùng vỏ mục với dạng thẻ, khác ở hai điểm: khung KHÔNG cuộn (mỗi lượt
    chỉ có CX_WISH_PAGE_SIZE lời chúc nên vừa chỗ) và có thêm hàng chuyển trang.
    Bỏ luôn mặt nạ mờ hai đầu — không còn gì bị cắt để mà làm mềm. */
 .cx-wsec-paged .cx-wsec-list {
@@ -3206,7 +3151,7 @@ button.cx-pchrome-btn:hover {
   display: none;
 }
 
-/* Ô gửi ở dạng comment là phần chính của mục: MỞ SẴN thành một hàng soạn đầy đủ,
+/* Ô gửi trong mục thân thiệp là phần chính của mục: MỞ SẴN thành một hàng soạn đầy đủ,
    ô gõ ở giữa, nút gửi bên phải. Bấm vào chỉ thêm quầng nhấn chứ không đổi hình,
    nhờ vậy không có cú "nở ra" làm nhảy cả mục lúc đang đọc. */
 .cx-wsec .cx-wdock-card,

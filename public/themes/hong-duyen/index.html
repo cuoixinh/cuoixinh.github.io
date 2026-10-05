@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Hồng Duyên</title>
+    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
+         địa chỉ, số điện thoại và QR tài khoản của khách. Bản MẪU (không có slug)
+         thì vẫn cho lập chỉ mục vì đó là hàng đang bán. Phải xét lúc chạy: hai bản
+         dùng CHUNG một URL, khác nhau đúng tham số này — đặt meta tĩnh vào file là
+         chặn nhầm cả bản mẫu. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Noto+Serif:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <!-- Markup trình phát nhạc. Dạng dùng ở mẫu này khai tại CX_THEME.music
+         (index.js), theme-boot.js dựng vào #cx-music-mount. -->
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+  </head>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       HỒNG DUYÊN — thiệp LẬT TRANG: mỗi .hd-page cao đúng một màn, vuốt dọc thì
+       trượt sang trang kế (scroll-snap của trình duyệt — trang vẫn là trang cuộn
+       thường nên xem trực tiếp, lời chúc, khối chèn thêm chạy như mọi mẫu). Phần
+       tử .hd-a trong trang chạy hiệu ứng mỗi lần trang được lật tới (hdSlides ở
+       index.js, bật qua CX_THEME.onOpen). Hoạ tiết sen là SVG ở #hd-defs.
+       Ràng buộc chung của mẫu: xem đầu file public/themes/base-theme/index.html.
+       ══════════════════════════════════════════════════════════════════════ -->
+
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <!-- Trình phát nhạc — dạng khai ở CX_THEME.music. Phải là con ĐẦU TIÊN của <body>. -->
+    <div id="cx-music-mount"></div>
+
+    <!-- Hoạ tiết dùng chung: hoa sen, cụm sen (hoa + nụ + lá), huy hiệu chữ lồng. -->
+    <svg id="hd-defs" width="0" height="0" aria-hidden="true" style="position: absolute">
+      <defs>
+<symbol id="hd-lotus" viewBox="0 0 120 96">
+<g transform="translate(60 82) rotate(-64)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -15 -13.3 -10.5 -32.3 0 -38 C 10.5 -32.3 15 -13.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15 -13.3 -10.5 -32.3 0 -38 C 10.5 -32.3 15 -13.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -4.6 C 1.2 -19 -0.8 -28.5 0 -34.2" /></g>
+<g transform="translate(60 82) rotate(64)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -15 -13.3 -10.5 -32.3 0 -38 C 10.5 -32.3 15 -13.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15 -13.3 -10.5 -32.3 0 -38 C 10.5 -32.3 15 -13.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -4.6 C 1.2 -19 -0.8 -28.5 0 -34.2" /></g>
+<g transform="translate(60 82) rotate(-40)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -16 -16.1 -11.2 -39.1 0 -46 C 11.2 -39.1 16 -16.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -16 -16.1 -11.2 -39.1 0 -46 C 11.2 -39.1 16 -16.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -5.5 C 1.3 -23 -0.8 -34.5 0 -41.4" /></g>
+<g transform="translate(60 82) rotate(40)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -16 -16.1 -11.2 -39.1 0 -46 C 11.2 -39.1 16 -16.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -16 -16.1 -11.2 -39.1 0 -46 C 11.2 -39.1 16 -16.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -5.5 C 1.3 -23 -0.8 -34.5 0 -41.4" /></g>
+<g transform="translate(60 82) rotate(-18)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -16 -18.9 -11.2 -45.9 0 -54 C 11.2 -45.9 16 -18.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -16 -18.9 -11.2 -45.9 0 -54 C 11.2 -45.9 16 -18.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -6.5 C 1.3 -27 -0.8 -40.5 0 -48.6" /></g>
+<g transform="translate(60 82) rotate(18)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -16 -18.9 -11.2 -45.9 0 -54 C 11.2 -45.9 16 -18.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -16 -18.9 -11.2 -45.9 0 -54 C 11.2 -45.9 16 -18.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -6.5 C 1.3 -27 -0.8 -40.5 0 -48.6" /></g>
+<g transform="translate(60 82) rotate(0)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -17 -21 -11.9 -51 0 -60 C 11.9 -51 17 -21 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -17 -21 -11.9 -51 0 -60 C 11.9 -51 17 -21 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -7.2 C 1.4 -30 -0.9 -45 0 -54" /></g>
+<g transform="translate(60 82) rotate(-78)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -15 -9.1 -10.5 -22.1 0 -26 C 10.5 -22.1 15 -9.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15 -9.1 -10.5 -22.1 0 -26 C 10.5 -22.1 15 -9.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -3.1 C 1.2 -13 -0.8 -19.5 0 -23.4" /></g>
+<g transform="translate(60 82) rotate(78)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -15 -9.1 -10.5 -22.1 0 -26 C 10.5 -22.1 15 -9.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15 -9.1 -10.5 -22.1 0 -26 C 10.5 -22.1 15 -9.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -3.1 C 1.2 -13 -0.8 -19.5 0 -23.4" /></g>
+<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M40 83 C 50 90 70 90 80 83" />
+</symbol>
+<symbol id="hd-branch" viewBox="0 0 200 170">
+<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M60 88 C 64 112 70 140 66 170 M138 70 C 132 100 120 132 112 170 M168 116 C 160 136 150 152 144 170" />
+<g transform="rotate(-14 160 110)"><path style="fill: var(--hd-leaf, color-mix(in srgb, rgb(var(--cx-deco-2-soft-rgb)) 70%, rgb(var(--cx-card-bg-rgb))))" d="M194 110 L195.1 111.6 L193.9 113.2 L190.9 114.5 L188.1 115.7 L186.5 117.2 L184.8 118.8 L181.6 119.9 L177 120.4 L172.5 120.6 L168.5 121.2 L164.5 122.1 L160 122.5 L155.5 122.1 L151.5 121.2 L147.5 120.6 L143 120.4 L138.4 119.9 L135.2 118.8 L133.5 117.2 L131.9 115.7 L129.1 114.5 L126.1 113.2 L124.9 111.6 L126 110 L127.7 108.5 L128.2 107 L128 105.3 L129.2 103.7 L132.6 102.6 L136.7 101.8 L140.2 100.9 L143 99.6 L146.4 98.5 L150.9 98 L155.6 98.3 L160 98.5 L164.4 98.3 L169.1 98 L173.6 98.5 L177 99.6 L179.8 100.9 L183.3 101.8 L187.4 102.6 L190.8 103.7 L192 105.3 L191.8 107 L192.3 108.5 L194 110 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M194 110 L195.1 111.6 L193.9 113.2 L190.9 114.5 L188.1 115.7 L186.5 117.2 L184.8 118.8 L181.6 119.9 L177 120.4 L172.5 120.6 L168.5 121.2 L164.5 122.1 L160 122.5 L155.5 122.1 L151.5 121.2 L147.5 120.6 L143 120.4 L138.4 119.9 L135.2 118.8 L133.5 117.2 L131.9 115.7 L129.1 114.5 L126.1 113.2 L124.9 111.6 L126 110 L127.7 108.5 L128.2 107 L128 105.3 L129.2 103.7 L132.6 102.6 L136.7 101.8 L140.2 100.9 L143 99.6 L146.4 98.5 L150.9 98 L155.6 98.3 L160 98.5 L164.4 98.3 L169.1 98 L173.6 98.5 L177 99.6 L179.8 100.9 L183.3 101.8 L187.4 102.6 L190.8 103.7 L192 105.3 L191.8 107 L192.3 108.5 L194 110 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".55" stroke-opacity=".6" d="M160 111.8 L191.3 110 M160 111.8 L184 117.1 M160 111.8 L165.4 120.9 M160 111.8 L144.4 119.6 M160 111.8 L130.6 113.8 M160 111.8 L130.6 106.2 M160 111.8 L144.4 100.4 M160 111.8 L165.4 99.1 M160 111.8 L184 102.9" /></g>
+<g transform="translate(138 70) rotate(-10)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -9.5 -6.6 -6.6 -16.1 0 -18.9 C 6.6 -16.1 9.5 -6.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M0 0 C -9.5 -6.6 -6.6 -16.1 0 -18.9 C 6.6 -16.1 9.5 -6.6 0 0 Z" /></g><g transform="translate(138 70) rotate(34)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -9.5 -6.6 -6.6 -16.1 0 -18.9 C 6.6 -16.1 9.5 -6.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M0 0 C -9.5 -6.6 -6.6 -16.1 0 -18.9 C 6.6 -16.1 9.5 -6.6 0 0 Z" /></g><g transform="translate(138 70) rotate(12)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -10.5 -11 -7.3 -26.8 0 -31.5 C 7.3 -26.8 10.5 -11 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M0 0 C -10.5 -11 -7.3 -26.8 0 -31.5 C 7.3 -26.8 10.5 -11 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".55" stroke-opacity=".55" d="M0 -3.8 C 0.8 -15.8 -0.5 -23.6 0 -28.4" /></g>
+<g transform="translate(0 6)"><g transform="translate(60 82) rotate(-64)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -14.2 -12.6 -10 -30.7 0 -36.1 C 10 -30.7 14.2 -12.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -14.2 -12.6 -10 -30.7 0 -36.1 C 10 -30.7 14.2 -12.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -4.3 C 1.1 -18.1 -0.7 -27.1 0 -32.5" /></g>
+<g transform="translate(60 82) rotate(64)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -14.2 -12.6 -10 -30.7 0 -36.1 C 10 -30.7 14.2 -12.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -14.2 -12.6 -10 -30.7 0 -36.1 C 10 -30.7 14.2 -12.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -4.3 C 1.1 -18.1 -0.7 -27.1 0 -32.5" /></g>
+<g transform="translate(60 82) rotate(-40)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -15.2 -15.3 -10.6 -37.1 0 -43.7 C 10.6 -37.1 15.2 -15.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15.2 -15.3 -10.6 -37.1 0 -43.7 C 10.6 -37.1 15.2 -15.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -5.2 C 1.2 -21.8 -0.8 -32.8 0 -39.3" /></g>
+<g transform="translate(60 82) rotate(40)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -15.2 -15.3 -10.6 -37.1 0 -43.7 C 10.6 -37.1 15.2 -15.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15.2 -15.3 -10.6 -37.1 0 -43.7 C 10.6 -37.1 15.2 -15.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -5.2 C 1.2 -21.8 -0.8 -32.8 0 -39.3" /></g>
+<g transform="translate(60 82) rotate(-18)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -15.2 -18 -10.6 -43.6 0 -51.3 C 10.6 -43.6 15.2 -18 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15.2 -18 -10.6 -43.6 0 -51.3 C 10.6 -43.6 15.2 -18 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -6.2 C 1.2 -25.6 -0.8 -38.5 0 -46.2" /></g>
+<g transform="translate(60 82) rotate(18)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -15.2 -18 -10.6 -43.6 0 -51.3 C 10.6 -43.6 15.2 -18 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15.2 -18 -10.6 -43.6 0 -51.3 C 10.6 -43.6 15.2 -18 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -6.2 C 1.2 -25.6 -0.8 -38.5 0 -46.2" /></g>
+<g transform="translate(60 82) rotate(0)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -16.1 -19.9 -11.3 -48.4 0 -57 C 11.3 -48.4 16.1 -19.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -16.1 -19.9 -11.3 -48.4 0 -57 C 11.3 -48.4 16.1 -19.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -6.8 C 1.3 -28.5 -0.8 -42.8 0 -51.3" /></g>
+<g transform="translate(60 82) rotate(-78)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -14.2 -8.6 -10 -21 0 -24.7 C 10 -21 14.2 -8.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -14.2 -8.6 -10 -21 0 -24.7 C 10 -21 14.2 -8.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -3 C 1.1 -12.3 -0.7 -18.5 0 -22.2" /></g>
+<g transform="translate(60 82) rotate(78)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -14.2 -8.6 -10 -21 0 -24.7 C 10 -21 14.2 -8.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -14.2 -8.6 -10 -21 0 -24.7 C 10 -21 14.2 -8.6 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -3 C 1.1 -12.3 -0.7 -18.5 0 -22.2" /></g>
+<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M41 83 C 50.5 89.6 69.5 89.6 79 83" /></g>
+</symbol>
+<symbol id="hd-badge" viewBox="0 0 64 84">
+<path style="fill: rgb(var(--cx-accent-rgb))" d="M4 30 C 4 14 16 4 32 4 C 48 4 60 14 60 30 V 80 H 4 Z" />
+<path fill="none" style="stroke: rgb(var(--cx-on-accent-rgb) / .75)" stroke-width="1" d="M9 31 C 9 18 19 9 32 9 C 45 9 55 18 55 31 V 75 H 9 Z" />
+<g transform="translate(20 8) scale(.2)" style="--hd-petal: rgb(var(--cx-on-accent-rgb) / .9); --hd-petal-hi: rgb(var(--cx-on-accent-rgb) / .7); color: rgb(var(--cx-on-accent-rgb))"><g transform="translate(60 82) rotate(-64)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -15 -13.3 -10.5 -32.3 0 -38 C 10.5 -32.3 15 -13.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15 -13.3 -10.5 -32.3 0 -38 C 10.5 -32.3 15 -13.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -4.6 C 1.2 -19 -0.8 -28.5 0 -34.2" /></g>
+<g transform="translate(60 82) rotate(64)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -15 -13.3 -10.5 -32.3 0 -38 C 10.5 -32.3 15 -13.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15 -13.3 -10.5 -32.3 0 -38 C 10.5 -32.3 15 -13.3 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -4.6 C 1.2 -19 -0.8 -28.5 0 -34.2" /></g>
+<g transform="translate(60 82) rotate(-40)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -16 -16.1 -11.2 -39.1 0 -46 C 11.2 -39.1 16 -16.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -16 -16.1 -11.2 -39.1 0 -46 C 11.2 -39.1 16 -16.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -5.5 C 1.3 -23 -0.8 -34.5 0 -41.4" /></g>
+<g transform="translate(60 82) rotate(40)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -16 -16.1 -11.2 -39.1 0 -46 C 11.2 -39.1 16 -16.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -16 -16.1 -11.2 -39.1 0 -46 C 11.2 -39.1 16 -16.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -5.5 C 1.3 -23 -0.8 -34.5 0 -41.4" /></g>
+<g transform="translate(60 82) rotate(-18)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -16 -18.9 -11.2 -45.9 0 -54 C 11.2 -45.9 16 -18.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -16 -18.9 -11.2 -45.9 0 -54 C 11.2 -45.9 16 -18.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -6.5 C 1.3 -27 -0.8 -40.5 0 -48.6" /></g>
+<g transform="translate(60 82) rotate(18)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -16 -18.9 -11.2 -45.9 0 -54 C 11.2 -45.9 16 -18.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -16 -18.9 -11.2 -45.9 0 -54 C 11.2 -45.9 16 -18.9 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -6.5 C 1.3 -27 -0.8 -40.5 0 -48.6" /></g>
+<g transform="translate(60 82) rotate(0)"><path style="fill: var(--hd-petal, rgb(var(--cx-deco-soft-rgb)))" d="M0 0 C -17 -21 -11.9 -51 0 -60 C 11.9 -51 17 -21 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -17 -21 -11.9 -51 0 -60 C 11.9 -51 17 -21 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -7.2 C 1.4 -30 -0.9 -45 0 -54" /></g>
+<g transform="translate(60 82) rotate(-78)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -15 -9.1 -10.5 -22.1 0 -26 C 10.5 -22.1 15 -9.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15 -9.1 -10.5 -22.1 0 -26 C 10.5 -22.1 15 -9.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -3.1 C 1.2 -13 -0.8 -19.5 0 -23.4" /></g>
+<g transform="translate(60 82) rotate(78)"><path style="fill: var(--hd-petal-hi, color-mix(in srgb, rgb(var(--cx-deco-soft-rgb)) 55%, rgb(var(--cx-card-bg-rgb))))" d="M0 0 C -15 -9.1 -10.5 -22.1 0 -26 C 10.5 -22.1 15 -9.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M0 0 C -15 -9.1 -10.5 -22.1 0 -26 C 10.5 -22.1 15 -9.1 0 0 Z" /><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6" stroke-opacity=".55" d="M0 -3.1 C 1.2 -13 -0.8 -19.5 0 -23.4" /></g>
+<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" d="M40 83 C 50 90 70 90 80 83" /></g>
+</symbol>
+<symbol id="hd-ring" viewBox="0 0 80 80">
+<circle cx="40" cy="40" r="37" style="fill: rgb(var(--cx-accent-rgb))" />
+<circle cx="40" cy="40" r="32" fill="none" style="stroke: rgb(var(--cx-on-accent-rgb) / .8)" stroke-width="1" stroke-dasharray="2 3" />
+</symbol>
+<symbol id="hd-heart" viewBox="0 0 40 36">
+<path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M20 33 C 8 24 2 17 2 10.5 C 2 5.5 6 2 10.6 2 C 14.6 2 17.6 4.4 20 8 C 22.4 4.4 25.4 2 29.4 2 C 34 2 38 5.5 38 10.5 C 38 17 32 24 20 33 Z" />
+</symbol>
+      </defs>
+    </svg>
+
+    <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
+         Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
+      <div class="hd-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
+        <div class="hd-cover-photo">
+          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+        </div>
+        <div class="hd-cover-veil" aria-hidden="true"></div>
+        <svg class="hd-cover-branch" aria-hidden="true"><use href="#hd-branch" /></svg>
+        <div class="cx-h hd-cover-tag">Wedding Invitation</div>
+
+        <div class="hd-cover-text">
+          <div data-cx-invite class="cx-t hd-cover-invite">Trân trọng kính mời</div>
+          <div class="cx-t hd-cover-guest" id="cover-guest-name">----------</div>
+          <div data-cx-invite-to class="cx-t hd-cover-invite">đến dự lễ thành hôn của</div>
+          <div class="cx-h cx-a hd-cover-names">
+            <span id="cover-groom-name">----------</span>
+            <span class="hd-amp">&amp;</span>
+            <span id="cover-bride-name">----------</span>
+          </div>
+          <x-button
+            variant="bare"
+            onclick="openInvitation()"
+            class="open-btn hd-btn relative overflow-hidden active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          >
+            <span class="relative z-10 pointer-events-none flex items-center gap-2">
+              <i data-lucide="mail-open" class="cx-ic"></i>
+              Mở Thiệp
+            </span>
+            <div class="btn-shimmer pointer-events-none"></div>
+          </x-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
+         #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục. -->
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      style="display: none"
+    >
+      <div class="hd-flow flex flex-col">
+        <!-- Mỗi trang có một MẢNG HỒNG khối (::before, vị trí khai bằng --band-top/--band-h
+             trên từng trang) và ảnh đặt chồng qua mép mảng. Sen lớn tô đậm = chỗ nhấn của trang,
+             cành sen nét chìm nằm trên mảng đỏ. -->
+
+        <!-- ═══ Trang 1 — Mở đầu: ảnh lớn, tên, huy hiệu chữ lồng ═══════════ -->
+        <section id="section-hero" class="hd-page hd-hero">
+          <svg class="hd-branch hd-ghost hd-hero-branch hd-a hd-fade" style="--d: 2" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <div class="hd-hero-head hd-a hd-up" style="--d: 1">
+            <div class="cx-h hd-hero-names">
+              <span id="couple-names-groom">----------</span>
+              <span class="hd-amp">&amp;</span>
+              <span id="couple-names-bride">----------</span>
+            </div>
+            <div class="cx-h hd-tag">Wedding Invitation</div>
+          </div>
+          <div class="hd-frame hd-hero-frame hd-a hd-zoom">
+            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" />
+          </div>
+          <svg class="hd-lotus-big hd-solid hd-hero-lotus hd-a hd-pop" style="--d: 3" aria-hidden="true"><use href="#hd-lotus" /></svg>
+          <div class="hd-hero-foot">
+            <span class="cx-t hd-a hd-left" style="--d: 4">Một lần nên duyên</span>
+            <span class="hd-badge hd-a hd-pop" style="--d: 5">
+              <svg aria-hidden="true"><use href="#hd-badge" /></svg>
+              <b class="cx-h" id="hd-mono">-&amp;-</b>
+            </span>
+            <span class="cx-t hd-a hd-right" style="--d: 4">Trọn đời bên nhau</span>
+          </div>
+        </section>
+
+        <!-- ═══ Trang 2 — Gia đình (enable_family) ══════════════════════════ -->
+        <section id="section-family" class="hd-page hd-family">
+          <div class="hd-pair">
+            <div class="hd-frame hd-person-photo hd-a hd-left" style="--d: 1"><img id="groom-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Chú Rể" class="w-full h-full object-cover" /></div>
+            <span class="hd-ring hd-a hd-pop" style="--d: 3">
+              <svg aria-hidden="true"><use href="#hd-ring" /></svg>
+              <b class="cx-h" id="hd-mono-2">-&amp;-</b>
+            </span>
+            <div class="hd-frame hd-person-photo hd-a hd-right" style="--d: 2"><img id="bride-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cô Dâu" class="w-full h-full object-cover" /></div>
+          </div>
+          <div class="hd-names2 hd-a hd-up" style="--d: 3">
+            <div class="hd-person"><span class="cx-h cx-a hd-role">Chú Rể</span><span class="cx-t hd-person-name" id="groom-name-label">----------</span></div>
+            <div class="hd-person"><span class="cx-h cx-a hd-role">Cô Dâu</span><span class="cx-t hd-person-name" id="bride-name-label">----------</span></div>
+          </div>
+          <svg class="hd-branch hd-ghost hd-family-branch hd-a hd-fade" style="--d: 4" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <div class="hd-parents-grid hd-a hd-up" style="--d: 4">
+            <div class="cx-t hd-parents">
+              <span class="cx-a hd-side">Nhà Trai</span>
+              <span id="groom-father">--------------------</span>
+              <span id="groom-mother">--------------------</span>
+              <span class="hd-address" id="groom-address">----------------------------------------</span>
+            </div>
+            <div class="cx-t hd-parents">
+              <span class="cx-a hd-side">Nhà Gái</span>
+              <span id="bride-father">--------------------</span>
+              <span id="bride-mother">--------------------</span>
+              <span class="hd-address" id="bride-address">----------------------------------------</span>
+            </div>
+          </div>
+          <div class="cx-t hd-poem hd-a hd-up" style="--d: 5">
+            Năm tháng gặp nhau, rồi cũng đến ngày về chung một nhà<br />
+            trân trọng mời bạn đến chung vui<br />
+            chứng kiến lời hẹn ước của chúng mình
+          </div>
+          <svg class="hd-lotus-big hd-solid hd-family-lotus hd-a hd-pop" style="--d: 6" aria-hidden="true"><use href="#hd-lotus" /></svg>
+        </section>
+
+        <!-- ═══ Trang 3 — Hai ảnh ngang chồng qua hai mép mảng đỏ ═══════════ -->
+        <section class="hd-page hd-duo">
+          <svg class="hd-branch hd-duo-branch hd-a hd-fade" style="--d: 3" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <div class="hd-frame hd-land hd-a hd-left" data-hd-shot="0"></div>
+          <div id="story-quote" class="cx-t hd-line hd-duo-line hd-a hd-up" style="--d: 2">Chúng mình quyết định biến rung động ngắn ngủi thành người bạn đồng hành dài lâu.</div>
+          <div class="hd-frame hd-land hd-land-2 hd-a hd-right" style="--d: 1" data-hd-shot="1"></div>
+          <svg class="hd-branch hd-ghost hd-duo-branch-2 hd-a hd-fade" style="--d: 4" aria-hidden="true"><use href="#hd-branch" /></svg>
+        </section>
+
+        <!-- ═══ Trang 4… — Chuyện tình yêu (enable_love_story) ════════════════
+             Mỗi mốc là MỘT trang — dựng ở hdRenderLoveStory (index.js). -->
+        <section id="love-story" class="hd-stack" style="display: none">
+          <div id="love-story-list" class="hd-stack"></div>
+        </section>
+
+        <!-- ═══ Trang — Thư mời: lịch tháng đè ảnh + ngày giờ lễ ══════════════
+             Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức. -->
+        <section id="section-ceremony" class="hd-page hd-time">
+          <svg class="hd-branch hd-ghost hd-time-branch hd-a hd-fade" style="--d: 3" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <div class="hd-frame hd-cal-photo hd-a hd-zoom">
+            <div class="hd-shot-fill" data-hd-shot="2"></div>
+            <div class="hd-cal hd-a hd-up" style="--d: 2">
+              <div class="hd-cal-top">
+                <span class="cx-h hd-cal-md" id="hd-cal-md">--<small>/--</small></span>
+                <span class="cx-h hd-cal-year" id="hd-cal-year">-----</span>
+              </div>
+              <div id="hd-calendar" class="hd-cal-grid"></div>
+            </div>
+          </div>
+          <div class="hd-time-text hd-a hd-up" style="--d: 3">
+            <div class="cx-t hd-invite">
+              Trân trọng kính mời dự <span id="ceremony-event-name" class="cx-a">Lễ Thành Hôn</span><br />
+              <span id="invite-groom">----------</span> &amp; <span id="invite-bride">----------</span>
+            </div>
+            <div class="cx-h cx-a hd-date">
+              <span id="invite-weekday">------</span>, ngày <span id="invite-day">--</span> · <span id="invite-month-year">Tháng -- · ----</span>
+            </div>
+            <div class="cx-t hd-sub"><span id="invite-lunar">--------------------</span> · <span id="invite-time">--:--</span></div>
+            <div id="ceremony-location-wrap" class="hidden cx-t hd-sub">
+              <span id="ceremony-location-text"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ Trang — Tiệc cưới (enable_party) ════════════════════════════ -->
+        <section id="section-party" class="hd-page hd-party">
+          <div class="hd-party-row">
+            <div class="hd-frame hd-party-photo hd-a hd-left" data-hd-shot="3"></div>
+            <div class="cx-t hd-verse hd-a hd-right" style="--d: 2">
+              Lấy thương làm tên<br />
+              đi hết một đời<br />
+              gió trăng làm chứng<br />
+              năm tháng bên nhau
+            </div>
+          </div>
+          <svg class="hd-lotus-big hd-solid hd-party-lotus hd-a hd-pop" style="--d: 3" aria-hidden="true"><use href="#hd-lotus" /></svg>
+          <svg class="hd-branch hd-ghost hd-party-branch hd-a hd-fade" style="--d: 4" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <div class="hd-party-text hd-a hd-up" style="--d: 3">
+            <div id="party-section-label" class="cx-h cx-a hd-label">Tiệc Mừng Lễ Thành Hôn</div>
+            <div class="cx-h cx-a hd-date" id="party-datetime">--:-- - --.--.----</div>
+            <div class="cx-t hd-sub" id="party-lunar">(Ngày âm lịch)</div>
+            <div class="cx-t hd-sub" id="party-location">------------------------</div>
+          </div>
+        </section>
+
+        <!-- ═══ Trang — Bản đồ ═════════════════════════════════════════════
+             #map-location-name + #map-link phải đứng CUỐI mục (renderVenueMaps). -->
+        <section id="section-map" class="hd-page hd-map">
+          <div class="hd-frame hd-map-photo hd-a hd-left" data-hd-shot="4"></div>
+          <svg class="hd-lotus-big hd-solid hd-map-lotus hd-a hd-pop" style="--d: 2" aria-hidden="true"><use href="#hd-lotus" /></svg>
+          <svg class="hd-branch hd-ghost hd-map-branch hd-a hd-fade" style="--d: 3" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <div class="cx-h cx-a hd-title hd-a hd-up" style="--d: 2">Địa điểm tổ chức</div>
+          <div class="cx-t hd-map-name hd-a hd-up" style="--d: 3" id="map-location-name">------------------------</div>
+          <a id="map-link" href="#" target="_blank" class="hd-map-card hd-a hd-pop" style="--d: 4">
+            <div class="hd-map-box">
+              <iframe id="map-thumbnail-iframe" src="" width="100%" height="100%" class="border-0 pointer-events-none" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
+                <i data-lucide="map-pinned" class="cx-ic cx-a"></i>
+                <span class="cx-t hd-small">Chưa có bản đồ</span>
+              </div>
+            </div>
+          </a>
+        </section>
+
+        <!-- ═══ Trang — Lịch trình ngày cưới (enable_timeline) ══════════════
+             Dựng ở hdRenderTimeline (index.js). -->
+        <section id="section-timeline" class="hidden hd-page hd-plan">
+          <svg class="hd-lotus-sm hd-solid hd-a hd-pop" aria-hidden="true"><use href="#hd-lotus" /></svg>
+          <div class="cx-h cx-a hd-title hd-a hd-up" style="--d: 1">Lịch trình ngày vui</div>
+          <div id="timeline-list-render" class="hd-plan-list hd-a hd-up" style="--d: 2"></div>
+        </section>
+
+        <!-- ═══ Trang — Album ảnh (enable_photos) ═══════════════════════════
+             Băng ảnh vuốt ngang trong một trang — dựng ở renderGallery (index.js). -->
+        <section id="section-photos" class="hd-page hd-album">
+          <div class="cx-h cx-a hd-title hd-a hd-up">Khoảnh khắc của chúng mình</div>
+          <div id="gallery-grid" class="hd-reel hd-a hd-fade" style="--d: 1"></div>
+          <div class="cx-t hd-reel-count hd-a hd-fade" style="--d: 2"><span id="hd-reel-i">1</span> / <span id="hd-reel-n">1</span></div>
+        </section>
+
+        <!-- ═══ Trang — Đếm ngược tới ngày cưới ══════════════════════════════
+             Không có ngày lễ thì index.js ẩn cả trang. -->
+        <section id="section-countdown" class="hd-page hd-count">
+          <svg class="hd-branch hd-count-branch hd-a hd-fade" style="--d: 3" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <div class="hd-frame hd-count-photo hd-a hd-zoom" data-hd-shot="5"></div>
+          <svg class="hd-lotus-big hd-solid hd-count-lotus hd-a hd-pop" style="--d: 2" aria-hidden="true"><use href="#hd-lotus" /></svg>
+          <div class="hd-cd hd-a hd-up" style="--d: 3">
+            <div><span class="cx-h" id="cd-days">00</span><small class="cx-t">Ngày</small></div>
+            <div><span class="cx-h" id="cd-hours">00</span><small class="cx-t">Giờ</small></div>
+            <div><span class="cx-h" id="cd-minutes">00</span><small class="cx-t">Phút</small></div>
+            <div><span class="cx-h" id="cd-seconds">00</span><small class="cx-t">Giây</small></div>
+          </div>
+        </section>
+
+        <!-- ═══ Trang — Xác nhận tham dự (rsvp_enabled) ═════════════════════ -->
+        <section id="rsvp-section" class="hd-page hd-rsvp" style="display: none">
+          <svg class="hd-lotus-sm hd-solid hd-rsvp-l hd-a hd-pop" style="--d: 2" aria-hidden="true"><use href="#hd-lotus" /></svg>
+          <svg class="hd-lotus-sm hd-solid hd-rsvp-r hd-a hd-pop" style="--d: 2" aria-hidden="true"><use href="#hd-lotus" /></svg>
+          <div class="hd-frame hd-rsvp-photo hd-a hd-zoom" data-hd-shot="6"></div>
+          <svg class="hd-branch hd-ghost hd-rsvp-branch hd-a hd-fade" style="--d: 4" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <div id="rsvp-custom-message" class="hidden cx-t hd-sub hd-a hd-up" style="--d: 3"></div>
+          <div class="hd-rsvp-btns hd-a hd-up" style="--d: 3">
+            <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="hd-btn hd-btn-wide active:scale-95 transition-all">
+              <span>Sẽ tham dự</span>
+            </x-button>
+            <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="hd-btn hd-btn-ghost hd-btn-wide active:scale-95 transition-all">
+              <span>Không thể tham dự</span>
+            </x-button>
+          </div>
+          <div id="attend-msg" class="cx-a cx-t hd-sub hidden"></div>
+        </section>
+
+        <!-- ═══ Trang — Hộp mừng cưới (enable_gift) ═════════════════════════
+             Hộp do gift-box-helper.js vẽ theo CX_THEME.giftBox — mẫu KHÔNG tự vẽ hộp. -->
+        <section id="section-gift" class="hd-page hd-gift">
+          <svg class="hd-lotus-sm hd-solid hd-a hd-pop" aria-hidden="true"><use href="#hd-lotus" /></svg>
+          <div class="cx-h cx-a hd-title hd-a hd-up" style="--d: 1">Gửi lời chúc mừng</div>
+          <div class="cx-t hd-sub hd-a hd-up" style="--d: 2">Chút lộc mừng gửi đến đôi uyên ương</div>
+          <div data-cx-gift="qr" class="hd-gift-grid hd-a hd-up" style="--d: 3">
+            <div class="hd-gift-col">
+              <div class="cx-t hd-small">Chú Rể · <span id="groom-bank-label">----------</span></div>
+              <div class="cx-bg-qr hd-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="QR Chú Rể" class="w-full aspect-square object-cover" /></div>
+              <div class="cx-t hd-small" id="groom-bank-name">----------------</div>
+              <div class="cx-t hd-bank-no" id="groom-bank-number">------------</div>
+              <div class="cx-t hd-small" id="groom-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="hd-btn hd-btn-ghost hd-btn-sm"><i data-lucide="download" class="cx-ic"></i> Lưu QR</x-button>
+            </div>
+            <div class="hd-gift-col">
+              <div class="cx-t hd-small">Cô Dâu · <span id="bride-bank-label">----------</span></div>
+              <div class="cx-bg-qr hd-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="QR Cô Dâu" class="w-full aspect-square object-cover" /></div>
+              <div class="cx-t hd-small" id="bride-bank-name">----------------</div>
+              <div class="cx-t hd-bank-no" id="bride-bank-number">------------</div>
+              <div class="cx-t hd-small" id="bride-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="hd-btn hd-btn-ghost hd-btn-sm"><i data-lucide="download" class="cx-ic"></i> Lưu QR</x-button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ Trang cuối — Lời cảm ơn (enable_footer) ═════════════════════ -->
+        <section id="section-footer" class="hd-page hd-footer">
+          <div class="hd-frame hd-footer-photo hd-a hd-zoom" data-hd-shot="last"></div>
+          <svg class="hd-lotus-big hd-solid hd-footer-lotus hd-a hd-pop" style="--d: 2" aria-hidden="true"><use href="#hd-lotus" /></svg>
+          <svg class="hd-branch hd-ghost hd-footer-branch hd-a hd-fade" style="--d: 3" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <div class="cx-h cx-a hd-thanks hd-a hd-up" style="--d: 1">Cảm ơn</div>
+          <div id="footer-text" class="cx-t hd-poem hd-a hd-up" style="--d: 2">Sự hiện diện của bạn là niềm hạnh phúc của chúng mình.</div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Chấm chỉ trang + gợi ý vuốt — chỉ hiện khi thiệp đã mở (hdSlides ở index.js). -->
+    <nav id="hd-dots" class="hd-dots" aria-hidden="true"></nav>
+    <div id="hd-hint" class="hd-hint" aria-hidden="true"><i data-lucide="chevrons-up" class="cx-ic"></i></div>
+
+    <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
+      </x-button>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
+      <div class="w-full h-full flex items-center justify-center px-[8px]">
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
+      </div>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — GIỮ NGUYÊN khi chép sang mẫu mới ═══════════ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- DAL → BL → khởi tạo instance -->
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <!-- Helper dùng chung -->
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper
+         (runtime thành phần ở đó đọc window.CX_ELEMENTS) -->
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <!-- Bản khai của mẫu + renderWedding -->
+    <script src="index.js"></script>
+    <!-- Chrome giả lập điện thoại của khung xem thử trên máy tính. -->
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <!-- Khởi động. Phải nạp SAU index.js. -->
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>

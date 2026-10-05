@@ -1810,7 +1810,7 @@
 .aichat-theme img {
   @apply w-full rounded-lg object-cover object-top;
 
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 391 / 722;
   background: rgb(var(--surface-control-rgb));
 }
 

@@ -22,7 +22,7 @@ const CX_FOCUS_SEL = {
   love_story: ["#love-story", "#love-story-list"],
   rsvp: ["#rsvp-section", "#attend-msg"],
   gift: ["#section-gift", "#groom-bank-label", "#bride-bank-label"],
-  // Mục lời chúc dạng comment do wishes-helper dựng; dạng livestream không có
+  // Mục lời chúc (thẻ / phân trang) do wishes-helper dựng; dạng livestream không có
   // mục nào trong thân thiệp nên danh sách này rỗng và lượt cuộn tự bỏ qua.
   wishes: ["#cx-wish-sec"],
   footer: ["#section-footer"],

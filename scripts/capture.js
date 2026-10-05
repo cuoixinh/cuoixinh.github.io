@@ -52,13 +52,14 @@ function startStaticServer() {
   });
 }
 
-// Khổ ảnh mẫu: đúng TỈ LỆ 9:16 của thẻ mẫu ở trang mua thiệp (.tt-media) —
-// chụp lệch tỉ lệ là thẻ phải cắt bớt, thiệp trông bị bóp. Đổi số ở đây thì
-// phải đổi luôn aspect-ratio của .tt-media trong theme-template/index.html.
-const SHOT_W = 390;
-const SHOT_H = Math.round((SHOT_W * 16) / 9);
+// Khổ ảnh mẫu = lõi màn của mockup điện thoại (391×722), đúng tỉ lệ thẻ mẫu
+// (.tt-media ở styles/tailwind-src.css); khung nhìn bằng khổ này nên màn bìa cao
+// 100dvh vừa khít một tấm. Đổi số ở đây thì đổi luôn aspect-ratio của .tt-media
+// và .tt-skel-media (theme-template/index.html).
+const SHOT_W = 391;
+const SHOT_H = 722;
 
-// Chụp MÀN ĐẦU của thiệp (khổ 9:16) → assets/images/templates/<tên>.jpg.
+// Chụp MÀN ĐẦU của thiệp (khổ 391:722) → assets/images/templates/<tên>.jpg.
 async function captureAll(onProgress = console.log, selected = null) {
   if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
@@ -160,7 +161,7 @@ async function captureAll(onProgress = console.log, selected = null) {
         });
         await new Promise((r) => setTimeout(r, 1000));
 
-        // fullPage: false — chỉ lấy khung nhìn (một tấm 9:16 ở đầu thiệp).
+        // fullPage: false — chỉ lấy khung nhìn (một tấm 391:722 ở đầu thiệp).
         await page.screenshot({
           path: outPath,
           type: "jpeg",

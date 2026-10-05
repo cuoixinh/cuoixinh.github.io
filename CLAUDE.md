@@ -535,7 +535,7 @@ push**.
   `#hero` là tường ảnh chụp mẫu thiệp `assets/images/templates/*.jpg` chạy ngang
   (`js/hero-wall.js`; `js/hero-background.js` không còn trang nào nạp), nên ghi nền mới ở
   tab này — hay xuất bộ WebP `cuoixinh-cover-*` ở công cụ Tạo ảnh bìa — không đổi gì
-  trang chủ. Thêm mẫu lên tường thì thêm ảnh chụp 780×1386 vào thư mục đó + một thẻ
+  trang chủ. Thêm mẫu lên tường thì thêm ảnh chụp 782×1444 (391:722, do `scripts/capture.js` chụp) vào thư mục đó + một thẻ
   `<img>` mỗi dải trong `index.html`.
 - **Ba ô ảnh trang trí** (khối cuối tab, ghi ra `pick-1…3.webp` trong
   `assets/background/thumbnail_started/`) hiện KHÔNG còn chỗ nào đọc: màn mở đầu của
@@ -644,11 +644,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
   **DẠNG hiện lời chúc** do chủ thiệp chọn ở tab Giao diện (mục "Lời chúc", cạnh Hộp mừng
   cưới), lưu ở `theme_setting.wishes_mode` — rỗng = dạng mẫu khai ở `CX_THEME.wishesMode`,
-  mẫu không khai thì `card`. Ba dạng là MỘT MỤC trong thân thiệp NGAY TRÊN hộp mừng cưới:
+  mẫu không khai thì `card`. Hai dạng là MỘT MỤC trong thân thiệp NGAY TRÊN hộp mừng cưới:
   `"card"` = dải thẻ cùng khổ vuốt ngang, chữ dài cắt kèm "Xem thêm" (mở một thẻ thì cả dải
-  cao theo, không thò thụt); `"comment"` = liệt kê hết trong khung cuộn, tự bò khi khách cuộn
-  tới; `"paged"` = mỗi lượt `CX_WISH_PAGE_SIZE` lời chúc, khách tự bấm sang trang. Dạng thứ tư
-  `"live"` là DẢI NỔI ghim đáy khung nhìn — **chỉ có khi chủ thiệp tự chọn, đừng lấy làm mặc
+  cao theo, không thò thụt); `"paged"` = mỗi lượt `CX_WISH_PAGE_SIZE` lời chúc, khách tự bấm
+  sang trang. Dạng thứ ba `"live"` là DẢI NỔI ghim đáy khung nhìn — **chỉ có khi chủ thiệp tự chọn, đừng lấy làm mặc
   định của mẫu nào**. **Danh mục dạng là `CX_WISH_MODES`** trong helper — thêm dạng mới là
   thêm một mục ở đó + CSS + một dòng ở `WISH_MODES` (`invitation-setup/js/05-theme-panel.js`),
   KHÔNG rẽ nhánh theo tên dạng ở chỗ khác. **Mẫu thiệp không phải khai markup gì cả.**
@@ -660,7 +659,7 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `CX_WISH_REPLAY_MS`; quãng đường đo bằng px trong `_cxWishStartRoll` và đo lại qua
   `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`; dải không hiện ở màn bìa lẫn
   màn mở đầu — chỉ hiện khi đã mở bìa VÀ cuộn quá `CX_WISH_SHOW_AT` màn hình.
-  Ô "Gửi lời chúc" mở sẵn — đứng TRÊN danh sách ở ba dạng trong thân thiệp, riêng dải nổi
+  Ô "Gửi lời chúc" mở sẵn — đứng TRÊN danh sách ở hai dạng trong thân thiệp, riêng dải nổi
   thì ở đáy; dạng thẻ có dãy chấm chỉ vị trí dưới dải. Ô cao tối đa `CX_WISH_INPUT_ROWS` dòng (lề dọc của ô gõ phải là
   `margin`: padding của textarea nằm trong vùng cuộn nên gõ quá hai dòng là dòng trên bị cắt
   ngang thân chữ). Màu đi qua bộ token riêng `--cx-wish-*` trên `.cx-wsec`/`.cx-wdock`: mặc
