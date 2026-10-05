@@ -18,7 +18,7 @@
     giftBox: "phongbi_do_hy",
 
     // Đĩa nhạc neo góc phải trên, như mẫu gốc.
-    music: { variant: "disc", chrome: "fixed-corner", art: "couple" },
+    music: { variant: "ring", chrome: "fixed-corner", art: "couple" },
 
     // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
     // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
@@ -297,9 +297,25 @@
     return "Màn " + (i + 1);
   }
 
+  // Đầu bảng: nút nhạc · tên bài · nút đóng. Thiệp không có nhạc (hoặc nút nhạc đã
+  // nhường cho thành phần nhạc thả lên thiệp) thì đầu bảng chỉ còn nhãn danh sách.
+  function _navSong() {
+    const el = _nav?.querySelector(".rb-nav-song");
+    if (!el) return;
+    const music = document.getElementById("music-toggle");
+    const on = !!(window.__cxMusicOn && music && music.style.display !== "none");
+    _nav.classList.toggle("no-music", !on);
+    const title = on ? window.getMusicInfo?.()?.title || "Nhạc nền" : "Danh sách màn";
+    if (el.textContent !== title) {
+      el.textContent = title;
+      el.title = title;
+    }
+  }
+
   function _navOpen(open, ms) {
     if (!_nav) return;
     clearTimeout(_navT);
+    if (open) _navSong();
     const was = _nav.classList.contains("is-open");
     _nav.classList.toggle("is-open", open);
     // Đang mở mà thu lại → vạch nảy đón bảng (is-land gỡ đi để lần sau chạy lại).
@@ -339,9 +355,10 @@
       _nav.className = "rb-nav";
       _nav.setAttribute("aria-label", "Chuyển màn");
       _nav.innerHTML =
-        '<div class="rb-nav-panel"><div class="rb-nav-hint">Chạm để tới màn bất kỳ</div>' +
+        '<div class="rb-nav-panel"><div class="rb-nav-head">' +
+        '<div class="rb-nav-music"></div><div class="rb-nav-song"></div>' +
         '<x-button variant="bare" icon-only class="rb-nav-x" aria-label="Đóng danh sách màn">' +
-        '<i data-lucide="x" class="cx-ic"></i></x-button>' +
+        '<i data-lucide="x" class="cx-ic"></i></x-button></div>' +
         '<div class="rb-nav-list"></div></div>' +
         '<button type="button" class="rb-nav-bar" aria-label="Danh sách màn" aria-expanded="false"></button>';
       card.appendChild(_nav);
@@ -364,10 +381,19 @@
       card.addEventListener("click", (e) => {
         if (_nav.classList.contains("is-open") && !_nav.contains(e.target)) _navOpen(false);
       });
+      // Tên bài YouTube trả trễ → vẽ lại mỗi lần trạng thái nhạc đổi.
+      window.addEventListener("cx:music-state", _navSong);
       // Mới vào: bảng ẩn, đợi màn đầu chạy xong hiệu ứng chính mới mọc lên từ vạch,
       // để một lúc cho khách đọc rồi thu gọn về lại vạch tiến độ.
       _navT = setTimeout(() => _navOpen(true, 3000), 1600); // khách đã tự chạm vạch thì huỷ
     }
+    // Nút nhạc (theme-boot dựng neo góc màn) dời vào góc trái bảng — kiểm mỗi lần
+    // vì thanh dựng lúc index.js nạp, TRƯỚC khi theme-boot dựng nút. Bê nguyên node
+    // nên id #music-toggle + listener của helper vẫn còn.
+    const music = document.getElementById("music-toggle");
+    const slot = _nav.querySelector(".rb-nav-music");
+    if (music && music.parentElement !== slot) slot.appendChild(music);
+    _navSong();
     _groups = _group();
     const key = _groups.map((g) => g.label + ":" + g.slides.length).join("|");
     if (key === _navKey) return;

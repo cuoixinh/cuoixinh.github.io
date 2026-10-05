@@ -173,7 +173,12 @@
       partyLocation,
       "full",
     );
-    cxToggle("section-party", cxEnabled(w.enable_party));
+    // RSVP nằm CHUNG trang Tiệc cưới: tắt tiệc mà còn bật RSVP thì chỉ ẩn khối
+    // thông tin tiệc, giữ trang lại — ẩn cả trang là khách mất chỗ xác nhận.
+    const partyOn = cxEnabled(w.enable_party);
+    const rsvpOn = cxEnabled(w.rsvp_enabled);
+    cxToggle("party-info", partyOn);
+    cxToggle("section-party", partyOn || rsvpOn);
 
     // Ảnh của tờ lịch: lấy tấm THỨ HAI trong album (tấm đầu đã dùng ở dải gia
     // đình) để hai chỗ không lặp cùng một ảnh; hết ảnh thì lùi dần về tấm đầu
@@ -188,19 +193,28 @@
       applyFocalPoint("calendar-photo", w.image_focal_points?.cover_image_url);
     }
 
-    // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
-    setupMiniCalendar(w.ceremony_date, partyDate);
+    // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc. Tiệc tắt (hoặc chưa có ngày) thì
+    // chỉ đánh dấu ngày lễ — helper cần đủ hai ngày mới vẽ, thiếu là tờ lịch trống.
+    setupMiniCalendar(
+      w.ceremony_date,
+      partyOn && partyDate ? partyDate : w.ceremony_date,
+    );
 
     // --- Xác nhận tham dự ---
     const rsvp = document.getElementById("rsvp-section");
-    if (rsvp) rsvp.style.display = cxEnabled(w.rsvp_enabled) ? "flex" : "none";
+    if (rsvp) rsvp.style.display = rsvpOn ? "flex" : "none";
 
     // --- Lịch trình ngày cưới ---
     // Ảnh lấp chỗ trống lấy tấm THỨ BA trong album (tấm 1 ở dải gia đình, tấm 2
     // ở tờ lịch) để ba chỗ không lặp ảnh; hết thì lùi dần rồi về ảnh bìa.
-    if (cxEnabled(w.enable_timeline)) {
-      renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
-      cxToggle("section-timeline", true);
+    // Bật mà không có mốc nào cho bên đang xem → ẩn trang, khỏi một trang chỉ có tiêu đề.
+    const tlOn = cxEnabled(w.enable_timeline);
+    if (tlOn) renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
+    cxToggle(
+      "section-timeline",
+      tlOn && !!document.getElementById("timeline-list-render")?.children.length,
+    );
+    if (tlOn) {
 
       const tlPhoto =
         w.gallery_images?.[2] || w.gallery_images?.[1] || w.gallery_images?.[0];
@@ -220,6 +234,7 @@
 
     // --- Chuyện tình yêu (trang báo — hàm riêng của mẫu) ---
     if (cxEnabled(w.enable_love_story)) {
+      cxToggle("love-story", true);
       renderStoryPost(w.love_story);
     } else {
       cxToggle("love-story", false);
@@ -227,6 +242,7 @@
 
     // --- Album ảnh ---
     if (cxEnabled(w.enable_photos)) {
+      cxToggle("section-photos", true);
       renderGallery(w.gallery_images, w.image_focal_points?.gallery_images);
     } else {
       cxToggle("section-photos", false);

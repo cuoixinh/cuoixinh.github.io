@@ -219,6 +219,33 @@ body {
   -webkit-backdrop-filter: blur(16px) saturate(1.1);
 }
 
+/* Thẻ Tiệc cưới: ảnh album mờ nhạt nằm dưới lớp kính, nhạt dần về hai đầu thẻ để
+   chữ đầu/cuối thẻ vẫn trên nền sương. isolation giữ z-index âm của ảnh nằm TRONG
+   thẻ (trên nền kính, dưới chữ). */
+
+.lp-party-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.lp-party-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.16;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent);
+  mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent);
+}
+
+.lp-party-bg.hidden {
+  display: none;
+}
+
 /* Thẻ Thư mời sáng thêm một quầng champagne rất nhạt từ đáy — mục quan trọng
    nhất. Giữ ở mức mờ này: đậm hơn là cả thẻ ngả vàng, lệch tông lạnh của mẫu. */
 

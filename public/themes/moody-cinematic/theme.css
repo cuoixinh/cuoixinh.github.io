@@ -1118,6 +1118,9 @@ body,
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
+  /* Trần: tắt Hộp mừng cưới thì bản đồ thành phần co giãn DUY NHẤT của trang,
+     không chặn là nó nuốt gần trọn màn. */
+  max-height: 320px;
 }
 
 #map-link > div:first-child,
