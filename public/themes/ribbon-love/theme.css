@@ -1,6 +1,6 @@
 /* Bảng màu + CSS riêng của RIBBON LOVE — CSS THUẦN, nạp sau styles/themes.css.
    Bố cục dựng cho khổ 390px; vị trí trong khung mở đầu tính bằng % để co giãn
-   theo bề ngang. Hình trang trí là SVG ở #rl-defs: nét = `color`, mảng = `--rl-fill`. */
+   theo bề ngang. Hình trang trí là SVG ở #rl-defs: nét = `color`, mảng satin = gradient rl-g-* ở #rl-defs. */
 
 :root {
   --cx-accent-rgb: 201 42 90; /* đỏ hồng — chữ in hoa, ngày, nút */
@@ -130,9 +130,15 @@ body {
 }
 
 /* ── Hình trang trí ───────────────────────────────────────────────────── */
+/* Ba sắc phụ của nơ satin (mặt trong, vệt bóng, nếp gấp) — suy từ token deco. */
+#rl-defs,
+.rl-bow,
+.rl-ribbon {
+  --rl-sheen: rgb(var(--cx-shine-from-rgb) / 0.8);
+  --rl-crease: rgb(var(--cx-deco-rgb) / 0.6);
+}
 .rl-bow {
   color: rgb(var(--cx-deco-rgb));
-  --rl-fill: rgb(var(--cx-deco-soft-rgb));
   overflow: visible;
   pointer-events: none;
 }
@@ -203,9 +209,10 @@ body {
 .rl-cover-bow {
   position: absolute;
   left: -36%;
-  top: -28%;
-  width: 92%;
-  aspect-ratio: 250 / 200;
+  top: -40%;
+  width: 86%;
+  aspect-ratio: 260 / 210;
+  transform: rotate(-12deg);
 }
 .rl-cover-text {
   display: flex;
@@ -240,8 +247,8 @@ body {
 }
 .rl-hero-tag {
   position: absolute;
-  top: 12%;
-  right: 7%;
+  top: 13%;
+  right: 5%;
   text-align: right;
   z-index: 3;
 }
@@ -262,26 +269,14 @@ body {
   overflow: visible;
   pointer-events: none;
   z-index: 1;
-}
-.rl-ribbon path {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.rl-ribbon-edge {
-  stroke: rgb(var(--cx-deco-rgb));
-  stroke-width: 15;
-}
-.rl-ribbon-core {
-  stroke: rgb(var(--cx-deco-soft-rgb));
-  stroke-width: 11;
+  color: rgb(var(--cx-deco-rgb));
 }
 .rl-hero-bow {
   position: absolute;
   left: 2%;
   top: 3%;
-  width: 60%;
-  aspect-ratio: 250 / 200;
+  width: 54%;
+  aspect-ratio: 260 / 210;
   z-index: 2;
 }
 .rl-welcome {
@@ -517,7 +512,7 @@ body {
   left: 50%;
   bottom: -52px;
   width: 150px;
-  aspect-ratio: 250 / 200;
+  aspect-ratio: 260 / 210;
   transform: translateX(-50%);
 }
 .rl-time-head {
