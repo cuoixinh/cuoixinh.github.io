@@ -1290,14 +1290,28 @@ html.cx-pshell-host.rb-stack body {
   position: relative;
   margin-top: 12px;
   display: grid;
-  grid-template-columns: 56px 1fr;
+  grid-template-columns: 96px 1fr;
   gap: 8px;
 }
 
+/* Cột chữ dọc đứng NGOÀI luồng, cao đúng bằng tấm lịch (bottom = lề đáy của
+   .rb-cal-wrap): để trong luồng thì câu dài hơn lịch kéo cả màn quá một màn
+   hình. Chữ dài hơn cột thì tự xuống thêm một cột dọc. */
 .rb-time-vt {
+  position: absolute;
+  top: 0;
+  bottom: 12px;
+  left: 0;
+  width: 96px;
   display: flex;
   justify-content: center;
   gap: 8px;
+  overflow: hidden;
+}
+
+.rb-time-vt .rb-vt {
+  letter-spacing: 0.08em;
+  line-height: 1.5;
 }
 
 .rb-vt {
@@ -1311,6 +1325,7 @@ html.cx-pshell-host.rb-stack body {
 
 .rb-cal-wrap {
   position: relative;
+  grid-column: 2;
   padding: 0 12px 12px 0;
 }
 

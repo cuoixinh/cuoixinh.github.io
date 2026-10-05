@@ -2,12 +2,12 @@
   "image_focal_points": {
     "gallery_images": {
       "gallery-01.png": {
-        "x": 42,
-        "y": 26
-      },
-      "gallery-02.png": {
         "x": 35,
         "y": 25
+      },
+      "gallery-02.png": {
+        "x": 42,
+        "y": 26
       },
       "gallery-03.png": {
         "x": 80,
@@ -168,5 +168,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-03T07:44:14.289Z"
+  "updated_at": "2026-10-05T17:45:27.723Z"
 }

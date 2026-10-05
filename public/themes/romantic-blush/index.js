@@ -314,8 +314,9 @@
     if (open && ms) _navT = setTimeout(() => _navOpen(false), ms);
   }
 
-  // Gom màn theo MỤC (con trực tiếp của .rb-body): Our Story nhiều trang chỉ là
-  // một bước trên thanh. Nhãn bước = nhãn của mục, mục không khai thì của màn đầu.
+  // Gom màn thành BƯỚC trên thanh: chỉ mục khai `data-rb-main` (index.html) mở bước
+  // mới, mục phụ / khối văn bản / lời chúc gộp vào bước đứng trước — thanh ngắn gọn.
+  // Nhãn bước = nhãn của mục, mục không khai thì của màn đầu.
   let _groups = [];
   function _group() {
     const body = document.querySelector("#main-card .rb-body");
@@ -324,7 +325,7 @@
       let top = el;
       while (top.parentElement && top.parentElement !== body) top = top.parentElement;
       const last = out[out.length - 1];
-      if (last && last.top === top) last.slides.push(el);
+      if (last && (last.top === top || !top.hasAttribute("data-rb-main"))) last.slides.push(el);
       else out.push({ top, slides: [el], label: (top !== el && top.dataset.rbLabel) || _label(el, i) });
     });
     return out;

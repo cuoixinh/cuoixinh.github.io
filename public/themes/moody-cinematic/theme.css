@@ -1816,6 +1816,12 @@ body,
   max-height: none;
 }
 
+/* Dạng phân trang vốn không cuộn, nhưng trang ở đây cao cố định một màn: ba lời
+   chúc dài vẫn cuộn trong khung thay vì tràn đè lên hàng chuyển trang. */
+.mc-wish-in .cx-wsec-paged .cx-wsec-list {
+  overflow-y: auto;
+}
+
 /* Giảm chuyển động: tắt đèn chạy gáy phim, vệt sáng quét và lật trang trượt. */
 
 @media (prefers-reduced-motion: reduce) {
