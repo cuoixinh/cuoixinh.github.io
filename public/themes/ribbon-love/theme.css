@@ -133,7 +133,8 @@ body {
 /* Ba sắc phụ của nơ satin (mặt trong, vệt bóng, nếp gấp) — suy từ token deco. */
 #rl-defs,
 .rl-bow,
-.rl-ribbon {
+.rl-ribbon,
+.rl-cover-ribbon {
   --rl-sheen: rgb(var(--cx-shine-from-rgb) / 0.8);
   --rl-crease: rgb(var(--cx-deco-rgb) / 0.6);
 }
@@ -206,13 +207,15 @@ body {
   aspect-ratio: 3 / 4;
   overflow: hidden;
 }
-.rl-cover-bow {
+.rl-cover-ribbon {
   position: absolute;
-  left: -36%;
-  top: -40%;
-  width: 86%;
-  aspect-ratio: 260 / 210;
-  transform: rotate(-12deg);
+  left: -26.667%;
+  top: -20%;
+  width: 153.333%;
+  height: 140%;
+  overflow: visible;
+  pointer-events: none;
+  color: rgb(var(--cx-deco-rgb));
 }
 .rl-cover-text {
   display: flex;
