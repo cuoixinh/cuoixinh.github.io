@@ -508,9 +508,13 @@ body {
 }
 
 /* ── Thư mời: ngày giờ + lịch tháng ───────────────────────────────────── */
+/* Khối bọc ăn ĐÚNG khổ ảnh để lớp nơ (toạ độ theo khung ảnh) canh theo ảnh. */
 .rl-time-photo {
   position: relative;
-  margin-top: 40px;
+  margin: 40px 28px 0;
+}
+.rl-time-photo .rl-shot {
+  margin: 0;
 }
 .rl-photo-ribbon {
   position: absolute;
