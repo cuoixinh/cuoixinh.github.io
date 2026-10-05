@@ -134,7 +134,8 @@ body {
 #rl-defs,
 .rl-bow,
 .rl-ribbon,
-.rl-cover-ribbon {
+.rl-cover-ribbon,
+.rl-photo-ribbon {
   --rl-sheen: rgb(var(--cx-shine-from-rgb) / 0.8);
   --rl-crease: rgb(var(--cx-deco-rgb) / 0.6);
 }
@@ -509,21 +510,24 @@ body {
 /* ── Thư mời: ngày giờ + lịch tháng ───────────────────────────────────── */
 .rl-time-photo {
   position: relative;
+  margin-top: 40px;
 }
-.rl-time-bow {
+.rl-photo-ribbon {
   position: absolute;
-  left: 50%;
-  bottom: -52px;
-  width: 150px;
-  aspect-ratio: 260 / 210;
-  transform: translateX(-50%);
+  left: -13.333%;
+  top: -24%;
+  width: 133.333%;
+  height: 138.667%;
+  overflow: visible;
+  pointer-events: none;
+  color: rgb(var(--cx-deco-rgb));
 }
 .rl-time-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  padding: 72px 28px 0;
+  padding: 48px 28px 0;
 }
 .rl-time-title {
   font-weight: 700;
