@@ -169,37 +169,26 @@ body {
   border-radius: 12px;
 }
 
-/* ── Hoạ tiết màn bìa ────────────────────────────────────────────────────
-   Màn bìa là tấm thiệp GIẤY, không có ảnh: chất trang trí đến từ hai vệt màu
-   đào loang ở hai góc chéo và vài nét cong mảnh vẽ bằng SVG. */
+/* ── Màn bìa: ảnh bìa tràn kín màn ───────────────────────────────────────
+   Chữ nằm giữa màn nên màn tối phủ đều hơn màn mở đầu (vốn để trống khúc
+   giữa ảnh), đậm dần xuống chân nơi có nút "Mở Thiệp". */
 
-.ne-wash {
-  position: absolute;
-  width: 340px;
-  height: 340px;
-  pointer-events: none;
-}
-
-.ne-wash-top {
-  top: -150px;
-  right: -120px;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgb(var(--cx-deco-rgb) / 0.55) 0%,
-    rgb(var(--cx-deco-soft-rgb) / 0.32) 45%,
-    transparent 70%
+.ne-cover-shade {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-scrim-rgb) / 0.3) 0%,
+    rgb(var(--cx-scrim-rgb) / 0.45) 30%,
+    rgb(var(--cx-scrim-rgb) / 0.55) 60%,
+    rgb(var(--cx-scrim-rgb) / 0.72) 100%
   );
 }
 
-.ne-wash-bottom {
-  bottom: -160px;
-  left: -130px;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgb(var(--cx-deco-2-rgb) / 0.5) 0%,
-    rgb(var(--cx-deco-2-soft-rgb) / 0.3) 45%,
-    transparent 70%
-  );
+/* Nút "Mở Thiệp" nằm trên ảnh tối: chữ sáng, nền tối mờ. */
+
+.ne-cover-in .ne-btn {
+  color: rgb(var(--cx-on-image-rgb));
+  border-color: rgb(var(--cx-shine-mid-rgb) / 0.7);
+  background: rgb(var(--cx-scrim-rgb) / 0.25);
 }
 
 .ne-curve {
@@ -217,10 +206,6 @@ body {
 .ne-curve circle {
   fill: rgb(var(--cx-accent-rgb) / 0.55);
   stroke: none;
-}
-
-.ne-curve-top {
-  top: 40px;
 }
 
 .ne-curve-bottom {
@@ -263,16 +248,12 @@ body {
 .ne-cover-in > :nth-child(7) { animation-delay: 1.35s; }
 .ne-cover-in > :nth-child(8) { animation-delay: 1.5s; }
 
-.ne-wash {
-  will-change: translate, scale;
-}
+/* Ảnh bìa zoom ra vào thật chậm (cx-ne-kenburns dùng chung với trình chiếu
+   ở màn mở đầu). */
 
-.ne-wash-top {
-  animation: cx-ne-drift-a 14s ease-in-out infinite alternate;
-}
-
-.ne-wash-bottom {
-  animation: cx-ne-drift-b 17s ease-in-out infinite alternate;
+.ne-cover-bg img {
+  will-change: scale;
+  animation: cx-ne-kenburns 12s ease-in-out infinite alternate;
 }
 
 /* Nút thở: vòng viền nở ra rồi tan, vẽ ở thẻ bọc vì nút overflow:hidden. */
@@ -362,20 +343,6 @@ body {
   }
 }
 
-@keyframes cx-ne-drift-a {
-  to {
-    translate: -48px 36px;
-    scale: 1.15;
-  }
-}
-
-@keyframes cx-ne-drift-b {
-  to {
-    translate: 44px -40px;
-    scale: 1.2;
-  }
-}
-
 @keyframes cx-ne-pulse {
   0% {
     opacity: 0.8;
@@ -425,7 +392,7 @@ body {
   .ne-curve path,
   .ne-curve circle,
   .ne-cover-in > *,
-  .ne-wash,
+  .ne-cover-bg img,
   .ne-pulse-wrap::after,
   .ne-btn .btn-shimmer,
   .ne-motes i {

@@ -160,6 +160,20 @@
     );
     cxToggle("section-party", cxEnabled(w.enable_party));
 
+    // Ảnh nền nhạt của thẻ Tiệc cưới: tấm ĐẦU của album, không có album thì ảnh
+    // bìa; không có ảnh nào thì để thẻ kính trơn.
+    const partyBg = w.gallery_images?.[0] || w.cover_image_url;
+    if (partyBg) {
+      setAttr("lp-party-bg", "src", getImageUrl(partyBg));
+      applyFocalPoint(
+        "lp-party-bg",
+        partyBg === w.cover_image_url
+          ? w.image_focal_points?.cover_image_url
+          : w.image_focal_points?.gallery_images?.[partyBg],
+      );
+    }
+    cxToggle("lp-party-bg", !!partyBg);
+
     // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
     setupMiniCalendar(w.ceremony_date, partyDate);
 

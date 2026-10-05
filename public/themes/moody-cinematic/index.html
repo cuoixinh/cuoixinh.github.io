@@ -209,8 +209,10 @@
 
           <!-- Ba tầng thông tin tiệc: nhãn mục · thời gian · địa điểm. Khoảng
                cách GIỮA ba tầng phải rộng hơn khoảng cách trong từng tầng (giờ
-               với ngày âm sát nhau) thì mắt mới tách được mục. -->
-          <div class="flex flex-col gap-4 px-6">
+               với ngày âm sát nhau) thì mắt mới tách được mục.
+               Tắt Tiệc cưới mà còn bật RSVP thì chỉ khối này ẩn (#party-info),
+               trang vẫn giữ tờ lịch + ô xác nhận — xem renderWedding. -->
+          <div id="party-info" class="flex flex-col gap-4 px-6">
             <div id="party-section-label" class="mc-eyebrow">Tiệc Mừng Lễ Thành Hôn</div>
 
             <div class="flex flex-col gap-1.5">
