@@ -106,7 +106,7 @@
   const _MAIL_SVG = `<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
 
   const _INPUT_CLS =
-    "w-full h-11 px-3.5 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-400/30 focus:border-rose-300 transition-all placeholder:text-gray-400";
+    "w-full h-11 px-3.5 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none focus:border-gray-400 transition-all placeholder:text-gray-400";
 
   const _BTN_CLS =
     "w-full h-11 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-60";
@@ -168,7 +168,7 @@
               .map(
                 (i) =>
                   `<input data-auth-otp-box type="text" inputmode="numeric" autocomplete="${i === 0 ? "one-time-code" : "off"}" maxlength="1"
-                    class="w-11 h-12 sm:w-12 text-center text-xl font-semibold text-gray-800 border border-gray-200 rounded-xl bg-white outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/30 transition-all" />`,
+                    class="w-11 h-12 sm:w-12 text-center text-xl font-semibold text-gray-800 border border-gray-200 rounded-xl bg-white outline-none focus:border-gray-400 transition-all" />`,
               )
               .join("")}
           </div>

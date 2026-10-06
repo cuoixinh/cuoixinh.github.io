@@ -82,7 +82,10 @@
       apply(h);
       return;
     }
-    if (w === vhWidth && force !== true) return;
+    // Máy dùng chuột không có thanh công cụ ẩn/hiện hay bàn phím ảo → đổi chiều
+    // cao cửa sổ là thật, phải đo lại (app shell trang Thiết lập dựa vào số này).
+    const fine = window.matchMedia?.("(pointer: fine)").matches;
+    if (w === vhWidth && force !== true && !fine) return;
     if (vhWidth && isTyping()) return;
     vhWidth = w;
     const svh = measureSvh();

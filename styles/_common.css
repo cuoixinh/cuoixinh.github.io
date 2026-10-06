@@ -1683,7 +1683,7 @@ x-button {
 }
 
 .cx-pshell-phone {
-  --cx-pshell-h: min(94vh, calc(100vh - 32px));
+  --cx-pshell-h: min(calc(var(--vh, 1vh) * 94), calc(var(--vh, 1vh) * 100 - 32px));
 
   position: relative;
   width: calc(var(--cx-pshell-h) * 0.4879);

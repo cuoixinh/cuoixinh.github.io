@@ -971,7 +971,7 @@ function openTimePicker(anchorEl, currentValue, callback) {
     <div style="position:relative;flex:1;height:${COL_H}px">
       <div style="position:absolute;left:0;right:0;top:0;height:${PAD}px;background:linear-gradient(to bottom,white,rgb(var(--white-rgb)/0));z-index:2;pointer-events:none"></div>
       <div style="position:absolute;left:0;right:0;bottom:0;height:${PAD}px;background:linear-gradient(to top,white,rgb(var(--white-rgb)/0));z-index:2;pointer-events:none"></div>
-      <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:${ITEM_H}px;border-top:1.5px solid rgb(var(--timeline-dot-rgb));border-bottom:1.5px solid rgb(var(--timeline-dot-rgb));border-radius:6px;background:rgb(var(--notice-bg-rgb)/0.7);z-index:1;pointer-events:none"></div>
+      <div style="position:absolute;left:2px;right:2px;top:50%;transform:translateY(-50%);height:${ITEM_H}px;border:1.5px solid rgb(var(--timeline-dot-rgb));border-radius:6px;background:rgb(var(--notice-bg-rgb)/0.7);z-index:1;pointer-events:none"></div>
       <div id="${id}" style="height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-ms-overflow-style:none">
         <div style="padding:${PAD}px 0">${makeItems(count)}</div>
       </div>

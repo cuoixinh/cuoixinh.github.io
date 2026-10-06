@@ -31,15 +31,15 @@
 
 const _DATE_CLS =
   "w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 " +
-  "bg-white outline-none transition-all focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2";
+  "bg-white outline-none transition-all focus:border-gray-400";
 const _TIME_CLS =
   "w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 " +
   "bg-white outline-none transition-all placeholder:text-gray-400/50 cursor-pointer " +
-  "focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2";
+  "focus:border-gray-400";
 // Khớp style textarea của <x-input> để thay thế 1:1 (rounded-lg, chừa lề phải pr-9).
 const _TA_CLS =
   "w-full pl-3 pr-9 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 " +
-  "bg-white outline-none focus:ring-2 focus:ring-rose-500/30 " +
+  "bg-white outline-none focus:border-gray-400 " +
   "placeholder:text-gray-400/50 transition-all resize-none";
 // SVG dấu "x" cho nút xoá của x-textarea (đặt tên riêng, tránh đụng _X_SVG ở x-input.js).
 const _X_TA_CLEAR_SVG =
