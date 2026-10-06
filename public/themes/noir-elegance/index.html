@@ -64,10 +64,9 @@
          nên tổ tiên có transform sẽ neo nó sai chỗ. -->
     <div id="cx-music-mount"></div>
 
-    <!-- ═══ MỤC: Màn bìa — TẤM THIỆP GIẤY, chỉ có chữ ══════════════════
-         Không dùng ảnh: nền là giấy kem với hai vệt màu đào loang và vài nét
-         cong mảnh vẽ bằng SVG. Tên cặp đôi là chữ viết tay mạ vàng — nét nhận
-         dạng của mẫu. -->
+    <!-- ═══ MỤC: Màn bìa — ẢNH BÌA TRÀN KÍN MÀN ═════════════════════════
+         Ảnh bìa phủ trọn nền dưới một màn tối, chữ sáng + khung vàng mảnh đè
+         lên. Tên cặp đôi là chữ viết tay mạ vàng — nét nhận dạng của mẫu. -->
     <div
       id="cover-screen"
       class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
@@ -75,22 +74,20 @@
       <div
         class="relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px] flex flex-col items-center justify-center gap-6 px-8 text-center"
       >
-        <!-- Hai vệt màu đào loang ở góc trên và góc dưới — trôi chậm qua lại -->
-        <div class="ne-wash ne-wash-top"></div>
-        <div class="ne-wash ne-wash-bottom"></div>
+        <!-- Ảnh bìa (render-helper.js tự đổ src vào #cover-bg-img) zoom thật chậm,
+             màn tối ở trên giữ chữ đọc được trên mọi ảnh. -->
+        <div class="ne-cover-bg absolute inset-0">
+          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+        </div>
+        <div class="ne-cover-shade absolute inset-0 pointer-events-none"></div>
 
         <!-- Hạt kim tuyến bay lên lững lờ: mỗi hạt một vị trí/nhịp riêng ở theme.css -->
         <div class="ne-motes" aria-hidden="true">
           <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
         </div>
 
-        <!-- Nét cong mảnh thay cho hoa: một nét ở đầu, một nét ở chân thiệp.
+        <!-- Nét cong mảnh ở chân màn bìa.
              pathLength="1" để CSS vẽ dần nét mà không phải đo độ dài thật. -->
-        <svg class="ne-curve ne-curve-top" viewBox="0 0 320 90" fill="none" aria-hidden="true">
-          <path pathLength="1" d="M10 62C60 18 120 8 160 40c40 32 100 22 150-30" />
-          <path pathLength="1" d="M40 74C84 42 128 36 160 58c32 22 84 14 124-22" opacity=".55" />
-          <circle cx="160" cy="46" r="3" />
-        </svg>
         <svg class="ne-curve ne-curve-bottom" viewBox="0 0 320 90" fill="none" aria-hidden="true">
           <path pathLength="1" d="M10 28C60 72 120 82 160 50c40-32 100-22 150 30" />
           <path pathLength="1" d="M40 16C84 48 128 54 160 32c32-22 84-14 124 22" opacity=".55" />
@@ -104,32 +101,32 @@
              tự ở theme.css). Tên và nút có hiệu ứng riêng nên bọc thêm một lớp
              div — hai animation trên cùng một thẻ sẽ đè nhau. -->
         <div class="ne-cover-in relative z-10 flex flex-col items-center gap-5 w-full">
-          <div class="ne-eyebrow">The Wedding Of</div>
+          <div class="ne-eyebrow ne-on-photo">The Wedding Of</div>
 
-          <div>
+          <div class="ne-hero-names">
             <div class="ne-name text-[54px] leading-[1.1]" id="cover-groom-name">----------</div>
           </div>
 
           <!-- Gạch — AND — gạch -->
           <div class="flex items-center justify-center gap-3 w-full max-w-[280px]">
-            <span class="flex-1 h-px cx-bg-line"></span>
-            <span class="ne-eyebrow !text-[9px]">And</span>
-            <span class="flex-1 h-px cx-bg-line"></span>
+            <span class="flex-1 h-px ne-hero-line"></span>
+            <span class="ne-eyebrow ne-on-photo !text-[9px]">And</span>
+            <span class="flex-1 h-px ne-hero-line"></span>
           </div>
 
-          <div>
+          <div class="ne-hero-names">
             <div class="ne-name text-[54px] leading-[1.1]" id="cover-bride-name">----------</div>
           </div>
 
-          <!-- Nơi đãi tiệc + ngày, đặt thấp như dòng chân thiệp giấy -->
+          <!-- Nơi đãi tiệc + ngày, đặt thấp như dòng chân thiệp -->
           <div class="flex flex-col items-center gap-1 mt-4">
-            <div class="cx-h text-[15px] font-semibold tracking-[1px] uppercase" id="cover-venue">
+            <div class="cx-h ne-on-photo text-[15px] font-semibold tracking-[1px] uppercase" id="cover-venue">
               ------------------------
             </div>
-            <div class="cx-t text-[10px] tracking-[1px] uppercase leading-relaxed" id="cover-address">
+            <div class="cx-t ne-on-photo text-[10px] tracking-[1px] uppercase leading-relaxed" id="cover-address">
               ----------------------------------------
             </div>
-            <div class="cx-h text-[26px] mt-1" id="cover-date">--/--/----</div>
+            <div class="cx-h ne-on-photo text-[26px] mt-1" id="cover-date">--/--/----</div>
           </div>
 
           <div class="ne-rule mt-2"></div>
@@ -137,8 +134,8 @@
           <!-- Tên khách mời: chỉ hiện khi mở bằng link riêng (?name=), index.js
                bật lên sau khi giải mã xong -->
           <div id="cover-guest-wrap" class="hidden flex-col items-center gap-1">
-            <div data-cx-invite class="ne-eyebrow !text-[9px]">Trân trọng kính mời</div>
-            <div class="cx-h text-[22px] leading-tight" id="cover-guest-name">----------</div>
+            <div data-cx-invite class="ne-eyebrow ne-on-photo !text-[9px]">Trân trọng kính mời</div>
+            <div class="cx-h ne-on-photo text-[22px] leading-tight" id="cover-guest-name">----------</div>
           </div>
 
           <div class="ne-pulse-wrap">
@@ -176,7 +173,7 @@
           <div id="hero-viewport" class="absolute inset-0">
             <div id="hero-track" class="relative h-full">
               <div class="ne-slide is-on">
-                <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" fetchpriority="high" />
+                <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" />
               </div>
             </div>
           </div>

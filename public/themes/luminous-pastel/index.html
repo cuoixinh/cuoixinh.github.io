@@ -282,7 +282,7 @@
 
         <!-- ═══ MỤC: Tiệc cưới (enable_party) ═══════════════════════════════ -->
         <section id="section-party" class="px-6">
-          <div class="lp-glass px-6 py-9 flex flex-col gap-4">
+          <div class="lp-glass lp-party-card px-6 py-9 flex flex-col gap-4">
             <div id="party-section-label" class="cx-t lp-caps text-[12px]">
               Tiệc Mừng Lễ Thành Hôn
             </div>
@@ -345,6 +345,10 @@
 
               <div id="attend-msg" class="cx-h lp-sage italic text-[16px] hidden"></div>
             </div>
+
+            <!-- Ảnh nền nhạt của thẻ (index.js đổ ảnh album). Đứng CUỐI thẻ cho khỏi
+                 lệch :nth-child của các dòng chữ, theme.css đẩy ra sau bằng z-index. -->
+            <img id="lp-party-bg" class="lp-party-bg hidden" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" aria-hidden="true" />
           </div>
         </section>
 
@@ -359,19 +363,6 @@
           <div class="lp-glass px-5 py-6">
             <div id="timeline-list-render" class="flex flex-col"></div>
           </div>
-        </section>
-
-        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════════
-             Thẻ kính mờ so le trái–phải nối bằng một sợi sáng dọc; markup do
-             renderLoveStory trong index.js vẽ. -->
-        <section
-          id="love-story"
-          data-lp-eyebrow="our story"
-          class="px-6 flex flex-col gap-5"
-          style="display: none"
-        >
-          <h2 class="lp-title">Chuyện Tình Yêu</h2>
-          <div id="love-story-list" class="lp-thread flex flex-col gap-5"></div>
         </section>
 
         <!-- ═══ MỤC: Album ảnh (enable_photos) ══════════════════════════════ -->
@@ -398,6 +389,19 @@
               <i data-lucide="chevron-right" class="cx-ic"></i>
             </x-button>
           </div>
+        </section>
+
+        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════════
+             Thẻ kính mờ so le trái–phải nối bằng một sợi sáng dọc; markup do
+             renderLoveStory trong index.js vẽ. -->
+        <section
+          id="love-story"
+          data-lp-eyebrow="our story"
+          class="px-6 flex flex-col gap-5"
+          style="display: none"
+        >
+          <h2 class="lp-title">Chuyện Tình Yêu</h2>
+          <div id="love-story-list" class="lp-thread flex flex-col gap-5"></div>
         </section>
 
         <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════ -->

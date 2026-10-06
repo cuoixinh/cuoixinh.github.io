@@ -1,81 +1,81 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.png": {
-        "x": 57,
+      "gallery-01.jpg": {
+        "x": 48,
+        "y": 24
+      },
+      "gallery-02.jpg": {
+        "x": 36,
         "y": 15
       },
-      "gallery-02.png": {
-        "x": 52,
-        "y": 30
+      "gallery-03.jpg": {
+        "x": 48,
+        "y": 24
       },
-      "gallery-03.png": {
-        "x": 46,
-        "y": 22
-      },
-      "gallery-04.png": {
-        "x": 47,
+      "gallery-04.jpg": {
+        "x": 50,
         "y": 33
       },
-      "gallery-05.png": {
-        "x": 37,
-        "y": 40
+      "gallery-05.jpg": {
+        "x": 48,
+        "y": 27
       },
-      "gallery-06.png": {
+      "gallery-06.jpg": {
+        "x": 31,
+        "y": 25
+      },
+      "gallery-07.jpg": {
+        "x": 48,
+        "y": 9
+      },
+      "gallery-08.jpg": {
+        "x": 52,
+        "y": 26
+      },
+      "gallery-09.jpg": {
         "x": 51,
-        "y": 82
-      },
-      "gallery-07.png": {
-        "x": 47,
-        "y": 32
-      },
-      "gallery-08.png": {
-        "x": 61,
         "y": 13
-      },
-      "gallery-09.png": {
-        "x": 55,
-        "y": 79
       }
     },
     "cover_image_url": {
-      "x": 74,
-      "y": 18
+      "x": 43,
+      "y": 10
     },
     "groom_image_url": {
-      "x": 78,
-      "y": 9
+      "x": 43,
+      "y": 52
     },
     "bride_image_url": {
-      "x": 82,
-      "y": 21
+      "x": 49,
+      "y": 23
     }
   },
-  "cover_image_url": "cover.png",
-  "groom_image_url": "groom.png",
+  "cover_image_url": "cover.jpg",
+  "groom_image_url": "groom.jpg",
   "bride_image_url": "bride.jpg",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.png",
-    "gallery-02.png",
-    "gallery-03.png",
-    "gallery-04.png",
-    "gallery-05.png",
-    "gallery-06.png",
-    "gallery-07.png",
-    "gallery-08.png",
-    "gallery-09.png"
+    "gallery-01.jpg",
+    "gallery-02.jpg",
+    "gallery-03.jpg",
+    "gallery-04.jpg",
+    "gallery-05.jpg",
+    "gallery-06.jpg",
+    "gallery-07.jpg",
+    "gallery-08.jpg",
+    "gallery-09.jpg"
   ],
   "love_story": [
     {
       "date": "2020",
       "title": "Ngày mình gặp nhau",
       "content": "Một chuyến trekking lạc đường ở Tà Xùa, và người đưa anh về đúng lối lại là em.",
-      "image_url": "love-story-01.png",
+      "image_url": "love-story-01.jpg",
       "focal_point": {
-        "x": 55,
-        "y": 35
+        "x": 47,
+        "y": 26
       }
     },
     {
@@ -163,5 +163,5 @@
       }
     ]
   },
-  "updated_at": "2026-09-29T15:19:46.109Z"
+  "updated_at": "2026-10-05T17:44:08.418Z"
 }

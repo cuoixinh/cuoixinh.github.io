@@ -66,7 +66,7 @@
     >
       <div class="rb-body">
         <!-- ═══ MÀN 1 · Mở đầu — ảnh bìa tràn màn ═══════════════════════════ -->
-        <section id="section-hero" data-rb-label="Mở đầu" class="rb-screen rb-hero" data-rb-tone="dark">
+        <section id="section-hero" data-rb-label="Mở đầu" data-rb-main class="rb-screen rb-hero" data-rb-tone="dark">
           <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="rb-full-img" alt="Ảnh cưới" fetchpriority="high" data-a="zoomout" />
           <div class="rb-hero-veil"></div>
 
@@ -98,7 +98,7 @@
         </section>
 
         <!-- ═══ MÀN 2 · Invitation — cô dâu chú rể + hai họ (enable_family) ═ -->
-        <section id="section-family" data-rb-label="Thư mời" class="rb-screen rb-family">
+        <section id="section-family" data-rb-label="Thư mời" data-rb-main class="rb-screen rb-family">
           <div class="rb-band" data-a="wipe-down">
             <h2 class="rb-title" data-a="ch-drop" data-d="2">Invitation</h2>
             <div class="rb-band-sub" data-a="fade" data-d="5">The wedding of</div>
@@ -142,7 +142,6 @@
           </div>
 
           <div class="rb-verse cx-t">
-            <p data-a="up" data-d="6">Thương nhau đã lâu, nay thành ước nguyện</p>
             <p data-a="up" data-d="7">Trân trọng mời những người thương quý nhất</p>
             <p data-a="up" data-d="8">Đến chung vui trong ngày cưới của chúng mình</p>
           </div>
@@ -185,12 +184,12 @@
 
         <!-- ═══ Our Story (enable_love_story) — tối đa 3 màn ═════════════════
              _renderStory chia các mốc vào ≤3 màn .rb-screen trong #love-story-list. -->
-        <section id="love-story" class="rb-story" data-rb-label="Our Story" style="display: none">
+        <section id="love-story" class="rb-story" data-rb-label="Our Story" data-rb-main style="display: none">
           <div id="love-story-list"></div>
         </section>
 
         <!-- ═══ MÀN 5 · Forever / Love you — tiệc cưới (enable_party) ═══════ -->
-        <section id="section-party" data-rb-label="Tiệc cưới" class="rb-screen rb-party">
+        <section id="section-party" data-rb-label="Tiệc cưới" data-rb-main class="rb-screen rb-party">
           <div class="rb-pt-kicker" data-a="ch-type">Invitation</div>
           <div class="rb-pt-stage">
             <div class="rb-pt-red" data-a="wipe-down" data-d="1"></div>
@@ -213,7 +212,7 @@
         <!-- ═══ MÀN 6 · Address ═════════════════════════════════════════════
              #map-location-name + #map-link phải đứng CUỐI mục (renderVenueMaps);
              chữ ký đặt trước chúng, CSS đưa xuống đáy màn. -->
-        <section id="section-map" data-rb-label="Địa điểm" class="rb-screen rb-address">
+        <section id="section-map" data-rb-label="Địa điểm" data-rb-main class="rb-screen rb-address">
           <div class="rb-ad-head" data-a="wipe-down">
             <h2 class="rb-title" data-a="ch-drop" data-d="2">Address</h2>
             <img data-rb-g="7" class="rb-ad-ph" data-a="zoomout" data-d="2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
@@ -299,7 +298,7 @@
 
         <!-- ═══ MÀN 9 · RSVP + đếm ngược ════════════════════════════════════
              #rsvp-section chỉ là khối nút (rsvp_enabled); đếm ngược luôn hiện. -->
-        <section id="section-rsvp" data-rb-label="Xác nhận" class="rb-screen rb-rsvp" data-rb-tone="dark">
+        <section id="section-rsvp" data-rb-label="Xác nhận" data-rb-main class="rb-screen rb-rsvp" data-rb-tone="dark">
           <img data-rb-g="cover" class="rb-full-img" data-a="zoomout" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
           <div class="rb-rv-veil"></div>
           <div class="rb-rv-inner">
@@ -348,7 +347,7 @@
 
         <!-- ═══ Hộp mừng cưới (enable_gift) ═════════════════════════════════
              data-cx-gift="qr" = khối bị hộp quà che; hộp do gift-box-helper.js vẽ. -->
-        <section id="section-gift" data-rb-label="Mừng cưới" class="rb-screen rb-gift">
+        <section id="section-gift" data-rb-label="Mừng cưới" data-rb-main class="rb-screen rb-gift">
           <div class="rb-gift-head" data-a="wipe-down">
             <h2 class="rb-title" data-a="ch-drop" data-d="2">Gift</h2>
             <div class="rb-band-sub" data-a="fade" data-d="4">Hộp mừng cưới</div>

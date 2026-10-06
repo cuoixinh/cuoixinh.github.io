@@ -1118,6 +1118,9 @@ body,
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
+  /* Trần: tắt Hộp mừng cưới thì bản đồ thành phần co giãn DUY NHẤT của trang,
+     không chặn là nó nuốt gần trọn màn. */
+  max-height: 320px;
 }
 
 #map-link > div:first-child,
@@ -1814,6 +1817,12 @@ body,
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
+}
+
+/* Dạng phân trang vốn không cuộn, nhưng trang ở đây cao cố định một màn: ba lời
+   chúc dài vẫn cuộn trong khung thay vì tràn đè lên hàng chuyển trang. */
+.mc-wish-in .cx-wsec-paged .cx-wsec-list {
+  overflow-y: auto;
 }
 
 /* Giảm chuyển động: tắt đèn chạy gáy phim, vệt sáng quét và lật trang trượt. */

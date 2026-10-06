@@ -1,114 +1,101 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.webp": {
-        "x": 46,
-        "y": 25
+      "gallery-01.png": {
+        "x": 45,
+        "y": 23
       },
-      "gallery-02.webp": {
-        "x": 53,
-        "y": 13
+      "gallery-02.png": {
+        "x": 45,
+        "y": 19
       },
-      "gallery-03.webp": {
-        "x": 49,
-        "y": 24
+      "gallery-03.png": {
+        "x": 47,
+        "y": 28
       },
-      "gallery-04.webp": {
-        "x": 63,
-        "y": 14
+      "gallery-04.png": {
+        "x": 44,
+        "y": 34
       },
-      "gallery-05.webp": {
-        "x": 75,
-        "y": 25
-      },
-      "gallery-06.webp": {
+      "gallery-05.png": {
         "x": 50,
-        "y": 24
+        "y": 50
       },
-      "gallery-07.webp": {
-        "x": 49,
-        "y": 24
-      },
-      "gallery-08.webp": {
-        "x": 59,
-        "y": 18
-      },
-      "gallery-09.webp": {
+      "gallery-06.png": {
         "x": 50,
-        "y": 61
+        "y": 21
       },
-      "gallery-10.jpg": {
-        "x": 48,
-        "y": 32
+      "gallery-07.png": {
+        "x": 52,
+        "y": 46
+      },
+      "gallery-08.png": {
+        "x": 50,
+        "y": 28
+      },
+      "gallery-09.png": {
+        "x": 43,
+        "y": 23
       }
     },
     "cover_image_url": {
-      "x": 51,
-      "y": 18
+      "x": 53,
+      "y": 24
     },
     "groom_image_url": {
-      "x": 65,
-      "y": 14
+      "x": 46,
+      "y": 18
     },
     "bride_image_url": {
-      "x": 40,
-      "y": 23
+      "x": 50,
+      "y": 22
     }
   },
-  "cover_image_url": "cover.webp",
-  "groom_image_url": "groom.webp",
-  "bride_image_url": "bride.webp",
+  "cover_image_url": "cover.png",
+  "groom_image_url": "groom.png",
+  "bride_image_url": "bride.png",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.webp",
-    "gallery-02.webp",
-    "gallery-03.webp",
-    "gallery-06.webp",
-    "gallery-07.webp",
-    "gallery-08.webp",
-    "gallery-09.webp",
-    "gallery-10.jpg"
+    "gallery-01.png",
+    "gallery-02.png",
+    "gallery-03.png",
+    "gallery-04.png",
+    "gallery-05.png",
+    "gallery-06.png",
+    "gallery-07.png",
+    "gallery-08.png",
+    "gallery-09.png"
   ],
   "love_story": [
     {
       "date": "2019",
       "title": "Lá thư đầu tiên",
       "content": "Anh gửi em một lá thư tay thay vì tin nhắn — và em đã giữ nó tới tận bây giờ.",
-      "image_url": "love-story-01.webp",
+      "image_url": "love-story-01.png",
       "focal_point": {
-        "x": 44,
-        "y": 26
+        "x": 28,
+        "y": 15
       }
     },
     {
       "date": "2021",
       "title": "Những mùa mưa Huế",
       "content": "Hai đứa đi bộ dưới mưa từ Đại Nội về nhà, ướt hết nhưng không đứa nào muốn về sớm.",
-      "image_url": "love-story-02.webp",
+      "image_url": "love-story-02.png",
       "focal_point": {
-        "x": 44,
-        "y": 48
-      }
-    },
-    {
-      "date": "2024",
-      "title": "Về thăm quê nhau",
-      "content": "Từ Đông Hà đến Huế, hai gia đình gặp nhau bên mâm cơm giản dị mà ấm áp.",
-      "image_url": "love-story-03.webp",
-      "focal_point": {
-        "x": 44,
-        "y": 23
+        "x": 51,
+        "y": 22
       }
     },
     {
       "date": "2026",
-      "title": "Lời hẹn ước",
-      "content": "Vẫn bằng một lá thư tay, anh hỏi em có muốn cùng anh đi hết quãng đường còn lại không.",
-      "image_url": "love-story-04.webp",
+      "title": "Về thăm quê nhau",
+      "content": "Từ Đông Hà đến Huế, hai gia đình gặp nhau bên mâm cơm giản dị mà ấm áp.",
+      "image_url": "love-story-03.png",
       "focal_point": {
-        "x": 49,
-        "y": 30
+        "x": 45,
+        "y": 29
       }
     }
   ],
@@ -206,5 +193,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-03T08:53:04.228Z"
+  "updated_at": "2026-10-05T18:18:54.196Z"
 }
