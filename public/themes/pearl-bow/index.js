@@ -97,6 +97,10 @@
     // --- Màn bìa + mở đầu (ảnh màn đầu nhận src TRƯỚC setupMusic) ---
     renderCover(w);
     renderHero(w, false);
+    if (w.ceremony_date) {
+      const d = new Date(w.ceremony_date + "T00:00:00");
+      if (!isNaN(d)) setText("pb-cover-date", `${_pad(d.getDate())} · ${_pad(d.getMonth() + 1)} · ${d.getFullYear()}`);
+    }
     if (w.story_quote) setText("story-quote", w.story_quote);
 
     // Ảnh xen giữa các mục: 6 ảnh đầu của album + ảnh cuối cho lời cảm ơn.

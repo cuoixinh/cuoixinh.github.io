@@ -413,36 +413,91 @@ html.hu-on {
   margin: 0 8px;
 }
 
-/* ── Màn bìa: ảnh tràn màn giữa hai lớp trắng mờ trên/dưới ──────────── */
-.hu-cover-photo {
-  position: absolute;
-  inset: 0;
-  background: rgb(var(--cx-surface-rgb));
-}
-.hu-cover-veil {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(to bottom, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.85) 10%, rgb(var(--cx-card-bg-rgb) / 0) 24%),
-    linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.94) 30%, rgb(var(--cx-card-bg-rgb) / 0) 52%);
-  pointer-events: none;
-}
-.hu-cover-head {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-.hu-cover-text {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 48px;
+/* ── Màn bìa kiểu tạp chí: ảnh viền đỏ nghiêng trên khối đỏ lệch ──────── */
+#cover-screen .hu-cover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 0 28px;
+}
+.hu-cover-head {
+  flex: none;
+  animation: cx-hu-cv-fade 0.9s ease both;
+}
+.hu-cv-stage {
+  position: relative;
+  flex: none;
+  width: min(64%, calc(var(--hu-screen) * 0.3));
+  aspect-ratio: 3 / 4;
+  margin: auto 0 min(60px, calc(var(--hu-screen) * 0.07));
+}
+.hu-cv-block {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--cx-band-rgb));
+  rotate: 5deg;
+  translate: 14% 8%;
+  transform-origin: 0 100%;
+  animation: cx-hu-cv-block 1s 0.2s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+}
+.hu-cv-photo {
+  position: absolute;
+  inset: 0;
+  rotate: -4deg;
+  box-shadow: 0 24px 40px -20px rgb(var(--cx-shadow-rgb) / 0.5);
+  animation: cx-hu-cv-drop 1.1s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+}
+.hu-cv-photo img {
+  animation: cx-hu-cv-drift 9s ease-out both;
+}
+.hu-cv-pendant {
+  position: absolute;
+  top: -6%;
+  left: -24%;
+  width: 34px;
+  height: 102px;
+  transform-origin: 50% 0;
+  animation: cx-hu-cv-swing 1.8s 0.6s cubic-bezier(0.3, 1.6, 0.4, 1) both;
+}
+/* Chữ viết tay đè chân ảnh — viền trắng (paint-order) để đọc được trên ảnh lẫn khối đỏ. */
+.hu-cv-script {
+  position: absolute;
+  left: -20%;
+  bottom: -14%;
+  z-index: 2;
+  font-size: min(68px, calc(var(--hu-screen) * 0.08));
+  line-height: 1;
+  white-space: nowrap;
+  rotate: -8deg;
+  -webkit-text-stroke: 6px rgb(var(--cx-card-bg-rgb));
+  paint-order: stroke fill;
+  animation: cx-hu-cv-write 1.6s 0.8s ease-in-out both;
+}
+.hu-cover-text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: min(8px, calc(var(--hu-screen) * 0.01));
+  margin-bottom: auto;
+  padding: 0 28px min(32px, calc(var(--hu-screen) * 0.04));
   text-align: center;
+  animation: cx-hu-cv-fade 1s 0.9s ease both;
+}
+.hu-cv-date {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: min(6px, calc(var(--hu-screen) * 0.008));
+  font-family: "Cinzel", serif;
+  font-size: 17px;
+  letter-spacing: 4px;
+}
+.hu-cv-date::before,
+.hu-cv-date::after {
+  content: "";
+  width: 32px;
+  height: 1px;
+  background: rgb(var(--cx-accent-rgb) / 0.6);
 }
 .hu-cover-invite {
   font-size: 12px;
@@ -455,8 +510,55 @@ html.hu-on {
   color: rgb(var(--cx-heading-rgb));
 }
 .hu-cover-names {
-  margin-bottom: 8px;
-  font-size: 26px;
+  margin-bottom: min(10px, calc(var(--hu-screen) * 0.012));
+  font-size: 22px;
+  color: rgb(var(--cx-heading-rgb));
+}
+#cover-screen .hu-btn {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+@keyframes cx-hu-cv-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-36px) rotate(-6deg);
+  }
+}
+@keyframes cx-hu-cv-block {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+}
+@keyframes cx-hu-cv-drift {
+  from {
+    transform: scale(1.14);
+  }
+}
+@keyframes cx-hu-cv-swing {
+  from {
+    opacity: 0;
+    transform: rotate(18deg);
+  }
+}
+@keyframes cx-hu-cv-write {
+  from {
+    clip-path: inset(-30% 100% -30% -10%);
+  }
+  to {
+    clip-path: inset(-30% -10% -30% -10%);
+  }
+}
+@keyframes cx-hu-cv-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #cover-screen .hu-cover *,
+  .hu-cover-text {
+    animation: none !important;
+  }
 }
 
 /* ── Trang mở đầu: ảnh lớn mờ hai đầu, chữ viết tay đè chân ảnh ─────── */

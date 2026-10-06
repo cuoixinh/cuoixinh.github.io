@@ -94,6 +94,10 @@
     // --- Màn bìa + mở đầu (ảnh màn đầu nhận src TRƯỚC setupMusic) ---
     renderCover(w);
     renderHero(w, false);
+    if (w.ceremony_date) {
+      const d = new Date(w.ceremony_date + "T00:00:00");
+      if (!isNaN(d)) setText("hd-cover-date", `${_pad(d.getDate())} · ${_pad(d.getMonth() + 1)} · ${d.getFullYear()}`);
+    }
     if (w.story_quote) setText("story-quote", w.story_quote);
     const mono = `${hdInitial(w.groom_name)} & ${hdInitial(w.bride_name)}`;
     setText("hd-mono", mono);

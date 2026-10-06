@@ -95,7 +95,10 @@
     renderHero(w, false);
     if (w.ceremony_date) {
       const d = new Date(w.ceremony_date + "T00:00:00");
-      if (!isNaN(d)) setText("hu-hero-date", `${d.getFullYear()}.${_pad(d.getMonth() + 1)}.${_pad(d.getDate())}`);
+      if (!isNaN(d)) {
+        setText("hu-hero-date", `${d.getFullYear()}.${_pad(d.getMonth() + 1)}.${_pad(d.getDate())}`);
+        setText("hu-cover-date", `${_pad(d.getDate())} · ${_pad(d.getMonth() + 1)} · ${d.getFullYear()}`);
+      }
     }
     if (w.story_quote) setText("story-quote", w.story_quote);
 
