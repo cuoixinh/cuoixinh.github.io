@@ -9,12 +9,12 @@ const _X_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" v
 
 const _INPUT_CLS =
   'w-full h-10 pl-3 pr-9 border border-gray-200 rounded-lg text-sm text-gray-800 ' +
-  'bg-white outline-none focus:ring-2 focus:ring-rose-500/30 ' +
+  'bg-white outline-none focus:border-gray-400 ' +
   'placeholder:text-gray-400/50 transition-all';
 
 const _TEXTAREA_CLS =
   'w-full pl-3 pr-9 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 ' +
-  'bg-white outline-none focus:ring-2 focus:ring-rose-500/30 ' +
+  'bg-white outline-none focus:border-gray-400 ' +
   'placeholder:text-gray-400/50 transition-all resize-none';
 
 const _CLEAR_CLS =

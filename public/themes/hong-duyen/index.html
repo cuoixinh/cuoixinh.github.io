@@ -116,26 +116,35 @@
          Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="hd-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
-        <div class="hd-cover-photo">
-          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+        <!-- Màn bìa nền ĐỎ ĐÔ: ảnh trong ô CỬA TRÒN viền vàng (vòng ngoài xoay chậm),
+             cụm sen vàng ôm chân cửa, chữ vàng nhạt. -->
+        <div class="hd-cv-glow" aria-hidden="true"></div>
+        <svg class="hd-cv-top" aria-hidden="true"><use href="#hd-lotus" /></svg>
+        <div class="cx-h hd-cv-tag">Thư Mời Cưới</div>
+
+        <div class="hd-cv-gate">
+          <div class="hd-cv-ring" aria-hidden="true"></div>
+          <div class="hd-cv-moon">
+            <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+          </div>
+          <svg class="hd-cv-lotus hd-cv-lotus-l" aria-hidden="true"><use href="#hd-branch" /></svg>
+          <svg class="hd-cv-lotus hd-cv-lotus-r" aria-hidden="true"><use href="#hd-branch" /></svg>
         </div>
-        <div class="hd-cover-veil" aria-hidden="true"></div>
-        <svg class="hd-cover-branch" aria-hidden="true"><use href="#hd-branch" /></svg>
-        <div class="cx-h hd-cover-tag">Wedding Invitation</div>
 
         <div class="hd-cover-text">
           <div data-cx-invite class="cx-t hd-cover-invite">Trân trọng kính mời</div>
           <div class="cx-t hd-cover-guest" id="cover-guest-name">----------</div>
           <div data-cx-invite-to class="cx-t hd-cover-invite">đến dự lễ thành hôn của</div>
-          <div class="cx-h cx-a hd-cover-names">
+          <div class="cx-h hd-cover-names">
             <span id="cover-groom-name">----------</span>
             <span class="hd-amp">&amp;</span>
             <span id="cover-bride-name">----------</span>
           </div>
+          <div class="cx-t hd-cv-date" id="hd-cover-date">-- · -- · ----</div>
           <x-button
             variant="bare"
             onclick="openInvitation()"
-            class="open-btn hd-btn relative overflow-hidden active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+            class="open-btn hd-btn hd-cv-btn relative overflow-hidden active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
           >
             <span class="relative z-10 pointer-events-none flex items-center gap-2">
               <i data-lucide="mail-open" class="cx-ic"></i>

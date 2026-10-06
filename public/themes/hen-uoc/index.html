@@ -122,23 +122,31 @@
          Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="hu-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
-        <div class="hu-cover-photo">
-          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
-        </div>
-        <div class="hu-cover-veil" aria-hidden="true"></div>
+        <!-- Màn bìa kiểu TẠP CHÍ: ảnh viền đỏ đặt nghiêng chồng lên khối đỏ lệch,
+             dây treo bên mép, chữ viết tay "Hẹn Ước" lớn đè chân ảnh. -->
         <div class="hu-head hu-cover-head">
           <span class="cx-h cx-a hu-cap">Invitation</span>
           <svg class="hu-emblem cx-a" aria-hidden="true"><use href="#hu-emblem" /></svg>
           <span class="cx-h cx-a hu-cap">Wedding</span>
         </div>
 
+        <div class="hu-cv-stage">
+          <div class="hu-cv-block" aria-hidden="true"></div>
+          <div class="hu-framed hu-cv-photo">
+            <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+          </div>
+          <svg class="hu-pendant cx-a hu-cv-pendant" aria-hidden="true"><use href="#hu-pendant" /></svg>
+          <div class="hu-script hu-cv-script"><span class="cx-h cx-a">Hẹn Ước</span></div>
+        </div>
+
         <div class="hu-cover-text">
+          <div class="cx-h cx-a hu-cv-date" id="hu-cover-date">---- · -- · --</div>
           <div data-cx-invite class="cx-t hu-cover-invite">Trân trọng kính mời</div>
           <div class="cx-t hu-cover-guest" id="cover-guest-name">----------</div>
           <div data-cx-invite-to class="cx-t hu-cover-invite">đến buổi hẹn lãng mạn của</div>
-          <div class="cx-h cx-a hu-cover-names">
+          <div class="cx-t hu-cover-names">
             <span id="cover-groom-name">----------</span>
-            <span class="hu-amp">&amp;</span>
+            <span class="hu-amp cx-a">&amp;</span>
             <span id="cover-bride-name">----------</span>
           </div>
           <x-button

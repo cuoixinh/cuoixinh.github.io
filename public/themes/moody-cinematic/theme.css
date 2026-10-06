@@ -64,6 +64,8 @@ body {
 
 #main-card {
   background-color: rgb(var(--cx-card-bg-rgb));
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
 }
 
 /* Trên màn rộng thiệp cao 932px, nhưng không được vượt khung nhìn: vượt là có
@@ -71,7 +73,8 @@ body {
 
 @media (min-width: 768px) {
   #main-card {
-    height: min(932px, calc(100dvh - 40px));
+    height: min(932px, calc(var(--vh, 1vh) * 100 - 40px));
+    height: min(932px, calc(var(--vh, 1svh) * 100 - 40px));
   }
 }
 

@@ -22,7 +22,7 @@
       ".x-ta-frame{display:flex;flex-direction:column;border:1px solid rgb(var(--border-field-rgb));" +
       "border-radius:8px;background:rgb(var(--white-rgb));overflow:hidden;" +
       "transition:border-color .15s ease,box-shadow .15s ease}" +
-      ".x-ta-frame:focus-within{border-color:rgb(var(--focus-ring-rgb));box-shadow:0 0 0 3px rgb(var(--focus-ring-rgb)/.18)}" +
+      ".x-ta-frame:focus-within{border-color:rgb(var(--border-field-focus-rgb))}" +
       // Textarea trong khung: bỏ viền/nền/ring/bo góc/resize riêng (khung lo hết).
       ".x-ta-frame>textarea{flex:1 1 auto;border:none!important;border-radius:0!important;" +
       "background:transparent!important;box-shadow:none!important;outline:none!important;" +

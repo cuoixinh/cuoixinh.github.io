@@ -170,8 +170,7 @@
   font-size: 13px;
 }
 #clr-picker input.clr-color:focus {
-  border-color: rgb(var(--card-blush-300-rgb));
-  box-shadow: 0 0 0 3px rgb(var(--card-blush-300-rgb) / 0.25);
+  border-color: rgb(var(--border-field-focus-rgb));
 }
 
 /* Nút "Xong" — pill nhỏ, canh phải dưới cùng (order lớn để luôn cuối cùng) */
@@ -300,13 +299,12 @@
   transition: all 0.2s;
 }
 .flatpickr-current-month .numInputWrapper input:hover {
-  border-color: rgb(var(--action-primary-rgb)) !important;
+  border-color: rgb(var(--border-field-focus-rgb)) !important;
   background: white !important;
 }
 .flatpickr-current-month .numInputWrapper input:focus {
   outline: none;
-  border-color: rgb(var(--action-primary-rgb));
-  box-shadow: 0 0 0 3px rgb(var(--action-primary-rgb) / 0.1);
+  border-color: rgb(var(--border-field-focus-rgb));
 }
 .flatpickr-current-month .numInputWrapper span {
   display: none;
@@ -684,9 +682,7 @@ input.flatpickr-input[readonly] {
 }
 
 .cx-le-textarea:focus {
-  @apply border-rose-400;
-
-  box-shadow: 0 0 0 2px rgb(var(--action-primary-rgb) / 0.15);
+  @apply border-gray-400;
 }
 
 /* Dãy chọn CÓ CHỮ (tuỳ chọn của thành phần) — nút icon mặc định chốt 36px vuông,
@@ -1124,10 +1120,13 @@ svg.lucide {
    nó KHÔNG cuộn nên nội dung không bao giờ chui xuống dưới navbar; ai cần đưa
    phần tử vào tầm nhìn thì dùng scrollIntoView (nó tự tìm khung cuộn gần nhất),
    ĐỪNG đụng tới window.scrollTo/documentElement.scrollTop nữa.
-   Khoá trong .cx-setup vì styles/build.css dùng chung cho mọi trang. */
+   Khoá trong .cx-setup vì styles/build.css dùng chung cho mọi trang.
+   Chiều cao qua --vh (core/helpers/vh-lock.js) chứ không dùng dvh: bàn phím ảo
+   bung là dvh co lại, đẩy navbar + thanh Lùi/Tiếp lên giữa màn. */
 .cx-setup,
 .cx-setup body {
-  height: 100dvh;
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
 
   /* `clip` chứ không chỉ `hidden`: `hidden` vẫn là KHUNG CUỘN, chỉ giấu thanh
      cuộn — một cú scrollIntoView/scrollTop lỡ tay là cả trang trôi lên, thanh
@@ -1147,7 +1146,8 @@ svg.lucide {
 #setup-scroll {
   @apply flex flex-col overflow-y-auto overscroll-contain rounded-3xl bg-white;
 
-  height: calc(100dvh - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
+  height: calc(var(--vh, 1vh) * 100 - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
+  height: calc(var(--vh, 1svh) * 100 - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
   box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
 
   /* Ô được focus/cuộn tới không nằm khuất dưới dòng bước dính ở trên và thanh
@@ -2067,7 +2067,7 @@ html.cx-rail-off {
 .cx-preview-stage {
   @apply flex min-h-0 flex-1 items-center justify-center px-2 py-2 sm:px-4;
 
-  --cx-ph-w: min(100%, calc((100dvh - var(--nav-h, 64px) - 16px) * 0.4879), 423px);
+  --cx-ph-w: min(100%, calc((var(--vh, 1svh) * 100 - var(--nav-h, 64px) - 16px) * 0.4879), 423px);
 }
 
 /* Khổ máy đã tính cho vừa rồi — đừng cho flex bóp thêm lần nữa. */
@@ -2422,8 +2422,7 @@ html.cx-rail-off {
     box-shadow 0.2s ease;
 }
 .gs-search:focus-within {
-  border-color: rgb(var(--action-primary-rgb));
-  box-shadow: 0 0 0 4px rgb(var(--action-primary-rgb) / 0.15);
+  @apply border-gray-400;
 }
 .gs-search svg {
   flex: none;
@@ -2813,8 +2812,7 @@ html.cx-rail-off {
 }
 .gs-field:focus {
   background: rgb(var(--white-rgb));
-  border-color: rgb(var(--action-primary-rgb));
-  box-shadow: 0 0 0 4px rgb(var(--action-primary-rgb) / 0.15);
+  @apply border-gray-400;
 }
 .gs-field[aria-invalid="true"] {
   border-color: rgb(var(--state-error-text-rgb));

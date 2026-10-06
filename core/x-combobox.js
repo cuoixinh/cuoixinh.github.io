@@ -21,7 +21,7 @@
 const _XCB_BTN_CLS =
   "x-cb-btn w-full h-8 px-2 flex items-center justify-between gap-2 rounded-lg " +
   "border border-gray-300 bg-white text-[12px] text-gray-700 cursor-pointer " +
-  "focus:outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100";
+  "focus:outline-none focus:border-gray-400";
 
 const _XCB_LIST_CLS =
   "x-cb-list hidden absolute left-0 right-0 z-50 top-full my-1 p-1 bg-white " +
@@ -71,7 +71,7 @@ function _xcbSwatch(color) {
 
 const _XCB_Q_CLS =
   "x-cb-q sticky top-0 w-full h-8 px-2 mb-1 rounded-lg border border-gray-200 " +
-  "bg-white text-sm text-gray-700 outline-none focus:border-rose-300";
+  "bg-white text-sm text-gray-700 outline-none focus:border-gray-400";
 
 function _xcbFold(v) {
   return String(v || "")

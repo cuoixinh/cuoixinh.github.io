@@ -161,15 +161,47 @@
          Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="pb-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
-        <!-- Ảnh bìa tràn kín màn; nửa dưới phủ dần màu nền để chữ mời đọc được. -->
-        <div class="pb-cover-photo">
-          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+        <!-- Màn bìa kiểu THIỆP GIẤY: khung chỉ đỏ đôi viền quanh trang, ảnh trong ô
+             vòm cao, nơ nhung thắt trên đỉnh vòm, chuỗi ngọc rủ ngang chân vòm. -->
+        <div class="pb-cv-border" aria-hidden="true"></div>
+        <svg class="pb-cv-orn pb-cv-orn-l" aria-hidden="true"><use href="#pb-lace-orn" /></svg>
+        <svg class="pb-cv-orn pb-cv-orn-r" aria-hidden="true"><use href="#pb-lace-orn" /></svg>
+        <div class="cx-h pb-cv-tag">Wedding Invitation</div>
+
+        <div class="pb-cv-arch">
+          <div class="pb-cv-window">
+            <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+          </div>
+          <svg class="pb-cv-bow" aria-hidden="true"><use href="#pb-bow" /></svg>
+          <svg class="pb-cv-strand" viewBox="0 0 300 70" aria-hidden="true">
+            <path d="M10.0 8.0 L22.7 16.0 L35.5 23.2 L48.2 29.7 L60.9 35.4 L73.6 40.3 L86.4 44.5 L99.1 47.9 L111.8 50.6 L124.5 52.5 L137.3 53.6 L150.0 54.0 L162.7 53.6 L175.5 52.5 L188.2 50.6 L200.9 47.9 L213.6 44.5 L226.4 40.3 L239.1 35.4 L251.8 29.7 L264.5 23.2 L277.3 16.0 L290.0 8.0" fill="none" style="stroke: rgb(var(--cx-shine-to-rgb))" stroke-width=".8" />
+            <use href="#pb-pearl" x="4.8" y="2.8" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="18.7" y="12.0" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="30.3" y="18.0" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="44.2" y="25.7" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="55.7" y="30.2" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="69.6" y="36.3" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="81.2" y="39.3" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="95.1" y="43.9" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="106.6" y="45.4" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="120.5" y="48.5" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="132.1" y="48.4" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="146.0" y="50.0" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="157.5" y="48.4" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="171.5" y="48.5" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="183.0" y="45.4" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="196.9" y="43.9" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="208.4" y="39.3" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="222.4" y="36.3" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="233.9" y="30.2" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="247.8" y="25.7" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="259.3" y="18.0" width="10.4" height="10.4" />
+            <use href="#pb-pearl" x="273.3" y="12.0" width="8.0" height="8.0" />
+            <use href="#pb-pearl" x="284.8" y="2.8" width="10.4" height="10.4" />
+          </svg>
         </div>
-        <div class="pb-cover-veil" aria-hidden="true"></div>
-        <div class="cx-h pb-cover-tag">Wedding Invitation</div>
 
         <div class="pb-cover-text">
-          <svg class="pb-cover-bow" aria-hidden="true"><use href="#pb-bow" /></svg>
           <div data-cx-invite class="cx-t pb-cover-invite">Trân trọng kính mời</div>
           <div class="cx-t pb-cover-guest" id="cover-guest-name">----------</div>
           <div data-cx-invite-to class="cx-t pb-cover-invite">đến dự lễ thành hôn của</div>
@@ -178,6 +210,7 @@
             <span class="pb-amp">&amp;</span>
             <span id="cover-bride-name">----------</span>
           </div>
+          <div class="cx-h pb-cv-date" id="pb-cover-date">-- · -- · ----</div>
           <x-button
             variant="bare"
             onclick="openInvitation()"

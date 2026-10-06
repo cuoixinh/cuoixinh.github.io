@@ -67,6 +67,8 @@
   /* Ba ô hành động ở lớp đề xuất mẫu (bản xem thử): nền pastel + icon cùng tông */
 
   --border-field-rgb: 229 231 235;
+  /* Viền ô nhập lúc focus: xám, 1px, không quầng — hồng dễ bị tưởng là báo lỗi. */
+  --border-field-focus-rgb: 156 163 175;
   --border-subtle-rgb: 238 240 242;
   --divider-rgb: 209 213 219;  /* gạch ngăn, thumb thanh cuộn */
   --checkerboard-rgb: 241 245 249;  /* ô kẻ caro sau ảnh trong suốt (admin) */

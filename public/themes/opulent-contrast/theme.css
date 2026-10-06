@@ -166,7 +166,8 @@ body {
 @media (min-width: 768px) {
   #cover-screen > .oc-cover {
     min-height: 0;
-    height: min(932px, calc(100dvh - 40px));
+    height: min(932px, calc(var(--vh, 1vh) * 100 - 40px));
+    height: min(932px, calc(var(--vh, 1svh) * 100 - 40px));
   }
 }
 

@@ -1133,8 +1133,7 @@ html.cx-landing {
   color: rgb(var(--text-heading-rgb) / 0.35);
 }
 .intro-input:focus {
-  border-color: rgb(var(--action-primary-rgb) / 0.6);
-  box-shadow: 0 0 0 4px rgb(var(--action-primary-rgb) / 0.12);
+  border-color: rgb(var(--border-field-focus-rgb));
 }
 .intro-amp {
   padding-bottom: 4px;

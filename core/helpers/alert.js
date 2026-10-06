@@ -198,8 +198,7 @@ function showToast(msg, type = "default", icon = null) {
       outline: none; transition: border-color .15s ease, box-shadow .15s ease;
     }
     .cx-dlg-input:focus {
-      border-color: rgb(var(--focus-ring-rgb));
-      box-shadow: 0 0 0 3px rgb(var(--focus-ring-rgb)/0.18);
+      border-color: rgb(var(--border-field-focus-rgb));
     }
     .cx-dlg-hint { margin-top: 8px; font-size: 12px; color: rgb(var(--text-tertiary-rgb)); word-break: break-all; }
     .cx-dlg-hidden { display: none !important; }

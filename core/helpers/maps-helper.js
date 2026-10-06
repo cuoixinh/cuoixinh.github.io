@@ -115,7 +115,7 @@ function openMapPicker(side, opts = {}) {
         <input id="map-picker-search" type="text" value="${currentQuery.replace(/"/g, '&quot;')}"
           placeholder="Tìm kiếm địa điểm..."
           autocomplete="off"
-          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 outline-none focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-1"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 outline-none focus:border-gray-400"
         />
         <div id="map-picker-suggestions" class="hidden fixed bg-white border border-gray-200 rounded-xl shadow-lg z-[99999] max-h-52 overflow-y-auto"></div>
       </div>
@@ -186,7 +186,7 @@ function _toggleMapDisplayName() {
     btn.classList.replace("bg-gray-300", "bg-rose-400");
     knob.classList.replace("translate-x-0.5", "translate-x-[18px]");
     input.classList.remove("opacity-60", "cursor-not-allowed", "bg-gray-50");
-    input.classList.add("focus:ring-2", "focus:ring-rose-500/30");
+    input.classList.add("focus:border-gray-400");
     input.focus();
   } else {
     btn.classList.replace("bg-rose-400", "bg-gray-300");

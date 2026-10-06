@@ -1528,7 +1528,7 @@
 
   border-radius: 24px;
   background: rgb(var(--white-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+  border: 1px solid rgb(var(--border-field-rgb));
   box-shadow: 0 4px 16px rgb(var(--shadow-brand-rgb) / 0.12);
   transition:
     border-color 0.15s ease,
@@ -1536,8 +1536,7 @@
 }
 
 .aichat-composer:focus-within {
-  border-color: rgb(var(--brand-accent-rgb));
-  box-shadow: 0 0 0 3px rgb(var(--brand-primary-rgb) / 0.3);
+  border-color: rgb(var(--border-field-focus-rgb));
 }
 
 .aichat-input {
