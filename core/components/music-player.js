@@ -286,6 +286,13 @@
     ring: { cls: "cx-mw-ring", body: ringBody },
   };
 
+  // Trình phát neo màn hình (fixed-top / fixed-corner) không hiện ở màn bìa: chỉ lộ
+  // ra khi đã mở bìa VÀ cuộn quá N px (luật nằm ở music-player-helper.js).
+  function _revealAttr(node, o) {
+    const reveal = o.revealOnScroll == null ? 64 : o.revealOnScroll;
+    if (reveal) node.setAttribute("data-cx-reveal-on-scroll", String(reveal));
+  }
+
   /**
    * Dựng trình phát nhạc.
    * @param {{variant?:"bar"|"mini"|"pill"|"square"|"disc"|"ring",
@@ -325,6 +332,7 @@
         node.id = "music-toggle";
         node.classList.add("cx-mw-fixed", "cx-no-edit");
         node.style.display = "none";
+        _revealAttr(node, o);
       }
       return node;
     }
@@ -342,8 +350,7 @@
       node.className =
         "cx-mp cx-mp-fixed-top cx-no-edit fixed top-0 inset-x-0 mx-auto z-[60] w-full max-w-[430px] md:max-w-[768px] flex-col px-2 md:px-3";
       node.style.display = "none"; // setupMusic() bật lên khi thiệp có nhạc
-      const reveal = o.revealOnScroll == null ? 64 : o.revealOnScroll;
-      if (reveal) node.setAttribute("data-cx-reveal-on-scroll", String(reveal));
+      _revealAttr(node, o);
     } else {
       node.className = "cx-mp w-full flex flex-col";
     }

@@ -601,6 +601,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   iframe rỗng chỉ để đọc bản khai. Thanh ngang (`bar` + `fixed-top`) chỉ dùng ở
   `basic-gold`, các mẫu khác neo góc màn (`fixed-corner`) — khổ neo góc của hai
   dạng không tròn (`pill`, `square`) khai riêng ở `styles/_music-player.css`.
+  Nút neo màn hình **không bao giờ hiện ở màn bìa**: chỉ lộ ra khi đã mở bìa VÀ cuộn
+  (`data-cx-reveal-on-scroll`) — mẫu không cuộn trang (slide) phải khai `revealOnScroll: 0`.
 - **Thành phần thả lên thiệp:** danh mục `core/helpers/element-helper.js`, runtime
   `theme-setting-helper.js`, bảng chọn `05-theme-panel.js`; lưu trong
   `theme_setting.elements` nên không cần changelog DB. Ô màu dùng khoá cố định ở

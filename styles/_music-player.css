@@ -321,6 +321,18 @@
   z-index: 60;
   width: 44px;
   font-size: 9px;
+  transition:
+    opacity 0.4s ease,
+    visibility 0.4s;
+}
+
+/* Nút neo góc chưa được hiện (màn bìa / chưa cuộn — data-cx-reveal-on-scroll):
+   ẩn cả nút, không dùng `display` vì setupMusic() đang quản thuộc tính đó. */
+
+.cx-mw-fixed.cx-mp-reveal.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Hai mẫu KHÔNG tròn cần khổ riêng ở góc màn: 44px là bề ngang của một đĩa,

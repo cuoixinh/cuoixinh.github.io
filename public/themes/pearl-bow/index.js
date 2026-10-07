@@ -96,6 +96,7 @@
 
     // --- Màn bìa + mở đầu (ảnh màn đầu nhận src TRƯỚC setupMusic) ---
     renderCover(w);
+    pbCoverSecond(gallery, galleryFp);
     renderHero(w, false);
     if (w.ceremony_date) {
       const d = new Date(w.ceremony_date + "T00:00:00");
@@ -195,6 +196,20 @@
   window.renderWedding = renderWedding;
 
   const _pad = (n) => String(Math.max(0, n)).padStart(2, "0");
+
+  // ============= ẢNH THỨ HAI CỦA MÀN BÌA =============
+  // Lấy ảnh album đầu tiên; album trống thì cờ .is-solo lùi về một tấm ảnh bìa.
+
+  function pbCoverSecond(images, focal) {
+    const frame = document.getElementById("pb-cv-frame");
+    const img = document.getElementById("pb-cover-img-2");
+    if (!frame || !img) return;
+    const first = images[0];
+    frame.classList.toggle("is-solo", !first);
+    if (!first) return;
+    img.src = getImageUrl(first);
+    img.style.objectPosition = cxFocal(focal?.[first]);
+  }
 
   // ============= ẢNH XEN GIỮA CÁC MỤC =============
   // Ô [data-pb-shot="i"] lấy ảnh album thứ i ("last" = ảnh cuối, chỉ khi album
