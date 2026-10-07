@@ -161,12 +161,11 @@
          Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="pb-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
-        <!-- Màn bìa kiểu THIỆP GIẤY: khung chỉ đỏ đôi viền quanh trang, hai tấm ảnh Polaroid
+        <!-- Màn bìa kiểu THIỆP GIẤY: hai tấm ảnh Polaroid
              (viền trắng dày, đáy có chữ viết tay) xoay nghiêng đè chéo nhau — tấm to là ảnh bìa,
-             tấm nhỏ là ảnh album đầu tiên. Album trống thì cờ .is-solo chỉ giữ tấm to. -->
-        <div class="pb-cv-border" aria-hidden="true"></div>
-        <svg class="pb-cv-orn pb-cv-orn-l" aria-hidden="true"><use href="#pb-lace-orn" /></svg>
-        <svg class="pb-cv-orn pb-cv-orn-r" aria-hidden="true"><use href="#pb-lace-orn" /></svg>
+             tấm nhỏ là ảnh album đầu tiên. Album trống thì cờ .is-solo chỉ giữ tấm to.
+             Nền mờ phía sau là ảnh album thứ hai (thiếu thì giữ ảnh 1x1 trong suốt). -->
+        <img id="pb-cover-bg" class="pb-cv-bg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" aria-hidden="true" />
         <div class="cx-h pb-cv-tag">Wedding Invitation</div>
 
         <div class="pb-cv-frame" id="pb-cv-frame">
@@ -261,8 +260,10 @@
 
         <!-- ═══ MỤC: Gia đình (enable_family) ═══════════════════════════════ -->
         <section id="section-family" class="pb-family">
-          <div class="pb-head">
-            <span class="cx-h cx-a pb-cz">Family/</span><span class="cx-h pb-hand">Gia đình hai bên</span>
+          <div class="pb-title">
+            <div class="cx-h cx-a pb-title-en">Family</div>
+            <div class="cx-t pb-title-vi">Gia đình hai bên</div>
+            <div class="pb-title-rule" aria-hidden="true"><svg class="pb-pearl"><use href="#pb-pearl" /></svg></div>
           </div>
           <div class="pb-pair">
             <div class="pb-person">
@@ -353,20 +354,19 @@
         <!-- ═══ MỤC: Thư mời — ngày giờ lễ ═══════════════════════════════════
              Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức. -->
         <section id="section-ceremony" class="pb-time">
-          <div class="pb-head">
-            <span class="cx-h cx-a pb-cz">Time/</span><span class="cx-h pb-hand">Thời gian</span>
+          <div class="pb-title">
+            <div class="cx-h cx-a pb-title-en">Time</div>
+            <div class="cx-t pb-title-vi">Thời gian</div>
+            <div class="pb-title-rule" aria-hidden="true"><svg class="pb-pearl"><use href="#pb-pearl" /></svg></div>
           </div>
           <svg class="pb-wine" aria-hidden="true"><use href="#pb-wine" /></svg>
           <div class="cx-t pb-time-invite">
-            Trân trọng kính mời dự <span id="ceremony-event-name">Lễ Thành Hôn</span> của<br />
-            <span id="invite-groom">----------</span> &amp; <span id="invite-bride">----------</span>
+            <span class="pb-time-lead">Trân trọng kính mời dự <span id="ceremony-event-name">Lễ Thành Hôn</span> của</span>
+            <span class="pb-time-names"><span id="invite-groom">----------</span><span class="pb-amp">&amp;</span><span id="invite-bride">----------</span></span>
           </div>
-          <div class="cx-t pb-line">
-            <span id="invite-weekday">------</span>, ngày <span id="invite-day">--</span> · <span id="invite-month-year">Tháng -- · ----</span>
-          </div>
-          <div class="cx-t pb-line">
-            <span id="invite-lunar">--------------------</span> · <span id="invite-time">--:--</span>
-          </div>
+          <!-- Cùng khuôn với mục Tiệc mừng bên dưới: giờ - ngày · (âm lịch) · nơi tổ chức. -->
+          <div class="cx-t pb-line" id="pb-cer-datetime">--:-- - --.--.----</div>
+          <div class="cx-t pb-line pb-lunar" id="pb-cer-lunar">(----)</div>
           <div id="ceremony-location-wrap" class="hidden pb-line pb-loc">
             <span id="ceremony-location-text" class="cx-t"></span>
           </div>
@@ -384,8 +384,10 @@
         <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ═══════════════════════════════
              #map-location-name + #map-link phải đứng CUỐI mục (renderVenueMaps). -->
         <section id="section-map" class="pb-map">
-          <div class="pb-head">
-            <span class="cx-h cx-a pb-cz">Address/</span><span class="cx-h pb-hand">Địa điểm</span>
+          <div class="pb-title">
+            <div class="cx-h cx-a pb-title-en">Address</div>
+            <div class="cx-t pb-title-vi">Địa điểm</div>
+            <div class="pb-title-rule" aria-hidden="true"><svg class="pb-pearl"><use href="#pb-pearl" /></svg></div>
           </div>
           <div class="cx-t pb-map-name" id="map-location-name">------------------------</div>
           <a id="map-link" href="#" target="_blank" class="pb-map-card">
@@ -402,8 +404,10 @@
         <!-- ═══ MỤC: Lịch trình ngày cưới (enable_timeline) ═════════════════
              Hàng giờ — việc — dựng ở pbRenderTimeline (index.js). -->
         <section id="section-timeline" class="hidden pb-plan">
-          <div class="pb-head">
-            <span class="cx-h cx-a pb-cz">Schedule/</span><span class="cx-h pb-hand">Lịch trình</span>
+          <div class="pb-title">
+            <div class="cx-h cx-a pb-title-en">Schedule</div>
+            <div class="cx-t pb-title-vi">Lịch trình</div>
+            <div class="pb-title-rule" aria-hidden="true"><svg class="pb-pearl"><use href="#pb-pearl" /></svg></div>
           </div>
           <div id="timeline-list-render" class="pb-plan-list"></div>
         </section>
@@ -416,8 +420,10 @@
 
         <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ════════════════════════ -->
         <section id="rsvp-section" class="pb-rsvp" style="display: none">
-          <div class="pb-head">
-            <span class="cx-h cx-a pb-cz">R.S.V.P/</span><span class="cx-h pb-hand">Hồi đáp</span>
+          <div class="pb-title">
+            <div class="cx-h cx-a pb-title-en">R.S.V.P</div>
+            <div class="cx-t pb-title-vi">Hồi đáp</div>
+            <div class="pb-title-rule" aria-hidden="true"><svg class="pb-pearl"><use href="#pb-pearl" /></svg></div>
           </div>
           <div id="rsvp-custom-message" class="hidden cx-t pb-poem pb-center"></div>
           <div class="pb-rsvp-btns">
@@ -434,8 +440,10 @@
         <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════
              Hộp do gift-box-helper.js vẽ theo CX_THEME.giftBox — mẫu KHÔNG tự vẽ hộp. -->
         <section id="section-gift" class="pb-gift">
-          <div class="pb-head">
-            <span class="cx-h cx-a pb-cz">Gift/</span><span class="cx-h pb-hand">Mừng cưới</span>
+          <div class="pb-title">
+            <div class="cx-h cx-a pb-title-en">Gift</div>
+            <div class="cx-t pb-title-vi">Mừng cưới</div>
+            <div class="pb-title-rule" aria-hidden="true"><svg class="pb-pearl"><use href="#pb-pearl" /></svg></div>
           </div>
           <div class="cx-t pb-poem pb-center">Gửi chút lộc mừng cho đôi uyên ương</div>
           <div data-cx-gift="qr" class="pb-gift-grid">
