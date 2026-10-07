@@ -76,6 +76,10 @@ function watchRepo() {
   // README.md). Phần chữ (data.json) vẫn theo dõi bình thường.
   const skipImg = /(^|[\\/])assets[\\/]data-template[\\/].*(?<!\.json)$/i;
   const seen = new Map(); // đường dẫn → mtime lần trước
+  // Ổ NTFS bật Last Access Time thì chỉ cần ĐỌC file (chính server trả file,
+  // editor, git, antivirus…) cũng bắn "change". File chưa có trong `seen` mà
+  // mtime cũ hơn lúc khởi động = chỉ bị đọc, không phải bị sửa.
+  const startedAt = Date.now();
   let timer = null;
   try {
     watch(ROOT, { recursive: true }, (_e, file) => {
@@ -90,8 +94,10 @@ function watchRepo() {
       } catch {
         return; // file vừa bị xoá/đổi tên
       }
-      if (seen.get(file) === stamp) return;
+      const prev = seen.get(file);
       seen.set(file, stamp);
+      if (prev === stamp) return;
+      if (prev === undefined && info.mtimeMs < startedAt) return;
       clearTimeout(timer); // một lần lưu có thể bắn nhiều sự kiện
       timer = setTimeout(() => {
         for (const res of clients) res.write("data: reload\n\n");
