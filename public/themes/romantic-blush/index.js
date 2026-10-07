@@ -18,7 +18,9 @@
     giftBox: "phongbi_do_hy",
 
     // Đĩa nhạc neo góc phải trên, như mẫu gốc.
-    music: { variant: "ring", chrome: "fixed-corner", art: "couple" },
+    // Thiệp slide không cuộn trang + nút nằm trong bảng điều hướng (chỉ có sau khi
+    // mở bìa) → tắt luật "cuộn mới hiện" của nút nhạc.
+    music: { variant: "ring", chrome: "fixed-corner", art: "couple", revealOnScroll: 0 },
 
     // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
     // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục

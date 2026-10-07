@@ -490,7 +490,7 @@ async function siLoadThemeData() {
       });
 
     // --- Album ảnh: data.json trước, rồi gallery-NN.* còn sót, cuối cùng là
-    // ảnh tên lạ (chép tay vào thư mục) — lưu lại sẽ được đổi về gallery-NN ---
+    // ảnh tên lạ (chép tay vào thư mục) — giữ nguyên tên khi lưu ---
     const galleryPlan = (
       Array.isArray(json.gallery_images) ? json.gallery_images : []
     )
@@ -1210,7 +1210,8 @@ async function siHandleLoveStoryUpload(event, idx) {
     showLoading(true, "Đang xử lý ảnh...");
     try {
       // Giữ nguyên ảnh gốc, không nén
-      siData.loveStory[idx].blob = file;
+      // Bỏ dấu file cũ, không thì ảnh mới trùng số byte bị coi là "chưa đổi".
+      Object.assign(siData.loveStory[idx], { blob: file, srcName: null, srcSize: 0 });
       siData.loveStory[idx].focal = focal;
       siData.loveStory[idx].previewUrl = URL.createObjectURL(file);
       siRenderLoveStory();
@@ -1261,16 +1262,35 @@ async function siWriteFile(dirHandle, filename, blob) {
   await writable.close();
 }
 
-// Ảnh đọc lên từ chính thư mục này, chưa đổi gì và vẫn giữ nguyên tên file →
-// khỏi ghi lại. Bộ ảnh mẫu nặng ~35 MB nên nếu lần lưu nào cũng chép lại tất
-// thì vừa lâu vừa dễ hỏng giữa chừng (mất luôn data.json ghi ở bước cuối).
-async function siIsUnchanged(entry, filename) {
-  // Đường nhanh, không đụng đĩa: blob đọc lên từ chính file đó, chưa ai thay.
-  if (entry.srcName === filename && entry.srcSize === entry.blob.size) return true;
+// Ảnh đọc lên từ thư mục này và chưa bị thay → trả lại tên file đang có để GIỮ
+// NGUYÊN (bộ ảnh mẫu ~35 MB, chép lại hết mỗi lần lưu vừa lâu vừa dễ đứt giữa
+// chừng). Chỉ tin khi file đó còn đúng kích thước lúc đọc.
+async function siKeptName(entry) {
+  if (!entry.blob || !entry.srcName || entry.srcSize !== entry.blob.size) return null;
+  try {
+    const file = await (await siThemeHandle.getFileHandle(entry.srcName)).getFile();
+    return file.size === entry.srcSize ? entry.srcName : null;
+  } catch (e) {
+    return null;
+  }
+}
 
-  // Không có dấu vết thì đối chiếu thẳng với file trên đĩa. Bản nháp trong
-  // IndexedDB không mang srcName của ảnh vừa ghi ở lần lưu bị cắt ngang, thiếu
-  // nhánh này thì mỗi lần lưu tiếp lại chép lại cả vài chục MB.
+const siStem = (name) => name.replace(/\.[^.]+$/, "").toLowerCase();
+
+// Tên trống cho ảnh mới: makeStem(1), makeStem(2)… tới khi không trùng gốc tên
+// nào đã giữ (so không phân biệt hoa thường — ổ Windows coi là một file).
+function siFreeName(stems, makeStem, ext) {
+  for (let n = 1; ; n++) {
+    const stem = makeStem(n);
+    if (stems.has(stem.toLowerCase())) continue;
+    stems.add(stem.toLowerCase());
+    return `${stem}.${ext}`;
+  }
+}
+
+// Ảnh mới mà trên đĩa đã có đúng file đó (lần lưu trước bị cắt ngang sau khi ghi
+// xong ảnh này — bản nháp không mang srcName của nó) → khỏi ghi lại.
+async function siSameOnDisk(entry, filename) {
   try {
     const file = await (await siThemeHandle.getFileHandle(filename)).getFile();
     if (file.size !== entry.blob.size) return false;
@@ -1292,10 +1312,10 @@ async function siSameBytes(fileA, blobB) {
   return true;
 }
 
-// Ghi 1 ảnh, kèm tiến độ. Lỗi được bọc lại cho biết CHẾT Ở FILE NÀO — trước đây
-// chỉ nhận được message trống rỗng của DOMException, không lần ra được.
-async function siWriteImage(entry, filename, progress) {
-  if (await siIsUnchanged(entry, filename)) {
+// Ghi 1 ảnh, kèm tiến độ. Lỗi được bọc lại cho biết CHẾT Ở FILE NÀO (message
+// của DOMException thường trống).
+async function siWriteImage(entry, filename, kept, progress) {
+  if (kept || (await siSameOnDisk(entry, filename))) {
     progress(filename, true);
     return;
   }
@@ -1347,7 +1367,7 @@ function siClearSaveFlag() {
 
 // Gọi sau khi theme đã nạp xong (kể cả từ bản nháp): thấy cờ còn sót nghĩa là
 // lần lưu trước chết giữa chừng → ghi tiếp. Ảnh nào đã đúng trên đĩa sẽ được
-// siIsUnchanged() bỏ qua nên mỗi vòng chỉ ghi phần còn thiếu, vài vòng là xong.
+// siKeptName/siSameOnDisk bỏ qua nên mỗi vòng chỉ ghi phần còn thiếu, vài vòng là xong.
 async function siResumeSaveIfInterrupted() {
   const st = siReadResumeState();
   if (!st || st.theme !== siCurrentTheme || !siThemeHandle) return;
@@ -1486,13 +1506,34 @@ async function saveSampleImages({ scan = true } = {}) {
       );
     };
 
+    // Ảnh chưa đổi giữ nguyên tên + file trên đĩa (đổi điểm lấy nét chỉ đổi
+    // data.json), chỉ ảnh mới nhận tên trống rồi mới ghi. Thứ tự album/mốc nằm
+    // trong data.json nên tên file không cần khớp vị trí — xoá/kéo một ảnh không
+    // kéo cả dãy phía sau đổi tên rồi phải ghi lại.
+    const kept = new Map();
+    const stems = new Set();
+    for (const entry of [
+      ...SI_SINGLE_FIELDS.map((f) => siData.singleImages[f]),
+      ...siData.gallery,
+      ...siData.loveStory,
+    ]) {
+      const name = await siKeptName(entry);
+      if (!name || stems.has(siStem(name))) continue;
+      kept.set(entry, name);
+      stems.add(siStem(name));
+    }
+    const pad = (n) => String(n).padStart(2, "0");
+    const nameFor = (entry, makeStem, ext) =>
+      kept.get(entry) || siFreeName(stems, makeStem, ext);
+
     for (const field of SI_SINGLE_FIELDS) {
       const entry = siData.singleImages[field];
       if (!entry.blob) continue;
       const isCrop = SI_CROP_FIELDS.includes(field);
       const ext = isCrop ? "png" : siExtFromBlob(entry.blob, "jpg");
-      const filename = `${SI_FIELD_BASENAME[field]}.${ext}`;
-      await siWriteImage(entry, filename, progress);
+      const base = SI_FIELD_BASENAME[field];
+      const filename = nameFor(entry, (n) => (n === 1 ? base : `${base}-${n}`), ext);
+      await siWriteImage(entry, filename, kept.has(entry), progress);
       keepFiles.add(filename);
       json[field] = filename;
       if (SI_FOCAL_POINT_FIELDS.includes(field)) {
@@ -1504,8 +1545,8 @@ async function saveSampleImages({ scan = true } = {}) {
     for (let i = 0; i < siData.gallery.length; i++) {
       const item = siData.gallery[i];
       const ext = siExtFromBlob(item.blob, "jpg");
-      const filename = `gallery-${String(i + 1).padStart(2, "0")}.${ext}`;
-      await siWriteImage(item, filename, progress);
+      const filename = nameFor(item, (n) => `gallery-${pad(n)}`, ext);
+      await siWriteImage(item, filename, kept.has(item), progress);
       keepFiles.add(filename);
       galleryNames.push(filename);
       json.image_focal_points.gallery_images[filename] = item.focal;
@@ -1518,8 +1559,8 @@ async function saveSampleImages({ scan = true } = {}) {
       const entry = { date: item.date, title: item.title, content: item.content };
       if (item.blob) {
         const ext = siExtFromBlob(item.blob, "jpg");
-        const filename = `love-story-${String(i + 1).padStart(2, "0")}.${ext}`;
-        await siWriteImage(item, filename, progress);
+        const filename = nameFor(item, (n) => `love-story-${pad(n)}`, ext);
+        await siWriteImage(item, filename, kept.has(item), progress);
         keepFiles.add(filename);
         entry.image_url = filename;
         entry.focal_point = item.focal;
@@ -1544,7 +1585,7 @@ async function saveSampleImages({ scan = true } = {}) {
     await siWriteFile(siThemeHandle, "data.json", jsonBlob);
 
     // Lưu xong → bản nháp hết vai trò; đọc lại từ đĩa để state khớp đúng
-    // những gì đang nằm trong thư mục (tên file đã được đánh số lại).
+    // những gì đang nằm trong thư mục.
     clearTimeout(siDraftTimer);
     await siIdbDelete(SI_IDB_DRAFT_STORE, siCurrentTheme).catch(() => {});
     await siLoadThemeData();

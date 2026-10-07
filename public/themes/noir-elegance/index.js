@@ -90,13 +90,8 @@
     // id các mục trùng bảng mặc định của preview-focus-helper.js → không cần
     // khai `focus`.
 
-    // Thiệp mở ra (kể cả lối bỏ qua bìa) → gỡ cờ ẩn nút nhạc, xem dưới.
-    onOpen: () => document.documentElement.classList.remove("ne-cover-on"),
+    onOpen: null,
   };
-
-  // Nút nhạc neo góc màn KHÔNG hiện trên màn bìa (theme.css) — bìa là tấm
-  // thiệp giấy, nút đè lên khung vàng ở góc.
-  document.documentElement.classList.add("ne-cover-on");
 
   const _isGroom = isGroomSide();
 

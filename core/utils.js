@@ -944,6 +944,32 @@ function confirmFocalPoint() {
   callback({ x: v.x, y: v.y });
 }
 
+// Giây bắt đầu phát của nhạc nền nằm NGAY trong music_url (tham số `t`/`start`
+// chuẩn của YouTube: `90`, `90s`, `1m30s`) — không có cột DB riêng.
+function cxYtStart(url) {
+  const m = String(url || "").match(/[?&#](?:t|start)=([0-9hms]+)/i);
+  if (!m) return 0;
+  const v = m[1].toLowerCase();
+  if (/^\d+$/.test(v)) return +v;
+  const p = v.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/);
+  return p ? (+p[1] || 0) * 3600 + (+p[2] || 0) * 60 + (+p[3] || 0) : 0;
+}
+
+// Trả music_url đã gắn `t=<giây>` (0 = bỏ tham số); URL không parse được thì giữ nguyên.
+function cxYtWithStart(url, sec) {
+  if (!url) return url;
+  try {
+    const u = new URL(/^https?:\/\//i.test(url) ? url : "https://" + url);
+    u.searchParams.delete("t");
+    u.searchParams.delete("start");
+    sec = Math.max(0, Math.floor(sec || 0));
+    if (sec) u.searchParams.set("t", String(sec));
+    return u.toString();
+  } catch (e) {
+    return url;
+  }
+}
+
 // ============= TIME PICKER =============
 
 function openTimePicker(anchorEl, currentValue, callback) {
@@ -1136,6 +1162,8 @@ function closeTimePicker() {
     });
   }
 
+  // Xem thử mẫu khác ngay trong TAB HIỆN TẠI (cố ý không mở tab mới): đang ở
+  // trong khung máy thì nhờ trang ngoài chuyển, để cả khung đổi theo.
   function _go(url) {
     if (IN_SHELL) return parent.postMessage({ type: "cx-sug-go", url: url }, "*");
     window.location.href = url;

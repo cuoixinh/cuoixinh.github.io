@@ -18,7 +18,7 @@
 // Tuỳ chỉnh trên thẻ root: data-cx-play-icon / data-cx-pause-icon (class icon,
 // ghép vào class theme đặt sẵn — viết trong HTML để purge thấy), data-cx-seek
 // (giây, mặc định 10), data-cx-empty-title, data-cx-reveal-on-scroll (chỉ hiện
-// sau khi cuộn quá N px, mặc định 64).
+// khi đã mở bìa VÀ cuộn quá N px, mặc định 64).
 
 // Đang ở iframe chỉnh giao diện (?edit=1)? — vài hiệu ứng "tự ẩn" phải tắt đi
 // thì mới bấm vào trình phát mà chỉnh được.
@@ -469,12 +469,13 @@ function setupMusicPlayer(root) {
     });
   }
 
-  // Chỉ hiện khi đã cuộn xuống (tuỳ chọn). Không đụng tới `display` vì đó là
-  // phần setupMusic() quản (bật/tắt nhạc nền) — ở đây chỉ mờ/hiện bằng class.
-  // Trong trình chỉnh giao diện thì bỏ qua: trình phát là thứ bấm vào để sửa,
-  // phải thấy ngay từ đầu chứ không bắt cuộn xuống mới lộ ra.
+  // Chỉ hiện khi đã MỞ BÌA và cuộn xuống (tuỳ chọn) — màn bìa không bao giờ có nút
+  // nhạc. Không đụng tới `display` vì đó là phần setupMusic() quản (bật/tắt nhạc
+  // nền) — ở đây chỉ mờ/hiện bằng class. Trong trình chỉnh giao diện thì bỏ qua:
+  // trình phát là thứ bấm vào để sửa, phải thấy ngay từ đầu.
   if (root.dataset.cxRevealOnScroll !== undefined && !_cxMusicEditMode()) {
     const threshold = Number(root.dataset.cxRevealOnScroll) || 64;
+    const card = document.getElementById("main-card");
     root.classList.add("cx-mp-reveal");
 
     let raf = 0;
@@ -489,7 +490,8 @@ function setupMusicPlayer(root) {
 
     const _syncReveal = () => {
       raf = 0;
-      const nowHidden = (window.scrollY || 0) < threshold;
+      const opened = !card || card.style.display !== "none";
+      const nowHidden = !opened || (window.scrollY || 0) < threshold;
       if (nowHidden === hidden) return;
       _setBarHidden(nowHidden);
       // Vừa cuộn xuống làm lộ trình phát → phát tiếp luôn. resumeMusicIfAllowed
@@ -505,6 +507,14 @@ function setupMusicPlayer(root) {
       },
       { passive: true },
     );
+    // Mở bìa không kèm sự kiện cuộn nào (openInvitation còn kéo về đầu trang) —
+    // theo dõi luôn thẻ thân thiệp để tính lại.
+    if (card) {
+      new MutationObserver(_syncReveal).observe(card, {
+        attributes: true,
+        attributeFilter: ["style"],
+      });
+    }
     _syncReveal();
   }
 

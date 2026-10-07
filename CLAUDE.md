@@ -190,8 +190,9 @@ không bao giờ lùi. Cùng MỘT phần tử dùng cho hai chỗ, **hình dạ
 mở + dấu * dội lên `#nav-more` (`_syncNavItemState` ở `js/04-nav-tabs.js`); popover neo và
 kẹp theo `#nav-card` chứ không theo bề ngang màn hình.
 
-Từ `sm` trở lên **mọi ô trong navbar đều khổ CỐ ĐỊNH**, chỗ thừa dồn hết vào `ml-auto` của
-`#nav-actions` → dãy tab sát trái, "Lưu nháp"/"Xuất bản" sát phải; cho một ô `flex-1` là cả
+Từ `sm` trở lên **mọi tab trong navbar đều khổ CỐ ĐỊNH** (riêng "Lưu nháp"/"Xuất bản" ôm theo
+chữ — đổi nhãn là phải `cxNavReflow()`), chỗ thừa dồn hết vào `ml-auto` của
+`#nav-actions` → dãy tab sát trái, hai nút hành động sát phải; cho một ô `flex-1` là cả
 hàng lệch. Phép đo chỗ trống dựa vào bề ngang tối thiểu của hàng, nên nhãn phải
 `whitespace-nowrap` và ô nào cũng phải có khổ khai sẵn. Ẩn/hiện một nút trong navbar là đổi
 chỗ trống → gọi lại `cxNavReflow()`.
@@ -600,6 +601,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   iframe rỗng chỉ để đọc bản khai. Thanh ngang (`bar` + `fixed-top`) chỉ dùng ở
   `basic-gold`, các mẫu khác neo góc màn (`fixed-corner`) — khổ neo góc của hai
   dạng không tròn (`pill`, `square`) khai riêng ở `styles/_music-player.css`.
+  Nút neo màn hình **không bao giờ hiện ở màn bìa**: chỉ lộ ra khi đã mở bìa VÀ cuộn
+  (`data-cx-reveal-on-scroll`) — mẫu không cuộn trang (slide) phải khai `revealOnScroll: 0`.
 - **Thành phần thả lên thiệp:** danh mục `core/helpers/element-helper.js`, runtime
   `theme-setting-helper.js`, bảng chọn `05-theme-panel.js`; lưu trong
   `theme_setting.elements` nên không cần changelog DB. Ô màu dùng khoá cố định ở

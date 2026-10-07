@@ -96,6 +96,7 @@
 
     // --- Màn bìa + mở đầu (ảnh màn đầu nhận src TRƯỚC setupMusic) ---
     renderCover(w);
+    pbCoverPhotos(gallery, galleryFp);
     renderHero(w, false);
     if (w.ceremony_date) {
       const d = new Date(w.ceremony_date + "T00:00:00");
@@ -122,7 +123,7 @@
     setText("invite-groom", w.groom_name, "----------");
     setText("invite-bride", w.bride_name, "----------");
     setText("ceremony-event-name", ceremonyName);
-    renderCeremonyDate(w.ceremony_date, ceremonyTime, w.ceremony_lunar);
+    pbCeremonyDate(w.ceremony_date, ceremonyTime, w.ceremony_lunar);
     if (ceremonyLoc) {
       setText("ceremony-location-text", ceremonyLoc);
       cxToggle("ceremony-location-wrap", true);
@@ -195,6 +196,34 @@
   window.renderWedding = renderWedding;
 
   const _pad = (n) => String(Math.max(0, n)).padStart(2, "0");
+
+  // Ngày giờ lễ viết cùng khuôn với renderPartyDate "full" để hai mục đọc giống nhau.
+  function pbCeremonyDate(date, time, lunar) {
+    const d = date ? new Date(date + "T00:00:00") : null;
+    const ok = d && !isNaN(d) && time;
+    setText(
+      "pb-cer-datetime",
+      ok ? `${time} - ${d.getDate()}.${_pad(d.getMonth() + 1)}.${d.getFullYear()}` : "",
+      "--:-- - --.--.----",
+    );
+    setText("pb-cer-lunar", lunar ? `(${lunar})` : "", "(----)");
+  }
+
+  // ============= ẢNH ALBUM TRÊN MÀN BÌA =============
+  // Ảnh album 1 → tấm Polaroid nhỏ (album trống thì cờ .is-solo lùi về một tấm);
+  // ảnh album 2 → nền mờ phía sau.
+
+  function pbCoverPhotos(images, focal) {
+    const put = (id, url) => {
+      const img = document.getElementById(id);
+      if (!img || !url) return;
+      img.src = getImageUrl(url);
+      img.style.objectPosition = cxFocal(focal?.[url]);
+    };
+    document.getElementById("pb-cv-frame")?.classList.toggle("is-solo", !images[0]);
+    put("pb-cover-img-2", images[0]);
+    put("pb-cover-bg", images[1]);
+  }
 
   // ============= ẢNH XEN GIỮA CÁC MỤC =============
   // Ô [data-pb-shot="i"] lấy ảnh album thứ i ("last" = ảnh cuối, chỉ khi album

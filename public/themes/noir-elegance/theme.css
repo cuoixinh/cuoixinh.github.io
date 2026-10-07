@@ -400,16 +400,6 @@ body {
   }
 }
 
-/* Nút nhạc neo góc màn chỉ hiện SAU khi mở bìa: cờ do index.js gắn lúc nạp,
-   gỡ ở CX_THEME.onOpen. Ẩn bằng visibility vì setupMusic() tự đặt `display`
-   inline cho nút. */
-
-.ne-cover-on #music-toggle {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* Tên cặp đôi ở màn bìa: chữ viết tay MẠ VÀNG (dải màu cắt theo hình chữ).
    Chữ tô bằng background chứ không phải `color`, nên chỉnh màu cho riêng dòng
    này sẽ không ăn — muốn đổi thì sửa dải màu ngay dưới đây. */

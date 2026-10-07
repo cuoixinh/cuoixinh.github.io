@@ -1,66 +1,102 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.webp": { "x": 50, "y": 18 },
-      "gallery-02.webp": { "x": 58, "y": 36 },
-      "gallery-03.webp": { "x": 57, "y": 30 },
-      "gallery-04.webp": { "x": 55, "y": 52 },
-      "gallery-05.webp": { "x": 62, "y": 20 },
-      "gallery-06.webp": { "x": 45, "y": 18 },
-      "gallery-07.webp": { "x": 40, "y": 30 },
-      "gallery-08.webp": { "x": 50, "y": 34 },
-      "gallery-09.webp": { "x": 52, "y": 44 },
-      "gallery-10.webp": { "x": 50, "y": 30 }
+      "gallery-01.jpg": {
+        "x": 53,
+        "y": 28
+      },
+      "gallery-02.jpg": {
+        "x": 55,
+        "y": 31
+      },
+      "gallery-03.jpg": {
+        "x": 55,
+        "y": 37
+      },
+      "gallery-04.jpg": {
+        "x": 65,
+        "y": 17
+      },
+      "gallery-05.jpg": {
+        "x": 48,
+        "y": 24
+      },
+      "gallery-06.jpg": {
+        "x": 49,
+        "y": 12
+      },
+      "gallery-07.jpg": {
+        "x": 5,
+        "y": 30
+      },
+      "gallery-08.jpg": {
+        "x": 60,
+        "y": 32
+      },
+      "gallery-09.jpg": {
+        "x": 59,
+        "y": 40
+      }
     },
-    "cover_image_url": { "x": 50, "y": 30 },
-    "groom_image_url": { "x": 46, "y": 20 },
-    "bride_image_url": { "x": 44, "y": 22 }
+    "cover_image_url": {
+      "x": 64,
+      "y": 40
+    },
+    "groom_image_url": {
+      "x": 93,
+      "y": 13
+    },
+    "bride_image_url": {
+      "x": 54,
+      "y": 17
+    }
   },
-  "cover_image_url": "cover.webp",
-  "groom_image_url": "groom.webp",
-  "bride_image_url": "bride.webp",
+  "cover_image_url": "cover.jpg",
+  "groom_image_url": "groom.jpg",
+  "bride_image_url": "bride.jpg",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.webp",
-    "gallery-02.webp",
-    "gallery-03.webp",
-    "gallery-04.webp",
-    "gallery-05.webp",
-    "gallery-06.webp",
-    "gallery-07.webp",
-    "gallery-08.webp",
-    "gallery-09.webp",
-    "gallery-10.webp"
+    "gallery-01.jpg",
+    "gallery-02.jpg",
+    "gallery-03.jpg",
+    "gallery-04.jpg",
+    "gallery-05.jpg",
+    "gallery-06.jpg",
+    "gallery-07.jpg",
+    "gallery-08.jpg",
+    "gallery-09.jpg"
   ],
   "love_story": [
     {
       "date": "06/2020",
       "title": "Chiếc ô quên ở quán cà phê",
       "content": "Chiều mưa Sài Gòn, anh mượn chiếc ô của em rồi hẹn hôm sau trả. Hôm sau trời nắng, anh vẫn tới.",
-      "image_url": "love-story-01.webp",
-      "focal_point": { "x": 40, "y": 30 }
-    },
-    {
-      "date": "02/2021",
-      "title": "Tết đầu tiên có nhau",
-      "content": "Em diện áo dài hồng đi lễ chùa đầu năm, anh đứng ngắm mãi mà quên cả thắp hương.",
-      "image_url": "love-story-02.webp",
-      "focal_point": { "x": 50, "y": 24 }
+      "image_url": "love-story-01.jpg",
+      "focal_point": {
+        "x": 47,
+        "y": 7
+      }
     },
     {
       "date": "10/2023",
       "title": "Chuyến đi Đà Lạt",
       "content": "Hai đứa ngồi bệt giữa đồi thông, kể nhau nghe về căn nhà nhỏ sau này sẽ cùng vun vén.",
-      "image_url": "love-story-03.webp",
-      "focal_point": { "x": 50, "y": 34 }
+      "image_url": "love-story-02.jpg",
+      "focal_point": {
+        "x": 47,
+        "y": 31
+      }
     },
     {
       "date": "08/2026",
       "title": "Lời hẹn ước",
       "content": "Bên bàn trà của hai bên gia đình, anh nắm tay em và hứa sẽ cùng nhau đi hết đoạn đường còn lại.",
-      "image_url": "love-story-04.webp",
-      "focal_point": { "x": 52, "y": 44 }
+      "image_url": "love-story-03.jpg",
+      "focal_point": {
+        "x": 56,
+        "y": 23
+      }
     }
   ],
   "content": {
@@ -82,9 +118,9 @@
     "vu_quy_time": "08:00",
     "vu_quy_location": "Tư gia nhà gái — Số 28 Nguyễn Đình Chiểu, Phường Sài Gòn, TP. Hồ Chí Minh",
     "vu_quy_map_embed_url": "https://maps.google.com/maps?q=10.7863,106.6995&output=embed&hl=vi",
-    "groom_party_date": "2026-12-26",
+    "groom_party_date": "2026-12-25",
     "groom_party_time": "17:30",
-    "groom_party_lunar": "Tức ngày 18 tháng 11 năm Bính Ngọ",
+    "groom_party_lunar": "Tức ngày 17 tháng 11 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Sảnh Hoa Hồng — Trung tâm Tiệc cưới White Palace, 194 Hoàng Văn Thụ, TP. Hồ Chí Minh",
     "groom_party_map_embed_url": "https://maps.google.com/maps?q=10.7998,106.6787&output=embed&hl=vi",
@@ -115,17 +151,57 @@
     "enable_footer": true,
     "demo_fill_love_story": false,
     "timeline": [
-      { "time": "08:00", "title": "Lễ Vu Quy tại tư gia nhà gái", "type": "ceremony" },
-      { "time": "09:30", "title": "Rước dâu về nhà trai", "type": "ceremony" },
-      { "time": "11:00", "title": "Lễ gia tiên và trao nhẫn cưới", "type": "ceremony" },
-      { "time": "17:30", "title": "Đón khách, chụp ảnh lưu niệm", "type": "party" },
-      { "time": "18:30", "title": "Khai tiệc mừng", "type": "party" },
-      { "time": "19:30", "title": "Cắt bánh, rót rượu, nâng ly chúc mừng", "type": "party" },
-      { "time": "20:30", "title": "Giao lưu văn nghệ cùng bạn bè", "type": "party" },
-      { "time": "18:00", "title": "Đón khách tại nhà hàng", "type": "bride-party" },
-      { "time": "19:00", "title": "Khai tiệc nhà gái", "type": "bride-party" },
-      { "time": "20:30", "title": "Cảm ơn và tiễn khách", "type": "bride-party" }
+      {
+        "time": "08:00",
+        "title": "Lễ Vu Quy tại tư gia nhà gái",
+        "type": "ceremony"
+      },
+      {
+        "time": "09:30",
+        "title": "Rước dâu về nhà trai",
+        "type": "ceremony"
+      },
+      {
+        "time": "11:00",
+        "title": "Lễ gia tiên và trao nhẫn cưới",
+        "type": "ceremony"
+      },
+      {
+        "time": "17:30",
+        "title": "Đón khách, chụp ảnh lưu niệm",
+        "type": "party"
+      },
+      {
+        "time": "18:30",
+        "title": "Khai tiệc mừng",
+        "type": "party"
+      },
+      {
+        "time": "19:30",
+        "title": "Cắt bánh, rót rượu, nâng ly chúc mừng",
+        "type": "party"
+      },
+      {
+        "time": "20:30",
+        "title": "Giao lưu văn nghệ cùng bạn bè",
+        "type": "party"
+      },
+      {
+        "time": "18:00",
+        "title": "Đón khách tại nhà hàng",
+        "type": "bride-party"
+      },
+      {
+        "time": "19:00",
+        "title": "Khai tiệc nhà gái",
+        "type": "bride-party"
+      },
+      {
+        "time": "20:30",
+        "title": "Cảm ơn và tiễn khách",
+        "type": "bride-party"
+      }
     ]
   },
-  "updated_at": "2026-10-05T10:45:00.000Z"
+  "updated_at": "2026-10-07T17:01:03.276Z"
 }
