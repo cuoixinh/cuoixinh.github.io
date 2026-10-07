@@ -1,31 +1,31 @@
 /* Bảng màu + CSS riêng của HẸN ƯỚC — CSS THUẦN, nạp sau styles/themes.css.
-   Thiệp lật trang nền trắng: mỗi .hu-page cao đúng một màn (qua --vh), ảnh trong trang
-   đo theo chiều cao màn để trang nào cũng vừa khung. Hai nét chính: khối đỏ son đặt
-   lệch sau ảnh (.hu-block) và khung ảnh viền đỏ dày (.hu-framed). Hoạ tiết ở #hu-defs. */
+   Thiệp cuộn liền mạch nền kem: mỗi .hu-page cao theo nội dung (trừ vài trang ảnh tràn
+   giữ đúng một màn), ảnh trong trang đo theo chiều cao màn (--hu-screen). Hai nét chính: khối đỏ rượu vang đặt
+   lệch sau ảnh (.hu-block) và khung ảnh viền đỏ rượu dày (.hu-framed). Hoạ tiết ở #hu-defs. */
 
 :root {
-  --cx-accent-rgb: 160 0 28; /* đỏ son — tiêu đề, khối sau ảnh, nút */
-  --cx-accent-soft-rgb: 248 214 218;
-  --cx-on-accent-rgb: 255 255 255;
-  --cx-heading-rgb: 110 0 20;
-  --cx-body-rgb: 60 44 46;
-  --cx-line-rgb: 236 214 216;
-  --cx-surface-rgb: 250 246 245;
-  --cx-band-rgb: 160 0 28; /* KHỐI ĐỎ sau ảnh + viền khung ảnh */
-  --cx-panel-rgb: 255 255 255;
-  --cx-panel-warm-rgb: 251 243 243;
-  --cx-cover-rgb: 255 255 255;
-  --cx-cover-mid-rgb: 250 246 245;
-  --cx-cover-veil-rgb: 255 255 255;
-  --cx-card-bg-rgb: 255 255 255;
-  --cx-page-bg-rgb: 245 244 246;
-  --cx-deco-rgb: 160 0 28; /* huy hiệu, tim, dây treo */
-  --cx-deco-soft-rgb: 248 214 218; /* ruột ly sâm panh */
-  --cx-deco-2-rgb: 200 40 60;
-  --cx-deco-2-soft-rgb: 251 238 240;
-  --cx-shine-from-rgb: 255 255 255;
-  --cx-shine-mid-rgb: 251 238 240;
-  --cx-shine-to-rgb: 248 214 218;
+  --cx-accent-rgb: 125 38 51; /* đỏ rượu vang — tiêu đề, nút */
+  --cx-accent-soft-rgb: 238 214 208;
+  --cx-on-accent-rgb: 255 250 242;
+  --cx-heading-rgb: 92 26 36;
+  --cx-body-rgb: 74 58 52;
+  --cx-line-rgb: 232 216 200;
+  --cx-surface-rgb: 246 238 223;
+  --cx-band-rgb: 125 38 51; /* KHỐI ĐỎ RƯỢU sau ảnh + viền khung ảnh */
+  --cx-panel-rgb: 251 246 236;
+  --cx-panel-warm-rgb: 247 239 225;
+  --cx-cover-rgb: 251 246 236;
+  --cx-cover-mid-rgb: 246 238 223;
+  --cx-cover-veil-rgb: 251 246 236;
+  --cx-card-bg-rgb: 251 246 236;
+  --cx-page-bg-rgb: 243 235 220;
+  --cx-deco-rgb: 125 38 51; /* huy hiệu, tim, dây treo */
+  --cx-deco-soft-rgb: 238 214 208; /* ruột ly sâm panh */
+  --cx-deco-2-rgb: 168 92 92;
+  --cx-deco-2-soft-rgb: 245 232 224;
+  --cx-shine-from-rgb: 255 250 242;
+  --cx-shine-mid-rgb: 245 232 224;
+  --cx-shine-to-rgb: 238 214 208;
 
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
@@ -72,8 +72,8 @@ body {
 }
 .hu-script,
 .hu-script .cx-h {
-  font-family: "Dancing Script", cursive;
-  font-weight: 600;
+  font-family: "FaugllinBalseyn", "Dancing Script", cursive;
+  font-weight: normal;
 }
 .hu-amp {
   margin: 0 6px;
@@ -168,7 +168,7 @@ body {
   flex: none;
 }
 
-/* ── Ảnh + khối đỏ ────────────────────────────────────────────────────── */
+/* ── Ảnh + khối đỏ rượu ────────────────────────────────────────────────────── */
 .hu-page .cx-t,
 .hu-page .cx-h {
   position: relative;
@@ -206,28 +206,29 @@ body {
   position: absolute;
 }
 
-/* ── Lật trang ────────────────────────────────────────────────────────── */
-/* Trang cuộn thường + bắt dính từng trang: vuốt một lần = sang đúng một trang. */
-html.hu-on {
-  scroll-snap-type: y mandatory;
-}
+/* ── Trang ─────────────────────────────────────────────────────────────── */
+/* Cuộn liền mạch: trang cao theo nội dung, hai trang liền nhau cách 48px (24px mỗi bên).
+   Trang dựng bằng ảnh tràn + vị trí tuyệt đối theo --hu-screen thì giữ cao một màn. */
 .hu-flow {
   gap: 0;
 }
 .hu-page,
 #main-card .cx-wsec {
   position: relative;
-  min-height: var(--hu-screen);
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 .hu-page {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 24px;
+  padding: 24px;
   overflow: hidden;
+}
+.hu-hero,
+.hu-save,
+.hu-time,
+.hu-footer {
+  min-height: var(--hu-screen);
 }
 #main-card .cx-wsec {
   display: flex;
@@ -240,7 +241,7 @@ html.hu-on {
 }
 
 /* Hiệu ứng vào trang: chỉ ẩn sẵn khi bộ lật trang đã bật (html.hu-on), trang
-   đang mở (.is-active) thì phần tử .hu-a hiện vào theo thứ tự --d. */
+   đã mở tới (.is-active, giữ luôn sau khi vuốt qua) thì .hu-a hiện vào theo thứ tự --d. */
 .hu-a {
   transition:
     opacity 0.45s ease,
@@ -272,7 +273,7 @@ html.hu-on {
   transform: rotate(14deg);
   transform-origin: 50% 0;
 }
-/* Khối đỏ kéo ngang từ trái sang. */
+/* Khối đỏ rượu kéo ngang từ trái sang. */
 .hu-on .hu-grow {
   opacity: 1;
   transform: scaleX(0);
@@ -413,7 +414,7 @@ html.hu-on {
   margin: 0 8px;
 }
 
-/* ── Màn bìa kiểu tạp chí: ảnh viền đỏ nghiêng trên khối đỏ lệch ──────── */
+/* ── Màn bìa kiểu tạp chí: ảnh viền đỏ rượu nghiêng trên khối đỏ rượu lệch ──────── */
 #cover-screen .hu-cover {
   display: flex;
   flex-direction: column;
@@ -458,18 +459,20 @@ html.hu-on {
   transform-origin: 50% 0;
   animation: cx-hu-cv-swing 1.8s 0.6s cubic-bezier(0.3, 1.6, 0.4, 1) both;
 }
-/* Chữ viết tay đè chân ảnh — viền trắng (paint-order) để đọc được trên ảnh lẫn khối đỏ. */
+/* Chữ viết tay đè chân ảnh — viền mảnh màu nền (paint-order) để đọc được trên ảnh lẫn
+   khối đỏ rượu; font nét đậm vì font mảnh mất hẳn khi đè lên khối cùng màu. */
 .hu-cv-script {
   position: absolute;
-  left: -20%;
-  bottom: -14%;
+  left: -18%;
+  bottom: -13%;
   z-index: 2;
-  font-size: min(68px, calc(var(--hu-screen) * 0.08));
-  line-height: 1;
+  font-size: min(72px, calc(var(--hu-screen) * 0.085));
+  line-height: 1.2;
   white-space: nowrap;
-  rotate: -8deg;
-  -webkit-text-stroke: 6px rgb(var(--cx-card-bg-rgb));
+  rotate: -6deg;
+  -webkit-text-stroke: 4px rgb(var(--cx-card-bg-rgb));
   paint-order: stroke fill;
+  text-shadow: 0 4px 12px rgb(var(--cx-shadow-rgb) / 0.18);
   animation: cx-hu-cv-write 1.6s 0.8s ease-in-out both;
 }
 .hu-cover-text {
@@ -543,10 +546,10 @@ html.hu-on {
 }
 @keyframes cx-hu-cv-write {
   from {
-    clip-path: inset(-30% 100% -30% -10%);
+    clip-path: inset(-40% 100% -40% -20%);
   }
   to {
-    clip-path: inset(-30% -10% -30% -10%);
+    clip-path: inset(-40% -20% -40% -20%);
   }
 }
 @keyframes cx-hu-cv-fade {
@@ -585,24 +588,11 @@ html.hu-on {
   overflow: hidden;
   background: rgb(var(--cx-surface-rgb));
 }
-.hu-hero-photo::before,
-.hu-hero-photo::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-.hu-hero-photo::before {
-  top: 0;
-  height: 20%;
-  background: linear-gradient(to bottom, rgb(var(--cx-card-bg-rgb)), rgb(var(--cx-card-bg-rgb) / 0));
-}
-.hu-hero-photo::after {
-  bottom: 0;
-  height: 40%;
-  background: linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.85) 40%, rgb(var(--cx-card-bg-rgb) / 0));
+/* Ảnh tràn mờ dần bằng MASK (về trong suốt), đừng phủ lớp màu nền lên: mép ảnh dưới lớp
+   phủ lộ thành vệt kẻ mảnh — ở đây nó cắt ngang dòng "Welcome to our wedding". */
+.hu-hero-photo {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 60%, rgb(0 0 0 / 0.15) 84%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 60%, rgb(0 0 0 / 0.15) 84%, transparent 100%);
 }
 .hu-hero-script {
   position: absolute;
@@ -611,9 +601,8 @@ html.hu-on {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  font-size: 34px;
-  line-height: 1.15;
-  rotate: -6deg;
+  font-size: 36px;
+  line-height: 1.2;
 }
 .hu-hero-script span:last-child {
   padding-left: 28px;
@@ -634,7 +623,7 @@ html.hu-on {
   text-align: center;
 }
 
-/* ── Lời ngỏ: thơ + tháp ly + ảnh giữa trên khối đỏ, dây treo hai bên ── */
+/* ── Lời ngỏ: thơ + tháp ly + ảnh giữa trên khối đỏ rượu, dây treo hai bên ── */
 .hu-intro .hu-poem {
   margin-top: calc(var(--hu-screen) * 0.022);
 }
@@ -673,7 +662,7 @@ html.hu-on {
   margin-top: calc(var(--hu-screen) * 0.026);
 }
 
-/* ── Gia đình: hai chân dung trên dải đỏ, tên + song thân bên dưới ───── */
+/* ── Gia đình: hai chân dung trên dải đỏ rượu, tên + song thân bên dưới ───── */
 .hu-pair {
   height: calc(var(--hu-screen) * 0.36);
   margin: calc(var(--hu-screen) * 0.02) -24px 0;
@@ -747,7 +736,7 @@ html.hu-on {
   opacity: 0.75;
 }
 
-/* ── Save the date: ảnh ngang đầu trang, ảnh viền đỏ chồng mép ──────── */
+/* ── Save the date: ảnh ngang đầu trang, ảnh viền đỏ rượu chồng mép ──────── */
 .hu-save {
   justify-content: flex-start;
   padding: 0;
@@ -812,7 +801,7 @@ html.hu-on {
   max-width: none;
 }
 
-/* ── Chuyện tình: mỗi mốc một trang, ảnh trên khối đỏ lệch, ngày dựng đứng ─ */
+/* ── Chuyện tình: mỗi mốc một trang, ảnh trên khối đỏ rượu lệch, ngày dựng đứng ─ */
 .hu-ls-stage {
   height: calc(var(--hu-screen) * 0.52);
   margin: calc(var(--hu-screen) * 0.024) -24px 0;
@@ -871,24 +860,15 @@ html.hu-on {
   height: calc(var(--hu-screen) * 0.86);
   overflow: hidden;
 }
-.hu-time-photo::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgb(var(--cx-card-bg-rgb) / 0) 26%,
-    rgb(var(--cx-card-bg-rgb) / 0.78) 46%,
-    rgb(var(--cx-card-bg-rgb) / 0.94) 64%,
-    rgb(var(--cx-card-bg-rgb)) 100%
-  );
-  pointer-events: none;
+.hu-time-photo {
+  -webkit-mask-image: linear-gradient(to bottom, #000 26%, rgb(0 0 0 / 0.22) 46%, rgb(0 0 0 / 0.06) 64%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 26%, rgb(0 0 0 / 0.22) 46%, rgb(0 0 0 / 0.06) 64%, transparent 100%);
 }
 .hu-cal {
   position: absolute;
   left: 22px;
   right: 22px;
-  top: calc(var(--hu-screen) * 0.42);
+  top: calc(var(--hu-screen) * 0.38);
   z-index: 1;
 }
 .hu-cal-top {
@@ -960,16 +940,47 @@ html.hu-on {
   align-items: center;
   gap: 2px;
 }
+/* Lời mời chia tầng: dòng dẫn in hoa nhỏ → tên lễ → tên đôi, gạch mảnh ngăn với ngày giờ. */
 .hu-invite {
-  margin-bottom: 4px;
-  font-size: 12px;
-  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
   text-align: center;
 }
+.hu-invite-lead {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.hu-invite-event {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  line-height: 1.3;
+}
+.hu-invite-names {
+  font-size: 18px;
+  line-height: 1.4;
+  color: rgb(var(--cx-heading-rgb));
+}
+.hu-invite-names small {
+  font-size: 13px;
+  font-style: italic;
+  color: rgb(var(--cx-body-rgb) / 0.8);
+}
+.hu-date-sub {
+  font-size: 13px;
+  color: rgb(var(--cx-body-rgb) / 0.85);
+}
 
-/* ── Đếm ngược: ảnh có lề, ô số chồng mép, ảnh thứ hai trên khối đỏ ──── */
+/* ── Đếm ngược: ảnh có lề, ô số chồng mép, ảnh thứ hai trên khối đỏ rượu ──── */
 .hu-count {
-  padding: 0;
+  padding: 24px 0;
 }
 .hu-count-photo {
   width: 90%;
@@ -1024,7 +1035,7 @@ html.hu-on {
   bottom: 0;
 }
 
-/* ── Tiệc cưới: ảnh viền đỏ giữa trang, dây treo + tim hai bên ──────── */
+/* ── Tiệc cưới: ảnh viền đỏ rượu giữa trang, dây treo + tim hai bên ──────── */
 .hu-party-stage {
   height: calc(var(--hu-screen) * 0.5);
   margin: calc(var(--hu-screen) * 0.024) -24px 0;
@@ -1068,11 +1079,9 @@ html.hu-on {
   right: 0;
   height: calc(var(--hu-screen) * 0.3);
 }
-.hu-plan-top::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0) 50%);
+.hu-plan-top {
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 50%);
+  mask-image: linear-gradient(to top, transparent 0%, #000 50%);
 }
 .hu-plan-list {
   display: flex;
@@ -1108,7 +1117,7 @@ html.hu-on {
   line-height: 1.6;
 }
 
-/* ── Album: băng ảnh vuốt ngang trên khối đỏ ─────────────────────────── */
+/* ── Album: băng ảnh vuốt ngang trên khối đỏ rượu ─────────────────────────── */
 .hu-album .hu-title {
   margin-top: 4px;
 }
@@ -1153,7 +1162,7 @@ html.hu-on {
   color: rgb(var(--cx-accent-rgb));
 }
 
-/* ── Bản đồ: ảnh tràn đầu trang, địa chỉ trên nền đỏ, bản đồ viền đỏ ─── */
+/* ── Bản đồ: ảnh tràn đầu trang, địa chỉ trên nền đỏ rượu, bản đồ viền đỏ rượu ─── */
 .hu-map {
   justify-content: flex-start;
   padding: 0 0 calc(var(--hu-screen) * 0.06);
@@ -1166,11 +1175,9 @@ html.hu-on {
   height: calc(var(--hu-screen) * 0.7);
   overflow: hidden;
 }
-.hu-map-photo::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.7) 18%, rgb(var(--cx-card-bg-rgb) / 0) 42%);
+.hu-map-photo {
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, rgb(0 0 0 / 0.3) 18%, #000 42%);
+  mask-image: linear-gradient(to top, transparent 0%, rgb(0 0 0 / 0.3) 18%, #000 42%);
 }
 .hu-map-pl,
 .hu-map-pr {
@@ -1213,6 +1220,40 @@ html.hu-on {
   position: relative;
   height: calc(var(--hu-screen) * 0.2);
 }
+/* Dải "Chỉ đường · Mở bản đồ" liền viền đỏ rượu của thẻ; chưa có bản đồ (helper gắn
+   .pointer-events-none lên thẻ) thì ẩn — bấm vào không đi đâu cả. */
+.hu-map-go {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 6px 2px;
+  background: rgb(var(--cx-band-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  font-family: "Noto Serif", serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.hu-map-go svg.cx-ic {
+  width: 1em;
+  height: 1em;
+}
+.hu-map-go-l,
+.hu-map-go-r {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.hu-map-go-l {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.hu-map-go-r {
+  opacity: 0.85;
+}
+.hu-map-card.pointer-events-none .hu-map-go {
+  display: none;
+}
 .hu-map .cx-map-tag {
   position: relative;
   z-index: 1;
@@ -1223,7 +1264,7 @@ html.hu-on {
   color: rgb(var(--cx-accent-rgb));
 }
 
-/* ── Xác nhận tham dự: hai ảnh trên dải đỏ, nút đỏ rộng ──────────────── */
+/* ── Xác nhận tham dự: hai ảnh trên dải đỏ rượu, nút đỏ rượu rộng ──────────────── */
 .hu-rsvp {
   justify-content: flex-start;
   padding: calc(var(--hu-screen) * 0.03) 0 calc(var(--hu-screen) * 0.05);
@@ -1270,7 +1311,7 @@ html.hu-on {
   margin-top: 8px;
 }
 
-/* ── Hộp mừng cưới: thẻ QR trắng nằm trên khối đỏ ────────────────────── */
+/* ── Hộp mừng cưới: thẻ QR trắng nằm trên khối đỏ rượu ────────────────────── */
 .hu-gift .hu-emblem {
   width: 48px;
   height: 48px;
@@ -1338,13 +1379,9 @@ html.hu-on {
   height: calc(var(--hu-screen) * 0.74);
   overflow: hidden;
 }
-.hu-footer-photo::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(to bottom, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0) 14%),
-    linear-gradient(to top, rgb(var(--cx-card-bg-rgb)) 0%, rgb(var(--cx-card-bg-rgb) / 0.8) 22%, rgb(var(--cx-card-bg-rgb) / 0) 48%);
+.hu-footer-photo {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 52%, rgb(0 0 0 / 0.2) 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 52%, rgb(0 0 0 / 0.2) 78%, transparent 100%);
 }
 .hu-footer-text {
   position: relative;
@@ -1355,9 +1392,8 @@ html.hu-on {
   gap: 10px;
 }
 .hu-footer-script {
-  font-size: 40px;
+  font-size: 36px;
   line-height: 1.2;
-  rotate: -4deg;
 }
 .hu-footer .hu-footer-heart {
   position: absolute;

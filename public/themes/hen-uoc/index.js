@@ -1,6 +1,6 @@
-// Mẫu HẸN ƯỚC — thiệp lật trang nền trắng, khối đỏ son lệch sau ảnh. Chỉ KHAI BÁO:
+// Mẫu HẸN ƯỚC — thiệp cuộn liền mạch nền kem, khối đỏ rượu lệch sau ảnh. Chỉ KHAI BÁO:
 // window.CX_THEME + renderWedding + phần đặc thù (ảnh xen, lịch tháng đè ảnh, mỗi mốc
-// chuyện tình một trang, băng ảnh vuốt ngang, đếm ngược, bộ điều khiển lật trang).
+// chuyện tình một trang, băng ảnh vuốt ngang, đếm ngược, chấm chỉ trang + gợi ý cuộn).
 // Phần "chạy" nằm ở core/helpers/theme-boot.js. Bọc IIFE: `const` cấp cao nhất là biến toàn cục.
 
 (function () {
@@ -18,52 +18,52 @@
     // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
     // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
     palette: {
-      heading: "#6e0014",
-      body: "#3c2c2e",
-      accent: "#a0001c",
-      accent_soft: "#f8d6da",
-      on_accent: "#ffffff",
+      heading: "#5c1a24",
+      body: "#4a3a34",
+      accent: "#7d2633",
+      accent_soft: "#eed6d0",
+      on_accent: "#fffaf2",
       on_image: "#ffffff",
       on_lightbox: "#ffffff",
-      card_bg: "#ffffff",
-      page_bg: "#f5f4f6",
-      surface: "#faf6f5",
-      band: "#a0001c",
-      panel: "#ffffff",
-      panel_warm: "#fbf3f3",
-      cover: "#ffffff",
-      cover_mid: "#faf6f5",
-      cover_veil: "#ffffff",
+      card_bg: "#fbf6ec",
+      page_bg: "#f3ebdc",
+      surface: "#f6eedf",
+      band: "#7d2633",
+      panel: "#fbf6ec",
+      panel_warm: "#f7efe1",
+      cover: "#fbf6ec",
+      cover_mid: "#f6eedf",
+      cover_veil: "#fbf6ec",
       lightbox_bg: "#000000",
-      line: "#ecd6d8",
+      line: "#e8d8c8",
       shadow: "#000000",
       scrim: "#000000",
-      deco: "#a0001c",
-      deco_soft: "#f8d6da",
-      deco_2: "#c8283c",
-      deco_2_soft: "#fbeef0",
-      shine_from: "#ffffff",
-      shine_mid: "#fbeef0",
-      shine_to: "#f8d6da",
+      deco: "#7d2633",
+      deco_soft: "#eed6d0",
+      deco_2: "#a85c5c",
+      deco_2_soft: "#f5e8e0",
+      shine_from: "#fffaf2",
+      shine_mid: "#f5e8e0",
+      shine_to: "#eed6d0",
     },
 
     swatches: [
-      "#6e0014",
-      "#a0001c",
-      "#c8283c",
-      "#3c2c2e",
-      "#f8d6da",
-      "#fbeef0",
-      "#faf6f5",
-      "#ffffff",
+      "#5c1a24",
+      "#7d2633",
+      "#a85c5c",
+      "#4a3a34",
+      "#eed6d0",
+      "#f5e8e0",
+      "#f6eedf",
+      "#fbf6ec",
     ],
 
-    // Lời chúc theo tông đỏ son của mẫu (khách không chỉnh được).
+    // Lời chúc theo tông kem – đỏ rượu của mẫu (khách không chỉnh được).
     wishes: {
-      bubble: "#fbf3f3",
-      text: "#3c2c2e",
-      accent: "#a0001c",
-      btn: "#a0001c",
+      bubble: "#f7efe1",
+      text: "#4a3a34",
+      accent: "#7d2633",
+      btn: "#7d2633",
     },
 
     // Hiệu ứng hiện dần do huSlides lo theo TỪNG TRANG (chạy lại mỗi lần lật
@@ -322,7 +322,7 @@
   }
 
   // ============= CHUYỆN TÌNH YÊU =============
-  // Mỗi mốc là MỘT trang: ảnh viền đỏ dày trên khối đỏ lệch, ngày dựng đứng ở cạnh
+  // Mỗi mốc là MỘT trang: ảnh viền đỏ rượu dày trên khối đỏ rượu lệch, ngày dựng đứng ở cạnh
   // còn lại; ảnh đổi bên trái/phải so le giữa các mốc.
 
   function huRenderLoveStory(events) {
@@ -397,11 +397,12 @@
 
   // ============= LẬT TRANG =============
   // Trang = .hu-page (+ mục lời chúc do wishes-helper chèn). Trang chiếm >= 55%
-  // khung nhìn là trang đang mở: nó nhận .is-active (hiệu ứng .hu-a chạy lại mỗi
-  // lần lật tới), chấm chỉ trang đổi theo, tới trang cuối thì giấu mũi tên vuốt.
+  // khung nhìn là trang đang mở: nó nhận .is-active (hiệu ứng .hu-a chạy MỘT lần, vuốt
+  // qua rồi vẫn giữ cờ nên không ẩn lại), chấm chỉ trang đổi theo, tới trang cuối thì giấu mũi tên vuốt.
   // Chỉ bật khi thiệp đã mở (onOpen) — chưa bật thì mọi thứ hiện sẵn, không mất chữ.
 
   let _huIO = null;
+  let _huRevealIO = null;
   let _huPages = [];
 
   function huPages() {
@@ -412,7 +413,7 @@
   }
 
   function huSetActive(page) {
-    _huPages.forEach((p) => p.classList.toggle("is-active", p === page));
+    page.classList.add("is-active");
     const i = _huPages.indexOf(page);
     document.querySelectorAll("#hu-dots button").forEach((b, k) => b.classList.toggle("is-on", k === i));
     document.getElementById("hu-hint")?.classList.toggle("is-end", i === _huPages.length - 1);
@@ -439,6 +440,18 @@
       { threshold: 0.55 },
     );
     pages.forEach((p) => _huIO.observe(p));
+    // Chữ hiện SỚM hơn chấm chỉ trang: mép trên trang vừa qua 85% khung nhìn là chạy,
+    // đợi tới 55% như chấm thì vuốt lên thấy một khoảng trống dài.
+    _huRevealIO?.disconnect();
+    _huRevealIO = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) e.target.classList.add("is-active");
+        });
+      },
+      { rootMargin: "0px 0px -15% 0px" },
+    );
+    pages.forEach((p) => _huRevealIO.observe(p));
     // Trang cao hơn khung nhìn (lịch trình dài…) không bao giờ đạt 55%: coi như
     // đã mở để chữ trong đó luôn hiện.
     pages.forEach((p) => p.classList.toggle("is-tall", p.offsetHeight > innerHeight * 1.5));

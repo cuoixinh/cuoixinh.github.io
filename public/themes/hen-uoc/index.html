@@ -46,11 +46,10 @@
   </head>
 
   <!-- ══════════════════════════════════════════════════════════════════════
-       HẸN ƯỚC — thiệp LẬT TRANG nền trắng, khối đỏ son: mỗi .hu-page cao đúng
-       một màn, vuốt dọc thì trượt sang trang kế (scroll-snap — trang vẫn cuộn
-       thường nên xem trực tiếp, lời chúc, khối chèn thêm chạy như mọi mẫu). Phần
-       tử .hu-a chạy hiệu ứng mỗi lần trang được lật tới (huSlides ở index.js, bật
-       qua CX_THEME.onOpen). Hoạ tiết (huy hiệu, dây treo, tim, tháp ly) ở #hu-defs.
+       HẸN ƯỚC — thiệp CUỘN LIỀN MẠCH nền kem, khối đỏ rượu: mỗi .hu-page cao theo
+       nội dung (trang ảnh tràn giữ đúng một màn — theme.css). Phần tử .hu-a chạy
+       hiệu ứng một lần khi trang cuộn tới (huSlides ở index.js, bật qua
+       CX_THEME.onOpen). Hoạ tiết (huy hiệu, dây treo, tim, tháp ly) ở #hu-defs.
        Ràng buộc chung của mẫu: xem đầu file public/themes/base-theme/index.html.
        ══════════════════════════════════════════════════════════════════════ -->
 
@@ -122,7 +121,7 @@
          Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="hu-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
-        <!-- Màn bìa kiểu TẠP CHÍ: ảnh viền đỏ đặt nghiêng chồng lên khối đỏ lệch,
+        <!-- Màn bìa kiểu TẠP CHÍ: ảnh viền đỏ rượu đặt nghiêng chồng lên khối đỏ rượu lệch,
              dây treo bên mép, chữ viết tay "Hẹn Ước" lớn đè chân ảnh. -->
         <div class="hu-head hu-cover-head">
           <span class="cx-h cx-a hu-cap">Invitation</span>
@@ -172,7 +171,7 @@
       style="display: none"
     >
       <div class="hu-flow flex flex-col">
-        <!-- Khối đỏ son đặt LỆCH sau ảnh (.hu-block) và khung ảnh viền đỏ dày (.hu-framed)
+        <!-- Khối đỏ rượu đặt LỆCH sau ảnh (.hu-block) và khung ảnh viền đỏ rượu dày (.hu-framed)
              là hai nét chính; ảnh trong trang đo theo chiều cao màn (--hu-screen). -->
 
         <!-- ═══ Trang 1 — Mở đầu: dòng tiêu đề + ảnh lớn + chữ viết tay ═════ -->
@@ -197,7 +196,7 @@
           <div class="cx-h cx-a hu-cap hu-welcome hu-a hu-up" style="--d: 4">Welcome to our wedding</div>
         </section>
 
-        <!-- ═══ Trang 2 — Lời ngỏ: thơ, tháp ly, ảnh trên khối đỏ, dây treo hai bên ═ -->
+        <!-- ═══ Trang 2 — Lời ngỏ: thơ, tháp ly, ảnh trên khối đỏ rượu, dây treo hai bên ═ -->
         <section class="hu-page hu-intro">
           <div class="cx-h cx-a hu-title hu-a hu-up">Nhà Có · Tin Vui</div>
           <div class="cx-t hu-poem hu-a hu-up" style="--d: 1">
@@ -245,7 +244,7 @@
           </div>
         </section>
 
-        <!-- ═══ Trang — Save the date: ảnh ngang đầu trang, ảnh viền đỏ chồng mép ═ -->
+        <!-- ═══ Trang — Save the date: ảnh ngang đầu trang, ảnh viền đỏ rượu chồng mép ═ -->
         <section class="hu-page hu-save">
           <div class="hu-photo hu-save-top hu-a hu-fade" data-hu-shot="7"></div>
           <div class="hu-save-left">
@@ -281,20 +280,21 @@
           </div>
           <div class="hu-time-text hu-a hu-up" style="--d: 3">
             <div class="cx-t hu-invite">
-              Trân trọng kính mời dự <span id="ceremony-event-name" class="cx-a">Lễ Thành Hôn</span>
-              của <span id="invite-groom">----------</span> &amp; <span id="invite-bride">----------</span>
+              <span class="hu-invite-lead">Trân trọng kính mời dự</span>
+              <span id="ceremony-event-name" class="cx-a hu-invite-event">Lễ Thành Hôn</span>
+              <span class="hu-invite-names"><small></small> <span id="invite-groom">----------</span> <span class="hu-amp cx-a">&amp;</span> <span id="invite-bride">----------</span></span>
             </div>
             <div class="cx-t hu-date-line">
               <span id="invite-weekday">------</span>, ngày <span id="invite-day">--</span> · <span id="invite-month-year">Tháng -- · ----</span>
             </div>
-            <div class="cx-t hu-date-line"><span id="invite-lunar">--------------------</span> · <span id="invite-time">--:--</span></div>
+            <div class="cx-t hu-date-line hu-date-sub"><span id="invite-lunar">--------------------</span> · <span id="invite-time">--:--</span></div>
             <div id="ceremony-location-wrap" class="hidden cx-t hu-small">
               <span id="ceremony-location-text"></span>
             </div>
           </div>
         </section>
 
-        <!-- ═══ Trang — Đếm ngược: ảnh có lề, ô số chồng mép, ảnh thứ hai trên khối đỏ ═
+        <!-- ═══ Trang — Đếm ngược: ảnh có lề, ô số chồng mép, ảnh thứ hai trên khối đỏ rượu ═
              Không có ngày lễ thì index.js ẩn cả trang. -->
         <section id="section-countdown" class="hu-page hu-count">
           <div class="hu-photo hu-count-photo hu-a hu-zoom" data-hu-shot="5"></div>
@@ -340,7 +340,7 @@
         </section>
 
         <!-- ═══ Trang — Album ảnh (enable_photos) ═══════════════════════════
-             Băng ảnh vuốt ngang trên khối đỏ — dựng ở renderGallery (index.js). -->
+             Băng ảnh vuốt ngang trên khối đỏ rượu — dựng ở renderGallery (index.js). -->
         <section id="section-photos" class="hu-page hu-album">
           <div class="cx-h cx-a hu-cap hu-a hu-up">Our Moments</div>
           <div class="cx-h cx-a hu-title hu-title-sm hu-a hu-up">Khoảnh khắc của chúng mình</div>
@@ -351,7 +351,7 @@
           <div class="cx-t hu-reel-count hu-a hu-fade" style="--d: 3"><span id="hu-reel-i">1</span> / <span id="hu-reel-n">1</span></div>
         </section>
 
-        <!-- ═══ Trang — Bản đồ: ảnh tràn đầu trang, địa chỉ trên nền đỏ, bản đồ viền đỏ ═
+        <!-- ═══ Trang — Bản đồ: ảnh tràn đầu trang, địa chỉ trên nền đỏ rượu, bản đồ viền đỏ rượu ═
              #map-location-name + #map-link phải đứng CUỐI mục (renderVenueMaps). -->
         <section id="section-map" class="hu-page hu-map">
           <div class="hu-map-photo hu-a hu-zoom"><div class="hu-fill" data-hu-shot="6"></div></div>
@@ -359,7 +359,7 @@
           <svg class="hu-pendant cx-a hu-map-pr hu-a hu-swing" style="--d: 3" aria-hidden="true"><use href="#hu-pendant" /></svg>
           <div class="hu-map-spacer"></div>
           <div class="cx-t hu-map-name hu-a hu-up" style="--d: 2" id="map-location-name">------------------------</div>
-          <a id="map-link" href="#" target="_blank" class="hu-map-card hu-a hu-up" style="--d: 3">
+          <a id="map-link" href="#" target="_blank" rel="noopener" class="hu-map-card hu-a hu-up" style="--d: 3">
             <div class="hu-map-box">
               <iframe id="map-thumbnail-iframe" src="" width="100%" height="100%" class="border-0 pointer-events-none" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
               <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
@@ -367,10 +367,15 @@
                 <span class="cx-t hu-small">Chưa có bản đồ</span>
               </div>
             </div>
+            <!-- Nằm TRONG #map-link để renderVenueMaps nhân cả dải khi lễ và tiệc ở hai nơi. -->
+            <div class="hu-map-go">
+              <span class="hu-map-go-l"><i data-lucide="navigation" class="cx-ic"></i><span>Chỉ đường</span></span>
+              <span class="hu-map-go-r"><span>Mở bản đồ</span><i data-lucide="chevron-right" class="cx-ic"></i></span>
+            </div>
           </a>
         </section>
 
-        <!-- ═══ Trang — Xác nhận tham dự (rsvp_enabled): hai ảnh trên dải đỏ ═ -->
+        <!-- ═══ Trang — Xác nhận tham dự (rsvp_enabled): hai ảnh trên dải đỏ rượu ═ -->
         <section id="rsvp-section" class="hu-page hu-rsvp" style="display: none">
           <div class="hu-rsvp-band hu-a hu-grow" style="--d: 2"></div>
           <div class="hu-rsvp-pair">
@@ -402,7 +407,7 @@
           <div class="cx-h cx-a hu-title hu-title-sm hu-a hu-up" style="--d: 1">Gửi trao yêu thương</div>
           <div class="cx-t hu-small hu-a hu-up" style="--d: 2">Chút lộc mừng gửi đến đôi mình</div>
           <div class="hu-gift-stage">
-            <!-- Khối đỏ nằm TRONG khối QR để ẩn theo khi hộp mừng cưới đang đóng. -->
+            <!-- Khối đỏ rượu nằm TRONG khối QR để ẩn theo khi hộp mừng cưới đang đóng. -->
             <div data-cx-gift="qr" class="hu-gift-grid hu-a hu-up" style="--d: 3">
               <div class="hu-block hu-gift-block"></div>
               <div class="hu-gift-col">
