@@ -121,8 +121,8 @@ function initYouTubeMusic(musicUrl) {
 // Mỗi lần bắt đầu phát (lần đầu, phát tiếp sau khi dừng, quay vòng) âm lượng
 // tăng dần từ 0 lên MUSIC_VOLUME trong MUSIC_FADE_MS — không phát to đột ngột.
 // iOS bỏ qua setVolume (âm lượng theo phím cứng) nên ở đó không có hiệu ứng này.
-const MUSIC_VOLUME = 30;
-const MUSIC_FADE_MS = 2000;
+const MUSIC_VOLUME = 100;
+const MUSIC_FADE_MS = 1000;
 let _musicFadeTimer = null;
 // Riêng với isYouTubePlaying (toggle đặt trước khi player báo): chỉ dừng/hết bài
 // mới tính là tắt — BUFFERING lúc tua hay mạng chậm không fade lại từ 0.
