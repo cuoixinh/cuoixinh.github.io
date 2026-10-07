@@ -182,9 +182,9 @@
       </div>
 
       <!-- Cặp nút hành động DỒN SANG PHẢI (`ml-auto` nuốt hết chỗ thừa) —
-               dãy tab bên trái vì thế xếp sát nhau từ trái sang, mỗi nút một khổ
-               cố định thay vì giãn ra chiếm chỗ trống. Khe `ml-auto` cũng là thứ
-               tách chúng khỏi "Tùy chọn", đừng cho nút nào ở đây co giãn. -->
+               dãy tab bên trái vì thế xếp sát nhau từ trái sang. Hai nút ôm theo
+               chữ (không `full`, không khổ cố định) nhưng cũng không co giãn: đổi
+               nhãn là đổi bề ngang → phải gọi lại cxNavReflow(). -->
       <div id="nav-actions" class="ml-auto flex flex-none items-stretch sm:pl-2">
         <div
           id="tab-draft-wrap"
@@ -200,12 +200,11 @@
             variant="outline"
             tone="neutral"
             size="sm"
-            full
             title="Lưu nháp"
             aria-label="Lưu nháp"
-            class="h-9 gap-1.5 px-3 sm:px-4 text-[11px] font-medium"
+            class="h-9 gap-1.5 px-3 sm:px-4 text-[11px] font-medium whitespace-nowrap"
           >
-            <i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0"></i>
+            <i data-lucide="save" class="w-3.5 h-3.5 shrink-0"></i>
             <span>Lưu nháp</span>
           </x-button>
         </div>
@@ -218,8 +217,7 @@
             onclick="publishWedding()"
             id="tab-publish"
             size="sm"
-            full
-            class="h-9 gap-1.5 px-3 sm:px-4 text-[11px] font-medium"
+            class="h-9 gap-1.5 px-3 sm:px-4 text-[11px] font-medium whitespace-nowrap"
           >
             <i data-lucide="send" class="w-3.5 h-3.5 shrink-0"></i>
             <span>Xuất bản</span>

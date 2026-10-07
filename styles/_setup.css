@@ -1455,6 +1455,28 @@ button.cx-add-tile-sm {
   @apply text-xs leading-relaxed text-gray-500;
 }
 
+/* Thẻ bài nhạc đang chọn: video + tên bài/giây bắt đầu/nút gỡ — xếp dọc ở khổ
+   hẹp, từ sm đứng cạnh nhau. */
+.cx-cfg-song {
+  @apply flex flex-col gap-4 rounded-2xl p-3 sm:flex-row sm:items-start;
+
+  background: rgb(var(--surface-tint-rgb));
+  border: 1px solid rgb(var(--border-subtle-rgb));
+}
+
+.cx-cfg-song-media {
+  @apply w-full shrink-0 sm:w-60;
+}
+
+/* Thanh kéo giây bắt đầu (CXProgress): số m:ss rộng hơn số % mặc định. */
+.cx-music-start {
+  @apply flex;
+}
+
+.cx-music-start .cx-prog-val {
+  width: 40px;
+}
+
 /* Một dòng link thiệp (nhà trai/nhà gái) kèm nút sao chép. */
 .cx-cfg-link {
   @apply flex items-center gap-3 rounded-2xl px-4 py-3;
@@ -1870,14 +1892,6 @@ button.cx-add-tile-sm {
   #nav-more-wrap > .cx-navitem {
     width: 88px;
   }
-
-  #tab-draft-wrap {
-    width: 120px;
-  }
-
-  #tab-publish-wrap {
-    width: 148px; /* đủ cho nhãn dài nhất: "Lưu & Xuất bản" khi thiệp đã lên */
-  }
 }
 
 /* pad+ (820px): switch rụng mất nút "Xem trước", chỉ còn một tab → thu về đúng
@@ -1895,7 +1909,8 @@ button.cx-add-tile-sm {
    tràn — cxNavReflow() chỉ lùi được các TAB, không thu nhỏ được nút, mà "Cấu
    hình" (ghim) + "Tùy chọn" luôn ở lại — nên phải tự hạ khổ mọi ô ở dải này.
    Đổi số nào thì cộng lại kiểm tra ở 640px: tổng phải ≤ bề ngang #nav-row
-   (~590px): 160 + 2×80 + 100 + 120 = 540. */
+   (~590px): 160 + 2×80 + hai nút hành động ôm chữ (~100 + ~130 khi nhãn là
+   "Lưu & Xuất bản") ≈ 550. */
 @media (min-width: 640px) and (max-width: 819px) {
   /* Hai ô tab "Chỉnh sửa" · "Xem trước", mỗi ô 80px như các tab ở dải này. */
   #switch-wrap {
@@ -1915,14 +1930,6 @@ button.cx-add-tile-sm {
   #nav-slots > .cx-navitem,
   #nav-more-wrap > .cx-navitem {
     width: 80px;
-  }
-
-  #tab-draft-wrap {
-    width: 100px;
-  }
-
-  #tab-publish-wrap {
-    width: 120px;
   }
 
   #tab-draft,

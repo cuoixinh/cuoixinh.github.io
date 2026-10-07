@@ -190,8 +190,9 @@ không bao giờ lùi. Cùng MỘT phần tử dùng cho hai chỗ, **hình dạ
 mở + dấu * dội lên `#nav-more` (`_syncNavItemState` ở `js/04-nav-tabs.js`); popover neo và
 kẹp theo `#nav-card` chứ không theo bề ngang màn hình.
 
-Từ `sm` trở lên **mọi ô trong navbar đều khổ CỐ ĐỊNH**, chỗ thừa dồn hết vào `ml-auto` của
-`#nav-actions` → dãy tab sát trái, "Lưu nháp"/"Xuất bản" sát phải; cho một ô `flex-1` là cả
+Từ `sm` trở lên **mọi tab trong navbar đều khổ CỐ ĐỊNH** (riêng "Lưu nháp"/"Xuất bản" ôm theo
+chữ — đổi nhãn là phải `cxNavReflow()`), chỗ thừa dồn hết vào `ml-auto` của
+`#nav-actions` → dãy tab sát trái, hai nút hành động sát phải; cho một ô `flex-1` là cả
 hàng lệch. Phép đo chỗ trống dựa vào bề ngang tối thiểu của hàng, nên nhãn phải
 `whitespace-nowrap` và ô nào cũng phải có khổ khai sẵn. Ẩn/hiện một nút trong navbar là đổi
 chỗ trống → gọi lại `cxNavReflow()`.

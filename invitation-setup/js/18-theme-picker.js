@@ -206,8 +206,6 @@ function _syncAdvancedSection() {
   if (draftWrap) draftWrap.classList.toggle("hidden", published);
   const draftTab = document.getElementById("tab-draft");
   if (draftTab) draftTab.classList.toggle("hidden", published);
-  // Ẩn/hiện nút này là đổi chỗ trống của navbar → xếp lại các mục nav.
-  window.cxNavReflow?.();
 
   // Tooltip nút "Lưu nháp": nói rõ nháp nằm ở đâu và bao giờ bị dọn. Số ngày lấy
   // ở CONFIG.retention, đừng viết cứng. Chưa đăng nhập thì nháp chỉ ở máy này.
@@ -224,6 +222,9 @@ function _syncAdvancedSection() {
   if (publishLabel) {
     publishLabel.textContent = published ? "Lưu & Xuất bản" : "Xuất bản";
   }
+  // Ẩn/hiện "Lưu nháp" và đổi nhãn nút chính (nút ôm theo chữ) đều đổi chỗ trống
+  // của navbar → xếp lại các mục nav, SAU khi mọi thứ đã đổi xong.
+  window.cxNavReflow?.();
   _updateDirtyMarks();
 
   // Tab Khách mời: vẫn bấm được, tooltip báo khi chưa xuất bản (không gắn badge trên navbar)

@@ -180,6 +180,7 @@ async function selectYouTubeSong(url, title) {
     input.value = "";
     input.closest("x-input, x-textarea")?.syncClearBtn?.();
   }
+  _showMusicStart(cxYtStart(url));
   _showMusicTag(title || "Đang lấy tên bài…");
   if (!title) _showMusicTag((await _fetchYouTubeTitle(url)) || url);
 }
@@ -216,9 +217,123 @@ function _showMusicTag(name) {
   tag.classList.toggle("hidden", !name);
 }
 
+// ── Giây bắt đầu phát (ô #music-start-input) ── lưu thành `t` trong music_url.
+function _fmtMusicStart(sec) {
+  if (!sec) return "";
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = String(sec % 60).padStart(2, "0");
+  return h ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
+}
+
+// "90" · "1:30" · "1:02:03" → giây; sai dạng trả null.
+function _parseMusicStart(val) {
+  val = String(val || "").trim();
+  if (!val) return 0;
+  if (!/^\d+(:\d{1,2}){0,2}$/.test(val)) return null;
+  return val.split(":").reduce((acc, n) => acc * 60 + Number(n), 0);
+}
+
+function _showMusicStart(sec) {
+  const el = document.getElementById("music-start-input");
+  if (el) el.value = _fmtMusicStart(sec);
+  const range = document.getElementById("music-start-range");
+  if (range) {
+    range.value = String(sec || 0);
+    window.CXProgress?.paint(range);
+  }
+  document.getElementById("music-start-error")?.classList.add("hidden");
+}
+
+// Thanh kéo cần độ dài bài, chỉ trình phát thử mới biết: "loading" = chờ player
+// (thanh mờ) · "slider" = đã có độ dài · "manual" = video chặn nhúng → ô nhập tay.
+function _setMusicStartMode(mode, dur) {
+  const range = document.getElementById("music-start-range");
+  const wrap = range && window.CXProgress?.attach(range, {
+    format: (v) => _fmtMusicStart(v) || "0:00",
+  });
+  const manual = mode === "manual";
+  document.getElementById("music-start-slider")?.classList.toggle("hidden", manual);
+  document.getElementById("music-start-actions")?.classList.toggle("hidden", manual);
+  document.getElementById("music-start-input")?.classList.toggle("hidden", !manual);
+  if (!range) return;
+  if (mode === "slider") {
+    range.max = String(Math.max(0, dur - 1));
+    range.value = String(Math.min(cxYtStart(_currentMusicUrl), dur - 1));
+  }
+  range.disabled = mode !== "slider";
+  wrap?.classList.toggle("is-off", mode !== "slider");
+  window.CXProgress?.paint(range);
+}
+
+function _musicStartError(msg) {
+  const err = document.getElementById("music-start-error");
+  if (!err) return;
+  err.textContent = msg || "";
+  err.classList.toggle("hidden", !msg);
+}
+
+// Ghi giây bắt đầu vào URL đang chọn + tua trình phát thử tới đó.
+function _applyMusicStart(sec) {
+  if (!_currentMusicUrl) return;
+  const dur = _ytPreviewPlayer?.getDuration?.() || 0;
+  if (dur && sec >= dur) {
+    _musicStartError(`Bài chỉ dài ${_fmtMusicStart(Math.floor(dur))}.`);
+    return;
+  }
+  _musicStartError("");
+  _showMusicStart(sec);
+  _seekYtPreview(sec);
+  const next = cxYtWithStart(_currentMusicUrl, sec);
+  if (next === _currentMusicUrl) return;
+  _setMusicUrl(next);
+  _scheduleAutoSave("config");
+}
+
+function _seekYtPreview(sec) {
+  const p = _ytPreviewPlayer;
+  if (!p?.getPlayerState) return;
+  try {
+    const st = p.getPlayerState();
+    // Chưa phát lần nào thì seekTo sẽ tự phát → chỉ nạp sẵn ở giây đó.
+    if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.PAUSED) {
+      p.seekTo(sec, true);
+    } else {
+      p.cueVideoById({ videoId: extractYouTubeVideoId(_currentMusicUrl), startSeconds: sec });
+    }
+  } catch {}
+}
+
+// "Nghe thử": phát chính video bên cạnh từ giây bắt đầu đang đặt — đúng đoạn
+// khách mời sẽ nghe đầu tiên.
+function playMusicFromStart() {
+  const p = _ytPreviewPlayer;
+  if (!p?.seekTo || !p?.playVideo) {
+    _musicStartError("Trình phát chưa sẵn sàng, thử lại sau giây lát.");
+    return;
+  }
+  const range = document.getElementById("music-start-range");
+  const sec = range && !range.disabled ? Number(range.value) : cxYtStart(_currentMusicUrl);
+  _musicStartError("");
+  try {
+    p.seekTo(sec, true);
+    p.playVideo();
+  } catch {}
+}
+
+function setMusicStartFromPreview() {
+  const t = _ytPreviewPlayer?.getCurrentTime?.();
+  if (t == null) {
+    _musicStartError("Trình phát chưa sẵn sàng, bấm phát bài trước đã.");
+    return;
+  }
+  _applyMusicStart(Math.floor(t));
+}
+
 // Gỡ bài hát đã chọn (nút "Gỡ bài" trên thẻ bài đang chọn)
 function clearMusicSelection() {
   _setMusicUrl("");
+  _showMusicStart(0);
   _showMusicTag("");
   const input = document.getElementById("youtube-link-input");
   if (input) {
@@ -276,12 +391,23 @@ function showYouTubePreview(videoId, url) {
   if (thumb) thumb.style.display = "none";
   preview.classList.remove("hidden");
 
+  _setMusicStartMode("loading");
   _ensureYTApi(() => {
     _ytPreviewPlayer = new YT.Player("_yt_target", {
       videoId,
-      playerVars: { autoplay: 0, modestbranding: 1, rel: 0 },
+      playerVars: {
+        autoplay: 0,
+        modestbranding: 1,
+        rel: 0,
+        start: cxYtStart(url),
+      },
       events: {
+        onReady: (e) => {
+          const dur = Math.floor(e.target.getDuration?.() || 0);
+          _setMusicStartMode(dur > 1 ? "slider" : "manual", dur);
+        },
         onError: (e) => {
+          _setMusicStartMode("manual");
           if (e.data === 101 || e.data === 150) {
             document.getElementById("youtube-player-container")?.remove();
             const thumb = document.getElementById("youtube-fallback-thumb");
@@ -329,6 +455,40 @@ _onDomReady(function () {
       setTimeout(() => {
         autoPreviewYouTubeMusic();
       }, 100);
+    });
+  }
+
+  // Kéo: tua trình phát thử theo (nếu nó đang phát/dừng) để nghe ngay đoạn đó;
+  // thả tay mới ghi vào URL.
+  const range = document.getElementById("music-start-range");
+  if (range) {
+    range.addEventListener("input", () => {
+      const p = _ytPreviewPlayer;
+      try {
+        const st = p?.getPlayerState?.();
+        if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.PAUSED)
+          p.seekTo(Number(range.value), false);
+      } catch {}
+    });
+    range.addEventListener("change", () => _applyMusicStart(Number(range.value)));
+  }
+
+  const startInput = document.getElementById("music-start-input");
+  if (startInput) {
+    const commit = () => {
+      const sec = _parseMusicStart(startInput.value);
+      if (sec === null) {
+        _musicStartError("Nhập dạng phút:giây, ví dụ 1:30.");
+        return;
+      }
+      _applyMusicStart(sec);
+    };
+    startInput.addEventListener("change", commit);
+    startInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        startInput.blur();
+      }
     });
   }
 });

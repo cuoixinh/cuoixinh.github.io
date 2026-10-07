@@ -55,6 +55,10 @@ function initYouTubeMusic(musicUrl) {
   const videoId = extractYouTubeVideoId(musicUrl);
   if (!videoId) return;
   _musicVideoId = videoId;
+  // Giây bắt đầu (tham số `t` trong link, chỉnh ở tab Cấu hình). Có thì tự lặp
+  // ở ENDED bằng seekTo: `loop`+`playlist` của YouTube quay về giây 0.
+  const start = typeof cxYtStart === "function" ? cxYtStart(musicUrl) : 0;
+  const loopVars = start ? { start } : { loop: 1, playlist: videoId };
 
   loadYouTubeAPI();
 
@@ -76,15 +80,15 @@ function initYouTubeMusic(musicUrl) {
         videoId: videoId,
         playerVars: {
           autoplay: 1,
-          loop: 1,
-          playlist: videoId,
+          ...loopVars,
           controls: 0,
           showinfo: 0,
           modestbranding: 1,
         },
         events: {
           onReady: (event) => {
-            event.target.setVolume(30);
+            // Nhỏ hết cỡ trước, _fadeInMusic kéo lên khi thật sự phát.
+            event.target.setVolume(0);
             event.target.playVideo();
             // KHÔNG coi như đang phát: trình duyệt có thể chặn (xem
             // _playOnFirstGesture). onStateChange mới là nguồn sự thật.
@@ -93,9 +97,18 @@ function initYouTubeMusic(musicUrl) {
           },
           onStateChange: (event) => {
             if (event.data === YT.PlayerState.ENDED) {
+              if (start) event.target.seekTo(start, true);
               event.target.playVideo();
             }
-            isYouTubePlaying = event.data === YT.PlayerState.PLAYING;
+            const S = YT.PlayerState;
+            if (event.data === S.PLAYING && !_musicAudible) {
+              _musicAudible = true;
+              _fadeInMusic(event.target);
+            } else if (event.data !== S.PLAYING && event.data !== S.BUFFERING) {
+              _musicAudible = false;
+              _stopMusicFade();
+            }
+            isYouTubePlaying = event.data === S.PLAYING;
             updateMusicIcon();
             _emitMusicState();
           },
@@ -103,6 +116,35 @@ function initYouTubeMusic(musicUrl) {
       });
     }
   }, 100);
+}
+
+// Mỗi lần bắt đầu phát (lần đầu, phát tiếp sau khi dừng, quay vòng) âm lượng
+// tăng dần từ 0 lên MUSIC_VOLUME trong MUSIC_FADE_MS — không phát to đột ngột.
+// iOS bỏ qua setVolume (âm lượng theo phím cứng) nên ở đó không có hiệu ứng này.
+const MUSIC_VOLUME = 30;
+const MUSIC_FADE_MS = 2000;
+let _musicFadeTimer = null;
+// Riêng với isYouTubePlaying (toggle đặt trước khi player báo): chỉ dừng/hết bài
+// mới tính là tắt — BUFFERING lúc tua hay mạng chậm không fade lại từ 0.
+let _musicAudible = false;
+
+function _stopMusicFade() {
+  clearInterval(_musicFadeTimer);
+  _musicFadeTimer = null;
+}
+
+function _fadeInMusic(player) {
+  _stopMusicFade();
+  const t0 = Date.now();
+  const step = () => {
+    const k = Math.min(1, (Date.now() - t0) / MUSIC_FADE_MS);
+    try {
+      player.setVolume(Math.round(MUSIC_VOLUME * k));
+    } catch (e) {}
+    if (k >= 1) _stopMusicFade();
+  };
+  step();
+  _musicFadeTimer = setInterval(step, 50);
 }
 
 /**

@@ -203,6 +203,58 @@
                   class="mt-0.5 text-sm font-medium text-gray-800 [overflow-wrap:anywhere]"
                 ></p>
               </div>
+              <!-- Giây bắt đầu phát: ghi vào tham số `t` của #music-url-input
+                   (cxYtWithStart), nên các ô ở đây KHÔNG có name. Thanh kéo cần độ
+                   dài bài từ trình phát thử; video chặn nhúng thì lùi về ô nhập tay. -->
+              <div>
+                <label for="music-start-range" class="text-xs text-gray-500">
+                  Bắt đầu phát từ
+                </label>
+                <div id="music-start-slider" class="cx-music-start">
+                  <!-- CXProgress bọc thành thanh kéo mảnh, số m:ss hiện bên phải. -->
+                  <input
+                    id="music-start-range"
+                    type="range"
+                    min="0"
+                    max="0"
+                    step="1"
+                    value="0"
+                    class="flex-1 min-w-0"
+                    aria-label="Giây bắt đầu phát nhạc"
+                  />
+                </div>
+                <input
+                  id="music-start-input"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="0:00"
+                  autocomplete="off"
+                  aria-label="Giây bắt đầu phát nhạc (phút:giây)"
+                  class="hidden mt-1 w-20 h-9 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:border-gray-400 text-center"
+                />
+                <div id="music-start-actions" class="mt-1 flex flex-wrap gap-2">
+                  <x-button
+                    variant="soft"
+                    tone="neutral"
+                    size="xs"
+                    icon="play"
+                    onclick="playMusicFromStart()"
+                    title="Phát video bên cạnh từ đúng giây bắt đầu"
+                  >
+                    Nghe thử
+                  </x-button>
+                  <x-button
+                    variant="soft"
+                    tone="neutral"
+                    size="xs"
+                    onclick="setMusicStartFromPreview()"
+                    title="Lấy giây đang phát ở trình phát bên cạnh"
+                  >
+                    Lấy vị trí đang nghe
+                  </x-button>
+                </div>
+                <p id="music-start-error" class="hidden mt-1 text-xs text-red-600" role="alert"></p>
+              </div>
               <x-button
                 variant="ghost"
                 tone="danger"
