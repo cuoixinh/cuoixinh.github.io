@@ -86,14 +86,14 @@ function watchRepo() {
       if (!file || skip.test(file) || skipImg.test(file)) return;
       if (!RELOAD_EXT.test(file)) return;
       // Chốt lần cuối bằng mtime: sự kiện không đổi nội dung thì bỏ qua.
-      let stamp;
+      let info;
       try {
-        const info = statSync(path.join(ROOT, file));
-        if (info.isDirectory()) return;
-        stamp = `${info.mtimeMs}:${info.size}`;
+        info = statSync(path.join(ROOT, file));
       } catch {
         return; // file vừa bị xoá/đổi tên
       }
+      if (info.isDirectory()) return;
+      const stamp = `${info.mtimeMs}:${info.size}`;
       const prev = seen.get(file);
       seen.set(file, stamp);
       if (prev === stamp) return;
