@@ -69,7 +69,7 @@ async function initPage() {
   // Chuyển hướng TRƯỚC khi tải danh sách: trang này chỉ là chặng trung chuyển khi
   // có urlRedirect, tải thêm một vòng API rồi rời đi là phí.
   _redirectAfterLogin();
-  if (_openProfileOnLoad) openProfileModal();
+  if (_openProfileOnLoad) window.CXProfile?.open();
   await loadCards();
 
   CXAuth.onChange((user, event) => {
@@ -85,8 +85,8 @@ async function logout() {
   window.location.replace(window.location.pathname);
 }
 
-// Trang này có sẵn form hồ sơ và hàm logout riêng → nối vào menu tài khoản chung.
-window.CXAccount?.configure({ onProfile: openProfileModal, onLogout: logout });
+// Trang này có hàm logout riêng → nối vào menu tài khoản chung.
+window.CXAccount?.configure({ onLogout: logout });
 
 function openLoginPopup() {
   if (!window.AuthUI) return;
@@ -1070,43 +1070,6 @@ async function _saveSlug(c, raw) {
   }
 }
 
-// ===== MODAL: thông tin cá nhân =====
-
-function openProfileModal() {
-  if (!currentUser) return;
-  const meta = currentUser.user_metadata || {};
-  _setInputValue("profile-name", meta.full_name || meta.name || "");
-  _setInputValue("profile-email-input", currentUser.email || "");
-  _setInputValue("profile-phone", meta.phone || "");
-  _openModal("profile-modal");
-}
-
-function closeProfileModal() {
-  _closeModal("profile-modal");
-}
-
-async function _submitProfile(e) {
-  e.preventDefault();
-  if (!currentUser) {
-    showToast("Vui lòng đăng nhập", "error");
-    return;
-  }
-  const { error } = await sb.auth.updateUser({
-    data: {
-      full_name: document.getElementById("profile-name").value,
-      phone: document.getElementById("profile-phone").value,
-    },
-  });
-  if (error) {
-    showToast("Lỗi cập nhật: " + error.message, "error");
-    return;
-  }
-  currentUser = await CXAuth.getUser();
-  updateAuthUI();
-  closeProfileModal();
-  showToast("Đã lưu thông tin cá nhân", "success");
-}
-
 function showHelp() {
   showAlert(
     "Quản lý thiệp cưới",
@@ -1118,27 +1081,6 @@ function showHelp() {
 }
 
 // ===== TIỆN ÍCH =====
-
-function _openModal(id) {
-  const m = document.getElementById(id);
-  m.classList.remove("hidden");
-  m.classList.add("flex");
-}
-
-function _closeModal(id) {
-  const m = document.getElementById(id);
-  m.classList.add("hidden");
-  m.classList.remove("flex");
-}
-
-// Gán value cho input bên trong <x-input> rồi báo cho x-input tự bật/tắt nút xoá nhanh.
-function _setInputValue(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.value = value;
-  const host = el.closest("x-input");
-  if (host && typeof host.syncClearBtn === "function") host.syncClearBtn();
-}
 
 function esc(s) {
   return String(s ?? "").replace(
@@ -1174,25 +1116,6 @@ function bindEvents() {
       ACTIVE_TAB = btn.dataset.tab;
       render();
     });
-  });
-
-  document
-    .getElementById("profile-form")
-    .addEventListener("submit", _submitProfile);
-  // Bấm ra ngoài để đóng modal
-  ["profile-modal"].forEach((id) => {
-    document.getElementById(id).addEventListener("click", function (e) {
-      if (e.target === this) _closeModal(id);
-    });
-  });
-
-  // Esc: đóng modal đang mở, không có modal nào thì đóng menu tài khoản.
-  document.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape") return;
-    const open = ["profile-modal"].find(
-      (id) => !document.getElementById(id).classList.contains("hidden"),
-    );
-    if (open) _closeModal(open);
   });
 }
 

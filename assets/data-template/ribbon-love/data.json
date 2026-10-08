@@ -1,150 +1,150 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.webp": {
-        "x": 26,
-        "y": 24
+      "gallery-01.jpg": {
+        "x": 65,
+        "y": 42
       },
-      "gallery-02.webp": {
-        "x": 50,
-        "y": 16
-      },
-      "gallery-03.webp": {
-        "x": 32,
-        "y": 35
-      },
-      "gallery-04.webp": {
-        "x": 54,
-        "y": 26
-      },
-      "gallery-05.webp": {
-        "x": 75,
-        "y": 24
-      },
-      "gallery-06.webp": {
+      "gallery-02.jpg": {
         "x": 46,
-        "y": 12
+        "y": 9
       },
-      "gallery-07.webp": {
-        "x": 48,
-        "y": 25
+      "gallery-03.jpg": {
+        "x": 12,
+        "y": 24
       },
-      "gallery-08.webp": {
-        "x": 40,
+      "gallery-04.jpg": {
+        "x": 12,
+        "y": 14
+      },
+      "gallery-05.jpg": {
+        "x": 46,
+        "y": 0
+      },
+      "gallery-06.jpg": {
+        "x": 64,
+        "y": 37
+      },
+      "gallery-07.jpg": {
+        "x": 27,
+        "y": 23
+      },
+      "gallery-08.jpg": {
+        "x": 49,
+        "y": 19
+      },
+      "gallery-09.jpg": {
+        "x": 54,
+        "y": 18
+      },
+      "gallery-10.jpg": {
+        "x": 0,
         "y": 5
       }
     },
     "cover_image_url": {
-      "x": 52,
-      "y": 4
+      "x": 71,
+      "y": 17
     },
     "groom_image_url": {
-      "x": 50,
-      "y": 1
+      "x": 39,
+      "y": 0
     },
     "bride_image_url": {
-      "x": 55,
-      "y": 22
+      "x": 52,
+      "y": 9
     }
   },
-  "cover_image_url": "cover.webp",
-  "groom_image_url": "groom.png",
-  "bride_image_url": "bride.webp",
+  "cover_image_url": "cover.jpg",
+  "groom_image_url": "groom.jpg",
+  "bride_image_url": "bride.jpg",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.webp",
-    "gallery-02.webp",
-    "gallery-03.webp",
-    "gallery-04.webp",
-    "gallery-05.webp",
-    "gallery-06.webp",
-    "gallery-07.webp",
-    "gallery-08.webp"
+    "gallery-01.jpg",
+    "gallery-02.jpg",
+    "gallery-03.jpg",
+    "gallery-04.jpg",
+    "gallery-05.jpg",
+    "gallery-06.jpg",
+    "gallery-07.jpg",
+    "gallery-08.jpg",
+    "gallery-09.jpg",
+    "gallery-10.jpg"
   ],
   "love_story": [
     {
-      "date": "09/2021",
-      "title": "Cùng một lớp học vẽ",
-      "content": "Em ngồi bàn trên, anh ngồi bàn dưới, và bức tranh đầu tiên anh vẽ được lại là em.",
-      "image_url": "love-story-01.webp",
+      "date": "04/2020",
+      "title": "Buổi chiều trên bãi biển",
+      "content": "Em đánh rơi chiếc nơ buộc tóc, anh chạy theo con gió suốt nửa bãi cát để nhặt về.",
+      "image_url": "love-story-01.jpg",
       "focal_point": {
-        "x": 49,
-        "y": 4
+        "x": 7,
+        "y": 7
       }
     },
     {
-      "date": "02/2022",
-      "title": "Valentine đầu tiên",
-      "content": "Anh tặng em một bó hoa nhỏ xíu và một lời hứa rất lớn.",
-      "image_url": "love-story-02.webp",
+      "date": "08/2022",
+      "title": "Chuyến đi Đảo Bình Ba",
+      "content": "Một chiếc thuyền nhỏ, một trời sao, và lần đầu anh dám nói thương em.",
+      "image_url": "love-story-02.jpg",
       "focal_point": {
-        "x": 13,
-        "y": 22
+        "x": 76,
+        "y": 33
       }
     },
     {
-      "date": "07/2024",
-      "title": "Mùa hè ở Hạ Long",
-      "content": "Hai đứa ngồi trên bãi biển đến tận khuya, đếm xem đã đi cùng nhau bao nhiêu mùa hè.",
-      "image_url": "love-story-03.webp",
-      "focal_point": {
-        "x": 37,
-        "y": 5
-      }
-    },
-    {
-      "date": "03/2026",
+      "date": "06/2026",
       "title": "Lời cầu hôn",
-      "content": "Anh vẽ lại bức tranh ngày xưa, lần này có thêm hai chiếc nhẫn ở góc tranh.",
-      "image_url": "love-story-04.webp",
+      "content": "Anh giấu chiếc nhẫn trong hộp quà buộc nơ hồng, em vừa mở đã khóc trước khi kịp gật đầu.",
+      "image_url": "love-story-03.jpg",
       "focal_point": {
-        "x": 55,
-        "y": 2
+        "x": 0,
+        "y": 17
       }
     }
   ],
   "content": {
-    "groom_name": "Tuấn Khang",
-    "bride_name": "Mai Chi",
-    "groom_father": "Ông Vũ Đình Hùng",
-    "groom_mother": "Bà Nguyễn Thị Lệ Thu",
-    "groom_address": "Số 102 Lạch Tray, Phường Kênh Dương, TP. Hải Phòng",
-    "bride_father": "Ông Bùi Thanh Tùng",
-    "bride_mother": "Bà Hoàng Thị Ánh Tuyết",
-    "bride_address": "Số 9 Hạ Long, Phường Bãi Cháy, Tỉnh Quảng Ninh",
+    "groom_name": "Hoàng Nam",
+    "bride_name": "Khánh Linh",
+    "groom_father": "Ông Lê Hoàng Sơn",
+    "groom_mother": "Bà Võ Thị Kim Oanh",
+    "groom_address": "Số 27 Lê Thánh Tôn, Phường Nha Trang, Tỉnh Khánh Hòa",
+    "bride_father": "Ông Nguyễn Minh Trí",
+    "bride_mother": "Bà Trương Thị Bích Ngọc",
+    "bride_address": "Số 14 Đường 2 Tháng 4, Phường Bắc Nha Trang, Tỉnh Khánh Hòa",
     "ceremony_name": "Lễ Thành Hôn",
-    "ceremony_date": "2026-10-11",
-    "ceremony_time": "10:00",
-    "ceremony_lunar": "Tức ngày 2 tháng 9 năm Bính Ngọ",
-    "ceremony_location": "Trung tâm Tiệc cưới Pearl Palace, 268 Lê Hồng Phong, TP. Hải Phòng",
-    "ceremony_map_embed_url": "https://maps.google.com/maps?q=20.8420,106.6980&output=embed&hl=vi",
+    "ceremony_date": "2026-12-27",
+    "ceremony_time": "11:00",
+    "ceremony_lunar": "Tức ngày 19 tháng 11 năm Bính Ngọ",
+    "ceremony_location": "Sảnh Pha Lê — Nhà hàng Tiệc cưới Biển Xanh, 96 Trần Phú, Phường Nha Trang, Tỉnh Khánh Hòa",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=12.2388,109.1967&output=embed&hl=vi",
     "vu_quy_enabled": true,
     "vu_quy_time": "08:00",
-    "vu_quy_location": "Tư gia nhà gái — Số 9 Hạ Long, Phường Bãi Cháy, Tỉnh Quảng Ninh",
-    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=20.9599,107.0448&output=embed&hl=vi",
-    "groom_party_date": "2026-10-10",
-    "groom_party_time": "17:00",
-    "groom_party_lunar": "Tức ngày 1 tháng 9 năm Bính Ngọ",
+    "vu_quy_location": "Tư gia nhà gái — Số 14 Đường 2 Tháng 4, Phường Bắc Nha Trang, Tỉnh Khánh Hòa",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=12.2851,109.1936&output=embed&hl=vi",
+    "groom_party_date": "2026-12-27",
+    "groom_party_time": "11:00",
+    "groom_party_lunar": "Tức ngày 19 tháng 11 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Trung tâm Tiệc cưới Pearl Palace, 268 Lê Hồng Phong, TP. Hải Phòng",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=20.8420,106.6980&output=embed&hl=vi",
-    "bride_party_date": "2026-10-10",
+    "groom_party_location": "Sảnh Pha Lê — Nhà hàng Tiệc cưới Biển Xanh, 96 Trần Phú, Phường Nha Trang, Tỉnh Khánh Hòa",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=12.2388,109.1967&output=embed&hl=vi",
+    "bride_party_date": "2026-12-26",
     "bride_party_time": "17:30",
-    "bride_party_lunar": "Tức ngày 1 tháng 9 năm Bính Ngọ",
+    "bride_party_lunar": "Tức ngày 18 tháng 11 năm Bính Ngọ",
     "bride_party_show_location": true,
-    "bride_party_location": "Nhà hàng Biển Ngọc, Phường Bãi Cháy, Tỉnh Quảng Ninh",
-    "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.9550,107.0400&output=embed&hl=vi",
-    "groom_bank_name": "MB Bank",
-    "groom_bank_number": "0888110220266",
-    "groom_bank_owner": "VU TUAN KHANG",
-    "bride_bank_name": "TPBank",
-    "bride_bank_number": "03456677889",
-    "bride_bank_owner": "BUI MAI CHI",
-    "story_quote": "Yêu là chọn nhau mỗi ngày — và hôm nay, chúng mình chọn nhau trọn đời.",
+    "bride_party_location": "Tư gia nhà gái — Số 14 Đường 2 Tháng 4, Phường Bắc Nha Trang, Tỉnh Khánh Hòa",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=12.2851,109.1936&output=embed&hl=vi",
+    "groom_bank_name": "Techcombank",
+    "groom_bank_number": "19036628451",
+    "groom_bank_owner": "LE HOANG NAM",
+    "bride_bank_name": "ACB",
+    "bride_bank_number": "27719058",
+    "bride_bank_owner": "NGUYEN KHANH LINH",
+    "story_quote": "Thương nhau là cùng nhau thắt một chiếc nơ thật chặt, để chẳng bao giờ lạc mất nhau.",
     "rsvp_enabled": true,
-    "rsvp_message": "Chúng mình sẽ vui lắm nếu bạn dành một phút bấm xác nhận, để hôm ấy không thiếu bạn.",
-    "footer_text": "Cảm ơn bạn đã thương chúng mình. Mong được nắm tay bạn trong ngày hạnh phúc nhất!",
+    "rsvp_message": "Bạn đến chung vui với tụi mình nha! Bấm xác nhận để tụi mình chuẩn bị chỗ thật xinh cho bạn.",
+    "footer_text": "Cảm ơn bạn đã ghé qua chiếc thiệp nhỏ này. Hẹn bạn ở Nha Trang, ngày tụi mình về chung một nhà!",
     "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
@@ -158,12 +158,12 @@
     "timeline": [
       {
         "time": "17:30",
-        "title": "Tiệc thân mật nhà gái tại Hạ Long",
+        "title": "Tiệc thân mật tại nhà gái",
         "type": "bride-party"
       },
       {
         "time": "19:00",
-        "title": "Chụp ảnh cùng bạn bè cô dâu",
+        "title": "Hát karaoke cùng hội bạn thân",
         "type": "bride-party"
       },
       {
@@ -173,35 +173,30 @@
       },
       {
         "time": "09:00",
-        "title": "Đoàn nhà trai đón dâu về Hải Phòng",
+        "title": "Rước dâu về nhà trai",
         "type": "ceremony"
       },
       {
-        "time": "10:00",
-        "title": "Lễ Thành Hôn tại Pearl Palace",
-        "type": "ceremony"
-      },
-      {
-        "time": "17:00",
-        "title": "Đón khách và nhận lời chúc",
+        "time": "11:00",
+        "title": "Đón khách, chụp ảnh lưu niệm",
         "type": "party"
       },
       {
-        "time": "17:30",
-        "title": "Khai tiệc mừng hạnh phúc",
+        "time": "11:30",
+        "title": "Lễ Thành Hôn tại Biển Xanh",
         "type": "party"
       },
       {
-        "time": "18:30",
-        "title": "Cắt bánh, tung hoa cưới",
+        "time": "12:00",
+        "title": "Khai tiệc, cắt bánh cưới",
         "type": "party"
       },
       {
-        "time": "20:00",
-        "title": "Cảm ơn và tiễn khách",
+        "time": "13:30",
+        "title": "Tung hoa cưới và tiễn khách",
         "type": "party"
       }
     ]
   },
-  "updated_at": "2026-10-04T17:23:55.919Z"
+  "updated_at": "2026-10-08T17:00:00.000Z"
 }

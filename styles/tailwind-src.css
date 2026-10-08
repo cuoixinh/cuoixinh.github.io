@@ -302,6 +302,140 @@ html.cx-landing {
   outline-offset: 3px;
 }
 
+/* Menu của nút ☰: thẻ rộng gần trọn màn (chừa lề 16px như #hero), các trang là
+   ô lưới (--hm-cols do js/hero-menu.js đặt theo số mục), mục sau vạch ngăn
+   (tài khoản) là hàng ngang trọn bề rộng. Mở ra thì phóng nhẹ từ góc nút. */
+.x-pop.hero-menu {
+  width: calc(100vw - 32px);
+  max-width: 420px;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 28px;
+  transform-origin: top right;
+  box-shadow:
+    0 24px 48px -12px rgb(var(--scrim-rgb) / 0.22),
+    0 8px 16px -8px rgb(var(--scrim-rgb) / 0.12);
+}
+
+.x-pop.hero-menu.is-open {
+  display: grid;
+  grid-template-columns: repeat(var(--hm-cols, 2), minmax(0, 1fr));
+  animation: cx-hm-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.hero-menu .x-pop-item {
+  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 92px;
+  padding: 12px;
+  border-radius: 20px;
+  background: rgb(var(--surface-tint-rgb));
+  font-size: 14px;
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
+  animation: cx-hm-item 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.hero-menu .x-pop-item:nth-child(2) { animation-delay: 0.04s; }
+.hero-menu .x-pop-item:nth-child(3) { animation-delay: 0.08s; }
+.hero-menu .x-pop-item:nth-child(4) { animation-delay: 0.12s; }
+.hero-menu .x-pop-item:nth-child(5) { animation-delay: 0.16s; }
+.hero-menu .x-pop-item:nth-child(6) { animation-delay: 0.2s; }
+.hero-menu .x-pop-item:nth-child(7) { animation-delay: 0.24s; }
+
+.hero-menu .x-pop-item:active {
+  transform: scale(0.97);
+}
+
+.hero-menu .x-pop-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+}
+
+.hero-menu .x-pop-item.is-active,
+.hero-menu .x-pop-item.is-active:hover {
+  background: rgb(var(--brand-primary-rgb) / 0.14);
+}
+
+.hero-menu .x-pop-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.hero-menu .x-pop-sep {
+  grid-column: 1 / -1;
+  margin: 4px;
+}
+
+/* Mục tài khoản (sau vạch ngăn, do CXAccount.items() cấp): hàng ngang trọn bề rộng. */
+.hero-menu .x-pop-sep ~ .x-pop-item {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 48px;
+  padding: 6px 8px;
+  border-radius: 16px;
+  background: transparent;
+}
+
+.hero-menu .x-pop-sep ~ .x-pop-item:hover {
+  background: rgb(var(--surface-hover-rgb));
+}
+
+.hero-menu .x-pop-sep ~ .x-pop-item .x-pop-ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgb(var(--surface-control-rgb));
+}
+
+/* Màn mờ sau menu: chỉ phủ từ dưới hàng nút (--hm-top), chặn cuộn trang lúc
+   menu mở; bấm vào thì x-popover tự đóng (bấm ra ngoài). */
+.hero-menu-scrim {
+  position: fixed;
+  inset: var(--hm-top, 0px) 0 0;
+  z-index: 399;
+  background: rgb(var(--scrim-rgb) / 0.24);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  touch-action: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.14s ease-in,
+    visibility 0s linear 0.14s;
+}
+
+.hero-menu-scrim.is-on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.22s ease-out;
+}
+
+@keyframes cx-hm-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+}
+
+@keyframes cx-hm-item {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 /* Thanh tab dưới của trang chủ: ẩn (trượt khỏi đáy) khi hàng .hero-top còn trên
    màn — cờ .cx-tabbar-off do js/hero-menu.js đặt/gỡ. */
 .cx-landing .cx-tabbar {
@@ -946,8 +1080,13 @@ html.cx-landing {
     display: none;
   }
   .cx-landing .cx-tabbar,
-  .hero-menu-btn {
+  .hero-menu-btn,
+  .hero-menu-scrim {
     transition: none;
+  }
+  .x-pop.hero-menu.is-open,
+  .hero-menu .x-pop-item {
+    animation: none;
   }
   .hero-btn {
     transition: none;

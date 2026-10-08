@@ -256,7 +256,8 @@ const CX_PHONE_MAX_W = 390 / 0.9217;
 // chiều cao xuống bằng khoảng trống còn lại — thiệp vẫn rộng đúng như máy thật,
 // chỉ thấy được ít dòng hơn. Ảnh thân máy là SVG trong <img> nên tự bóp theo
 // (preserveAspectRatio="none"), ô màn khai bằng % nên bám theo khổ mới.
-// CHỈ tab Giao diện bật cờ này vì thanh chỉnh nằm trong luồng ngay dưới khung;
+// CHỈ tab Giao diện bật cờ này (thanh chỉnh mobile nổi đè đáy khung, khổ khung
+// không đổi khi thu/mở);
 // tab Xem trước thì KHÔNG — ở đó khung máy chính là thứ cho thấy thiệp trông ra
 // sao trên điện thoại, méo tỉ lệ là hết ý nghĩa.
 // Từ md+ thanh chỉnh là cột phải, không ăn chiều cao của khung, nên máy giữ
@@ -314,9 +315,8 @@ function cxPreviewFit() {
   _cxPhoneFit(document.getElementById("cx-preview-stage"), false);
 }
 
-// Tab Giao diện. Thanh chỉnh nằm trong luồng ngay dưới khung, nên kéo nó cao lên
-// là chỗ trống hụt đi và máy lùn lại theo (ResizeObserver trên stage gọi lại hàm
-// này). Bề ngang không đổi, thiệp vẫn dựng ở khổ máy thật.
+// Tab Giao diện. Mobile: thanh chỉnh nổi absolute nên khung lấy trọn chiều cao,
+// thu/mở thanh không đổi khổ; ResizeObserver trên stage lo xoay máy/đổi khổ.
 function cxThemeFit() {
   _cxPhoneFit(document.getElementById("theme-preview-stage"), true);
 }

@@ -345,12 +345,17 @@ body {
 }
 .pb-cover-names {
   margin-bottom: min(12px, calc(var(--pb-cv-h) * 0.014));
-  font-size: 22px;
-  letter-spacing: 1px;
+  font-family: "FashionSignature", "Noto Serif", serif;
+  font-size: 36px;
+  line-height: 1.3;
+  letter-spacing: 0;
   color: rgb(var(--cx-heading-rgb));
 }
+/* Chữ ký không có dấu & đẹp → giữ & ở serif, nhỏ hơn tên. */
 .pb-cover-names .pb-amp {
-  margin: 0 4px;
+  margin: 0 8px;
+  font-family: "Noto Serif", serif;
+  font-size: 0.6em;
   color: rgb(var(--cx-accent-rgb));
 }
 /* Chỉ mờ dần + trượt, KHÔNG scale: ảnh nằm trong tấm xoay, phóng/thu là trình duyệt
@@ -802,14 +807,44 @@ body {
 }
 .pb-map-card {
   display: block;
-  width: 232px;
+  width: min(312px, 84%);
   border: 2px solid rgb(var(--cx-accent-rgb));
   background: rgb(var(--cx-panel-rgb));
 }
 .pb-map-box {
   position: relative;
-  height: 116px;
+  height: 188px;
   overflow: hidden;
+}
+/* Hai nút trong thẻ bản đồ: cả thẻ là link "Mở map"; "Chỉ đường" do pbBindDirections
+   chặn lại và mở trang dẫn đường. Chưa có bản đồ (thẻ bị khoá) thì giấu. */
+.pb-map-go {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 8px;
+}
+.pb-map-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 0;
+  border: 1px solid rgb(var(--cx-accent-rgb));
+  border-radius: 2px;
+  font-family: "Noto Serif", serif;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+}
+.pb-map-btn.is-ghost {
+  background: transparent;
+  color: rgb(var(--cx-accent-rgb));
+}
+.pb-map-card.pointer-events-none .pb-map-go {
+  display: none;
 }
 
 /* ── Lịch trình ───────────────────────────────────────────────────────── */

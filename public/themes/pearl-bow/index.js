@@ -187,6 +187,7 @@
 
     // --- Bản đồ ---
     renderVenueMaps(w, side);
+    pbBindDirections();
 
     // --- Lời cảm ơn ---
     if (w.footer_text) setText("footer-text", w.footer_text);
@@ -194,6 +195,22 @@
   }
 
   window.renderWedding = renderWedding;
+
+  // Nút "Chỉ đường" nằm trong link bản đồ (kể cả bản -2): đổi link tìm địa điểm
+  // (?query=) thành link dẫn đường tới đúng điểm đó. Uỷ quyền một lần trên mục.
+  function pbBindDirections() {
+    const sec = document.getElementById("section-map");
+    if (!sec || sec._pbDir) return;
+    sec._pbDir = true;
+    sec.addEventListener("click", (e) => {
+      const link = e.target.closest("[data-pb-dir]")?.closest("a");
+      if (!link) return;
+      e.preventDefault();
+      const q = new URL(link.href, location.href).searchParams.get("query");
+      const url = q ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(q)}` : link.href;
+      window.open(url, "_blank", "noopener");
+    });
+  }
 
   const _pad = (n) => String(Math.max(0, n)).padStart(2, "0");
 

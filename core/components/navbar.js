@@ -10,11 +10,16 @@
 // tabbar: false → chỉ dựng thanh trên. Dùng cho luồng MỘT CHIỀU (thanh toán):
 // dải đáy ở đó dành cho nút hành động, để thêm tab là mời khách rời luồng.
 //
-// Mục: { id, label, icon, href | onClick, count, only: "top"|"tab", login }
+// Mục: { id, label, icon, href | onClick, count, only: "top"|"tab", login, loginLabel }
 //   href → thẻ <a>, không có href → <button> (dùng onClick).
 //   count → kèm ô số đếm (ẩn sẵn); only → chỉ hiện ở một trong hai thanh.
-//   login: true → chỉ hiện khi đã đăng nhập (ẩn sẵn, bật theo CXAuth khi trang nạp
-//   xong — core/auth.js nạp SAU navbar ở mọi trang nên không hỏi được lúc mount).
+//   login: true → chỉ hiện khi đã đăng nhập; loginLabel → nhãn thay cho `label`
+//   khi đã đăng nhập. Lúc mount hỏi CXAuth (bản sync) nên trang phải nạp
+//   core/auth.js TRƯỚC navbar — thiếu thì vẽ như chưa đăng nhập rồi mới tráo (nháy).
+//   pin: true → không bao giờ bị gom vào nút "…".
+// Thanh nào không đủ chỗ (nhãn tab phải xuống dòng, dãy mục thanh trên tràn) thì
+// mục thừa lùi dần vào popover của nút "…" cuối thanh (mục cuối lùi trước, mục
+// đang mở và mục pin thì không) — CÙNG phần tử, dáng hàng menu do popover quyết định.
 // Hành động bên phải thanh trên: { label, onClick, id, icon, class, variant };
 // cần thứ khác nút (menu tài khoản…) thì truyền `actionsHTML` — HTML thô, chèn
 // sau các nút.
@@ -37,6 +42,7 @@ const CXNavbar = (function () {
     users:
       '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
     list: '<path d="M10 6h11"/><path d="M10 12h11"/><path d="M10 18h11"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>',
   };
 
@@ -61,17 +67,33 @@ const CXNavbar = (function () {
     const cls =
       (isTab ? "cx-tab" : "cx-navlink") +
       (it.id === active ? " is-on" : "") +
-      (it.login ? " cx-nav-off" : "");
+      (it.login && !_on0 ? " cx-nav-off" : "");
     const tag = it.href ? "a" : "button";
     const link = it.href ? `href="${it.href}"` : 'type="button"';
     const click = it.onClick ? ` onclick="${it.onClick}"` : "";
+    // Mục đổi nhãn theo phiên (loginLabel) giữ cả hai nhãn để syncLoginItems tráo.
+    const loginLabel = it.loginLabel
+      ? ` data-nav-label-out="${it.label}" data-nav-label-in="${it.loginLabel}"`
+      : "";
     const badge = it.count
       ? `<span class="${isTab ? "cx-tab-count" : "cx-navcount"} hidden" data-nav-count="${it.id}">0</span>`
       : "";
     return (
-      `<${tag} class="${cls}" data-nav="${it.id}"${it.login ? " data-nav-login" : ""} ${link}${click}>` +
+      `<${tag} class="${cls}" data-nav="${it.id}"${it.login ? " data-nav-login" : ""}` +
+      `${it.pin ? " data-nav-pin" : ""} ${link}${click}>` +
       svg(it.icon, isTab ? 20 : 15) +
-      `<span data-nav-label="${it.id}">${it.label}</span>${badge}</${tag}>`
+      `<span data-nav-label="${it.id}"${loginLabel}>` +
+      `${_on0 && it.loginLabel ? it.loginLabel : it.label}</span>${badge}</${tag}>`
+    );
+  }
+
+  // Nút "…" cuối thanh — ẩn sẵn, _reflow chỉ bật khi có mục phải gom vào.
+  function moreHTML(mode) {
+    const isTab = mode === "tab";
+    return (
+      `<button type="button" class="${isTab ? "cx-tab" : "cx-navlink"} cx-nav-off" data-nav-more ` +
+      `aria-haspopup="menu" aria-expanded="false">${svg("more", isTab ? 20 : 15)}` +
+      `<span data-nav-label="more">Thêm</span></button>`
     );
   }
 
@@ -90,8 +112,12 @@ const CXNavbar = (function () {
   /**
    * Chèn hai thanh vào đầu/cuối <body>. Gọi sau khi DOM sẵn sàng.
    */
+  // Phiên lúc mount (bản sync của CXAuth) — vẽ đúng ngay lần đầu.
+  let _on0 = false;
+
   function mount(cfg) {
     const items = cfg.items || [];
+    _on0 = !!window.CXAuth?.isLoggedIn?.();
 
     const top =
       `<nav id="main-nav" class="cx-navbar${_atTop() ? " is-top" : ""} hidden md:block">` +
@@ -99,21 +125,92 @@ const CXNavbar = (function () {
       `<a href="/" class="cx-logo cx-navbrand shrink-0" aria-label="Cưới Xinh">` +
       `<x-logo size="32"></x-logo></a>` +
       `<div class="cx-navcard">` +
-      `<nav class="cx-navlinks">${items.map((i) => itemHTML(i, cfg.active, "top")).join("")}</nav>` +
+      `<nav class="cx-navlinks">${items.map((i) => itemHTML(i, cfg.active, "top")).join("")}` +
+      `${moreHTML("top")}</nav>` +
       `<div class="cx-navactions">${(cfg.actions || []).map(actionHTML).join("")}` +
       `${cfg.actionsHTML || ""}</div>` +
       `</div></div></nav>`;
 
     document.body.insertAdjacentHTML("afterbegin", top);
     _bindFlatTop(document.getElementById("main-nav"));
-    if (items.some((i) => i.login)) _bindLoginItems();
+    if (items.some((i) => i.login || i.loginLabel)) _bindLoginItems();
+    _bindMore(document.querySelector("#main-nav .cx-navlinks"), "top");
 
-    if (cfg.tabbar === false) return;
-    const bar =
-      `<nav class="cx-tabbar md:hidden"><div class="cx-tabbar-card">` +
-      items.map((i) => itemHTML(i, cfg.active, "tab")).join("") +
-      `</div></nav>`;
-    document.body.insertAdjacentHTML("beforeend", bar);
+    if (cfg.tabbar !== false) {
+      const bar =
+        `<nav class="cx-tabbar md:hidden"><div class="cx-tabbar-card">` +
+        items.map((i) => itemHTML(i, cfg.active, "tab")).join("") +
+        moreHTML("tab") +
+        `</div></nav>`;
+      document.body.insertAdjacentHTML("beforeend", bar);
+      _bindMore(document.body.lastElementChild.firstElementChild, "tab");
+    }
+    _queueReflow();
+    document.fonts?.ready.then(_queueReflow); // font về muộn là bề ngang nhãn đổi
+  }
+
+  // ===== Gom mục thừa vào "…" =====
+  // Popover để ở <body>: x-popover là position:fixed, mà thanh tab có transform.
+  const _bars = [];
+
+  // Tab vừa khi nhãn (một dòng) không bị cắt "…"; mục đang ẩn coi như vừa.
+  function _tabFits(el) {
+    const s = el.offsetWidth && el.querySelector("[data-nav-label]");
+    return !s || s.scrollWidth <= s.clientWidth;
+  }
+
+  function _bindMore(box, mode) {
+    if (!box) return;
+    const more = box.querySelector("[data-nav-more]");
+    const pop = document.createElement("x-popover");
+    pop.className = "cx-navmore-pop";
+    pop.setAttribute("placement", mode === "tab" ? "top" : "bottom");
+    pop.setAttribute("align", "end");
+    document.body.appendChild(pop);
+    more.addEventListener("click", () => pop.toggle?.(more));
+    _bars.push({
+      box,
+      more,
+      pop,
+      items: [...box.children].filter((el) => el !== more),
+      fits:
+        mode === "tab"
+          ? () => [...box.children].every(_tabFits)
+          : () => box.scrollWidth <= box.clientWidth,
+    });
+    if ("ResizeObserver" in window) new ResizeObserver(_queueReflow).observe(box);
+  }
+
+  // Trả hết mục về thanh rồi lùi từng mục (từ cuối) vào popover tới khi vừa.
+  function _reflow(bar) {
+    const { box, more, pop, items, fits } = bar;
+    if (!box.offsetWidth) return; // thanh đang ẩn ở khổ màn này
+    items.forEach((el) => box.insertBefore(el, more));
+    more.classList.add("cx-nav-off");
+    if (!fits()) {
+      more.classList.remove("cx-nav-off");
+      const movable = items.filter(
+        (el) =>
+          !el.classList.contains("is-on") &&
+          !el.classList.contains("cx-nav-off") &&
+          !el.hasAttribute("data-nav-pin"),
+      );
+      for (let i = movable.length - 1; i >= 0; i--) {
+        pop.insertBefore(movable[i], pop.firstChild); // chèn đầu → giữ thứ tự gốc
+        if (fits()) break;
+      }
+    }
+    if (more.classList.contains("cx-nav-off")) pop.close?.();
+    else pop.place?.();
+  }
+
+  let _reflowRaf = 0;
+  function _queueReflow() {
+    if (_reflowRaf) return;
+    _reflowRaf = requestAnimationFrame(() => {
+      _reflowRaf = 0;
+      _bars.forEach(_reflow);
+    });
   }
 
   // Gần đầu trang → cờ .is-top, viết sẵn vào markup lúc mount. Transition chỉ bật
@@ -138,13 +235,18 @@ const CXNavbar = (function () {
     );
   }
 
-  // Mục `login: true` hiện/ẩn theo phiên. Chạy khi DOM xong (lúc đó mọi script
-  // đồng bộ, kể cả core/auth.js, đã chạy) rồi bám onChange cho đăng nhập/xuất sau.
+  // Mục `login: true` hiện/ẩn theo phiên, mục có `loginLabel` đổi nhãn theo phiên.
+  // Chạy khi DOM xong (lúc đó mọi script đồng bộ, kể cả core/auth.js, đã chạy) rồi
+  // bám onChange cho đăng nhập/xuất sau.
   function syncLoginItems() {
     const on = !!window.CXAuth?.isLoggedIn?.();
     document.querySelectorAll("[data-nav-login]").forEach((el) => {
       el.classList.toggle("cx-nav-off", !on);
     });
+    document.querySelectorAll("[data-nav-label-in]").forEach((el) => {
+      el.textContent = on ? el.dataset.navLabelIn : el.dataset.navLabelOut;
+    });
+    _queueReflow();
   }
 
   let _loginBound = false;
@@ -165,6 +267,7 @@ const CXNavbar = (function () {
     document.querySelectorAll("[data-nav]").forEach((el) => {
       el.classList.toggle("is-on", el.dataset.nav === id);
     });
+    _queueReflow(); // mục vừa thành "đang mở" mà nằm trong "…" thì phải ra lại thanh
   }
 
   /** Số đếm của một mục (vd. số mẫu đã thích); 0 thì ẩn ô đếm. */
@@ -173,6 +276,7 @@ const CXNavbar = (function () {
       el.textContent = n;
       el.classList.toggle("hidden", !n);
     });
+    _queueReflow();
   }
 
   /** Đổi nhãn một mục ở cả hai thanh (vd. "Tài khoản" ↔ "Thiệp của tôi"). */
@@ -180,6 +284,7 @@ const CXNavbar = (function () {
     document.querySelectorAll(`[data-nav-label="${id}"]`).forEach((el) => {
       el.textContent = text;
     });
+    _queueReflow();
   }
 
   return { ICONS, mount, setActive, setCount, setLabel, syncLoginItems };

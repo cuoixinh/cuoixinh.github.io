@@ -47,19 +47,18 @@
       ></span>
     </div>
 
-    <!-- Thanh chỉnh giao diện: mobile = thanh dưới full (như navbar); md+ = card
-             ~1/4 bên phải, kéo rộng được theo --theme-ctrl-w (styles/_setup.css).
-             Nằm TRONG LUỒNG ở mọi khổ: khung điện thoại fit theo chiều cao còn
-             trống (_cxPhoneFit) nên kéo thanh này cao lên là máy lùn lại chứ
-             không bị che. -->
+    <!-- Thanh chỉnh giao diện: mobile = tấm nổi ABSOLUTE đè đáy khung, cao cố
+             định, mọi mục vuốt NGANG — thu/mở không đổi khổ thiệp; md+ = card
+             ~1/4 bên phải trong luồng, kéo rộng được theo --theme-ctrl-w
+             (styles/_setup.css). -->
     <div
       id="theme-controls"
       class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgb(var(--scrim-rgb)/0.12)] md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
     >
-      <!-- Đầu bảng + vùng cuộn DÙNG CHUNG cho mọi bảng (chung, chỉnh chữ, thêm
-           văn bản, thành phần, điều chỉnh): nhờ vậy bảng nào cũng cao
-           bằng nhau — mặc định 200px cho đỡ che thiệp, kéo tay nắm lên khi cần
-           xem nhiều hơn (chỉ có tác dụng ở mobile; md+ cả cột đã tự cuộn).
+      <!-- Đầu bảng + vùng nội dung DÙNG CHUNG cho mọi bảng (chung, chỉnh chữ, thêm
+           văn bản, thành phần, điều chỉnh): ở mobile cao theo nội dung, không
+           cuộn dọc, vuốt tay nắm xuống là thu gọn (md+ cả cột đã tự cuộn). Mới
+           vào tab chưa chọn bảng nào (.cx-ctrl-none) thì vùng nội dung ẩn hẳn.
            Đầu bảng (vạch kéo + hàng nút) và dải tab dưới nằm NGOÀI vùng cuộn
            nên đứng yên khi cuộn nội dung; chữ trong đầu bảng do _syncCtrlHead()
            (js/05-theme-panel.js) đổ vào theo bảng đang mở. -->
@@ -145,11 +144,6 @@
                    mức toàn thiệp — muốn khác đi thì bấm thẳng vào phần tử trên
                    thiệp mà chỉnh riêng. Ô màu do _renderPaletteGrid() dựng. -->
               <div class="space-y-2.5">
-                <p class="text-[12px] text-gray-500">
-                  Bộ màu:
-                  <span id="theme-palette-name" class="font-semibold text-gray-800"></span>
-                </p>
-
                 <!-- Độ đậm của bộ màu: 50% = đúng bộ như danh mục khai, kéo lên
                      là cả thiệp đậm tông hơn. Đứng TRÊN lưới ô màu: lưới dài,
                      để dưới là trên điện thoại thanh này nằm khuất ngoài tầm
@@ -196,14 +190,8 @@
               id="theme-line-editor"
               class="hidden space-y-3 md:space-y-4"
             >
-              <!-- Nhắc đang chỉnh dòng nào — ẩn khi có ô sửa Nội dung (đã thấy chữ ở đó) -->
-              <p id="cx-le-sample-row" class="text-[12px] text-gray-500">
-                Nội dung đang chọn:
-                <span id="cx-le-sample" class="font-medium text-gray-700"></span>
-              </p>
-
               <!-- Nhóm control CHỮ (nội dung/font/cỡ/màu/kiểu/căn) -->
-              <div id="cx-le-text" class="space-y-3 md:space-y-4">
+              <div id="cx-le-text" class="cx-le-strip">
                 <!-- Nội dung — chỉ hiện khi text tĩnh sửa được (bound/không-text-thuần → ẩn hẳn) -->
                 <div id="cx-le-content">
                   <label class="cx-le-label-block">Nội dung</label>
@@ -324,7 +312,7 @@
               <!-- /cx-le-text -->
 
               <!-- Nhóm control ẢNH (rộng/cao + giữ tỉ lệ) -->
-              <div id="cx-le-image" class="hidden space-y-3 md:space-y-4">
+              <div id="cx-le-image" class="hidden cx-le-strip">
                 <div class="cx-le-duo">
                 <div class="cx-le-row">
                   <label class="cx-le-label">Rộng</label>
@@ -384,9 +372,6 @@
 
             <!-- Bảng THÊM VĂN BẢN (thay chỗ nhóm chỉnh chung, giống bảng chỉnh 1 dòng) -->
             <div id="theme-addtext-panel" class="hidden space-y-3 md:space-y-4">
-              <p class="text-[12px] text-gray-500">
-                Bấm để thêm vào chỗ đang xem, hoặc giữ rồi kéo thả đúng chỗ.
-              </p>
               <!-- Ô mẫu dựng động từ CX_TEXT_PRESETS
                    (core/helpers/text-preset-helper.js) — kể cả mẫu cơ bản
                    "Văn bản" — nên thêm mẫu mới không phải sửa file này. -->
@@ -405,17 +390,16 @@
                    phần chọn bên dưới bị khoá — _syncPanelGate() gạt dòng này. -->
               <p
                 id="gate-warn-elements"
-                class="hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-snug text-amber-800"
+                class="cx-gate-warn hidden truncate rounded-lg border border-amber-200 bg-amber-50 px-3 py-1 text-[12px] leading-snug text-amber-800 md:whitespace-normal md:py-2"
               >
                 <i
                   data-lucide="info"
                   style="width: 14px; height: 14px; vertical-align: -2px"
                   class="mr-1 inline-block"
                 ></i>
-                Mục “Nhạc nền” đang tắt — bật lại ở tab Thiết lập để thả thẻ nhạc.
-              </p>
-              <p class="text-[12px] text-gray-500">
-                Bấm để đổi mẫu, giữ rồi kéo để thả vào chỗ khác.
+                <!-- Mobile một dòng ngắn cho bảng gọn. -->
+                <span class="md:hidden">“Nhạc nền” đang tắt — bật ở tab Thiết lập</span>
+                <span class="hidden md:inline">Mục “Nhạc nền” đang tắt — bật lại ở tab Thiết lập để thả thẻ nhạc.</span>
               </p>
               <div id="cx-elements-palette" class="cx-pick-grid"></div>
             </div>
@@ -432,17 +416,15 @@
               <!-- Xem ghi chú ở #gate-warn-elements. -->
               <p
                 id="gate-warn-gift"
-                class="hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-snug text-amber-800"
+                class="cx-gate-warn hidden truncate rounded-lg border border-amber-200 bg-amber-50 px-3 py-1 text-[12px] leading-snug text-amber-800 md:whitespace-normal md:py-2"
               >
                 <i
                   data-lucide="info"
                   style="width: 14px; height: 14px; vertical-align: -2px"
                   class="mr-1 inline-block"
                 ></i>
-                Mục “Hộp mừng cưới” đang tắt — bật lại ở tab Thiết lập để chọn hộp.
-              </p>
-              <p class="text-[12px] text-gray-500">
-                Hộp che mã QR, khách chạm vào mới mở.
+                <span class="md:hidden">“Hộp mừng cưới” đang tắt — bật ở tab Thiết lập</span>
+                <span class="hidden md:inline">Mục “Hộp mừng cưới” đang tắt — bật lại ở tab Thiết lập để chọn hộp.</span>
               </p>
               <div id="cx-gift-palette" class="cx-pick-grid"></div>
             </div>
@@ -457,9 +439,6 @@
               id="theme-wish-panel"
               class="hidden space-y-3 md:space-y-4"
             >
-              <p class="text-[12px] text-gray-500">
-                Cách khách thấy lời chúc
-              </p>
               <div id="cx-wish-palette" class="cx-pick-grid"></div>
             </div>
             <!-- /theme-wish-panel -->
@@ -470,7 +449,7 @@
                  sửa HTML này — trừ 3 ô màu, Coloris cần input có sẵn trong DOM. -->
             <div
               id="theme-element-editor"
-              class="hidden space-y-3 md:space-y-4"
+              class="hidden cx-el-editor"
             >
 
               <!-- Không có mục "Mẫu" ở đây: đổi mẫu bằng nút trên chính widget, giữ
@@ -493,7 +472,7 @@
               </div>
 
               <!-- Tuỳ chọn dạng "chọn 1 trong nhiều" -->
-              <div id="cx-el-options" class="space-y-3 md:space-y-4"></div>
+              <div id="cx-el-options" class="cx-le-sub"></div>
 
               <!-- Ô màu: dựng sẵn EL_COLOR_SLOTS thẻ (cùng kiểu thẻ với nhóm Màu sắc),
                    panel bật/tắt và đặt nhãn theo `colors` của mẫu đang chọn

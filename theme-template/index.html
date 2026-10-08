@@ -246,6 +246,59 @@
         box-shadow: 0 8px 22px -8px rgb(var(--tt-cta-from) / 0.8);
       }
 
+      /* Quầng sáng "thở" + vệt sáng lướt qua — nút ĐỨNG YÊN, chỉ đổi bóng và
+         vệt sáng. Vệt sáng là ::after nên nút phải là khung chứa: nút nổi đã
+         `fixed`, nút ở thanh trên thì thêm `relative`. */
+      .tt-cta-btn {
+        overflow: hidden;
+        isolation: isolate;
+        animation: cx-tt-cta-glow 2.4s ease-in-out infinite;
+      }
+      .cx-navactions .tt-cta-btn {
+        position: relative;
+      }
+      .tt-cta-btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1; /* trên nền gradient (isolation), dưới chữ */
+        border-radius: inherit;
+        pointer-events: none;
+        background: linear-gradient(
+          110deg,
+          transparent 30%,
+          rgb(var(--white-rgb) / 0.55) 50%,
+          transparent 70%
+        );
+        transform: translateX(-120%);
+        animation: cx-tt-cta-shine 3.2s ease-in-out 1s infinite;
+      }
+      @keyframes cx-tt-cta-glow {
+        0%,
+        100% {
+          box-shadow: 0 4px 16px -6px rgb(var(--tt-cta-from) / 0.7);
+        }
+        50% {
+          box-shadow: 0 4px 24px -4px rgb(var(--tt-cta-from) / 0.85);
+        }
+      }
+      /* Lướt trong ~45% chu kỳ rồi nghỉ, để vệt sáng là điểm nhấn chứ không chạy liên tục. */
+      @keyframes cx-tt-cta-shine {
+        0% {
+          transform: translateX(-120%);
+        }
+        45%,
+        100% {
+          transform: translateX(120%);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .tt-cta-btn,
+        .tt-cta-btn::after {
+          animation: none;
+        }
+      }
+
       /* ─── Nút nổi giữa đáy ─── Chỉ có trên mobile: từ md trở lên nút "Bắt đầu
          miễn phí" đã nằm sẵn ở thanh trên.
          Căn giữa bằng left/right + margin auto, KHÔNG dùng translateX(-50%):
@@ -604,6 +657,8 @@
     <!-- Icon riêng (logo XuXi ở nút CTA của navbar) — phải nạp TRƯỚC navbar.js
          vì thanh điều hướng dựng HTML icon ngay lúc gọi CXNavbar. -->
     <script src="../core/helpers/icon.js"></script>
+    <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
+    <script src="../core/auth.js"></script>
     <script src="../core/components/navbar.js"></script>
     <script>
       CXNavbar.mount({
@@ -619,6 +674,7 @@
           {
             id: "cart",
             label: "Đã chọn",
+            loginLabel: "Thiệp của tôi",
             icon: "cart",
             href: "/my-invitations/",
             count: true,
@@ -638,6 +694,7 @@
             label: "Tài khoản",
             icon: "user",
             onClick: "CXAccount.open(this)",
+            pin: true,
           },
         ],
         actions: [
@@ -665,8 +722,7 @@
     <script src="../core/helpers/account-menu.js"></script>
     <script>
       // Đã đăng nhập: chip avatar + tên thay mục "Tài khoản" ở THANH TRÊN
-      // (thanh tab dưới giữ nguyên). Phải nằm SAU account-menu.js; chip tự đợi
-      // DOM nên không cần chờ core/auth.js bên dưới.
+      // (thanh tab dưới giữ nguyên). Phải nằm SAU account-menu.js.
       CXAccount.mountChip();
     </script>
     <script src="../core/cache-util.js"></script>
@@ -675,7 +731,6 @@
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/helpers/draft-start.js"></script>
     <script src="../core/auth-ui.js"></script>
-    <script src="../core/auth.js"></script>
     <script>
       /* ── Tạo nháp ── Dùng THẲNG core/helpers/draft-start.js như trang chủ:
          nó lo cả việc hỏi khi đang có thiệp viết dở. Có theme = khách bấm "Dùng

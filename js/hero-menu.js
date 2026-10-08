@@ -28,7 +28,7 @@ function _cxHeroMenuIcon(name) {
   );
 }
 
-// Dựng lại mỗi lần mở: số mẫu "Đã chọn" có thể đã đổi từ lần trước.
+// Dựng lại mỗi lần mở: số đếm và phiên đăng nhập có thể đã đổi từ lần trước.
 function cxHeroMenu(btn) {
   const pop = document.getElementById("heroMenu");
   if (!pop) return;
@@ -36,18 +36,36 @@ function cxHeroMenu(btn) {
     const countEl = document.querySelector('[data-nav-count="cart"]');
     const n = countEl && !countEl.classList.contains("hidden") ? countEl.textContent : "";
     const go = (href) => () => (location.href = href);
+    const loggedIn = !!window.CXAuth?.isLoggedIn?.();
+    // 3 trang thì xếp 3 cột, 4 trang thì lưới 2×2 — không để ô lẻ trơ một mình.
+    pop.style.setProperty("--hm-cols", loggedIn ? "2" : "3");
     pop.setItems([
       { icon: _cxHeroMenuIcon("home"), label: "Trang chủ", active: true, onClick: go("/") },
       { icon: _cxHeroMenuIcon("layers"), label: "Mẫu thiệp", onClick: go("/theme-template/") },
-      { icon: _cxHeroMenuIcon("cart"), label: n ? `Đã chọn (${n})` : "Đã chọn", onClick: go("/my-invitations/") },
+      { icon: _cxHeroMenuIcon("cart"), label: `${loggedIn ? "Thiệp của tôi" : "Đã chọn"}${n ? ` (${n})` : ""}`, onClick: go("/my-invitations/") },
       // Khách mời chỉ có nghĩa khi đã đăng nhập — cùng luật mục `login: true` ở navbar.
-      ...(window.CXAuth?.isLoggedIn?.()
+      ...(loggedIn
         ? [{ icon: _cxHeroMenuIcon("users"), label: "Khách mời", onClick: go("/guest-list/") }]
         : []),
       { sep: true },
-      // Menu tự đóng khi chọn mục, nên menu tài khoản neo vào nút menu (vẫn trên màn).
-      { icon: _cxHeroMenuIcon("user"), label: "Tài khoản", onClick: () => window.CXAccount?.open(btn) },
+      // Mục tài khoản ghép thẳng vào menu này (không mở thêm popover chồng lên).
+      ...(window.CXAccount?.items?.() || []),
     ]);
   }
   pop.toggle(btn);
 }
+
+// Màn mờ sau menu chạy theo sự kiện của popover (đóng do bấm ra ngoài, Esc, chọn
+// mục hay hàng nút cuộn khỏi màn đều đi qua "close").
+(function () {
+  const pop = document.getElementById("heroMenu");
+  const scrim = document.querySelector(".hero-menu-scrim");
+  const btn = document.getElementById("heroMenuBtn");
+  if (!pop || !scrim) return;
+  pop.addEventListener("open", () => {
+    const top = btn ? btn.getBoundingClientRect().bottom + 4 : 0;
+    scrim.style.setProperty("--hm-top", `${Math.max(0, Math.round(top))}px`);
+    scrim.classList.add("is-on");
+  });
+  pop.addEventListener("close", () => scrim.classList.remove("is-on"));
+})();

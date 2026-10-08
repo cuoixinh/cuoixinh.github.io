@@ -1,15 +1,15 @@
 // Menu "Tài khoản" dùng chung cho MỌI trang có navbar (core/components/navbar.js).
 // Một luật duy nhất, không trang nào tự chế:
 //   chưa đăng nhập → popover một mục "Đăng nhập"
-//   đã đăng nhập   → "Thiệp của tôi" · "Thông tin cá nhân" · "Đăng xuất"
+//   đã đăng nhập   → "Thông tin cá nhân" · "Đăng xuất" (thiệp đã có tab "Thiệp của tôi" ở navbar)
 //
 //   <button onclick="CXAccount.open(this)">   ← navbar truyền chính nút vừa bấm
 //   CXAccount.configure({ onLogin, onProfile, onLogout })  ← trang ghi đè khi cần
 //   CXAccount.mountChip()  ← chip avatar + tên ở thanh trên, chỉ hiện khi đã đăng nhập
 //
 // Mặc định: onLogin gọi openLoginPopup() của trang (không có thì sang
-// /my-invitations/), onProfile gọi openProfileModal() nếu trang có, không thì
-// sang /my-invitations/?profile=1 — nơi duy nhất có form hồ sơ, mở sẵn hộp đó.
+// /my-invitations/), onProfile mở hộp hồ sơ dùng chung (core/helpers/profile-modal.js)
+// ngay tại trang; trang không nạp file đó thì sang /my-invitations/?profile=1.
 // Cần core/x-popover.js + core/auth.js (nạp trước file này).
 
 const CXAccount = (function () {
@@ -19,9 +19,6 @@ const CXAccount = (function () {
     `stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 
   const ICONS = {
-    cards: ICON(
-      '<rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/>',
-    ),
     user: ICON(
       '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.7a8 8 0 0 1 10 0"/>',
     ),
@@ -57,10 +54,9 @@ const CXAccount = (function () {
     window.location.href = `${MANAGE_URL}?urlRedirect=${encodeURIComponent(location.href)}`;
   }
 
-  // Form hồ sơ chỉ có ở trang quản lý thiệp; trang khác thì sang đó.
   function _profile() {
     if (_hooks.onProfile) return _hooks.onProfile();
-    if (window.openProfileModal) return openProfileModal();
+    if (window.CXProfile) return CXProfile.open();
     window.location.href = `${MANAGE_URL}?profile=1`;
   }
 
@@ -70,30 +66,24 @@ const CXAccount = (function () {
     window.location.replace(window.location.pathname);
   }
 
+  /** Các mục tài khoản dạng setItems của x-popover — menu khác (☰ trang chủ) ghép thẳng vào mình. */
+  function items() {
+    return window.CXAuth?.isLoggedIn()
+      ? [
+          { key: "profile", icon: ICONS.user, label: "Thông tin cá nhân", onClick: _profile },
+          { key: "logout", icon: ICONS.out, label: "Đăng xuất", onClick: _logout },
+        ]
+      : [{ key: "login", icon: ICONS.in, label: "Đăng nhập", onClick: _login }];
+  }
+
   /** Mở menu, neo theo phần tử vừa bấm (mục ở thanh trên hay thanh tab dưới). */
   function open(anchorEl) {
+    // Mục "Tài khoản" đang nằm trong popover khác (nút "…" của navbar): neo vào nút
+    // mở popover đó — popover kia đóng ngay sau cú bấm này.
+    anchorEl = anchorEl?.closest?.("x-popover")?._anchorEl || anchorEl;
     const pop = _pop();
     if (!pop.setItems) return _login(); // x-popover chưa nạp → ít nhất vẫn đăng nhập được
-    const loggedIn = !!window.CXAuth?.isLoggedIn();
-    // Đang ở chính trang quản lý thì mục đó mang trạng thái đang mở (nền + dấu
-    // tích của x-popover) và không điều hướng lại — bấm vào chỉ đóng menu.
-    const onManage = location.pathname.startsWith(MANAGE_URL);
-    pop.setItems(
-      loggedIn
-        ? [
-            {
-              icon: ICONS.cards,
-              label: "Thiệp của tôi",
-              active: onManage,
-              onClick: onManage
-                ? () => {}
-                : () => (window.location.href = MANAGE_URL),
-            },
-            { icon: ICONS.user, label: "Thông tin cá nhân", onClick: _profile },
-            { icon: ICONS.out, label: "Đăng xuất", onClick: _logout },
-          ]
-        : [{ icon: ICONS.in, label: "Đăng nhập", onClick: _login }],
-    );
+    pop.setItems(items());
     pop.toggle(anchorEl);
   }
 
@@ -167,7 +157,7 @@ const CXAccount = (function () {
     window.CXAuth?.getUser?.().then(_syncChip); // chốt lại bằng phiên thật
   }
 
-  return { open, close, configure, mountChip, syncChip: _syncChip };
+  return { open, close, items, configure, mountChip, syncChip: _syncChip };
 })();
 
 window.CXAccount = CXAccount;

@@ -171,8 +171,11 @@
     </section>
 
     <!-- Menu của nút ☰ ở .hero-top — để NGOÀI #hero: popover là position:fixed,
-         mà .hero-top mang transform (hiệu ứng hiện dần) sẽ kéo nó lệch chỗ. -->
-    <x-popover id="heroMenu" placement="bottom" align="end" width="220" arrow></x-popover>
+         mà .hero-top mang transform (hiệu ứng hiện dần) sẽ kéo nó lệch chỗ.
+         Màn mờ phủ phần trang DƯỚI hàng nút (top do js/hero-menu.js đặt) để nút ✕
+         vẫn rõ và bấm được. -->
+    <div class="hero-menu-scrim" aria-hidden="true"></div>
+    <x-popover id="heroMenu" class="hero-menu" placement="bottom" align="end" aria-label="Menu"></x-popover>
 
     <!-- ===== TEMPLATE GALLERY ===== -->
     <!-- Dải ngang toàn bộ mẫu thiệp: cuộn ngang bằng cuộn thật của trình duyệt,
@@ -324,7 +327,7 @@
               <span class="intro-amp" aria-hidden="true">&amp;</span>
               <div>
                 <label class="intro-label" for="introBride">Cô dâu</label>
-                <input id="introBride" class="intro-input" type="text" maxlength="20" autocomplete="off" placeholder="Thảo My" />
+                <input id="introBride" class="intro-input" type="text" maxlength="20" autocomplete="off" placeholder="Thu Thảo" />
               </div>
             </div>
             <x-button variant="bare" onclick="introCreateDraft(event)" class="intro-cta">
@@ -347,14 +350,14 @@
               <p class="intro-std-k">Save the date</p>
               <p class="intro-card-nm" data-intro="groom">Minh Khôi</p>
               <p class="intro-card-and">&amp;</p>
-              <p class="intro-card-nm" data-intro="bride">Thảo My</p>
+              <p class="intro-card-nm" data-intro="bride">Thu Thảo</p>
               <p class="intro-std-date">11 · 10 · 2026</p>
             </div>
             <div class="intro-card intro-card-arch intro-toned" data-tone="rose">
               <img class="intro-arch-photo" src="assets/images/templates/romantic-gold.jpg" width="782" height="1444" alt="" loading="lazy" />
               <p class="intro-card-nm" data-intro="groom">Minh Khôi</p>
               <p class="intro-card-and">&amp;</p>
-              <p class="intro-card-nm" data-intro="bride">Thảo My</p>
+              <p class="intro-card-nm" data-intro="bride">Thu Thảo</p>
               <p class="intro-arch-guest">Thân mời: em Linh</p>
             </div>
           </div>
@@ -379,13 +382,13 @@
                   <p class="intro-mini-k">Lễ thành hôn</p>
                   <p class="intro-mini-nm" data-intro="groom">Minh Khôi</p>
                   <p class="intro-mini-and">&amp;</p>
-                  <p class="intro-mini-nm" data-intro="bride">Thảo My</p>
+                  <p class="intro-mini-nm" data-intro="bride">Thu Thảo</p>
                   <p class="intro-mini-date">11 · 10 · 2026</p>
                 </div>
                 <p class="intro-link-title">
                   Thân mời em Linh tới dự lễ cưới của
                   <span data-intro="groom">Minh Khôi</span> &amp;
-                  <span data-intro="bride">Thảo My</span>
+                  <span data-intro="bride">Thu Thảo</span>
                 </p>
                 <p class="intro-link-url" data-intro="url">cuoixinh.com/minhkhoi-thaomy</p>
                 <span class="intro-react">❤️</span>
@@ -648,6 +651,7 @@
     <script src="core/helpers/draft-retention.js"></script>
     <script src="core/x-popover.js"></script>
     <script src="core/helpers/account-menu.js"></script>
+    <script src="core/helpers/profile-modal.js"></script>
     <script src="core/helpers/alert.js"></script>
     <script src="core/auth-ui.js"></script>
     <script src="core/auth.js"></script>
@@ -689,6 +693,7 @@
           {
             id: "cart",
             label: "Đã chọn",
+            loginLabel: "Thiệp của tôi",
             icon: "cart",
             href: "/my-invitations/",
             count: true,
@@ -699,6 +704,7 @@
             label: "Tài khoản",
             icon: "user",
             onClick: "CXAccount.open(this)",
+            pin: true,
             only: "tab",
           },
         ],
