@@ -1,4 +1,4 @@
-// Mẫu HỒNG DUYÊN — thiệp lật trang tông đỏ, hoạ tiết sen vàng. Chỉ KHAI BÁO:
+// Mẫu HỒNG DUYÊN — thiệp lật trang tông đỏ đô, chỉ vàng. Chỉ KHAI BÁO:
 // window.CX_THEME + renderWedding + phần đặc thù (ảnh xen, chữ lồng tên, mỗi mốc
 // chuyện tình một trang, băng ảnh vuốt ngang, đếm ngược, bộ điều khiển lật trang).
 // Phần "chạy" nằm ở core/helpers/theme-boot.js. Bọc IIFE: `const` cấp cao nhất là biến toàn cục.
@@ -67,8 +67,7 @@
       btn: "#aa182a",
     },
 
-    // Hiệu ứng hiện dần do hdSlides lo theo TỪNG TRANG (chạy lại mỗi lần lật
-    // tới), nên hiệu ứng cuộn chung trỏ vào một id không có để hai bên không chồng
+    // Hiệu ứng hiện dần do hdSlides lo theo TỪNG TRANG, nên hiệu ứng cuộn chung trỏ vào một id không có để hai bên không chồng
     // lên nhau (mảng rỗng làm theme-boot ném lỗi selector rỗng).
     reveal: ["#hd-no-reveal"],
     suggest: "#section-gift",
@@ -100,7 +99,6 @@
     }
     if (w.story_quote) setText("story-quote", w.story_quote);
     const mono = `${hdInitial(w.groom_name)} & ${hdInitial(w.bride_name)}`;
-    setText("hd-mono", mono);
     setText("hd-mono-2", mono);
 
     hdFillShots(gallery, galleryFp);
@@ -185,6 +183,7 @@
 
     // --- Bản đồ ---
     renderVenueMaps(w, side);
+    hdBindDirections();
 
     // --- Lời cảm ơn ---
     if (w.footer_text) setText("footer-text", w.footer_text);
@@ -328,7 +327,7 @@
   }
 
   // ============= CHUYỆN TÌNH YÊU =============
-  // Mỗi mốc là MỘT trang: ảnh lớn, ngày, tiêu đề, nội dung; hoa sen đổi góc so le.
+  // Mỗi mốc là MỘT trang: ảnh lớn, ngày, tiêu đề, nội dung; mảng đỏ đổi trên/dưới so le.
 
   function hdRenderLoveStory(events) {
     const section = document.getElementById("love-story");
@@ -346,7 +345,6 @@
           ? `<div class="hd-frame hd-ls-photo hd-a hd-zoom">${hdShotImg(ev.image_url, ev.focal_point, true)}</div>`
           : "";
         return `<div class="hd-page hd-ls${i % 2 ? " is-flip" : ""}">
-          <svg class="hd-branch hd-ls-branch hd-a hd-fade" style="--d: 4" aria-hidden="true"><use href="#hd-branch"/></svg>
           <div class="cx-h cx-a hd-title hd-a hd-up">Chuyện của chúng mình</div>
           ${img}
           <div class="hd-ls-text hd-a hd-up" style="--d: 2">
@@ -395,13 +393,33 @@
     );
   }
 
+  // ============= BẢN ĐỒ: NÚT CHỈ ĐƯỜNG =============
+  // Nút nằm TRONG thẻ link bản đồ (cả bản sao "-2"): chặn mở link thường, đổi link tìm
+  // địa điểm (?query=) thành link dẫn đường tới đúng điểm đó. Uỷ quyền một lần trên mục.
+
+  function hdBindDirections() {
+    const sec = document.getElementById("section-map");
+    if (!sec || sec._hdDir) return;
+    sec._hdDir = true;
+    sec.addEventListener("click", (e) => {
+      const link = e.target.closest("[data-hd-dir]")?.closest("a");
+      if (!link) return;
+      e.preventDefault();
+      const q = new URL(link.href, location.href).searchParams.get("query");
+      const url = q ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(q)}` : link.href;
+      window.open(url, "_blank", "noopener");
+    });
+  }
+
   // ============= LẬT TRANG =============
-  // Trang = .hd-page (+ mục lời chúc do wishes-helper chèn). Trang chiếm >= 55%
-  // khung nhìn là trang đang mở: nó nhận .is-active (hiệu ứng .hd-a chạy lại mỗi
-  // lần lật tới), chấm chỉ trang đổi theo, tới trang cuối thì giấu mũi tên vuốt.
-  // Chỉ bật khi thiệp đã mở (onOpen) — chưa bật thì mọi thứ hiện sẵn, không mất chữ.
+  // Trang = .hd-page (+ mục lời chúc do wishes-helper chèn). Trang vừa trồi vào
+  // khung nhìn (mép trên qua 85% màn) nhận .is-seen MỘT LẦN, không gỡ: hiệu ứng .hd-a
+  // chạy ngay lúc đang vuốt tới, cuộn ngược lại thì trang trên vẫn còn nguyên.
+  // Trang chiếm >= 55% khung nhìn là trang đang mở (.is-active): chỉ để đổi chấm chỉ
+  // trang + giấu mũi tên vuốt ở trang cuối. Chỉ bật khi thiệp đã mở (onOpen).
 
   let _hdIO = null;
+  let _hdSeenIO = null;
   let _hdPages = [];
 
   function hdPages() {
@@ -439,9 +457,18 @@
       { threshold: 0.55 },
     );
     pages.forEach((p) => _hdIO.observe(p));
-    // Trang cao hơn khung nhìn (lịch trình dài…) không bao giờ đạt 55%: coi như
-    // đã mở để chữ trong đó luôn hiện.
-    pages.forEach((p) => p.classList.toggle("is-tall", p.offsetHeight > innerHeight * 1.5));
+    _hdSeenIO?.disconnect();
+    _hdSeenIO = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("is-seen");
+          _hdSeenIO.unobserve(e.target);
+        });
+      },
+      { rootMargin: "0px 0px -15% 0px" },
+    );
+    pages.filter((p) => !p.classList.contains("is-seen")).forEach((p) => _hdSeenIO.observe(p));
     const first = pages.find((p) => p.getBoundingClientRect().top >= -innerHeight / 2) || pages[0];
     if (first) hdSetActive(first);
   }

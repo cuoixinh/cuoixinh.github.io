@@ -26,6 +26,103 @@ function cxToggle(id, show) {
 window.cxEnabled = cxEnabled;
 window.cxToggle = cxToggle;
 
+// --- DẢI CUỘN NGANG KÉO BẰNG CHUỘT ---
+// Máy tính không vuốt được: mẫu đánh dấu khung cuộn ngang (album…) bằng
+// `data-cx-drag` là có bàn tay + nhấn giữ kéo. Uỷ quyền trên document nên ô ảnh
+// chèn sau vẫn ăn. Chỉ nhận chuột, cảm ứng giữ cuộn gốc. Lệch quá 6px mới là kéo
+// (bấm ảnh vẫn mở lightbox); kéo xong nuốt cú click kèm theo, thả ra trượt về ô
+// gần nhất (kéo quá 40px thì sang ô kế theo hướng kéo) rồi mới bật lại snap.
+(function () {
+  const css = document.createElement("style");
+  css.textContent =
+    "@media (hover:hover) and (pointer:fine){[data-cx-drag],[data-cx-drag] *{cursor:grab}}" +
+    "[data-cx-drag].cx-dragging,[data-cx-drag].cx-dragging *{cursor:grabbing;user-select:none}" +
+    "[data-cx-drag].cx-dragging,[data-cx-drag].cx-drag-free{scroll-snap-type:none;scroll-behavior:auto}";
+  document.head.appendChild(css);
+
+  let row = null;
+  let moved = false;
+  let x0 = 0;
+  let left0 = 0;
+  let start = null;
+
+  // Ô gần vị trí cuộn `left` nhất, tính theo scroll-snap-align của chính ô
+  // (start/center/end) — mẫu nào snap kiểu nào cũng trượt đúng chỗ.
+  function _snapTarget(el, cell) {
+    const r = el.getBoundingClientRect();
+    const c = cell.getBoundingClientRect();
+    const align = getComputedStyle(cell).scrollSnapAlign.split(" ").pop();
+    const base = el.scrollLeft + c.left - r.left - el.clientLeft;
+    if (align === "center") return base - (el.clientWidth - c.width) / 2;
+    if (align === "end") return base - (el.clientWidth - c.width);
+    return base - (parseFloat(getComputedStyle(el).scrollPaddingLeft) || 0);
+  }
+  function _nearest(el) {
+    const cells = Array.from(el.children).filter((c) => c.offsetWidth);
+    let best = -1;
+    let min = Infinity;
+    cells.forEach((c, i) => {
+      const d = Math.abs(_snapTarget(el, c) - el.scrollLeft);
+      if (d < min) { min = d; best = i; }
+    });
+    return { cells, i: best };
+  }
+
+  document.addEventListener("dragstart", (e) => {
+    if (e.target.closest?.("[data-cx-drag]")) e.preventDefault();
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    const el = e.target.closest?.("[data-cx-drag]");
+    if (!el || el.scrollWidth <= el.clientWidth + 1) return;
+    row = el;
+    moved = false;
+    x0 = e.clientX;
+    left0 = el.scrollLeft;
+    start = _nearest(el).i;
+  });
+  document.addEventListener("pointermove", (e) => {
+    if (!row) return;
+    const dx = e.clientX - x0;
+    if (!moved) {
+      if (Math.abs(dx) < 6) return;
+      moved = true;
+      row.setPointerCapture?.(e.pointerId);
+      row.classList.add("cx-dragging");
+    }
+    row.scrollLeft = left0 - dx;
+  });
+  function _end(e) {
+    if (!row) return;
+    const el = row;
+    row = null;
+    if (!moved) return;
+    el.classList.remove("cx-dragging");
+    const dx = e.type === "pointerup" ? e.clientX - x0 : 0;
+    const { cells, i } = _nearest(el);
+    let to = i;
+    if (to === start && Math.abs(dx) > 40) to = start + (dx < 0 ? 1 : -1);
+    const cell = cells[Math.max(0, Math.min(cells.length - 1, to))];
+    if (!cell) return;
+    el.classList.add("cx-drag-free");
+    el.scrollTo({ left: _snapTarget(el, cell), behavior: "smooth" });
+    clearTimeout(el._cxDragT);
+    el._cxDragT = setTimeout(() => el.classList.remove("cx-drag-free"), 450);
+  }
+  document.addEventListener("pointerup", _end);
+  document.addEventListener("pointercancel", _end);
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (!moved || !e.target.closest?.("[data-cx-drag]")) return;
+      moved = false;
+      e.stopPropagation();
+      e.preventDefault();
+    },
+    true,
+  );
+})();
+
 // Mục được gán hiệu ứng hiện dần khi cuộn tới, nếu theme không khai CX_THEME.reveal.
 const CX_REVEAL_DEFAULT = ["#main-card [id^='section-']", "#love-story"];
 
