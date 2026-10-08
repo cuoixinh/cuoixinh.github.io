@@ -458,6 +458,12 @@ _onDomReady(function () {
     });
   }
 
+  _bindMusicStartControls();
+});
+
+// Gắn listener cho thanh kéo + ô nhập giây bắt đầu. Admin (tab Dữ liệu mẫu) vẽ lại
+// form bằng innerHTML nên gọi lại hàm này mỗi lần render.
+function _bindMusicStartControls() {
   // Kéo: tua trình phát thử theo (nếu nó đang phát/dừng) để nghe ngay đoạn đó;
   // thả tay mới ghi vào URL.
   const range = document.getElementById("music-start-range");
@@ -491,4 +497,4 @@ _onDomReady(function () {
       }
     });
   }
-});
+}

@@ -59,6 +59,8 @@
     "js/09-template-cover.js",
     "js/03-sample-images.js",
     "js/04-sample-data.js",
+    // Thanh kéo "Bắt đầu phát từ" của ô Nhạc nền (CXProgress) — 11-youtube.js dùng.
+    "../core/components/progress.js",
     // Ô "Nhạc nền" của tab "Dữ liệu mẫu" dùng LẠI logic YouTube của trang thiết
     // lập thiệp. Phải đứng SAU 04: nó gọi _onDomReady và _scheduleAutoSave — bản
     // dành riêng cho admin khai báo trong 04-sample-data.js.

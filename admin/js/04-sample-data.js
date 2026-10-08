@@ -584,9 +584,33 @@ function siRenderYouTubeField(field, value, wrapClass) {
       <div id="youtube-preview" class="hidden mt-2">
         <div class="bg-gray-50 rounded-lg p-3">
           <div id="youtube-player-container" class="aspect-video bg-black rounded-lg overflow-hidden"></div>
-          <img id="youtube-fallback-thumb" src="" alt=""
+          <img id="youtube-fallback-thumb" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""
             style="display: none; cursor: pointer"
             class="w-full aspect-video object-cover rounded-lg" />
+
+          <!-- Giây bắt đầu phát: cùng bộ id với config-panel.html của trang thiết
+               lập, ghi vào tham số \`t\` của #music-url-input (cxYtWithStart). -->
+          <div class="mt-3">
+            <label for="music-start-range" class="text-xs text-gray-500">Bắt đầu phát từ</label>
+            <div id="music-start-slider" class="cx-music-start">
+              <input id="music-start-range" type="range" min="0" max="0" step="1" value="0"
+                class="flex-1 min-w-0" aria-label="Giây bắt đầu phát nhạc" />
+            </div>
+            <input id="music-start-input" type="text" inputmode="numeric" placeholder="0:00"
+              autocomplete="off" aria-label="Giây bắt đầu phát nhạc (phút:giây)"
+              class="hidden mt-1 w-20 h-9 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white text-center focus:outline-none focus:border-rose-300" />
+            <div id="music-start-actions" class="mt-1 flex flex-wrap gap-2">
+              <x-button variant="soft" tone="neutral" size="xs" icon="play"
+                onclick="playMusicFromStart()" title="Phát video phía trên từ đúng giây bắt đầu">
+                Nghe thử
+              </x-button>
+              <x-button variant="soft" tone="neutral" size="xs"
+                onclick="setMusicStartFromPreview()" title="Lấy giây đang phát ở trình phát phía trên">
+                Lấy vị trí đang nghe
+              </x-button>
+            </div>
+            <p id="music-start-error" class="hidden mt-1 text-xs text-red-600" role="alert"></p>
+          </div>
         </div>
       </div>
     </div>`;
@@ -605,6 +629,7 @@ function siYtBind() {
     siYtDebounce = setTimeout(autoPreviewYouTubeMusic, 500);
   });
   input.addEventListener("paste", () => setTimeout(autoPreviewYouTubeMusic, 100));
+  _bindMusicStartControls();
 
   // Chỉ có URL → tự lấy tên bài (oEmbed) rồi hiện tag + preview, KHÔNG đánh dấu
   // bẩn: đây là dựng lại giao diện, không phải người dùng đổi bài.
