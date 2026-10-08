@@ -103,7 +103,7 @@
     if (w.story_quote) setText("story-quote", w.story_quote);
     if (w.ceremony_date) {
       const d = new Date(w.ceremony_date);
-      setText("rl-hero-date", `${_pad(d.getDate())}/${_pad(d.getMonth() + 1)}`);
+      setText("rl-hero-date", `${_pad(d.getDate())}.${_pad(d.getMonth() + 1)}.${d.getFullYear()}`);
     }
 
     // Ảnh xen giữa các mục: 4 ảnh đầu của album + ảnh cuối cho lời cảm ơn.
