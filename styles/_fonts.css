@@ -74,6 +74,168 @@
   font-display: swap;
 }
 
+/* Chữ ký nét mảnh (kiểu KattyDiona) — bản Việt hoá tải từ fontzin.com; dùng thương mại theo giấy phép của font gốc. */
+
+@font-face {
+  font-family: "MyEverything";
+  src: url("../assets/fonts/my-everything.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Photograph";
+  src: url("../assets/fonts/photograph.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Presidente";
+  src: url("../assets/fonts/presidente.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Ruthligos";
+  src: url("../assets/fonts/ruthligos.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SaltyFeathers";
+  src: url("../assets/fonts/salty-feathers.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HandwrittenWatermark";
+  src: url("../assets/fonts/handwritten-watermark.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "YustineSignature";
+  src: url("../assets/fonts/yustine-signature.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AorthaLucy";
+  src: url("../assets/fonts/aortha-lucy.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "FashionSignature";
+  src: url("../assets/fonts/fashion-signature.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "ManchesterSignature";
+  src: url("../assets/fonts/manchester-signature.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TheMoritza";
+  src: url("../assets/fonts/the-moritza.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "WaitingOnTheBridge";
+  src: url("../assets/fonts/waiting-on-the-bridge.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MrDakota";
+  src: url("../assets/fonts/mr-dakota.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Milogante";
+  src: url("../assets/fonts/milogante.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lovebird";
+  src: url("../assets/fonts/lovebird.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Jhodes";
+  src: url("../assets/fonts/jhodes.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MonolineSignature";
+  src: url("../assets/fonts/monoline-signature.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HarbourLight";
+  src: url("../assets/fonts/harbour-light.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "ClairePalmerScript";
+  src: url("../assets/fonts/claire-palmer-script.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BallyGirl";
+  src: url("../assets/fonts/bally-girl.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── Serif trang trí / tiêu đề ───────────────────────────────────────────── */
 
 @font-face {

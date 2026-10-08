@@ -64,6 +64,20 @@ body {
 .cx-t {
   font-family: "Noto Serif", serif;
 }
+/* Tên riêng (cô dâu, chú rể, khách mời): chữ viết tay — phải đứng SAU .cx-h/.cx-t để thắng. */
+.rl-script {
+  font-family: "KattyDiona", cursive;
+  font-weight: normal;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.2;
+}
+.rl-script .rl-amp {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 0.6em;
+  margin: 0 8px;
+}
 .rl-en {
   font-family: "Italiana", serif;
 }
@@ -134,7 +148,6 @@ body {
 #rl-defs,
 .rl-bow,
 .rl-ribbon,
-.rl-cover-ribbon,
 .rl-photo-ribbon {
   --rl-sheen: rgb(var(--cx-shine-from-rgb) / 0.8);
   --rl-crease: rgb(var(--cx-deco-rgb) / 0.6);
@@ -180,13 +193,13 @@ body {
 }
 
 /* ── Màn bìa ──────────────────────────────────────────────────────────── */
+/* Ảnh bìa là ô flex:1 — ăn hết chiều cao còn lại sau dòng tag và khối chữ. */
 .rl-cover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 36px;
-  padding: 56px 28px 40px;
+  gap: 24px;
+  padding: 40px 20px 36px;
 }
 .rl-cover-tag,
 .rl-hero-tag {
@@ -195,28 +208,41 @@ body {
   letter-spacing: 3px;
 }
 .rl-cover-tag {
-  position: absolute;
-  top: 76px;
-  right: 24px;
+  align-self: flex-end;
   text-align: right;
+  line-height: 1.6;
 }
 .rl-cover-frame {
   position: relative;
-  width: 60%;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 260px;
+  max-height: 600px;
+  display: flex;
 }
 .rl-cover-photo {
-  aspect-ratio: 3 / 4;
+  position: relative;
+  flex: 1 1 auto;
   overflow: hidden;
+  border-radius: 4px;
+  background: rgb(var(--cx-surface-rgb));
+  box-shadow: 0 12px 32px rgb(var(--cx-shadow-rgb) / 0.18);
 }
-.rl-cover-ribbon {
+.rl-cover-photo img {
   position: absolute;
-  left: -40%;
-  top: -25%;
-  width: 180%;
-  height: 145%;
+  inset: 0;
+}
+.rl-cover-bow {
+  position: absolute;
+  left: 50%;
+  top: -24px;
+  width: 96px;
+  height: 76px;
+  transform: translateX(-50%);
   overflow: visible;
   pointer-events: none;
-  color: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--cx-accent-rgb));
+  filter: drop-shadow(0 1px 1px rgb(var(--cx-shine-from-rgb) / 0.7));
 }
 .rl-cover-text {
   display: flex;
@@ -232,14 +258,12 @@ body {
   color: rgb(var(--cx-body-rgb));
 }
 .rl-cover-guest {
-  font-size: 26px;
-  line-height: 1.3;
+  font-size: 36px;
   color: rgb(var(--cx-heading-rgb));
 }
 .rl-cover-names {
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: 1px;
+  font-family: "SaltyFeathers", cursive;
+  font-size: 40px;
   margin-bottom: 8px;
 }
 
@@ -325,8 +349,7 @@ body {
 }
 .rl-names {
   margin-top: 6px;
-  font-size: 17px;
-  letter-spacing: 3px;
+  font-size: 32px;
   color: rgb(var(--cx-heading-rgb));
 }
 .rl-hero-foot {
@@ -416,7 +439,7 @@ body {
   text-transform: uppercase;
 }
 .rl-person-name {
-  font-size: 15px;
+  font-size: 28px;
   color: rgb(var(--cx-heading-rgb));
 }
 .rl-parents {
