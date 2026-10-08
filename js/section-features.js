@@ -21,7 +21,7 @@ const FEATURES_DATA = [
 // Khung minh hoạ của thẻ rộng — mảnh giao diện giả lập, chỉ để nhìn (aria-hidden).
 const FEATURE_DEMOS = {
   guest: `
-    <span class="ftr-chip"><i data-lucide="link"></i><span class="truncate">cuoixinh.com/khoi-my</span></span>
+    <span class="ftr-chip"><i data-lucide="link"></i><span class="truncate">cuoixinh.com/khoi-thao</span></span>
     <p class="ftr-note">Trân trọng kính mời</p>
     <p class="font-playfair text-base font-semibold">Anh Tuấn &amp; người thương</p>`,
   ai: `

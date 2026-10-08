@@ -111,6 +111,8 @@
          mục điều hướng ở đó chỉ mời khách rời luồng. Thanh trên (từ md) vẫn
          giữ, mở ở mục "Đã chọn" — thanh toán là chặng nối tiếp của màn quản lý
          thiệp, và "Quay lại" cũng trở về đó. -->
+    <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
+    <script src="../core/auth.js"></script>
     <script src="../core/components/navbar.js"></script>
     <script>
       CXNavbar.mount({
@@ -127,6 +129,7 @@
           {
             id: "cart",
             label: "Đã chọn",
+            loginLabel: "Thiệp của tôi",
             icon: "cart",
             href: "/my-invitations/",
             count: true,
@@ -137,6 +140,7 @@
             label: "Tài khoản",
             icon: "user",
             onClick: "CXAccount.open(this)",
+            pin: true,
           },
         ],
       });
@@ -148,7 +152,6 @@
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/utils.js"></script>
     <script src="../core/auth-ui.js"></script>
-    <script src="../core/auth.js"></script>
     <!-- DAL/BL phải đứng TRƯỚC supabase.js: file đó dựng sẵn weddingDAL/weddingBL
          ngay khi nạp, thiếu là "WeddingDAL is not defined". -->
     <script src="../core/dal/wedding-dal.js"></script>

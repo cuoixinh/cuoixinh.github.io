@@ -231,13 +231,14 @@ tỉ lệ 1 (`native` của `_cxPhoneScreen`); ép về 390px là máy rộng h�
 thừa hai bên. Panel đang ẩn thì khổ bằng 0 nên `switchTab()` phải gọi lại phép đo **sau khi**
 bỏ `.hidden`. **Máy giữ ĐÚNG TỈ LỆ ở mọi khổ màn** (thu cả hai chiều kiểu `contain`), trừ ĐÚNG một
 ngoại lệ: **tab Giao diện dưới `md`** fit theo CHIỀU CAO — bề ngang lấy trọn chỗ trống (chỉ
-chặn bởi `CX_PHONE_MAX_W`), thiếu chiều cao thì thân máy lùn lại, vì thanh chỉnh nằm trong
-luồng ngay dưới khung và ăn hết nửa màn (cờ `squashH` của `_cxPhoneFit`; từ `md` trở lên
+chặn bởi `CX_PHONE_MAX_W`), cao lấy trọn khung (cờ `squashH` của `_cxPhoneFit`; từ `md` trở lên
 thanh chỉnh là cột phải nên hết lý do méo). Tab Xem trước KHÔNG bao giờ méo — ở đó khung máy
 chính là thứ cho thấy thiệp trông ra sao trên điện thoại. Chỗ méo đó cần ảnh
 `iphone_mockup.svg` giữ `preserveAspectRatio="none"`, bỏ đi là SVG tự canh giữa theo tỉ lệ
-gốc trong khi ô màn tính bằng % nên thiệp tràn ra ngoài viền. Thanh chỉnh ở tab Giao diện nằm TRONG
-LUỒNG dưới khung (kéo cao lên là máy lùn thêm), nên lúc kéo thẻ nhạc/khối văn bản trên thiệp chỉ được làm nó MỜ chứ
+gốc trong khi ô màn tính bằng % nên thiệp tràn ra ngoài viền. Dưới `md` thanh chỉnh của tab
+Giao diện là tấm **nổi `absolute` đè đáy khung, cao theo nội dung, KHÔNG cuộn dọc** (chỉ thu
+gọn/mở), mọi danh sách trong đó là **dải vuốt NGANG** — đừng trả nó về trong luồng: thu/mở sẽ
+làm thiệp co giãn. Vào tab chưa chọn bảng nào (màn `none` cuối `CTRL_VIEWS`). Từ `md` nó nằm trong luồng, nên lúc kéo thẻ nhạc/khối văn bản trên thiệp chỉ được làm nó MỜ chứ
 không dịch đi — bỏ chỗ của nó là máy đổi khổ giữa lúc kéo, toạ độ thả sẽ lệch. Cũng ở tab đó, thiệp bị THU NHỎ
 trong khung → toạ độ thả thành phần
 phải chia lại theo tỉ lệ (`_framePoint` ở `js/05-theme-panel.js`), lấy thẳng hiệu toạ độ màn

@@ -14,9 +14,8 @@
 /* Kéo thành phần / khối văn bản trên thiệp thì thanh chỉnh MỜ đi cho
    thấy chỗ đang thả (JS gắn class, xem cx-drag-busy ở
    core/helpers/theme-setting-helper.js). Chỉ đổi opacity chứ KHÔNG dịch/giấu:
-   thanh nằm trong luồng nên bỏ chỗ của nó là khung điện thoại nở ra giữa lúc
-   kéo, mà toạ độ đang tính theo khổ đo lúc bấm xuống nên thứ đang kéo sẽ nhảy chỗ.
-   Chiều cao kéo tay nắm nằm ở max-height của .cx-sheet-body. */
+   từ md thanh nằm trong luồng nên bỏ chỗ của nó là khung điện thoại nở ra giữa
+   lúc kéo, toạ độ tính theo khổ đo lúc bấm xuống sẽ lệch. */
 #theme-controls {
   transition: opacity 0.16s ease;
 }
@@ -26,9 +25,9 @@
   pointer-events: none;
 }
 
-/* Vuốt tay nắm xuống hết cỡ = thu gọn: vùng cuộn đã về 0 (JS), ở đây cất nốt dải
-   tab để bảng chỉ còn đầu bảng, thiệp chiếm gần trọn màn. Panel nằm trong luồng
-   nên đây là chiều cao THẬT — khung điện thoại nở ra theo. */
+/* Vuốt tay nắm xuống = thu gọn: vùng nội dung đã về 0 (JS), ở đây cất nốt dải
+   tab để bảng chỉ còn đầu bảng. Mobile thanh nổi đè lên thiệp nên khung điện
+   thoại KHÔNG đổi khổ khi thu/mở. */
 #theme-controls.cx-ctrl-collapsed #cx-ctrl-tabs {
   display: none;
 }
@@ -43,6 +42,21 @@
 @media (prefers-reduced-motion: reduce) {
   #theme-controls {
     transition: none;
+  }
+}
+
+/* Mobile: thanh chỉnh là tấm nổi ABSOLUTE đè đáy khung (cha là cụm `relative`
+   trong theme-panel.html) — khung điện thoại luôn chiếm trọn chiều cao nên
+   thu/mở thanh không làm thiệp co giãn, đổi lại phần đáy thiệp nằm dưới tấm. */
+@media (max-width: 767px) {
+  #theme-controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
   }
 }
 
@@ -817,10 +831,6 @@ input.flatpickr-input[readonly] {
   @apply text-[13px] font-semibold leading-tight text-gray-800;
 }
 
-.cx-pick-desc {
-  @apply text-[12px] leading-[1.35] text-gray-500;
-}
-
 /* Dấu tích chỉ có ở ô đang chọn. Đừng @apply `hidden` (xem ghi chú cssnano ở
    CLAUDE.md) — khai display bằng tay. */
 .cx-pick-tick {
@@ -982,28 +992,346 @@ input.flatpickr-input[readonly] {
          text-gray-500;
 }
 
-/* ============================================================
-   Vùng cuộn cao thấp có tay nắm ("sheet") — bọc TOÀN BỘ bảng chỉnh giao diện,
-   nên mọi bảng (chung, chỉnh chữ, thêm văn bản, thành phần, điều chỉnh) cao bằng nhau: mặc định 1/4 màn hình, kéo tay nắm lên để nới.
-   Chiều cao thật nằm ở --cx-sheet-h, JS (_initSheet) ghi khi kéo tay nắm;
-   .cx-sheet-fade là dải trắng mờ báo "còn nội dung phía dưới", JS gắn class
-   .is-end khi đã cuộn tới đáy. Từ md+ cả cột đã tự cuộn nên tắt hết.
-   ============================================================ */
+/* Cụm control của màn chi tiết: từ md xếp dọc; mobile .cx-le-strip (chỉnh chữ ·
+   ảnh) thành dải vuốt ngang (khối dưới), còn .cx-el-editor (điều chỉnh thành
+   phần) vẫn xếp dọc. .cx-le-sub là cụm con dựng động (#cx-el-options) — mobile
+   nó tan vào cha như .cx-le-duo. Các lớp này đi chung thẻ với .hidden nên chỉ
+   được nhắm bằng MỘT lớp, đặc hiệu hơn là thắng .hidden. */
+.cx-le-strip,
+.cx-el-editor,
+.cx-le-sub {
+  @apply flex flex-col gap-3 md:gap-4;
+}
+
+/* Mobile: mọi danh sách trong bảng chỉnh là MỘT HÀNG vuốt ngang (bảng cao cố
+   định, xem .cx-sheet-body). Dải tràn ra hai mép bảng (-16px = px-4 của khung
+   nội dung) để thẻ trôi tới sát mép màn; py 4px chừa vòng focus/ring khỏi bị cắt.
+   Không scroll-snap: ô kéo-thả (touch-action:none) do JS tự cuộn scrollLeft
+   (_palDragMove), snap sẽ giật ngược lại từng nhịp. */
+@media (max-width: 767px) {
+  .cx-pick-grid,
+  .cx-sw-grid,
+  .cx-le-strip {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding: 4px 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .cx-pick-grid::-webkit-scrollbar,
+  .cx-sw-grid::-webkit-scrollbar,
+  .cx-le-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Thẻ chọn dựng đứng: ô hình 40px trên · tên; dấu tích / tay nắm ghim góc.
+     MỌI thẻ chọn ở mọi bảng cùng một khổ (bảng Màu sắc dùng ô tròn .cx-sw riêng). */
+  .cx-pick-row {
+    position: relative;
+    flex: none;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 128px;
+    height: 84px;
+    padding: 8px;
+  }
+
+  .cx-pick-row .cx-add-ico,
+  .cx-pick-row .cx-pick-thumb {
+    width: 40px;
+    height: 40px;
+  }
+
+  .cx-pick-row .cx-pal-prev {
+    width: 100%;
+    height: 40px;
+  }
+
+  .cx-pick-body {
+    width: 100%;
+  }
+
+  .cx-pick-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cx-pick-row .cx-pick-tick,
+  .cx-pick-row .cx-pick-grip {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+
+  /* Hộp mừng cưới: thẻ CHỈ có hình (tên nằm ở aria-label/tooltip). */
+  #cx-gift-palette .cx-pick-row {
+    align-items: center;
+    justify-content: center;
+  }
+
+  #cx-gift-palette .cx-pick-body {
+    display: none;
+  }
+
+  /* Ảnh hộp nằm trần trên nền thẻ: bỏ nền ca-rô + viền của .cx-pick-thumb. */
+  #cx-gift-palette .cx-pick-thumb {
+    width: 64px;
+    height: 64px;
+    border: 0;
+    background: none;
+  }
+
+  /* Ngoại lệ: hai ô cố định "Mặc định" · "Không hộp" (GIFT_FIXED) không có ảnh
+     hộp nên giữ cả icon lẫn tên. */
+  #cx-gift-palette [data-pick-id=""] .cx-pick-body,
+  #cx-gift-palette [data-pick-id="none"] .cx-pick-body {
+    display: flex;
+  }
+
+  #cx-gift-palette .cx-pick-name {
+    text-align: center;
+  }
+
+  /* Bỏ nhãn nhóm (Lì xì · Phong bì · Hộp quà): dải chỉ còn hình. */
+  #cx-gift-palette .cx-pick-group {
+    display: none;
+  }
+
+  /* Văn bản: thẻ CHỈ có chữ, không xem trước — mẫu chữ "Aa" đậm làm điểm nhấn,
+     tên mẫu dưới; nền nhạt đổi tông xen kẽ cho các thẻ khỏi giống hệt nhau
+     (nth-child chứ không ghép tên lớp — purge). Khổ ôm theo tên, không theo thẻ
+     chuẩn 128px. */
+  #cx-addtext-palette .cx-pal-prev,
+  #cx-addtext-palette .cx-pick-grip {
+    display: none;
+  }
+
+  #cx-addtext-palette .cx-pick-row {
+    @apply border-rose-100 bg-gradient-to-br from-rose-50 to-white;
+
+    width: auto;
+    min-width: 136px;
+    max-width: 208px;
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+
+  #cx-addtext-palette .cx-pick-row:nth-child(3n + 2) {
+    @apply border-amber-100 from-amber-50;
+  }
+
+  #cx-addtext-palette .cx-pick-row:nth-child(3n) {
+    @apply border-violet-100 from-violet-50;
+  }
+
+  #cx-addtext-palette .cx-pick-body::before {
+    @apply text-rose-500;
+
+    content: "Aa";
+    display: block;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 32px;
+    letter-spacing: -0.02em;
+  }
+
+  #cx-addtext-palette .cx-pick-row:nth-child(3n + 2) .cx-pick-body::before {
+    @apply text-amber-500;
+  }
+
+  #cx-addtext-palette .cx-pick-row:nth-child(3n) .cx-pick-body::before {
+    @apply text-violet-500;
+  }
+
+  #cx-addtext-palette .cx-pick-name {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  /* Thẻ nhạc: bản xem trước nằm trần (không khung xám) chiếm trọn thẻ; bỏ tay
+     nắm — giữ hoặc kéo lên thiệp vẫn nhấc được. */
+  #cx-elements-palette .cx-pick-row {
+    align-items: center;
+    gap: 4px;
+  }
+
+  #cx-elements-palette .cx-pal-prev {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    border: 0;
+    background: transparent;
+  }
+
+  #cx-elements-palette .cx-pick-grip {
+    display: none;
+  }
+
+  /* Chỉ hiện bản xem trước, tên nằm ở aria-label/tooltip. */
+  #cx-elements-palette .cx-pick-body {
+    display: none;
+  }
+
+  #cx-elements-palette .cx-pick-row {
+    justify-content: center;
+  }
+
+  /* Nhãn nhóm nằm giữa dải thành một cột chữ dựng đứng ngăn các nhóm. */
+  .cx-pick-group,
+  .cx-pal-group {
+    flex: none;
+    align-self: center;
+    margin: 0;
+    padding: 0;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  .cx-sw-grid {
+    gap: 4px;
+  }
+
+  .cx-sw {
+    flex: none;
+    width: 68px;
+  }
+
+  /* Một dòng cho bảng gọn. */
+  .cx-sw-name {
+    -webkit-line-clamp: 1;
+  }
+
+  /* Màn chi tiết: mỗi control là một ô (nhãn trên · control dưới). */
+  .cx-le-strip {
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .cx-le-sub,
+  .cx-le-duo {
+    display: contents;
+  }
+
+  .cx-le-strip > *,
+  .cx-le-strip .cx-le-row {
+    flex: none;
+  }
+
+  .cx-le-strip .cx-le-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .cx-le-strip .cx-le-label {
+    width: auto;
+  }
+
+  #cx-le-content {
+    width: 224px;
+  }
+
+  .cx-le-strip .cx-le-textarea {
+    resize: none;
+  }
+
+  .cx-le-strip x-combobox {
+    flex: none;
+    width: 184px;
+  }
+
+  .cx-le-strip .cx-le-check {
+    align-self: center;
+  }
+
+  /* Màn "Điều chỉnh" thẻ nhạc: KHÔNG xếp dải ngang — vài hàng gọn xếp dọc,
+     bảng cao theo nội dung nên vẫn không cuộn. Tuỳ chọn chữ thành thanh phân
+     đoạn chia đều (nền xám, ô đang chọn nổi trắng); ô màu là lưới 4 cột nền
+     nhạt không viền. */
+  .cx-el-editor .cx-le-seg-text {
+    @apply flex-1 flex-nowrap justify-start gap-1 rounded-xl bg-gray-100 p-1;
+  }
+
+  .cx-el-editor .cx-le-seg-text button {
+    @apply h-8 min-w-0 flex-1 whitespace-nowrap border-0 bg-transparent px-2
+           text-[12px] font-medium text-gray-500 shadow-none;
+  }
+
+  .cx-el-editor .cx-le-seg-text button.active {
+    @apply bg-white font-semibold text-rose-600 shadow-sm;
+  }
+
+  /* Ô màu: viên thuốc 2 cột — chấm màu bên trái · tên bên phải, cả viên là
+     <label for> nên chạm chỗ nào cũng mở bảng chọn màu. */
+  .cx-el-editor .cx-color-grid {
+    @apply grid-cols-2 gap-2;
+  }
+
+  .cx-el-editor .cx-color-card {
+    @apply min-w-0 flex-row justify-start gap-2.5 rounded-full border-gray-200
+           bg-white py-1 pl-1 pr-3 text-left shadow-none;
+  }
+
+  .cx-el-editor .cx-color-txt {
+    @apply text-[13px];
+
+    -webkit-line-clamp: 1;
+  }
+}
+
+/* Vùng nội dung có tay nắm ("sheet") — bọc TOÀN BỘ bảng chỉnh giao diện.
+   Mobile chỉ có HAI mức: mở = cao THEO NỘI DUNG (`auto`), thu gọn = 0 (JS ghi
+   --cx-sheet-h, _initSheet); nội dung xếp thành dải vuốt NGANG (.cx-pick-grid,
+   .cx-sw-grid, .cx-le-strip) nên không phải cuộn dọc. Từ md+ cả cột đã tự cuộn
+   nên tắt hết. */
 .cx-sheet {
   @apply relative;
+}
+
+/* Chưa chọn tab nào (lúc mới vào tab Giao diện trên mobile): chỉ còn dải tab —
+   cất cả đầu bảng lẫn vùng nội dung. */
+#theme-controls.cx-ctrl-none .cx-sheet,
+#theme-controls.cx-ctrl-none #cx-ctrl-handle {
+  display: none;
 }
 
 .cx-sheet-body {
   @apply overflow-y-auto overscroll-contain;
 
-  max-height: var(--cx-sheet-h, 160px);
-  /* Trượt mượt khi nhảy giữa hai mức; lúc đang bám tay thì JS gắn .is-dragging
-     để tắt đi, không thì khung chạy trễ so với ngón tay. */
-  transition: max-height 0.18s ease;
+  height: var(--cx-sheet-h, auto);
+  /* Trượt mượt khi thu/mở (cho phép chuyển tiếp tới `auto` ở trình duyệt hỗ
+     trợ); lúc đang bám tay thì JS gắn .is-dragging để tắt đi, không thì khung
+     chạy trễ so với ngón tay. */
+  interpolate-size: allow-keywords;
+  transition: height 0.18s ease;
 }
 
 .cx-sheet-body.is-dragging {
   transition: none;
+}
+
+/* Mobile KHÔNG cuộn dọc (danh sách đã là dải ngang, vùng cao theo nội dung).
+   `clip` chứ không chỉ `hidden`: hidden vẫn cuộn được bằng code / khi focus ô
+   nhập, nội dung trượt lên mà không kéo về được. */
+@media (max-width: 767px) {
+  .cx-sheet-body {
+    overflow: hidden;
+    overflow: clip;
+  }
+
+  .cx-sheet-fade {
+    display: none;
+  }
 }
 
 .cx-sheet-fade {
@@ -2083,8 +2411,7 @@ html.cx-rail-off {
 }
 
 /* Tab Giao diện dùng lại đúng khung đó, nhưng là chỗ DUY NHẤT máy được méo tỉ
-   lệ: ở mobile thanh chỉnh nằm dưới nó trong luồng nên khung chỉ cao bằng chỗ
-   còn lại — máy lùn đi chứ bề ngang giữ nguyên;
+   lệ: ở mobile khung lấp trọn chỗ (thanh chỉnh nổi đè đáy, xem #theme-controls);
    từ md+ thanh chỉnh là cột phải nên máy về đúng tỉ lệ
    (_cxPhoneFit ở js/22-live-preview.js). */
 .cx-theme-stage {

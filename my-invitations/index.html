@@ -225,59 +225,6 @@
       </div>
     </main>
 
-    <!-- ===== MODAL: Thông tin cá nhân ===== -->
-    <div
-      id="profile-modal"
-      class="fixed inset-0 z-50 hidden items-center justify-center p-4"
-      style="background: rgb(var(--scrim-rgb) / 0.5)"
-    >
-      <div
-        class="w-full max-w-sm overflow-hidden rounded-xl bg-white shadow-xl"
-      >
-        <div
-          class="flex items-center justify-between border-b border-gray-100 px-5 py-3.5"
-        >
-          <h3 class="text-sm font-semibold text-gray-900">Thông tin cá nhân</h3>
-          <x-button
-            variant="ghost"
-            tone="neutral"
-            size="sm"
-            icon-only
-            onclick="closeProfileModal()"
-            aria-label="Đóng"
-          >
-            <i data-lucide="x" class="text-sm text-gray-400" style="width:16px;height:16px"></i>
-          </x-button>
-        </div>
-        <form id="profile-form" class="p-5">
-          <div class="mb-4">
-            <x-input
-              id="profile-name"
-              label="Họ và tên"
-              placeholder="Nhập họ và tên"
-            ></x-input>
-          </div>
-          <div class="mb-4">
-            <x-input
-              id="profile-email-input"
-              type="email"
-              label="Email"
-              placeholder="Nhập email"
-            ></x-input>
-          </div>
-          <div class="mb-5">
-            <x-input
-              id="profile-phone"
-              type="tel"
-              label="Số điện thoại"
-              placeholder="Nhập số điện thoại"
-            ></x-input>
-          </div>
-          <x-button type="submit" full>Lưu thông tin</x-button>
-        </form>
-      </div>
-    </div>
-
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
          Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
@@ -288,7 +235,10 @@
     <script src="../core/x-logo.js"></script>
     <script src="../core/x-popover.js"></script>
     <script src="../core/helpers/account-menu.js"></script>
+    <script src="../core/helpers/profile-modal.js"></script>
     <!-- Navbar dùng chung: khai mảng mục một lần, dựng cả thanh trên lẫn thanh tab dưới. -->
+    <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
+    <script src="../core/auth.js"></script>
     <script src="../core/components/navbar.js"></script>
     <script>
       CXNavbar.mount({
@@ -304,6 +254,7 @@
           {
             id: "cart",
             label: "Đã chọn",
+            loginLabel: "Thiệp của tôi",
             icon: "cart",
             href: "/my-invitations/",
             count: true,
@@ -314,6 +265,7 @@
             label: "Tài khoản",
             icon: "user",
             onClick: "CXAccount.open(this)",
+            pin: true,
           },
         ],
       });
@@ -327,7 +279,6 @@
     <script src="../core/helpers/draft-retention.js"></script>
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/auth-ui.js"></script>
-    <script src="../core/auth.js"></script>
     <script src="../core/x-input.js"></script>
     <!-- DAL + BL: thao tác ghi (đổi slug, xoá thiệp) đi qua weddingBL, không gọi thẳng API. -->
     <script src="../core/dal/wedding-dal.js"></script>

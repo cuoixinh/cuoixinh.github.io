@@ -1418,7 +1418,11 @@ x-button {
 .cx-tab {
   position: relative;
   display: flex;
-  flex: 1;
+  /* Khổ theo nhãn rồi chia đều phần dư — nhãn dài chiếm đúng phần nó cần, không
+     bắt mọi ô rộng bằng ô dài nhất. min-width 0: thiếu chỗ thì ô co (nhãn cắt "…")
+     chứ không tràn, navbar.js thấy nhãn bị cắt là gom mục vào nút "…". */
+  flex: 1 1 auto;
+  min-width: 0;
   flex-direction: column;
   align-items: center;
   gap: 3px;
@@ -1451,6 +1455,44 @@ x-button {
   font-weight: 700;
   line-height: 15px;
   text-align: center;
+}
+
+/* Nhãn tab luôn MỘT dòng: không đủ chỗ thì navbar.js gom mục vào nút "…" chứ
+   không để nhãn xuống dòng; "…" cắt chữ chỉ là lưới an toàn khi đã gom hết. */
+.cx-tab > [data-nav-label] {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Popover của nút "…": mục bị gom vào là CÙNG phần tử của thanh (.cx-tab /
+   .cx-navlink), ở đây đổi sang dáng hàng menu như .x-pop-item. */
+.cx-navmore-pop .cx-tab,
+.cx-navmore-pop .cx-navlink {
+  display: flex;
+  flex: none;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  color: rgb(var(--text-strong-rgb));
+}
+
+.cx-navmore-pop .cx-tab:hover,
+.cx-navmore-pop .cx-navlink:hover {
+  background: rgb(var(--surface-hover-rgb));
+}
+
+.cx-navmore-pop .cx-tab-count,
+.cx-navmore-pop .cx-navcount {
+  position: static;
+  margin: 0 0 0 auto;
 }
 
 /* Thẻ <a> bọc <x-logo> (core/x-logo.js) — cỡ logo đặt bằng `size` của component. */
@@ -1502,6 +1544,7 @@ x-button {
 .cx-navlinks {
   display: flex;
   flex: 1;
+  min-width: 0; /* để navbar.js đo được lúc dãy mục tràn (gom vào "…") */
   align-items: center;
   gap: 20px;
 }

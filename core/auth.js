@@ -1,7 +1,7 @@
 /**
  * AUTH.JS — Nguồn sự thật DUY NHẤT cho câu hỏi "đang đăng nhập hay chưa".
- * Nạp SAU core/config.js + supabase-js (và core/auth-ui.js nếu trang có), TRƯỚC
- * mọi file gọi CXAuth.
+ * Không phụ thuộc file nào lúc nạp (client supabase lấy lười ở client()), nên
+ * nạp được sớm — TRƯỚC core/components/navbar.js và mọi file gọi CXAuth.
  *
  *   CXAuth.isLoggedIn()   boolean NGAY LẬP TỨC — dùng để vẽ UI lần đầu
  *   CXAuth.getUserSync()  user | null, cùng nguồn với isLoggedIn()
