@@ -176,10 +176,10 @@ body {
 .ne-cover-shade {
   background: linear-gradient(
     180deg,
-    rgb(var(--cx-scrim-rgb) / 0.3) 0%,
-    rgb(var(--cx-scrim-rgb) / 0.45) 30%,
-    rgb(var(--cx-scrim-rgb) / 0.55) 60%,
-    rgb(var(--cx-scrim-rgb) / 0.72) 100%
+    rgb(var(--cx-scrim-rgb) / 0.1) 0%,
+    rgb(var(--cx-scrim-rgb) / 0.22) 30%,
+    rgb(var(--cx-scrim-rgb) / 0.3) 60%,
+    rgb(var(--cx-scrim-rgb) / 0.5) 100%
   );
 }
 

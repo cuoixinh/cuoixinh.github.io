@@ -1,5 +1,6 @@
 // Lời chúc của khách mời trên trang thiệp: một mục trong thân thiệp (thẻ, phân
-// trang) hoặc dải nổi ghim đáy khung nhìn (livestream) + ô gửi. Gọi
+// trang, chat, chồng thẻ, tâm điểm, sổ lưu bút) hoặc dải nổi ghim đáy khung nhìn
+// (livestream, bong bóng bay) + ô gửi. Gọi
 // một lần từ loadWeddingData (wedding-helper).
 //
 // Mẫu thiệp KHÔNG phải sửa gì: có #cx-wishes-list thì helper mount vào đó, không
@@ -42,6 +43,17 @@ const CX_WISH_MODE_DEFAULT = "card";
 
 // Dạng "paged": mỗi trang mấy lời chúc.
 const CX_WISH_PAGE_SIZE = 3;
+
+// Dạng "chat": nhịp trồi một tin mới (ms) và số tin đứng trong khung cùng lúc.
+const CX_WISH_CHAT_MS = 2800;
+const CX_WISH_CHAT_KEEP = 5;
+
+// Dạng "spotlight": mỗi câu đứng bao lâu (ms) — trùng thời lượng thanh tiến độ ở CSS
+// (.cx-wspot-bar i, animation cx-wspot-prog).
+const CX_WISH_SPOT_MS = 5000;
+
+// Dạng "float": nhịp thả một bong bóng (ms).
+const CX_WISH_FLOAT_MS = 2600;
 
 // Năm ô màu của lời chúc, FIX CỨNG theo từng mẫu: mẫu khai gì (CX_THEME.wishes)
 // thì lấy nấy, không khai thì rơi về token chung của thiệp. Mỗi khoá ứng với một
@@ -220,6 +232,8 @@ function _cxWishItemHtml(w) {
 //   pager            true = vỏ mục có thêm hàng chuyển trang
 //   dots             true = vỏ mục có dãy chấm chỉ vị trí dải thẻ
 //   roll             true = danh sách là một lượt chiếu trôi lên (_cxWishStartRoll)
+//   nav              true = vỏ mục có hàng Lùi · vị trí · Tiếp; bấm gọi go(dir)
+//   dockClass        class thêm vào dải nổi, để CSS nhận ra dạng
 const CX_WISH_MODES = {
   card: {
     mount: _cxWishBuildSection,
@@ -242,7 +256,50 @@ const CX_WISH_MODES = {
     secClass: "cx-wsec-paged",
     pager: true,
   },
+  chat: {
+    mount: _cxWishBuildSection,
+    render: _cxWishRenderChat,
+    stop: _cxWishStopTicker,
+    section: true,
+    secClass: "cx-wsec-chat",
+  },
+  stack: {
+    mount: _cxWishBuildSection,
+    render: _cxWishRenderStack,
+    stop: _cxWishStopStack,
+    go: _cxWishGoStack,
+    section: true,
+    secClass: "cx-wsec-stack",
+    nav: true,
+  },
+  spotlight: {
+    mount: _cxWishBuildSection,
+    render: _cxWishRenderSpot,
+    stop: _cxWishStopTicker,
+    section: true,
+    secClass: "cx-wsec-spot",
+  },
+  float: {
+    mount: _cxWishBuildDock,
+    render: _cxWishRenderFloat,
+    stop: _cxWishStopFloat,
+    dockClass: "cx-wdock-float",
+  },
+  guestbook: {
+    mount: _cxWishBuildSection,
+    render: _cxWishRenderBook,
+    stop: _cxWishStopBook,
+    go: _cxWishGoBook,
+    section: true,
+    secClass: "cx-wsec-book",
+    nav: true,
+  },
 };
+
+// Dọn hiệu ứng của MỌI dạng (stop chịu được gọi lúc chưa dựng gì).
+function _cxWishStopAll() {
+  Object.values(CX_WISH_MODES).forEach((m) => m.stop?.());
+}
 
 function _cxWishDef() {
   return CX_WISH_MODES[_cxWishMode] || CX_WISH_MODES[CX_WISH_MODE_DEFAULT];
@@ -251,8 +308,7 @@ function _cxWishDef() {
 function _cxWishRender() {
   const mount = document.getElementById("cx-wishes-list");
   if (!mount) return;
-  _cxWishStopRoll();
-  _cxWishStopCards();
+  _cxWishStopAll();
   _cxWishDef().render(mount);
 }
 
@@ -646,6 +702,391 @@ function _cxWishPagerHtml() {
   );
 }
 
+// ── Nhịp tự chạy dùng chung (chat, spotlight, float) ────────────────────────
+// Bỏ qua nhịp khi tab ẩn hoặc mục lời chúc nằm ngoài khung nhìn — chạy suông
+// tốn pin, và khách cuộn tới sẽ thấy đúng lượt đang dở thay vì một khung rỗng.
+let _cxWishTick = null;
+let _cxWishTickIO = null;
+let _cxWishSeen = true;
+
+function _cxWishStartTicker(fn, ms) {
+  _cxWishStopTicker();
+  const sec = document.getElementById("cx-wish-sec");
+  _cxWishSeen = true;
+  if (sec && window.IntersectionObserver) {
+    _cxWishTickIO = new IntersectionObserver((es) => {
+      _cxWishSeen = es[es.length - 1].isIntersecting;
+    });
+    _cxWishTickIO.observe(sec);
+  }
+  _cxWishTick = setInterval(() => {
+    if (document.hidden || !_cxWishSeen) return;
+    fn();
+  }, ms);
+}
+
+function _cxWishStopTicker() {
+  clearInterval(_cxWishTick);
+  _cxWishTick = null;
+  _cxWishTickIO?.disconnect();
+  _cxWishTickIO = null;
+}
+
+// Hàng Lùi · vị trí · Tiếp của dạng chồng thẻ và sổ lưu bút — cùng hình nút với
+// hàng chuyển trang (.cx-wpage-btn), giữa là chữ "3 / 12" thay cho dãy chấm.
+function _cxWishNavHtml() {
+  return (
+    '<div class="cx-wpage cx-wnav" id="cx-wish-nav" hidden>' +
+    '<button type="button" class="cx-wpage-btn" data-w-nav="prev" aria-label="Lời chúc trước">' +
+    '<i data-lucide="chevron-left" style="width:16px;height:16px"></i>' +
+    "</button>" +
+    '<span class="cx-wnav-pos cx-t" id="cx-wish-nav-pos"></span>' +
+    '<button type="button" class="cx-wpage-btn" data-w-nav="next" aria-label="Lời chúc sau">' +
+    '<i data-lucide="chevron-right" style="width:16px;height:16px"></i>' +
+    "</button>" +
+    "</div>"
+  );
+}
+
+// `loop` = vòng tròn (hai nút luôn bấm được); không thì tắt nút ở hai đầu.
+function _cxWishSyncNav(at, n, loop) {
+  const bar = document.getElementById("cx-wish-nav");
+  if (!bar) return;
+  bar.hidden = n < 2;
+  const pos = document.getElementById("cx-wish-nav-pos");
+  if (pos) pos.textContent = `${at + 1} / ${n}`;
+  const prev = bar.querySelector('[data-w-nav="prev"]');
+  const next = bar.querySelector('[data-w-nav="next"]');
+  if (prev) prev.disabled = !loop && at <= 0;
+  if (next) next.disabled = !loop && at >= n - 1;
+}
+
+// Vuốt ngang trên `el` → go(±1). Ngón tay lẫn chuột; dưới 40px coi như chạm.
+function _cxWishBindSwipe(el, go) {
+  let x0 = null;
+  el.addEventListener("pointerdown", (e) => {
+    x0 = e.clientX;
+  });
+  el.addEventListener("pointerup", (e) => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0;
+    x0 = null;
+    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+  });
+  el.addEventListener("pointercancel", () => {
+    x0 = null;
+  });
+}
+
+// ── Dạng "chat": bong bóng trò chuyện ────────────────────────────────────────
+// Khung cao cố định, tin dồn đáy; mỗi nhịp một tin mới trồi lên và tin cũ nhất
+// rời khung — khung cố định để mục không co giãn đẩy cả thiệp theo mỗi nhịp.
+// Giữ tối đa n-1 tin để một lời chúc không hiện hai lần cùng lúc. Một lời chúc
+// hoặc khách tắt chuyển động thì đứng yên, cuộn tay.
+let _cxWishChatAt = 0;
+
+function _cxWishChatRowHtml(w, i) {
+  return (
+    `<div class="cx-wchat-row${i % 3 === 1 ? " is-r" : ""}">` +
+    _cxWishAvHtml(w.name) +
+    '<span class="cx-wchat-bub cx-t">' +
+    `<span class="cx-wish-name">${escapeHtml(w.name || "Khách mời")}</span>` +
+    `<span class="cx-wish-text">${escapeHtml(w.text)}</span>` +
+    "</span>" +
+    "</div>"
+  );
+}
+
+function _cxWishRenderChat(mount) {
+  _cxWishSyncSecTitle();
+  const n = _cxWishItems.length;
+  if (!n) {
+    mount.classList.remove("is-live");
+    _cxWishFillList(mount, []);
+    return;
+  }
+  mount.classList.remove("is-empty");
+  const live = n > 1 && !_cxWishReduceMotion();
+  mount.classList.toggle("is-live", live);
+  if (!live) {
+    mount.innerHTML = _cxWishItems.map(_cxWishChatRowHtml).join("");
+    return;
+  }
+  const keep = Math.min(CX_WISH_CHAT_KEEP, n - 1);
+  mount.innerHTML = _cxWishItems.slice(0, keep).map(_cxWishChatRowHtml).join("");
+  _cxWishChatAt = keep;
+  _cxWishStartTicker(() => {
+    const items = _cxWishItems;
+    if (!items.length) return;
+    mount.insertAdjacentHTML(
+      "beforeend",
+      _cxWishChatRowHtml(items[_cxWishChatAt % items.length], _cxWishChatAt),
+    );
+    _cxWishChatAt++;
+    while (mount.children.length > keep) mount.firstElementChild.remove();
+  }, CX_WISH_CHAT_MS);
+}
+
+// ── Dạng "stack": chồng thẻ, vuốt để sang ───────────────────────────────────
+// MỌI thẻ nằm chung một ô lưới nên khung cao bằng thẻ dài nhất — đổi thẻ không
+// làm mục co giãn. Thẻ đang xem độ sâu 0, hai thẻ sau ló ra phía dưới, còn lại
+// ẩn (vẫn giữ chỗ trong ô lưới). Vòng tròn: hết thì quay về đầu.
+let _cxWishStackAt = 0;
+let _cxWishStackTimer = null;
+
+function _cxWishStopStack() {
+  clearTimeout(_cxWishStackTimer);
+  _cxWishStackTimer = null;
+}
+
+function _cxWishSyncStack() {
+  const n = _cxWishItems.length;
+  document.querySelectorAll("#cx-wishes-list [data-w-stack]").forEach((c) => {
+    const d = (+c.dataset.wStack - _cxWishStackAt + n) % n;
+    c.dataset.d = d < 3 ? String(d) : "x";
+  });
+  _cxWishSyncNav(_cxWishStackAt, n, true);
+}
+
+function _cxWishRenderStack(mount) {
+  _cxWishSyncSecTitle();
+  const n = _cxWishItems.length;
+  if (!n) {
+    _cxWishFillList(mount, []);
+    _cxWishSyncNav(0, 0, true);
+    return;
+  }
+  mount.classList.remove("is-empty");
+  _cxWishStackAt = Math.min(_cxWishStackAt, n - 1);
+  mount.innerHTML =
+    '<div class="cx-wstack">' +
+    _cxWishItems
+      .map(
+        (w, i) =>
+          `<div class="cx-wstack-card cx-t" data-w-stack="${i}">` +
+          `<span class="cx-wstack-text">${escapeHtml(w.text)}</span>` +
+          '<span class="cx-wstack-foot">' +
+          _cxWishAvHtml(w.name) +
+          `<span class="cx-wish-name">${escapeHtml(w.name || "Khách mời")}</span>` +
+          "</span>" +
+          "</div>",
+      )
+      .join("") +
+    "</div>";
+  _cxWishBindSwipe(mount.firstElementChild, _cxWishGoStack);
+  _cxWishSyncStack();
+}
+
+// Tiếp: thẻ trên cùng bay sang phải rồi mới dồn chồng lên; Lùi: dồn ngay.
+function _cxWishGoStack(dir) {
+  const n = _cxWishItems.length;
+  if (n < 2 || _cxWishStackTimer) return;
+  const step = () => {
+    _cxWishStackTimer = null;
+    _cxWishStackAt = (_cxWishStackAt + dir + n) % n;
+    _cxWishSyncStack();
+  };
+  const top = document.querySelector('#cx-wishes-list [data-w-stack][data-d="0"]');
+  if (dir > 0 && top && !_cxWishReduceMotion()) {
+    top.dataset.d = "out";
+    _cxWishStackTimer = setTimeout(step, 320);
+  } else step();
+}
+
+// ── Dạng "spotlight": một câu lớn, tự chuyển ────────────────────────────────
+// Như chồng thẻ, mọi câu chung một ô lưới nên khung cao bằng câu dài nhất. Bấm
+// vào câu để sang ngay (nhịp tự chuyển đếm lại từ đầu). Khách tắt chuyển động
+// thì không tự chuyển — chỉ bấm.
+let _cxWishSpotAt = 0;
+
+function _cxWishShowSpot(i) {
+  const n = _cxWishItems.length;
+  _cxWishSpotAt = ((i % n) + n) % n;
+  document.querySelectorAll("#cx-wishes-list [data-w-spot]").forEach((el) => {
+    el.classList.toggle("is-on", +el.dataset.wSpot === _cxWishSpotAt);
+  });
+  const pos = document.getElementById("cx-wspot-pos");
+  if (pos) pos.textContent = `${_cxWishSpotAt + 1} / ${n}`;
+  // Gỡ rồi gắn lại để thanh tiến độ chạy lại từ đầu (đọc offsetWidth ở giữa).
+  const bar = document.getElementById("cx-wspot-bar");
+  if (bar) {
+    bar.classList.remove("is-run");
+    void bar.offsetWidth;
+    bar.classList.add("is-run");
+  }
+}
+
+function _cxWishRenderSpot(mount) {
+  _cxWishSyncSecTitle();
+  const n = _cxWishItems.length;
+  if (!n) {
+    _cxWishFillList(mount, []);
+    return;
+  }
+  mount.classList.remove("is-empty");
+  const auto = n > 1 && !_cxWishReduceMotion();
+  mount.innerHTML =
+    '<div class="cx-wspot">' +
+    '<span class="cx-wspot-q cx-a" aria-hidden="true">“</span>' +
+    '<div class="cx-wspot-stage">' +
+    _cxWishItems
+      .map(
+        (w, i) =>
+          `<figure class="cx-wspot-item" data-w-spot="${i}">` +
+          `<blockquote class="cx-wspot-text cx-t">${escapeHtml(w.text)}</blockquote>` +
+          `<figcaption class="cx-wish-name">${escapeHtml(w.name || "Khách mời")}</figcaption>` +
+          "</figure>",
+      )
+      .join("") +
+    "</div>" +
+    (auto ? '<span class="cx-wspot-bar" id="cx-wspot-bar"><i></i></span>' : "") +
+    (n > 1 ? '<span class="cx-wspot-pos cx-t" id="cx-wspot-pos"></span>' : "") +
+    "</div>";
+
+  const restart = () => {
+    if (auto) _cxWishStartTicker(() => _cxWishShowSpot(_cxWishSpotAt + 1), CX_WISH_SPOT_MS);
+  };
+  if (n > 1)
+    mount.querySelector(".cx-wspot-stage")?.addEventListener("click", () => {
+      _cxWishShowSpot(_cxWishSpotAt + 1);
+      restart();
+    });
+  _cxWishShowSpot(Math.min(_cxWishSpotAt, n - 1));
+  restart();
+}
+
+// ── Dạng "float": bong bóng bay (dải nổi) ───────────────────────────────────
+// Dùng chung vỏ dải nổi với "live"; khác ở chỗ mỗi nhịp thả MỘT bong bóng từ
+// đáy khung bay lên rồi tan, kèm vài trái tim. Quãng bay đo theo chiều cao khung
+// (--cx-wf-h) vì translateY(%) tính theo chính bong bóng. Chỉ thả khi dải đang
+// hiện và khách chưa tắt dải; khách tắt chuyển động thì đứng yên vài lời mới nhất.
+let _cxWishFloatAt = 0;
+
+function _cxWishStopFloat() {
+  _cxWishStopTicker();
+  document.querySelectorAll(".cx-wfloat-bal, .cx-wfloat-hrt").forEach((el) => el.remove());
+}
+
+function _cxWishSpawnFloat(mount) {
+  const dock = document.getElementById("cx-wish-dock");
+  if (!dock || !dock.classList.contains("is-on") || _cxWishFeedOff) return;
+  const items = _cxWishItems;
+  if (!items.length || !mount.clientHeight) return;
+  mount.style.setProperty("--cx-wf-h", mount.clientHeight + "px");
+
+  const w = items[_cxWishFloatAt++ % items.length];
+  const tpl = document.createElement("template");
+  tpl.innerHTML = _cxWishItemHtml(w);
+  const bal = tpl.content.firstElementChild;
+  bal.classList.add("cx-wfloat-bal");
+  bal.style.left = Math.round(Math.random() * 18) + "%";
+  bal.style.setProperty("--cx-wf-sx", Math.round(Math.random() * 32 - 16) + "px");
+  bal.addEventListener("animationend", () => bal.remove());
+  mount.appendChild(bal);
+
+  for (let i = 0; i < 2; i++) {
+    const h = document.createElement("span");
+    h.className = "cx-wfloat-hrt";
+    h.innerHTML = '<i data-lucide="heart" style="width:16px;height:16px"></i>';
+    h.style.left = 70 + Math.round(Math.random() * 24) + "%";
+    h.style.animationDelay = i * 0.6 + "s";
+    h.addEventListener("animationend", () => h.remove());
+    mount.appendChild(h);
+    window.lucide?.createIcons({ root: h });
+  }
+}
+
+function _cxWishRenderFloat(mount) {
+  const tools = document.getElementById("cx-wdock-tools");
+  if (tools) tools.hidden = _cxWishItems.length === 0;
+  _cxWishSyncDockFade();
+  mount.classList.add("cx-wfloat");
+
+  if (_cxWishItems.length === 0) {
+    mount.innerHTML = "";
+    mount.hidden = true;
+    return;
+  }
+  mount.hidden = false;
+  mount.innerHTML = "";
+
+  if (_cxWishReduceMotion()) {
+    mount.innerHTML =
+      '<div class="cx-wish-track">' +
+      _cxWishItems.slice(0, 3).map(_cxWishItemHtml).join("") +
+      "</div>";
+    return;
+  }
+  _cxWishFloatAt = 0;
+  _cxWishSpawnFloat(mount);
+  _cxWishStartTicker(() => _cxWishSpawnFloat(mount), CX_WISH_FLOAT_MS);
+}
+
+// ── Dạng "guestbook": sổ lưu bút, lật từng trang ────────────────────────────
+// Mỗi trang một lời chúc trên giấy kẻ dòng; mọi trang chung một ô lưới (khung
+// cao bằng trang dài nhất). Tiếp = trang hiện tại lật sang trái rồi trang sau
+// lộ ra; hai đầu sổ thì nút tắt chứ không vòng lại.
+let _cxWishBookAt = 0;
+let _cxWishBookTimer = null;
+
+function _cxWishStopBook() {
+  clearTimeout(_cxWishBookTimer);
+  _cxWishBookTimer = null;
+}
+
+function _cxWishSyncBook() {
+  document.querySelectorAll("#cx-wishes-list [data-w-book]").forEach((p) => {
+    const i = +p.dataset.wBook;
+    p.classList.toggle("is-on", i === _cxWishBookAt);
+    p.classList.toggle("is-next", i === _cxWishBookAt + 1);
+    p.classList.remove("is-turn");
+  });
+  _cxWishSyncNav(_cxWishBookAt, _cxWishItems.length, false);
+}
+
+function _cxWishRenderBook(mount) {
+  _cxWishSyncSecTitle();
+  const n = _cxWishItems.length;
+  if (!n) {
+    _cxWishFillList(mount, []);
+    _cxWishSyncNav(0, 0, false);
+    return;
+  }
+  mount.classList.remove("is-empty");
+  _cxWishBookAt = Math.min(_cxWishBookAt, n - 1);
+  mount.innerHTML =
+    '<div class="cx-wbook">' +
+    _cxWishItems
+      .map(
+        (w, i) =>
+          `<div class="cx-wbook-page" data-w-book="${i}">` +
+          `<span class="cx-wbook-no cx-t">Trang ${i + 1}</span>` +
+          `<span class="cx-wbook-text cx-t">${escapeHtml(w.text)}</span>` +
+          `<span class="cx-wbook-sig cx-a">${escapeHtml(w.name || "Khách mời")}</span>` +
+          "</div>",
+      )
+      .join("") +
+    "</div>";
+  _cxWishBindSwipe(mount.firstElementChild, _cxWishGoBook);
+  _cxWishSyncBook();
+}
+
+function _cxWishGoBook(dir) {
+  const n = _cxWishItems.length;
+  const to = _cxWishBookAt + dir;
+  if (to < 0 || to >= n || _cxWishBookTimer) return;
+  const step = () => {
+    _cxWishBookTimer = null;
+    _cxWishBookAt = to;
+    _cxWishSyncBook();
+  };
+  const cur = document.querySelector(`#cx-wishes-list [data-w-book="${_cxWishBookAt}"]`);
+  if (dir > 0 && cur && !_cxWishReduceMotion()) {
+    cur.classList.add("is-turn");
+    _cxWishBookTimer = setTimeout(step, 700);
+  } else step();
+}
+
 // Mục nằm ở ĐÂU: thêm vào CUỐI thân thiệp rồi đẩy lên trước hộp mừng cưới bằng
 // flex `order` — chèn thẳng vào giữa là mọi selector :nth-child đã lưu trong
 // text_overrides của các mục phía sau lệch đi một bậc (cùng lý do applyCustomBlocks
@@ -697,6 +1138,7 @@ function _cxWishBuildSection(canWrite) {
     _cxWishComposerHtml(canWrite) +
     '<div class="cx-wsec-list" id="cx-wishes-list"></div>' +
     (def.pager ? _cxWishPagerHtml() : "") +
+    (def.nav ? _cxWishNavHtml() : "") +
     (def.dots ? '<div class="cx-wpage-dots cx-wcard-dots" id="cx-wcard-dots" hidden></div>' : "");
 
   host.appendChild(sec);
@@ -707,6 +1149,11 @@ function _cxWishBuildSection(canWrite) {
     sec.querySelector("#cx-wish-pager")?.addEventListener("click", (e) => {
       const btn = e.target.closest?.("[data-w-page]");
       if (btn && !btn.disabled) _cxWishGoPage(btn.dataset.wPage);
+    });
+  if (def.nav)
+    sec.querySelector("#cx-wish-nav")?.addEventListener("click", (e) => {
+      const btn = e.target.closest?.("[data-w-nav]");
+      if (btn && !btn.disabled) _cxWishDef().go?.(btn.dataset.wNav === "prev" ? -1 : 1);
     });
 
   // lucide không tự quét lại phần chèn động.
@@ -752,7 +1199,8 @@ function _cxWishBuildDock(canWrite) {
 
   const dock = document.createElement("div");
   dock.id = "cx-wish-dock";
-  dock.className = "cx-wdock";
+  const dockClass = _cxWishDef().dockClass;
+  dock.className = "cx-wdock" + (dockClass ? " " + dockClass : "");
   dock.innerHTML =
     '<div class="cx-wdock-inner">' +
     '<div class="cx-wfeed" id="cx-wishes-list" hidden></div>' +
@@ -1127,7 +1575,11 @@ async function _cxWishSend() {
 
     _cxWishItems.unshift(res.wish);
     _cxWishRemaining = res.remaining;
-    _cxWishPage = 0; // lời vừa gửi nằm đầu danh sách, đưa khách tới xem
+    // Lời vừa gửi nằm đầu danh sách, đưa khách tới xem.
+    _cxWishPage = 0;
+    _cxWishStackAt = 0;
+    _cxWishSpotAt = 0;
+    _cxWishBookAt = 0;
     _cxWishRender();
     _cxWishCollapse();
     _cxWishSetDockText();
@@ -1227,8 +1679,7 @@ function _cxWishMount(canWrite) {
 function _cxWishTeardown() {
   // Dọn hiệu ứng của MỌI dạng, không chỉ dạng đang bật: teardown cũng là bước
   // đầu của lượt đổi dạng.
-  _cxWishStopRoll();
-  _cxWishStopCards();
+  _cxWishStopAll();
   _cxWishUnwatchReveal();
   ["cx-wish-dock", "cx-wdock-spacer", "cx-wish-all", "cx-wish-sec"].forEach((id) =>
     document.getElementById(id)?.remove(),

@@ -648,11 +648,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
   **DẠNG hiện lời chúc** do chủ thiệp chọn ở tab Giao diện (mục "Lời chúc", cạnh Hộp mừng
   cưới), lưu ở `theme_setting.wishes_mode` — rỗng = dạng mẫu khai ở `CX_THEME.wishesMode`,
-  mẫu không khai thì `card`. Hai dạng là MỘT MỤC trong thân thiệp NGAY TRÊN hộp mừng cưới:
-  `"card"` = dải thẻ cùng khổ vuốt ngang, chữ dài cắt kèm "Xem thêm" (mở một thẻ thì cả dải
-  cao theo, không thò thụt); `"paged"` = mỗi lượt `CX_WISH_PAGE_SIZE` lời chúc, khách tự bấm
-  sang trang. Dạng thứ ba `"live"` là DẢI NỔI ghim đáy khung nhìn — **chỉ có khi chủ thiệp tự chọn, đừng lấy làm mặc
-  định của mẫu nào**. **Danh mục dạng là `CX_WISH_MODES`** trong helper — thêm dạng mới là
+  mẫu không khai thì `card`. Đa số dạng là MỘT MỤC trong thân thiệp NGAY TRÊN hộp mừng cưới
+  (`card`, `paged`, `chat`, `stack`, `spotlight`, `guestbook`); dạng có khung đổi nội dung
+  (chồng thẻ, tâm điểm, sổ) xếp mọi lời chúc chung MỘT ô lưới để khung cao bằng lời dài nhất,
+  đổi lời không làm thiệp nhảy. Hai dạng `"live"` và `"float"` là DẢI NỔI ghim đáy khung
+  nhìn — **chỉ có khi chủ thiệp tự chọn, đừng lấy làm mặc định của mẫu nào**. Dạng tự chạy
+  đi qua `_cxWishStartTicker` (bỏ nhịp khi tab ẩn hoặc mục ngoài khung nhìn). **Danh mục dạng là `CX_WISH_MODES`** trong helper — thêm dạng mới là
   thêm một mục ở đó + CSS + một dòng ở `WISH_MODES` (`invitation-setup/js/05-theme-panel.js`),
   KHÔNG rẽ nhánh theo tên dạng ở chỗ khác. **Mẫu thiệp không phải khai markup gì cả.**
   Mục trong thân thiệp **append cuối thân thiệp rồi đẩy lên bằng flex `order`**

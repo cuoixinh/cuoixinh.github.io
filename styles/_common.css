@@ -3316,6 +3316,419 @@ button.cx-pchrome-btn:hover {
   }
 }
 
+/* ── Dạng "chat" (.cx-wsec-chat) ───────────────────────────────────────────
+   Bong bóng trò chuyện: hàng thứ 2 mỗi cụm ba dồn phải (.is-r) cho ra nhịp hội
+   thoại. Lúc tự chạy (.is-live) khung cao CỐ ĐỊNH và tin dồn đáy — mục không co
+   giãn mỗi nhịp; tin cũ trôi lên rồi khuất sau dải mờ đầu khung. */
+.cx-wsec-chat .cx-wsec-list.is-live {
+  justify-content: flex-end;
+  height: calc(var(--vh, 1vh) * 42);
+  height: calc(var(--vh, 1svh) * 42);
+  max-height: none;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 24%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 24%);
+}
+
+.cx-wchat-row {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.cx-wchat-row.is-r {
+  flex-direction: row-reverse;
+}
+
+.cx-wsec-list.is-live .cx-wchat-row {
+  animation: cx-wchat-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes cx-wchat-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cx-wchat-bub {
+  display: block;
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 18px 18px 18px 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+  word-break: break-word;
+  color: rgb(var(--cx-wish-text-rgb));
+  background: rgb(var(--cx-wish-bubble-rgb) / var(--cx-wish-bubble-a));
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.16);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.05);
+}
+
+/* Bong bóng bên phải: nền màu nhấn rất nhạt để hai phía phân biệt được mà vẫn
+   đọc bằng cùng màu chữ. */
+.cx-wchat-row.is-r .cx-wchat-bub {
+  border-radius: 18px 18px 4px 18px;
+  background: rgb(var(--cx-wish-accent-rgb) / 0.1);
+}
+
+.cx-wchat-bub .cx-wish-name {
+  margin-bottom: 2px;
+  font-size: 10px;
+}
+
+/* ── Dạng "stack" (.cx-wsec-stack) ─────────────────────────────────────────
+   Mọi thẻ chung MỘT ô lưới (khung cao bằng thẻ dài nhất). data-d do JS đặt:
+   0 thẻ trên cùng, 1–2 ló ra dưới, x ẩn mà vẫn giữ chỗ, out đang bay đi.
+   touch-action: pan-y để vuốt ngang tới được JS mà vẫn cuộn dọc được trang. */
+.cx-wsec-stack .cx-wsec-list,
+.cx-wsec-spot .cx-wsec-list,
+.cx-wsec-book .cx-wsec-list {
+  max-height: none;
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.cx-wstack {
+  display: grid;
+  padding: 0 12px 28px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.cx-wstack-card {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 24px 24px;
+  border-radius: 20px;
+  color: rgb(var(--cx-wish-text-rgb));
+  background: rgb(var(--cx-wish-bubble-rgb));
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.18);
+  box-shadow: 0 14px 30px -16px rgb(0 0 0 / 0.3);
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1),
+    opacity 0.4s ease;
+}
+
+.cx-wstack-card[data-d="0"] {
+  z-index: 3;
+}
+
+.cx-wstack-card[data-d="1"] {
+  z-index: 2;
+  transform: translateY(12px) scale(0.95);
+}
+
+.cx-wstack-card[data-d="2"] {
+  z-index: 1;
+  transform: translateY(24px) scale(0.9);
+  opacity: 0.6;
+}
+
+.cx-wstack-card[data-d="x"] {
+  visibility: hidden;
+  opacity: 0;
+  transition: none;
+}
+
+.cx-wstack-card[data-d="out"] {
+  z-index: 4;
+  transform: translateX(120%) rotate(14deg);
+  opacity: 0;
+}
+
+.cx-wstack-text {
+  display: block;
+  font-size: 18px;
+  line-height: 1.5;
+  text-align: left;
+  word-break: break-word;
+}
+
+.cx-wstack-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cx-wstack-foot .cx-wish-name {
+  margin: 0;
+}
+
+/* Chữ "3 / 12" giữa hai nút Lùi/Tiếp (dạng chồng thẻ, sổ lưu bút). */
+.cx-wnav-pos {
+  min-width: 64px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: rgb(var(--cx-wish-text-rgb));
+}
+
+.cx-wnav[hidden] {
+  display: none;
+}
+
+/* ── Dạng "spotlight" (.cx-wsec-spot) ──────────────────────────────────────
+   Một câu lớn giữa mục, mọi câu chung một ô lưới — câu đang hiện (.is-on) mờ
+   dần vào. Thanh tiến độ chạy đúng CX_WISH_SPOT_MS (5s). */
+.cx-wspot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 8px 4px;
+  text-align: center;
+}
+
+.cx-wspot-q {
+  height: 40px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 88px;
+  line-height: 0.9;
+  opacity: 0.35;
+}
+
+.cx-wspot-stage {
+  display: grid;
+  width: 100%;
+  cursor: pointer;
+}
+
+.cx-wspot-item {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease,
+    visibility 0.6s;
+}
+
+.cx-wspot-item.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.cx-wspot-text {
+  margin: 0;
+  font-size: 21px;
+  font-style: italic;
+  line-height: 1.5;
+  word-break: break-word;
+  color: rgb(var(--cx-wish-text-rgb));
+}
+
+.cx-wspot-item .cx-wish-name {
+  margin: 0;
+}
+
+.cx-wspot-bar {
+  display: block;
+  width: 120px;
+  height: 2px;
+  margin-top: 24px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(var(--cx-wish-text-rgb) / 0.14);
+}
+
+.cx-wspot-bar i {
+  display: block;
+  height: 100%;
+  background: rgb(var(--cx-wish-accent-rgb));
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.cx-wspot-bar.is-run i {
+  animation: cx-wspot-prog 5s linear both;
+}
+
+@keyframes cx-wspot-prog {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.cx-wspot-pos {
+  margin-top: 10px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgb(var(--cx-wish-text-rgb));
+  opacity: 0.7;
+}
+
+/* ── Dạng "float" (.cx-wdock-float) ────────────────────────────────────────
+   Cùng khung dải nổi với livestream; bong bóng và trái tim đặt tuyệt đối dưới
+   đáy khung rồi bay lên quãng --cx-wf-h (JS đo) cộng chính chiều cao của nó. */
+/* Bong bóng bay chỉ để nhìn: không bắt chạm (.cx-wish-item vốn bật lại
+   pointer-events) — nó lướt qua cả thiệp, chặn chạm là khách bấm hụt nút bên dưới. */
+.cx-wfloat,
+.cx-wfloat .cx-wish-item {
+  pointer-events: none;
+}
+
+.cx-wfloat-bal {
+  position: absolute;
+  top: 100%;
+  max-width: 82%;
+  animation: cx-wfloat-up 9s linear both;
+}
+
+.cx-wfloat-hrt {
+  position: absolute;
+  top: 100%;
+  display: block;
+  color: rgb(var(--cx-wish-accent-rgb) / 0.6);
+  animation: cx-wfloat-up 6s ease-in both;
+}
+
+@keyframes cx-wfloat-up {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translate(var(--cx-wf-sx, 12px), calc(var(--cx-wf-h, 240px) * -0.55));
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(0, calc(var(--cx-wf-h, 240px) * -1 - 100%));
+  }
+}
+
+/* ── Dạng "guestbook" (.cx-wsec-book) ──────────────────────────────────────
+   Trang giấy kẻ dòng (dòng kẻ trùng line-height 32px của chữ), chữ nghiêng của
+   mẫu. Mọi trang chung một ô lưới; trang kế (.is-next) nằm ngay dưới để lúc
+   trang hiện tại lật đi (.is-turn) là nó đã có sẵn. Mép phải xếp thêm một tờ
+   lệch (::before) cho ra dáng cuốn sổ. */
+.cx-wbook {
+  position: relative;
+  display: grid;
+  margin: 0 8px 8px 0;
+  perspective: 1400px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.cx-wbook::before {
+  content: "";
+  grid-area: 1 / 1;
+  border-radius: 4px 14px 14px 4px;
+  background: rgb(var(--cx-wish-accent-rgb) / 0.1);
+  transform: translate(6px, 6px);
+}
+
+.cx-wbook-page {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 280px;
+  padding: 24px 24px 20px 32px;
+  border-radius: 4px 14px 14px 4px;
+  text-align: left;
+  color: rgb(var(--cx-wish-text-rgb));
+  background-color: rgb(var(--cx-wish-bubble-rgb));
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 31px,
+    rgb(var(--cx-wish-accent-rgb) / 0.14) 31px 32px
+  );
+  background-position: 0 54px;
+  box-shadow:
+    inset 14px 0 18px -16px rgb(0 0 0 / 0.35),
+    0 14px 28px -18px rgb(0 0 0 / 0.35);
+  transform-origin: left center;
+  backface-visibility: hidden;
+  visibility: hidden;
+}
+
+.cx-wbook-page.is-on {
+  z-index: 2;
+  visibility: visible;
+}
+
+.cx-wbook-page.is-next {
+  z-index: 1;
+  visibility: visible;
+}
+
+.cx-wbook-page.is-turn {
+  animation: cx-wbook-turn 0.7s cubic-bezier(0.4, 0.1, 0.3, 1) both;
+}
+
+@keyframes cx-wbook-turn {
+  to {
+    transform: rotateY(-100deg);
+    opacity: 0.2;
+  }
+}
+
+.cx-wbook-no {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-align: right;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.cx-wbook-text {
+  flex: 1;
+  margin-top: 8px;
+  font-size: 18px;
+  font-style: italic;
+  line-height: 32px;
+  word-break: break-word;
+}
+
+.cx-wbook-sig {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-wsec-list.is-live .cx-wchat-row,
+  .cx-wbook-page.is-turn,
+  .cx-wspot-bar.is-run i {
+    animation: none;
+  }
+
+  .cx-wstack-card,
+  .cx-wspot-item {
+    transition: none;
+  }
+}
+
 /* Dải trả tiền của trang /checkout/ (#payment-paybar, ghim bởi _pinPaybar ở
    core/payment.js). CHỈ ghim ở khổ điện thoại: đó là chỗ đắt nhất trên màn và
    giữ nút trong tầm ngón cái; từ md màn đã thấy trọn thẻ đơn hàng nên dải trả

@@ -12,10 +12,10 @@
     // Chữ mốc chuyện tình nằm cạnh ảnh, cột hẹp, hai mốc một màn — đoạn ngắn mới vừa.
     loveStory: "short",
 
-    wishesMode: "card",
+    wishesMode: "spotlight",
 
-    // Hộp mừng cưới khi chủ thiệp chưa chọn — phong bì đỏ hợp tông đỏ đô.
-    giftBox: "phongbi_do_hy",
+    // Hộp mừng cưới khi chủ thiệp chưa chọn — phong bì kem sáp hợp tông be.
+    giftBox: "phongbi_kem_sap",
 
     // Đĩa nhạc neo góc phải trên, như mẫu gốc.
     // Thiệp slide không cuộn trang + nút nằm trong bảng điều hướng (chỉ có sau khi
@@ -27,46 +27,46 @@
     // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
     // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
     palette: {
-      heading: "#4f1418",
-      body: "#7d4a4f",
-      accent: "#8a1a20",
-      accent_soft: "#d4a0a3",
+      heading: "#4a3b2e",
+      body: "#736151",
+      accent: "#82664b",
+      accent_soft: "#d6c4ae",
       on_accent: "#ffffff",
       on_image: "#ffffff",
       on_lightbox: "#ffffff",
-      card_bg: "#fffcfa",
-      page_bg: "#efe6e3",
-      surface: "#f8f1ef",
-      band: "#fbf5f3",
+      card_bg: "#fdfaf4",
+      page_bg: "#f2ebe0",
+      surface: "#f7f1e7",
+      band: "#faf6ef",
       panel: "#ffffff",
-      panel_warm: "#fffaf8",
-      cover: "#efe6e3",
-      cover_mid: "#e3d0cd",
-      cover_veil: "#2a1517",
+      panel_warm: "#fffcf6",
+      cover: "#f2ebe0",
+      cover_mid: "#e4d8c7",
+      cover_veil: "#2e241b",
       lightbox_bg: "#000000",
-      line: "#5c2c30",
+      line: "#6b5644",
       shadow: "#000000",
       scrim: "#000000",
-      deco: "#8a1a20",
-      deco_soft: "#f0d6d8",
-      deco_2: "#b48a5a",
-      deco_2_soft: "#f1e6d8",
+      deco: "#82664b",
+      deco_soft: "#ece2d3",
+      deco_2: "#b8956a",
+      deco_2_soft: "#f1e8da",
       shine_from: "#ffffff",
-      shine_mid: "#f8e4e6",
-      shine_to: "#b48a5a",
+      shine_mid: "#f3e9da",
+      shine_to: "#b8956a",
     },
 
     swatches: [
-      "#8a1a20",
-      "#6e1418",
-      "#4f1418",
-      "#7d4a4f",
-      "#d4a0a3",
-      "#b48a5a",
-      "#f0d6d8",
-      "#efe6e3",
-      "#fffcfa",
-      "#2a1517",
+      "#82664b",
+      "#6b5444",
+      "#4a3b2e",
+      "#736151",
+      "#d6c4ae",
+      "#b8956a",
+      "#ece2d3",
+      "#f2ebe0",
+      "#fdfaf4",
+      "#2e241b",
     ],
 
     wishes: {},
@@ -680,7 +680,7 @@
 
   // ============= OUR STORY — tối đa 3 màn =============
   // Các mốc chia đều vào ≤3 màn (màn đầu nhận phần dư). Bố cục theo số mốc một
-  // màn: 1 = ảnh lớn + chữ dưới, 2 = ảnh lệch khối đỏ so le, 3+ = hàng gọn.
+  // màn: 1 = ảnh lớn + chữ dưới, 2 = ảnh lệch khối màu nhấn so le, 3+ = hàng gọn.
   const _STORY_PAGES = 3;
 
   function _renderStory(events) {
