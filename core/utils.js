@@ -658,6 +658,125 @@ function applyCrop() {
   );
 }
 
+// ============= CẮT ẢNH THEO TỈ LỆ =============
+
+// Tỉ lệ khung cắt chọn được; `r: NaN` = tự do (Cropper.js hiểu NaN là không khoá),
+// `r: 0` = tỉ lệ gốc của ảnh. Mục đầu là mặc định.
+const CX_CROP_RATIOS = [
+  { id: "free", label: "Tự do", icon: "crop", r: NaN },
+  { id: "orig", label: "Gốc", icon: "image", r: 0 },
+  { id: "1-1", label: "Vuông", icon: "square", r: 1 },
+  { id: "16-9", label: "16:9", icon: "rectangle-horizontal", r: 16 / 9 },
+  { id: "9-16", label: "9:16", icon: "rectangle-vertical", r: 9 / 16 },
+];
+
+/**
+ * Bảng cắt ảnh (cần Cropper.js): khung theo tỉ lệ chọn ở dải trên, mặc định tự do. Xuất đúng số điểm ảnh của vùng cắt, giữ định dạng gốc; `done(File)` khi Áp dụng.
+ */
+function openRatioCropSheet(blob, done) {
+  let cropper = null;
+  const url = URL.createObjectURL(blob);
+  const sheet = openBottomSheet({
+    id: "ratio-crop-modal",
+    title: "Cắt ảnh",
+    height: "85vh",
+    onClose: () => {
+      cropper?.destroy();
+      URL.revokeObjectURL(url);
+    },
+  });
+  if (!sheet) return;
+
+  sheet.body.innerHTML = `
+    <div class="p-4 sm:p-5 flex-1 flex flex-col min-h-0 gap-3">
+      <!-- Icon trên chữ dưới để 5 mục vừa bề ngang màn điện thoại (flex-direction inline:
+           .cx-seg-btn đã khai inline-flex hàng ngang trong CSS thủ công). -->
+      <div id="rc-seg" class="cx-seg flex-shrink-0 w-full max-w-[420px] mx-auto" style="--n:${CX_CROP_RATIOS.length};--i:0">
+        ${CX_CROP_RATIOS.map(
+          (o, i) => `<button type="button" class="cx-seg-btn${i ? "" : " is-on"}" data-rc="${i}" style="flex-direction:column;gap:2px;padding:6px 4px">
+            <i data-lucide="${o.icon}" style="width:18px;height:18px"></i><span class="text-[11px] leading-tight whitespace-nowrap">${o.label}</span>
+          </button>`,
+        ).join("")}
+      </div>
+      <div class="bg-gray-100 rounded-xl overflow-hidden flex-1 min-h-0">
+        <img id="rc-img" alt="" class="block max-w-full" />
+      </div>
+      <p id="rc-info" class="text-xs text-gray-500 text-center flex-shrink-0">Kéo góc khung để thu vùng cắt, kéo ảnh để di chuyển</p>
+    </div>`;
+  sheet.footer.innerHTML = `
+    <div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between gap-2">
+      <x-button variant="ghost" tone="neutral" id="rc-reset" icon="rotate-ccw">Đặt lại</x-button>
+      <div class="flex gap-2">
+        <x-button variant="outline" tone="neutral" id="rc-cancel">Hủy</x-button>
+        <x-button id="rc-apply" icon="check">Áp dụng</x-button>
+      </div>
+    </div>`;
+  window.lucide?.createIcons({ root: sheet.body });
+  window.lucide?.createIcons({ root: sheet.footer });
+
+  const img = document.getElementById("rc-img");
+  const info = document.getElementById("rc-info");
+  const seg = document.getElementById("rc-seg");
+  let natural = NaN;
+
+  seg.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-rc]");
+    if (!btn || !cropper) return;
+    const i = +btn.dataset.rc;
+    seg.style.setProperty("--i", i);
+    seg.querySelectorAll("[data-rc]").forEach((b) => b.classList.toggle("is-on", b === btn));
+    const r = CX_CROP_RATIOS[i].r;
+    cropper.setAspectRatio(r === 0 ? natural : r);
+  });
+
+  img.onload = () => {
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    natural = w / h;
+    cropper = new Cropper(img, {
+      aspectRatio: CX_CROP_RATIOS[0].r,
+      viewMode: 1,
+      dragMode: "move",
+      autoCropArea: 1,
+      restore: false,
+      guides: true,
+      center: true,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
+      crop: (e) => {
+        info.textContent = `Gốc ${w}×${h} → cắt ${Math.round(e.detail.width)}×${Math.round(e.detail.height)} px`;
+      },
+    });
+  };
+  img.src = url;
+
+  document.getElementById("rc-reset").onclick = () => cropper?.reset();
+  document.getElementById("rc-cancel").onclick = () => sheet.close();
+  document.getElementById("rc-apply").onclick = () => {
+    if (!cropper) return;
+    const type = /^image\/(png|webp|jpeg)$/.test(blob.type) ? blob.type : "image/jpeg";
+    const canvas = cropper.getCroppedCanvas({
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: "high",
+    });
+    canvas.toBlob(
+      (out) => {
+        if (!out) {
+          window.showToast?.("Không cắt được ảnh", "error");
+          return;
+        }
+        const base = (blob.name || "image").replace(/\.[^.]+$/, "");
+        const ext = type.split("/")[1].replace("jpeg", "jpg");
+        done(new File([out], `${base}-crop.${ext}`, { type }));
+        sheet.close();
+      },
+      type,
+      0.92,
+    );
+  };
+}
+
 // ============= FOCAL POINT PICKER =============
 
 /**
@@ -668,8 +787,13 @@ function applyCrop() {
  * `[{ label, w, h, mask }]`, `mask` là giá trị mask-image CSS (bỏ trống thì
  * không che). Dùng khi ảnh có một chỗ dùng cụ thể và cần xem đúng chỗ đó ở mọi
  * khổ màn (tab "Ảnh nền" của admin).
+ *
+ * `opts.crop: true` bật nút "Cắt ảnh" (openRatioCropSheet): cắt xong ảnh trong bảng đổi theo,
+ * điểm nhìn về giữa, và callback nhận thêm tham số thứ hai là ảnh đã cắt (null nếu không cắt).
  */
-function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, frames) {
+function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, frames, opts = {}) {
+  let cropped = null;
+  let croppedUrl = null;
   const focal = {
     x: currentFocal?.x ?? 50,
     y: currentFocal?.y ?? 50,
@@ -684,6 +808,8 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
       window._focalPickerReset = null;
       window._closeFocalSheet = null;
       window._focalPickerValue = null;
+      window._focalPickerCropped = null;
+      if (croppedUrl) URL.revokeObjectURL(croppedUrl);
     },
   });
   if (!sheet) return;
@@ -774,7 +900,11 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
           <img id="focal-image" src="" alt="" class="w-full h-full object-contain block pointer-events-none select-none" draggable="false" />
           <div id="focal-marker" class="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-lg pointer-events-none" style="left:50%;top:50%;background-color:rgb(var(--brand-primary-rgb));"></div>
         </div>
-        <p class="text-xs text-gray-500 flex-shrink-0">${hintText}</p>
+        <!-- "Cắt ảnh" đứng cạnh dòng gợi ý chứ không ở chân bảng: thêm nút thứ 4 vào chân là tràn trên điện thoại. -->
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <p class="text-xs text-gray-500 flex-1 min-w-0">${hintText}</p>
+          ${opts.crop ? `<x-button variant="soft" size="sm" id="focal-crop-btn" icon="crop" class="shrink-0">Cắt ảnh</x-button>` : ""}
+        </div>
       </div>
       ${previewSection}
     </div>
@@ -793,10 +923,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
   }
   sheet.footer.innerHTML = `
     <div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between gap-2">
-      <x-button variant="soft" onclick="resetFocalPoint()" class="text-sky-700">
-        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        Đặt lại
-      </x-button>
+      <x-button variant="ghost" tone="neutral" icon="rotate-ccw" onclick="resetFocalPoint()">Đặt lại</x-button>
       <div class="flex gap-2">
         <x-button variant="outline" tone="neutral" onclick="closeFocalPointPicker()">Hủy</x-button>
         <x-button onclick="confirmFocalPoint()">
@@ -908,6 +1035,25 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
     reader.readAsDataURL(imageSource);
   }
 
+  const cropBtn = document.getElementById("focal-crop-btn");
+  if (cropBtn) {
+    window.lucide?.createIcons({ root: cropBtn });
+    cropBtn.onclick = async () => {
+      const src = cropped || (typeof imageSource === "string"
+        ? await (await fetch(imageSource)).blob()
+        : imageSource);
+      openRatioCropSheet(src, (file) => {
+        if (croppedUrl) URL.revokeObjectURL(croppedUrl);
+        cropped = file;
+        croppedUrl = URL.createObjectURL(file);
+        window._focalPickerCropped = file;
+        focal.x = 50;
+        focal.y = 50;
+        setImageSrc(croppedUrl);
+      });
+    };
+  }
+
   window._focalPickerCallback = callback;
   window._focalPickerReset = () => {
     focal.x = 50;
@@ -940,8 +1086,9 @@ function confirmFocalPoint() {
   // Use image-space values stored by applyToUI (marker.style is wrap-space after letterbox correction)
   const v = window._focalPickerValue || { x: 50, y: 50 };
   const callback = window._focalPickerCallback;
+  const cropped = window._focalPickerCropped || null;
   closeFocalPointPicker();
-  callback({ x: v.x, y: v.y });
+  callback({ x: v.x, y: v.y }, cropped);
 }
 
 // Giây bắt đầu phát của nhạc nền nằm NGAY trong music_url (tham số `t`/`start`

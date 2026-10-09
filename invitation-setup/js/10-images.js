@@ -396,10 +396,17 @@ function adjustSingleImageFocalPoint(fieldName) {
     pendingFile || (existingFilename ? getImageUrl(existingFilename) : null);
   if (!source) return;
 
+  const isQr = !!_qrGiftInfo(fieldName);
   openFocalPointPicker(
     source,
     pendingFocalPoints[fieldName],
-    (focal) => {
+    async (focal, cropped) => {
+      // Đã cắt → ảnh mới vào hàng chờ upload như lúc chọn ảnh.
+      if (cropped) {
+        _storePickedImage(fieldName, await prepareImage(cropped), focal);
+        showToast("Đã cắt ảnh (chưa lưu)", "success");
+        return;
+      }
       pendingFocalPoints[fieldName] = focal;
       renderSingleImageUpload(fieldName);
       if (pendingUploads.singleImages[fieldName]) {
@@ -411,6 +418,8 @@ function adjustSingleImageFocalPoint(fieldName) {
       showToast("Đã cập nhật điểm lấy nét", "success");
     },
     _qrGiftInfo(fieldName),
+    null,
+    { crop: !isQr },
   );
 }
 

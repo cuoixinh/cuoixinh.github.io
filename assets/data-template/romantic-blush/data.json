@@ -2,53 +2,53 @@
   "image_focal_points": {
     "gallery_images": {
       "gallery-01.webp": {
-        "x": 26,
-        "y": 24
+        "x": 54,
+        "y": 59
       },
       "gallery-02.webp": {
-        "x": 50,
-        "y": 16
+        "x": 47,
+        "y": 59
       },
       "gallery-03.webp": {
-        "x": 32,
-        "y": 35
+        "x": 49,
+        "y": 54
       },
       "gallery-04.webp": {
-        "x": 54,
-        "y": 26
+        "x": 71,
+        "y": 66
       },
       "gallery-05.webp": {
-        "x": 75,
-        "y": 24
+        "x": 48,
+        "y": 54
       },
       "gallery-06.webp": {
-        "x": 46,
-        "y": 12
+        "x": 60,
+        "y": 59
       },
       "gallery-07.webp": {
-        "x": 48,
-        "y": 25
+        "x": 50,
+        "y": 58
       },
       "gallery-08.webp": {
-        "x": 40,
-        "y": 5
+        "x": 54,
+        "y": 71
       }
     },
     "cover_image_url": {
-      "x": 52,
-      "y": 4
+      "x": 50,
+      "y": 50
     },
     "groom_image_url": {
-      "x": 50,
-      "y": 1
+      "x": 65,
+      "y": 60
     },
     "bride_image_url": {
-      "x": 55,
-      "y": 22
+      "x": 100,
+      "y": 42
     }
   },
   "cover_image_url": "cover.webp",
-  "groom_image_url": "groom.png",
+  "groom_image_url": "groom.webp",
   "bride_image_url": "bride.webp",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
@@ -70,7 +70,7 @@
       "image_url": "love-story-01.webp",
       "focal_point": {
         "x": 49,
-        "y": 4
+        "y": 39
       }
     },
     {
@@ -79,8 +79,8 @@
       "content": "Anh tặng em một bó hoa nhỏ xíu và một lời hứa rất lớn.",
       "image_url": "love-story-02.webp",
       "focal_point": {
-        "x": 13,
-        "y": 22
+        "x": 66,
+        "y": 49
       }
     },
     {
@@ -89,8 +89,8 @@
       "content": "Hai đứa ngồi trên bãi biển đến tận khuya, đếm xem đã đi cùng nhau bao nhiêu mùa hè.",
       "image_url": "love-story-03.webp",
       "focal_point": {
-        "x": 37,
-        "y": 5
+        "x": 63,
+        "y": 67
       }
     },
     {
@@ -100,7 +100,7 @@
       "image_url": "love-story-04.webp",
       "focal_point": {
         "x": 55,
-        "y": 2
+        "y": 46
       }
     }
   ],
@@ -203,5 +203,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-04T17:23:55.919Z"
+  "updated_at": "2026-10-09T16:41:47.823Z"
 }

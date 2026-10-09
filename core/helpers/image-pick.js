@@ -1,6 +1,6 @@
 // Chọn ảnh cho thiệp — MỘT đường dùng chung cho form ở trang Thiết lập (10-images.js) và ô
 // chọn ảnh trong khung chat XuXi (js/ai-chat-media.js): kiểm định dạng → bảng lấy nét
-// (ảnh bìa/chú rể/cô dâu, từng ảnh album) hoặc cắt 1:1 (QR) → nén + cảnh báo ảnh nặng.
+// (ảnh bìa/chú rể/cô dâu, từng ảnh album — kèm nút cắt ảnh) hoặc cắt 1:1 (QR) → nén + cảnh báo ảnh nặng.
 // Chỉ trả File + điểm lấy nét; lưu vào đâu là việc của nơi gọi. Cần ImageHelper; bảng
 // chỉnh ở core/utils.js + Cropper.js — trang chưa nạp (trang chủ) thì tự nạp lúc dùng.
 
@@ -106,6 +106,29 @@
     });
   }
 
+  // Bảng lấy nét CÓ nút "Cắt ảnh": { focal, cropped } khi xác nhận (cropped = File đã cắt
+  // hoặc null), null khi huỷ. Cần Cropper.js nên nơi gọi phải ensurePickers(true) trước.
+  function focalCrop(source, current) {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = (v) => {
+        if (done) return;
+        done = true;
+        resolve(v);
+      };
+      openFocalPointPicker(
+        source,
+        current || { x: 50, y: 50 },
+        (point, cropped) => finish({ focal: point, cropped: cropped || null }),
+        null,
+        null,
+        { crop: true },
+      );
+      if (document.getElementById("focal-modal")) onSheetGone("focal-modal", finish);
+      else finish(null);
+    });
+  }
+
   // Bảng cắt 1:1 (QR) dạng Promise: Blob PNG 800×800 khi xác nhận, null khi huỷ.
   function crop(source, giftInfo) {
     return new Promise((resolve) => {
@@ -142,7 +165,7 @@
     const isFocal = FOCAL_FIELDS.includes(field);
     if (isCrop || isFocal) {
       try {
-        await ensurePickers(isCrop);
+        await ensurePickers(true);
       } catch {
         toast("Không mở được bảng chỉnh ảnh, bạn thử lại nhé.", "error");
         return null;
@@ -159,13 +182,16 @@
     }
 
     let point = null;
+    let cropped = null;
     if (isFocal) {
-      point = await focal(file, opts.focal, opts.giftInfo || null);
-      if (!point) return null;
+      const picked = await focalCrop(file, opts.focal);
+      if (!picked) return null;
+      point = picked.focal;
+      cropped = picked.cropped;
     }
     loading(true, "Đang xử lý ảnh...");
     try {
-      const out = { file: await prepare(file), focal: point, cropped: false };
+      const out = { file: await prepare(cropped || file), focal: point, cropped: !!cropped };
       toast("Đã chọn ảnh (chưa lưu)", "success");
       return out;
     } catch (error) {
@@ -189,7 +215,7 @@
     const list = files.slice(0, room);
     if (files.length > room) toast(`Chỉ chọn được ${room} ảnh nữa`, "warning");
     try {
-      await ensurePickers(false);
+      await ensurePickers(true);
     } catch {
       toast("Không mở được bảng chỉnh ảnh, bạn thử lại nhé.", "error");
       return 0;
@@ -202,11 +228,11 @@
         errors.push(`${file.name}: định dạng không hỗ trợ`);
         continue;
       }
-      const point = await focal(file, { x: 50, y: 50 });
-      if (!point) continue; // khách bỏ riêng ảnh này
+      const picked = await focalCrop(file, { x: 50, y: 50 });
+      if (!picked) continue; // khách bỏ riêng ảnh này
       loading(true, "Đang xử lý ảnh...");
       try {
-        await onAdd(await prepare(file), point);
+        await onAdd(await prepare(picked.cropped || file), picked.focal);
         added++;
         const progress = document.getElementById("upload-progress");
         if (progress) progress.textContent = `${Math.round((added / list.length) * 100)}%`;
@@ -222,5 +248,5 @@
     return added;
   }
 
-  window.CXImagePick = { single, gallery, focal, crop, fromCrop, checkType, prepare };
+  window.CXImagePick = { single, gallery, focal, focalCrop, crop, fromCrop, checkType, prepare };
 })();

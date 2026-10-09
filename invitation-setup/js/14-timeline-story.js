@@ -259,24 +259,17 @@ function renderLoveStoryList() {
   if (typeof _wireLoveStoryTextareas === "function") _wireLoveStoryTextareas(list);
 }
 
-// Bảng lấy nét dạng Promise: {x,y} khi xác nhận, null khi huỷ (core/helpers/image-pick.js).
-function _openFocalPickerAsync(source, currentFocal) {
-  return CXImagePick.focal(source, currentFocal);
-}
-
 async function handleLoveStoryImage(idx, input) {
   const file = input.files[0];
   if (!file) return;
   if (!_checkImageType(file)) return; // khai ở 10-images.js (nạp trước file này)
   input.value = "";
-  const focal = await _openFocalPickerAsync(
-    file,
-    _loveStoryItems[idx]?.focal_point,
-  );
-  if (!focal) return;
+  const picked = await CXImagePick.focalCrop(file, _loveStoryItems[idx]?.focal_point);
+  if (!picked) return;
+  const { focal, cropped } = picked;
   showLoading(true, "Đang xử lý ảnh...");
   try {
-    const processed = await prepareImage(file);
+    const processed = await prepareImage(cropped || file);
     _loveStoryPendingImages[idx] = processed;
     _loveStoryItems[idx].focal_point = focal;
     _syncLoveStoryHidden();
@@ -297,11 +290,22 @@ async function adjustLoveStoryFocalPoint(idx) {
       ? getImageUrl(_loveStoryItems[idx].image_url)
       : null;
   if (!source) return;
-  const focal = await _openFocalPickerAsync(
-    source,
-    _loveStoryItems[idx]?.focal_point,
-  );
-  if (!focal) return;
+  const picked = await CXImagePick.focalCrop(source, _loveStoryItems[idx]?.focal_point);
+  if (!picked) return;
+  const { focal, cropped } = picked;
+  // Đã cắt → ảnh cắt thành ảnh chờ upload, y như khi chọn ảnh mới cho mốc này.
+  if (cropped) {
+    showLoading(true, "Đang xử lý ảnh...");
+    try {
+      _loveStoryPendingImages[idx] = await prepareImage(cropped);
+      _idbSaveLoveStoryImages();
+    } catch (e) {
+      showToast("Lỗi xử lý ảnh", "error");
+      return;
+    } finally {
+      showLoading(false);
+    }
+  }
   _loveStoryItems[idx].focal_point = focal;
   _syncLoveStoryHidden();
   renderLoveStoryList();
