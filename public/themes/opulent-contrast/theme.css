@@ -1,39 +1,39 @@
 /* OPULENT CONTRAST — thiệp trắng kiểu tạp chí ảnh phim: ảnh lớn chừa lề mảnh, chữ
-   viết tay đỏ rượu vang đè lên ảnh, điểm nhấn đỏ, tiêu đề serif giãn chữ.
+   viết tay xanh mực đè lên ảnh, tông xanh lam sương ăn theo ảnh mẫu, tiêu đề serif giãn chữ.
    CSS THUẦN, nạp sau styles/themes.css. Màu đi qua --cx-*; chữ viết tay = deco,
-   ngày tháng xanh xám = deco-2, đỏ = accent. */
+   ngày tháng xám đá = deco-2, xanh lam = accent. */
 
 :root {
-  --cx-heading-rgb: 31 31 31;
-  --cx-body-rgb: 74 74 74;
-  --cx-accent-rgb: 184 35 47;
-  --cx-accent-soft-rgb: 226 164 169;
+  --cx-heading-rgb: 28 36 48;
+  --cx-body-rgb: 74 82 96;
+  --cx-accent-rgb: 63 90 122;
+  --cx-accent-soft-rgb: 169 188 207;
   --cx-on-accent-rgb: 255 255 255;
   --cx-on-image-rgb: 255 255 255;
   --cx-on-lightbox-rgb: 255 255 255;
 
   --cx-card-bg-rgb: 255 255 255;
-  --cx-page-bg-rgb: 240 238 235;
-  --cx-surface-rgb: 248 247 245;
-  --cx-band-rgb: 250 246 244;
+  --cx-page-bg-rgb: 233 237 241;
+  --cx-surface-rgb: 245 247 249;
+  --cx-band-rgb: 242 245 248;
   --cx-panel-rgb: 255 255 255;
-  --cx-panel-warm-rgb: 252 249 247;
-  --cx-cover-rgb: 243 239 231;
-  --cx-cover-mid-rgb: 232 226 214;
+  --cx-panel-warm-rgb: 248 249 250;
+  --cx-cover-rgb: 238 241 244;
+  --cx-cover-mid-rgb: 221 227 234;
   --cx-cover-veil-rgb: 255 255 255;
   --cx-lightbox-bg-rgb: 0 0 0;
 
-  --cx-line-rgb: 216 212 208;
+  --cx-line-rgb: 211 217 224;
   --cx-shadow-rgb: 0 0 0;
   --cx-scrim-rgb: 0 0 0;
 
-  --cx-deco-rgb: 142 36 51;
-  --cx-deco-soft-rgb: 233 207 211;
-  --cx-deco-2-rgb: 143 155 184;
-  --cx-deco-2-soft-rgb: 214 219 230;
-  --cx-shine-from-rgb: 184 35 47;
-  --cx-shine-mid-rgb: 142 36 51;
-  --cx-shine-to-rgb: 226 164 169;
+  --cx-deco-rgb: 47 74 104;
+  --cx-deco-soft-rgb: 212 221 232;
+  --cx-deco-2-rgb: 163 158 148;
+  --cx-deco-2-soft-rgb: 228 225 220;
+  --cx-shine-from-rgb: 63 90 122;
+  --cx-shine-mid-rgb: 47 74 104;
+  --cx-shine-to-rgb: 169 188 207;
 
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
@@ -74,12 +74,17 @@ body {
   font-family: "Be Vietnam Pro", sans-serif;
 }
 
-/* Chữ viết tay đỏ rượu vang — nét nhận dạng của mẫu. */
+/* Chữ viết tay xanh mực — nét nhận dạng của mẫu. */
 .oc-script {
   font-family: "MonolineSignature", cursive;
   color: rgb(var(--cx-deco-rgb));
   line-height: 1.1;
   font-weight: normal;
+}
+
+/* Tiêu đề mục viết tay ("Chuyện chúng mình", "Bên nhau"…) — nét bút khác chữ ký. */
+.oc-script-title {
+  font-family: "SaltyFeathers", cursive;
 }
 
 /* Tiêu đề serif mảnh giãn chữ: OUR WEDDING, WEDDING DAY… */
@@ -116,7 +121,7 @@ body {
   color: rgb(var(--cx-body-rgb) / 0.6);
 }
 
-/* Cụm tiêu đề "Thiệp Cưới": chữ viết tay đỏ rượu vang nghiêng đè lên dòng chữ in giãn rộng. */
+/* Cụm tiêu đề "Thiệp Cưới": chữ viết tay xanh mực nghiêng đè lên dòng chữ in giãn rộng. */
 .oc-lockup {
   display: flex;
   flex-direction: column;

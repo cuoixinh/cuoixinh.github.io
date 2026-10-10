@@ -84,10 +84,16 @@ function applyFocalPoint(elementId, focalPoint) {
   if (el) el.style.objectPosition = `${focalPoint.x}% ${focalPoint.y}%`;
 }
 
+// Danh xưng bố/mẹ do thiệp tự thêm — dữ liệu chỉ lưu tên trần; khách lỡ gõ sẵn "Ông/Bà" thì gỡ để khỏi lặp.
+function parentName(title, name) {
+  const bare = String(name || "").trim().replace(/^(ông|bà)\s+/i, "");
+  return bare ? `${title} ${bare}` : "";
+}
+
 function renderCoupleInfo(wedding) {
   // Groom info
-  setText("groom-father", wedding.groom_father, "--------------------");
-  setText("groom-mother", wedding.groom_mother, "--------------------");
+  setText("groom-father", parentName("Ông", wedding.groom_father), "--------------------");
+  setText("groom-mother", parentName("Bà", wedding.groom_mother), "--------------------");
   setText(
     "groom-address",
     wedding.groom_address,
@@ -96,8 +102,8 @@ function renderCoupleInfo(wedding) {
   setText("groom-name-label", wedding.groom_name, "----------");
 
   // Bride info
-  setText("bride-father", wedding.bride_father, "--------------------");
-  setText("bride-mother", wedding.bride_mother, "--------------------");
+  setText("bride-father", parentName("Ông", wedding.bride_father), "--------------------");
+  setText("bride-mother", parentName("Bà", wedding.bride_mother), "--------------------");
   setText(
     "bride-address",
     wedding.bride_address,

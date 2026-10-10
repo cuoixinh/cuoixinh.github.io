@@ -1,4 +1,4 @@
-// OPULENT CONTRAST — thiệp trắng kiểu tạp chí ảnh phim, chữ viết tay đỏ rượu vang + điểm nhấn đỏ.
+// OPULENT CONTRAST — thiệp trắng kiểu tạp chí ảnh phim, chữ viết tay xanh mực + tông xanh lam sương.
 // Chỉ KHAI BÁO: CX_THEME + renderWedding + phần đặc thù (album rải ảnh vào ba dải xen
 // thơ, lịch riêng có trái tim khoanh ngày). Phần "chạy" ở core/helpers/theme-boot.js.
 // Bọc IIFE: `const` cấp cao nhất của script cổ điển là biến toàn cục.
@@ -16,50 +16,50 @@
 
     // Bản khai máy đọc của :root trong theme.css — sinh lại: npm run check:palette -- --write
     palette: {
-      heading: "#1f1f1f",
-      body: "#4a4a4a",
-      accent: "#b8232f",
-      accent_soft: "#e2a4a9",
+      heading: "#1c2430",
+      body: "#4a5260",
+      accent: "#3f5a7a",
+      accent_soft: "#a9bccf",
       on_accent: "#ffffff",
       on_image: "#ffffff",
       on_lightbox: "#ffffff",
       card_bg: "#ffffff",
-      page_bg: "#f0eeeb",
-      surface: "#f8f7f5",
-      band: "#faf6f4",
+      page_bg: "#e9edf1",
+      surface: "#f5f7f9",
+      band: "#f2f5f8",
       panel: "#ffffff",
-      panel_warm: "#fcf9f7",
-      cover: "#f3efe7",
-      cover_mid: "#e8e2d6",
+      panel_warm: "#f8f9fa",
+      cover: "#eef1f4",
+      cover_mid: "#dde3ea",
       cover_veil: "#ffffff",
       lightbox_bg: "#000000",
-      line: "#d8d4d0",
+      line: "#d3d9e0",
       shadow: "#000000",
       scrim: "#000000",
-      deco: "#8e2433",
-      deco_soft: "#e9cfd3",
-      deco_2: "#8f9bb8",
-      deco_2_soft: "#d6dbe6",
-      shine_from: "#b8232f",
-      shine_mid: "#8e2433",
-      shine_to: "#e2a4a9",
+      deco: "#2f4a68",
+      deco_soft: "#d4dde8",
+      deco_2: "#a39e94",
+      deco_2_soft: "#e4e1dc",
+      shine_from: "#3f5a7a",
+      shine_mid: "#2f4a68",
+      shine_to: "#a9bccf",
     },
 
     swatches: [
-      "#1f1f1f",
-      "#4a4a4a",
-      "#8f9bb8",
-      "#b8232f",
-      "#8e2433",
-      "#e2a4a9",
-      "#e9cfd3",
-      "#d8d4d0",
-      "#f8f7f5",
+      "#1c2430",
+      "#4a5260",
+      "#3f5a7a",
+      "#2f4a68",
+      "#a9bccf",
+      "#d4dde8",
+      "#a39e94",
+      "#d3d9e0",
+      "#f5f7f9",
       "#ffffff",
     ],
 
-    // Lời chúc trên nền trắng: thẻ ngà rất nhạt, tên khách màu đỏ nhấn.
-    wishes: { bubble: "#faf5f3", text: "#4a4a4a", accent: "#b8232f", btn: "#b8232f" },
+    // Lời chúc trên nền trắng: thẻ xanh sương rất nhạt, tên khách màu xanh lam nhấn.
+    wishes: { bubble: "#f2f5f8", text: "#4a5260", accent: "#3f5a7a", btn: "#3f5a7a" },
 
     reveal: ["#main-card section"],
 
