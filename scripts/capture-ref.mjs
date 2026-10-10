@@ -67,16 +67,35 @@ try {
   const jsScroll = info.max <= 2;
   const cdp = await page.createCDPSession();
   const { width: vw, height: vh } = device.viewport;
-  // Toạ độ dọc của các ảnh trước/sau một lần vuốt: phần lớn (≥70%) đứng yên là đã tới đáy.
-  // Không so pixel được vì đĩa nhạc quay, dải quà tự trượt… khiến hai ảnh không bao giờ trùng.
+  // Toạ độ dọc của các ảnh trước/sau một lần vuốt: không ảnh nào dịch dọc ≥40px trong 2 lần
+  // vuốt liền là đã tới đáy. Không xét tỉ lệ ảnh đứng yên: thanh nút/nút nhạc ghim màn hình
+  // chiếm đa số ảnh nên luôn "đứng yên". Không so pixel được vì đĩa nhạc quay, dải quà tự trượt…
   const imgTops = () =>
     page.evaluate(() => [...document.images].map((i) => Math.round(i.getBoundingClientRect().top)));
-  let n = 0, last = -1, prevTops = null;
+  // Nhiều thiệp tự cuộn xuống ngay khi mở: vuốt ngược lên tới khi không ảnh nào dịch nữa
+  // (cú chạm cũng làm hiệu ứng tự cuộn dừng) rồi mới chụp từ đỉnh.
+  const movedAny = (a, b) =>
+    a.length !== b.length || a.some((t, i) => Math.abs(t - b[i]) >= 40);
+  if (jsScroll) {
+    for (let k = 0, still = 0, before = await imgTops(); k < 40 && still < 2; k++) {
+      await cdp.send("Input.synthesizeScrollGesture", {
+        x: Math.round(vw / 2), y: Math.round(vh * 0.3),
+        yDistance: Math.round(vh * 0.6), speed: 1600,
+        gestureSourceType: "touch", preventFling: true,
+      });
+      await sleep(600);
+      const after = await imgTops();
+      still = movedAny(after, before) ? 0 : still + 1;
+      before = after;
+    }
+    await sleep(800);
+  }
+  let n = 0, last = -1, prevTops = null, stuck = 0;
   while (n < maxScreens) {
     const tops = await imgTops();
-    if (jsScroll && prevTops && tops.length === prevTops.length && tops.length) {
-      const still = tops.filter((t, i) => Math.abs(t - prevTops[i]) <= 1).length;
-      if (still / tops.length >= 0.7) break;
+    if (jsScroll && prevTops) {
+      stuck = movedAny(tops, prevTops) ? 0 : stuck + 1;
+      if (stuck >= 2) break;
     }
     prevTops = tops;
     n++;

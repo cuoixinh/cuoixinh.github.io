@@ -1,0 +1,129 @@
+{
+  "image_focal_points": {
+    "gallery_images": {
+      "gallery-01.webp": {
+        "x": 46,
+        "y": 25
+      },
+      "gallery-02.webp": {
+        "x": 53,
+        "y": 13
+      },
+      "gallery-03.webp": {
+        "x": 49,
+        "y": 24
+      },
+      "gallery-04.webp": {
+        "x": 63,
+        "y": 14
+      },
+      "gallery-05.webp": {
+        "x": 75,
+        "y": 25
+      },
+      "gallery-06.webp": {
+        "x": 50,
+        "y": 24
+      },
+      "gallery-07.webp": {
+        "x": 49,
+        "y": 24
+      },
+      "gallery-08.webp": {
+        "x": 59,
+        "y": 18
+      },
+      "gallery-09.webp": {
+        "x": 50,
+        "y": 61
+      },
+      "gallery-10.jpg": {
+        "x": 48,
+        "y": 32
+      }
+    },
+    "cover_image_url": {
+      "x": 51,
+      "y": 18
+    },
+    "groom_image_url": {
+      "x": 65,
+      "y": 14
+    },
+    "bride_image_url": {
+      "x": 40,
+      "y": 23
+    }
+  },
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp",
+    "gallery-08.webp",
+    "gallery-09.webp",
+    "gallery-10.jpg"
+  ],
+  "content": {
+    "groom_name": "Gia Bảo",
+    "bride_name": "Ngọc Hân",
+    "groom_father": "Ông Lê Gia Khánh",
+    "groom_mother": "Bà Phạm Thị Nhung",
+    "groom_address": "Số 24, Ngõ 82 Phố Chùa Láng, Phường Láng Thượng, Hà Nội",
+    "bride_father": "Ông Nguyễn Văn Chiến",
+    "bride_mother": "Bà Ngô Thị Bích",
+    "bride_address": "Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
+    "ceremony_name": "Lễ Thành Hôn",
+    "ceremony_date": "2026-11-08",
+    "ceremony_time": "11:00",
+    "ceremony_lunar": "Tức ngày 30 tháng 9 năm Bính Ngọ",
+    "ceremony_location": "Nhà hàng Tiệc cưới Sen Hồng, 145 Trần Duy Hưng, Hà Nội",
+    "vu_quy_enabled": true,
+    "vu_quy_time": "08:00",
+    "vu_quy_location": "Tư gia nhà gái — Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
+    "groom_party_date": "2026-11-07",
+    "groom_party_time": "17:00",
+    "groom_party_lunar": "Tức ngày 29 tháng 9 năm Bính Ngọ",
+    "groom_party_show_location": true,
+    "groom_party_location": "Nhà hàng Tiệc cưới Sen Hồng, 145 Trần Duy Hưng, Hà Nội",
+    "bride_party_date": "2026-11-07",
+    "bride_party_time": "17:30",
+    "bride_party_lunar": "Tức ngày 29 tháng 9 năm Bính Ngọ",
+    "bride_party_show_location": true,
+    "bride_party_location": "Tư gia nhà gái — Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
+    "groom_bank_name": "Vietcombank",
+    "groom_bank_number": "1012456789011",
+    "groom_bank_owner": "LE GIA BAO",
+    "bride_bank_name": "BIDV",
+    "bride_bank_number": "21098765432100",
+    "bride_bank_owner": "NGUYEN NGOC HAN",
+    "story_quote": "Cảm ơn bạn đã dành một ngày thật quý để chung vui cùng chúng mình",
+    "rsvp_enabled": true,
+    "rsvp_message": "Bạn bấm xác nhận giúp chúng mình nhé, để hôm ấy chắc chắn có một chỗ ngồi mang tên bạn.",
+    "footer_text": "Hãy chuẩn bị một tâm trạng thật vui và một chiếc bụng thật đói, hẹn gặp bạn ở đám cưới nhé!",
+    "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
+    "enable_family": false,
+    "enable_party": true,
+    "enable_photos": true,
+    "enable_timeline": false,
+    "enable_love_story": false,
+    "enable_music": true,
+    "enable_gift": true,
+    "enable_footer": true,
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=21.0102,105.7989&output=embed&hl=vi",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=21.0553,106.1152&output=embed&hl=vi",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=21.0102,105.7989&output=embed&hl=vi",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=21.0553,106.1152&output=embed&hl=vi",
+    "groom_phone": "0912345678",
+    "bride_phone": "0987654321"
+  },
+  "updated_at": "2026-10-10T00:00:00.000Z"
+}

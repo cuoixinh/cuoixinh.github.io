@@ -99,14 +99,16 @@
       "----------",
     );
 
+    // Nền mờ của bìa: ảnh đầu album cho khác ảnh polaroid, không có album thì ảnh bìa.
+    const g0 = w.gallery_images?.[0];
+    const bgFp = g0 ? w.image_focal_points?.gallery_images?.[g0] : w.image_focal_points?.cover_image_url;
+    setAttr("oc-cover-bg", "src", getImageUrl(g0 || w.cover_image_url));
+    applyFocalPoint("oc-cover-bg", bgFp);
+
     setupMusic(w.music_url, w.enable_music);
     // Thẻ nhạc: nền là ảnh đầu album (không có thì ảnh bìa), đĩa than in ảnh bìa.
-    const g0 = w.gallery_images?.[0];
     setAttr("oc-mcard-bg", "src", getImageUrl(g0 || w.cover_image_url));
-    applyFocalPoint(
-      "oc-mcard-bg",
-      g0 ? w.image_focal_points?.gallery_images?.[g0] : w.image_focal_points?.cover_image_url,
-    );
+    applyFocalPoint("oc-mcard-bg", bgFp);
     setAttr("oc-mcard-disc", "src", getImageUrl(w.cover_image_url));
     applyFocalPoint("oc-mcard-disc", w.image_focal_points?.cover_image_url);
     cxToggle("oc-music-card", !!window.__cxMusicOn);

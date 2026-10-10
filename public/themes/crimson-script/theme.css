@@ -1,0 +1,616 @@
+/* Crimson Script — nền trắng, tiêu đề Cinzel đỏ, chữ ký tay KattyDiona (đỏ trên nền, vàng
+   trên ảnh). CSS thuần, nạp sau styles/themes.css. */
+
+:root {
+  --cx-heading-rgb: 90 69 71;
+  --cx-body-rgb: 95 80 82;
+  --cx-accent-rgb: 168 50 58;
+  --cx-accent-soft-rgb: 217 154 158;
+  --cx-on-accent-rgb: 255 255 255;
+  --cx-on-image-rgb: 255 255 255;
+  --cx-on-lightbox-rgb: 255 255 255;
+  --cx-card-bg-rgb: 255 255 255;
+  --cx-page-bg-rgb: 244 241 238;
+  --cx-surface-rgb: 247 244 242;
+  --cx-band-rgb: 250 246 244;
+  --cx-panel-rgb: 255 255 255;
+  --cx-panel-warm-rgb: 255 255 255;
+  --cx-cover-rgb: 255 255 255;
+  --cx-cover-mid-rgb: 247 244 242;
+  --cx-cover-veil-rgb: 247 244 242;
+  --cx-lightbox-bg-rgb: 0 0 0;
+  --cx-line-rgb: 228 217 214;
+  --cx-shadow-rgb: 0 0 0;
+  --cx-scrim-rgb: 0 0 0;
+  --cx-deco-rgb: 168 50 58;
+  --cx-deco-soft-rgb: 240 220 221;
+  --cx-deco-2-rgb: 246 220 130; /* chữ ký vàng đè lên ảnh */
+  --cx-deco-2-soft-rgb: 251 240 204;
+  --cx-shine-from-rgb: 168 50 58;
+  --cx-shine-mid-rgb: 217 154 158;
+  --cx-shine-to-rgb: 240 220 221;
+}
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+}
+
+.cx-h {
+  font-family: "Noto Serif", serif;
+}
+
+.cx-t {
+  font-family: "Noto Serif", serif;
+}
+
+/* ── Chữ dùng chung ───────────────────────────────────────────────────────── */
+
+.cs-display {
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cs-sub {
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cs-quote {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 2;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cs-poem {
+  font-size: 14px;
+  line-height: 2;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cs-en {
+  font-family: "Noto Serif", serif;
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cs-label {
+  font-family: "Noto Serif", serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cs-script {
+  font-family: "KattyDiona", cursive;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cs-guest {
+  font-family: "Noto Serif", serif;
+  font-style: italic;
+  font-size: 22px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Tam giác đỏ ngăn đoạn. */
+.cs-tri {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 12px solid rgb(var(--cx-accent-rgb));
+}
+
+/* ── Ảnh ──────────────────────────────────────────────────────────────────── */
+
+.cs-ph {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  background: rgb(var(--cx-surface-rgb));
+}
+
+.cs-frame {
+  position: relative;
+  width: 100%;
+}
+
+.cs-ph-tall {
+  aspect-ratio: 4 / 5;
+}
+
+/* Chữ ký vàng đè lên ảnh. */
+.cs-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 64%;
+  font-family: "KattyDiona", cursive;
+  font-size: 48px;
+  line-height: 1;
+  text-align: center;
+  color: rgb(var(--cx-deco-2-rgb));
+  text-shadow: 0 2px 8px rgb(var(--cx-scrim-rgb) / 0.2);
+  transform: rotate(-6deg);
+  pointer-events: none;
+}
+
+/* ── Mở đầu ───────────────────────────────────────────────────────────────── */
+
+.cs-wedding {
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cs-caps {
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* "Invitation" viết tay + SAVE THE DATE, dồn mép phải. */
+.cs-invite-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: -16px;
+  padding: 0 12px 0 0;
+}
+
+.cs-invite-script {
+  margin-right: 4px;
+  font-family: "KattyDiona", cursive;
+  font-size: 72px;
+  line-height: 1;
+  color: rgb(var(--cx-accent-rgb));
+  transform: rotate(-4deg);
+}
+
+.cs-ph-land {
+  aspect-ratio: 1.57;
+}
+
+/* Hàng tên lễ · tên đôi · ngày: ba ô dàn đều, ô giữa canh giữa. */
+.cs-meta {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 16px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cs-meta > span:last-child {
+  text-align: right;
+}
+
+.cs-meta-names {
+  white-space: nowrap;
+}
+
+
+.cs-hero {
+  display: flex;
+  align-items: center;
+  padding-right: 16px;
+}
+
+.cs-hero-poem {
+  width: 40%;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  min-width: 0;
+  padding: 0 20px 0 16px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Thơ ba khổ: vế đầu chữ ký tay đỏ, vế sau serif nghiêng thụt vào — đọc liền một câu. */
+.cs-stanza {
+  display: flex;
+  flex-direction: column;
+}
+
+.cs-stanza-a {
+  font-family: "KattyDiona", cursive;
+  font-size: 22px;
+  line-height: 1.2;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cs-stanza-b {
+  padding-left: 12px;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cs-hero-photo {
+  position: relative;
+  flex: 1;
+  aspect-ratio: 0.66;
+}
+
+/* Chữ LOVE STORY dọc, vắt ngang mép trái ảnh. */
+.cs-vtitle {
+  position: absolute;
+  left: -8px;
+  top: 48px;
+  writing-mode: vertical-rl;
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* ── Cô dâu chú rể ────────────────────────────────────────────────────────── */
+
+.cs-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 0 20px;
+}
+
+.cs-duo-ph {
+  aspect-ratio: 0.69;
+}
+
+.cs-duo-name {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 20px;
+  padding: 0 4px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cs-duo-item.is-right .cs-duo-name {
+  align-items: flex-end;
+  text-align: right;
+}
+
+/* ── Album ────────────────────────────────────────────────────────────────── */
+
+.cs-sig-wrap {
+  position: relative;
+  padding: 48px 20px 0 0;
+}
+
+/* Tên cô dâu + chú rể viết tay, đè lên mép trái cột ảnh. */
+.cs-sig {
+  position: absolute;
+  left: 16px;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  font-family: "KattyDiona", cursive;
+  font-size: 48px;
+  line-height: 1.1;
+  color: rgb(var(--cx-accent-rgb));
+  transform: rotate(-8deg);
+  transform-origin: left top;
+  pointer-events: none;
+}
+
+.cs-sig-plus {
+  margin-left: 64px;
+  font-size: 32px;
+}
+
+.cs-sig-2 {
+  margin-left: 24px;
+}
+
+.cs-gal-side {
+  width: 68%;
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cs-ph-side {
+  aspect-ratio: 1.38;
+  cursor: pointer;
+}
+
+.cs-gal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px;
+}
+
+.cs-ph-wide {
+  aspect-ratio: 3 / 2;
+  cursor: pointer;
+}
+
+/* Ảnh album ngoài 3 tấm đầu: lưới hai cột ảnh dọc. */
+.cs-gal-more {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.cs-ph-more {
+  aspect-ratio: 3 / 4;
+  cursor: pointer;
+}
+
+/* "No one but you" nằm giữa ảnh đầu của dải tràn ngang. */
+.cs-overlay-top {
+  top: 0;
+  left: 12px;
+  right: 12px;
+  aspect-ratio: 3 / 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Lịch ─────────────────────────────────────────────────────────────────── */
+
+.cs-cal {
+  width: calc(100% - 64px);
+  padding: 28px 20px 20px;
+  background: rgb(var(--cx-panel-rgb));
+  box-shadow: 0 4px 20px rgb(var(--cx-shadow-rgb) / 0.08);
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cs-cal-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 12px 16px;
+}
+
+.cs-cal-mm {
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.cs-cal-dd {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.cs-cal-yy {
+  font-size: 22px;
+}
+
+.cs-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 4px;
+  font-size: 13px;
+}
+
+.cs-cal-wd {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgb(var(--cx-accent-rgb) / 0.7);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.cs-cal-d {
+  position: relative;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cs-cal-d.is-on {
+  font-weight: 600;
+}
+
+.cs-cal-d.is-on svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32px !important;
+  height: 32px !important;
+  transform: translate(-50%, -46%);
+  stroke-width: 1.5;
+}
+
+.cs-date-line {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.8;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cs-date-sub {
+  font-size: 13px;
+  line-height: 1.8;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* ── Hai ảnh lệch + "For you a thousand times over" ───────────────────────── */
+
+.cs-offset {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40% 1fr;
+  align-items: start;
+  gap: 8px;
+  padding: 0 20px 64px;
+}
+
+.cs-off-a {
+  aspect-ratio: 0.7;
+}
+
+.cs-off-b {
+  aspect-ratio: 0.62;
+}
+
+.cs-off-text {
+  position: absolute;
+  left: 28px;
+  bottom: 0;
+  font-size: 44px;
+  line-height: 1.1;
+  transform: rotate(-6deg);
+  transform-origin: left bottom;
+  pointer-events: none;
+}
+
+.cs-off-text span {
+  margin-left: 16px;
+}
+
+/* ── Địa điểm ─────────────────────────────────────────────────────────────── */
+
+.cs-venue {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cs-map {
+  padding: 12px;
+  background: rgb(var(--cx-panel-rgb));
+  box-shadow: 0 4px 20px rgb(var(--cx-shadow-rgb) / 0.08);
+}
+
+.cs-map-nav {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  box-shadow: 0 4px 12px rgb(var(--cx-shadow-rgb) / 0.24);
+}
+
+/* Thẻ chưa có bản đồ (helper khoá pointer-events-none) thì giấu nút chỉ đường. */
+#section-map a.pointer-events-none [data-cs-dir] {
+  display: none;
+}
+
+/* ── Nút ──────────────────────────────────────────────────────────────────── */
+
+.cs-calls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  width: 100%;
+  padding: 0 32px;
+}
+
+.cs-call,
+.cs-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgb(var(--cx-heading-rgb));
+  border-radius: 999px;
+  background: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  font-family: "Noto Serif", serif;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.cs-call-off {
+  display: none;
+}
+
+.cs-btn.is-ghost {
+  background: transparent;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cs-btn.is-sm {
+  width: auto;
+  padding: 4px 16px;
+  font-size: 12px;
+}
+
+.cs-qr {
+  box-shadow: 0 4px 16px rgb(var(--cx-shadow-rgb) / 0.08);
+}
+
+/* ── Cuối thiệp ───────────────────────────────────────────────────────────── */
+
+.cs-oval {
+  position: relative;
+  width: calc(100% - 40px);
+  aspect-ratio: 1.72;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.cs-oval .cs-overlay {
+  top: 50%;
+  transform: translateY(-50%) rotate(-6deg);
+}
+
+.cs-thanks {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: 600;
+  font-style: italic;
+  font-size: 28px;
+  letter-spacing: 4px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Hai dòng tiếng Anh ở màn đầu phải vừa một hàng như mẫu gốc. */
+#section-hero .cs-en {
+  font-size: 13px;
+}

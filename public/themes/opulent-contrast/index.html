@@ -48,9 +48,13 @@
            (ảnh tối viền + chú thích viết tay) · dòng chữ ký đỏ · Groom / tên / Bride ·
            lời mời khách + nút mở thiệp. -->
       <div class="oc-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] md:h-[932px] overflow-hidden md:rounded-[40px] flex flex-col px-6 pb-8">
+        <img id="oc-cover-bg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="oc-cover-bg" alt="" loading="lazy" />
         <div class="flex items-start justify-between mt-4">
           <div class="oc-cv-mono">
-            <span id="oc-mono-groom">-</span><i data-lucide="heart" class="oc-cv-mono-heart" style="width:24px;height:24px"></i><span id="oc-mono-bride">-</span>
+            <span id="oc-mono-groom" class="oc-mono-a">-</span>
+            <span class="oc-mono-line"></span>
+            <i data-lucide="heart" class="oc-cv-mono-heart" style="width:12px;height:12px"></i>
+            <span id="oc-mono-bride" class="oc-mono-b">-</span>
           </div>
           <div class="oc-cv-welcome">Welcome to<br />our wedding</div>
         </div>
@@ -60,7 +64,7 @@
             <div class="oc-polaroid-photo">
               <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
             </div>
-            <div class="oc-polaroid-cap"><span class="oc-cap-br">[</span><span class="oc-cap-names"><span id="cover-groom-name">----------</span> &amp; <span id="cover-bride-name">----------</span></span><span class="oc-cap-br">]</span></div>
+            <div class="oc-polaroid-cap"><span class="oc-cap-names"><span id="cover-groom-name">----------</span> &amp; <span id="cover-bride-name">----------</span></span></div>
           </div>
         </div>
 

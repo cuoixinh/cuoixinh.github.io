@@ -360,22 +360,70 @@ body {
   }
 }
 
-/* Chữ lồng tên viết tắt (thay chỗ chữ Hỷ của ảnh mẫu). */
+/* Ảnh nền mờ phủ kín bìa, nằm dưới mọi nội dung (z-index âm trong ngữ cảnh của bìa). */
+.oc-cover {
+  isolation: isolate;
+}
+
+.oc-cover-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* Chữ lồng: hai chữ cái đầu xếp chéo (trai trên-trái, gái dưới-phải), một vạch mảnh
+   chéo chia đôi, trái tim nhỏ đặt giữa vạch; nền tim trùng nền bìa để cắt ngang vạch. */
 .oc-cv-mono {
-  display: flex;
-  align-items: baseline;
+  position: relative;
+  width: 80px;
+  height: 80px;
   font-family: "Cormorant Garamond", serif;
-  font-size: 40px;
-  font-weight: 600;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 44px;
   line-height: 1;
+}
+
+.oc-mono-a {
+  position: absolute;
+  left: 4px;
+  top: 0;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.oc-mono-b {
+  position: absolute;
+  right: 4px;
+  bottom: 0;
   color: rgb(var(--cx-accent-rgb));
 }
 
+.oc-mono-line {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: rgb(var(--cx-accent-rgb) / 0.5);
+  transform: rotate(36deg);
+}
+
 .oc-cv-mono-heart {
-  align-self: center;
-  margin: 0 4px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  box-sizing: content-box;
+  padding: 4px;
+  border-radius: 50%;
+  background: rgb(var(--cx-cover-rgb));
   color: rgb(var(--cx-accent-rgb));
   fill: currentColor;
+  transform: translate(-50%, -50%);
 }
 
 .oc-cv-welcome {
@@ -444,12 +492,6 @@ body {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.oc-cap-br {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-weight: 600;
-  font-size: 20px;
 }
 
 .oc-cv-love {
