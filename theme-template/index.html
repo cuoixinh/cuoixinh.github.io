@@ -310,7 +310,7 @@
               >
                 <i data-lucide="sliders-horizontal" class="hero-menu-ico-open" style="width:20px;height:20px"></i>
                 <i data-lucide="x" class="hero-menu-ico-close" style="width:20px;height:20px"></i>
-                <span id="tt-filter-dot" class="tt-filter-dot hidden"></span>
+                <span class="tt-filter-dot hidden"></span>
               </x-button>
             </div>
           </div>
@@ -330,7 +330,7 @@
       ></x-popover>
 
       <!-- ─── ĐẦU TRANG ─── Tiêu đề + số mẫu (applyFilter cập nhật); từ md ô tìm
-           đứng bên phải tiêu đề. Dải chip dùng chung mọi khổ màn. -->
+           + nút lọc đứng bên phải tiêu đề, dải chip chỉ còn ở mobile. -->
       <header class="tg-head max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="md:flex md:items-end md:justify-between md:gap-8">
           <div class="min-w-0">
@@ -340,19 +340,38 @@
             </div>
             
           </div>
-          <label class="tt-search hidden md:flex shrink-0 w-[320px] lg:w-[360px]">
-            <i data-lucide="search" style="width:18px;height:18px;color:var(--primary)"></i>
-            <input
-              data-tt-search
-              type="search"
-              autocomplete="off"
-              placeholder="Tìm mẫu thiệp bạn thích"
-              aria-label="Tìm mẫu thiệp"
-            />
-          </label>
+          <!-- Từ md: ô tìm + nút lọc (bản sao của nút mobile, mở CHUNG #tt-filter-pop)
+               thay cho dải chip. -->
+          <div class="hidden md:flex shrink-0 items-center gap-2.5">
+            <label class="tt-search flex w-[320px] lg:w-[360px]">
+              <i data-lucide="search" style="width:18px;height:18px;color:var(--primary)"></i>
+              <input
+                data-tt-search
+                type="search"
+                autocomplete="off"
+                placeholder="Tìm mẫu thiệp bạn thích"
+                aria-label="Tìm mẫu thiệp"
+              />
+            </label>
+            <div class="relative shrink-0">
+              <x-button
+                variant="bare"
+                icon-only
+                id="tt-filter-btn-md"
+                class="hero-menu-btn"
+                aria-label="Lọc theo danh mục"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                <i data-lucide="sliders-horizontal" class="hero-menu-ico-open" style="width:20px;height:20px"></i>
+                <i data-lucide="x" class="hero-menu-ico-close" style="width:20px;height:20px"></i>
+                <span class="tt-filter-dot hidden"></span>
+              </x-button>
+            </div>
+          </div>
         </div>
         <div
-          class="tg-cats"
+          class="tg-cats md:hidden"
           data-tg-cats
           role="group"
           aria-label="Danh mục mẫu"
@@ -707,7 +726,7 @@
       const CAT_META = {
         all: { label: "Tất cả", icon: "layout-grid" },
         traditional: { label: "Truyền thống", icon: "scroll-text" },
-        modern: { label: "Hiện đại", icon: "sparkles" },
+        modern: { label: "Hiện đại", icon: "shapes" },
         vintage: { label: "Vintage", icon: "camera" },
         cinematic: { label: "Điện ảnh", icon: "clapperboard" },
         historical: { label: "Cổ trang", icon: "landmark" },
@@ -816,8 +835,8 @@
         activeCat = cat;
         renderFilterMenu();
         document
-          .getElementById("tt-filter-dot")
-          .classList.toggle("hidden", cat === "all");
+          .querySelectorAll(".tt-filter-dot")
+          .forEach((d) => d.classList.toggle("hidden", cat === "all"));
         applyFilter();
       }
 
@@ -976,6 +995,14 @@
         });
         pop.addEventListener("close", () => scrim.classList.remove("is-on"));
       })();
+
+      /* Nút lọc desktop: popover chỉ tự gắn được MỘT anchor (nút mobile), nút này
+         mở nó bằng toggle(anchor) — popover neo theo nút vừa bấm. x-button có thể
+         dựng trễ nên uỷ quyền ở document thay vì giữ tham chiếu. */
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("#tt-filter-btn-md");
+        if (btn) document.getElementById("tt-filter-pop").toggle(btn);
+      });
 
       /* ── Bóng thanh tìm kiếm (mobile) khi đã cuộn ── */
       (function () {

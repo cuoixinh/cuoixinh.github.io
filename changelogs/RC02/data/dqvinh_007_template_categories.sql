@@ -17,12 +17,12 @@ update public.templates as t
   from (values
     ('hong-duyen',       'traditional'),
     ('hen-uoc',          'traditional'),
+    ('pearl-bow',        'traditional'),
     ('basic-gold',       'modern'),
     ('romantic-gold',    'modern'),
     ('romantic-blush',   'modern'),
     ('luminous-pastel',  'modern'),
     ('ribbon-love',      'modern'),
-    ('pearl-bow',        'modern'),
     ('crimson-script',   'modern'),
     ('vintage-forest',   'vintage'),
     ('serene-parchment', 'vintage'),
