@@ -34,49 +34,49 @@ window.CX_THEME = {
     // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
     // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
     palette: {
-      heading: "#6b6562",
-      body: "#78716c",
-      accent: "#d4a5a5",
-      accent_soft: "#e8b4b8",
+      heading: "#2f3e4c",
+      body: "#5d6670",
+      accent: "#5b7d96",
+      accent_soft: "#a9c0d0",
       on_accent: "#ffffff",
       on_image: "#ffffff",
       on_lightbox: "#ffffff",
       card_bg: "#ffffff",
       page_bg: "#ffffff",
-      surface: "#fffbf7",
-      band: "#fef0f2",
+      surface: "#fbf9f5",
+      band: "#eef3f6",
       panel: "#ffffff",
       panel_warm: "#ffffff",
-      cover: "#fffbf7",
-      cover_mid: "#f5ebe0",
-      cover_veil: "#ffe8e0",
+      cover: "#fbf9f5",
+      cover_mid: "#ede6da",
+      cover_veil: "#eef2f4",
       lightbox_bg: "#000000",
-      line: "#f5d5d8",
+      line: "#dfe7ed",
       shadow: "#000000",
       scrim: "#000000",
-      deco: "#d4a5a5",
-      deco_soft: "#f5d5d8",
-      deco_2: "#d4a5a5",
-      deco_2_soft: "#f5d5d8",
-      shine_from: "#d4a5a5",
-      shine_mid: "#e8b4b8",
-      shine_to: "#f5d5d8",
+      deco: "#c8b28a",
+      deco_soft: "#ece2cf",
+      deco_2: "#a9c0d0",
+      deco_2_soft: "#dfe7ed",
+      shine_from: "#c8b28a",
+      shine_mid: "#d6c6a8",
+      shine_to: "#ece2cf",
     },
 
   // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
   // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
   swatches: [
-    "#6b6562", // stone-custom-500
-    "#78716c", // stone-custom-400
-    "#44403c", // stone-custom-600
-    "#2d2d2d",
-    "#d4a5a5", // rose-pastel-300
-    "#e8b4b8", // rose-pastel-200
-    "#f5d5d8", // rose-pastel-100
-    "#fef0f2", // rose-pastel-50
-    "#fffbf7", // cream-50
-    "#fff5f0", // cream-100
-    "#ffe8e0", // cream-200
+    "#2f3e4c", // xanh than
+    "#5d6670",
+    "#5b7d96", // xanh biển dịu
+    "#a9c0d0",
+    "#dfe7ed",
+    "#eef3f6",
+    "#c8b28a", // vàng champagne
+    "#d6c6a8",
+    "#ece2cf",
+    "#ede6da", // be cát
+    "#fbf9f5", // trắng ngà
     "#ffffff",
   ],
 

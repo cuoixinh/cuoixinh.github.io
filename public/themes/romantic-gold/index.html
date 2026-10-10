@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cormorant+Infant:ital,wght@1,500&family=Inter:wght@300;400;500&display=swap"
       rel="stylesheet"
     />
     <!-- Chữ trang trí (KattyDiona, MoonLight) là font TỰ HOST ở assets/fonts/,
@@ -117,7 +117,7 @@
                  ảnh đổi cỡ nào nó vẫn đúng giữa. Hai translate âm 50% là để lấy
                  tâm CỦA CHÍNH CHỮ, không phải mốc góc trên trái. -->
             <div
-              class="rg-on rg-script absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[calc(-50%_+_30px)] whitespace-nowrap text-[56px] leading-none"
+              class="rg-love rg-on rg-script absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[calc(-50%_+_30px)] whitespace-nowrap text-[56px] leading-none"
             >
               Our Love Story
             </div>
@@ -159,19 +159,22 @@
             </div>
 
             <!-- Lời chào riêng: chỉ hiện khi link có ?name= (thiệp gửi cho một
-                 khách cụ thể), index.js gỡ .hidden. Id #cover-guest-name là chỗ
-                 setupPersonalizedGreeting() đổ tên vào — giữ nguyên tên id. -->
+                 khách cụ thể), index.js gỡ .hidden và gắn .rg-has-guest — khối
+                 này lên giữa poster thay chỗ "Our Love Story". Id #cover-guest-name
+                 là chỗ setupPersonalizedGreeting() đổ tên vào — giữ nguyên tên id. -->
             <div
               id="cover-guest-wrap"
               class="hidden flex flex-col items-center gap-1 pt-4"
             >
+              <!-- data-cx-invite: setupPersonalizedGreeting() nối xưng hô vào sau. -->
               <div
                 class="rg-on cx-t text-[10px] tracking-[3px] uppercase opacity-80"
+                data-cx-invite
               >
                 Trân trọng kính mời
               </div>
               <div
-                class="rg-gold rg-script text-[34px] leading-none"
+                class="rg-gold rg-guest"
                 id="cover-guest-name"
               >
                 ----------

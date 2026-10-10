@@ -78,6 +78,15 @@ body {
 /* Serif tương phản cao (Didone): "Welcome to our wedding", chữ lồng tên viết
    tắt, các con số lớn (ngày cưới, đếm ngược). */
 
+/* Tên khách mời: KHÁC font viết tay của tên cô dâu chú rể (KattyDiona). */
+.rg-guest {
+  font-family: "Cormorant Infant", serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
 .rg-display {
   font-family: "MoonLight", serif;
 }
@@ -347,6 +356,24 @@ body {
    hiện ra, đụng vào transform là nó văng khỏi chỗ. */
 
 .rg-hero-in > .rg-script {
+  animation: cx-rg-fade 1.6s ease-out 0.9s both;
+}
+
+/* Thiệp gửi riêng một khách (.rg-has-guest do index.js gắn): lời mời + tên khách
+   đứng đúng chỗ "Our Love Story" (tâm poster, xuống 30px) và dòng đó ẩn đi.
+   Canh dọc bằng transform nên cũng chỉ mờ dần như dòng chữ nó thay. */
+
+.rg-has-guest > .rg-love {
+  display: none;
+}
+
+.rg-has-guest > #cover-guest-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  padding: 0 32px;
+  transform: translateY(calc(-50% + 30px));
   animation: cx-rg-fade 1.6s ease-out 0.9s both;
 }
 

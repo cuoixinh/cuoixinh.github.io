@@ -155,6 +155,19 @@ function setupPersonalizedGreeting(
     document.querySelector("#cover-screen #cover-guest-wrap")?.classList.remove("hidden");
   };
 
+  // Bản xem thử giả lập màn khách mời bằng ?guest=<tên>&rel=<xưng hô> (chữ thường,
+  // không mã hoá) — chỉ đổ chữ, không đặt CX_GUEST nên không ghi gì lên DB.
+  const demoGuest = isPreviewMode() && urlParams.get("guest");
+  if (demoGuest) {
+    if (coverGuestName) coverGuestName.textContent = demoGuest;
+    const rel = urlParams.get("rel") || "";
+    document.querySelectorAll("[data-cx-invite]").forEach((el) => {
+      el.dataset.cxInvite ||= el.textContent.trim();
+      el.textContent = `${el.dataset.cxInvite} ${rel}`.trim();
+    });
+    return;
+  }
+
   if (isPreviewMode() || !encryptedName || !encryptedRelationship) {
     generic();
     return;

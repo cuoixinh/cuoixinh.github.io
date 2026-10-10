@@ -6,22 +6,49 @@
    xác nhận tham dự…) vẽ theo; mặc định khai ở styles/_common.css. */
 
 :root {
-  --cx-accent-rgb: 212 165 165; /* rose-pastel-300 */
+  /* Tông theo bộ ảnh mẫu: xanh biển dịu làm màu nhấn, xanh than cho chữ, nền
+     trắng ngà + be cát, hoạ tiết vàng champagne. */
+  --cx-accent-rgb: 91 125 150; /* xanh biển dịu */
   --cx-on-accent-rgb: 255 255 255;
-  --cx-heading-rgb: 107 101 98; /* stone-custom-500 */
-  --cx-body-rgb: 120 113 108; /* stone-custom-400 */
-  --cx-line-rgb: 245 213 216; /* rose-pastel-100 */
-  --cx-accent-soft-rgb: 232 180 184; /* rose-pastel-200 — nấc nhấn nhạt */
-  --cx-surface-rgb: 255 251 247; /* cream-50 */
-  --cx-page-bg-rgb: 255 255 255; /* nền trang: trắng, không ngả kem như surface */
+  --cx-heading-rgb: 47 62 76; /* xanh than — như bộ vest */
+  --cx-body-rgb: 93 102 112;
+  --cx-line-rgb: 223 231 237;
+  --cx-accent-soft-rgb: 169 192 208; /* nấc nhấn nhạt */
+  --cx-surface-rgb: 251 249 245; /* trắng ngà — như váy cưới */
+  --cx-page-bg-rgb: 255 255 255; /* nền trang: trắng, không ngả ngà như surface */
   --cx-card-bg-rgb: 255 255 255; /* nền thân thiệp */
   --cx-panel-rgb: 255 255 255; /* thẻ con, nút nền giấy */
-  --cx-band-rgb: 254 240 242; /* rose-pastel-50 — nền chờ của bản đồ */
-  --cx-cover-rgb: 255 251 247; /* cream-50 */
-  --cx-cover-mid-rgb: 245 235 224; /* be ấm — điểm giữa dải nền màn bìa */
-  --cx-cover-veil-rgb: 255 232 224; /* điểm giữa lớp phủ trên ẢNH bìa */
+  --cx-band-rgb: 238 243 246; /* nền chờ của bản đồ */
+  --cx-cover-rgb: 251 249 245;
+  --cx-cover-mid-rgb: 237 230 218; /* be cát — điểm giữa dải nền màn bìa */
+  --cx-cover-veil-rgb: 238 242 244; /* điểm giữa lớp phủ trên ẢNH bìa */
   --cx-on-image-rgb: 255 255 255; /* chữ nằm trên ảnh bìa */
   --cx-scrim-rgb: 0 0 0; /* bóng chữ trên ảnh */
+  --cx-deco-rgb: 200 178 138; /* vàng champagne — hoạ tiết, quầng sáng */
+  --cx-deco-soft-rgb: 236 226 207;
+  --cx-deco-2-rgb: 169 192 208; /* hoạ tiết phụ: xanh nhạt */
+  --cx-deco-2-soft-rgb: 223 231 237;
+  --cx-shine-from-rgb: 200 178 138;
+  --cx-shine-mid-rgb: 214 198 168;
+  --cx-shine-to-rgb: 236 226 207;
+  /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
+     thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js) để thiệp
+     không chọn bộ màu vẫn khớp với thiệp có chọn. */
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-rgb);
+  --music-bubble-to-rgb: var(--cx-heading-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-rgb);
+  --music-art-to-rgb: var(--cx-heading-rgb);
 }
 
 /* Nền trang và nền thân thiệp đi qua token như mọi mẫu khác. */

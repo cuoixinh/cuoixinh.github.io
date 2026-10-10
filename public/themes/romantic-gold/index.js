@@ -14,7 +14,7 @@
     id: "romantic-gold",
 
     // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
-    wishesMode: "paged",
+    wishesMode: "chat",
 
     // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
     // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
@@ -88,12 +88,16 @@
 
   const _isGroom = isGroomSide();
 
-  // Lời chào trên poster chỉ hiện khi link gửi riêng cho một khách (?name=);
-  // tên do setupPersonalizedGreeting() đổ vào #cover-guest-name.
+  // Lời chào trên poster chỉ hiện khi link gửi riêng cho một khách (?name=):
+  // cờ .rg-has-guest đưa nó vào giữa poster thay "Our Love Story" (theme.css).
+  // Tên do setupPersonalizedGreeting() đổ vào #cover-guest-name.
   // Chạy ngay: chỉ phụ thuộc URL, không đợi dữ liệu thiệp về.
   try {
-    if (new URLSearchParams(window.location.search).get("name")) {
+    const q = new URLSearchParams(window.location.search);
+    // ?guest= là màn khách mời giả lập của bản xem thử (setupPersonalizedGreeting).
+    if (q.get("name") || (q.get("preview") === "true" && q.get("guest"))) {
       document.getElementById("cover-guest-wrap")?.classList.remove("hidden");
+      document.querySelector(".rg-hero-in")?.classList.add("rg-has-guest");
     }
   } catch (e) {}
 
