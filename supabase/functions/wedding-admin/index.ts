@@ -447,7 +447,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         ? ['- template_name: LUÔN LUÔN là chính display_name viết thường toàn bộ, bỏ dấu tiếng Việt, các từ nối với nhau bằng dấu GẠCH NGANG "-" (không phải gạch dưới "_"). Ví dụ display_name "Midnight Sage" → template_name "midnight-sage"; "Vintage Forest" → "vintage-forest". Chỉ gồm chữ thường a–z, số và gạch ngang; không khoảng trắng, không viết hoa, không bắt đầu bằng số hay gạch ngang.']
         : []),
       '- description: MỘT câu tiếng Việt 10–25 từ, tả tông màu + cảm xúc, không liệt kê tính năng (gallery, RSVP, QR…), không kết câu bằng dấu chấm than.',
-      '- category: chọn đúng MỘT trong: traditional, modern, luxury, minimal, vintage.',
+      '- category: chọn đúng MỘT trong: traditional (truyền thống), modern (hiện đại), vintage, cinematic (điện ảnh), historical (cổ trang).',
       '',
       // display_name đứng TRƯỚC template_name: model sinh JSON theo đúng thứ tự
       // khoá được nêu, mà template_name là bản kebab-case của display_name —
@@ -482,7 +482,8 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       })
     }
 
-    const VALID_CATEGORIES = ['traditional', 'modern', 'luxury', 'minimal', 'vintage']
+    // Bộ danh mục DUY NHẤT — trùng <select> ở admin và CAT_META ở theme-template.
+    const VALID_CATEGORIES = ['traditional', 'modern', 'vintage', 'cinematic', 'historical']
     const category = clamp(parsed.category, 20).toLowerCase()
     const displayName = clamp(parsed.display_name, 60)
 

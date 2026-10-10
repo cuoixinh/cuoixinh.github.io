@@ -706,12 +706,11 @@
          nhãn thô + icon mặc định. */
       const CAT_META = {
         all: { label: "Tất cả", icon: "layout-grid" },
-        traditional: { label: "Cổ điển", icon: "scroll-text" },
+        traditional: { label: "Truyền thống", icon: "scroll-text" },
         modern: { label: "Hiện đại", icon: "sparkles" },
-        vintage: { label: "Vintage", icon: "film" },
-        romantic: { label: "Lãng mạn", icon: "rose" },
-        minimal: { label: "Tối giản", icon: "circle" },
-        luxury: { label: "Cao cấp", icon: "gem" },
+        vintage: { label: "Vintage", icon: "camera" },
+        cinematic: { label: "Điện ảnh", icon: "clapperboard" },
+        historical: { label: "Cổ trang", icon: "landmark" },
         _default: { label: "Khác", icon: "tag" },
       };
       const catMeta = (key) => CAT_META[key] || CAT_META._default;
@@ -760,11 +759,13 @@
          Popover lo phần vỏ: neo theo nút, mũi tên, đóng khi bấm ra ngoài / Esc /
          chọn một mục. Ở đây chỉ nạp danh sách và cập nhật trạng thái nút. */
       function renderFilterMenu() {
+        // Thứ tự cố định theo CAT_META; danh mục chưa có mẫu nào thì không hiện chip.
+        const present = new Set(allTemplates.map((t) => t.category).filter(Boolean));
+        const known = Object.keys(CAT_META).filter((k) => k !== "all" && k !== "_default");
         const cats = [
           "all",
-          ...Array.from(
-            new Set(allTemplates.map((t) => t.category).filter(Boolean)),
-          ),
+          ...known.filter((k) => present.has(k)),
+          ...Array.from(present).filter((k) => !known.includes(k)),
         ];
         renderCatChips(cats);
         const pop = document.getElementById("tt-filter-pop");

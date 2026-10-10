@@ -295,7 +295,6 @@ async function suggestTemplateMeta() {
     // template_name chỉ nhận khi ô đang trống: nó là tên thư mục
     // public/themes/<tên>/ có thật, admin gõ rồi thì không được đổi.
     if (!themeName && data.template_name) {
-      editingTemplateKey = data.template_id;
       setTemplateField("template-name", data.template_name);
       setTemplateField(
         "template-preview-url",
@@ -332,6 +331,10 @@ async function loadTemplateData(templateId) {
     if (!res.ok) throw new Error("Lỗi tải template");
 
     const data = await res.json();
+
+    // Khoá WHERE của changelog "Sửa" — thiếu là ra `where template_id = null`, câu
+    // update chạy xong mà không trúng hàng nào.
+    editingTemplateKey = data.template_id || data.template_name || null;
 
     setTemplateField("template-name", data.template_name);
     setTemplateField("template-display-name", data.display_name);
