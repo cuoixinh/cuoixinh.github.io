@@ -1349,7 +1349,7 @@ function closeTimePicker() {
     window.location.replace(window.location.pathname + "?" + q);
   }
 
-  // "Dùng mẫu này" (primary) đứng cạnh câu hỏi "Bạn có thích mẫu này không?"
+  // "Dùng ngay" (primary) đứng cạnh câu hỏi "Bạn có thích mẫu này không?"
   // ở đầu bảng — nút đặc DUY NHẤT của lớp phủ; hai lối phụ nằm chung thanh kính
   // chia đôi ở đáy (.cx-sug-sec).
   // `go` = đường dẫn nội bộ; nút `primary` tạo nháp bằng mẫu ĐANG XEM.
@@ -1357,7 +1357,7 @@ function closeTimePicker() {
     { id: "sug-home", label: "Trang chủ", icon: "home", go: "/" },
     {
       id: "sug-use",
-      label: "Dùng mẫu này",
+      label: "Dùng ngay",
       icon: "play",
       aria: "Tạo thiệp với mẫu này",
       primary: true,
@@ -1433,7 +1433,7 @@ function closeTimePicker() {
       '<x-button variant="bare" class="cx-sug-tile' +
       (it.primary ? " is-primary" : "") + '" id="' + it.id + '"' +
       (it.aria ? ' aria-label="' + it.aria + '"' : "") + ">" +
-      '<span class="cx-sug-ico">' + _sugIcon(it.icon, it.primary ? 18 : 16) + "</span>" +
+      '<span class="cx-sug-ico">' + _sugIcon(it.icon, 16) + "</span>" +
       '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
       "</x-button>"
     );
@@ -1476,12 +1476,18 @@ function closeTimePicker() {
     _sugIcon("hide", 14) + "Ẩn</x-button>" +
     "</div>" +
     '<div class="cx-sug-ask-card">' +
+    // Ảnh chụp mẫu đang xem — src gán lúc nạp trước (_loadThemes), gán sẵn ở
+    // đây là ảnh tranh băng thông với màn đầu của thiệp.
+    '<img class="cx-sug-ask-thumb" id="sug-cur-thumb" alt=""' +
+    ' src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />' +
     '<div class="cx-sug-ask-txt">' +
-    '<p class="cx-sug-ask-eyebrow">Bạn đang xem mẫu</p>' +
-    '<p class="cx-sug-ask-name" id="sug-cur-name">' + _esc(themeDisplay) + "</p>" +
+    '<p class="cx-sug-ask-head">Bạn đang xem mẫu ' +
+    '<b class="cx-sug-ask-name" id="sug-cur-name">' + _esc(themeDisplay) + "</b></p>" +
+    '<div class="cx-sug-ask-row">' +
     '<p class="cx-sug-ask-q">Bạn có thích mẫu này không?</p>' +
-    "</div>" +
     SUG_ACTS.filter(function (it) { return it.primary; }).map(_sugTile).join("") +
+    "</div>" +
+    "</div>" +
     "</div>" +
     '<x-button variant="bare" id="sug-guest" class="cx-sug-guest">' +
     _sugIcon("guest", 14) +
@@ -1512,6 +1518,13 @@ function closeTimePicker() {
     loaded = true;
     const row = document.getElementById("sug-row");
     if (row && !row.querySelector(".is-skel")) row.innerHTML = _skelCards();
+    const thumb = document.getElementById("sug-cur-thumb");
+    if (thumb && !thumb.dataset.set) {
+      thumb.dataset.set = "1";
+      // Mẫu chưa có ảnh chụp (base-theme…) thì bỏ hẳn ô ảnh.
+      thumb.addEventListener("error", function () { thumb.hidden = true; }, { once: true });
+      thumb.src = "/assets/images/templates/" + themeName + ".jpg";
+    }
     if (!window.templatesDAL) return _loadFailed();
 
     window.templatesDAL
@@ -1562,7 +1575,7 @@ function closeTimePicker() {
   // Hai việc làm được với MỘT mẫu trong dãy, bày ngay trên thẻ: xem thử mẫu đó
   // (giống bấm cả thẻ) và tạo nháp bằng mẫu đó luôn — khách ưng ngay tấm ảnh
   // thì khỏi phải mở mẫu ra. Cả hai đều là nút PHỤ (không tô đặc): nút chính
-  // của màn là "Dùng mẫu này" ở đầu bảng.
+  // của màn là "Dùng ngay" ở đầu bảng.
   const SUG_CARD_ACTS = [
     { act: "view", label: "Xem trước", icon: "eye" },
     { act: "use", label: "Dùng ngay", icon: "play", use: true },
@@ -1779,12 +1792,13 @@ function closeTimePicker() {
   }
 
   let watched = null;
-  let watcher = null;
   let prefetcher = null;
+
+  let _unwatch = function () {};
 
   function _watch(el) {
     if (!el || el === watched || !("IntersectionObserver" in window)) return;
-    if (watcher) watcher.disconnect();
+    _unwatch();
     if (prefetcher) prefetcher.disconnect();
     watched = el;
     // Nạp trước khi mốc còn cách đáy màn một màn hình.
@@ -1794,14 +1808,37 @@ function closeTimePicker() {
       _loadThemes();
     }, { rootMargin: "0px 0px 100% 0px" });
     prefetcher.observe(el);
-    watcher = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (!en.isIntersecting) return;
-        watcher.disconnect();
-        _open();
-      });
-    });
-    watcher.observe(el);
+    // Chỉ bung khi MÉP TRÊN của mốc đã lên tới giữa màn, không phải lúc vừa ló ở
+    // mép dưới. Tự đo bằng getBoundingClientRect: rootMargin của IntersectionObserver
+    // bị bỏ qua khi thiệp nằm trong iframe (khung máy xem thử). Mốc sát cuối trang
+    // có thể không bao giờ lên tới giữa → chạm đáy trang lúc mốc đang hiện cũng tính.
+    let raf = 0;
+    function _check() {
+      raf = 0;
+      if (_hidden(el)) return;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      // Mép trên đã qua giữa màn (kể cả vuốt nhanh lướt qua hẳn mốc) thì bung.
+      if (r.top <= vh / 2) return _hit();
+      const se = document.scrollingElement || document.documentElement;
+      if (r.top < vh && se.scrollTop + vh >= se.scrollHeight - 4) _hit();
+    }
+    function _onScroll() {
+      if (!raf) raf = requestAnimationFrame(_check);
+    }
+    // capture: bắt cả cuộn của khung con, mẫu nào cuộn trong một thẻ riêng vẫn đo được.
+    document.addEventListener("scroll", _onScroll, { passive: true, capture: true });
+    window.addEventListener("resize", _onScroll);
+    _unwatch = function () {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      document.removeEventListener("scroll", _onScroll, { capture: true });
+      window.removeEventListener("resize", _onScroll);
+    };
+    function _hit() {
+      _unwatch();
+      _open();
+    }
   }
 
   function _hidden(el) {

@@ -1,73 +1,55 @@
-/* Bảng màu + CSS riêng của OPULENT CONTRAST — thiệp NỀN ĐEN, chữ ngà, đường
-   vàng đồng mảnh. Nét nhận dạng: MÀN BÌA là tấm poster trong khung vàng KÉP có
-   hai vệt chéo cắt góc (.oc-frame), chữ hoa Didone khổ lớn cắt ngang mép ảnh
-   (.oc-cut); thân thiệp mở ra bằng một màn ảnh cưới trọn vẹn (.oc-hero).
-   CSS THUẦN, nạp bằng <link> sau styles/themes.css.
-
-   Ba phần: 1) --cx-* bộ biến phần DÙNG CHUNG vẽ theo · 2) .cx-h/.cx-t/.cx-a ba
-   lớp ngữ nghĩa của markup · 3) .oc-* trang trí riêng của mẫu. */
+/* OPULENT CONTRAST — thiệp trắng kiểu tạp chí ảnh phim: ảnh lớn chừa lề mảnh, chữ
+   viết tay đỏ rượu vang đè lên ảnh, điểm nhấn đỏ, tiêu đề serif giãn chữ.
+   CSS THUẦN, nạp sau styles/themes.css. Màu đi qua --cx-*; chữ viết tay = deco,
+   ngày tháng xanh xám = deco-2, đỏ = accent. */
 
 :root {
-  /* — Chữ — */
-  --cx-heading-rgb: 245 241 232; /* ngà: tên, tiêu đề */
-  --cx-body-rgb: 168 160 146; /* xám ấm: chữ đọc */
-  --cx-accent-rgb: 198 161 91; /* nhấn: vàng đồng */
-  --cx-accent-soft-rgb: 138 116 67; /* nấc nhấn trầm hơn */
-  --cx-on-accent-rgb: 15 13 11; /* chữ nằm TRÊN nền vàng → phải là đen */
+  --cx-heading-rgb: 31 31 31;
+  --cx-body-rgb: 74 74 74;
+  --cx-accent-rgb: 184 35 47;
+  --cx-accent-soft-rgb: 226 164 169;
+  --cx-on-accent-rgb: 255 255 255;
   --cx-on-image-rgb: 255 255 255;
-  --cx-on-lightbox-rgb: 245 241 232;
+  --cx-on-lightbox-rgb: 255 255 255;
 
-  /* — Nền — Cả bộ đều tối; chênh lệch giữa các lớp cố tình rất nhỏ để mảng đen
-     liền một khối, chỉ đường vàng mới tách khối. */
-  --cx-card-bg-rgb: 14 13 12; /* nền thân thiệp */
-  --cx-page-bg-rgb: 5 5 5; /* nền trang, ngoài thân thiệp */
-  --cx-surface-rgb: 23 21 18;
-  --cx-band-rgb: 28 25 21;
-  --cx-panel-rgb: 26 23 20;
-  --cx-panel-warm-rgb: 34 29 23;
-  --cx-cover-rgb: 8 8 7; /* nền màn bìa: hai đầu dải */
-  --cx-cover-mid-rgb: 26 23 18; /* …và điểm giữa */
-  --cx-cover-veil-rgb: 8 8 7;
+  --cx-card-bg-rgb: 255 255 255;
+  --cx-page-bg-rgb: 240 238 235;
+  --cx-surface-rgb: 248 247 245;
+  --cx-band-rgb: 250 246 244;
+  --cx-panel-rgb: 255 255 255;
+  --cx-panel-warm-rgb: 252 249 247;
+  --cx-cover-rgb: 243 239 231;
+  --cx-cover-mid-rgb: 232 226 214;
+  --cx-cover-veil-rgb: 255 255 255;
   --cx-lightbox-bg-rgb: 0 0 0;
 
-  /* — Đường & bóng — */
-  --cx-line-rgb: 92 76 46; /* vàng đã trầm xuống: mọi vạch mảnh */
+  --cx-line-rgb: 216 212 208;
   --cx-shadow-rgb: 0 0 0;
   --cx-scrim-rgb: 0 0 0;
 
-  /* — Trang trí — */
-  --cx-deco-rgb: 198 161 91;
-  --cx-deco-soft-rgb: 107 85 46;
-  --cx-deco-2-rgb: 224 201 138;
-  --cx-deco-2-soft-rgb: 125 101 52;
-  --cx-shine-from-rgb: 138 106 47; /* dải ánh kim của .oc-shine */
-  --cx-shine-mid-rgb: 240 219 166;
-  --cx-shine-to-rgb: 185 143 66;
+  --cx-deco-rgb: 142 36 51;
+  --cx-deco-soft-rgb: 233 207 211;
+  --cx-deco-2-rgb: 143 155 184;
+  --cx-deco-2-soft-rgb: 214 219 230;
+  --cx-shine-from-rgb: 184 35 47;
+  --cx-shine-mid-rgb: 142 36 51;
+  --cx-shine-to-rgb: 226 164 169;
 
-  /* Thanh nhạc + widget nhạc đi theo bảng --music-* riêng, mặc định là tông kem
-     sáng nên trên nền đen sẽ chói. Ghi đè đúng bằng công thức mà bộ màu suy ra
-     (CX_PALETTE_MUSIC ở theme-setting-helper.js) để thiệp không chọn bộ màu vẫn
-     khớp với thiệp có chọn. */
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
   --music-widget-fg-rgb: var(--cx-heading-rgb);
   --music-widget-dim-rgb: var(--cx-body-rgb);
   --music-widget-chip-rgb: var(--cx-body-rgb);
   --music-widget-accent-rgb: var(--cx-accent-rgb);
-  --music-bubble-from-rgb: var(--cx-accent-soft-rgb);
-  --music-bubble-to-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-rgb);
+  --music-bubble-to-rgb: var(--cx-heading-rgb);
   --music-shadow-rgb: var(--cx-shadow-rgb);
   --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
   --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
   --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
   --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
-  --music-art-from-rgb: var(--cx-accent-soft-rgb);
-  --music-art-to-rgb: var(--cx-accent-rgb);
-
-  /* Khoảng lùi của hai nét khung vàng so với mép MÀN BÌA (.oc-frame). Thân
-     thiệp cố ý không có khung — các mục ngăn nhau bằng nền đậm nhạt. */
-  --oc-inset: 20px;
-  --oc-inset-2: 28px;
+  --music-art-from-rgb: var(--cx-accent-rgb);
+  --music-art-to-rgb: var(--cx-heading-rgb);
 }
 
 body {
@@ -78,395 +60,706 @@ body {
   background-color: rgb(var(--cx-card-bg-rgb));
 }
 
-/* ── Ba lớp ngữ nghĩa của mẫu ──────────────────────────────────────────────
-   .cx-h và .cx-t đặt CẢ font-family → đừng gắn chúng lên thẻ <i> của Font
-   Awesome, icon sẽ mất glyph. Tô màu icon thì dùng .cx-a / .cx-hd / .cx-bd. */
+/* ── Chữ ──────────────────────────────────────────────────────────────────── */
 
 .cx-h {
-  font-family: "Playfair Display", serif;
+  font-family: "Cormorant Garamond", serif;
 }
 
 .cx-t {
-  font-family: "Montserrat", sans-serif;
-  font-weight: 300;
-  letter-spacing: 0.02em;
+  font-family: "Noto Serif", serif;
 }
 
-/* ── Khung vàng — nét nhận dạng của mẫu ──────────────────────────────────
-   Một thẻ .oc-frame phủ kín cha (cha phải `relative` + `overflow-hidden`):
-   ::before là nét ngoài, ::after là nét trong, hai <span> con là vệt chéo cắt
-   qua góc. Không bắt chuột nên đặt chồng lên nội dung cũng vô hại. */
-
-.oc-frame {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  overflow: hidden;
-  pointer-events: none;
+.oc-sans {
+  font-family: "Be Vietnam Pro", sans-serif;
 }
 
-.oc-frame::before,
-.oc-frame::after {
-  content: "";
-  position: absolute;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.75);
-}
-
-.oc-frame::before {
-  inset: var(--oc-inset);
-}
-
-.oc-frame::after {
-  inset: var(--oc-inset-2);
-  border-color: rgb(var(--cx-accent-rgb) / 0.3);
-}
-
-/* Vệt chéo: một đường dài quay 38°, neo ra ngoài mép nên hai đầu luôn bị cắt —
-   đó là dáng của tấm poster gốc. */
-
-.oc-diag {
-  position: absolute;
-  width: 1px;
-  height: 320px;
-  background: linear-gradient(
-    180deg,
-    rgb(var(--cx-accent-rgb) / 0) 0%,
-    rgb(var(--cx-accent-rgb) / 0.8) 40%,
-    rgb(var(--cx-accent-rgb) / 0.8) 60%,
-    rgb(var(--cx-accent-rgb) / 0) 100%
-  );
-}
-
-.oc-diag-tl {
-  top: -80px;
-  left: 48px;
-  transform: rotate(38deg);
-}
-
-.oc-diag-br {
-  bottom: -80px;
-  right: 48px;
-  transform: rotate(38deg);
-}
-
-/* ── Màn bìa ────────────────────────────────────────────────────────────
-   Cao ĐÚNG một khung nhìn (height, không chỉ min-height như .cx-screen-h): ô
-   ảnh giữa là `flex-1` nên chỉ co được khi thẻ cha có chiều cao XÁC ĐỊNH —
-   thiếu thì ảnh giữ nguyên tỉ lệ gốc và đẩy hai dải chữ ra ngoài màn.
-   Nhắm `#cover-screen > .oc-cover` để thắng rule min-height ở styles/_common.css. */
-
-#cover-screen > .oc-cover {
-  height: calc(var(--vh, 1vh) * 100);
-  height: calc(var(--vh, 1svh) * 100);
-}
-
-/* Trên màn rộng thiệp cao 932px nhưng không được vượt khung nhìn — #cover-screen
-   đã chừa 20px trên/dưới (md:py-5). */
-
-@media (min-width: 768px) {
-  #cover-screen > .oc-cover {
-    min-height: 0;
-    height: min(932px, calc(var(--vh, 1vh) * 100 - 40px));
-    height: min(932px, calc(var(--vh, 1svh) * 100 - 40px));
-  }
-}
-
-/* ── Chữ ────────────────────────────────────────────────────────────────── */
-
-/* Chữ viết tay: font tự host, không chờ mạng. Chỉ dùng cho câu tiếng Anh trang
-   trí ("We're getting married!", "Thank You"). */
-
+/* Chữ viết tay đỏ rượu vang — nét nhận dạng của mẫu. */
 .oc-script {
-  font-family: "KattyDiona", cursive;
-  line-height: 1;
+  font-family: "MonolineSignature", cursive;
+  color: rgb(var(--cx-deco-rgb));
+  line-height: 1.1;
+  font-weight: normal;
 }
 
-/* Chữ hoa Didone khổ lớn — "SAVE THE DATE" và tên mục. */
-
+/* Tiêu đề serif mảnh giãn chữ: OUR WEDDING, WEDDING DAY… */
 .oc-display {
-  font-family: "Playfair Display", serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  line-height: 0.95;
-}
-
-/* Nhãn nhỏ in hoa, giãn chữ rộng: chú thích của mọi mục. */
-
-.oc-eyebrow {
-  font-family: "Montserrat", sans-serif;
-  font-size: 9px;
-  font-weight: 500;
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 400;
+  font-size: 36px;
   letter-spacing: 4px;
+  line-height: 1.1;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.oc-display-lg {
+  font-size: 44px;
+  letter-spacing: 8px;
+}
+
+.oc-title {
+  font-weight: 600;
+  font-size: 28px;
+  letter-spacing: 2px;
+  line-height: 1.4;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.oc-date {
+  font-family: "Noto Serif", serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+.oc-muted {
+  color: rgb(var(--cx-body-rgb) / 0.6);
+}
+
+/* Cụm tiêu đề "Thiệp Cưới": chữ viết tay đỏ rượu vang nghiêng đè lên dòng chữ in giãn rộng. */
+.oc-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.oc-lockup-caps {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: -4px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 12px;
+  letter-spacing: 8px;
   text-transform: uppercase;
+  color: rgb(var(--cx-heading-rgb));
 }
 
-/* Chữ ánh kim: dùng cho con số ngày cưới và monogram. */
-
-.oc-shine {
-  background: linear-gradient(
-    100deg,
-    rgb(var(--cx-shine-from-rgb)) 0%,
-    rgb(var(--cx-shine-mid-rgb)) 45%,
-    rgb(var(--cx-shine-to-rgb)) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* ── Mục Mở đầu ─────────────────────────────────────────────────────────
-   Cao ĐÚNG một khung nhìn để mở thiệp ra là thấy trọn tấm ảnh cưới. Đi qua
-   --vh (px do core/helpers/vh-lock.js đo) chứ không dùng dvh/svh trần: Chrome
-   di động ẩn thanh URL bằng cách resize webview nên dvh/svh trôi theo, khối
-   phình dần lúc vuốt. */
-
-.oc-hero {
-  height: calc(var(--vh, 1vh) * 100);
-  height: calc(var(--vh, 1svh) * 100);
-}
-
-/* Phủ tối hai đầu ảnh cho chữ ngà đọc được: đỉnh đỡ câu slogan, đáy đỡ tên và
-   ngày (đậm hơn vì chữ ở đó to và quan trọng hơn). */
-
-.oc-hero-veil {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgb(var(--cx-scrim-rgb) / 0.7) 0%,
-    rgb(var(--cx-scrim-rgb) / 0.24) 22%,
-    rgb(var(--cx-scrim-rgb) / 0.08) 40%,
-    rgb(var(--cx-scrim-rgb) / 0.4) 64%,
-    rgb(var(--cx-scrim-rgb) / 0.92) 100%
-  );
-  pointer-events: none;
-}
-
-/* Chữ đặt đè lên ảnh cưới: bóng mờ rất nhẹ để nét mảnh (chữ viết tay, chữ
-   giãn rộng) không chìm vào vùng ảnh sáng. */
-
-.oc-on-photo {
-  text-shadow: 0 2px 14px rgb(var(--cx-scrim-rgb) / 0.65);
-}
-
-/* Câu slogan ở đỉnh màn Mở đầu — chia dòng cho đều, tránh dòng cuối trơ một từ. */
-
-.oc-hero-quote {
-  text-wrap: balance;
-}
-
-/* ── Hàng tên cô dâu – chú rể ────────────────────────────────────────────
-   LUÔN nằm trên MỘT dòng, ở cả ba chỗ dùng tới (màn bìa, mở đầu, thư mời).
-   Tên dài quá khổ thì _fitNames() trong index.js đặt --oc-fit để thu cả hàng
-   bằng transform — cố ý không đụng font-size, để khách chỉnh cỡ chữ trực tiếp
-   trên thiệp vẫn ăn. */
-
-/* Khung: rộng bằng cha (thiếu width thì trong cột `items-center` nó co theo
-   nội dung và phép đo không phát hiện tràn) và CẮT phần thừa — chữ chưa thu
-   vẫn là overflow thật, để lọt ra ngoài thì #main-card thành khung cuộn ngang
-   và scrollIntoView của preview-focus-helper kéo cả thiệp lệch sang bên. */
-
-.oc-names {
-  display: flex;
-  width: 100%;
-  /* min-width mặc định của một flex item là min-content — chữ nowrap bên trong
-     sẽ ÉP CẢ MỤC nở rộng hơn thiệp, dù đã cắt tràn ở đây. */
-  min-width: 0;
-  align-items: baseline;
-  justify-content: center;
-  overflow: hidden;
-  overflow: clip;
-}
-
-/* Lớp trong mang phép thu — thu ở đây chứ không ở khung, nếu không chữ bị cắt
-   theo khổ CHƯA thu. */
-
-.oc-names-in {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 12px;
-  white-space: nowrap;
-  transform: scale(var(--oc-fit, 1));
-  transform-origin: center center;
-}
-
-/* ── Đầu mục ────────────────────────────────────────────────────────────── */
-
-/* Vạch mảnh nhạt dần hai đầu, viên kim cương ở giữa. Dùng cả ở đầu mục lẫn
-   chỗ cần ngăn khối. */
-
-.oc-hair {
-  position: relative;
-  width: 100%;
+.oc-lockup-line {
+  width: 32px;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    rgb(var(--cx-accent-rgb) / 0) 0%,
-    rgb(var(--cx-accent-rgb) / 0.7) 50%,
-    rgb(var(--cx-accent-rgb) / 0) 100%
-  );
+  background: rgb(var(--cx-heading-rgb) / 0.4);
 }
 
-.oc-hair::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  background-color: rgb(var(--cx-accent-rgb));
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-/* Dấu mở đầu mục — thay cho dòng chữ ký trang trí. Kim cương RỖNG, khác với
-   kim cương đặc giữa .oc-hair ở dưới tiêu đề. */
-
-.oc-crest {
-  display: block;
-  width: 8px;
-  height: 8px;
-  border: 1px solid rgb(var(--cx-accent-rgb));
-  transform: rotate(45deg);
-}
-
-/* ── Khối viền kép ──────────────────────────────────────────────────────── */
-
-/* Ô nội dung đóng khung bằng hai nét vàng lồng nhau (thư mời, tiệc cưới). */
-
-.oc-box {
+/* Câu slogan: serif nghiêng cỡ lớn, hai dấu ngoặc kép to màu nhạt ôm hai đầu. */
+.oc-quote {
   position: relative;
-  border: 1px solid rgb(var(--cx-line-rgb));
-  background-color: rgb(var(--cx-panel-rgb));
+  padding: 24px 32px;
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.6;
+  text-align: center;
+  color: rgb(var(--cx-heading-rgb));
 }
 
-.oc-box::before {
-  content: "";
+.oc-quote::before,
+.oc-quote::after {
   position: absolute;
-  inset: 4px;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.28);
+  font-family: "Cormorant Garamond", serif;
+  font-style: normal;
+  font-size: 96px;
+  line-height: 1;
+  color: rgb(var(--cx-deco-rgb) / 0.32);
   pointer-events: none;
 }
 
-/* ── Ảnh ────────────────────────────────────────────────────────────────── */
-
-/* Màn phủ đen từ đáy ảnh lên, để chữ ngà đặt đè lên ảnh vẫn đọc được. */
-
-.oc-veil {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgb(var(--cx-scrim-rgb) / 0) 45%,
-    rgb(var(--cx-scrim-rgb) / 0.72) 100%
-  );
-  pointer-events: none;
+.oc-quote::before {
+  content: "\201C";
+  left: 0;
+  top: -12px;
 }
 
-/* Chữ khổ lớn cắt ngang mép dưới của ảnh — nửa trên nằm trên ảnh, nửa dưới rơi
-   xuống dải đen. Giá trị âm phải khớp với cỡ chữ, đổi cỡ thì đổi cả hai. */
-
-.oc-cut {
-  margin-top: -24px;
+.oc-quote::after {
+  content: "\201D";
+  right: 0;
+  bottom: -52px;
 }
 
-/* Chân dung nhà trai/nhà gái: khung vòm, có một nét vàng lệch ra sau làm bóng. */
-
-.oc-portrait {
-  position: relative;
-  border-radius: 999px 999px 4px 4px;
-  overflow: hidden;
-
-  /* renderCoupleInfo() gọi setImageWithRing() nên THẺ CHA nhận `ring-white/80`.
-     Trắng thì chói trên nền đen — đổi vòng sáng đó về vàng trầm. */
-  --tw-ring-color: rgb(var(--cx-line-rgb));
+/* Đoạn thơ căn giữa, giãn dòng rộng như bản in. */
+.oc-poem {
+  font-size: 14px;
+  line-height: 2.2;
+  color: rgb(var(--cx-heading-rgb));
 }
 
-.oc-portrait-frame {
-  position: absolute;
-  inset: 8px -8px -8px 8px;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.5);
-  border-radius: 999px 999px 4px 4px;
-  pointer-events: none;
+.oc-smallcaps {
+  font-family: "Cormorant Garamond", serif;
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: rgb(var(--cx-heading-rgb));
 }
 
-/* ── Album ảnh ──────────────────────────────────────────────────────────── */
-
-/* Dải ảnh cuộn ngang có điểm dừng. Thanh cuộn giấu đi vì đã có số đếm dẫn đường. */
-
-.oc-strip {
-  position: relative; /* mốc cho offsetLeft mà _syncGalleryCounter() đo */
+/* LOVE ──────── YOU */
+.oc-rule {
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+  align-items: center;
+  gap: 16px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: rgb(var(--cx-accent-rgb));
 }
 
-.oc-strip::-webkit-scrollbar {
+.oc-rule-line {
+  flex: 1;
+  height: 1px;
+  background: rgb(var(--cx-accent-rgb) / 0.6);
+}
+
+/* ── Ảnh ──────────────────────────────────────────────────────────────────── */
+
+.oc-photo {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  background: rgb(var(--cx-surface-rgb));
+}
+
+.oc-ph-full {
+  aspect-ratio: 4 / 5;
+}
+
+.oc-ph-tall {
+  aspect-ratio: 3 / 4;
+}
+
+.oc-ph-pair {
+  aspect-ratio: 3 / 4;
+}
+
+.oc-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.oc-gal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.oc-gal:empty {
   display: none;
 }
 
-.oc-shot {
-  position: relative;
-  flex: 0 0 auto;
-  width: 216px;
-  aspect-ratio: 3 / 4;
-  scroll-snap-align: center;
-  overflow: hidden;
+.oc-gal img {
   cursor: pointer;
-  background-color: rgb(var(--cx-surface-rgb));
 }
 
-.oc-shot img {
+/* Ảnh + cột chữ dọc bên phải (đọc từ trên xuống). */
+.oc-side {
+  display: grid;
+  grid-template-columns: 1fr 40px;
+  gap: 12px;
+  align-items: center;
+}
+
+.oc-vertical {
+  writing-mode: vertical-rl;
+  font-size: 14px;
+  letter-spacing: 4px;
+  line-height: 1.6;
+  color: rgb(var(--cx-heading-rgb));
+  justify-self: center;
+}
+
+/* ── Chuyện tình: ảnh ngang tràn bề rộng xen ảnh dọc lệch trái/phải ────── */
+
+.oc-ls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.oc-ls-img.oc-photo {
+  cursor: default;
+}
+
+.oc-ls.is-wide .oc-ls-img {
+  aspect-ratio: 3 / 2;
+}
+
+.oc-ls-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 16px;
+  align-items: end;
+}
+
+.oc-ls-row .oc-ls-img {
+  aspect-ratio: 3 / 4;
+}
+
+/* Ảnh bên trái: đảo hai cột, chữ căn phải sát ảnh. */
+.oc-ls.is-left .oc-ls-row {
+  grid-template-columns: 1.4fr 1fr;
+}
+
+.oc-ls.is-left .oc-ls-img {
+  order: -1;
+}
+
+.oc-ls.is-right .oc-ls-head {
+  text-align: right;
+}
+
+.oc-ls-date {
+  font-size: 36px;
+}
+
+.oc-ls-title {
+  margin-top: 4px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.oc-ls-body {
+  font-size: 13px;
+  line-height: 2;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.oc-ls.is-left .oc-ls-body {
+  text-align: right;
+}
+
+/* Ảnh cuối thiệp: mờ dần vào nền trắng ở cả bốn mép. */
+.oc-fade {
+  -webkit-mask-image: radial-gradient(ellipse 72% 64% at 50% 50%, #000 56%, transparent 100%);
+  mask-image: radial-gradient(ellipse 72% 64% at 50% 50%, #000 56%, transparent 100%);
+}
+
+/* ── Màn bìa ──────────────────────────────────────────────────────────────── */
+
+/* Bìa cao ĐÚNG một màn (cx-screen-h chỉ là min-height): khung polaroid co theo chỗ
+   còn lại, thiếu chiều cao cố định là nó dựng theo bề ngang và đẩy phần dưới tràn ra.
+   Nền giấy kem: hai lớp chấm mờ lệch nhau giả vân giấy, không cần file ảnh. */
+.oc-cover {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 56px);
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
+  background-color: rgb(var(--cx-cover-rgb));
+  background-image:
+    radial-gradient(rgb(var(--cx-line-rgb) / 0.32) 1px, transparent 1px),
+    radial-gradient(rgb(var(--cx-cover-mid-rgb) / 0.8) 1px, transparent 1px);
+  background-size: 4px 4px, 8px 8px;
+  background-position: 0 0, 2px 2px;
+}
+
+@media (min-width: 768px) {
+  .oc-cover {
+    height: 932px;
+  }
+}
+
+/* Chữ lồng tên viết tắt (thay chỗ chữ Hỷ của ảnh mẫu). */
+.oc-cv-mono {
+  display: flex;
+  align-items: baseline;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.oc-cv-mono-heart {
+  align-self: center;
+  margin: 0 4px;
+  color: rgb(var(--cx-accent-rgb));
+  fill: currentColor;
+}
+
+.oc-cv-welcome {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  line-height: 1.8;
+  text-align: right;
+  text-transform: uppercase;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Khung polaroid co theo chỗ trống còn lại, giữ tỉ lệ thẻ in. */
+.oc-cv-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0 12px;
+}
+
+.oc-polaroid {
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 0.74;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 16px 0;
+  background: rgb(var(--cx-card-bg-rgb));
+  box-shadow: 0 4px 16px rgb(var(--cx-shadow-rgb) / 0.12), 0 1px 2px rgb(var(--cx-shadow-rgb) / 0.08);
+}
+
+/* Ảnh tối dần ở viền như ảnh chụp phim. */
+.oc-polaroid-photo {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.oc-polaroid-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 32px 8px rgb(var(--cx-scrim-rgb) / 0.4);
+  pointer-events: none;
+}
+
+.oc-polaroid-cap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 64px;
+  flex: none;
+  font-family: "KattyDiona", cursive;
+  font-size: 28px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Tên đôi luôn một dòng: tên quá dài thì cắt "…" chứ không xuống hàng. */
+.oc-cap-names {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.oc-cap-br {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.oc-cv-love {
+  text-align: center;
+  font-family: "BethanWhite", cursive;
+  font-size: 36px;
+  line-height: 1.2;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.oc-cv-invite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.oc-cv-label {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Khách vãng lai (link chung): bỏ luôn dòng lời mời, bìa chỉ còn nút mở thiệp. */
+.cx-guest-generic .oc-cv-label {
+  display: none;
+}
+
+.oc-cv-guest {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.2;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.oc-cv-open {
+  margin-top: 12px;
+  padding: 8px 28px;
+  border: 1px solid rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-accent-rgb));
+  font-family: "Noto Serif", serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  box-shadow: none;
+}
+
+/* ── Lịch riêng của mẫu (ngày cưới có trái tim khoanh quanh) ─────────────── */
+
+.oc-cal-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: "Cormorant Garamond", serif;
+  color: rgb(var(--cx-accent-rgb));
+  padding: 0 4px 8px;
+  border-bottom: 1px solid rgb(var(--cx-accent-rgb) / 0.5);
+}
+
+.oc-cal-mm {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.oc-cal-yy {
+  font-size: 24px;
+  letter-spacing: 2px;
+}
+
+.oc-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 4px;
+  font-family: "Noto Serif", serif;
+  font-size: 13px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.oc-cal-wd {
+  padding: 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.oc-cal-d {
+  position: relative;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.oc-cal-d.is-on {
+  color: rgb(var(--cx-accent-rgb));
+  font-weight: 700;
+}
+
+.oc-cal-d.is-on svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 36px !important;
+  height: 36px !important;
+  transform: translate(-50%, -48%);
+  color: rgb(var(--cx-accent-rgb));
+  stroke-width: 1.5;
+}
+
+/* ── Xác nhận tham dự ─────────────────────────────────────────────────────── */
+
+.oc-rsvp-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgb(var(--cx-line-rgb));
+  color: rgb(var(--cx-heading-rgb));
+  font-family: "Noto Serif", serif;
+  font-size: 14px;
+  gap: 8px;
+}
+
+/* Nút dẫn đường tròn nổi góc phải dưới bản đồ. Thẻ chưa có bản đồ (bị khoá
+   pointer-events-none) thì giấu cả hai nút chỉ đường. */
+.oc-map-nav {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  box-shadow: 0 4px 12px rgb(var(--cx-shadow-rgb) / 0.24);
+}
+
+#section-map a.pointer-events-none [data-oc-dir] {
+  display: none;
+}
+
+/* Bản đồ vuông góc, không bo — hợp bố cục ảnh in. */
+#section-map #map-link {
+  border-radius: 0;
+}
+
+/* ── Thẻ trình phát nhạc ở màn mở đầu ─────────────────────────────────────
+   Ảnh nền + màn tối nhẹ cho chữ trắng; đĩa than in ảnh cặp đôi quay khi
+   .is-playing (helper bật trên thẻ root), cần đĩa hạ xuống đĩa lúc phát. */
+
+.oc-mcard {
+  border-radius: 20px;
+  min-height: 160px;
+}
+
+.oc-mcard-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* Nét vàng lùi vào trong ảnh — cùng ngôn ngữ với khung ngoài của thiệp. */
+.oc-mcard-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(var(--cx-scrim-rgb) / 0.08), rgb(var(--cx-scrim-rgb) / 0.32));
+}
 
-.oc-shot::after {
+.oc-vinyl {
+  position: relative;
+  flex: none;
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  padding: 12px;
+  background: rgb(var(--cx-card-bg-rgb));
+  box-shadow: 0 4px 16px rgb(var(--cx-shadow-rgb) / 0.24);
+}
+
+.oc-vinyl-art {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  animation: cx-oc-spin 12s linear infinite;
+  animation-play-state: paused;
+}
+
+.oc-mcard.is-playing .oc-vinyl-art {
+  animation-play-state: running;
+}
+
+.oc-vinyl-hole {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 4px solid rgb(var(--cx-card-bg-rgb) / 0.8);
+  background: rgb(var(--cx-card-bg-rgb) / 0.24);
+}
+
+/* Cần đĩa: thanh mảnh xoay quanh trục ở mép phải đĩa. */
+.oc-tonearm {
+  position: absolute;
+  right: -20px;
+  top: 64px;
+  width: 64px;
+  height: 4px;
+  border-radius: 4px;
+  background: rgb(var(--cx-card-bg-rgb));
+  box-shadow: 0 1px 4px rgb(var(--cx-shadow-rgb) / 0.32);
+  transform-origin: 100% 50%;
+  transform: rotate(-24deg);
+  transition: transform 0.6s ease;
+}
+
+.oc-tonearm::after {
   content: "";
   position: absolute;
-  inset: 8px;
-  border: 1px solid rgb(var(--cx-on-image-rgb) / 0.35);
-  pointer-events: none;
+  right: -8px;
+  top: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgb(var(--cx-card-bg-rgb));
 }
 
-.oc-shot-no {
+.oc-mcard.is-playing .oc-tonearm {
+  transform: rotate(0deg);
+}
+
+.oc-mcard-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.oc-mcard-artist {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.oc-mcard-prog {
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.oc-mcard-track {
+  height: 2px;
+  background: rgb(var(--cx-on-image-rgb) / 0.4);
+}
+
+.oc-mcard-fill {
+  position: relative;
+  height: 100%;
+  width: 0;
+  background: rgb(var(--cx-on-image-rgb));
+}
+
+.oc-mcard-fill::after {
+  content: "";
   position: absolute;
-  left: 16px;
-  bottom: 12px;
-  z-index: 2;
-  font-family: "Playfair Display", serif;
-  font-size: 20px;
+  right: -4px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(var(--cx-on-image-rgb));
+}
+
+.oc-mcard-time {
+  margin-top: -4px;
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.oc-mcard-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   color: rgb(var(--cx-on-image-rgb));
-  text-shadow: 0 1px 6px rgb(var(--cx-scrim-rgb) / 0.6);
 }
 
-/* ── Nút ────────────────────────────────────────────────────────────────── */
-
-/* <x-button variant="bare"> đem theo rounded-full; mẫu này cạnh vuông nên mọi
-   nút phải mang thêm class này (đứng sau trong bảng nạp nên thắng). */
-
-.oc-btn {
-  border-radius: 0;
+.oc-mcard-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgb(var(--cx-on-image-rgb));
+  color: rgb(var(--cx-heading-rgb));
 }
 
-/* Nút xác nhận tham dự đang chọn: nền vàng đặc, chữ đen. */
-
-#btn-attend.btn-selected,
-#btn-decline.btn-selected {
-  background-color: rgb(var(--cx-accent-rgb));
-  border-color: rgb(var(--cx-accent-rgb));
-}
-
-/* ── Chỉnh phần DÙNG CHUNG cho nền tối ───────────────────────────────────
-   Chấm mốc của dòng thời gian (CX_TL_DOT ở render-helper.js) viền trắng cứng —
-   trên nền đen thành một vòng sáng lạc lõng. Trả nó về đúng màu nền thiệp. */
-
-#timeline-list-render .border-white,
-#love-story-list .border-white {
-  border-color: rgb(var(--cx-card-bg-rgb));
+@keyframes cx-oc-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -589,13 +589,16 @@ svg.cx-ic {
   gap: 12px;
 }
 
+/* Thẻ hỏi: ảnh chụp mẫu bên trái · cột chữ bên phải (dòng tên mẫu, rồi câu
+   hỏi + nút Dùng CÙNG MỘT HÀNG). */
+
 .cx-sug-ask-card {
   display: flex;
   align-items: center;
   gap: 16px;
   width: 100%;
   max-width: 400px;
-  padding: 20px;
+  padding: 16px;
   border-radius: 24px;
   border: 1px solid rgb(var(--white-rgb));
   box-shadow: 0 12px 32px -16px rgb(var(--text-heading-rgb) / 0.35);
@@ -609,9 +612,21 @@ svg.cx-ic {
 .cx-sug-hide,
 .cx-sug-guest,
 .cx-sug-sec,
-.cx-sug-title,
 .cx-sug-err {
   background: rgb(var(--white-rgb) / 0.72);
+}
+
+/* Ảnh chụp dọc 391:722 như thẻ gợi ý, giữ phần đầu thiệp. */
+
+.cx-sug-ask-thumb {
+  flex: 0 0 auto;
+  width: 56px;
+  aspect-ratio: 391 / 722;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 8px;
+  background: rgb(var(--surface-blossom-rgb));
+  box-shadow: 0 4px 12px -6px rgb(var(--text-heading-rgb) / 0.4);
 }
 
 .cx-sug-ask-txt {
@@ -619,32 +634,37 @@ svg.cx-ic {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
   text-align: left;
-  color: rgb(var(--text-heading-rgb));
 }
 
-.cx-sug-ask-eyebrow {
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
-  letter-spacing: 0.4px;
+/* Tên mẫu cùng cỡ với câu dẫn — chỉ khác ở độ đậm và màu nhấn. */
+
+.cx-sug-ask-head {
+  font-size: 15px;
+  line-height: 22px;
   color: rgb(var(--text-subtle-rgb));
-}
-
-.cx-sug-ask-name {
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 28px;
   overflow-wrap: anywhere;
 }
 
+.cx-sug-ask-name {
+  font-weight: 700;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+
+.cx-sug-ask-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .cx-sug-ask-q {
-  margin-top: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
   line-height: 20px;
-  color: rgb(var(--text-subtle-rgb));
+  color: rgb(var(--text-heading-rgb));
 }
 
 /* Tầng mẫu tương tự. */
@@ -658,17 +678,16 @@ svg.cx-ic {
 /* Tiêu đề dãy thẻ — chữ trắng nổi thẳng trên thiệp (không có nền đỡ) nên phải
    có bóng, thiệp nền sáng hay tối đều đọc được. */
 
-/* Nhãn viên thuốc kính trắng, ôm theo chữ, dồn trái thẳng mép dãy thẻ. */
+/* Tiêu đề dãy thẻ — chữ trắng nằm trần trên lớp phủ nên có bóng đỡ, nền thiệp
+   phía sau sáng hay tối đều đọc được. */
 
 .cx-sug-title {
-  align-self: flex-start;
   min-width: 0;
-  padding: 6px 12px;
-  border-radius: 999px;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.2;
-  color: rgb(var(--text-heading-rgb));
+  color: rgb(var(--white-rgb));
+  text-shadow: 0 1px 8px rgb(var(--scrim-rgb) / 0.6);
 }
 
 /* Nút Ẩn — viên thuốc nhỏ, luôn nằm sát mép phải kể cả khi tiêu đề bị ẩn. */
@@ -1106,8 +1125,8 @@ svg.cx-ic {
 .cx-sug-tile.is-primary {
   flex: 0 0 auto;
   color: rgb(var(--white-rgb));
-  height: 44px;
-  padding: 0 18px;
+  height: 40px;
+  padding: 0 16px;
   border-radius: 999px;
   background: rgb(var(--action-primary-rgb));
   box-shadow:
@@ -1171,7 +1190,7 @@ svg.cx-ic {
 }
 
 .cx-sug-tile.is-primary .cx-sug-tile-lb {
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 0.3px;
 }
 

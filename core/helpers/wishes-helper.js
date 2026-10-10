@@ -493,9 +493,48 @@ function _cxWishBuildCardDots(mount) {
   _cxWishSyncCardDots(mount);
 }
 
+// Tự chuyển thẻ: dải đứng yên đủ CX_WISH_CARD_IDLE_MS thì trượt sang thẻ kế (hết
+// vòng về thẻ đầu). Khách kéo/vuốt/lăn/bấm chấm là đếm lại từ 0. Bỏ nhịp khi dải
+// ngoài khung nhìn, tab ẩn hoặc đang mở "Xem thêm" một thẻ.
+const CX_WISH_CARD_IDLE_MS = 3000;
+let _cxWishCardTimer = null;
+let _cxWishCardIO = null;
+let _cxWishCardSeen = false;
+// Cuộn do chính bộ đếm gây ra — sự kiện scroll lúc này không phải khách kéo tay.
+let _cxWishCardAutoUntil = 0;
+
+function _cxWishArmCards(mount) {
+  clearTimeout(_cxWishCardTimer);
+  _cxWishCardTimer = null;
+  if (_cxWishItems.length < 2 || !mount.isConnected) return;
+  _cxWishCardTimer = setTimeout(() => _cxWishStepCards(mount), CX_WISH_CARD_IDLE_MS);
+}
+
+function _cxWishStepCards(mount) {
+  const cards = mount.querySelectorAll(".cx-wcard");
+  if (
+    cards.length > 1 &&
+    _cxWishCardSeen &&
+    !document.hidden &&
+    !mount.classList.contains("is-open")
+  ) {
+    const card = cards[(_cxWishCardAt(mount) + 1) % cards.length];
+    _cxWishCardAutoUntil = Date.now() + 1000;
+    mount.scrollTo({
+      left: card.offsetLeft - (mount.clientWidth - card.offsetWidth) / 2,
+      behavior: _cxWishReduceMotion() ? "auto" : "smooth",
+    });
+  }
+  _cxWishArmCards(mount);
+}
+
 function _cxWishStopCards() {
   _cxWishCardRO?.disconnect();
   _cxWishCardRO = null;
+  clearTimeout(_cxWishCardTimer);
+  _cxWishCardTimer = null;
+  _cxWishCardIO?.disconnect();
+  _cxWishCardIO = null;
 }
 
 function _cxWishCardHtml(w, i) {
@@ -611,10 +650,17 @@ function _cxWishRenderCards(mount) {
       const btn = e.target.closest?.("[data-w-more]");
       if (btn) _cxWishToggleCard(mount, btn.dataset.wMore);
     });
+    // Khách tự tương tác với dải → đếm lại 4 giây từ đầu.
+    const reset = () => _cxWishArmCards(mount);
+    ["pointerdown", "touchstart", "wheel", "keydown"].forEach((ev) =>
+      mount.addEventListener(ev, reset, { passive: true }),
+    );
+    document.getElementById("cx-wcard-dots")?.addEventListener("click", reset);
     let tick = false;
     mount.addEventListener(
       "scroll",
       () => {
+        if (Date.now() > _cxWishCardAutoUntil) reset();
         if (tick) return;
         tick = true;
         requestAnimationFrame(() => {
@@ -635,6 +681,19 @@ function _cxWishRenderCards(mount) {
     });
     _cxWishCardRO.observe(mount);
   }
+
+  _cxWishCardIO?.disconnect();
+  _cxWishCardSeen = !window.IntersectionObserver;
+  if (window.IntersectionObserver) {
+    // Dải vừa lọt vào tầm nhìn thì đếm từ 0, khách kịp đọc thẻ đầu.
+    _cxWishCardIO = new IntersectionObserver((es) => {
+      const seen = es[es.length - 1].isIntersecting;
+      if (seen && !_cxWishCardSeen) _cxWishArmCards(mount);
+      _cxWishCardSeen = seen;
+    });
+    _cxWishCardIO.observe(mount);
+  }
+  _cxWishArmCards(mount);
 }
 
 // ── Dạng "paged": mỗi lần một trang, khách tự bấm sang ──────────────────────
