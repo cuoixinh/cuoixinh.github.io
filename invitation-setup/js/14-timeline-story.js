@@ -19,9 +19,17 @@ function _listChanged() {
     _scheduleAutoSave("edit");
 }
 
+// Mốc chưa nhập gì (cả giờ lẫn việc đều trống) chỉ sống trong form — không ra ô ẩn
+// (dữ liệu lưu + bước "đã xong") và không lên thiệp.
+function _timelineFilled() {
+  return _timelineItems.filter(
+    (it) => String(it.time || "").trim() || String(it.title || "").trim(),
+  );
+}
+
 function _syncTimelineHidden() {
   const hidden = document.getElementById("timeline-value");
-  if (hidden) hidden.value = JSON.stringify(_timelineItems);
+  if (hidden) hidden.value = JSON.stringify(_timelineFilled());
   _listChanged();
 }
 

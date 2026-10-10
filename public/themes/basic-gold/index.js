@@ -1,8 +1,9 @@
 // ============= THEME: BASIC GOLD =============
-// Thiệp một thẻ cao bằng màn hình, tông hồng khói — mở bằng màn bìa.
+// Thiệp tông hồng khói, mở bằng màn bìa; thân thiệp dàn kiểu tạp chí (ảnh lệch
+// trái/phải, chữ giãn rộng, nhãn Cinzel).
 //
 // File này chỉ KHAI BÁO: bản khai CX_THEME + renderWedding + phần đặc thù
-// (carousel ảnh). Phần "chạy" (nạp dữ liệu, mở thiệp, hiệu ứng cuộn, viewport)
+// (album tạp chí, đếm ngược). Phần "chạy" (nạp dữ liệu, mở thiệp, hiệu ứng cuộn, viewport)
 // nằm ở core/helpers/theme-boot.js, nạp sau file này. Nhờ vậy trang Thiết lập
 // nạp lại file này chỉ để đọc CX_THEME mà không gây tác dụng phụ.
 //
@@ -79,23 +80,14 @@ window.CX_THEME = {
     "#ffffff",
   ],
 
-  // Mục được gán hiệu ứng hiện dần khi cuộn tới. Bó trong #main-card: màn bìa cũng
-  // có khối `.w-full.flex.flex-col.gap-8` → nút "Mở Thiệp" dính .reveal là tàng hình.
-  reveal: [
-    "#main-card .invitation-content > *",
-    "#main-card .w-full.flex.flex-col.gap-8 > *",
-    "#main-card .flex.gap-4.items-start",
-    "#main-card .flex.flex-col.gap-4.border",
-    "#main-card .gallery-item",
-  ],
+  // Mục được gán hiệu ứng hiện dần khi cuộn tới — bó trong #main-card để không
+  // dính nút "Mở thiệp" ở màn bìa.
+  reveal: ["#main-card .cg-sec"],
 
   // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true): cuộn tới mục
   // này là bảng trượt lên. Mặc định của core/utils.js cũng là hộp mừng cưới,
   // khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
   suggest: "#section-gift",
-
-  // Thiệp vừa hiện ra mới đo được bề ngang thật → dựng lại carousel.
-  onOpen: _carouselReinit,
 
   // Không khai `focus`: id các mục trùng bảng mặc định của preview-focus-helper.
 };
@@ -158,7 +150,9 @@ function renderWedding(w) {
     const wd = WEEKDAYS[new Date(+cy, +cm - 1, +cd).getDay()];
     setText("cover-date", `${wd} · ${cd} · ${cm} · ${cy}`);
     cxToggle("cover-date", true);
+    setText("footer-date", `${cd}.${cm}.${cy}`);
   }
+  _countdown(w.ceremony_date, displayTime);
 
   setText("ceremony-event-name", ceremonyName);
   setText("party-section-label", "Tiệc Mừng " + ceremonyName);
@@ -176,8 +170,19 @@ function renderWedding(w) {
   renderPartyDate(partyDate, partyTime, partyLunar, partyLocation, "full");
   cxToggle("section-party", cxEnabled(w.enable_party));
 
-  // --- MINI CALENDAR ---
+  // --- MINI CALENDAR --- phủ trên ảnh album cuối (ít lặp với ảnh gần đó), chưa
+  // có album thì dùng ảnh bìa.
   setupMiniCalendar(w.ceremony_date, partyDate);
+  const gal = Array.isArray(w.gallery_images) ? w.gallery_images : [];
+  const calImg = gal.length ? gal[gal.length - 1] : w.cover_image_url;
+  const calFocal = gal.length
+    ? w.image_focal_points?.gallery_images?.[calImg]
+    : w.image_focal_points?.cover_image_url;
+  if (calImg) {
+    setAttr("cal-bg", "src", getImageUrl(calImg));
+    applyFocalPoint("cal-bg", calFocal);
+  }
+
 
   // --- RSVP ---
   const rsvpSection = document.getElementById("rsvp-section");
@@ -192,27 +197,24 @@ function renderWedding(w) {
   }
 
   // --- TIMELINE ---
-  if (cxEnabled(w.enable_timeline)) {
-    renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
-    cxToggle("section-timeline", true);
-  }
+  cxToggle(
+    "section-timeline",
+    cxEnabled(w.enable_timeline) &&
+      _renderSchedule(w.timeline, side, partyDate, w.ceremony_date, ceremonyName),
+  );
 
   // --- STORY QUOTE ---
   renderStoryQuote(w.story_quote);
 
   // --- LOVE STORY ---
-  if (cxEnabled(w.enable_love_story)) {
-    renderLoveStory(w.love_story);
-  } else {
-    cxToggle("love-story", false);
-  }
+  cxToggle(
+    "love-story",
+    cxEnabled(w.enable_love_story) && _renderStory(w.love_story),
+  );
 
   // --- GALLERY ---
   if (cxEnabled(w.enable_photos)) {
-    renderCarouselGallery(
-      w.gallery_images,
-      w.image_focal_points?.gallery_images,
-    );
+    renderMarquee(gal, w.image_focal_points?.gallery_images);
   } else {
     cxToggle("section-photos", false);
   }
@@ -229,197 +231,176 @@ function renderWedding(w) {
   // --- FOOTER ---
   cxToggle("section-footer", cxEnabled(w.enable_footer));
   if (w.footer_text) setText("footer-text", w.footer_text);
+
+  _fxScan();
 }
 
 window.renderWedding = renderWedding;
 
-// ============= CAROUSEL GALLERY (RIÊNG CỦA THEME NÀY) =============
+// Album băng chuyền (riêng mẫu này): ảnh chia lần lượt vào các dải, dải lẻ chạy
+// trái → phải, dải chẵn phải → trái, lặp vô tận. Mỗi dải chép nối ảnh cho đủ dài
+// rồi NHÂN ĐÔI: chạy đúng -50% là về khớp điểm đầu nên vòng lặp không đứt.
+const MARQ_MIN = 5; // số ảnh tối thiểu của một nửa dải để phủ kín bề ngang thẻ
+const MARQ_SEC = 5; // giây cho mỗi ảnh đi qua
 
-const carouselImages = [];
-const track = document.getElementById("carousel-track");
-const dotsContainer = document.getElementById("carousel-dots");
-const container = document.getElementById("gallery-carousel");
-let current = 0;
-let startX = 0;
-let isDragging = false;
+function renderMarquee(images, focalPoints) {
+  const box = document.getElementById("gallery-grid");
+  if (!box) return;
+  const urls = images.length
+    ? images.map(getImageUrl)
+    : Array(4).fill(null).map(() => createPlaceholderSVG("Chưa có ảnh"));
 
-// Fix container height = tallest item (ảnh giữa to nhất)
-function fixHeight() {
-  if (!track || !container) return;
-  const trackWidth = track.offsetWidth;
-  const tallest = trackWidth * 0.36 * (4 / 3);
-  container.style.height = tallest + "px";
-  track.style.height = tallest + "px";
-  track.style.alignItems = "center";
-}
-
-// Carousel item style configs
-const CAROUSEL_STYLES = {
-  center: {
-    width: "36%",
-    height: "100%",
-    opacity: "1",
-    transform: "none",
-    zIndex: "10",
-    boxShadow: "0 20px 40px rgb(var(--cx-accent-rgb)/0.3)",
-    visibility: "visible",
-  },
-  side: {
-    width: "28%",
-    heightRatio: 0.85, // (0.28 * 4/3) / (0.36 * 4/3)
-    opacity: "0.55",
-    transform: "none",
-    zIndex: "5",
-    boxShadow: "0 4px 12px rgb(var(--cx-accent-rgb)/0.1)",
-    visibility: "visible",
-  },
-  hidden: {
-    width: "0",
-    opacity: "0",
-    visibility: "hidden",
-  },
-};
-
-function applyCarouselStyle(item, styleConfig) {
-  Object.entries(styleConfig).forEach(([key, value]) => {
-    if (key === "heightRatio") {
-      item.style.height = value * 100 + "%";
-    } else {
-      item.style[key] = value;
-    }
-  });
-}
-
-function updateCarousel() {
-  if (!track || !dotsContainer) return;
-  const items = track.querySelectorAll(".carousel-item");
-  const dots = dotsContainer.querySelectorAll("div");
-
-  items.forEach((item, i) => {
-    const diff = Math.abs(i - current);
-    const style =
-      diff === 0
-        ? CAROUSEL_STYLES.center
-        : diff === 1
-          ? CAROUSEL_STYLES.side
-          : CAROUSEL_STYLES.hidden;
-    applyCarouselStyle(item, style);
-  });
-
-  dots.forEach((dot, i) => {
-    dot.style.background =
-      i === current
-        ? "rgb(var(--cx-accent-rgb))"
-        : "rgb(var(--cx-line-rgb))";
-    dot.style.width = i === current ? "16px" : "6px";
-  });
-}
-
-// Swipe handlers
-const handleSwipe = {
-  start: (x) => {
-    startX = x;
-    isDragging = true;
-  },
-  end: (x) => {
-    if (!isDragging) return;
-    isDragging = false;
-    const diff = startX - x;
-    if (Math.abs(diff) > 30) {
-      current = Math.max(
-        0,
-        Math.min(carouselImages.length - 1, current + (diff > 0 ? 1 : -1)),
-      );
-      updateCarousel();
-    }
-  },
-};
-
-// Click carousel item to open lightbox
-function attachCarouselClickHandler() {
-  if (!track) return;
-  track.querySelectorAll(".carousel-item").forEach((item, i) => {
-    const clone = item.cloneNode(true);
-    item.parentNode.replaceChild(clone, item);
-    clone.dataset.index = i;
-    clone.addEventListener("click", () => {
-      const idx = parseInt(clone.dataset.index);
-      idx === current ? openLightbox(idx) : ((current = idx), updateCarousel());
-    });
-  });
-}
-
-// Dựng lại sau khi thiệp hiện ra (CX_THEME.onOpen) — lúc đó mới đo được bề ngang.
-function _carouselReinit() {
-  fixHeight();
-  updateCarousel();
-  setTimeout(attachCarouselClickHandler, 100);
-}
-
-// Render carousel gallery
-function renderCarouselGallery(galleryImages, focalPoints) {
-  if (!track || !dotsContainer) return;
-
-  // Prepare images
-  carouselImages.length = 0;
-  if (!galleryImages?.length) {
-    carouselImages.push(
-      ...Array(3)
-        .fill(null)
-        .map(() => createPlaceholderSVG("Chưa có ảnh")),
-    );
-  } else {
-    carouselImages.push(...galleryImages.map(getImageUrl));
-  }
-
-  // Store for lightbox
   lightboxImages.length = 0;
-  lightboxImages.push(...carouselImages);
+  lightboxImages.push(...urls);
 
-  // Clear containers
-  track.innerHTML = "";
-  dotsContainer.innerHTML = "";
+  const nRows = urls.length >= 6 ? 3 : urls.length > 1 ? 2 : 1;
+  const rows = Array.from({ length: nRows }, () => []);
+  urls.forEach((_, i) => rows[i % nRows].push(i));
 
-  // Create carousel items and dots
-  const itemTransition =
-    "transition: width 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s ease;";
-  const dotStyle = "height:6px; border-radius:9999px; transition: all 0.3s;";
+  box.innerHTML = rows
+    .map((idxs, r) => {
+      const half = [];
+      while (half.length < MARQ_MIN) half.push(...idxs);
+      const cells = half
+        .concat(half)
+        .map((i) => {
+          const pos = escapeHtml(cxFocal(focalPoints?.[images[i]]));
+          return `<div class="cg-marq-item" data-lb="${i}"><img src="${cxImgSrc(urls[i])}" style="object-position:${pos}" alt=""></div>`;
+        })
+        .join("");
+      const dir = r % 2 ? "b" : "a";
+      return `<div class="cg-marq" data-dir="${dir}"><div class="cg-marq-track" style="--marq-dur:${half.length * MARQ_SEC}s">${cells}</div></div>`;
+    })
+    .join("");
 
-  carouselImages.forEach((imgSrc, idx) => {
-    const fp = focalPoints?.[galleryImages?.[idx]];
-    const objectPosition = cxFocal(fp);
-    const item = document.createElement("div");
-    item.className =
-      "carousel-item shrink-0 rounded-2xl overflow-hidden cursor-pointer";
-    item.style.cssText = itemTransition;
-    item.innerHTML = `<img src="${cxImgSrc(imgSrc)}" class="w-full h-full object-cover pointer-events-none" style="object-position:${escapeHtml(objectPosition)}" alt="">`;
-    track.appendChild(item);
-
-    const dot = document.createElement("div");
-    dot.style.cssText = dotStyle;
-    dotsContainer.appendChild(dot);
-  });
-
-  current = Math.floor(carouselImages.length / 2);
-  fixHeight();
-  updateCarousel();
-  setTimeout(attachCarouselClickHandler, 100);
+  box.querySelectorAll("[data-lb]").forEach((el) =>
+    el.addEventListener("click", () => openLightbox(Number(el.dataset.lb))),
+  );
 }
 
-// Vuốt + đo lại khi xoay máy. Bọc trong `if`: trang Thiết lập cũng nạp file này
-// (để đọc CX_THEME) nhưng không có markup thiệp.
-if (track) {
-  track.addEventListener(
-    "touchstart",
-    (e) => handleSwipe.start(e.touches[0].clientX),
-    { passive: true },
+// Lịch trình (riêng mẫu này) — kiểu thực đơn gọn: các nhóm chung một khung, mỗi
+// mốc một dòng giờ | việc.
+// Cùng luật lọc/sắp của renderTimeline dùng chung —
+// "party" chỉ nhà trai, "bride-party" chỉ nhà gái. Trả false khi không có mốc nào.
+function _renderSchedule(items, side, partyDate, ceremonyDate, ceremonyName) {
+  const list = document.getElementById("timeline-list-render");
+  if (!list) return false;
+  list.innerHTML = "";
+  if (!Array.isArray(items)) return false;
+  const type = (it) => it.type || "ceremony";
+  const mine = items.filter(
+    (it) =>
+      type(it) === "ceremony" ||
+      (side === "groom" ? type(it) === "party" : type(it) === "bride-party"),
   );
-  track.addEventListener("touchend", (e) =>
-    handleSwipe.end(e.changedTouches[0].clientX),
-  );
-  track.addEventListener("mousedown", (e) => handleSwipe.start(e.clientX));
-  track.addEventListener("mouseup", (e) => handleSwipe.end(e.clientX));
-  track.addEventListener("mouseleave", () => (isDragging = false));
-  window.addEventListener("resize", fixHeight);
+  const groups = cxSortTimelineGroups([
+    { label: ceremonyName || "Lễ Thành Hôn", date: ceremonyDate, items: mine.filter((it) => type(it) === "ceremony") },
+    { label: "Tiệc Cưới", date: partyDate, items: mine.filter((it) => type(it) !== "ceremony") },
+  ]);
+  if (!groups.length) return false;
+
+  list.innerHTML = groups
+    .map((g) => {
+      const [y, m, d] = (g.date || "").split("-");
+      const date = y && m && d ? `${WEEKDAYS[new Date(+y, +m - 1, +d).getDay()]} · ${d}.${m}.${y}` : "";
+      const rows = g.items
+        .map(
+          (it) => `
+          <li class="cg-sched-item">
+            <span class="cg-sched-time cx-a">${escapeHtml(it.time || "")}</span>
+            <span class="cg-sched-what cx-h">${escapeHtml(it.title || "")}</span>
+          </li>`,
+        )
+        .join("");
+      return `
+      <div class="cg-sched-group">
+        <div class="cg-sched-head">
+          <div class="cg-sched-name cx-a">${escapeHtml(g.label)}</div>
+          ${date ? `<div class="cg-sched-date">${escapeHtml(date)}</div>` : ""}
+        </div>
+        <ol class="cg-sched-list">${rows}</ol>
+      </div>`;
+    })
+    .join("");
+  return true;
+}
+
+// Chuyện tình yêu (riêng mẫu này): mỗi mốc một chương, chương chẵn/lẻ đổi bên để
+// ảnh và chữ so le như trang tạp chí. Trả false khi không có mốc nào.
+function _renderStory(events) {
+  const list = document.getElementById("love-story-list");
+  if (!list) return false;
+  list.innerHTML = "";
+  if (!Array.isArray(events) || !events.length) return false;
+
+  list.innerHTML = events
+    .map((ev, i) => {
+      const side = i % 2 ? "cg-ch-right" : "cg-ch-left";
+      const pos = ev.focal_point ? ` style="object-position:${escapeHtml(cxFocal(ev.focal_point))}"` : "";
+      return `
+      <article class="cg-ch ${side}">
+        <div class="cg-ch-no cx-a">${String(i + 1).padStart(2, "0")}</div>
+        ${ev.image_url ? `<div class="cg-shot cg-ch-img"><img src="${cxImgSrc(ev.image_url)}" alt=""${pos}></div>` : ""}
+        <div class="cg-ch-body">
+          ${ev.date ? `<div class="cg-ch-date">${escapeHtml(ev.date)}</div>` : ""}
+          ${ev.title ? `<div class="cg-ch-title cx-a">${escapeHtml(ev.title)}</div>` : ""}
+          ${ev.content ? `<div class="cg-ch-text cx-t">${escapeHtml(ev.content)}</div>` : ""}
+        </div>
+      </article>`;
+    })
+    .join('<div class="cg-ch-link" aria-hidden="true"></div>');
+  return true;
+}
+
+// Ảnh chuyển động (riêng mẫu này), chỉ chạy khi đang trong khung nhìn (.is-on):
+// · Ảnh ngoài album (gia đình, chuyện tình): zoom nhẹ, khung xen kẽ phóng vào /
+//   thu ra (data-kb) để hai ảnh cạnh nhau không cùng nhịp.
+// · Album: các dải băng chuyền .cg-marq (renderMarquee).
+const KB_KINDS = ["in", "out"];
+let _kbIO = null;
+
+function _fxScan() {
+  const card = document.getElementById("main-card");
+  if (!card) return;
+  if (!_kbIO && "IntersectionObserver" in window) {
+    _kbIO = new IntersectionObserver((entries) =>
+      entries.forEach((e) => e.target.classList.toggle("is-on", e.isIntersecting)),
+    );
+  }
+  const watch = (el) => (_kbIO ? _kbIO.observe(el) : el.classList.add("is-on"));
+
+  card.querySelectorAll(".cg-shot").forEach((el, i) => {
+    el.dataset.kb = KB_KINDS[i % KB_KINDS.length];
+    watch(el);
+  });
+  card.querySelectorAll(".cg-marq").forEach(watch);
+}
+
+// Đếm ngược tới giờ làm lễ; renderWedding chạy lại (xem trực tiếp) thì huỷ nhịp cũ.
+let _cdTimer = null;
+const _pad = (n) => String(n).padStart(2, "0");
+
+function _countdown(dateStr, timeStr) {
+  if (_cdTimer) clearInterval(_cdTimer);
+  _cdTimer = null;
+  const target = dateStr
+    ? new Date(`${dateStr}T${timeStr || "00:00"}:00`).getTime()
+    : NaN;
+  cxToggle("section-countdown", !isNaN(target));
+  if (isNaN(target)) return;
+
+  function tick() {
+    const left = Math.max(0, Math.floor((target - Date.now()) / 1000));
+    setText("cd-days", _pad(Math.floor(left / 86400)));
+    setText("cd-hours", _pad(Math.floor((left % 86400) / 3600)));
+    setText("cd-minutes", _pad(Math.floor((left % 3600) / 60)));
+    setText("cd-seconds", _pad(left % 60));
+    if (!left && _cdTimer) {
+      clearInterval(_cdTimer);
+      _cdTimer = null;
+    }
+  }
+  tick();
+  _cdTimer = setInterval(tick, 1000);
 }
 })();

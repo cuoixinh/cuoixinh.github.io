@@ -291,3 +291,702 @@ body {
     transition: none;
   }
 }
+
+/* ============= THÂN THIỆP KIỂU TẠP CHÍ ============= */
+/* Mỗi mục là .cg-sec, con trực tiếp của vùng nội dung (lề px-8 = 32px). Ảnh muốn
+   chạm mép thẻ thì kéo ra bằng lề âm 32px. */
+
+.cg-body {
+  gap: 64px;
+}
+
+/* .cg-sec / .cg-place khai display nên đè mất utility .hidden (cùng độ đặc hiệu,
+   nạp sau) — giữ lại quyền ẩn cho cxToggle. */
+.cg-sec.hidden,
+.cg-place.hidden {
+  display: none;
+}
+
+.cg-sec {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Chữ thân: sans mảnh, giãn rộng như bản in */
+.cg-small,
+.cg-kicker,
+.cg-quote-text,
+.cg-cd-unit,
+.cg-map-foot {
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 500;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cg-kicker {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.cg-small {
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+}
+
+/* Nhãn chữ trang trí — Cinzel giãn rộng, màu nhấn */
+.cg-tag {
+  font-family: "Cinzel", serif;
+  font-size: 20px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.cg-tag-end {
+  align-self: flex-end;
+  text-align: right;
+}
+
+/* --- Ảnh: khung + lệch trái/phải + cặp đôi --- */
+.cg-shot {
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.cg-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cg-pair {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cg-shot-tall {
+  aspect-ratio: 3 / 4;
+}
+
+.cg-family .cg-pair {
+  width: calc(100% + 32px);
+  margin: 0 -16px;
+}
+
+.cg-family .cg-shot {
+  border-radius: 16px;
+}
+
+/* --- Hai cột ngăn bằng vạch dọc (gia đình, ngày | giờ) --- */
+.cg-split {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.cg-split-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cg-split-rule {
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.cg-parent {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.cg-role {
+  margin-top: 12px;
+  padding-top: 12px;
+  width: 100%;
+  border-top: 1px solid rgb(var(--cx-line-rgb));
+  font-family: "Cormorant Garamond", serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cg-role-name {
+  font-family: "KattyDiona", cursive;
+  font-size: 28px;
+  line-height: 1.3;
+}
+
+/* --- Lời trích --- */
+.cg-quote-text {
+  font-size: 19px;
+  font-style: italic;
+  letter-spacing: 0.5px;
+  line-height: 1.7;
+  max-width: 320px;
+}
+
+/* --- Đếm ngược: 4 ô viền bo --- */
+.cg-cd {
+  display: grid;
+  grid-template-columns: repeat(4, 64px);
+  gap: 12px;
+  justify-content: center;
+}
+
+.cg-cd-cell {
+  height: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid rgb(var(--cx-accent-rgb));
+  border-radius: 12px;
+}
+
+.cg-cd-num {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cg-cd-unit {
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+/* --- Lễ cưới --- */
+.cg-names {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-family: "KattyDiona", cursive;
+  font-size: 36px;
+  line-height: 1.3;
+}
+
+.cg-amp {
+  font-size: 32px;
+}
+
+.cg-day {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 64px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.cg-time {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.cg-lunar {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-size: 17px;
+}
+
+.cg-place {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cg-place .cx-ic {
+  margin-top: 4px;
+}
+
+/* --- Tiệc: lịch kính mờ đè lên ảnh tràn viền --- */
+.cg-cal {
+  position: relative;
+  width: calc(100% + 64px);
+  margin: 0 -32px 12px;
+  min-height: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  overflow: hidden;
+}
+
+.cg-cal-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cg-cal-panel {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  padding: 20px 16px;
+  border-radius: 16px;
+  background: rgb(var(--cx-panel-rgb) / 0.72);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* Hàng thứ của lịch (markup do calendar-helper dựng bằng inline style) thành
+   dải pill màu nhấn. */
+.cg-cal-panel > div > div:nth-child(2) {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.cg-cal-panel > div > div:nth-child(2) > div {
+  color: rgb(var(--cx-on-accent-rgb)) !important;
+}
+
+/* --- Lịch trình: thực đơn gọn — một khung viền đôi, mỗi mốc một dòng giờ | việc --- */
+.cg-sched {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.6);
+  outline: 1px solid rgb(var(--cx-line-rgb));
+  outline-offset: -6px;
+  background: rgb(var(--cx-surface-rgb));
+  text-align: left;
+}
+
+.cg-sched-group + .cg-sched-group {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgb(var(--cx-line-rgb));
+}
+
+.cg-sched-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.cg-sched-name {
+  font-family: "KattyDiona", cursive;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.cg-sched-date {
+  flex-shrink: 0;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 500;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cg-sched-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cg-sched-item {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.cg-sched-item + .cg-sched-item {
+  border-top: 1px dotted rgb(var(--cx-accent-rgb) / 0.4);
+}
+
+.cg-sched-time {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.cg-sched-what {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+/* --- Chuyện tình yêu: chương so le --- */
+.cg-chapters {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.cg-ch {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cg-ch-left {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.cg-ch-right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.cg-ch-no {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 56px;
+  font-weight: 500;
+  font-style: italic;
+  line-height: 0.8;
+  opacity: 0.7;
+}
+
+.cg-ch-img {
+  width: calc(80% + 32px);
+  aspect-ratio: 4 / 3;
+  cursor: default;
+}
+
+.cg-ch-left .cg-ch-img {
+  margin-left: -32px;
+}
+
+.cg-ch-right .cg-ch-img {
+  margin-right: -32px;
+}
+
+.cg-ch-body {
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cg-ch-date {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cg-ch-title {
+  font-family: "KattyDiona", cursive;
+  font-size: 30px;
+  line-height: 1.3;
+}
+
+.cg-ch-text {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.7;
+}
+
+/* Vạch nối giữa hai chương */
+.cg-ch-link {
+  align-self: center;
+  width: 1px;
+  height: 56px;
+  margin: 24px 0;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+/* --- Album băng chuyền: dải tràn hai mép thẻ, track nhân đôi chạy -50% --- */
+.cg-gallery {
+  gap: 0;
+}
+
+.cg-marqs {
+  width: calc(100% + 64px);
+  margin: 0 -32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.cg-marq {
+  overflow: hidden;
+}
+
+/* Khoảng cách giữa ảnh là margin-right của TỪNG ảnh (không dùng gap): hai nửa
+   track phải dài đúng bằng nhau thì -50% mới khớp điểm đầu. */
+.cg-marq-track {
+  display: flex;
+  width: max-content;
+  animation: cx-cg-marq var(--marq-dur, 30s) linear infinite;
+  animation-play-state: paused;
+}
+
+.cg-marq.is-on .cg-marq-track {
+  animation-play-state: running;
+}
+
+/* Dải lẻ: trái → phải */
+.cg-marq[data-dir="a"] .cg-marq-track {
+  animation-direction: reverse;
+}
+
+.cg-marq-item {
+  flex-shrink: 0;
+  height: 240px;
+  aspect-ratio: 3 / 4;
+  margin-right: 12px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.cg-marq:nth-child(even) .cg-marq-item {
+  height: 200px;
+}
+
+.cg-marq-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes cx-cg-marq {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* --- Bản đồ --- */
+.cg-map-name {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.cg-map-card {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgb(var(--cx-line-rgb));
+  background: rgb(var(--cx-panel-rgb));
+  transition: transform 0.2s;
+}
+
+.cg-map-frame {
+  width: 100%;
+  height: 192px;
+}
+
+.cg-map-card:active {
+  transform: scale(0.98);
+}
+
+.cg-map-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+/* --- Xác nhận tham dự + nút --- */
+.cg-rsvp-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.cg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid rgb(var(--cx-accent-rgb));
+  font-family: "Cormorant Garamond", serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: rgb(var(--cx-heading-rgb));
+  background: rgb(var(--cx-panel-rgb));
+  transition: transform 0.2s;
+}
+
+.cg-btn:active {
+  transform: scale(0.95);
+}
+
+.cg-btn-fill {
+  border-color: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.cg-btn-sm {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+/* --- Hộp mừng cưới --- */
+.cg-qr {
+  width: 100%;
+  max-width: 180px;
+  padding: 12px;
+  border: 1px solid rgb(var(--cx-line-rgb));
+  background: rgb(var(--cx-panel-rgb));
+}
+
+/* --- Lời kết --- */
+.cg-footer {
+  padding-bottom: 32px;
+}
+
+.cg-foot-mark {
+  font-size: 32px;
+}
+
+.cg-foot-date {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.cg-foot-sign {
+  font-family: "KattyDiona", cursive;
+  font-size: 32px;
+  line-height: 1.3;
+}
+
+/* ============= ẢNH CHUYỂN ĐỘNG KIỂU SLIDESHOW (Ken Burns) ============= */
+/* .cg-shot (gia đình, chuyện tình): zoom nhẹ, kiểu do JS đặt ở data-kb, chỉ chạy khi
+   khung đang hiện (.is-on). Bìa / hero / nền lịch dùng nhịp mạnh hơn ở dưới. */
+
+.cg-shot img {
+  animation: 8s ease-in-out infinite alternate both;
+  animation-play-state: paused;
+}
+
+.cg-shot.is-on img {
+  animation-play-state: running;
+}
+
+[data-kb="in"] img {
+  animation-name: cx-cg-kb-soft-in;
+}
+
+[data-kb="out"] img {
+  animation-name: cx-cg-kb-soft-out;
+}
+
+/* Zoom nhẹ cho ảnh trong thân thiệp (gia đình, chuyện tình) */
+@keyframes cx-cg-kb-soft-in {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes cx-cg-kb-soft-out {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes cx-cg-kb-in {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1.28);
+  }
+}
+
+@keyframes cx-cg-kb-out {
+  from {
+    transform: scale(1.28);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes cx-cg-kb-corner {
+  from {
+    transform: scale(1.04) translate(0, 0);
+  }
+  to {
+    transform: scale(1.25) translate(-6%, -6%);
+  }
+}
+
+/* Nền lịch: cùng kiểu, chậm hơn, chạy thường trực */
+.cg-cal-img {
+  animation: cx-cg-kb-corner 10s ease-in-out infinite alternate;
+}
+
+/* Màn bìa phóng dần vào; hero (cùng ảnh, hiện ra sau khi mở bìa) bắt đầu ở mức
+   phóng rồi thu dần ra — chỗ nối hai màn đã có nhịp mờ của bìa che. */
+.bg-cov-img {
+  animation: cx-cg-kb-in 9s ease-in-out infinite alternate;
+}
+
+.cx-hero-img {
+  animation: cx-cg-kb-out 9s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cg-shot img,
+  .cg-marq-track,
+  .cg-cal-img,
+  .bg-cov-img,
+  .cx-hero-img {
+    animation: none;
+  }
+}
