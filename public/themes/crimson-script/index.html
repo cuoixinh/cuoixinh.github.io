@@ -36,18 +36,62 @@
     <script src="../../../core/helpers/no-zoom.js"></script>
   </head>
 
-  <!-- Crimson Script — thiệp KHÔNG có màn bìa, mở thẳng vào trang dài nền trắng:
+  <!-- Crimson Script — màn bìa "phong thư niêm sáp" rồi tới trang dài nền trắng:
        tiêu đề serif đỏ in hoa + chữ ký tay, ảnh xếp lệch trái/phải. Ảnh trang trí
-       <img data-cs-g="N"> nhận ảnh thứ N của album (index.js). -->
+       <img data-cs-g="N"> nhận ảnh thứ N của album (index.js). Ảnh màn đầu là
+       #cover-bg-img (high); #main-photo không lazy vì #main-card còn display:none. -->
   <body class="cx-screen-h flex justify-center items-start md:py-5">
     <div id="cx-music-mount"></div>
+
+    <!-- ═══ MÀN BÌA: phong thư niêm sáp — ảnh bìa + tên vàng viết tay, con dấu sáp
+         đỏ khắc chữ lồng đè mép dưới ảnh CHÍNH LÀ nút mở thiệp. ═══ -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center">
+      <div class="cs-cv cx-screen-h">
+        <div class="cs-cv-caps">Wedding Invitation</div>
+
+        <div class="cs-cv-photo">
+          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="cs-ph" alt="" fetchpriority="high" />
+          <div class="cs-cv-names">
+            <span id="cover-groom-name">----------</span>
+            <span class="cs-cv-amp">&amp;</span>
+            <span id="cover-bride-name">----------</span>
+          </div>
+          <div class="cs-seal-shadow"></div>
+          <x-button variant="bare" onclick="openInvitation()" aria-label="Mở thiệp" class="open-btn cs-seal touch-manipulation [-webkit-tap-highlight-color:transparent]">
+            <span class="cs-seal-mono" id="cs-seal-mono">&amp;</span>
+          </x-button>
+        </div>
+        <div class="cs-cv-hint">Chạm con dấu để mở thiệp</div>
+
+        <!-- Lời mời + tên khách: helper điền theo ?name=; link chung thì ẩn cả khối
+             (theme.css). -->
+        <div id="cover-guest-wrap" class="cs-cv-guest">
+          <span data-cx-invite class="cs-label">Trân trọng kính mời</span>
+          <span id="cover-guest-name" class="cs-guest">----------</span>
+        </div>
+
+        <div class="cs-cv-date" id="cs-cover-date">--.--.----</div>
+
+        <!-- Sợi tơ hồng ở chân bìa: MỘT nét liền lượn ngang, thắt một vòng nút ở giữa —
+             cùng sợi chỉ đỏ của Love Story/Album/lịch trình. Màu = currentColor (token
+             nhấn); pathLength="1" để CSS vẽ dần từ trái sang phải. -->
+        <svg class="cs-cv-flourish" viewBox="0 0 240 40" fill="none" aria-hidden="true">
+          <path
+            class="cs-fl-line"
+            pathLength="1"
+            d="M4 24C40 24 62 15 92 20S114 29 120 22C126 14 116 7 110 13C104 20 112 29 124 25C134 22 146 17 168 19S212 25 236 21"
+          />
+        </svg>
+      </div>
+    </div>
 
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      style="display: none"
     >
       <div class="flex flex-col gap-20 pt-6 pb-16">
-        <!-- ═══ Mở đầu: WEDDING + "Invitation" + ảnh ngang + hàng lễ · tên · ngày ═══ -->
+        <!-- ═══ Mở đầu: WEDDING + "Invitation" + ảnh ngang + tên lễ kẹp hai vạch ═══ -->
         <section id="section-hero" class="flex flex-col gap-6">
           <div class="flex flex-col gap-2 px-4">
             <h1 class="cs-wedding">Wedding</h1>
@@ -59,22 +103,14 @@
           </div>
           <div class="flex flex-col gap-4">
             <div class="px-3">
-              <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="cs-ph cs-ph-land" alt="Ảnh cưới" fetchpriority="high" />
+              <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="cs-ph cs-ph-land" alt="Ảnh cưới" />
             </div>
-            <div class="cs-meta">
-              <span id="cs-hero-event">Lễ Thành Hôn</span>
-              <span class="cs-meta-names"><span id="couple-names-bride">----------</span> &amp; <span id="couple-names-groom">----------</span></span>
-              <span id="cs-hero-date">--.--.----</span>
-            </div>
+            <!-- Chỉ tên lễ: tên đôi + ngày đã ở màn bìa ngay trước đó. -->
+            <div class="cs-meta"><span id="cs-hero-event">Lễ Thành Hôn</span></div>
           </div>
           <div class="flex flex-col gap-4 px-5 text-left">
-            <div class="cs-en">When I met you I knew would forever be by your side<br />-- forever your partner and forever your love.</div>
+            <div class="cs-en">When I met you, I knew I would forever be by your side<br />-- forever your partner and forever your love.</div>
             <div class="cs-poem cx-t">Khi gặp em, anh biết mình sẽ mãi ở bên em<br />-- mãi là người bạn đời, mãi là người em thương</div>
-          </div>
-          <!-- Tên khách của link mời (helper điền #cover-guest-name); chỉ hiện khi link có ?name=. -->
-          <div id="cs-guest" class="hidden flex-col items-center gap-2 px-6 text-center">
-            <span data-cx-invite class="cs-label">Trân trọng kính mời</span>
-            <span id="cover-guest-name" class="cs-guest">----------</span>
           </div>
         </section>
 
@@ -82,9 +118,9 @@
         <section id="section-story" class="flex flex-col gap-12">
           <div class="cs-hero">
             <div class="cs-hero-poem">
-              <div class="cs-stanza"><span class="cs-stanza-a">Gặp nhau</span><span class="cs-stanza-b cx-t">giữa bao người lạ</span></div>
-              <div class="cs-stanza"><span class="cs-stanza-a">Thương nhau</span><span class="cs-stanza-b cx-t">từ một ánh nhìn</span></div>
-              <div class="cs-stanza"><span class="cs-stanza-a">Nắm tay nhau</span><span class="cs-stanza-b cx-t">về chung một nhà</span></div>
+              <div class="cs-stanza"><span class="cs-stanza-a">Gặp gỡ</span><span class="cs-stanza-b cx-t">giữa muôn người xa lạ</span></div>
+              <div class="cs-stanza"><span class="cs-stanza-a">Thương nhớ</span><span class="cs-stanza-b cx-t">từ một ánh nhìn</span></div>
+              <div class="cs-stanza"><span class="cs-stanza-a">Chung đôi</span><span class="cs-stanza-b cx-t">về chung một mái nhà</span></div>
             </div>
             <div class="cs-vrail"><div class="cs-vtitle">Love Story</div></div>
             <div class="cs-hero-photo">
@@ -92,13 +128,8 @@
             </div>
           </div>
 
-          <div class="flex flex-col items-center gap-8 px-6 text-center">
-            <div id="story-quote" class="cs-quote">"Cảm ơn bạn đã dành một ngày thật quý để chung vui cùng chúng mình"</div>
-            <div class="cs-quote">
-              Sự có mặt của bạn<br />
-              là món quà ý nghĩa nhất trong ngày vui này
-            </div>
-          </div>
+          <!-- Lời trích lấy từ dữ liệu (story_quote); không có thì ẩn hẳn. -->
+          <div id="story-quote" class="cs-quote hidden px-6 text-center"></div>
         </section>
 
         <!-- ═══ About us: ảnh lớn + "Forever love" + thơ ═══ -->
@@ -161,17 +192,40 @@
             <div class="cs-sub cx-t">“ Về hôn lễ ”</div>
           </div>
           <div id="cs-calendar" class="cs-cal"></div>
-          <div class="flex flex-col gap-2 px-6">
-            <div class="cs-date-line"><span id="ceremony-event-name">Lễ Thành Hôn</span> · <span id="cs-cer-time">--:--</span></div>
-            <div class="cs-date-line" id="cs-cer-date">--------------------</div>
-            <div class="cs-date-sub cx-t" id="cs-cer-lunar"></div>
-            <div class="cs-date-sub cx-t hidden" id="cs-cer-loc"></div>
-          </div>
-          <div id="section-party" class="flex flex-col gap-2 px-6">
-            <div class="cs-label" id="party-section-label">Tiệc mừng</div>
-            <div class="cs-date-line" id="cs-party-when">--------------------</div>
-            <div class="cs-date-sub cx-t" id="cs-party-lunar"></div>
-            <div class="cs-date-sub cx-t" id="cs-party-loc"></div>
+          <!-- Lịch trình: mỗi sự kiện một hàng — giờ Cinzel đỏ | sợi chỉ | tên viết tay
+               + ngày + âm lịch + nơi. Tiệc là hàng thứ hai (enable_party); cùng nơi
+               với lễ thì địa chỉ dồn xuống #cs-sched-loc. Hai hàng xếp theo giờ diễn
+               ra bằng flex `order` (index.js), không dời thẻ trong DOM. -->
+          <div class="cs-sched">
+            <div id="cs-ev-cer" class="cs-ev">
+              <div class="cs-ev-when">
+                <div class="cs-ev-time" id="cs-cer-time">--:--</div>
+                <div class="cs-ev-wd" id="cs-cer-wd"></div>
+              </div>
+              <div class="cs-ev-body">
+                <div class="cs-ev-name" id="ceremony-event-name">Lễ Thành Hôn</div>
+                <div class="cs-ev-date" id="cs-cer-date">--.--.----</div>
+                <div class="cs-ev-sub cx-t" id="cs-cer-lunar"></div>
+                <div class="cs-ev-loc cx-t hidden" id="cs-cer-loc"></div>
+              </div>
+            </div>
+            <div id="section-party" class="cs-ev">
+              <div class="cs-ev-when">
+                <div class="cs-ev-time" id="cs-party-time">--:--</div>
+                <div class="cs-ev-wd" id="cs-party-wd"></div>
+              </div>
+              <div class="cs-ev-body">
+                <div class="cs-ev-name" id="party-section-label">Tiệc mừng</div>
+                <div class="cs-ev-date" id="cs-party-date">--.--.----</div>
+                <div class="cs-ev-sub cx-t" id="cs-party-lunar"></div>
+                <div class="cs-ev-loc cx-t" id="cs-party-loc"></div>
+              </div>
+            </div>
+            <!-- Lễ và tiệc cùng một nơi: địa chỉ ghi chung một lần ở đây (index.js). -->
+            <div id="cs-sched-loc" class="cs-sched-loc hidden">
+              <i data-lucide="map-pin" class="cx-ic"></i>
+              <span class="cx-t" id="cs-sched-loc-text"></span>
+            </div>
           </div>
         </section>
 
@@ -183,10 +237,16 @@
         </section>
 
         <!-- ═══ Địa điểm: #map-location-name + #map-link phải đứng CUỐI mục ═══ -->
-        <section id="section-map" class="flex flex-col items-center gap-8 px-10 text-center">
+        <section id="section-map" class="flex flex-col items-center gap-8 px-8 text-center">
+          <div class="flex flex-col items-center gap-4">
+            <h2 class="cs-display">Location</h2>
+            <div class="cs-sub cx-t">“ Về địa điểm ”</div>
+          </div>
+          <!-- Tên nơi + thẻ bản đồ phải đứng CUỐI mục: renderVenueMaps nhân cặp này thành
+               bản đồ thứ hai khi lễ và tiệc ở hai nơi (id đuôi -2). -->
           <div class="cs-venue" id="map-location-name">------------------------</div>
-          <a id="map-link" href="#" target="_blank" class="cs-map w-full relative block active:scale-[0.98] transition-transform">
-            <div class="w-full h-48 relative overflow-hidden">
+          <a id="map-link" href="#" target="_blank" class="cs-map w-full block">
+            <div class="cs-map-frame">
               <iframe
                 id="map-thumbnail-iframe"
                 src=""
@@ -200,8 +260,11 @@
                 <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
                 <span class="cx-t text-[11px] uppercase tracking-[2px]">Chưa có bản đồ</span>
               </div>
-              <!-- Nút dẫn đường: index.js chặn cú bấm, mở trang chỉ đường thay cho link xem bản đồ. -->
-              <span class="cs-map-nav" data-cs-dir aria-label="Chỉ đường"><i data-lucide="navigation" style="width:20px;height:20px"></i></span>
+            </div>
+            <!-- Cả thẻ mở bản đồ; riêng nút đỏ (data-cs-dir) index.js chặn lại, mở trang chỉ đường. -->
+            <div class="cs-map-bar">
+              <span class="cs-map-open"><i data-lucide="map-pin" style="width:14px;height:14px"></i>Xem bản đồ</span>
+              <span class="cs-map-dir" data-cs-dir><i data-lucide="navigation" style="width:14px;height:14px"></i>Chỉ đường</span>
             </div>
           </a>
         </section>
@@ -220,8 +283,6 @@
             <a id="cs-groom-call" class="cs-call"><i data-lucide="phone" class="cx-ic"></i><span>Chú rể</span></a>
             <a id="cs-bride-call" class="cs-call"><i data-lucide="phone" class="cx-ic"></i><span>Cô dâu</span></a>
           </div>
-          <div class="cs-en px-6">Stars are love letters from the Milky way to the Moon<br />you are a gift from the world to me.</div>
-          <div class="cs-poem cx-t px-6">Cảm ơn đời đã cho mình gặp nhau,<br />để cùng đi hết quãng đường phía trước</div>
         </section>
 
         <!-- ═══ Xác nhận tham dự (rsvp_enabled) ═══ -->

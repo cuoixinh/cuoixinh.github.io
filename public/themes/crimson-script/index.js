@@ -1,4 +1,4 @@
-// Crimson Script — thiệp không màn bìa, trang dài nền trắng: tiêu đề serif đỏ + chữ ký tay.
+// Crimson Script — màn bìa phong thư niêm sáp, trang dài nền trắng: tiêu đề serif đỏ + chữ ký tay.
 // Chỉ khai báo CX_THEME + renderWedding; phần chạy nằm ở core/helpers/theme-boot.js.
 
 (function () {
@@ -62,9 +62,12 @@
     const side = _isGroom ? "groom" : "bride";
 
     // Ảnh màn đầu nhận src TRƯỚC setupMusic (YouTube API đi sau).
+    renderCover(w);
+    setText("cs-cover-date", _fmtDMY(w.ceremony_date), "--.--.----");
+    setText("cs-seal-mono", _monogram(w.groom_name, w.bride_name), "&");
     renderHero(w, false);
-    setText("cs-hero-date", _fmtDMY(w.ceremony_date), "--.--.----");
-    if (w.story_quote) setText("story-quote", `"${w.story_quote}"`);
+    setText("story-quote", w.story_quote ? `"${w.story_quote}"` : "");
+    cxToggle("story-quote", !!w.story_quote);
 
     setupMusic(w.music_url, w.enable_music);
 
@@ -83,10 +86,11 @@
     setText("ceremony-event-name", ceremonyName);
     setText("cs-hero-event", ceremonyName);
     setText("cs-cer-time", ceremonyTime, "--:--");
-    setText("cs-cer-date", _fmtLong(w.ceremony_date), "--------------------");
+    setText("cs-cer-wd", _weekday(w.ceremony_date));
+    setText("cs-cer-date", _fmtDMY(w.ceremony_date), "--.--.----");
     setText("cs-cer-lunar", w.ceremony_lunar ? `Âm lịch: ${w.ceremony_lunar}` : "");
+    cxToggle("cs-cer-lunar", !!w.ceremony_lunar);
     setText("cs-cer-loc", ceremonyLoc);
-    cxToggle("cs-cer-loc", !!ceremonyLoc);
 
     renderMusicSummary(w, { ceremonyName, ceremonyTime, ceremonyLocation: ceremonyLoc });
 
@@ -94,15 +98,35 @@
     const partyDate = w[`${side}_party_date`];
     const partyTime = w[`${side}_party_time`];
     const partyLunar = w[`${side}_party_lunar`];
-    setText("party-section-label", "Tiệc mừng " + ceremonyName.toLowerCase());
-    setText(
-      "cs-party-when",
-      [partyTime, _fmtLong(partyDate)].filter(Boolean).join(" · "),
-      "--------------------",
-    );
+    // Tên viết tay đứng trong cột hẹp → chỉ "Tiệc mừng", không kéo dài theo tên lễ.
+    setText("party-section-label", "Tiệc mừng");
+    setText("cs-party-time", partyTime, "--:--");
+    setText("cs-party-wd", _weekday(partyDate));
+    setText("cs-party-date", _fmtDMY(partyDate), "--.--.----");
     setText("cs-party-lunar", partyLunar ? `Âm lịch: ${partyLunar}` : "");
-    setText("cs-party-loc", w[`${side}_party_location`]);
-    cxToggle("section-party", cxEnabled(w.enable_party));
+    const partyLoc = w[`${side}_party_location`] || "";
+    const partyOn = cxEnabled(w.enable_party);
+    setText("cs-party-loc", partyLoc);
+    cxToggle("cs-party-lunar", !!partyLunar);
+
+    // Lễ và tiệc CÙNG một nơi → ghi địa chỉ một lần ở đáy bảng lịch trình thay vì
+    // lặp ở cả hai hàng; khác nơi (hoặc tắt tiệc) thì mỗi hàng giữ địa chỉ riêng.
+    const norm = (v) => String(v).trim().toLowerCase().replace(/\s+/g, " ");
+    const sharedLoc = partyOn && ceremonyLoc && norm(ceremonyLoc) === norm(partyLoc);
+    setText("cs-sched-loc-text", sharedLoc ? ceremonyLoc : "");
+    cxToggle("cs-sched-loc", !!sharedLoc);
+    cxToggle("cs-cer-loc", !!ceremonyLoc && !sharedLoc);
+    cxToggle("cs-party-loc", !!partyLoc && !sharedLoc);
+
+    // Xếp hai hàng theo thời gian diễn ra: tiệc trước lễ thì tiệc lên trên. Thiếu
+    // ngày/giờ một bên thì giữ thứ tự mặc định (lễ trước).
+    const at = (d, t) => (d ? Date.parse(`${d}T${t || "00:00"}`) || 0 : 0);
+    const cerAt = at(w.ceremony_date, ceremonyTime);
+    const partyAt = at(partyDate, partyTime);
+    const partyFirst = partyOn && cerAt && partyAt && partyAt < cerAt;
+    document.getElementById("cs-ev-cer")?.classList.toggle("is-later", !!partyFirst);
+    document.getElementById("section-party")?.classList.toggle("is-later", !partyFirst);
+    cxToggle("section-party", partyOn);
 
     _renderCalendar(w.ceremony_date || partyDate, [w.ceremony_date, partyDate]);
 
@@ -136,17 +160,6 @@
   }
 
   window.renderWedding = renderWedding;
-
-  // Tên khách của link mời: helper chung điền #cover-guest-name, khối chỉ hiện khi link có ?name=.
-  if (
-    new URLSearchParams(location.search).has("name") &&
-    !(typeof isPreviewMode === "function" && isPreviewMode())
-  ) {
-    // cxToggle nằm ở theme-boot.js (nạp SAU file này) → gỡ class trực tiếp.
-    const g = document.getElementById("cs-guest");
-    g?.classList.remove("hidden");
-    g?.classList.add("flex");
-  }
 
   // ============= ẢNH TRANG TRÍ =============
   // <img data-cs-g="N"> nhận ảnh thứ N của album (quay vòng khi album ít ảnh); album rỗng
@@ -246,13 +259,28 @@
     return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
   }
 
-  // "2026-05-20" → "Thứ Tư, 20.05.2026"; rỗng nếu không phân giải được.
-  function _fmtLong(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "";
-    const pad = (n) => String(n).padStart(2, "0");
-    return `${WD[d.getDay()]}, ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+  // "2026-05-20" → "Thứ Tư"; rỗng nếu không phân giải được.
+  function _weekday(dateStr) {
+    const d = dateStr ? new Date(dateStr) : null;
+    return d && !isNaN(d.getTime()) ? WD[d.getDay()] : "";
+  }
+
+  // Chữ lồng trên con dấu sáp: chữ cái đầu của TÊN GỌI (từ cuối) — "Minh Quân" → "Q".
+  function _monogram(groom, bride) {
+    // Bỏ dấu: Cinzel không có glyph tiếng Việt, "Á"/"Ư" sẽ rơi sang font dự phòng.
+    const ini = (n) =>
+      String(n || "")
+        .trim()
+        .split(/\s+/)
+        .pop()
+        .charAt(0)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/gi, "D")
+        .toUpperCase();
+    const g = ini(groom);
+    const b = ini(bride);
+    return g && b ? `${g}&${b}` : "";
   }
 
   // ============= LỊCH: "Tháng MM  –YYYY–", tuần bắt đầu Thứ Hai, tim khoanh ngày đánh dấu =============
