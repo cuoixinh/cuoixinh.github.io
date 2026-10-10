@@ -288,6 +288,10 @@ function decryptData(encryptedText) {
 
 // ============= PREVIEW MODE HELPERS =============
 
+// Khách giả lập của nút "Xem với tư cách khách mời" ở bản xem thử mẫu (menu
+// khung máy ở theme-boot.js + bảng gợi ý cuối thiệp).
+const CX_DEMO_GUEST = { name: "Nguyễn Văn An", rel: "Anh" };
+
 function isPreviewMode() {
   return window.location.search.includes("preview=true");
 }
@@ -658,6 +662,125 @@ function applyCrop() {
   );
 }
 
+// ============= CẮT ẢNH THEO TỈ LỆ =============
+
+// Tỉ lệ khung cắt chọn được; `r: NaN` = tự do (Cropper.js hiểu NaN là không khoá),
+// `r: 0` = tỉ lệ gốc của ảnh. Mục đầu là mặc định.
+const CX_CROP_RATIOS = [
+  { id: "free", label: "Tự do", icon: "crop", r: NaN },
+  { id: "orig", label: "Gốc", icon: "image", r: 0 },
+  { id: "1-1", label: "Vuông", icon: "square", r: 1 },
+  { id: "16-9", label: "16:9", icon: "rectangle-horizontal", r: 16 / 9 },
+  { id: "9-16", label: "9:16", icon: "rectangle-vertical", r: 9 / 16 },
+];
+
+/**
+ * Bảng cắt ảnh (cần Cropper.js): khung theo tỉ lệ chọn ở dải trên, mặc định tự do. Xuất đúng số điểm ảnh của vùng cắt, giữ định dạng gốc; `done(File)` khi Áp dụng.
+ */
+function openRatioCropSheet(blob, done) {
+  let cropper = null;
+  const url = URL.createObjectURL(blob);
+  const sheet = openBottomSheet({
+    id: "ratio-crop-modal",
+    title: "Cắt ảnh",
+    height: "85vh",
+    onClose: () => {
+      cropper?.destroy();
+      URL.revokeObjectURL(url);
+    },
+  });
+  if (!sheet) return;
+
+  sheet.body.innerHTML = `
+    <div class="p-4 sm:p-5 flex-1 flex flex-col min-h-0 gap-3">
+      <!-- Icon trên chữ dưới để 5 mục vừa bề ngang màn điện thoại (flex-direction inline:
+           .cx-seg-btn đã khai inline-flex hàng ngang trong CSS thủ công). -->
+      <div id="rc-seg" class="cx-seg flex-shrink-0 w-full max-w-[420px] mx-auto" style="--n:${CX_CROP_RATIOS.length};--i:0">
+        ${CX_CROP_RATIOS.map(
+          (o, i) => `<button type="button" class="cx-seg-btn${i ? "" : " is-on"}" data-rc="${i}" style="flex-direction:column;gap:2px;padding:6px 4px">
+            <i data-lucide="${o.icon}" style="width:18px;height:18px"></i><span class="text-[11px] leading-tight whitespace-nowrap">${o.label}</span>
+          </button>`,
+        ).join("")}
+      </div>
+      <div class="bg-gray-100 rounded-xl overflow-hidden flex-1 min-h-0">
+        <img id="rc-img" alt="" class="block max-w-full" />
+      </div>
+      <p id="rc-info" class="text-xs text-gray-500 text-center flex-shrink-0">Kéo góc khung để thu vùng cắt, kéo ảnh để di chuyển</p>
+    </div>`;
+  sheet.footer.innerHTML = `
+    <div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between gap-2">
+      <x-button variant="ghost" tone="neutral" id="rc-reset" icon="rotate-ccw">Đặt lại</x-button>
+      <div class="flex gap-2">
+        <x-button variant="outline" tone="neutral" id="rc-cancel">Hủy</x-button>
+        <x-button id="rc-apply" icon="check">Áp dụng</x-button>
+      </div>
+    </div>`;
+  window.lucide?.createIcons({ root: sheet.body });
+  window.lucide?.createIcons({ root: sheet.footer });
+
+  const img = document.getElementById("rc-img");
+  const info = document.getElementById("rc-info");
+  const seg = document.getElementById("rc-seg");
+  let natural = NaN;
+
+  seg.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-rc]");
+    if (!btn || !cropper) return;
+    const i = +btn.dataset.rc;
+    seg.style.setProperty("--i", i);
+    seg.querySelectorAll("[data-rc]").forEach((b) => b.classList.toggle("is-on", b === btn));
+    const r = CX_CROP_RATIOS[i].r;
+    cropper.setAspectRatio(r === 0 ? natural : r);
+  });
+
+  img.onload = () => {
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    natural = w / h;
+    cropper = new Cropper(img, {
+      aspectRatio: CX_CROP_RATIOS[0].r,
+      viewMode: 1,
+      dragMode: "move",
+      autoCropArea: 1,
+      restore: false,
+      guides: true,
+      center: true,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
+      crop: (e) => {
+        info.textContent = `Gốc ${w}×${h} → cắt ${Math.round(e.detail.width)}×${Math.round(e.detail.height)} px`;
+      },
+    });
+  };
+  img.src = url;
+
+  document.getElementById("rc-reset").onclick = () => cropper?.reset();
+  document.getElementById("rc-cancel").onclick = () => sheet.close();
+  document.getElementById("rc-apply").onclick = () => {
+    if (!cropper) return;
+    const type = /^image\/(png|webp|jpeg)$/.test(blob.type) ? blob.type : "image/jpeg";
+    const canvas = cropper.getCroppedCanvas({
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: "high",
+    });
+    canvas.toBlob(
+      (out) => {
+        if (!out) {
+          window.showToast?.("Không cắt được ảnh", "error");
+          return;
+        }
+        const base = (blob.name || "image").replace(/\.[^.]+$/, "");
+        const ext = type.split("/")[1].replace("jpeg", "jpg");
+        done(new File([out], `${base}-crop.${ext}`, { type }));
+        sheet.close();
+      },
+      type,
+      0.92,
+    );
+  };
+}
+
 // ============= FOCAL POINT PICKER =============
 
 /**
@@ -668,8 +791,13 @@ function applyCrop() {
  * `[{ label, w, h, mask }]`, `mask` là giá trị mask-image CSS (bỏ trống thì
  * không che). Dùng khi ảnh có một chỗ dùng cụ thể và cần xem đúng chỗ đó ở mọi
  * khổ màn (tab "Ảnh nền" của admin).
+ *
+ * `opts.crop: true` bật nút "Cắt ảnh" (openRatioCropSheet): cắt xong ảnh trong bảng đổi theo,
+ * điểm nhìn về giữa, và callback nhận thêm tham số thứ hai là ảnh đã cắt (null nếu không cắt).
  */
-function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, frames) {
+function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, frames, opts = {}) {
+  let cropped = null;
+  let croppedUrl = null;
   const focal = {
     x: currentFocal?.x ?? 50,
     y: currentFocal?.y ?? 50,
@@ -684,6 +812,8 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
       window._focalPickerReset = null;
       window._closeFocalSheet = null;
       window._focalPickerValue = null;
+      window._focalPickerCropped = null;
+      if (croppedUrl) URL.revokeObjectURL(croppedUrl);
     },
   });
   if (!sheet) return;
@@ -774,7 +904,11 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
           <img id="focal-image" src="" alt="" class="w-full h-full object-contain block pointer-events-none select-none" draggable="false" />
           <div id="focal-marker" class="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-lg pointer-events-none" style="left:50%;top:50%;background-color:rgb(var(--brand-primary-rgb));"></div>
         </div>
-        <p class="text-xs text-gray-500 flex-shrink-0">${hintText}</p>
+        <!-- "Cắt ảnh" đứng cạnh dòng gợi ý chứ không ở chân bảng: thêm nút thứ 4 vào chân là tràn trên điện thoại. -->
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <p class="text-xs text-gray-500 flex-1 min-w-0">${hintText}</p>
+          ${opts.crop ? `<x-button variant="soft" size="sm" id="focal-crop-btn" icon="crop" class="shrink-0">Cắt ảnh</x-button>` : ""}
+        </div>
       </div>
       ${previewSection}
     </div>
@@ -793,10 +927,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
   }
   sheet.footer.innerHTML = `
     <div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between gap-2">
-      <x-button variant="soft" onclick="resetFocalPoint()" class="text-sky-700">
-        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        Đặt lại
-      </x-button>
+      <x-button variant="ghost" tone="neutral" icon="rotate-ccw" onclick="resetFocalPoint()">Đặt lại</x-button>
       <div class="flex gap-2">
         <x-button variant="outline" tone="neutral" onclick="closeFocalPointPicker()">Hủy</x-button>
         <x-button onclick="confirmFocalPoint()">
@@ -908,6 +1039,25 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
     reader.readAsDataURL(imageSource);
   }
 
+  const cropBtn = document.getElementById("focal-crop-btn");
+  if (cropBtn) {
+    window.lucide?.createIcons({ root: cropBtn });
+    cropBtn.onclick = async () => {
+      const src = cropped || (typeof imageSource === "string"
+        ? await (await fetch(imageSource)).blob()
+        : imageSource);
+      openRatioCropSheet(src, (file) => {
+        if (croppedUrl) URL.revokeObjectURL(croppedUrl);
+        cropped = file;
+        croppedUrl = URL.createObjectURL(file);
+        window._focalPickerCropped = file;
+        focal.x = 50;
+        focal.y = 50;
+        setImageSrc(croppedUrl);
+      });
+    };
+  }
+
   window._focalPickerCallback = callback;
   window._focalPickerReset = () => {
     focal.x = 50;
@@ -940,8 +1090,9 @@ function confirmFocalPoint() {
   // Use image-space values stored by applyToUI (marker.style is wrap-space after letterbox correction)
   const v = window._focalPickerValue || { x: 50, y: 50 };
   const callback = window._focalPickerCallback;
+  const cropped = window._focalPickerCropped || null;
   closeFocalPointPicker();
-  callback({ x: v.x, y: v.y });
+  callback({ x: v.x, y: v.y }, cropped);
 }
 
 // Giây bắt đầu phát của nhạc nền nằm NGAY trong music_url (tham số `t`/`start`
@@ -1159,6 +1310,7 @@ function closeTimePicker() {
       if (d.type === "cx-sug-go" && typeof d.url === "string") {
         if (/^\/(?!\/)/.test(d.url)) window.location.href = d.url;
       } else if (d.type === "cx-sug-use") _chooseTheme(d.theme, d.display);
+      else if (d.type === "cx-sug-guest") window._cxShellGuestToggle?.();
     });
   }
 
@@ -1179,15 +1331,33 @@ function closeTimePicker() {
     _chooseTheme(theme, display);
   }
 
-  // Ba lối ra ở đáy bảng, dồn vào giữa: "Dùng mẫu này" là pill hồng đặc ở giữa
-  // — nút hồng đặc DUY NHẤT của cả lớp phủ — hai bên là nút TRÒN chỉ có icon
-  // kèm nhãn nhỏ bên dưới (xem .cx-sug-tile).
+  // "Xem với tư cách khách mời": nạp lại thiệp với ?guest=&rel= (wedding-helper
+  // giả lập link riêng, không ghi DB). Trong khung máy thì nhờ trang ngoài đổi
+  // (_cxShellGuestToggle ở theme-boot.js) để mục menu ba chấm cùng một trạng thái.
+  const GUEST_ON = params.has("guest");
+
+  function _guest() {
+    if (IN_SHELL) return parent.postMessage({ type: "cx-sug-guest" }, "*");
+    const q = new URLSearchParams(window.location.search);
+    if (GUEST_ON) {
+      q.delete("guest");
+      q.delete("rel");
+    } else {
+      q.set("guest", CX_DEMO_GUEST.name);
+      q.set("rel", CX_DEMO_GUEST.rel);
+    }
+    window.location.replace(window.location.pathname + "?" + q);
+  }
+
+  // "Dùng ngay" (primary) đứng cạnh câu hỏi "Bạn có thích mẫu này không?"
+  // ở đầu bảng — nút đặc DUY NHẤT của lớp phủ; hai lối phụ nằm chung thanh kính
+  // chia đôi ở đáy (.cx-sug-sec).
   // `go` = đường dẫn nội bộ; nút `primary` tạo nháp bằng mẫu ĐANG XEM.
   const SUG_ACTS = [
     { id: "sug-home", label: "Trang chủ", icon: "home", go: "/" },
     {
       id: "sug-use",
-      label: "Dùng mẫu này",
+      label: "Dùng ngay",
       icon: "play",
       aria: "Tạo thiệp với mẫu này",
       primary: true,
@@ -1222,6 +1392,8 @@ function closeTimePicker() {
     eye:
       '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>' +
       '<circle cx="12" cy="12" r="3"/>',
+    // user-round: nút "Xem với tư cách khách mời".
+    guest: '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
     // eye-off: nút "Ẩn" ở góc trên phải, đúng glyph YouTube dùng cho việc tắt
     // màn đề xuất.
     hide:
@@ -1256,6 +1428,34 @@ function closeTimePicker() {
     });
   }
 
+  function _sugTile(it) {
+    return (
+      '<x-button variant="bare" class="cx-sug-tile' +
+      (it.primary ? " is-primary" : "") + '" id="' + it.id + '"' +
+      (it.aria ? ' aria-label="' + it.aria + '"' : "") + ">" +
+      '<span class="cx-sug-ico">' + _sugIcon(it.icon, 16) + "</span>" +
+      '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
+      "</x-button>"
+    );
+  }
+
+  // Khung chờ của dãy thẻ — cùng khổ thẻ thật nên lúc thay không xô bảng.
+  function _skelCards() {
+    let html = "";
+    for (let i = 0; i < 3; i++) {
+      html +=
+        '<div class="cx-sug-card is-skel" aria-hidden="true">' +
+        '<span class="cx-sug-skel-img"></span>' +
+        '<span class="cx-sug-info">' +
+        '<span class="cx-sug-skel-line is-long"></span>' +
+        '<span class="cx-sug-skel-line"></span>' +
+        '<span class="cx-sug-skel-line is-short"></span>' +
+        '<span class="cx-sug-skel-btn"></span>' +
+        "</span></div>";
+    }
+    return html;
+  }
+
   const panel = document.createElement("div");
   panel.id = "preview-suggest";
   panel.className = "cx-sug";
@@ -1264,44 +1464,68 @@ function closeTimePicker() {
   panel.setAttribute("data-no-scan", "");
   panel.setAttribute("role", "region");
   panel.setAttribute("aria-label", "Gợi ý mẫu thiệp khác");
-  // .cx-sug-in đỡ dải nền tối ôm SÁT khối nội dung (cao bao nhiêu cũng vậy),
-  // nên tiêu đề luôn nằm trên nền đủ tối dù màn cao hay thấp.
+  // Phủ TRỌN màn, ba tầng: hỏi về mẫu đang xem (kèm nút Dùng) · dãy mẫu khác ·
+  // lối phụ ở đáy. .cx-sug-in tự cuộn dọc khi màn quá thấp.
   panel.innerHTML =
     '<div class="cx-sug-in">' +
+    '<div class="cx-sug-ask">' +
+    // Nút Ẩn neo ngay trên góc phải thẻ hỏi — cùng bề ngang thẻ.
     '<div class="cx-sug-bar">' +
-    // Tiêu đề chỉ hiện khi đã có thẻ — tải hỏng mà vẫn còn dòng chữ trống trơn
-    // thì trông như thiệp lỗi. Nút Ẩn thì luôn có, đẩy sang phải bằng margin
-    // nên tiêu đề vắng mặt cũng không kéo nó về giữa.
-    '<span class="cx-sug-title" id="sug-title" style="display:none">' +
-    "Các mẫu bạn có thể sẽ thích</span>" +
     '<x-button variant="bare" id="sug-close" class="cx-sug-hide"' +
     ' aria-label="Ẩn gợi ý mẫu thiệp">' +
     _sugIcon("hide", 14) + "Ẩn</x-button>" +
     "</div>" +
-    '<div class="cx-sug-row" id="sug-row"></div>' +
+    '<div class="cx-sug-ask-card">' +
+    // Ảnh chụp mẫu đang xem — src gán lúc nạp trước (_loadThemes), gán sẵn ở
+    // đây là ảnh tranh băng thông với màn đầu của thiệp.
+    '<img class="cx-sug-ask-thumb" id="sug-cur-thumb" alt=""' +
+    ' src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />' +
+    '<div class="cx-sug-ask-txt">' +
+    '<p class="cx-sug-ask-head">Bạn đang xem mẫu ' +
+    '<b class="cx-sug-ask-name" id="sug-cur-name">' + _esc(themeDisplay) + "</b></p>" +
+    '<div class="cx-sug-ask-row">' +
+    '<p class="cx-sug-ask-q">Bạn có thích mẫu này không?</p>' +
+    SUG_ACTS.filter(function (it) { return it.primary; }).map(_sugTile).join("") +
+    "</div>" +
+    "</div>" +
+    "</div>" +
+    '<x-button variant="bare" id="sug-guest" class="cx-sug-guest">' +
+    _sugIcon("guest", 14) +
+    (GUEST_ON ? "Xem bản mẫu" : "Xem với tư cách khách mời") +
+    "</x-button>" +
+    "</div>" +
+    '<div class="cx-sug-more">' +
+    // Dãy thẻ dựng sẵn skeleton: danh sách chỉ được gọi lúc bảng bung (xem
+    // _loadThemes), chờ mạng thì khách thấy khung đang tải chứ không thấy trống.
+    '<p class="cx-sug-title" id="sug-title">Hoặc xem thêm mẫu khác</p>' +
+    '<div class="cx-sug-row" id="sug-row">' + _skelCards() + "</div>" +
     '<div class="cx-sug-dots" id="sug-dots"></div>' +
-    '<div class="cx-sug-acts">' +
-    SUG_ACTS.map(function (it) {
-      return (
-        '<x-button variant="bare" class="cx-sug-tile' +
-        (it.primary ? " is-primary" : "") + '" id="' + it.id + '"' +
-        (it.aria ? ' aria-label="' + it.aria + '"' : "") + ">" +
-        '<span class="cx-sug-ico">' + _sugIcon(it.icon, 18) + "</span>" +
-        '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
-        "</x-button>"
-      );
-    }).join("") +
+    "</div>" +
+    '<div class="cx-sug-sec">' +
+    SUG_ACTS.filter(function (it) { return !it.primary; }).map(_sugTile).join("") +
     "</div>" +
     "</div>";
 
   // --- DANH SÁCH MẪU KHÁC ---
-  // Nạp một lần, đúng lần lớp phủ bung ra đầu tiên: khách chưa xem tới đó thì
-  // request này không tranh băng thông với ảnh thiệp.
+  // Nạp một lần, khi khách cuộn tới CÁCH mốc bung khoảng một màn (_watch): chưa
+  // xem tới đó thì không tranh băng thông với ảnh thiệp, mà tới lúc bung thì
+  // danh sách lẫn ảnh thẻ đầu đã về — đợi tới lúc bung mới gọi là thẻ hiện trễ
+  // (ảnh chụp mẫu ~150KB/tấm, danh sách còn phải gọi mạng khi cache hết hạn).
   let loaded = false;
 
   function _loadThemes() {
     if (loaded) return;
     loaded = true;
+    const row = document.getElementById("sug-row");
+    if (row && !row.querySelector(".is-skel")) row.innerHTML = _skelCards();
+    const thumb = document.getElementById("sug-cur-thumb");
+    if (thumb && !thumb.dataset.set) {
+      thumb.dataset.set = "1";
+      // Mẫu chưa có ảnh chụp (base-theme…) thì bỏ hẳn ô ảnh.
+      thumb.addEventListener("error", function () { thumb.hidden = true; }, { once: true });
+      thumb.src = "/assets/images/templates/" + themeName + ".jpg";
+    }
+    if (!window.templatesDAL) return _loadFailed();
 
     window.templatesDAL
       .list()
@@ -1322,6 +1546,8 @@ function closeTimePicker() {
         // khách vào xem một mẫu vintage thì thứ đáng gợi ý là các mẫu vintage
         // còn lại. Mẫu đang xem không nằm trong danh sách (nó ở ngay đây rồi).
         const cur = all.filter(function (t) { return t.theme === themeName; })[0];
+        const curName = document.getElementById("sug-cur-name");
+        if (cur && cur.name && curName) curName.textContent = cur.name;
         const rest = all.filter(function (t) { return t.theme !== themeName; });
         const same = cur && cur.cat
           ? rest.filter(function (t) { return t.cat === cur.cat; })
@@ -1331,17 +1557,25 @@ function closeTimePicker() {
         // hơn không gợi ý gì.
         _renderThemes(same.length ? same : rest);
       })
-      .catch(function () {
-        // Mất mạng thì chỉ mất dãy thẻ, hai nút hành động vẫn dùng được — cho
-        // phép thử lại ở lần bung sau.
-        loaded = false;
-      });
+      .catch(_loadFailed);
+  }
+
+  // Tải hỏng: thay skeleton bằng một dòng báo + nút Thử lại — bảng chỉ bung một
+  // lần (Ẩn rồi là thôi) nên không trông vào "lần bung sau" được.
+  function _loadFailed() {
+    loaded = false;
+    const row = document.getElementById("sug-row");
+    if (!row) return;
+    row.innerHTML =
+      '<div class="cx-sug-err">Không tải được danh sách mẫu.' +
+      '<x-button variant="bare" class="cx-sug-retry">Thử lại</x-button></div>';
+    row.querySelector(".cx-sug-retry")?.addEventListener("click", _loadThemes);
   }
 
   // Hai việc làm được với MỘT mẫu trong dãy, bày ngay trên thẻ: xem thử mẫu đó
   // (giống bấm cả thẻ) và tạo nháp bằng mẫu đó luôn — khách ưng ngay tấm ảnh
   // thì khỏi phải mở mẫu ra. Cả hai đều là nút PHỤ (không tô đặc): nút chính
-  // của màn là "Dùng mẫu này" ở đáy.
+  // của màn là "Dùng ngay" ở đầu bảng.
   const SUG_CARD_ACTS = [
     { act: "view", label: "Xem trước", icon: "eye" },
     { act: "use", label: "Dùng ngay", icon: "play", use: true },
@@ -1353,7 +1587,7 @@ function closeTimePicker() {
     const row = document.getElementById("sug-row");
     if (!row) return;
     row.innerHTML = list
-      .map(function (t) {
+      .map(function (t, i) {
         const url = t.url || "/public/themes/" + t.theme + "/?preview=true";
         const name = t.name || t.theme;
         return (
@@ -1363,8 +1597,10 @@ function closeTimePicker() {
           ' data-url="' + _esc(url) + '"' +
           ' data-theme="' + _esc(t.theme) + '"' +
           ' data-name="' + _esc(name) + '">' +
+          // Hai thẻ đầu tải ngay (lớp phủ còn ẩn lúc nạp trước), còn lại chờ
+          // khách vuốt tới.
           '<img src="/assets/images/templates/' + _esc(t.theme) + '.jpg"' +
-          ' alt="" loading="lazy" />' +
+          ' alt=""' + (i < 2 ? "" : ' loading="lazy"') + " />" +
           '<div class="cx-sug-info">' +
           '<p class="cx-sug-name">' + _esc(name) + "</p>" +
           // Mô tả bị cắt dòng → title giữ bản đủ cho người dùng chuột.
@@ -1390,6 +1626,16 @@ function closeTimePicker() {
 
     const title = document.getElementById("sug-title");
     if (title) title.style.display = list.length ? "" : "none";
+
+    // Ảnh chụp mẫu khá nặng và thẻ ngoài khung là lazy — còn nhấp nháy nền
+    // (cờ .is-loading) cho tới khi ảnh về.
+    row.querySelectorAll(".cx-sug-card img").forEach(function (img) {
+      if (img.complete && img.naturalWidth) return;
+      img.classList.add("is-loading");
+      const done = function () { img.classList.remove("is-loading"); };
+      img.addEventListener("load", done, { once: true });
+      img.addEventListener("error", done, { once: true });
+    });
 
     const cards = Array.from(row.querySelectorAll(".cx-sug-card"));
     cards.forEach(function (card) {
@@ -1546,20 +1792,56 @@ function closeTimePicker() {
   }
 
   let watched = null;
-  let watcher = null;
+  let prefetcher = null;
+
+  let _unwatch = function () {};
 
   function _watch(el) {
     if (!el || el === watched || !("IntersectionObserver" in window)) return;
-    if (watcher) watcher.disconnect();
+    _unwatch();
+    if (prefetcher) prefetcher.disconnect();
     watched = el;
-    watcher = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (!en.isIntersecting) return;
-        watcher.disconnect();
-        _open();
-      });
-    });
-    watcher.observe(el);
+    // Nạp trước khi mốc còn cách đáy màn một màn hình.
+    prefetcher = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (en) { return en.isIntersecting; })) return;
+      prefetcher.disconnect();
+      _loadThemes();
+    }, { rootMargin: "0px 0px 100% 0px" });
+    prefetcher.observe(el);
+    // Chỉ bung khi MÉP TRÊN của mốc đã lên tới giữa màn, không phải lúc vừa ló ở
+    // mép dưới. Tự đo bằng getBoundingClientRect: rootMargin của IntersectionObserver
+    // bị bỏ qua khi thiệp nằm trong iframe (khung máy xem thử). Mốc sát cuối trang
+    // có thể không bao giờ lên tới giữa → chạm đáy trang lúc mốc đang hiện cũng tính.
+    let raf = 0;
+    function _check() {
+      raf = 0;
+      if (_hidden(el)) return;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      // Mẫu lật trang NGANG (moody-cinematic): mục ở trang khác vẫn có top ≈ 0,
+      // chỉ xét chiều dọc là bung ngay lúc mới vào.
+      if (r.right <= 0 || r.left >= window.innerWidth) return;
+      // Mép trên đã qua giữa màn (kể cả vuốt nhanh lướt qua hẳn mốc) thì bung.
+      if (r.top <= vh / 2) return _hit();
+      const se = document.scrollingElement || document.documentElement;
+      if (r.top < vh && se.scrollTop + vh >= se.scrollHeight - 4) _hit();
+    }
+    function _onScroll() {
+      if (!raf) raf = requestAnimationFrame(_check);
+    }
+    // capture: bắt cả cuộn của khung con, mẫu nào cuộn trong một thẻ riêng vẫn đo được.
+    document.addEventListener("scroll", _onScroll, { passive: true, capture: true });
+    window.addEventListener("resize", _onScroll);
+    _unwatch = function () {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      document.removeEventListener("scroll", _onScroll, { capture: true });
+      window.removeEventListener("resize", _onScroll);
+    };
+    function _hit() {
+      _unwatch();
+      _open();
+    }
   }
 
   function _hidden(el) {
@@ -1581,6 +1863,8 @@ function closeTimePicker() {
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && panel.classList.contains("is-open")) _dismiss();
     });
+
+    document.getElementById("sug-guest").addEventListener("click", _guest);
 
     SUG_ACTS.forEach(function (it) {
       const el = document.getElementById(it.id);

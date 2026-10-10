@@ -1,40 +1,40 @@
-/* ROMANTIC BLUSH — thiệp SLIDE kiểu tạp chí cưới: nền giấy ngà, khối đỏ đô,
+/* ROMANTIC BLUSH — thiệp SLIDE kiểu tạp chí cưới: nền giấy be sáng, khối nâu be,
    tiêu đề Playfair in hoa cỡ lớn, nội dung Cormorant, nhãn Josefin giãn rộng,
    chữ ký TheHamstter (chỉ cho chữ tiếng Anh). CSS THUẦN, nạp sau styles/themes.css; mọi màu qua --cx-*.
    Mỗi .rb-screen cao đúng một màn (--sh), ảnh tính theo --sh để lọt khung nhìn.
    Hiệu ứng (data-a / data-d) ở cuối file. */
 
 :root {
-  --cx-heading-rgb: 79 20 24;
-  --cx-body-rgb: 125 74 79;
-  --cx-accent-rgb: 138 26 32; /* khối đỏ, tiêu đề, ngày cưới */
-  --cx-accent-soft-rgb: 212 160 163;
+  --cx-heading-rgb: 74 59 46;
+  --cx-body-rgb: 115 97 81;
+  --cx-accent-rgb: 130 102 75; /* khối màu nhấn, tiêu đề, ngày cưới */
+  --cx-accent-soft-rgb: 214 196 174;
   --cx-on-accent-rgb: 255 255 255;
   --cx-on-image-rgb: 255 255 255;
   --cx-on-lightbox-rgb: 255 255 255;
 
-  --cx-card-bg-rgb: 255 252 250;
-  --cx-page-bg-rgb: 239 230 227;
-  --cx-surface-rgb: 248 241 239;
-  --cx-band-rgb: 251 245 243;
+  --cx-card-bg-rgb: 253 250 244;
+  --cx-page-bg-rgb: 242 235 224;
+  --cx-surface-rgb: 247 241 231;
+  --cx-band-rgb: 250 246 239;
   --cx-panel-rgb: 255 255 255;
-  --cx-panel-warm-rgb: 255 250 248;
-  --cx-cover-rgb: 239 230 227;
-  --cx-cover-mid-rgb: 227 208 205;
-  --cx-cover-veil-rgb: 42 21 23;
+  --cx-panel-warm-rgb: 255 252 246;
+  --cx-cover-rgb: 242 235 224;
+  --cx-cover-mid-rgb: 228 216 199;
+  --cx-cover-veil-rgb: 46 36 27;
   --cx-lightbox-bg-rgb: 0 0 0;
 
-  --cx-line-rgb: 92 44 48; /* khung viền mảnh quanh ảnh */
+  --cx-line-rgb: 107 86 68; /* khung viền mảnh quanh ảnh */
   --cx-shadow-rgb: 0 0 0;
   --cx-scrim-rgb: 0 0 0;
 
-  --cx-deco-rgb: 138 26 32;
-  --cx-deco-soft-rgb: 240 214 216;
-  --cx-deco-2-rgb: 180 138 90; /* nhũ vàng: dấu &, vạch mảnh */
-  --cx-deco-2-soft-rgb: 241 230 216;
+  --cx-deco-rgb: 130 102 75;
+  --cx-deco-soft-rgb: 236 226 211;
+  --cx-deco-2-rgb: 184 149 106; /* nhũ vàng: dấu &, vạch mảnh */
+  --cx-deco-2-soft-rgb: 241 232 218;
   --cx-shine-from-rgb: 255 255 255;
-  --cx-shine-mid-rgb: 248 228 230;
-  --cx-shine-to-rgb: 180 138 90;
+  --cx-shine-mid-rgb: 243 233 218;
+  --cx-shine-to-rgb: 184 149 106;
 
   /* Bảng --music-* theo đúng công thức bộ màu suy ra (CX_PALETTE_MUSIC). */
   --music-bar-fg-rgb: var(--cx-body-rgb);
@@ -454,7 +454,7 @@ html.cx-pshell-host.rb-stack body {
   color: rgb(var(--cx-on-image-rgb));
 }
 
-/* Dải đỏ tràn mép ở đầu màn (bù lại padding của .rb-screen). */
+/* Dải màu nhấn tràn mép ở đầu màn (bù lại padding của .rb-screen). */
 .rb-band {
   margin: -24px -16px 16px;
   padding: 20px 16px 16px;
@@ -767,7 +767,7 @@ html.cx-pshell-host.rb-stack body {
   text-align: center;
 }
 
-/* Khung nét đỏ lệch sau ảnh — mô-típ lặp lại ở mọi màn. */
+/* Khung nét màu nhấn lệch sau ảnh — mô-típ lặp lại ở mọi màn. */
 .rb-duo-ph {
   position: relative;
   flex: 1 1 0;
@@ -1774,7 +1774,7 @@ html.cx-pshell-host.rb-stack body {
 
 /* ── Hộp mừng cưới (+ lời chúc ghép vào, xem _pack ở index.js) ─────────── */
 
-/* Đầu màn: nền đỏ phủ nửa trên, ảnh đè xuống phần nền thiệp — như màn Address. */
+/* Đầu màn: nền màu nhấn phủ nửa trên, ảnh đè xuống phần nền thiệp — như màn Address. */
 .rb-gift-head {
   flex: 1 1 0;
   min-height: 200px;
@@ -1984,7 +1984,7 @@ html.cx-pshell-host.rb-stack body {
 
 [data-a] {
   --rb-k: cx-rb-fade;
-  --rb-t: 0.9s;
+  --rb-t: 1.5s;
   --rb-e: cubic-bezier(0.22, 0.8, 0.24, 1);
   --rb-d: 0s;
 }
@@ -2018,16 +2018,16 @@ html.cx-pshell-host.rb-stack body {
 
 [data-a="up"] { --rb-k: cx-rb-up; }
 [data-a="down"] { --rb-k: cx-rb-down; }
-[data-a="left"] { --rb-k: cx-rb-left; --rb-t: 1.1s; }
-[data-a="right"] { --rb-k: cx-rb-right; --rb-t: 1.1s; }
-[data-a="fade"] { --rb-k: cx-rb-fade; --rb-t: 1.4s; }
-[data-a="pop"] { --rb-k: cx-rb-pop; --rb-t: 0.8s; --rb-e: ease-out; }
-[data-a="flip"] { --rb-k: cx-rb-flip; --rb-t: 0.9s; }
-[data-a="blur"] { --rb-k: cx-rb-blur; --rb-t: 1.4s; }
-[data-a="spread"] { --rb-k: cx-rb-spread; --rb-t: 1.4s; }
+[data-a="left"] { --rb-k: cx-rb-left; --rb-t: 1.5s; }
+[data-a="right"] { --rb-k: cx-rb-right; --rb-t: 1.5s; }
+[data-a="fade"] { --rb-k: cx-rb-fade; --rb-t: 1.5s; }
+[data-a="pop"] { --rb-k: cx-rb-pop; --rb-t: 1.5s; --rb-e: ease-out; }
+[data-a="flip"] { --rb-k: cx-rb-flip; --rb-t: 1.5s; }
+[data-a="blur"] { --rb-k: cx-rb-blur; --rb-t: 1.5s; }
+[data-a="spread"] { --rb-k: cx-rb-spread; --rb-t: 1.5s; }
 [data-a="zoomout"] { --rb-k: cx-rb-zoomout; --rb-t: 2.4s; --rb-e: cubic-bezier(0.2, 0.6, 0.2, 1); }
 [data-a="wipe"] { --rb-k: cx-rb-wipe; --rb-t: 1.8s; --rb-e: cubic-bezier(0.6, 0.1, 0.3, 1); }
-[data-a="wipe-down"] { --rb-k: cx-rb-wipe-down; --rb-t: 1s; --rb-e: cubic-bezier(0.7, 0, 0.3, 1); }
+[data-a="wipe-down"] { --rb-k: cx-rb-wipe-down; --rb-t: 1.5s; --rb-e: cubic-bezier(0.7, 0, 0.3, 1); }
 
 [data-a="ch-type"] {
   --rb-ck: cx-rb-fade;

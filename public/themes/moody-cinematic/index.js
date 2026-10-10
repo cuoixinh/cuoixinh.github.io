@@ -18,7 +18,7 @@
     loveStory: "long",
 
     // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
-    wishesMode: "paged",
+    wishesMode: "spotlight",
 
     // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
     // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
@@ -99,7 +99,9 @@
       family: ["#section-family", "#section-hero"],
     },
 
-    onOpen: null,
+    // Sách dựng lúc #main-card còn display:none (sau màn bìa) nên mọi phép đo
+    // trang ra 0 — mở bìa xong phải đo lại.
+    onOpen: () => refreshBook(),
   };
 
   const _isGroom = isGroomSide();
@@ -116,6 +118,7 @@
     // Chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận src, mà
     // setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi chạy —
     // để nó đi trước là ảnh phải xếp hàng sau.
+    renderCover(w);
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
 
@@ -148,6 +151,10 @@
     setText("invite-groom", w.groom_name, "----------");
     setText("invite-bride", w.bride_name, "----------");
     setText("ceremony-event-name", ceremonyName);
+    // Dòng đầu phim trên thanh letterbox của màn bìa: tên lễ + ngày "20 · 12 · 2026".
+    setText("cover-event", ceremonyName);
+    const [cy, cm, cd] = String(w.ceremony_date || "").split("-");
+    setText("cover-date", cd ? `${cd} · ${cm} · ${cy}` : "", "-- · -- · ----");
     renderCeremonyDate(w.ceremony_date, ceremonyTime, w.ceremony_lunar);
     if (ceremonyLoc) {
       setText("ceremony-location-text", ceremonyLoc);

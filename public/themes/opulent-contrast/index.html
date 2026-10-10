@@ -7,11 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Cưới Xinh — Opulent Contrast</title>
-    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
-         địa chỉ, số điện thoại và QR tài khoản của khách. Bản MẪU (không có slug)
-         thì vẫn cho lập chỉ mục vì đó là hàng đang bán. Phải xét lúc chạy: hai bản
-         dùng CHUNG một URL, khác nhau đúng tham số này — đặt meta tĩnh vào file là
-         chặn nhầm cả bản mẫu. -->
+    <!-- Thiệp THẬT (URL có ?slug=) không được lên kết quả tìm kiếm; bản mẫu thì được. -->
     <script>
       (function () {
         if (!new URLSearchParams(location.search).has("slug")) return;
@@ -25,16 +21,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,500&family=Noto+Serif:wght@400;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../../../styles/themes.css" />
-    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
     <link rel="stylesheet" href="theme.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
-    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
-         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
     <script>
       document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
     </script>
@@ -43,112 +36,51 @@
     <script src="../../../core/helpers/no-zoom.js"></script>
   </head>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       OPULENT CONTRAST — thiệp nền ĐEN, chữ ngà, đường vàng đồng mảnh.
-       Nét riêng: MÀN BÌA là một tấm poster nằm trong KHUNG VÀNG KÉP có hai vệt
-       chéo cắt góc (.oc-frame), chữ hoa Didone khổ lớn cắt ngang mép ảnh. Thân
-       thiệp KHÔNG có khung — mở ra là một màn ảnh cưới trọn vẹn, rồi tới các mục
-       chỉ ngăn nhau bằng nền đậm nhạt và vạch vàng mảnh.
-
-       Ràng buộc không được phá:
-         · #main-card có ĐÚNG MỘT thẻ con bọc các mục, và thẻ đó là flex-column
-         · Chữ lấy từ dữ liệu phải đi qua setText(id, …) trong index.js
-         · Thanh nhạc phải là thẻ con ĐẦU TIÊN của <body>
-         · Màu lấy từ --cx-* / .cx-h / .cx-t / .cx-a, đừng viết mã màu thẳng
-         · Nút nào cũng phải mang .oc-btn — <x-button variant="bare"> đem theo
-           rounded-full, mẫu này cạnh vuông
-         · Nhãn mục là chữ tiếng Việt; chữ ký tiếng Anh CHỈ có ở màn bìa
-       ══════════════════════════════════════════════════════════════════════ -->
-
+  <!-- OPULENT CONTRAST — thiệp trắng kiểu tạp chí ảnh phim, chữ viết tay đỏ rượu vang + điểm nhấn đỏ.
+       #main-card có ĐÚNG MỘT thẻ con flex-column bọc mọi mục; chữ từ dữ liệu đi qua setText. -->
   <body class="cx-screen-h flex justify-center items-start md:py-5">
-    <!-- ═══ Trình phát nhạc (enable_music) ═══════════════════════════════
-         Dạng khai ở CX_THEME.music, theme-boot.js dựng vào đây. Thẻ phải
-         là con ĐẦU TIÊN của <body>: bong bóng thu gọn dùng position:fixed
-         nên tổ tiên có transform sẽ neo nó sai chỗ. -->
+    <!-- Trình phát nhạc: phải là con ĐẦU TIÊN của <body> (bong bóng dùng position:fixed). -->
     <div id="cx-music-mount"></div>
 
-    <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
-         Dựng đúng nhịp của tấm poster: dải đen trên (monogram + chữ ký) · ảnh
-         tràn viền ở giữa · dải đen dưới (SAVE THE DATE, tên, nơi, ngày). Chữ
-         "SAVE THE DATE" đội lên bằng .oc-cut nên nó cắt ngang mép ảnh. -->
-    <div
-      id="cover-screen"
-      class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
-    >
-      <div class="oc-cover relative w-full max-w-[430px] overflow-hidden flex flex-col">
-        <div class="oc-frame">
-          <span class="oc-diag oc-diag-tl"></span>
-          <span class="oc-diag oc-diag-br"></span>
-        </div>
-
-        <!-- Dải trên -->
-        <div
-          class="relative z-30 shrink-0 flex flex-col items-center gap-4 px-12 pt-12 pb-6 text-center"
-        >
-          <!-- Monogram: chữ cái đầu của tên riêng, index.js suy ra từ tên -->
-          <div class="border cx-border px-5 py-2">
-            <span
-              class="oc-display oc-shine text-[14px] tracking-[5px]"
-              id="cover-monogram"
-              >-- & --</span
-            >
+    <!-- ═══ MỤC: Màn bìa ═══ -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
+      <!-- Bìa giấy kem: chữ lồng tên viết tắt · WELCOME TO OUR WEDDING · khung polaroid
+           (ảnh tối viền + chú thích viết tay) · dòng chữ ký đỏ · Groom / tên / Bride ·
+           lời mời khách + nút mở thiệp. -->
+      <div class="oc-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] md:h-[932px] overflow-hidden md:rounded-[40px] flex flex-col px-6 pb-8">
+        <img id="oc-cover-bg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="oc-cover-bg" alt="" loading="lazy" />
+        <div class="flex items-start justify-between mt-4">
+          <div class="oc-cv-mono">
+            <span id="oc-mono-groom" class="oc-mono-a">-</span>
+            <span class="oc-mono-line"></span>
+            <i data-lucide="heart" class="oc-cv-mono-heart" style="width:12px;height:12px"></i>
+            <span id="oc-mono-bride" class="oc-mono-b">-</span>
           </div>
-          <div class="oc-script cx-a text-[42px]">We're getting married!</div>
+          <div class="oc-cv-welcome">Welcome to<br />our wedding</div>
         </div>
 
-        <!-- Ảnh tràn viền: ô co giãn nên dải trên/dưới luôn đủ chỗ -->
-        <div class="relative flex-1 min-h-0">
-          <img
-            id="cover-bg-img"
-            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-            class="w-full h-full object-cover"
-            alt=""
-            fetchpriority="high"
-          />
-          <div class="oc-veil"></div>
-        </div>
-
-        <!-- Dải dưới -->
-        <div
-          class="relative z-30 shrink-0 flex flex-col items-center gap-4 px-10 pb-10 text-center"
-        >
-          <div class="oc-cut oc-display cx-h text-[33px] tracking-[2px]">
-            Save the date
-          </div>
-
-          <!-- Tên khách mời: chỉ hiện với link riêng của khách (?name=…) -->
-          <div id="cover-guest-wrap" class="hidden flex-col items-center gap-1">
-            <div data-cx-invite class="oc-eyebrow cx-t">Trân trọng kính mời</div>
-            <div class="cx-h text-[20px] leading-tight" id="cover-guest-name">
-              ----------
+        <div class="oc-cv-stage">
+          <div class="oc-polaroid">
+            <div class="oc-polaroid-photo">
+              <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
             </div>
+            <div class="oc-polaroid-cap"><span class="oc-cap-names"><span id="cover-groom-name">----------</span> &amp; <span id="cover-bride-name">----------</span></span></div>
           </div>
+        </div>
 
-          <div class="oc-hair w-full max-w-[120px]"></div>
+        <div class="oc-cv-love">love is all we have</div>
 
-          <div class="oc-names cx-h text-[26px] leading-tight">
-            <span class="oc-names-in">
-              <span id="cover-groom-name">----------</span>
-              <span class="oc-script cx-a text-[28px]">&amp;</span>
-              <span id="cover-bride-name">----------</span>
-            </span>
-          </div>
-
-          <div class="flex flex-col items-center gap-1.5">
-            <div class="cx-t text-[11px] leading-snug" id="cover-venue">
-              ------------------------
-            </div>
-            <div class="oc-eyebrow cx-a" id="cover-date">--.--.----</div>
-          </div>
-
+        <div class="oc-cv-invite">
+          <div data-cx-invite class="oc-cv-label">Trân trọng kính mời</div>
+          <div id="cover-guest-name" class="oc-cv-guest">----------</div>
           <x-button
             variant="bare"
             onclick="openInvitation()"
-            class="open-btn oc-btn relative overflow-hidden mt-1 px-9 py-3.5 border cx-border cx-t text-[10px] tracking-[3px] uppercase active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+            class="open-btn oc-cv-open relative overflow-hidden active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
           >
             <span class="relative z-10 pointer-events-none flex items-center gap-2">
-              <i data-lucide="mail-open" class="cx-ic cx-a text-[11px]"></i>
-              Mở Thiệp
+              <i data-lucide="mail-open" style="width:16px;height:16px"></i>
+              Mở thiệp
             </span>
             <div class="btn-shimmer pointer-events-none"></div>
           </x-button>
@@ -156,368 +88,169 @@
       </div>
     </div>
 
-    <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
-         #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục. Mục tự lo lề
-         ngang (px-9); ảnh và bản đồ để tràn hết bề ngang. -->
+    <!-- ═══ THÂN THIỆP ═══ -->
     <div
       id="main-card"
-      class="relative w-full max-w-[430px] md:max-w-[520px] cx-screen-h md:min-h-[932px] md:shadow-2xl overflow-hidden"
+      class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
       style="display: none"
     >
-      <div class="flex flex-col">
-        <!-- ═══ MỤC: Mở đầu — MỘT MÀN trọn vẹn ═════════════════════════════
-             Ảnh cưới phủ kín đúng một khung nhìn (.oc-hero cao theo --vh): câu
-             slogan bằng chữ viết tay ở đỉnh, tên và ngày ở đáy. Mở thiệp ra là
-             thấy trọn tấm ảnh, không có mảng đen nào chen vào. -->
-        <section id="section-hero" class="oc-hero relative w-full overflow-hidden">
-          <!-- KHÔNG loading="lazy": #main-card là display:none cho tới khi bấm
-               mở bìa, ảnh lazy sẽ chưa tải gì. -->
-          <img
-            id="main-photo"
-            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-            alt="Ảnh cưới"
-            class="absolute inset-0 w-full h-full object-cover"
-          />
-          <div class="oc-hero-veil"></div>
+      <div class="flex flex-col gap-16 pb-16">
+        <!-- ═══ MỤC: Mở đầu — tiêu đề, ảnh bìa, chữ viết tay, câu slogan ═══ -->
+        <section id="section-hero" class="flex flex-col gap-8">
+          <div class="px-5 pt-12 text-left">
+            <h1 class="oc-sans oc-title">
+              Thiệp mời <span class="font-normal oc-muted">|</span>
+              <span id="couple-names-groom">----------</span> &amp; <span id="couple-names-bride">----------</span>
+            </h1>
+            <div class="flex items-baseline gap-8 mt-2">
+              <span id="oc-hero-date" class="oc-date">--/--/----</span>
+              <span class="cx-t text-[15px] tracking-[2px] oc-muted">Chúng mình cưới rồi!</span>
+            </div>
+          </div>
 
+          <!-- Thẻ trình phát nhạc của mẫu: nối vào bộ phát chung qua data-cx-music
+               (core/helpers/music-player-helper.js); thiệp không có nhạc thì index.js giấu. -->
           <div
-            class="relative h-full flex flex-col items-center justify-between gap-6 px-9 py-16 text-center"
+            id="oc-music-card"
+            data-cx-music="root"
+            data-cx-play-icon="play"
+            data-cx-pause-icon="pause"
+            data-cx-icon-size="20"
+            data-cx-empty-title="Nhạc nền"
+            class="oc-mcard relative mx-5 overflow-hidden"
           >
-            <!-- Câu slogan (story_quote) -->
-            <div
-              id="story-quote"
-              class="oc-script oc-hero-quote oc-on-photo cx-on-image text-[29px] leading-[1.35] max-w-[310px]"
-            >
-              Một hành trình mới bắt đầu từ hôm nay
-            </div>
+            <img id="oc-mcard-bg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="oc-mcard-bg" />
+            <div class="oc-mcard-veil"></div>
 
-            <div class="flex flex-col items-center gap-4 w-full">
-              <div class="oc-names oc-on-photo cx-h cx-on-image text-[30px] leading-tight">
-                <span class="oc-names-in">
-                  <span id="couple-names-groom">----------</span>
-                  <span class="oc-script cx-a text-[28px]">&amp;</span>
-                  <span id="couple-names-bride">----------</span>
-                </span>
+            <div class="relative flex items-center gap-4 p-4">
+              <div class="oc-vinyl">
+                <img id="oc-mcard-disc" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="oc-vinyl-art" />
+                <span class="oc-vinyl-hole"></span>
+                <span class="oc-tonearm"></span>
               </div>
 
-              <div class="oc-hair w-full max-w-[120px]"></div>
-
-              <div class="oc-display oc-on-photo cx-on-image text-[21px] tracking-[8px]" id="hero-date">
-                --.--.----
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ═══ MỤC: Gia đình (enable_family) ═══════════════════════════════ -->
-        <section id="section-family" class="flex flex-col gap-7 px-9 py-14">
-          <div class="flex flex-col items-center gap-3">
-            <span class="oc-crest"></span>
-            <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Gia Đình</h2>
-            <div class="oc-hair w-full max-w-[140px]"></div>
-          </div>
-
-          <!-- Vạch dọc ở giữa thay cho khoảng trắng: hai nhà là hai cột đối xứng -->
-          <div class="relative grid grid-cols-2 gap-5">
-            <div class="absolute left-1/2 top-2 bottom-2 w-px cx-bg-line"></div>
-
-            <!-- Nhà trai -->
-            <div class="flex flex-col items-center gap-2.5 text-center">
-              <div class="relative w-[104px]">
-                <span class="oc-portrait-frame"></span>
-                <div class="oc-portrait w-[104px] h-[132px]">
-                  <img
-                    id="groom-photo"
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    alt="Chú Rể"
-                    class="w-full h-full object-cover"
-                  />
+              <div class="flex-1 min-w-0 flex flex-col gap-2 cx-on-image">
+                <div class="overflow-hidden text-center">
+                  <div data-cx-music="title" class="cx-mp-title oc-mcard-title whitespace-nowrap">Nhạc nền</div>
+                </div>
+                <div data-cx-music="artist" class="oc-mcard-artist text-center"></div>
+                <div data-cx-music="progress" class="oc-mcard-prog">
+                  <div class="oc-mcard-track"><div data-cx-music="fill" class="oc-mcard-fill"></div></div>
+                </div>
+                <div class="flex justify-between oc-mcard-time">
+                  <span data-cx-music="time">0:00</span><span data-cx-music="duration">0:00</span>
+                </div>
+                <div class="flex items-center justify-between px-1">
+                  <button type="button" data-cx-music="back" aria-label="Lùi 10 giây" class="oc-mcard-btn">
+                    <i data-lucide="skip-back" style="width:20px;height:20px"></i>
+                  </button>
+                  <button type="button" data-cx-music="toggle" aria-label="Phát hoặc tạm dừng nhạc nền" class="oc-mcard-play">
+                    <i class="inline-flex" data-cx-music="icon"><i data-lucide="play" style="width:20px;height:20px"></i></i>
+                  </button>
+                  <button type="button" data-cx-music="forward" aria-label="Tới 10 giây" class="oc-mcard-btn">
+                    <i data-lucide="skip-forward" style="width:20px;height:20px"></i>
+                  </button>
                 </div>
               </div>
-              <div class="oc-eyebrow cx-a">Nhà Trai</div>
-              <div class="cx-h text-[17px]" id="groom-name-label">----------</div>
-              <div class="flex flex-col gap-0.5">
-                <div class="cx-t text-[9px] uppercase tracking-[2px]">Ông bà</div>
-                <div class="cx-h text-[13px]" id="groom-father">--------------------</div>
-                <div class="cx-h text-[13px]" id="groom-mother">--------------------</div>
-              </div>
-              <div class="cx-t text-[10px] leading-relaxed">
-                <i data-lucide="map-pin" class="cx-ic cx-a mr-1 text-[9px]"></i>
-                <span id="groom-address">----------------------------------------</span>
-              </div>
             </div>
+          </div>
 
-            <!-- Nhà gái -->
-            <div class="flex flex-col items-center gap-2.5 text-center">
-              <div class="relative w-[104px]">
-                <span class="oc-portrait-frame"></span>
-                <div class="oc-portrait w-[104px] h-[132px]">
-                  <img
-                    id="bride-photo"
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    alt="Cô Dâu"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-              <div class="oc-eyebrow cx-a">Nhà Gái</div>
-              <div class="cx-h text-[17px]" id="bride-name-label">----------</div>
-              <div class="flex flex-col gap-0.5">
-                <div class="cx-t text-[9px] uppercase tracking-[2px]">Ông bà</div>
-                <div class="cx-h text-[13px]" id="bride-father">--------------------</div>
-                <div class="cx-h text-[13px]" id="bride-mother">--------------------</div>
-              </div>
-              <div class="cx-t text-[10px] leading-relaxed">
-                <i data-lucide="map-pin" class="cx-ic cx-a mr-1 text-[9px]"></i>
-                <span id="bride-address">----------------------------------------</span>
-              </div>
+          <div class="oc-lockup pt-4">
+            <div class="oc-lockup-caps">
+              <span class="oc-lockup-line"></span>
+              <span>wedding invitation</span>
+              <span class="oc-lockup-line"></span>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center gap-4 px-5">
+            <div id="story-quote" class="oc-quote">Một hành trình mới bắt đầu từ hôm nay</div>
+            <div id="oc-quote-sign" class="oc-script text-[32px]">----------</div>
+          </div>
+
+          <div class="flex flex-col gap-4 px-5 pt-8 text-left">
+            <h2 class="oc-display">OUR WEDDING</h2>
+            <div class="oc-rule"><span>LOVE</span><span class="oc-rule-line"></span><span>YOU</span></div>
+          </div>
+
+          <div class="px-5">
+            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="oc-photo oc-ph-full" />
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Gia đình (enable_family) ═══ -->
+        <section id="section-family" class="flex flex-col gap-8 px-5">
+          <div class="oc-pair">
+            <img id="groom-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Chú Rể" class="oc-photo oc-ph-pair" />
+            <img id="bride-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cô Dâu" class="oc-photo oc-ph-pair" />
+          </div>
+
+          <div class="flex items-center justify-center gap-4 oc-sans text-[24px] tracking-[2px] cx-hd">
+            <span id="groom-name-label">----------</span>
+            <span class="oc-script text-[40px]">&amp;</span>
+            <span id="bride-name-label">----------</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-6 text-center">
+            <div class="flex flex-col gap-2">
+              <div class="cx-t text-[11px] tracking-[3px] uppercase cx-a">Nhà Trai</div>
+              <div class="cx-t text-[13px] cx-hd" id="groom-father">--------------------</div>
+              <div class="cx-t text-[13px] cx-hd" id="groom-mother">--------------------</div>
+              <div class="cx-t text-[11px] leading-relaxed oc-muted" id="groom-address">----------------------------------------</div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="cx-t text-[11px] tracking-[3px] uppercase cx-a">Nhà Gái</div>
+              <div class="cx-t text-[13px] cx-hd" id="bride-father">--------------------</div>
+              <div class="cx-t text-[13px] cx-hd" id="bride-mother">--------------------</div>
+              <div class="cx-t text-[11px] leading-relaxed oc-muted" id="bride-address">----------------------------------------</div>
             </div>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Thư mời — lễ thành hôn / vu quy ════════════════════════
-             Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức. -->
-        <section id="section-ceremony" class="flex flex-col gap-6 px-9 py-14 cx-bg-band">
-          <div class="flex flex-col items-center gap-3">
-            <span class="oc-crest"></span>
-            <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Thư Mời</h2>
-            <div class="oc-hair w-full max-w-[140px]"></div>
+        <!-- ═══ MỤC: Thư mời — lễ thành hôn / vu quy ═══ -->
+        <section id="section-ceremony" class="flex flex-col items-center gap-6 px-5 text-center">
+          <h2 class="oc-display">WEDDING DAY</h2>
+          <i data-lucide="heart" class="cx-ic cx-a text-[32px]"></i>
+          <div class="oc-sans text-[22px] tracking-[4px] cx-hd">Ngày lành đã định</div>
+          <div class="cx-t text-[12px] tracking-[3px] uppercase oc-muted">
+            Trân trọng kính mời dự <span id="ceremony-event-name">Lễ Thành Hôn</span>
           </div>
 
-          <div class="flex flex-col items-center gap-1.5">
-            <div class="oc-eyebrow cx-t">Trân trọng kính mời dự</div>
-            <div class="oc-eyebrow cx-a" id="ceremony-event-name">Lễ Thành Hôn</div>
-          </div>
-
-          <div class="oc-names cx-h text-[24px] leading-tight">
-            <span class="oc-names-in">
-              <span id="invite-groom">----------</span>
-              <span class="oc-script cx-a text-[26px]">&amp;</span>
-              <span id="invite-bride">----------</span>
-            </span>
-          </div>
-
-          <div class="oc-box px-6 py-7 flex flex-col items-center gap-2 text-center">
-            <div class="oc-eyebrow cx-t" id="invite-weekday">------</div>
-
-            <div class="flex items-center justify-center gap-4 w-full">
-              <span class="h-px flex-1 max-w-[56px] cx-bg-line"></span>
-              <span class="oc-display oc-shine text-[56px]" id="invite-day">--</span>
-              <span class="h-px flex-1 max-w-[56px] cx-bg-line"></span>
+          <div class="flex flex-col gap-2 cx-t text-[14px] cx-hd">
+            <div>
+              <span id="invite-weekday">------</span>, ngày <span id="invite-day">--</span> ·
+              <span id="invite-month-year">Tháng -- · ----</span>
             </div>
-
-            <div class="oc-eyebrow cx-a" id="invite-month-year">Tháng -- · ----</div>
-            <div class="cx-h text-[19px] mt-2" id="invite-time">--:--</div>
-            <div class="cx-h italic text-[12px]" id="invite-lunar">--------------------</div>
+            <div>Vào lúc <span id="invite-time" class="cx-a font-semibold">--:--</span></div>
+            <div class="oc-muted text-[13px]" id="invite-lunar">--------------------</div>
           </div>
 
-          <!-- Nơi làm lễ — index.js gỡ .hidden khi có dữ liệu -->
-          <div id="ceremony-location-wrap" class="hidden flex items-start gap-1.5 justify-center">
-            <i data-lucide="map-pin" class="cx-ic cx-a text-[10px] mt-0.5"></i>
-            <span id="ceremony-location-text" class="cx-t text-[11px]"></span>
+          <div id="ceremony-location-wrap" class="hidden flex items-start gap-1 justify-center">
+            <i data-lucide="map-pin" class="cx-ic cx-a text-[12px] mt-1"></i>
+            <span id="ceremony-location-text" class="cx-t text-[13px] cx-hd"></span>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Tiệc cưới (enable_party) ═══════════════════════════════ -->
-        <section id="section-party" class="flex flex-col gap-6 px-9 py-14">
-          <div class="flex flex-col items-center gap-3">
-            <span class="oc-crest"></span>
-            <h2
-              class="oc-display cx-h text-[16px] tracking-[4px] text-center"
-              id="party-section-label"
-            >
-              Tiệc Mừng Lễ Thành Hôn
-            </h2>
-            <div class="oc-hair w-full max-w-[140px]"></div>
+        <!-- ═══ MỤC: Tiệc cưới (enable_party) — lịch riêng của mẫu, trái tim khoanh ngày ═══ -->
+        <section id="section-party" class="flex flex-col gap-6 px-5 text-center">
+          <div id="party-section-label" class="cx-t text-[12px] tracking-[3px] uppercase oc-muted">
+            Tiệc Mừng Lễ Thành Hôn
           </div>
 
-          <div class="oc-box px-6 py-7 flex flex-col items-center gap-3 text-center">
-            <div class="oc-display oc-shine text-[23px] tracking-[1px]" id="party-datetime">
-              --:-- - --.--.----
-            </div>
-            <div class="cx-h italic text-[13px]" id="party-lunar">(Ngày âm lịch)</div>
-            <div class="oc-hair w-full max-w-[100px]"></div>
-            <div class="flex items-start gap-2 justify-center">
-              <i data-lucide="map-pin" class="cx-ic cx-a text-sm"></i>
-              <div class="cx-t text-[12px]" id="party-location">------------------------</div>
-            </div>
-          </div>
+          <div id="oc-calendar" class="px-2"></div>
 
-          <!-- Lịch nhỏ đánh dấu ngày lễ + ngày tiệc (calendar-helper.js) -->
-          <div id="mini-calendar" class="w-full"></div>
-        </section>
-
-        <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ════════════════════════
-             Đứng RIÊNG một mục (mẫu nền lồng trong Tiệc cưới) để khách tắt mục
-             Tiệc cưới vẫn còn chỗ xác nhận. -->
-        <section
-          id="rsvp-section"
-          class="flex flex-col gap-5 px-9 py-14 cx-bg-band text-center"
-          style="display: none"
-        >
-          <div class="flex flex-col items-center gap-3">
-            <span class="oc-crest"></span>
-            <h2 class="oc-display cx-h text-[16px] tracking-[4px]">Xác Nhận Tham Dự</h2>
-            <div class="oc-hair w-full max-w-[140px]"></div>
-          </div>
-
-          <div id="rsvp-custom-message" class="hidden cx-h italic text-[13px] leading-relaxed"></div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <x-button
-              variant="bare"
-              onclick="confirmAttend(true)"
-              id="btn-attend"
-              class="oc-btn flex-col gap-2 py-5 border cx-border active:scale-95 transition-all"
-            >
-              <i data-lucide="check" class="cx-ic cx-a text-lg"></i>
-              <span class="oc-eyebrow cx-h">Tham dự</span>
-            </x-button>
-            <x-button
-              variant="bare"
-              onclick="confirmAttend(false)"
-              id="btn-decline"
-              class="oc-btn flex-col gap-2 py-5 border cx-border active:scale-95 transition-all"
-            >
-              <i data-lucide="x" class="cx-ic cx-bd text-lg"></i>
-              <span class="oc-eyebrow cx-h">Không tham dự</span>
-            </x-button>
-          </div>
-
-          <div id="attend-msg" class="cx-a italic text-[13px] hidden"></div>
-        </section>
-
-        <!-- ═══ MỤC: Lịch trình ngày cưới (enable_timeline) ═════════════════
-             renderTimeline() (render-helper.js) tự lọc mốc theo nhà trai/gái. -->
-        <section id="section-timeline" class="hidden flex flex-col gap-6 px-9 py-14">
-          <div class="flex flex-col items-center gap-3">
-            <span class="oc-crest"></span>
-            <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Lịch Trình</h2>
-            <div class="oc-hair w-full max-w-[140px]"></div>
-          </div>
-          <div id="timeline-list-render" class="flex flex-col"></div>
-        </section>
-
-        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════════ -->
-        <section
-          id="love-story"
-          class="flex flex-col gap-6 px-9 py-14 cx-bg-band"
-          style="display: none"
-        >
-          <div class="flex flex-col items-center gap-3">
-            <span class="oc-crest"></span>
-            <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Chuyện Tình Yêu</h2>
-            <div class="oc-hair w-full max-w-[140px]"></div>
-          </div>
-          <div id="love-story-list" class="flex flex-col border-l cx-border ml-[5px]"></div>
-        </section>
-
-        <!-- ═══ MỤC: Album ảnh (enable_photos) ══════════════════════════════
-             Dải ảnh CUỘN NGANG có điểm dừng + số đếm, thay cho lưới hai cột.
-             Markup do renderGallery() trong index.js dựng. -->
-        <section id="section-photos" class="flex flex-col gap-6 py-14">
-          <div class="flex flex-col items-center gap-3 px-9">
-            <span class="oc-crest"></span>
-            <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Album Ảnh</h2>
-            <div class="oc-hair w-full max-w-[140px]"></div>
-          </div>
-
-          <div id="gallery-strip" data-cx-drag class="oc-strip px-9"></div>
-
-          <div class="flex items-center justify-center gap-3 px-9">
-            <span class="h-px w-8 cx-bg-line"></span>
-            <span class="oc-eyebrow cx-a" id="gallery-counter">01 / 01</span>
-            <span class="h-px w-8 cx-bg-line"></span>
+          <div class="flex flex-col gap-2">
+            <div class="cx-h text-[26px] cx-a" id="party-datetime">--:-- - --.--.----</div>
+            <div class="cx-t text-[13px] oc-muted" id="party-lunar">(Ngày âm lịch)</div>
+            <div class="cx-t text-[15px] cx-hd mt-2" id="party-location">------------------------</div>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════
-             Hai hàng ngang (mẫu nền xếp hai cột) để số tài khoản đủ chỗ đọc. -->
-        <section id="section-gift" class="flex flex-col gap-6 px-9 py-14 cx-bg-band">
-          <div class="flex flex-col items-center gap-3">
-            <span class="oc-crest"></span>
-            <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Hộp Mừng Cưới</h2>
-            <div class="oc-hair w-full max-w-[140px]"></div>
-          </div>
-
-          <!-- Chú rể -->
-          <div data-cx-gift="qr" class="oc-box px-4 py-4 flex items-center gap-4">
-            <div class="cx-bg-qr shrink-0 w-[104px] p-2">
-              <img
-                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                id="groom-qr-img"
-                alt="QR Chú Rể"
-                class="w-full aspect-square object-cover"
-              />
-            </div>
-            <div class="flex flex-col gap-1 min-w-0 text-left">
-              <div class="oc-eyebrow cx-a">Chú Rể</div>
-              <div class="cx-h text-[15px] truncate" id="groom-bank-label">----------</div>
-              <div class="cx-t text-[10px]" id="groom-bank-name">----------------</div>
-              <div class="cx-h text-[13px] tracking-[1px]" id="groom-bank-number">------------</div>
-              <div class="cx-t text-[9px] uppercase tracking-[1px]" id="groom-bank-owner">
-                --------------------
-              </div>
-              <x-button
-                variant="bare"
-                onclick="saveQR('groom-qr-img')"
-                class="oc-btn self-start mt-1 gap-2 px-3 py-1.5 border cx-border cx-t text-[9px] uppercase tracking-[2px]"
-              >
-                <i data-lucide="download" class="cx-ic cx-a text-[10px]"></i>
-                Lưu QR
-              </x-button>
-            </div>
-          </div>
-
-          <!-- Cô dâu -->
-          <div data-cx-gift="qr" class="oc-box px-4 py-4 flex items-center gap-4">
-            <div class="cx-bg-qr shrink-0 w-[104px] p-2">
-              <img
-                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                id="bride-qr-img"
-                alt="QR Cô Dâu"
-                class="w-full aspect-square object-cover"
-              />
-            </div>
-            <div class="flex flex-col gap-1 min-w-0 text-left">
-              <div class="oc-eyebrow cx-a">Cô Dâu</div>
-              <div class="cx-h text-[15px] truncate" id="bride-bank-label">----------</div>
-              <div class="cx-t text-[10px]" id="bride-bank-name">----------------</div>
-              <div class="cx-h text-[13px] tracking-[1px]" id="bride-bank-number">------------</div>
-              <div class="cx-t text-[9px] uppercase tracking-[1px]" id="bride-bank-owner">
-                --------------------
-              </div>
-              <x-button
-                variant="bare"
-                onclick="saveQR('bride-qr-img')"
-                class="oc-btn self-start mt-1 gap-2 px-3 py-1.5 border cx-border cx-t text-[9px] uppercase tracking-[2px]"
-              >
-                <i data-lucide="download" class="cx-ic cx-a text-[10px]"></i>
-                Lưu QR
-              </x-button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ════════════════════════════════ -->
-        <section id="section-map" class="flex flex-col gap-5 py-14">
-          <div class="flex flex-col items-center gap-3 px-9">
-            <span class="oc-crest"></span>
-            <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Địa Điểm</h2>
-            <div class="oc-hair w-full max-w-[140px]"></div>
-          </div>
-
-          <div class="cx-h text-[15px] text-center px-9" id="map-location-name">
-            ------------------------
-          </div>
-
-          <a
-            id="map-link"
-            href="#"
-            target="_blank"
-            class="w-full relative overflow-hidden active:scale-[0.99] transition-transform block"
-          >
-            <div class="w-full h-44 relative overflow-hidden">
+        <!-- ═══ MỤC: Bản đồ — #map-location-name + #map-link phải đứng CUỐI mục ═══ -->
+        <section id="section-map" class="flex flex-col gap-4 px-5 text-center">
+          <div class="cx-t text-[15px] cx-hd" id="map-location-name">------------------------</div>
+          <a id="map-link" href="#" target="_blank" class="w-full relative overflow-hidden active:scale-[0.98] transition-transform block border cx-border">
+            <div class="w-full h-48 relative overflow-hidden">
               <iframe
                 id="map-thumbnail-iframe"
                 src=""
@@ -527,60 +260,150 @@
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
               ></iframe>
-
-              <!-- Chưa có dữ liệu bản đồ → hiện minh hoạ thay cho iframe trắng -->
-              <div
-                id="map-placeholder"
-                class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface"
-              >
+              <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
                 <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
-                <span class="oc-eyebrow cx-t">Chưa có bản đồ</span>
+                <span class="cx-t text-[11px] uppercase tracking-[2px]">Chưa có bản đồ</span>
               </div>
+              <!-- Nút dẫn đường: index.js chặn cú bấm và mở trang chỉ đường thay cho link xem bản đồ. -->
+              <span class="oc-map-nav" data-oc-dir aria-label="Chỉ đường"><i data-lucide="navigation" style="width:20px;height:20px"></i></span>
             </div>
-
-            <div class="flex items-center justify-between px-9 py-4 cx-bg-panel">
-              <div class="oc-eyebrow cx-t">Địa điểm tổ chức</div>
-              <div class="flex items-center gap-2 cx-a">
-                <span class="oc-eyebrow">Mở Maps</span>
-                <i data-lucide="chevron-right" class="cx-ic text-[10px]"></i>
-              </div>
+            <div class="flex items-center justify-between px-4 py-3 cx-bg-panel-70">
+              <div class="cx-t text-[11px] uppercase tracking-[2px] oc-muted">Địa điểm tổ chức</div>
+              <span class="flex items-center gap-1 cx-t text-[12px] font-semibold cx-a" data-oc-dir><i data-lucide="navigation" class="cx-ic"></i>Chỉ đường</span>
             </div>
           </a>
         </section>
 
-        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═════════════════════════════ -->
-        <section id="section-footer" class="flex flex-col items-center gap-4 px-10 pt-12 pb-16 text-center">
-          <div class="oc-script cx-a text-[46px]">Cảm ơn</div>
-          <div id="footer-text" class="cx-h italic text-[14px] leading-relaxed">
+        <!-- ═══ MỤC: Lịch trình ngày cưới (enable_timeline) ═══ -->
+        <section id="section-timeline" class="hidden flex flex-col gap-6 px-5">
+          <h2 class="oc-display text-center">LỊCH TRÌNH</h2>
+          <div id="timeline-list-render" class="flex flex-col px-4"></div>
+        </section>
+
+        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ═══ -->
+        <section id="love-story" class="flex flex-col gap-6 px-5" style="display: none">
+          <div class="oc-script oc-script-title text-[52px]">Chuyện chúng mình</div>
+          <div id="love-story-list" class="flex flex-col gap-12"></div>
+        </section>
+
+        <!-- ═══ MỤC: Album ảnh (enable_photos) — ảnh rải vào ba dải xen với thơ ═══ -->
+        <section id="section-photos" class="flex flex-col gap-10 px-5">
+          <div id="gallery-grid" class="oc-gal"></div>
+
+          <div class="flex flex-col gap-4">
+            <div class="oc-script oc-script-title text-[52px] text-center">Bên nhau</div>
+            <div class="cx-t oc-poem text-right">
+              Đi qua bao ngày nắng mưa<br />
+              Mình gặp lại nhau giữa mùa hạ xanh<br />
+              Và em biết, những điều lãng mạn này là vì em
+            </div>
+          </div>
+
+          <div class="oc-side">
+            <div id="oc-gal-side" class="oc-gal"></div>
+            <div class="oc-vertical cx-t">Viết tình yêu thành câu thơ cuối</div>
+          </div>
+
+          <div class="flex flex-col items-center gap-4 text-center">
+            <div class="oc-smallcaps">You are the love of my life</div>
+            <div class="oc-display oc-display-lg">LOVE YOU</div>
+            <div class="flex items-center gap-4 w-full">
+              <span class="cx-t text-[13px] cx-hd whitespace-nowrap">Hoàng hôn &amp; gió chiều, sớm sớm chiều chiều</span>
+              <span class="oc-rule-line"></span>
+            </div>
+          </div>
+
+          <div id="oc-gal-rest" class="oc-gal"></div>
+        </section>
+
+        <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ═══ -->
+        <section id="rsvp-section" class="flex-col items-center gap-6 px-8 text-center" style="display: none">
+          <div class="cx-t oc-poem">
+            Chuyện của chúng mình rất giản dị<br />
+            gặp gỡ, thương nhau, rồi về chung một nhà
+          </div>
+          <i data-lucide="heart" class="cx-ic cx-a text-[32px]"></i>
+          <div class="oc-sans text-[22px] tracking-[4px] cx-hd">Xác nhận tham dự</div>
+          <div id="rsvp-custom-message" class="hidden cx-t text-[13px] leading-relaxed oc-muted"></div>
+
+          <div class="flex flex-col gap-4 w-full">
+            <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="oc-rsvp-btn active:scale-95">
+              <i data-lucide="heart" class="cx-ic cx-a"></i>
+              Mình sẽ đến chung vui
+            </x-button>
+            <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="oc-rsvp-btn active:scale-95">
+              <i data-lucide="circle-x" class="cx-ic oc-muted"></i>
+              Tiếc quá, mình không đến được
+            </x-button>
+          </div>
+
+          <div id="attend-msg" class="cx-a cx-t text-[14px] hidden"></div>
+        </section>
+
+        <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) — hộp do gift-box-helper.js vẽ ═══ -->
+        <section id="section-gift" class="flex flex-col gap-6 px-5 text-center">
+          <h2 class="oc-display">GIFT</h2>
+          <div class="oc-rule"><span>WITH</span><span class="oc-rule-line"></span><span>LOVE</span></div>
+
+          <div data-cx-gift="qr" class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2 items-center">
+              <div class="cx-t text-[11px] oc-muted">Chú Rể · <span id="groom-bank-label">----------</span></div>
+              <div class="cx-bg-qr p-3 border cx-border w-full max-w-[180px]">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="QR Chú Rể" class="w-full aspect-square object-cover" />
+              </div>
+              <div class="cx-t text-[11px] oc-muted" id="groom-bank-name">----------------</div>
+              <div class="cx-t text-[13px] cx-hd" id="groom-bank-number">------------</div>
+              <div class="cx-t text-[12px] font-semibold cx-hd" id="groom-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="gap-2 px-4 py-2 border cx-border cx-t text-[12px] cx-hd">
+                <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
+                Lưu QR
+              </x-button>
+            </div>
+            <div class="flex flex-col gap-2 items-center">
+              <div class="cx-t text-[11px] oc-muted">Cô Dâu · <span id="bride-bank-label">----------</span></div>
+              <div class="cx-bg-qr p-3 border cx-border w-full max-w-[180px]">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="QR Cô Dâu" class="w-full aspect-square object-cover" />
+              </div>
+              <div class="cx-t text-[11px] oc-muted" id="bride-bank-name">----------------</div>
+              <div class="cx-t text-[13px] cx-hd" id="bride-bank-number">------------</div>
+              <div class="cx-t text-[12px] font-semibold cx-hd" id="bride-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="gap-2 px-4 py-2 border cx-border cx-t text-[12px] cx-hd">
+                <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
+                Lưu QR
+              </x-button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) — ảnh mờ viền + lời nhắn ═══ -->
+        <section id="section-footer" class="flex flex-col items-center gap-6 text-center">
+          <img id="oc-footer-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="oc-photo oc-fade aspect-[4/3]" />
+          <div id="footer-text" class="cx-t oc-poem px-8">
             Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
           </div>
-          <div class="oc-hair w-full max-w-[100px] my-1"></div>
-          <div class="oc-display oc-shine text-[15px] tracking-[6px]" id="footer-monogram">
-            -- &amp; --
-          </div>
-          <div class="oc-eyebrow cx-t" id="footer-date">--.--.----</div>
+          <div class="oc-script oc-script-title text-[40px]">Hẹn gặp ở đám cưới nhé!</div>
         </section>
       </div>
     </div>
 
-    <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
+    <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ═══ -->
     <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
-      <x-button variant="bare" onclick="closeLightbox()" class="oc-btn absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
         <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
       </x-button>
       <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
       <div class="w-full h-full flex items-center justify-center px-[8px]">
         <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain transition-opacity duration-200" />
       </div>
-      <x-button variant="bare" onclick="lightboxPrev()" class="oc-btn absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
         <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
       </x-button>
-      <x-button variant="bare" onclick="lightboxNext()" class="oc-btn absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
         <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
       </x-button>
     </div>
 
-    <!-- ═══ Thứ tự nạp script — GIỮ NGUYÊN khi chép sang mẫu mới ═══════════ -->
+    <!-- ═══ Thứ tự nạp script — giữ nguyên như base-theme ═══ -->
     <script src="../preview-data.js"></script>
     <script src="../../../core/cache-util.js"></script>
     <script src="../../../core/dal/templates-dal.js"></script>
@@ -592,7 +415,6 @@
       crossorigin="anonymous"
     ></script>
 
-    <!-- DAL → BL → khởi tạo instance -->
     <script src="../../../core/dal/wedding-dal.js"></script>
     <script src="../../../core/dal/guest-dal.js"></script>
     <script src="../../../core/dal/storage-dal.js"></script>
@@ -604,32 +426,23 @@
     <script src="../../../core/helpers/vh-lock.js"></script>
     <script src="../../../core/utils.js"></script>
 
-    <!-- Helper dùng chung -->
     <script src="../../../core/helpers/youtube-helper.js"></script>
-    <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
     <script src="../../../core/helpers/music-player-helper.js"></script>
-    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper
-         (runtime thành phần ở đó đọc window.CX_ELEMENTS) -->
     <script src="../../../core/helpers/element-color-enum.js"></script>
     <script src="../../../core/helpers/element-helper.js"></script>
     <script src="../../../core/helpers/lightbox-helper.js"></script>
     <script src="../../../core/helpers/calendar-helper.js"></script>
     <script src="../../../core/helpers/wedding-helper.js"></script>
     <script src="../../../core/helpers/render-helper.js"></script>
-    <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
     <script src="../../../core/helpers/text-preset-helper.js"></script>
     <script src="../../../core/helpers/theme-setting-helper.js"></script>
     <script src="../../../core/helpers/gift-box-helper.js"></script>
     <script src="../../../core/helpers/wishes-helper.js"></script>
     <script src="../../../core/helpers/qr-mobile-helper.js"></script>
-    <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
     <script src="../../../core/helpers/preview-focus-helper.js"></script>
 
-    <!-- Bản khai của mẫu + renderWedding -->
     <script src="index.js"></script>
-    <!-- Chrome giả lập điện thoại của khung xem thử trên máy tính. -->
     <script src="../../../core/helpers/phone-chrome.js"></script>
-    <!-- Khởi động. Phải nạp SAU index.js. -->
     <script src="../../../core/helpers/theme-boot.js"></script>
   </body>
 </html>

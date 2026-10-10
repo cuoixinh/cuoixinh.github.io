@@ -323,32 +323,9 @@ body {
   color: rgb(var(--cx-on-accent-rgb));
 }
 
-/* Nút "Xác nhận tham dự" cuối mục mở đầu — nhảy xuống phần RSVP. */
+/* .lp-flow-nav tự khai display nên đè mất .hidden của themes.css (nạp trước)
+   — phải khai lại cho đúng cặp lớp. */
 
-.lp-cue {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 20px;
-  border-radius: 9999px;
-  font-family: "Quicksand", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgb(var(--cx-deco-rgb));
-  border: 1px solid rgb(var(--cx-deco-rgb) / 0.35);
-  background-color: rgb(var(--cx-panel-rgb) / 0.6);
-  transition: transform 0.2s ease-out;
-}
-
-.lp-cue:active {
-  transform: scale(0.96);
-}
-
-/* .lp-cue / .lp-flow-nav tự khai display nên đè mất .hidden của themes.css
-   (nạp trước) — phải khai lại cho đúng cặp lớp. */
-
-.lp-cue.hidden,
 .lp-flow-nav.hidden {
   display: none;
 }
@@ -359,10 +336,30 @@ body {
    sáng cỡ nào tên vẫn đọc được — nên khung không overflow:hidden, bo góc đặt
    trên chính <img>, và margin-bottom chừa chỗ cho phần tấm kính thò ra. */
 
+/* Mục mở đầu cao ĐÚNG một khung nhìn (qua --vh do vh-lock.js khoá px, không
+   dùng dvh/svh trần), ảnh `flex: 1` ăn phần còn lại — nên phải là `height`
+   chứ không phải min-height, thiếu chiều cao xác định thì ảnh không co được. */
+
+#section-hero {
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
+  padding-bottom: 24px;
+}
+
+/* Màn rộng: thiệp cao 932px nhưng không vượt khung nhìn (body chừa md:py-5). */
+
+@media (min-width: 768px) {
+  #section-hero {
+    height: min(932px, calc(var(--vh, 1vh) * 100 - 40px));
+    height: min(932px, calc(var(--vh, 1svh) * 100 - 40px));
+  }
+}
+
 .lp-hero-photo {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  flex: 1 1 0;
+  min-height: 200px;
   margin-bottom: 20px;
   border-radius: 28px;
   box-shadow:
@@ -372,6 +369,8 @@ body {
 }
 
 .lp-hero-photo > img {
+  position: absolute;
+  inset: 0;
   border-radius: 28px;
 }
 
@@ -715,7 +714,6 @@ body {
     opacity: 1;
   }
 
-  .lp-cue,
   .lp-round {
     transition: none;
   }

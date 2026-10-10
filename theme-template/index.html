@@ -94,61 +94,14 @@
         box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.05);
       }
 
-      /* Navbar `fixed` (từ md, cao 80px) nên thanh tìm kiếm dính ngay dưới nó
-         bám --tt-head-h; dưới md không có navbar trên → dính sát mép. */
-      :root {
-        --tt-head-h: 0px;
-      }
-      @media (min-width: 768px) {
-        :root {
-          --tt-head-h: 80px;
-        }
-      }
+      /* Thanh tìm kiếm dính — CHỈ có dưới md. Từ md ô tìm nằm ở đầu trang cạnh
+         tiêu đề: một thẻ dính ngay dưới navbar nổi trông thành hai thanh điều hướng. */
       #tt-searchbar {
-        top: var(--tt-head-h);
+        top: 0;
         transition: box-shadow 0.2s ease;
       }
       #tt-searchbar.nav-scrolled {
         box-shadow: 0 6px 22px -8px rgb(var(--shadow-brand-rgb) / 0.28);
-      }
-      /* Từ md: vỏ trong suốt, hàng chip + ô tìm là một THẺ nổi cùng khổ và cùng
-         dáng thẻ navbar ngay trên (.cx-navcard) — không còn dải trắng tràn màn.
-         Bóng khi cuộn chuyển từ vỏ sang thẻ. */
-      @media (min-width: 768px) {
-        #tt-searchbar,
-        #tt-searchbar.nav-scrolled {
-          background: transparent;
-          box-shadow: none;
-        }
-        #tt-searchcard {
-          padding: 8px 8px 8px 16px;
-          border-radius: 24px;
-          background: rgb(var(--white-rgb) / 0.92);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
-          transition: box-shadow 0.2s ease;
-        }
-        #tt-searchbar.nav-scrolled #tt-searchcard {
-          box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.08);
-        }
-        /* Cuộn xuống: thẻ trượt lên khuất sau navbar (z-index navbar cao hơn) để
-           không thành hai thanh chồng nhau; cuộn lên là hiện lại (JS ở cuối trang). */
-        #tt-searchbar {
-          transition:
-            transform 0.3s ease,
-            opacity 0.2s ease;
-        }
-        #tt-searchbar.is-tucked {
-          transform: translateY(calc(-100% - 12px));
-          opacity: 0;
-          pointer-events: none;
-        }
-      }
-      @media (min-width: 768px) and (prefers-reduced-motion: reduce) {
-        #tt-searchbar {
-          transition: none;
-        }
       }
 
       /* Ô tìm kiếm: khung bo góc mềm, nền trong suốt — chỉ còn đường viền. */
@@ -183,34 +136,15 @@
         font-weight: 500;
       }
 
-      /* Nút lọc danh mục — icon TRẦN cạnh ô tìm kiếm, mở popover chọn danh mục.
-         Không khung/nền; vùng bấm lấy bằng khổ 44x46, icon căn giữa. */
-      .tt-filter-btn {
+      /* Nút lọc danh mục — cùng dáng nút ☰ trang chủ (.hero-menu-btn), thêm chấm
+         báo "đang lọc" (chỉ hiện khi danh mục khác Tất cả). */
+      #tt-filter-btn {
         position: relative;
-        flex: none;
-        width: 44px;
-        height: 46px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        border: 0;
-        color: var(--primary);
-        transition:
-          color 0.18s ease,
-          opacity 0.18s ease;
       }
-      .tt-filter-btn:hover {
-        opacity: 0.72;
-      }
-      .tt-filter-btn.is-on {
-        color: var(--primary);
-      }
-      /* Chấm báo "đang lọc" — chỉ hiện khi danh mục khác Tất cả. */
       .tt-filter-dot {
         position: absolute;
-        top: 6px;
-        right: 4px;
+        top: 8px;
+        right: 8px;
         width: 8px;
         height: 8px;
         border-radius: 999px;
@@ -340,33 +274,25 @@
   <body class="min-h-screen flex flex-col">
     <!-- ═══ PAGE BODY ═══ -->
     <div class="flex-1 tt-body">
-      <!-- ═══ THANH TÌM KIẾM ═══ Nằm trong phần NỘI DUNG (không thuộc header)
-         và DÍNH lên đầu khi cuộn — `top` bám --tt-head-h nên nó nằm ngay dưới
-         navbar từ md, sát mép dưới md. Từ md dải chip danh mục đứng chung hàng;
-         dưới md chip ở đầu trang (.tg-head), còn đây giữ nút lọc mở popover để
-         đổi danh mục khi đã cuộn xa. -->
+      <!-- ═══ THANH TÌM KIẾM (mobile) ═══ Dính sát mép trên khi cuộn; nút lọc mở
+         popover để đổi danh mục khi đã cuộn xa khỏi dải chip ở đầu trang. Từ md
+         ô tìm nằm trong .tg-head. -->
       <div
         id="tt-searchbar"
-        class="sticky z-40 bg-white border-b border-rose-pastel-200 py-2.5 md:border-b-0 md:py-3 transition-shadow"
+        class="sticky z-40 bg-white border-b border-rose-pastel-200 py-2.5 md:hidden"
       >
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div id="tt-searchcard" class="flex items-center gap-2.5 md:gap-6">
-            <a href="/" class="md:hidden shrink-0" aria-label="Cưới Xinh">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+          <div class="flex items-center gap-2.5">
+            <a href="/" class="shrink-0" aria-label="Cưới Xinh">
               <x-logo size="28"></x-logo>
             </a>
-            <div
-              class="tg-cats hidden md:flex flex-1 min-w-0"
-              data-tg-cats
-              role="group"
-              aria-label="Danh mục mẫu"
-            ></div>
             <!-- min-w-0: không có thì ô không chịu co dưới khổ tự nhiên của <input>
                  (~150px), hàng logo + ô + nút lọc vượt bề ngang máy 360–390px
                  và cả trang kéo ngang được. -->
-            <label class="tt-search flex-1 min-w-0 md:flex-none md:w-[360px]">
+            <label class="tt-search flex-1 min-w-0">
               <i data-lucide="search" style="width:18px;height:18px;color:var(--primary)"></i>
               <input
-                id="tt-search-input"
+                data-tt-search
                 type="search"
                 autocomplete="off"
                 placeholder="Tìm mẫu thiệp bạn thích"
@@ -374,41 +300,59 @@
               />
             </label>
 
-            <div class="relative shrink-0 md:hidden">
-              <button
+            <div class="relative shrink-0">
+              <x-button
+                variant="bare"
+                icon-only
                 id="tt-filter-btn"
-                type="button"
-                class="tt-filter-btn"
+                class="hero-menu-btn"
                 aria-label="Lọc theo danh mục"
               >
-                <i data-lucide="sliders-horizontal" style="width:22px;height:22px"></i>
+                <i data-lucide="sliders-horizontal" class="hero-menu-ico-open" style="width:20px;height:20px"></i>
+                <i data-lucide="x" class="hero-menu-ico-close" style="width:20px;height:20px"></i>
                 <span id="tt-filter-dot" class="tt-filter-dot hidden"></span>
-              </button>
-              <x-popover
-                id="tt-filter-pop"
-                anchor="#tt-filter-btn"
-                placement="bottom"
-                align="end"
-                width="232"
-                arrow
-              ></x-popover>
+              </x-button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ─── ĐẦU TRANG ─── Tiêu đề + số mẫu đang hiện (applyFilter cập nhật). -->
+      <!-- Bảng lọc của nút lọc — cùng dáng menu ☰ trang chủ (.hero-menu: ô lưới +
+           màn mờ phủ phần trang dưới hàng nút, top do _initFilterScrim đặt). -->
+      <div id="tt-filter-scrim" class="hero-menu-scrim md:hidden" aria-hidden="true"></div>
+      <x-popover
+        id="tt-filter-pop"
+        class="hero-menu"
+        anchor="#tt-filter-btn"
+        placement="bottom"
+        align="end"
+        aria-label="Lọc theo danh mục"
+      ></x-popover>
+
+      <!-- ─── ĐẦU TRANG ─── Tiêu đề + số mẫu (applyFilter cập nhật); từ md ô tìm
+           đứng bên phải tiêu đề. Dải chip dùng chung mọi khổ màn. -->
       <header class="tg-head max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="tg-head-row">
-          <h1 id="tg-title" class="tg-title">Mẫu thiệp cưới</h1>
-          <span id="tg-count" class="tg-count" aria-live="polite"></span>
+        <div class="md:flex md:items-end md:justify-between md:gap-8">
+          <div class="min-w-0">
+            <div class="tg-head-row">
+              <h1 id="tg-title" class="tg-title">Mẫu thiệp cưới</h1>
+              <span id="tg-count" class="tg-count" aria-live="polite"></span>
+            </div>
+            
+          </div>
+          <label class="tt-search hidden md:flex shrink-0 w-[320px] lg:w-[360px]">
+            <i data-lucide="search" style="width:18px;height:18px;color:var(--primary)"></i>
+            <input
+              data-tt-search
+              type="search"
+              autocomplete="off"
+              placeholder="Tìm mẫu thiệp bạn thích"
+              aria-label="Tìm mẫu thiệp"
+            />
+          </label>
         </div>
-        <p class="tg-sub">
-          Bấm vào mẫu để xem thử như khách mời sẽ thấy — dùng thử miễn phí, ưng ý
-          mới thanh toán.
-        </p>
         <div
-          class="tg-cats md:hidden"
+          class="tg-cats"
           data-tg-cats
           role="group"
           aria-label="Danh mục mẫu"
@@ -762,12 +706,11 @@
          nhãn thô + icon mặc định. */
       const CAT_META = {
         all: { label: "Tất cả", icon: "layout-grid" },
-        traditional: { label: "Cổ điển", icon: "scroll-text" },
+        traditional: { label: "Truyền thống", icon: "scroll-text" },
         modern: { label: "Hiện đại", icon: "sparkles" },
-        vintage: { label: "Vintage", icon: "film" },
-        romantic: { label: "Lãng mạn", icon: "rose" },
-        minimal: { label: "Tối giản", icon: "circle" },
-        luxury: { label: "Cao cấp", icon: "gem" },
+        vintage: { label: "Vintage", icon: "camera" },
+        cinematic: { label: "Điện ảnh", icon: "clapperboard" },
+        historical: { label: "Cổ trang", icon: "landmark" },
         _default: { label: "Khác", icon: "tag" },
       };
       const catMeta = (key) => CAT_META[key] || CAT_META._default;
@@ -812,35 +755,40 @@
         }));
       }
 
-      /* ── Lọc danh mục (nút icon cạnh ô tìm kiếm + <x-popover>) ──
+      /* ── Lọc danh mục (nút cạnh ô tìm kiếm + <x-popover> dáng menu trang chủ) ──
          Popover lo phần vỏ: neo theo nút, mũi tên, đóng khi bấm ra ngoài / Esc /
          chọn một mục. Ở đây chỉ nạp danh sách và cập nhật trạng thái nút. */
       function renderFilterMenu() {
+        // Thứ tự cố định theo CAT_META; danh mục chưa có mẫu nào thì không hiện chip.
+        const present = new Set(allTemplates.map((t) => t.category).filter(Boolean));
+        const known = Object.keys(CAT_META).filter((k) => k !== "all" && k !== "_default");
         const cats = [
           "all",
-          ...Array.from(
-            new Set(allTemplates.map((t) => t.category).filter(Boolean)),
-          ),
+          ...known.filter((k) => present.has(k)),
+          ...Array.from(present).filter((k) => !known.includes(k)),
         ];
         renderCatChips(cats);
-        document.getElementById("tt-filter-pop").setItems(
+        const pop = document.getElementById("tt-filter-pop");
+        pop.style.setProperty(
+          "--hm-cols",
+          cats.length <= 3 ? cats.length : cats.length % 3 === 0 ? 3 : 2,
+        );
+        pop.setItems(
           cats.map((c) => {
             const m = catMeta(c);
             return {
               label: c === "all" ? m.label : catLabel(c),
               active: c === activeCat,
               role: "menuitemradio",
-              icon: `<i data-lucide="${m.icon}" style="width:17px;height:17px"></i>`,
+              icon: `<i data-lucide="${m.icon}" style="width:18px;height:18px"></i>`,
               onClick: () => setCat(c),
             };
           }),
         );
-        const pop = document.getElementById("tt-filter-pop");
         window.lucide?.createIcons({ root: pop });
       }
 
-      /* Dải chip danh mục — cùng một dải đổ vào mọi [data-tg-cats] (thanh tìm
-         kiếm từ md, đầu trang dưới md); bấm chip đi qua uỷ quyền ở dưới. */
+      /* Dải chip danh mục ở đầu trang ([data-tg-cats]); bấm chip đi qua uỷ quyền ở dưới. */
       const _esc = (s) =>
         String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -867,8 +815,6 @@
       function setCat(cat) {
         activeCat = cat;
         renderFilterMenu();
-        const btn = document.getElementById("tt-filter-btn");
-        btn.classList.toggle("is-on", cat !== "all");
         document
           .getElementById("tt-filter-dot")
           .classList.toggle("hidden", cat === "all");
@@ -947,7 +893,7 @@
 
       // Nút "Xem tất cả mẫu" ở trạng thái rỗng: gỡ mọi bộ lọc một lượt.
       function resetFilters() {
-        document.getElementById("tt-search-input").value = "";
+        document.querySelectorAll("[data-tt-search]").forEach((el) => (el.value = ""));
         searchQuery = "";
         favOnly = false;
         CXNavbar.setActive("templates");
@@ -1000,36 +946,43 @@
         }
       })();
 
-      /* ── Ô tìm kiếm ── */
+      /* ── Ô tìm kiếm ── Hai ô (thanh dính mobile · đầu trang desktop) giữ cùng
+         một giá trị để đổi khổ màn không mất từ khoá đang gõ. */
       (function _initSearch() {
-        const input = document.getElementById("tt-search-input");
+        const inputs = document.querySelectorAll("[data-tt-search]");
         let timer = null;
-        input.addEventListener("input", () => {
-          clearTimeout(timer);
-          timer = setTimeout(() => {
-            searchQuery = input.value;
-            applyFilter();
-          }, 160);
-        });
+        inputs.forEach((input) =>
+          input.addEventListener("input", () => {
+            inputs.forEach((el) => el !== input && (el.value = input.value));
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+              searchQuery = input.value;
+              applyFilter();
+            }, 160);
+          }),
+        );
       })();
 
-      /* ── Nav scroll ── Cuộn XUỐNG quá 240px thì thu thẻ tìm kiếm (.is-tucked —
-         chỉ có tác dụng từ md, xem CSS), cuộn LÊN là hiện lại; đang gõ trong ô
-         tìm thì giữ nguyên. Lệch dưới 6px bỏ qua cho khỏi nháy khi cuộn rung. */
+      /* Màn mờ sau bảng lọc chạy theo sự kiện của popover (bấm ra ngoài, Esc, chọn
+         mục đều đi qua "close"); chỉ phủ từ dưới hàng nút để nút ✕ vẫn bấm được. */
+      (function _initFilterScrim() {
+        const pop = document.getElementById("tt-filter-pop");
+        const scrim = document.getElementById("tt-filter-scrim");
+        pop.addEventListener("open", () => {
+          const btn = document.getElementById("tt-filter-btn");
+          const top = btn ? btn.getBoundingClientRect().bottom + 4 : 0;
+          scrim.style.setProperty("--hm-top", `${Math.max(0, Math.round(top))}px`);
+          scrim.classList.add("is-on");
+        });
+        pop.addEventListener("close", () => scrim.classList.remove("is-on"));
+      })();
+
+      /* ── Bóng thanh tìm kiếm (mobile) khi đã cuộn ── */
       (function () {
         const bar = document.getElementById("tt-searchbar");
-        let lastY = window.scrollY;
         window.addEventListener(
           "scroll",
-          () => {
-            const y = window.scrollY;
-            bar.classList.toggle("nav-scrolled", y > 10);
-            if (Math.abs(y - lastY) < 6) return;
-            const down = y > lastY;
-            lastY = y;
-            if (bar.contains(document.activeElement)) return;
-            bar.classList.toggle("is-tucked", down && y > 240);
-          },
+          () => bar.classList.toggle("nav-scrolled", window.scrollY > 10),
           { passive: true },
         );
       })();

@@ -8,7 +8,7 @@
     // Trùng TÊN THƯ MỤC và cột `templates.template_name`.
     id: "hen-uoc",
 
-    wishesMode: "card",
+    wishesMode: "chat",
     giftBox: "hop_trai_tim",
 
     music: { variant: "disc", chrome: "fixed-corner", art: "couple" },

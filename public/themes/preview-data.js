@@ -104,7 +104,16 @@ function applyThemeSampleContent(w, sample) {
   });
 }
 
-async function loadPreviewData() {
+// Dữ liệu của bản xem (?preview=true không slug): khung Xem trực tiếp của trang Thiết
+// lập (`source=live`) lấy bản đang soạn trong sessionStorage, còn lại là dữ liệu mẫu.
+// CHỈ trả dữ liệu — dựng thiệp là việc của loadWeddingData, chung một đường với thiệp thật.
+async function cxPreviewWedding() {
+  if (window.location.search.includes("source=live")) {
+    try {
+      const raw = sessionStorage.getItem("preview_data");
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+  }
   // Ảnh mặc định khi theme CHƯA có bộ dữ liệu mẫu (assets/data-template/<theme>/):
   // khung xám có chữ do core/utils.js dựng, dạng data: URI nên getImageUrl() giữ
   // nguyên. ĐỪNG trỏ vào file ảnh trong repo — mẫu mới nào cũng sẽ ra ảnh vỡ.
@@ -264,57 +273,5 @@ async function loadPreviewData() {
     applyThemeSampleContent(w, sample);
   }
 
-  if (typeof renderWedding === "function") {
-    renderWedding(w);
-    // Hộp mừng cưới của mẫu (CX_THEME.giftBox) — bản xem thử không có theme_setting.
-    if (typeof applyGiftBox === "function") applyGiftBox(w.theme_setting);
-    // Lời chúc: bản xem thử dựng dải + ô nhập bằng dữ liệu mẫu để chủ thiệp gõ
-    // thử; initWishes tự chặn nút Gửi khi đang ở chế độ xem thử. Dạng hiện lấy
-    // theo CX_THEME.wishesMode của mẫu (không có theme_setting.wishes_mode).
-    if (typeof initWishes === "function") initWishes(w);
-  } else {
-    console.error("renderWedding function not found");
-  }
-}
-
-// Auto-load preview data when in preview mode
-if (window.location.search.includes("preview=true")) {
-  document.addEventListener("DOMContentLoaded", () => {
-    // Live preview: dùng data thật từ sessionStorage
-    if (window.location.search.includes("source=live")) {
-      const raw = sessionStorage.getItem("preview_data");
-      if (raw) {
-        try {
-          const data = JSON.parse(raw);
-          if (typeof renderWedding === "function") {
-            if (typeof applyThemeSetting === "function") {
-              applyThemeSetting(data.theme_setting);
-            }
-            renderWedding(data);
-            // Áp nội dung text đã sửa (sau render)
-            if (typeof applyTextOverrides === "function") {
-              applyTextOverrides(data.theme_setting);
-            }
-            if (typeof applyCustomBlocks === "function") {
-              applyCustomBlocks(data.theme_setting);
-            }
-            // Hộp quà che phần mã QR — trước thành phần vì nó đổi chiều cao thiệp,
-            // thành phần đặt theo % (xem core/helpers/wedding-helper.js).
-            if (typeof applyGiftBox === "function") {
-              applyGiftBox(data.theme_setting);
-            }
-            if (typeof applyElements === "function") {
-              applyElements(data.theme_setting);
-            }
-            if (typeof initWishes === "function") {
-              initWishes(data);
-            }
-            return;
-          }
-        } catch (e) {}
-      }
-    }
-    // Default: dùng data fake
-    loadPreviewData();
-  });
+  return w;
 }

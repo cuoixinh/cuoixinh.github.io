@@ -2,126 +2,101 @@
   "image_focal_points": {
     "gallery_images": {
       "gallery-01.webp": {
-        "x": 46,
-        "y": 25
+        "x": 42,
+        "y": 30
       },
-      "gallery-02.webp": {
-        "x": 53,
-        "y": 13
+      "gallery-02.jpg": {
+        "x": 69,
+        "y": 81
       },
-      "gallery-03.webp": {
-        "x": 49,
-        "y": 24
+      "gallery-03.jpg": {
+        "x": 64,
+        "y": 44
       },
-      "gallery-04.webp": {
-        "x": 63,
-        "y": 14
-      },
-      "gallery-05.webp": {
-        "x": 75,
-        "y": 25
-      },
-      "gallery-06.webp": {
+      "gallery-04.jpg": {
         "x": 50,
-        "y": 24
+        "y": 50
+      },
+      "gallery-05.jpg": {
+        "x": 50,
+        "y": 56
+      },
+      "gallery-06.jpg": {
+        "x": 50,
+        "y": 43
       },
       "gallery-07.webp": {
-        "x": 49,
-        "y": 24
-      },
-      "gallery-08.webp": {
-        "x": 59,
-        "y": 18
-      },
-      "gallery-09.webp": {
         "x": 50,
-        "y": 61
-      },
-      "gallery-10.jpg": {
-        "x": 48,
-        "y": 32
+        "y": 50
       }
     },
     "cover_image_url": {
-      "x": 74,
-      "y": 16
+      "x": 78,
+      "y": 45
     },
     "groom_image_url": {
-      "x": 65,
-      "y": 14
+      "x": 94,
+      "y": 33
     },
     "bride_image_url": {
-      "x": 40,
-      "y": 23
+      "x": 70,
+      "y": 17
     }
   },
-  "cover_image_url": "cover.png",
-  "groom_image_url": "groom.webp",
+  "cover_image_url": "cover.jpg",
+  "groom_image_url": "groom.jpg",
   "bride_image_url": "bride.webp",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
     "gallery-01.webp",
-    "gallery-02.webp",
-    "gallery-03.webp",
-    "gallery-04.webp",
-    "gallery-05.webp",
-    "gallery-06.webp",
-    "gallery-07.webp",
-    "gallery-08.webp",
-    "gallery-09.webp",
-    "gallery-10.jpg"
+    "gallery-02.jpg",
+    "gallery-03.jpg",
+    "gallery-04.jpg",
+    "gallery-05.jpg",
+    "gallery-06.jpg",
+    "gallery-07.webp"
   ],
   "love_story": [
     {
       "date": "2018",
       "title": "Đồng nghiệp cùng dự án",
       "content": "Ba tháng chung một dự án ở Cần Thơ, đủ để anh nhận ra mình hay tìm cớ đi công tác.",
-      "image_url": "love-story-01.webp",
+      "image_url": "love-story-01.jpg",
       "focal_point": {
-        "x": 44,
-        "y": 26
+        "x": 72,
+        "y": 48
       }
     },
     {
       "date": "2020",
       "title": "Hai năm yêu xa",
       "content": "Sài Gòn – Cần Thơ, ba giờ xe khách mỗi cuối tuần, suốt hai năm không sót tuần nào.",
-      "image_url": "love-story-02.webp",
+      "image_url": "love-story-02.jpg",
       "focal_point": {
-        "x": 44,
-        "y": 48
+        "x": 68,
+        "y": 59
       }
     },
     {
       "date": "2023",
       "title": "Chung một thành phố",
       "content": "Em chuyển lên Sài Gòn. Lần đầu tiên hai đứa được ăn tối cùng nhau vào một ngày thường.",
-      "image_url": "love-story-03.webp",
+      "image_url": "love-story-03.jpg",
       "focal_point": {
-        "x": 44,
-        "y": 23
-      }
-    },
-    {
-      "date": "2026",
-      "title": "Lời cầu hôn",
-      "content": "Trên chuyến phà quen thuộc ngày xưa, anh quỳ xuống giữa tiếng còi tàu.",
-      "image_url": "love-story-04.webp",
-      "focal_point": {
-        "x": 49,
-        "y": 30
+        "x": 54,
+        "y": 52
       }
     }
   ],
   "content": {
     "groom_name": "Anh Tuấn",
     "bride_name": "Diệu Linh",
-    "groom_father": "Ông Hồ Đăng Khoa",
-    "groom_mother": "Bà Mai Thị Tuyết Mai",
+    "groom_father": "Hồ Đăng Khoa",
+    "groom_mother": "Mai Thị Tuyết Mai",
     "groom_address": "Số 210 Điện Biên Phủ, Phường Bình Thạnh, TP. Hồ Chí Minh",
-    "bride_father": "Ông Trịnh Hữu Nghĩa",
-    "bride_mother": "Bà Dương Thị Kim Loan",
+    "bride_father": "Trịnh Hữu Nghĩa",
+    "bride_mother": "Dương Thị Kim Loan",
     "bride_address": "Số 44 Nguyễn Trãi, Phường Ninh Kiều, TP. Cần Thơ",
     "ceremony_name": "Lễ Thành Hôn",
     "ceremony_date": "2026-11-14",
@@ -218,5 +193,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-03T08:53:34.021Z"
+  "updated_at": "2026-10-10T15:17:49.170Z"
 }

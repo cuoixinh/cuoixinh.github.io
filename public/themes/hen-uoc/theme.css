@@ -289,8 +289,8 @@ body {
   opacity: 1;
   transform: none;
   transition:
-    opacity 1s var(--hu-ease),
-    transform 1.1s var(--hu-ease),
+    opacity 1.5s var(--hu-ease),
+    transform 1.5s var(--hu-ease),
     clip-path 1.6s ease-in-out;
   transition-delay: calc(var(--d, 0) * 140ms + 120ms);
 }

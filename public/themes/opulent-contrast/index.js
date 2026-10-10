@@ -1,178 +1,117 @@
-// ============= THEME: OPULENT CONTRAST =============
-// Thiệp nền ĐEN, chữ ngà, đường vàng đồng mảnh. Nét riêng: khung vàng kép có
-// hai vệt chéo cắt góc chạy quanh cả thiệp, ảnh tràn viền chui dưới khung, và
-// chữ hoa Didone khổ lớn cắt ngang mép ảnh.
-//
-// File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu
-// (hàng tên một dòng + dải ảnh cuộn ngang). Phần "chạy" nằm ở core/helpers/theme-boot.js, nạp sau.
-//
-// Bọc trong IIFE, chỉ lộ CX_THEME + renderWedding: `const` cấp cao nhất của
-// script cổ điển là biến toàn cục, trùng tên với trang khác là vỡ trang đó.
+// OPULENT CONTRAST — thiệp trắng kiểu tạp chí ảnh phim, chữ viết tay xanh mực + tông xanh lam sương.
+// Chỉ KHAI BÁO: CX_THEME + renderWedding + phần đặc thù (album rải ảnh vào ba dải xen
+// thơ, lịch riêng có trái tim khoanh ngày). Phần "chạy" ở core/helpers/theme-boot.js.
+// Bọc IIFE: `const` cấp cao nhất của script cổ điển là biến toàn cục.
 
 (function () {
   window.CX_THEME = {
-    // Trùng TÊN THƯ MỤC và cột `templates.template_name`.
     id: "opulent-contrast",
 
-    // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
-    wishesMode: "paged",
+    wishesMode: "card",
 
-    // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
-    // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
     giftBox: "lixi_vang_do",
 
-    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-    music: { variant: "pill", chrome: "fixed-corner", art: "couple" },
+    // Nút góc màn gọn: thẻ nhạc lớn đã nằm ở màn mở đầu, nút này chỉ hiện khi cuộn qua.
+    music: { variant: "mini", chrome: "fixed-corner", art: "couple" },
 
-    // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
-    // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
-    // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
-    // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
+    // Bản khai máy đọc của :root trong theme.css — sinh lại: npm run check:palette -- --write
     palette: {
-      heading: "#f5f1e8",
-      body: "#a8a092",
-      accent: "#c6a15b",
-      accent_soft: "#8a7443",
-      on_accent: "#0f0d0b",
+      heading: "#1c2430",
+      body: "#4a5260",
+      accent: "#3f5a7a",
+      accent_soft: "#a9bccf",
+      on_accent: "#ffffff",
       on_image: "#ffffff",
-      on_lightbox: "#f5f1e8",
-      card_bg: "#0e0d0c",
-      page_bg: "#050505",
-      surface: "#171512",
-      band: "#1c1915",
-      panel: "#1a1714",
-      panel_warm: "#221d17",
-      cover: "#080807",
-      cover_mid: "#1a1712",
-      cover_veil: "#080807",
+      on_lightbox: "#ffffff",
+      card_bg: "#ffffff",
+      page_bg: "#e9edf1",
+      surface: "#f5f7f9",
+      band: "#f2f5f8",
+      panel: "#ffffff",
+      panel_warm: "#f8f9fa",
+      cover: "#eef1f4",
+      cover_mid: "#dde3ea",
+      cover_veil: "#ffffff",
       lightbox_bg: "#000000",
-      line: "#5c4c2e",
+      line: "#d3d9e0",
       shadow: "#000000",
       scrim: "#000000",
-      deco: "#c6a15b",
-      deco_soft: "#6b552e",
-      deco_2: "#e0c98a",
-      deco_2_soft: "#7d6534",
-      shine_from: "#8a6a2f",
-      shine_mid: "#f0dba6",
-      shine_to: "#b98f42",
+      deco: "#2f4a68",
+      deco_soft: "#d4dde8",
+      deco_2: "#a39e94",
+      deco_2_soft: "#e4e1dc",
+      shine_from: "#3f5a7a",
+      shine_mid: "#2f4a68",
+      shine_to: "#a9bccf",
     },
 
-    // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
-    // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
     swatches: [
-      "#f5f1e8",
-      "#a8a092",
-      "#e0c98a",
-      "#c6a15b",
-      "#8a7443",
-      "#5c4c2e",
-      "#221d17",
-      "#1c1915",
-      "#171512",
-      "#0e0d0c",
-      "#050505",
+      "#1c2430",
+      "#4a5260",
+      "#3f5a7a",
+      "#2f4a68",
+      "#a9bccf",
+      "#d4dde8",
+      "#a39e94",
+      "#d3d9e0",
+      "#f5f7f9",
+      "#ffffff",
     ],
 
-    // Mục được gán hiệu ứng hiện dần khi cuộn tới.
+    // Lời chúc trên nền trắng: thẻ xanh sương rất nhạt, tên khách màu xanh lam nhấn.
+    wishes: { bubble: "#f2f5f8", text: "#4a5260", accent: "#3f5a7a", btn: "#3f5a7a" },
+
     reveal: ["#main-card section"],
 
-    // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true).
     suggest: "#section-gift",
 
-    // Mẫu vẽ đủ mọi mục nên trang Thiết lập không bỏ bước nào.
     skipSteps: [],
 
-    // id các mục trùng bảng mặc định của preview-focus-helper.js → không cần
-    // khai `focus`.
+    // Thơ xen giữa ảnh khá dài nên mốc chuyện tình viết ngắn cho thoáng.
+    loveStory: "short",
 
-    // Cả số đếm dải ảnh lẫn hàng tên đều đo theo bề ngang THẬT, mà lúc
-    // renderWedding chạy thì #main-card còn display:none (bề ngang = 0) → đo
-    // lại khi thiệp mở ra.
-    onOpen: () => {
-      _syncGalleryCounter();
-      _fitAllNames();
-    },
+    onOpen: null,
   };
 
   const _isGroom = isGroomSide();
 
-  // ============= LUÔN HIỆN MÀN BÌA =============
-  // Mặc định của wedding-helper.js là mở thẳng thiệp khi KHÔNG phải link riêng
-  // của khách (bản xem thử, xem demo, link trần) — nhưng màn bìa của mẫu này
-  // chính là tấm poster, phải thấy nó trong mọi trường hợp. Bọc hàm chào riêng
-  // lại: vẫn điền tên khách + bật ô xác nhận tham dự, chỉ bỏ phần TỰ MỞ. Bọc ở
-  // đây được vì index.js nạp sau wedding-helper.js và trước theme-boot.js.
-  const _greetOriginal = window.setupPersonalizedGreeting;
-  window.setupPersonalizedGreeting = function (slug, isGroom) {
-    _greetOriginal(slug, isGroom, () => {});
-    // Không phải link riêng thì màn bìa sạch như tấm poster, khỏi để lại dãy
-    // gạch ngang chỗ tên khách.
-    const wrap = document.getElementById("cover-guest-wrap");
-    if (wrap && window.CX_GUEST) {
-      wrap.classList.remove("hidden");
-      wrap.classList.add("flex");
-    }
-  };
-
-  // Khung "xem trực tiếp" ở trang Thiết lập xin cuộn tới mục đang chỉnh — mục
-  // đó nằm sau màn bìa, nên nhận tin là mở thiệp ra rồi mới để helper cuộn.
-  window.addEventListener("message", (e) => {
-    if (e.data?.type !== "cx-focus") return;
-    const cover = document.getElementById("cover-screen");
-    if (cover && cover.style.display !== "none") window.openInvitation();
-  });
-
-  // ============= TIỆN ÍCH RIÊNG =============
-
-  // Chữ cái đầu của TÊN RIÊNG (từ cuối) — dùng dựng monogram "V & Y".
-  function _initial(name) {
-    const parts = String(name || "").trim().split(/\s+/);
-    const last = parts[parts.length - 1] || "";
-    return last.charAt(0).toUpperCase();
-  }
-
-  // "2026-10-18" → "18.10.2026". Chuỗi rỗng nếu không phân giải được ngày.
-  function _fmtDMY(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "";
-    const pad = (n) => String(n).padStart(2, "0");
-    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
-  }
-
-  // ============= ĐỔ DỮ LIỆU LÊN THIỆP =============
-  // Gọi theo đúng thứ tự các mục trong index.html.
+  // Thẻ nhạc ở màn mở đầu là trình phát THỨ HAI trên trang: helper chỉ tự gắn vào
+  // trình phát đầu tiên (nút góc màn) nên phải gắn tay. Iframe chỉ đọc bản khai thì không có thẻ.
+  const _musicCard = document.getElementById("oc-music-card");
+  if (_musicCard) window.setupMusicPlayer?.(_musicCard);
 
   function renderWedding(w) {
     if (!w || !w.is_active) return;
 
     const side = _isGroom ? "groom" : "bride";
 
-    // --- Màn bìa ---
-    // Khối dựng ảnh chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận
-    // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
-    // chạy — để nó đi trước là ảnh phải xếp hàng sau.
+    // Ảnh màn đầu nhận src TRƯỚC setupMusic (nó kéo YouTube API về ngay).
     renderCover(w);
-
-    // --- Mở đầu ---
+    setText("oc-mono-groom", _initial(w.groom_name), "-");
+    setText("oc-mono-bride", _initial(w.bride_name), "-");
     renderHero(w, false);
-    // Đặt thẳng thay vì renderStoryQuote(): câu này viết bằng chữ viết tay đè
-    // lên ảnh, cặp ngoặc kép helper thêm vào chỉ làm rối nét.
+    setText("oc-hero-date", _fmtDMY(w.ceremony_date), "--.--.----");
+    // Dấu ngoặc kép do CSS vẽ (.oc-quote) nên đổ nguyên câu, không qua renderStoryQuote.
     if (w.story_quote) setText("story-quote", w.story_quote);
+    setText(
+      "oc-quote-sign",
+      [w.groom_name, w.bride_name].filter(Boolean).join(" & "),
+      "----------",
+    );
 
-    // --- Nhạc nền ---
+    // Nền mờ của bìa: ảnh đầu album cho khác ảnh polaroid, không có album thì ảnh bìa.
+    const g0 = w.gallery_images?.[0];
+    const bgFp = g0 ? w.image_focal_points?.gallery_images?.[g0] : w.image_focal_points?.cover_image_url;
+    setAttr("oc-cover-bg", "src", getImageUrl(g0 || w.cover_image_url));
+    applyFocalPoint("oc-cover-bg", bgFp);
+
     setupMusic(w.music_url, w.enable_music);
-
-    // Monogram + ngày cưới: hai chi tiết riêng của mẫu, lặp lại ở bìa và chân
-    // thiệp để đóng khung cả tấm thiệp.
-    const mono = `${_initial(w.groom_name)} & ${_initial(w.bride_name)}`;
-    setText("cover-monogram", mono.length > 3 ? mono : "", "-- & --");
-    setText("footer-monogram", mono.length > 3 ? mono : "", "-- & --");
-    const dmy = _fmtDMY(w.ceremony_date);
-    setText("cover-date", dmy, "--.--.----");
-    setText("hero-date", dmy, "--.--.----");
-    setText("footer-date", dmy, "--.--.----");
+    // Thẻ nhạc: nền là ảnh đầu album (không có thì ảnh bìa), đĩa than in ảnh bìa.
+    setAttr("oc-mcard-bg", "src", getImageUrl(g0 || w.cover_image_url));
+    applyFocalPoint("oc-mcard-bg", bgFp);
+    setAttr("oc-mcard-disc", "src", getImageUrl(w.cover_image_url));
+    applyFocalPoint("oc-mcard-disc", w.image_focal_points?.cover_image_url);
+    cxToggle("oc-music-card", !!window.__cxMusicOn);
 
     // --- Gia đình ---
     renderCoupleInfo(w);
@@ -184,8 +123,6 @@
     const ceremonyTime = isVuQuy ? w.vu_quy_time : w.ceremony_time;
     const ceremonyLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
 
-    setText("invite-groom", w.groom_name, "----------");
-    setText("invite-bride", w.bride_name, "----------");
     setText("ceremony-event-name", ceremonyName);
     renderCeremonyDate(w.ceremony_date, ceremonyTime, w.ceremony_lunar);
     if (ceremonyLoc) {
@@ -193,37 +130,24 @@
       cxToggle("ceremony-location-wrap", true);
     }
 
-    // Khối tóm tắt trong trình phát nhạc (kéo tay nắm xuống mới thấy) — dùng
-    // CHÍNH phần lễ đang hiển thị để nhà gái bật Vu Quy thì tóm tắt cũng đổi.
     renderMusicSummary(w, {
       ceremonyName,
       ceremonyTime,
       ceremonyLocation: ceremonyLoc,
     });
 
-    // --- Tiệc cưới (mỗi nhà một ngày/giờ/nơi riêng) ---
+    // --- Tiệc cưới ---
     const partyDate = w[`${side}_party_date`];
-    const partyLocation = w[`${side}_party_location`];
     setText("party-section-label", "Tiệc Mừng " + ceremonyName);
     renderPartyDate(
       partyDate,
       w[`${side}_party_time`],
       w[`${side}_party_lunar`],
-      partyLocation,
+      w[`${side}_party_location`],
       "full",
     );
+    _renderCalendar(partyDate || w.ceremony_date, [partyDate, w.ceremony_date]);
     cxToggle("section-party", cxEnabled(w.enable_party));
-
-    // Nơi đãi tiệc là thứ khách cần nhất trên tấm poster; chưa có thì lùi về
-    // nơi làm lễ.
-    setText(
-      "cover-venue",
-      partyLocation || ceremonyLoc,
-      "------------------------",
-    );
-
-    // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
-    setupMiniCalendar(w.ceremony_date, partyDate);
 
     // --- Xác nhận tham dự ---
     const rsvp = document.getElementById("rsvp-section");
@@ -236,7 +160,7 @@
       }
     }
 
-    // --- Lịch trình ngày cưới ---
+    // --- Lịch trình ---
     if (cxEnabled(w.enable_timeline)) {
       renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
       cxToggle("section-timeline", true);
@@ -244,7 +168,7 @@
 
     // --- Chuyện tình yêu ---
     if (cxEnabled(w.enable_love_story)) {
-      renderLoveStory(w.love_story);
+      _renderLoveStory(w.love_story);
     } else {
       cxToggle("love-story", false);
     }
@@ -260,110 +184,187 @@
     renderQRCodes(w);
     cxToggle("section-gift", cxEnabled(w.enable_gift));
 
-    // --- Bản đồ: tiệc, thêm bản đồ lễ khi hai nơi khác nhau ---
     renderVenueMaps(w, side);
+    _bindDirections();
 
-    // --- Lời cảm ơn ---
+    // --- Lời cảm ơn: ảnh cuối album (không có thì ảnh bìa) mờ viền ---
+    const gallery = w.gallery_images || [];
+    const footerImg = gallery.length ? gallery[gallery.length - 1] : w.cover_image_url;
+    const footerFp = gallery.length
+      ? w.image_focal_points?.gallery_images?.[footerImg]
+      : w.image_focal_points?.cover_image_url;
+    setAttr("oc-footer-photo", "src", getImageUrl(footerImg));
+    applyFocalPoint("oc-footer-photo", footerFp);
     if (w.footer_text) setText("footer-text", w.footer_text);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
-
-    // Tên vừa đổ xong → co hàng tên cho vừa một dòng. Màn bìa đo được ngay;
-    // hàng trong thân thiệp phải đợi onOpen (lúc này #main-card còn ẩn).
-    _fitAllNames();
   }
 
   window.renderWedding = renderWedding;
 
-  // ============= HÀNG TÊN CÔ DÂU – CHÚ RỂ =============
-  // Ba chỗ in tên thành cặp (màn bìa, mở đầu, thư mời) đều phải nằm trên MỘT
-  // dòng. Tên dài quá khổ thì thu cả hàng bằng --oc-fit (transform) thay vì
-  // giảm font-size — giảm cỡ chữ sẽ đè lên phần khách tự chỉnh trên thiệp.
-  // Markup: .oc-names (khung, cắt tràn) > .oc-names-in (mang phép thu).
-
-  function _fitNames(row) {
-    const inner = row.firstElementChild;
-    if (!inner) return;
-
-    inner.style.setProperty("--oc-fit", "1");
-    const avail = row.clientWidth;
-    if (!avail) return; // khối còn ẩn, chưa đo được
-
-    // Đo khi chưa thu (vừa đặt lại tỉ lệ 1) nên rect là bề ngang THẬT của chữ.
-    const need = inner.getBoundingClientRect().width;
-    if (need > avail) inner.style.setProperty("--oc-fit", String(avail / need));
+  // Nút [data-oc-dir] nằm trong link bản đồ (cả bản sao -2): đổi link tìm địa điểm
+  // (?query=) thành link dẫn đường tới đúng điểm đó. Uỷ quyền một lần trên mục.
+  function _bindDirections() {
+    const sec = document.getElementById("section-map");
+    if (!sec || sec._ocDir) return;
+    sec._ocDir = true;
+    sec.addEventListener("click", (e) => {
+      const link = e.target.closest("[data-oc-dir]")?.closest("a");
+      if (!link) return;
+      e.preventDefault();
+      const q = new URL(link.href, location.href).searchParams.get("query");
+      const url = q
+        ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(q)}`
+        : link.href;
+      window.open(url, "_blank", "noopener");
+    });
   }
 
-  function _fitAllNames() {
-    document.querySelectorAll(".oc-names").forEach(_fitNames);
+  // Chữ cái đầu của TÊN RIÊNG (từ cuối) — chữ lồng "T & L" ở bìa.
+  function _initial(name) {
+    const parts = String(name || "").trim().split(/\s+/);
+    return (parts[parts.length - 1] || "").charAt(0).toUpperCase();
   }
 
-  // Đo sau khi font đã về (Playfair tải xong là bề ngang chữ đổi hẳn) và mỗi
-  // lần khổ màn đổi.
-  document.fonts?.ready.then(_fitAllNames);
-  window.addEventListener("resize", _fitAllNames, { passive: true });
+  // "2026-10-18" → "18.10.2026"; chuỗi rỗng nếu không phân giải được.
+  function _fmtDMY(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+  }
 
-  // ============= ALBUM ẢNH (phần đặc thù của mẫu) =============
-  // Dải ảnh CUỘN NGANG có điểm dừng, mỗi tấm mang số thứ tự; số đếm bên dưới
-  // chạy theo tấm đang nằm giữa khung. Bấm một tấm là mở lightbox dùng chung.
+  // ============= CHUYỆN TÌNH: ảnh ngang/dọc xen kẽ =============
+  // Xoay vòng ba kiểu theo thứ tự mốc: ảnh ngang tràn bề rộng (chữ dưới, căn trái) · ảnh dọc
+  // bên phải (ngày + tiêu đề bên trái) · ảnh dọc bên trái. Mốc không ảnh chỉ có chữ.
 
-  let _stripBound = false;
+  function _renderLoveStory(events) {
+    const section = document.getElementById("love-story");
+    const list = document.getElementById("love-story-list");
+    if (!section || !list) return;
+    if (!Array.isArray(events) || !events.length) {
+      section.style.display = "none";
+      return;
+    }
+    section.style.display = "";
+
+    list.innerHTML = events
+      .map((ev, i) => {
+        const head = `
+          ${ev.date ? `<div class="oc-script oc-ls-date">${escapeHtml(ev.date)}</div>` : ""}
+          ${ev.title ? `<div class="oc-ls-title">${escapeHtml(ev.title)}</div>` : ""}`;
+        const body = ev.content ? `<div class="cx-t oc-ls-body">${escapeHtml(ev.content)}</div>` : "";
+        if (!ev.image_url) return `<div class="oc-ls is-text">${head}${body}</div>`;
+
+        const kind = ["is-wide", "is-right", "is-left"][i % 3];
+        const fp = ev.focal_point ? ` style="object-position:${cxFocal(ev.focal_point)}"` : "";
+        const img = `<img src="${cxImgSrc(ev.image_url)}" alt="" loading="lazy" class="oc-photo oc-ls-img"${fp} />`;
+        return kind === "is-wide"
+          ? `<div class="oc-ls is-wide">${img}<div class="oc-ls-head">${head}</div>${body}</div>`
+          : `<div class="oc-ls ${kind}"><div class="oc-ls-row"><div class="oc-ls-head">${head}</div>${img}</div>${body}</div>`;
+      })
+      .join("");
+  }
+
+  // ============= ALBUM: ba dải xen thơ =============
+  // #gallery-grid: 1 ảnh lớn + 1 cặp · #oc-gal-side: 1 ảnh cạnh cột chữ dọc ·
+  // #oc-gal-rest: phần còn lại, lặp [lớn, cặp]. Thứ tự lightbox = thứ tự ảnh gốc.
 
   function renderGallery(images, focalPoints) {
-    const strip = document.getElementById("gallery-strip");
-    if (!strip) return;
-
-    // Chưa có ảnh → 4 ô minh hoạ, để khách hình dung bố cục lúc đang soạn.
     const urls = images?.length
       ? images.map(getImageUrl)
-      : Array(4)
+      : Array(6)
           .fill(null)
           .map(() => createPlaceholderSVG("Chưa có ảnh"));
 
-    // Kho ảnh của lightbox dùng chung — phải khớp thứ tự với dải.
     lightboxImages.length = 0;
     lightboxImages.push(...urls);
 
-    strip.innerHTML = "";
-    urls.forEach((url, i) => {
+    const img = (i, cls) => {
       const fp = focalPoints?.[images?.[i]];
-      const cell = document.createElement("div");
-      cell.className = "oc-shot";
-      // Ảnh KHÔNG loading="lazy": cả #main-card còn display:none cho tới khi mở
-      // bìa, ảnh lazy sẽ chỉ bắt đầu tải sau đó.
-      cell.innerHTML =
-        `<img src="${cxImgSrc(url)}" alt=""
-           style="object-position:${cxFocal(fp)}">` +
-        `<span class="oc-shot-no">${String(i + 1).padStart(2, "0")}</span>`;
-      cell.addEventListener("click", () => openLightbox(i));
-      strip.appendChild(cell);
-    });
+      return `<img src="${cxImgSrc(urls[i])}" alt="" loading="lazy" data-i="${i}"
+        class="oc-photo ${cls}" style="object-position:${cxFocal(fp)}">`;
+    };
+    // Một ảnh lẻ cuối dải thì dàn hết ngang thay cho cặp thiếu một nửa.
+    const pair = (i) =>
+      i + 1 < urls.length
+        ? `<div class="oc-pair">${img(i, "oc-ph-pair")}${img(i + 1, "oc-ph-pair")}</div>`
+        : img(i, "oc-ph-full");
 
-    if (!_stripBound) {
-      strip.addEventListener("scroll", _syncGalleryCounter, { passive: true });
-      _stripBound = true;
+    const mounts = {
+      "gallery-grid": "",
+      "oc-gal-side": "",
+      "oc-gal-rest": "",
+    };
+    let i = 0;
+    if (i < urls.length) mounts["gallery-grid"] += img(i++, "oc-ph-full");
+    if (i < urls.length) {
+      mounts["gallery-grid"] += pair(i);
+      i += 2;
     }
-    _syncGalleryCounter();
+    if (i < urls.length) mounts["oc-gal-side"] += img(i++, "oc-ph-tall");
+    while (i < urls.length) {
+      mounts["oc-gal-rest"] += img(i++, "oc-ph-full");
+      if (i < urls.length) {
+        mounts["oc-gal-rest"] += pair(i);
+        i += 2;
+      }
+    }
+
+    Object.entries(mounts).forEach(([id, html]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = html;
+      el.onclick = (e) => {
+        const t = e.target.closest("img[data-i]");
+        if (t) openLightbox(+t.dataset.i);
+      };
+    });
+    // Không đủ ảnh cho dải cạnh cột chữ dọc thì giấu luôn cột chữ.
+    const side = document.getElementById("oc-gal-side");
+    side?.parentElement.classList.toggle("hidden", !mounts["oc-gal-side"]);
   }
 
-  // Tấm nào có TÂM gần tâm khung cuộn nhất thì tấm đó đang được xem. Đo bằng
-  // offsetLeft nên .oc-strip phải là `position: relative` (xem theme.css).
-  function _syncGalleryCounter() {
-    const strip = document.getElementById("gallery-strip");
-    const out = document.getElementById("gallery-counter");
-    if (!strip || !out || !strip.children.length) return;
+  // ============= LỊCH: tháng của ngày tiệc, trái tim khoanh ngày cưới =============
 
-    const mid = strip.scrollLeft + strip.clientWidth / 2;
-    let cur = 0;
-    let best = Infinity;
-    Array.from(strip.children).forEach((el, i) => {
-      const d = Math.abs(el.offsetLeft + el.offsetWidth / 2 - mid);
-      if (d < best) {
-        best = d;
-        cur = i;
-      }
-    });
-
+  function _renderCalendar(baseDate, marks) {
+    const box = document.getElementById("oc-calendar");
+    if (!box) return;
+    const d = baseDate ? new Date(baseDate) : null;
+    if (!d || isNaN(d.getTime())) {
+      box.innerHTML = "";
+      return;
+    }
+    const y = d.getFullYear();
+    const m = d.getMonth();
+    const marked = new Set(
+      marks
+        .map((s) => (s ? new Date(s) : null))
+        .filter((x) => x && !isNaN(x.getTime()) && x.getFullYear() === y && x.getMonth() === m)
+        .map((x) => x.getDate()),
+    );
     const pad = (n) => String(n).padStart(2, "0");
-    out.textContent = `${pad(cur + 1)} / ${pad(strip.children.length)}`;
+    // Tuần bắt đầu từ Thứ Hai: getDay() 0 (CN) dồn về cuối.
+    const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+    const days = new Date(y, m + 1, 0).getDate();
+    const cells = [];
+    for (let k = 0; k < lead; k++) cells.push("<div></div>");
+    for (let day = 1; day <= days; day++) {
+      cells.push(
+        marked.has(day)
+          ? `<div class="oc-cal-d is-on"><i data-lucide="heart"></i><span class="relative">${day}</span></div>`
+          : `<div class="oc-cal-d">${day}</div>`,
+      );
+    }
+    box.innerHTML = `
+      <div class="oc-cal-head">
+        <div class="oc-cal-mm">Tháng ${pad(m + 1)}</div>
+        <div class="oc-cal-yy">—${y}—</div>
+      </div>
+      <div class="oc-cal-grid">
+        ${["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((n) => `<div class="oc-cal-wd">${n}</div>`).join("")}
+        ${cells.join("")}
+      </div>`;
+    window.lucide?.createIcons({ root: box });
   }
 })();

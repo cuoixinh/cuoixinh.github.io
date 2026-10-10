@@ -126,6 +126,31 @@ window.cxToggle = cxToggle;
 // Mục được gán hiệu ứng hiện dần khi cuộn tới, nếu theme không khai CX_THEME.reveal.
 const CX_REVEAL_DEFAULT = ["#main-card [id^='section-']", "#love-story"];
 
+// Từng ảnh bay vào riêng khi cuộn tới — chỉ mẫu khai CX_THEME.revealItems (mảng selector).
+// Ảnh album vẽ SAU khi có dữ liệu nên quét sau renderWedding chứ không lúc parse.
+function _cxRevealItems(selectors) {
+  const els = Array.from(document.querySelectorAll(selectors.join(","))).filter(
+    (el) => !el.classList.contains("cx-rv-item"),
+  );
+  if (!els.length || !("IntersectionObserver" in window)) return;
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const r = entry.boundingClientRect;
+        // Cao 0 = chưa mở bìa; nằm dưới màn mà chưa chạm thì chờ.
+        if (!r.height || (!entry.isIntersecting && r.top > 0)) return;
+        entry.target.classList.add("visible");
+        io.unobserve(entry.target);
+      });
+    },
+    { threshold: 0, rootMargin: "0px 0px -8% 0px" },
+  );
+  els.forEach((el) => {
+    el.classList.add("cx-rv-item");
+    io.observe(el);
+  });
+}
+
 // --- KHUNG MÁY KHI XEM TRÊN MÁY TÍNH ---
 // Trên màn rộng thì thiệp KHÔNG nở theo bề ngang màn: trang tự biến thành khung
 // điện thoại, thiệp thật chạy trong iframe cùng URL + shell=0 ở đúng khổ 390px.
@@ -240,7 +265,7 @@ function _cxPreviewShell() {
 }
 
 // Khai báo chrome của khung máy: quay lại (về kho mẫu nếu mở thẳng bằng link)
-// và một mục menu duy nhất — chọn luôn mẫu đang xem.
+// và menu: xem như khách mời (bật/tắt) · chọn luôn mẫu đang xem.
 //
 // `source=live` = thiệp CỦA KHÁCH nạp từ trang Thiết lập (các khung xem thử), không
 // phải mẫu đang chào bán → menu rỗng, mời chọn mẫu ở đó là lạc chỗ. `live` =
@@ -261,8 +286,14 @@ function _cxShellOpts(slug, live) {
       ? []
       : [
           {
+            label: () =>
+              _cxShellGuestOn() ? "Xem bản mẫu" : "Xem với tư cách khách mời",
+            icon: "user-round",
+            onClick: _cxShellGuestToggle,
+          },
+          {
             label: "Chọn mẫu này",
-            icon: "navigation",
+            icon: "play",
             // Cùng đường tạo nháp với nút "Dùng mẫu" ở bảng đề xuất: hỏi trước nếu
             // khách còn thiệp làm dở (core/helpers/draft-start.js).
             onClick: () => {
@@ -276,6 +307,40 @@ function _cxShellOpts(slug, live) {
           },
         ],
   };
+}
+
+// "Xem với tư cách khách mời": nạp lại thiệp trong khung với ?guest=&rel= —
+// wedding-helper giả lập link riêng của khách (chỉ đổ chữ, không ghi DB).
+// Tên khách mẫu CX_DEMO_GUEST khai ở core/utils.js (nạp trước).
+
+// Đọc URL đang chạy TRONG iframe (cùng origin), không đọc f.src — đổi chế độ
+// bằng location.replace không cập nhật thuộc tính src.
+function _cxShellViewUrl() {
+  const f = document.querySelector(".cx-pshell-view");
+  try {
+    return f && new URL(f.contentWindow.location.href);
+  } catch {
+    return f && new URL(f.src);
+  }
+}
+
+function _cxShellGuestOn() {
+  return !!_cxShellViewUrl()?.searchParams.has("guest");
+}
+
+function _cxShellGuestToggle() {
+  const f = document.querySelector(".cx-pshell-view");
+  const url = _cxShellViewUrl();
+  if (!f || !url) return;
+  if (url.searchParams.has("guest")) {
+    url.searchParams.delete("guest");
+    url.searchParams.delete("rel");
+  } else {
+    url.searchParams.set("guest", CX_DEMO_GUEST.name);
+    url.searchParams.set("rel", CX_DEMO_GUEST.rel);
+  }
+  // replace: đổi chế độ không thêm mốc lịch sử, Back vẫn về kho mẫu.
+  f.contentWindow.location.replace(url.href);
 }
 
 // Tên thật của mẫu nằm ở bảng `templates` (tên thư mục chỉ là slug). Hỏng thì
@@ -339,10 +404,12 @@ function _cxMountMusic(decl) {
   _cxMountMusic(T.music);
 
   // --- NẠP DỮ LIỆU ---
+  // Thiệp thật lẫn bản xem (?preview=true) đều qua đây (xem wedding-helper.js).
   // Trong khung máy thì gửi tên đôi uyên ương ra cho chrome của trang cha
   // (_cxShellNameLive) — chỉ trang cha đó nghe, các iframe khác bỏ qua.
   loadWeddingData(getSlugFromUrl(), (w) => {
     window.renderWedding(w);
+    if (T.revealItems?.length) _cxRevealItems(T.revealItems);
     // Ảnh trên nút nhạc (CX_THEME.music.art) cần dữ liệu thiệp → áp sau render.
     if (T.music?.art)
       window.cxMusicApplyArt?.(document.getElementById("music-toggle"));
@@ -384,26 +451,34 @@ function _cxMountMusic(decl) {
   // cũ đã bị gỡ (nút mở thiệp mang .reveal mà không ai bật .visible → tàng hình).
   const _afterParse = () => {
     // --- HIỆU ỨNG CUỘN ---
+    // Bật khi mép trên đã vào màn 10% CHIỀU CAO MÀN — tính theo % mục thì mục cao vài
+    // màn phải cuộn sâu mới hiện; lề dương thì mục bay xong khi còn ngoài màn, không ai thấy. Một mục hiện thì mọi mục ĐỨNG TRƯỚC cũng hiện:
+    // vuốt mạnh có mục lướt qua mà observer không kịp bắt, để vậy là trống mãi.
+    const revealEls = Array.from(
+      document.querySelectorAll((T.reveal || CX_REVEAL_DEFAULT).join(",")),
+    );
     const revealObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            revealObserver.unobserve(entry.target);
+          const r = entry.boundingClientRect;
+          // Cao 0 = đang trong #main-card display:none (chưa mở bìa) → chờ lượt sau.
+          if (!r.height || (!entry.isIntersecting && r.top > 0)) return;
+          const upTo = revealEls.indexOf(entry.target);
+          for (let i = 0; i <= upTo; i++) {
+            revealEls[i].classList.add("visible");
+            revealObserver.unobserve(revealEls[i]);
           }
         });
       },
-      { threshold: 0.15 },
+      { threshold: 0, rootMargin: "0px 0px -10% 0px" },
     );
-    document
-      .querySelectorAll((T.reveal || CX_REVEAL_DEFAULT).join(","))
-      .forEach((el, i) => {
-        const mod = i % 3;
-        if (mod === 0) el.classList.add("reveal", "from-bottom");
-        else if (mod === 1) el.classList.add("reveal", "from-left");
-        else el.classList.add("reveal", "from-right");
-        revealObserver.observe(el);
-      });
+    revealEls.forEach((el, i) => {
+      const mod = i % 3;
+      if (mod === 0) el.classList.add("reveal", "from-bottom");
+      else if (mod === 1) el.classList.add("reveal", "from-left");
+      else el.classList.add("reveal", "from-right");
+      revealObserver.observe(el);
+    });
 
     // --- NHỊP THỞ CHO NÚT XÁC NHẬN THAM DỰ ---
     document.getElementById("btn-attend")?.classList.add("btn-idle");

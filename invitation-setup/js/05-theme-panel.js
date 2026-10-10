@@ -1386,6 +1386,41 @@ const WISH_MODES = [
     tone: "cx-add-ico-rose",
     desc: "Lời chúc trôi lên ở góc màn hình, luôn thấy",
   },
+  {
+    id: "chat",
+    name: "Trò chuyện",
+    icon: "messages-square",
+    tone: "cx-add-ico-blue",
+    desc: "Như một đoạn chat nhóm, lời chúc mới trồi lên từ đáy",
+  },
+  {
+    id: "stack",
+    name: "Chồng thẻ",
+    icon: "layers",
+    tone: "cx-add-ico-violet",
+    desc: "Mỗi lần một lời chúc chữ lớn, vuốt sang để xem tiếp",
+  },
+  {
+    id: "spotlight",
+    name: "Tâm điểm",
+    icon: "quote",
+    tone: "cx-add-ico-amber",
+    desc: "Một câu chúc lớn kiểu trích dẫn, tự chuyển sau vài giây",
+  },
+  {
+    id: "float",
+    name: "Bong bóng bay",
+    icon: "heart",
+    tone: "cx-add-ico-rose",
+    desc: "Lời chúc và trái tim bay lên ở góc màn hình rồi tan",
+  },
+  {
+    id: "guestbook",
+    name: "Sổ lưu bút",
+    icon: "notebook-pen",
+    tone: "cx-add-ico-green",
+    desc: "Trang giấy kẻ dòng, lật từng trang để đọc",
+  },
 ];
 
 // Dạng nào cũng phải có mặt trong WISH_MODES mới chọn được — giá trị lạ (mẫu cũ,

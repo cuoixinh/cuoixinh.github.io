@@ -425,7 +425,8 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `CX_GIFT_BOXES` hoặc `"none"`), `reveal`, `focus` (id mục, chỉ khai cái khác
   mặc định), `suggest` (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử —
   mặc định `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không
-  vẽ mục đó — id trùng `CX_STEPS`), `wishesMode` (dạng lời chúc khi
+  vẽ mục đó — id trùng `CX_STEPS`), `revealItems` (selector ảnh bay vào RIÊNG từng tấm khi cuộn
+  tới — không khai thì chỉ cả mục hiện dần), `wishesMode` (dạng lời chúc khi
   `theme_setting.wishes_mode` trống),
   `music` (`{variant, chrome}` của `CXMusicPlayer.build`, `theme-boot.js` dựng vào
   `#cx-music-mount`; `art` = ảnh trên nút khi khách chưa chọn, mọi mẫu đang để
@@ -458,7 +459,9 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
 - Bind dữ liệu qua **`setText(id, value)`** (`core/utils.js`) — `el.textContent =` sẽ không
   khoá được sửa text trực tiếp.
 - Luồng: `applyThemeSetting` → `renderWedding` → `applyTextOverrides` → `applyCustomBlocks`
-  → `applyElements` (theme chỉ cần cung cấp `renderWedding`).
+  → `applyElements` (theme chỉ cần cung cấp `renderWedding`). Chuỗi này nằm DUY NHẤT ở
+  `loadWeddingData`, bản xem (`?preview=true`) cũng đi qua đó — `preview-data.js` chỉ trả
+  dữ liệu (`cxPreviewWedding`), đừng cho nó tự dựng thiệp kẻo xem thử lệch thiệp thật.
 - Chữ trang trí (chữ ký, chữ lồng) nên dùng **font tự host** khai ở `styles/_fonts.css`.
   Font là nét nhận dạng của mẫu nên KHÔNG có control nào đổi font toàn thiệp — khách muốn
   khác thì bấm thẳng vào dòng chữ đó trên thiệp mà chỉnh riêng.
@@ -648,11 +651,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
   **DẠNG hiện lời chúc** do chủ thiệp chọn ở tab Giao diện (mục "Lời chúc", cạnh Hộp mừng
   cưới), lưu ở `theme_setting.wishes_mode` — rỗng = dạng mẫu khai ở `CX_THEME.wishesMode`,
-  mẫu không khai thì `card`. Hai dạng là MỘT MỤC trong thân thiệp NGAY TRÊN hộp mừng cưới:
-  `"card"` = dải thẻ cùng khổ vuốt ngang, chữ dài cắt kèm "Xem thêm" (mở một thẻ thì cả dải
-  cao theo, không thò thụt); `"paged"` = mỗi lượt `CX_WISH_PAGE_SIZE` lời chúc, khách tự bấm
-  sang trang. Dạng thứ ba `"live"` là DẢI NỔI ghim đáy khung nhìn — **chỉ có khi chủ thiệp tự chọn, đừng lấy làm mặc
-  định của mẫu nào**. **Danh mục dạng là `CX_WISH_MODES`** trong helper — thêm dạng mới là
+  mẫu không khai thì `card`. Đa số dạng là MỘT MỤC trong thân thiệp NGAY TRÊN hộp mừng cưới
+  (`card`, `paged`, `chat`, `stack`, `spotlight`, `guestbook`); dạng có khung đổi nội dung
+  (chồng thẻ, tâm điểm, sổ) xếp mọi lời chúc chung MỘT ô lưới để khung cao bằng lời dài nhất,
+  đổi lời không làm thiệp nhảy. Hai dạng `"live"` và `"float"` là DẢI NỔI ghim đáy khung
+  nhìn — **chỉ có khi chủ thiệp tự chọn, đừng lấy làm mặc định của mẫu nào**. Dạng tự chạy
+  đi qua `_cxWishStartTicker` (bỏ nhịp khi tab ẩn hoặc mục ngoài khung nhìn). **Danh mục dạng là `CX_WISH_MODES`** trong helper — thêm dạng mới là
   thêm một mục ở đó + CSS + một dòng ở `WISH_MODES` (`invitation-setup/js/05-theme-panel.js`),
   KHÔNG rẽ nhánh theo tên dạng ở chỗ khác. **Mẫu thiệp không phải khai markup gì cả.**
   Mục trong thân thiệp **append cuối thân thiệp rồi đẩy lên bằng flex `order`**

@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cinzel:wght@400;600&display=swap"
       rel="stylesheet"
     />
     <!-- Tailwind build local (npm run build:themes) — thay cho Play CDN.
@@ -132,7 +132,7 @@
 
       <!-- Main Content -->
       <div
-        class="relative z-20 px-8 py-8 text-center flex flex-col items-center justify-center gap-8 cx-screen-h md:min-h-[932px]"
+        class="cg-body relative z-20 px-8 py-8 text-center flex flex-col items-center justify-center gap-8 cx-screen-h md:min-h-[932px]"
       >
         <!-- Hero: ảnh bìa TRÀN VIỀN thẻ, đáy tan dần vào nền thẻ (mask) rồi mới
              tới tên cô dâu chú rể. Kéo ra khỏi lề px-8/py-8 của vùng nội dung
@@ -187,594 +187,277 @@
           </div>
         </div>
 
-        <!-- Wedding Date Section -->
-        <div class="w-full flex flex-col gap-8">
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px cx-bg-line"></div>
-            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
-            <div class="flex-1 h-px cx-bg-line"></div>
+        <!-- Gia đình: hai ảnh cạnh nhau, thông tin hai nhà chia hai cột bằng vạch dọc -->
+        <section id="section-family" class="cg-sec cg-family">
+          <div class="cg-pair">
+            <div class="cg-shot cg-shot-tall">
+              <img
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                id="groom-photo"
+                alt="Chú Rể"
+              />
+            </div>
+            <div class="cg-shot cg-shot-tall">
+              <img
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                id="bride-photo"
+                alt="Cô Dâu"
+              />
+            </div>
           </div>
+          <div class="cg-split">
+            <div class="cg-split-col">
+              <div class="cg-kicker">Nhà Trai</div>
+              <div id="groom-father" class="cg-parent cx-h">--------------------</div>
+              <div id="groom-mother" class="cg-parent cx-h">--------------------</div>
+              <div id="groom-address" class="cg-small">----------------------------------------</div>
+              <div class="cg-role">Chú Rể</div>
+              <div id="groom-name-label" class="cg-role-name cx-a">----------</div>
+            </div>
+            <div class="cg-split-rule"></div>
+            <div class="cg-split-col">
+              <div class="cg-kicker">Nhà Gái</div>
+              <div id="bride-father" class="cg-parent cx-h">--------------------</div>
+              <div id="bride-mother" class="cg-parent cx-h">--------------------</div>
+              <div id="bride-address" class="cg-small">----------------------------------------</div>
+              <div class="cg-role">Cô Dâu</div>
+              <div id="bride-name-label" class="cg-role-name cx-a">----------</div>
+            </div>
+          </div>
+        </section>
 
-          <!-- Family section (toggled by enable_family) -->
-          <div id="section-family" class="flex flex-col gap-8">
-            <!-- Thông tin Chú Rể -->
-            <div class="flex gap-4 items-start">
-              <!-- Ảnh chú rể - bên trái 50% -->
-              <div
-                class="w-1/2 h-52 rounded-2xl overflow-hidden shrink-0 shadow-[0_4px_12px_rgb(var(--cx-accent-rgb)/0.15)] ring-1 ring-[rgb(var(--cx-panel-rgb)/0.8)]"
+        <!-- Lời trích + nhãn chữ trang trí canh phải -->
+        <section id="section-quote" class="cg-sec cg-quote">
+          <div id="story-quote" class="cg-quote-text cx-t">
+            "Hạnh phúc lớn nhất chính là được nắm tay em, cùng nhau đi hết cuộc đời lãng mạn này"
+          </div>
+          <div class="cg-tag cg-tag-end cx-a">Love</div>
+        </section>
+
+        <!-- Đếm ngược tới giờ làm lễ — ẩn khi chưa có ngày lễ -->
+        <section id="section-countdown" class="cg-sec cg-countdown hidden">
+          <div class="cg-cd">
+            <div class="cg-cd-cell">
+              <span id="cd-days" class="cg-cd-num">00</span>
+              <span class="cg-cd-unit">Ngày</span>
+            </div>
+            <div class="cg-cd-cell">
+              <span id="cd-hours" class="cg-cd-num">00</span>
+              <span class="cg-cd-unit">Giờ</span>
+            </div>
+            <div class="cg-cd-cell">
+              <span id="cd-minutes" class="cg-cd-num">00</span>
+              <span class="cg-cd-unit">Phút</span>
+            </div>
+            <div class="cg-cd-cell">
+              <span id="cd-seconds" class="cg-cd-num">00</span>
+              <span class="cg-cd-unit">Giây</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Thư mời lễ: tên đôi, rồi ngày | giờ chia hai cột -->
+        <section id="section-ceremony" class="cg-sec cg-ceremony">
+          <div class="cg-tag cx-a">Invitation</div>
+          <div class="cg-kicker">
+            Tham dự <span id="ceremony-event-name">Lễ Thành Hôn</span>
+          </div>
+          <div class="cg-names">
+            <span id="invite-groom" class="cx-a">----------</span>
+            <span class="cg-amp cx-h">&amp;</span>
+            <span id="invite-bride" class="cx-a">----------</span>
+          </div>
+          <div class="cg-split">
+            <div class="cg-split-col">
+              <div id="invite-weekday" class="cg-small">Chủ Nhật</div>
+              <div id="invite-day" class="cg-day cx-a">--</div>
+              <div id="invite-month-year" class="cg-small">Tháng -- · ----</div>
+            </div>
+            <div class="cg-split-rule"></div>
+            <div class="cg-split-col">
+              <div class="cg-small">Vào lúc</div>
+              <div id="invite-time" class="cg-time cx-h">11:30</div>
+              <div id="invite-lunar" class="cg-lunar cx-h">Ngày 18 tháng 9 năm Giáp Thìn</div>
+            </div>
+          </div>
+          <div id="ceremony-location-wrap" class="hidden cg-place">
+            <i data-lucide="map-pin" class="cx-ic cx-a-soft"></i>
+            <span id="ceremony-location-text"></span>
+          </div>
+        </section>
+
+        <!-- Tiệc: lịch tháng phủ kính mờ trên ảnh tràn viền, rồi giờ + nơi tổ chức -->
+        <section id="section-party" class="cg-sec cg-party">
+          <div class="cg-cal">
+            <img
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              id="cal-bg"
+              class="cg-cal-img"
+              alt=""
+            />
+            <div id="mini-calendar" class="cg-cal-panel"></div>
+          </div>
+          <div id="party-section-label" class="cg-kicker">Tiệc Mừng Lễ Thành Hôn</div>
+          <div id="party-datetime" class="cg-time cx-a">--:-- - --.--.----</div>
+          <div id="party-lunar" class="cg-lunar cx-h">(Ngày âm lịch)</div>
+          <div class="cg-place">
+            <i data-lucide="map-pin" class="cx-ic cx-a-soft"></i>
+            <span id="party-location">Tại tư gia nhà trai</span>
+          </div>
+        </section>
+
+        <!-- Lịch Trình Ngày Cưới -->
+        <!-- Lịch trình: mỗi nhóm (lễ / tiệc) một khối, mốc xếp giờ | việc quanh trục
+             dọc — dựng bằng JS (_renderSchedule) -->
+        <section id="section-timeline" class="hidden cg-sec cg-timeline">
+          <div class="cg-tag cx-a">Schedule</div>
+          <div class="cg-kicker">Lịch trình ngày cưới</div>
+          <div id="timeline-list-render" class="cg-sched"></div>
+        </section>
+
+        <!-- Album băng chuyền: các dải ảnh chạy ngang ngược chiều nhau, lặp vô tận —
+             dựng bằng JS (renderMarquee) -->
+        <section id="section-photos" class="cg-sec cg-gallery">
+          <div id="gallery-grid" class="cg-marqs"></div>
+        </section>
+
+        <!-- Love Story Timeline -->
+        <!-- Chuyện tình yêu: mỗi mốc là một chương (số, ảnh lệch trái/phải xen kẽ,
+             ngày, tiêu đề, lời kể) — dựng bằng JS (_renderStory) -->
+        <section id="love-story" style="display: none" class="cg-sec cg-story">
+          <div class="cg-tag cx-a">Our story</div>
+          <div class="cg-kicker">Câu chuyện tình yêu</div>
+          <div id="love-story-list" class="cg-chapters"></div>
+        </section>
+
+        <!-- Bản Đồ — #map-location-name + #map-link phải đứng CUỐI mục -->
+        <section id="section-map" class="cg-sec cg-map">
+          <div class="cg-kicker">Địa điểm</div>
+          <div
+            class="cg-lunar cx-h"
+            data-cx-map-dual="Lễ cưới và tiệc cưới tổ chức tại"
+          >
+            Tiệc cưới sẽ tổ chức tại
+          </div>
+          <div id="map-location-name" class="cg-map-name cx-h"></div>
+          <a id="map-link" href="#" target="_blank" class="cg-map-card">
+            <div class="cg-map-frame relative overflow-hidden">
+              <iframe
+                id="map-thumbnail-iframe"
+                src=""
+                width="100%"
+                height="100%"
+                class="border-0 pointer-events-none"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
               >
+              </iframe>
+              <!-- Minh họa khi chưa có dữ liệu bản đồ -->
+              <div
+                id="map-placeholder"
+                class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-band"
+              >
+                <i data-lucide="map-pinned" class="cx-ic cx-a-soft text-2xl"></i>
+                <span class="text-[11px] uppercase tracking-[2px] cx-t font-inter">
+                  Chưa có bản đồ
+                </span>
+              </div>
+              <div class="absolute inset-0"></div>
+            </div>
+            <div class="cg-map-foot cx-t">
+              <i data-lucide="navigation" class="cx-ic cx-a"></i>
+              <span>Chạm vào bản đồ để chỉ đường</span>
+            </div>
+          </a>
+        </section>
+
+        <!-- Xác nhận tham dự -->
+        <section id="rsvp-section" class="cg-sec cg-rsvp" style="display: none">
+          <div class="cg-rsvp-title cx-h">Xác nhận tham dự · R.S.V.P</div>
+          <div
+            id="rsvp-custom-message"
+            class="hidden font-cormorant italic text-[16px] cx-h leading-relaxed"
+          ></div>
+          <div class="flex items-center justify-center gap-3">
+            <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="cg-btn cg-btn-fill">
+              <i data-lucide="check" class="cx-ic"></i>
+              Tham dự
+            </x-button>
+            <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="cg-btn">
+              <i data-lucide="x" class="cx-ic"></i>
+              Không tham dự
+            </x-button>
+          </div>
+          <div id="attend-msg" class="font-cormorant italic text-[16px] cx-a hidden"></div>
+        </section>
+
+        <!-- Hộp Mừng Cưới -->
+        <section id="section-gift" class="cg-sec cg-gift">
+          <div class="cg-tag cx-a">With love</div>
+          <div class="cg-kicker">Hộp Mừng Cưới</div>
+
+          <!-- 2 cột QR -->
+          <div data-cx-gift="qr" class="grid grid-cols-2 gap-4 w-full max-w-md mx-auto">
+            <!-- Chú Rể -->
+            <div class="flex flex-col gap-2 items-center">
+              <div class="text-[11px] cx-t font-inter">
+                Chú Rể · <span id="groom-bank-label">----------</span>
+              </div>
+              <div class="cg-qr">
                 <img
-                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3Cg transform='translate(200, 170)'%3E%3Crect x='-35' y='-20' width='70' height='48' rx='5' fill='%23d0d0d0'/%3E%3Cpath d='M -16,-20 L -10,-28 L 10,-28 L 16,-20 Z' fill='%23d0d0d0'/%3E%3Ccircle cx='0' cy='4' r='18' fill='%23e0e0e0'/%3E%3Ccircle cx='0' cy='4' r='12' fill='%23f0f0f0'/%3E%3Ccircle cx='22' cy='-10' r='3' fill='%23e0e0e0'/%3E%3C/g%3E%3Ctext x='200' y='250' text-anchor='middle' font-family='Arial, sans-serif' font-size='18' fill='%23c0c0c0' font-weight='300' letter-spacing='0.5'%3ENo Photo Available%3C/text%3E%3C/svg%3E"
-                  id="groom-photo"
-                  alt="Chú Rể"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  id="groom-qr-img"
+                  alt="QR Chú Rể"
+                  class="w-full aspect-square object-cover"
                 />
               </div>
-              <!-- Thông tin - bên phải -->
-              <div
-                class="w-1/2 h-52 text-center flex flex-col justify-between items-center"
-              >
-                <div
-                  class="text-[10px] tracking-[3px] uppercase cx-t font-inter"
-                >
-                  Nhà Trai
-                </div>
-                <div class="flex flex-col gap-1">
-                  <div class="text-[12px] cx-t font-inter">
-                    Ông bà
-                  </div>
-                  <div
-                    class="font-playfair text-[12px] font-semibold cx-a"
-                    id="groom-father"
-                  >
-                    --------------------
-                  </div>
-                  <div
-                    class="font-playfair text-[12px] font-semibold cx-a"
-                    id="groom-mother"
-                  >
-                    --------------------
-                  </div>
-                </div>
-                <div
-                  class="text-[11px] cx-t font-inter leading-relaxed"
-                >
-                  <i data-lucide="map-pin" class="cx-ic cx-a-soft mr-1 text-[10px]"></i>
-                  <span id="groom-address"
-                    >----------------------------------------</span
-                  >
-                </div>
-                <div
-                  class="flex flex-col items-center gap-1 pt-3 border-t cx-border w-full"
-                >
-                  <div
-                    class="text-[10px] tracking-[3px] uppercase cx-t font-inter"
-                  >
-                    Chú Rể
-                  </div>
-                  <div
-                    class="font-playfair text-[12px] font-semibold cx-a tracking-wider"
-                    id="groom-name-label"
-                  >
-                    ----------
-                  </div>
-                </div>
+              <div class="flex flex-col gap-1 items-center">
+                <div class="text-[11px] cx-t font-inter" id="groom-bank-name">----------------</div>
+                <div class="text-[13px] cx-t font-inter font-medium" id="groom-bank-number">------------</div>
+                <div class="text-[12px] cx-t font-inter font-semibold" id="groom-bank-owner">--------------------</div>
               </div>
+              <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="cg-btn cg-btn-sm">
+                <i data-lucide="download" class="cx-ic"></i>
+                Lưu QR
+              </x-button>
             </div>
 
-            <!-- Thông tin Cô Dâu -->
-            <div class="flex gap-4 items-start">
-              <!-- Thông tin - bên trái -->
-              <div
-                class="w-1/2 h-52 text-center flex flex-col justify-between items-center"
-              >
-                <div
-                  class="text-[10px] tracking-[3px] uppercase cx-t font-inter"
-                >
-                  Nhà Gái
-                </div>
-                <div class="flex flex-col gap-1">
-                  <div class="text-[12px] cx-t font-inter">
-                    Ông bà
-                  </div>
-                  <div
-                    class="font-playfair text-[12px] font-semibold cx-a"
-                    id="bride-father"
-                  >
-                    --------------------
-                  </div>
-                  <div
-                    class="font-playfair text-[12px] font-semibold cx-a"
-                    id="bride-mother"
-                  >
-                    --------------------
-                  </div>
-                </div>
-                <div
-                  class="text-[11px] cx-t font-inter leading-relaxed"
-                >
-                  <i data-lucide="map-pin" class="cx-ic cx-a-soft mr-1 text-[10px]"></i>
-                  <span id="bride-address"
-                    >----------------------------------------</span
-                  >
-                </div>
-                <div
-                  class="flex flex-col items-center gap-1 pt-3 border-t cx-border w-full"
-                >
-                  <div
-                    class="text-[10px] tracking-[3px] uppercase cx-t font-inter"
-                  >
-                    Cô Dâu
-                  </div>
-                  <div
-                    class="font-playfair text-[12px] font-semibold cx-a tracking-wider"
-                    id="bride-name-label"
-                  >
-                    ----------
-                  </div>
-                </div>
+            <!-- Cô Dâu -->
+            <div class="flex flex-col gap-2 items-center">
+              <div class="text-[11px] cx-t font-inter">
+                Cô Dâu · <span id="bride-bank-label">----------</span>
               </div>
-              <!-- Ảnh cô dâu - bên phải 50% -->
-              <div
-                class="w-1/2 h-52 rounded-2xl overflow-hidden shrink-0 shadow-[0_4px_12px_rgb(var(--cx-accent-rgb)/0.15)] ring-1 ring-[rgb(var(--cx-panel-rgb)/0.8)]"
-              >
+              <div class="cg-qr">
                 <img
-                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3Cg transform='translate(200, 170)'%3E%3Crect x='-35' y='-20' width='70' height='48' rx='5' fill='%23d0d0d0'/%3E%3Cpath d='M -16,-20 L -10,-28 L 10,-28 L 16,-20 Z' fill='%23d0d0d0'/%3E%3Ccircle cx='0' cy='4' r='18' fill='%23e0e0e0'/%3E%3Ccircle cx='0' cy='4' r='12' fill='%23f0f0f0'/%3E%3Ccircle cx='22' cy='-10' r='3' fill='%23e0e0e0'/%3E%3C/g%3E%3Ctext x='200' y='250' text-anchor='middle' font-family='Arial, sans-serif' font-size='18' fill='%23c0c0c0' font-weight='300' letter-spacing='0.5'%3ENo Photo Available%3C/text%3E%3C/svg%3E"
-                  id="bride-photo"
-                  alt="Cô Dâu"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  id="bride-qr-img"
+                  alt="QR Cô Dâu"
+                  class="w-full aspect-square object-cover"
                 />
               </div>
-            </div>
-          </div>
-          <!-- /section-family -->
-
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px cx-bg-line"></div>
-            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
-            <div class="flex-1 h-px cx-bg-line"></div>
-          </div>
-
-          <div class="flex flex-col gap-8 w-full">
-            <!-- Thư mời -->
-            <div class="flex flex-col gap-6">
-              <div
-                class="text-[16px] tracking-[3px] uppercase cx-t font-inter"
-              >
-                Thư Mời
+              <div class="flex flex-col gap-1 items-center">
+                <div class="text-[11px] cx-t font-inter" id="bride-bank-name">----------------</div>
+                <div class="text-[13px] cx-t font-inter font-medium" id="bride-bank-number">------------</div>
+                <div class="text-[12px] cx-t font-inter font-semibold" id="bride-bank-owner">--------------------</div>
               </div>
-
-              <div class="flex flex-col gap-2">
-                <div
-                  class="text-[11px] uppercase tracking-widest cx-t font-inter"
-                >
-                  Tham dự <span id="ceremony-event-name">Lễ Thành Hôn</span>
-                </div>
-                <div class="flex items-center justify-center gap-3">
-                  <span
-                    class="font-playfair text-[20px] cx-a tracking-widest"
-                    id="invite-groom"
-                    >----------</span
-                  >
-                  <span
-                    class="font-cormorant italic cx-h text-[24px]"
-                    >&</span
-                  >
-                  <span
-                    class="font-playfair text-[20px] cx-a tracking-widest"
-                    id="invite-bride"
-                    >----------</span
-                  >
-                </div>
-              </div>
-
-              <div class="flex items-center justify-center gap-8">
-                <div class="flex flex-col items-center gap-1">
-                  <div
-                    class="font-playfair text-[52px] font-bold cx-a leading-none"
-                    id="invite-day"
-                  >
-                    --
-                  </div>
-                  <div
-                    class="text-[10px] uppercase tracking-[2px] cx-t font-inter"
-                    id="invite-month-year"
-                  >
-                    Tháng -- · ----
-                  </div>
-                </div>
-                <div class="w-px h-12 cx-bg-line"></div>
-                <div class="flex flex-col items-center gap-1">
-                  <div
-                    class="text-[10px] uppercase tracking-[2px] cx-t font-inter"
-                    id="invite-weekday"
-                  >
-                    Chủ Nhật
-                  </div>
-                  <div
-                    class="font-playfair text-[28px] cx-h"
-                    id="invite-time"
-                  >
-                    11:30
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="font-cormorant italic text-[13px] cx-h"
-                id="invite-lunar"
-              >
-                Ngày 18 tháng 9 năm Giáp Thìn
-              </div>
-
-              <!-- Ceremony location -->
-              <div
-                id="ceremony-location-wrap"
-                class="hidden flex items-start gap-1 justify-center"
-              >
-                <i data-lucide="map-pin" class="cx-ic cx-a-soft text-[10px] mt-0.5"></i>
-                <span
-                  id="ceremony-location-text"
-                  class="text-[11px] cx-t font-inter"
-                ></span>
-              </div>
-            </div>
-
-            <!-- Tiệc Mừng Lễ Thành Hôn -->
-            <div
-              id="section-party"
-              class="flex flex-col gap-4 border cx-border rounded-2xl px-8 py-8"
-            >
-              <div
-                id="party-section-label"
-                class="text-[10px] tracking-[3px] uppercase cx-t font-inter"
-              >
-                Tiệc Mừng Lễ Thành Hôn
-              </div>
-              <div class="flex flex-col gap-2">
-                <div
-                  class="font-playfair text-[28px] font-medium cx-a"
-                  id="party-datetime"
-                >
-                  --:-- - --.--.----
-                </div>
-                <div
-                  class="font-cormorant italic text-base cx-h opacity-80"
-                  id="party-lunar"
-                >
-                  (Ngày âm lịch)
-                </div>
-              </div>
-              <div class="flex items-start gap-2 justify-center">
-                <i data-lucide="map-pin" class="cx-ic cx-a-soft text-sm"></i>
-                <div
-                  class="text-sm cx-t font-inter"
-                  id="party-location"
-                >
-                  Tại tư gia nhà trai
-                </div>
-              </div>
-
-              <!-- Mini Calendar -->
-              <div id="mini-calendar" class="w-full"></div>
-
-              <!-- Xác nhận tham dự -->
-              <div
-                id="rsvp-section"
-                class="flex flex-col gap-4"
-                style="display: none"
-              >
-                <div
-                  class="text-[14px] tracking-[3px] uppercase font-inter shimmer-text"
-                >
-                  Xác nhận tham dự
-                </div>
-                <div
-                  id="rsvp-custom-message"
-                  class="hidden font-cormorant italic text-[14px] cx-h leading-relaxed"
-                ></div>
-                <!-- Hai nút nhỏ nằm cùng một hàng, icon và chữ trên một dòng —
-                     cùng lối với romantic-gold. -->
-                <div class="flex items-center justify-center gap-3">
-                  <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel-50 font-cormorant italic text-[14px] cx-h active:scale-95 transition-all duration-200">
-                    <i data-lucide="check" class="cx-ic cx-a text-[11px]"></i>
-                    Tham dự
-                  </x-button>
-                  <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel-50 font-cormorant italic text-[14px] cx-h active:scale-95 transition-all duration-200">
-                    <i data-lucide="x" class="cx-ic cx-t text-[11px]"></i>
-                    Không tham dự
-                  </x-button>
-                </div>
-                <div
-                  id="attend-msg"
-                  class="font-cormorant italic text-[15px] cx-a hidden"
-                ></div>
-              </div>
-            </div>
-
-            <!-- Lịch Trình Ngày Cưới -->
-            <section
-              id="section-timeline"
-              class="hidden flex flex-col gap-4 px-4 py-2 w-full"
-            >
-              <div
-                class="text-[16px] tracking-[3px] uppercase cx-t font-inter"
-              >
-                Lịch Trình
-              </div>
-              <div id="timeline-list-render" class="flex flex-col"></div>
-            </section>
-
-            <!-- Story Quote -->
-            <div class="flex flex-col gap-2 px-4">
-              <div
-                id="story-quote"
-                class="font-cormorant italic text-[18px] cx-h leading-relaxed"
-              >
-                "Hạnh phúc lớn nhất chính là được nắm tay em,<br />Cùng nhau đi
-                hết cuộc đời lãng mạn này"
-              </div>
-            </div>
-
-            <!-- Carousel Gallery -->
-            <div id="section-photos" class="flex flex-col gap-3">
-              <div
-                class="relative w-full overflow-hidden"
-                id="gallery-carousel"
-              >
-                <div
-                  class="flex items-center justify-center gap-3"
-                  id="carousel-track"
-                >
-                  <!-- rendered by JS -->
-                </div>
-              </div>
-              <!-- Dots -->
-              <div class="flex justify-center gap-2" id="carousel-dots"></div>
-            </div>
-            <!-- Love Story Timeline -->
-            <section
-              id="love-story"
-              style="display: none"
-              class="flex flex-col gap-4 px-4 py-2"
-            >
-              <div
-                class="font-playfair text-[22px] cx-h text-center"
-              >
-                Câu chuyện tình yêu
-              </div>
-              <div
-                id="love-story-list"
-                class="flex flex-col border-l-2 border-[rgb(var(--cx-line-rgb))] ml-[5px]"
-              ></div>
-            </section>
-          </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px cx-bg-line"></div>
-            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
-            <div class="flex-1 h-px cx-bg-line"></div>
-          </div>
-
-          <!-- Block 4: Hộp Mừng Cưới -->
-          <div id="section-gift" class="flex flex-col gap-8 w-full">
-            <div class="font-playfair text-[28px] cx-h">
-              Hộp Mừng Cưới
-            </div>
-
-            <!-- 2 cột QR -->
-            <div data-cx-gift="qr" class="grid grid-cols-2 gap-4 max-w-md mx-auto">
-              <!-- Chú Rể -->
-              <div class="flex flex-col gap-2 items-center">
-                <div class="text-[11px] cx-t font-inter">
-                  Chú Rể · <span id="groom-bank-label">----------</span>
-                </div>
-                <div
-                  class="cx-bg-panel rounded-2xl p-3 shadow-md w-full max-w-[180px]"
-                >
-                  <img
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    id="groom-qr-img"
-                    alt="QR Chú Rể"
-                    class="w-full aspect-square object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="flex flex-col gap-1 items-center">
-                  <div
-                    class="text-[11px] cx-t font-inter"
-                    id="groom-bank-name"
-                  >
-                    ----------------
-                  </div>
-                  <div
-                    class="text-[13px] cx-t font-inter font-medium"
-                    id="groom-bank-number"
-                  >
-                    ------------
-                  </div>
-                  <div
-                    class="text-[12px] cx-t font-inter font-semibold"
-                    id="groom-bank-owner"
-                  >
-                    --------------------
-                  </div>
-                </div>
-                <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="gap-2 px-4 py-2 border cx-border text-[12px] cx-t font-inter active:bg-[rgb(var(--cx-line-rgb))] transition-colors">
-                  <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
-                  Lưu QR
-                </x-button>
-              </div>
-
-              <!-- Cô Dâu -->
-              <div class="flex flex-col gap-2 items-center">
-                <div class="text-[11px] cx-t font-inter">
-                  Cô Dâu · <span id="bride-bank-label">----------</span>
-                </div>
-                <div
-                  class="cx-bg-panel rounded-2xl p-3 shadow-md w-full max-w-[180px]"
-                >
-                  <img
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    id="bride-qr-img"
-                    alt="QR Cô Dâu"
-                    class="w-full aspect-square object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="flex flex-col gap-1 items-center">
-                  <div
-                    class="text-[11px] cx-t font-inter"
-                    id="bride-bank-name"
-                  >
-                    ----------------
-                  </div>
-                  <div
-                    class="text-[13px] cx-t font-inter font-medium"
-                    id="bride-bank-number"
-                  >
-                    ------------
-                  </div>
-                  <div
-                    class="text-[12px] cx-t font-inter font-semibold"
-                    id="bride-bank-owner"
-                  >
-                    --------------------
-                  </div>
-                </div>
-                <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="gap-2 px-4 py-2 border cx-border text-[12px] cx-t font-inter active:bg-[rgb(var(--cx-line-rgb))] transition-colors">
-                  <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
-                  Lưu QR
-                </x-button>
-              </div>
-            </div>
-
-            <!-- Quote cuối -->
-            <div
-              class="font-cormorant italic text-[17px] cx-h leading-relaxed px-4"
-            >
-              Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng
-              tôi!
+              <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="cg-btn cg-btn-sm">
+                <i data-lucide="download" class="cx-ic"></i>
+                Lưu QR
+              </x-button>
             </div>
           </div>
 
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px cx-bg-line"></div>
-            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
-            <div class="flex-1 h-px cx-bg-line"></div>
-          </div>
+        </section>
 
-          <!-- Block 5: Bản Đồ -->
-          <div id="section-map" class="flex flex-col gap-4 w-full">
-            <!-- Text phía trên -->
-            <div class="flex flex-col gap-2">
-              <div
-                class="text-[10px] uppercase tracking-[3px] cx-t font-inter"
-              >
-                Địa điểm
-              </div>
-              <div
-                class="font-cormorant italic text-[18px] cx-h"
-                data-cx-map-dual="Lễ cưới và tiệc cưới tổ chức tại"
-              >
-                Tiệc cưới sẽ tổ chức tại
-              </div>
-              <div
-                class="font-playfair text-[16px] cx-h"
-                id="map-location-name"
-              ></div>
-            </div>
-
-            <!-- Preview map thumbnail button -->
-            <a
-              id="map-link"
-              href="#"
-              target="_blank"
-              class="w-full relative overflow-hidden rounded-2xl active:scale-[0.98] transition-transform shadow-[0_4px_16px_rgb(var(--cx-accent-rgb)/0.12)] block"
-            >
-              <div class="w-full h-40 relative overflow-hidden">
-                <iframe
-                  id="map-thumbnail-iframe"
-                  src=""
-                  width="100%"
-                  height="100%"
-                  class="border-0 pointer-events-none"
-                  loading="lazy"
-                  referrerpolicy="no-referrer-when-downgrade"
-                >
-                </iframe>
-                <!-- Minh họa khi chưa có dữ liệu bản đồ -->
-                <div
-                  id="map-placeholder"
-                  class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-band"
-                  style="
-                    background-image:
-                      linear-gradient(
-                        rgb(var(--cx-accent-rgb)/0.1) 1px,
-                        transparent 1px
-                      ),
-                      linear-gradient(
-                        90deg,
-                        rgb(var(--cx-accent-rgb)/0.1) 1px,
-                        transparent 1px
-                      );
-                    background-size: 24px 24px;
-                  "
-                >
-                  <i data-lucide="map-pinned" class="cx-ic cx-a-soft text-2xl"></i>
-                  <span
-                    class="text-[11px] uppercase tracking-[2px] cx-t font-inter"
-                  >
-                    Chưa có bản đồ
-                  </span>
-                </div>
-                <div class="absolute inset-0"></div>
-              </div>
-              <!-- Footer -->
-              <div
-                class="flex items-center justify-between px-4 py-3 cx-bg-panel-70"
-              >
-                <div class="flex flex-col gap-0.5 text-left">
-                  <div
-                    class="text-[10px] uppercase tracking-[2px] cx-t font-inter"
-                  >
-                    Địa điểm tổ chức
-                  </div>
-                  <div class="font-playfair text-[15px] cx-h">
-                    Chỉ đường
-                  </div>
-                </div>
-                <div class="flex items-center gap-1 cx-a">
-                  <span class="text-[11px] font-inter">Mở Maps</span>
-                  <i data-lucide="chevron-right" class="cx-ic text-xs"></i>
-                </div>
-              </div>
-            </a>
+        <!-- Lời kết: dòng cảm ơn, ngày cưới, câu hẹn tô màu nhấn -->
+        <section id="section-footer" class="cg-sec cg-footer">
+          <i data-lucide="heart" class="cx-ic cx-a cg-foot-mark" fill="currentColor"></i>
+          <div id="footer-text" class="cg-quote-text cx-t">
+            Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
           </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px cx-bg-line"></div>
-            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
-            <div class="flex-1 h-px cx-bg-line"></div>
-          </div>
-
-          <!-- Block 6: Cảm ơn -->
-          <div id="section-footer" class="flex flex-col items-center gap-8">
-            <div
-              id="footer-text"
-              class="font-cormorant italic text-[16px] cx-h leading-relaxed px-8"
-            >
-              Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
-            </div>
-          </div>
-        </div>
+          <div id="footer-date" class="cg-foot-date cx-h">--.--.----</div>
+          <div class="cg-foot-sign cx-a">Hẹn gặp bạn ở lễ cưới</div>
+        </section>
       </div>
     </div>
 

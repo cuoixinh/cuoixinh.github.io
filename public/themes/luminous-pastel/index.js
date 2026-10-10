@@ -18,7 +18,7 @@
     loveStory: "short",
 
     // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
-    wishesMode: "card",
+    wishesMode: "stack",
 
     // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
     // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
@@ -109,7 +109,6 @@
     // setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi chạy —
     // để nó đi trước là ảnh phải xếp hàng sau.
     renderHero(w, false);
-    renderStoryQuote(w.story_quote);
     lpSetupHeroNames();
     lpSetupProgress();
 
@@ -180,11 +179,6 @@
     // --- Xác nhận tham dự ---
     const rsvp = document.getElementById("rsvp-section");
     if (rsvp) rsvp.style.display = cxEnabled(w.rsvp_enabled) ? "flex" : "none";
-    // Lối tắt ở mục mở đầu chỉ có nghĩa khi phần RSVP thật sự hiện.
-    cxToggle(
-      "lp-rsvp-cue",
-      cxEnabled(w.rsvp_enabled) && cxEnabled(w.enable_party),
-    );
     if (w.rsvp_message) {
       const msg = document.getElementById("rsvp-custom-message");
       if (msg) {
@@ -208,6 +202,8 @@
     // --- Chuyện tình yêu ---
     if (cxEnabled(w.enable_love_story)) {
       renderLoveStory(w.love_story);
+      renderStoryQuote(w.story_quote);
+      cxToggle("story-quote", !!w.story_quote);
     } else {
       cxToggle("love-story", false);
     }
@@ -232,6 +228,19 @@
   }
 
   window.renderWedding = renderWedding;
+
+  // ============= TÊN KHÁCH MỜI Ở MỤC MỞ ĐẦU =============
+  // Mẫu không có màn bìa nên với khách thật (CX_GUEST) wedding-helper chỉ điền
+  // chữ, không tự hiện khối lời mời (khách giả lập ?guest= thì helper tự bật).
+  // Bọc hàm chào để bật khối. index.js nạp sau wedding-helper.js.
+  const _lpGreet = window.setupPersonalizedGreeting;
+  window.setupPersonalizedGreeting = function (slug, isGroom, onOpen) {
+    _lpGreet(slug, isGroom, onOpen);
+    if (!window.CX_GUEST) return;
+    const wrap = document.getElementById("cover-guest-wrap");
+    wrap?.classList.remove("hidden");
+    wrap?.classList.add("flex");
+  };
 
   // ============= HÀNG NGÀY GIỜ + NƠI TỔ CHỨC (mục mở đầu) =============
   // Định dạng riêng của mẫu ("THỨ BẢY · 20 / 07.2025 · 17.00") nên không dùng

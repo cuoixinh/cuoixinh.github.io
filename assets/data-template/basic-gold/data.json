@@ -1,107 +1,117 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.png": {
-        "x": 56,
-        "y": 23
+      "gallery-01.webp": {
+        "x": 58,
+        "y": 47
       },
-      "gallery-02.png": {
-        "x": 57,
+      "gallery-02.webp": {
+        "x": 51,
+        "y": 56
+      },
+      "gallery-03.webp": {
+        "x": 39,
         "y": 24
       },
-      "gallery-03.png": {
-        "x": 47,
-        "y": 30
+      "gallery-04.webp": {
+        "x": 45,
+        "y": 46
       },
-      "gallery-04.png": {
-        "x": 47,
-        "y": 28
+      "gallery-05.webp": {
+        "x": 55,
+        "y": 66
       },
-      "gallery-05.png": {
-        "x": 43,
-        "y": 37
+      "gallery-06.webp": {
+        "x": 51,
+        "y": 25
       },
-      "gallery-06.png": {
+      "gallery-07.webp": {
+        "x": 52,
+        "y": 44
+      },
+      "gallery-08.webp": {
+        "x": 54,
+        "y": 18
+      },
+      "gallery-09.webp": {
         "x": 50,
         "y": 50
+      },
+      "gallery-10.webp": {
+        "x": 60,
+        "y": 34
       }
     },
     "cover_image_url": {
-      "x": 56,
-      "y": 18
+      "x": 48,
+      "y": 11
     },
     "groom_image_url": {
-      "x": 0,
-      "y": 25
+      "x": 53,
+      "y": 0
     },
     "bride_image_url": {
-      "x": 100,
-      "y": 30
+      "x": 48,
+      "y": 0
     }
   },
-  "cover_image_url": "cover.png",
-  "groom_image_url": "groom.png",
-  "bride_image_url": "bride.png",
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.png",
-    "gallery-02.png",
-    "gallery-03.png",
-    "gallery-04.png",
-    "gallery-05.png",
-    "gallery-06.png"
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp",
+    "gallery-08.webp",
+    "gallery-09.webp",
+    "gallery-10.webp"
   ],
   "love_story": [
     {
       "date": "2019",
       "title": "Người cùng làng bên",
       "content": "Hai nhà cách nhau một con đê, vậy mà mãi tới lễ hội làng năm ấy hai đứa mới nói chuyện lần đầu.",
-      "image_url": "love-story-01.jpg",
+      "image_url": "love-story-01.webp",
       "focal_point": {
-        "x": 65,
-        "y": 35
+        "x": 55,
+        "y": 49
       }
     },
     {
       "date": "2021",
       "title": "Những lá thư tay",
       "content": "Anh đi làm xa, mỗi tháng một lá thư gửi về — em giữ đủ cả ba mươi hai lá.",
-      "image_url": "love-story-02.jpg",
+      "image_url": "love-story-02.webp",
       "focal_point": {
-        "x": 27,
-        "y": 20
+        "x": 55,
+        "y": 50
       }
     },
     {
       "date": "2025",
       "title": "Lễ chạm ngõ",
       "content": "Hai gia đình gặp nhau bên ấm trà, mọi chuyện thành lời chỉ trong một buổi chiều.",
-      "image_url": "love-story-03.png",
+      "image_url": "love-story-03.webp",
       "focal_point": {
-        "x": 43,
-        "y": 31
-      }
-    },
-    {
-      "date": "2026",
-      "title": "Ngày ăn hỏi",
-      "content": "Tráp lễ đi qua con đê quen thuộc, con đường ngày xưa anh vẫn đạp xe sang tìm em.",
-      "image_url": "love-story-04.png",
-      "focal_point": {
-        "x": 38,
-        "y": 24
+        "x": 56,
+        "y": 23
       }
     }
   ],
   "content": {
     "groom_name": "Đức Anh",
     "bride_name": "Phương Thảo",
-    "groom_father": "Ông Trần Văn Quyết",
-    "groom_mother": "Bà Bùi Thị Hoa",
+    "groom_father": "Trần Văn Quyết",
+    "groom_mother": "Bùi Thị Hoa",
     "groom_address": "Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
-    "bride_father": "Ông Đinh Công Sáu",
-    "bride_mother": "Bà Lương Thị Thoa",
+    "bride_father": "Đinh Công Sáu",
+    "bride_mother": "Lương Thị Thoa",
     "bride_address": "Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
     "ceremony_name": "Lễ Thành Hôn",
     "ceremony_date": "2026-12-06",
@@ -134,7 +144,7 @@
     "story_quote": "Trăm năm tính cuộc vuông tròn, một lời hẹn ước sắt son trọn đời.",
     "rsvp_enabled": true,
     "rsvp_message": "Kính mong quý vị dành chút thời gian xác nhận, để gia đình chúng tôi được đón tiếp chu đáo.",
-    "footer_text": "Sự hiện diện của quý vị là niềm vinh hạnh cho gia đình chúng tôi trong ngày trọng đại này.",
+    "footer_text": "Sự hiện diện của quý vị là niềm vinh hạnh cho gia đình chúng tôi. Trân trọng cảm ơn.",
     "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
@@ -198,5 +208,5 @@
       }
     ]
   },
-  "updated_at": "2026-09-28T16:16:54.072Z"
+  "updated_at": "2026-10-10T09:34:24.550Z"
 }

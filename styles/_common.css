@@ -318,26 +318,41 @@ svg.cx-ic {
   @apply opacity-0;
 
   transition:
-    opacity 0.6s ease,
-    transform 0.6s ease;
+    opacity 1.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal.from-bottom {
-  transform: translateY(40px);
+  transform: translateY(24px);
 }
 
 .reveal.from-left {
-  transform: translateX(-40px);
+  transform: translateX(-24px);
 }
 
 .reveal.from-right {
-  transform: translateX(40px);
+  transform: translateX(24px);
 }
 
 .reveal.visible {
   @apply opacity-100;
 
   transform: none;
+}
+
+/* Từng ảnh album (_cxRevealItems ở theme-boot.js). Dùng `translate` riêng chứ không
+   `transform` — mẫu hay tự xoay/phóng ảnh bằng transform, đè lên là mất. */
+.cx-rv-item {
+  opacity: 0;
+  translate: 0 24px;
+  transition:
+    opacity 1.5s cubic-bezier(0.22, 1, 0.36, 1),
+    translate 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cx-rv-item.visible {
+  opacity: 1;
+  translate: none;
 }
 
 /* Toast Notification Animations */
@@ -511,13 +526,10 @@ svg.cx-ic {
 
 /* ── Lớp ĐỀ XUẤT ở trang XEM TRƯỚC mẫu thiệp ─────────────────────────────
    Do initPreviewSuggest() trong core/utils.js dựng khi mở /public/themes/* với
-   ?preview=true. Cuộn tới mục mà mẫu khai ở CX_THEME.suggest thì các thẻ NỔI
-   LÊN TRÊN thiệp — kiểu màn đề xuất cuối video của YouTube, không phải một
-   bảng đặc chiếm chỗ ở đáy màn.
-
-   Bản thân lớp phủ KHÔNG bắt chuột (chỉ có dải mờ cho chữ đọc được); chỉ thẻ,
-   nút Ẩn và hai nút hành động mới bắt — nhờ vậy khách vẫn cuộn tiếp, vẫn bấm
-   được thứ trong thiệp nằm ngoài các thẻ. Đóng thì trả về trong suốt chứ không
+   ?preview=true. Cuộn tới mục mà mẫu khai ở CX_THEME.suggest thì lớp phủ TRỌN
+   MÀN hiện lên trên thiệp — kiểu màn đề xuất cuối video của YouTube: hỏi khách
+   có thích mẫu đang xem không (kèm nút Dùng), dưới là mẫu tương tự. Mở thì bắt
+   chuột cả màn, nút Ẩn là lối về thiệp. Đóng thì trả về trong suốt chứ không
    display:none, để giữ chuyển động. */
 
 .cx-sug {
@@ -527,24 +539,20 @@ svg.cx-ic {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  /* Dải tối NHẠT dâng từ đáy: đủ để thẻ trắng và nhãn dưới nút tròn nổi khỏi
-     thiệp nền sáng (nhãn trắng còn có bóng chữ đỡ), phần trên vẫn trong để
-     không che mất thiệp. Không backdrop-filter — làm mờ vùng phía sau buộc
-     trình duyệt vẽ lại mỗi khung hình, giật trên máy yếu. */
-  background: linear-gradient(
-    to top,
-    rgb(var(--scrim-rgb) / 0.62) 0%,
-    rgb(var(--scrim-rgb) / 0.46) 28%,
-    rgb(var(--scrim-rgb) / 0.24) 55%,
-    transparent 80%
-  );
+  /* Phủ đen 20% + NHÒE cả thiệp phía sau — chữ thiệp không chồng lên chữ của
+     bảng, mà vẫn lờ mờ để khách biết mình còn ở trang mẫu. Nền phía sau sáng
+     hay tối tuỳ mẫu, nên KHÔNG có chữ nào nằm trần trên lớp phủ: mọi khối chữ
+     đều có nền kính trắng riêng (chữ đậm bên trong). Lúc mở lớp phủ chặn cuộn
+     nên thiệp đứng yên, nhòe không phải vẽ lại liên tục. */
+  background: rgb(var(--scrim-rgb) / 0.2);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  backdrop-filter: blur(14px) saturate(130%);
   opacity: 0;
   /* Đóng là ẨN HẲN chứ không chỉ trong suốt: còn visible thì các nút vô hình
      vẫn nằm trong thứ tự Tab. visibility đổi SAU khi mờ xong để giữ chuyển
      động; đóng (0.2s) nhanh hơn mở (0.3s). */
   visibility: hidden;
   pointer-events: none;
-  will-change: opacity;
   transition:
     opacity 0.2s ease-in,
     visibility 0s linear 0.2s;
@@ -553,42 +561,140 @@ svg.cx-ic {
 .cx-sug.is-open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
   transition:
     opacity 0.3s ease-out,
     visibility 0s;
 }
 
-/* Khối nội dung, dồn đáy màn. Dải tối nằm trên .cx-sug (cả màn), không phải
-   ở đây. */
+/* Khối nội dung cao trọn màn: nút Ẩn · câu hỏi (giãn ra, căn giữa dọc) ·
+   mẫu tương tự · lối phụ sát đáy. Màn quá thấp thì tự cuộn dọc. */
 
 .cx-sug-in {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
   /* Lề đáy CỐ ĐỊNH, không cộng env(safe-area-inset-bottom) — xem .cx-tabbar. */
-  padding: 12px 12px 16px;
+  padding: 12px 16px 16px;
 }
 
-/* Con của lớp phủ mới là thứ bắt chuột. .is-open để lúc đóng không có nút vô
-   hình nào nằm chắn trên thiệp. */
-
-.cx-sug.is-open .cx-sug-bar,
-.cx-sug.is-open .cx-sug-row,
-.cx-sug.is-open .cx-sug-dots,
-.cx-sug.is-open .cx-sug-acts {
-  pointer-events: auto;
+.cx-sug-in::-webkit-scrollbar {
+  display: none;
 }
-
-/* Hàng đầu: tiêu đề bên trái, nút Ẩn bên phải. */
 
 .cx-sug-bar {
   display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: -4px;
+}
+
+/* Tầng hỏi: thẻ kính (chữ trái · nút Dùng phải) + nút xem như khách dưới. */
+
+.cx-sug-ask {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+}
+
+/* Thẻ hỏi: ảnh chụp mẫu bên trái · cột chữ bên phải (dòng tên mẫu, rồi câu
+   hỏi + nút Dùng CÙNG MỘT HÀNG). */
+
+.cx-sug-ask-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+  padding: 16px;
+  border-radius: 24px;
+  border: 1px solid rgb(var(--white-rgb));
+  box-shadow: 0 12px 32px -16px rgb(var(--text-heading-rgb) / 0.35);
+}
+
+/* Nền kính trắng cho các khối (thẻ hỏi, nút Ẩn, nút khách mời, thanh lối
+   phụ). Nhòe đã do .cx-sug lo cho cả màn — khai thêm backdrop-filter ở đây là
+   vô ích vì lớp phủ đã thành backdrop root, khối con chỉ "thấy" nền của nó. */
+
+.cx-sug-ask-card,
+.cx-sug-hide,
+.cx-sug-guest,
+.cx-sug-sec,
+.cx-sug-err {
+  background: rgb(var(--white-rgb) / 0.72);
+}
+
+/* Ảnh chụp dọc 391:722 như thẻ gợi ý, giữ phần đầu thiệp. */
+
+.cx-sug-ask-thumb {
+  flex: 0 0 auto;
+  width: 56px;
+  aspect-ratio: 391 / 722;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 8px;
+  background: rgb(var(--surface-blossom-rgb));
+  box-shadow: 0 4px 12px -6px rgb(var(--text-heading-rgb) / 0.4);
+}
+
+.cx-sug-ask-txt {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+/* Tên mẫu cùng cỡ với câu dẫn — chỉ khác ở độ đậm và màu nhấn. */
+
+.cx-sug-ask-head {
+  font-size: 15px;
+  line-height: 22px;
+  color: rgb(var(--text-subtle-rgb));
+  overflow-wrap: anywhere;
+}
+
+.cx-sug-ask-name {
+  font-weight: 700;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+
+.cx-sug-ask-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cx-sug-ask-q {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  color: rgb(var(--text-heading-rgb));
+}
+
+/* Tầng mẫu tương tự. */
+
+.cx-sug-more {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* Tiêu đề dãy thẻ — chữ trắng nổi thẳng trên thiệp (không có nền đỡ) nên phải
    có bóng, thiệp nền sáng hay tối đều đọc được. */
+
+/* Tiêu đề dãy thẻ — chữ trắng nằm trần trên lớp phủ nên có bóng đỡ, nền thiệp
+   phía sau sáng hay tối đều đọc được. */
 
 .cx-sug-title {
   min-width: 0;
@@ -596,7 +702,7 @@ svg.cx-ic {
   font-weight: 600;
   line-height: 1.2;
   color: rgb(var(--white-rgb));
-  text-shadow: 0 1px 6px rgb(var(--scrim-rgb) / 0.75);
+  text-shadow: 0 1px 8px rgb(var(--scrim-rgb) / 0.6);
 }
 
 /* Nút Ẩn — viên thuốc nhỏ, luôn nằm sát mép phải kể cả khi tiêu đề bị ẩn. */
@@ -609,14 +715,13 @@ svg.cx-ic {
   margin-left: auto;
   height: 32px;
   padding: 0 12px;
-  border: 1px solid rgb(var(--white-rgb) / 0.24);
+  border: 1px solid rgb(var(--white-rgb));
   cursor: pointer;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--white-rgb) / 0.12);
+  color: rgb(var(--text-subtle-rgb));
   position: relative;
   transition: background-color 0.18s ease;
 }
@@ -630,17 +735,36 @@ svg.cx-ic {
   inset: -6px;
 }
 
-.cx-sug-hide:hover {
-  background: rgb(var(--white-rgb) / 0.24);
+.cx-sug-hide:hover,
+.cx-sug-guest:hover {
+  background-color: rgb(var(--white-rgb));
 }
 
-/* Vòng focus TRẮNG cho mọi thứ bấm được trong lớp phủ: nền ở đây là dải tối,
-   vòng hồng mặc định chìm mất. */
+/* "Xem với tư cách khách mời" — pill viền mảnh dưới thẻ hỏi. */
+
+.cx-sug-guest {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid rgb(var(--white-rgb));
+  cursor: pointer;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgb(var(--text-heading-rgb));
+}
+
+/* Vòng focus màu đậm cho mọi thứ bấm được trong lớp phủ (nền kính sáng). */
 
 .cx-sug-hide:focus-visible,
+.cx-sug-guest:focus-visible,
 .cx-sug-tile:focus-visible,
-.cx-sug-dot:focus-visible {
-  outline: 2px solid rgb(var(--white-rgb));
+.cx-sug-dot:focus-visible,
+.cx-sug-retry:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-deep-rgb));
   outline-offset: 2px;
 }
 
@@ -714,7 +838,7 @@ svg.cx-ic {
   border: none;
   cursor: pointer;
   border-radius: 999px;
-  background: rgb(var(--white-rgb) / 0.45);
+  background: rgb(var(--text-heading-rgb) / 0.22);
   background-clip: content-box;
   transition:
     width 0.24s ease,
@@ -723,7 +847,7 @@ svg.cx-ic {
 
 .cx-sug-dot.is-on {
   width: 36px;
-  background-color: rgb(var(--white-rgb));
+  background-color: rgb(var(--action-primary-rgb));
 }
 
 /* Một thẻ = khổ NGANG 280px — vừa một thẻ + mép thẻ sau trên điện thoại 360px,
@@ -746,6 +870,8 @@ svg.cx-ic {
   scroll-snap-align: start;
   border-radius: 12px;
   background: rgb(var(--white-rgb));
+  /* Thẻ trắng nằm trên kính sáng — cần bóng mới tách khỏi nền. */
+  box-shadow: 0 8px 24px -12px rgb(var(--text-heading-rgb) / 0.35);
   opacity: 0;
   transform: translateY(14px) scale(0.96);
   transition:
@@ -768,6 +894,87 @@ svg.cx-ic {
 
 .cx-sug.is-open .cx-sug-card:nth-child(4) {
   transition-delay: 0.12s;
+}
+
+/* Skeleton của dãy thẻ (_skelCards ở core/utils.js) + ảnh thẻ thật đang tải.
+   Chỉ nhấp nháy độ mờ — rẻ hơn dải sáng chạy ngang. */
+
+@keyframes cx-sug-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.cx-sug-card.is-skel {
+  cursor: default;
+}
+
+.cx-sug-skel-img,
+.cx-sug-skel-line,
+.cx-sug-skel-btn,
+.cx-sug-card img.is-loading {
+  background: rgb(var(--surface-blossom-rgb));
+  animation: cx-sug-pulse 1.2s ease-in-out infinite;
+}
+
+.cx-sug-skel-img {
+  display: block;
+  flex: 0 0 auto;
+  height: 100%;
+  aspect-ratio: 391 / 722;
+  border-radius: 12px 0 0 12px;
+}
+
+.cx-sug-skel-line {
+  display: block;
+  height: 12px;
+  margin-top: 8px;
+  border-radius: 4px;
+}
+
+.cx-sug-skel-line.is-long {
+  width: 70%;
+  height: 16px;
+  margin-top: 0;
+}
+
+.cx-sug-skel-line.is-short {
+  width: 50%;
+}
+
+.cx-sug-skel-btn {
+  display: block;
+  height: 32px;
+  margin-top: auto;
+  border-radius: 999px;
+}
+
+/* Tải hỏng: dòng báo + nút Thử lại trong viên kính trắng. */
+
+.cx-sug-err {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 6px 6px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: rgb(var(--text-heading-rgb));
+}
+
+.cx-sug-retry {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid rgb(var(--text-heading-rgb) / 0.24);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb) / 0.72);
+  cursor: pointer;
+}
+
+.cx-sug-retry:hover {
+  background: rgb(var(--white-rgb));
 }
 
 /* Ảnh gốc là ảnh chụp MÀN HÌNH DỌC của thiệp nên giữ nguyên dáng dọc: cao
@@ -910,104 +1117,96 @@ svg.cx-ic {
    tròn (nhãn dưới cao thấp khác nhau thì hàng vẫn phẳng).
    Là <x-button variant="bare"> nên bàn phím có sẵn, chỉ click do JS nối. */
 
-.cx-sug-acts {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 16px;
-}
-
 .cx-sug-tile {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 8px;
   min-width: 0;
   cursor: pointer;
-  /* brand-accent trên nền hồng nhạt chỉ 2.3:1 — icon mang nghĩa cần ≥3:1. */
-  color: rgb(var(--action-primary-deep-rgb));
-}
-
-/* Vòng tròn đựng icon — nền đặc: nền trong suốt thì nút chìm vào dải tối
-   và tấm ảnh thiệp nằm dưới. */
-
-.cx-sug-tile .cx-sug-ico {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  background: rgb(var(--surface-brand-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb));
+  color: rgb(var(--text-heading-rgb));
   transition:
     transform 0.18s ease,
-    color 0.18s ease,
     background-color 0.18s ease;
 }
 
-.cx-sug-tile:hover .cx-sug-ico {
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--brand-accent-rgb));
-  border-color: rgb(var(--brand-accent-rgb));
+.cx-sug-tile:active {
+  transform: scale(0.97);
 }
 
-.cx-sug-tile:active .cx-sug-ico {
-  transform: scale(0.92);
-}
-
-/* Nút chính: pill hồng đặc, cao đúng bằng vòng tròn để cả hàng thẳng mép trên. */
+/* Nút chính — hồng đặc, đứng cạnh câu hỏi, bóng đổ cùng tông để nổi khỏi
+   thẻ kính. */
 
 .cx-sug-tile.is-primary {
-  flex-direction: row;
-  gap: 8px;
-  height: 44px;
-  padding: 0 22px;
-  border-radius: 999px;
+  flex: 0 0 auto;
   color: rgb(var(--white-rgb));
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
   background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 6px 16px rgb(var(--action-primary-rgb) / 0.35);
-  transition:
-    transform 0.18s ease,
-    background-color 0.18s ease;
+  box-shadow:
+    0 8px 20px -6px rgb(var(--action-primary-rgb) / 0.55),
+    inset 0 1px 0 rgb(var(--white-rgb) / 0.18);
 }
 
 .cx-sug-tile.is-primary:hover {
   background: rgb(var(--action-primary-hover-rgb));
 }
 
-.cx-sug-tile.is-primary:active {
-  transform: scale(0.96);
+/* Thanh lối phụ: kính mờ (nền trắng trong + viền mảnh, không backdrop-filter —
+   xem .cx-sug), hai nửa bằng nhau ngăn bởi một vạch dọc. */
+
+.cx-sug-sec {
+  flex: 0 0 auto;
+  display: flex;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  height: 44px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--white-rgb));
 }
 
-.cx-sug-tile.is-primary .cx-sug-ico {
-  width: auto;
-  height: auto;
-  border: 0;
-  background: none;
+.cx-sug-sec .cx-sug-tile {
+  flex: 1 1 0;
+  position: relative;
+  border-radius: 999px;
 }
 
-/* Nhãn cắt một dòng: nút hẹp mà chữ xuống dòng là cả hàng lệch cao nhau. */
+.cx-sug-sec .cx-sug-tile + .cx-sug-tile::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 1px;
+  background: rgb(var(--text-heading-rgb) / 0.16);
+}
+
+.cx-sug-sec .cx-sug-tile:hover {
+  background: rgb(var(--white-rgb));
+}
+
+.cx-sug-sec .cx-sug-ico {
+  opacity: 0.85;
+}
 
 .cx-sug-tile-lb {
-  max-width: 88px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  /* Dòng phải cao hơn cỡ chữ: overflow:hidden (để có dấu …) cắt theo hộp dòng,
-     line-height 1 là mất đuôi chữ g, y. */
+  /* Dòng cao hơn cỡ chữ: overflow:hidden cắt theo hộp dòng, line-height 1 là
+     mất đuôi chữ g, y. */
   line-height: 16px;
   letter-spacing: 0.2px;
-  /* Nhãn nằm trên dải TỐI dâng từ đáy lớp phủ → chữ trắng kèm bóng tối, cùng
-     công thức với .cx-sug-title. Chữ màu đậm ở đây là chìm hẳn vào nền. */
-  color: rgb(var(--white-rgb));
-  text-shadow: 0 1px 6px rgb(var(--scrim-rgb) / 0.8);
 }
 
 .cx-sug-tile.is-primary .cx-sug-tile-lb {
-  max-width: none;
   font-size: 13px;
-  color: inherit;
-  text-shadow: none;
+  letter-spacing: 0.3px;
 }
 
 .cx-sug-ico {
@@ -1022,16 +1221,21 @@ svg.cx-ic {
    đổi độ mờ không phải chuyển động dịch chỗ. */
 
 @media (prefers-reduced-motion: reduce) {
+  .cx-sug-skel-img,
+  .cx-sug-skel-line,
+  .cx-sug-skel-btn,
+  .cx-sug-card img.is-loading {
+    animation: none;
+  }
+
   .cx-sug-card,
   .cx-sug-dot,
-  .cx-sug-tile .cx-sug-ico,
-  .cx-sug-tile.is-primary {
+  .cx-sug-tile {
     transition: none;
   }
 
   .cx-sug-card,
-  .cx-sug-tile:active .cx-sug-ico,
-  .cx-sug-tile.is-primary:active {
+  .cx-sug-tile:active {
     transform: none;
   }
 }
@@ -3313,6 +3517,419 @@ button.cx-pchrome-btn:hover {
 
   .cx-wall-sheet {
     animation: none;
+  }
+}
+
+/* ── Dạng "chat" (.cx-wsec-chat) ───────────────────────────────────────────
+   Bong bóng trò chuyện: hàng thứ 2 mỗi cụm ba dồn phải (.is-r) cho ra nhịp hội
+   thoại. Lúc tự chạy (.is-live) khung cao CỐ ĐỊNH và tin dồn đáy — mục không co
+   giãn mỗi nhịp; tin cũ trôi lên rồi khuất sau dải mờ đầu khung. */
+.cx-wsec-chat .cx-wsec-list.is-live {
+  justify-content: flex-end;
+  height: calc(var(--vh, 1vh) * 42);
+  height: calc(var(--vh, 1svh) * 42);
+  max-height: none;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 24%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 24%);
+}
+
+.cx-wchat-row {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.cx-wchat-row.is-r {
+  flex-direction: row-reverse;
+}
+
+.cx-wsec-list.is-live .cx-wchat-row {
+  animation: cx-wchat-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes cx-wchat-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cx-wchat-bub {
+  display: block;
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 18px 18px 18px 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+  word-break: break-word;
+  color: rgb(var(--cx-wish-text-rgb));
+  background: rgb(var(--cx-wish-bubble-rgb) / var(--cx-wish-bubble-a));
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.16);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.05);
+}
+
+/* Bong bóng bên phải: nền màu nhấn rất nhạt để hai phía phân biệt được mà vẫn
+   đọc bằng cùng màu chữ. */
+.cx-wchat-row.is-r .cx-wchat-bub {
+  border-radius: 18px 18px 4px 18px;
+  background: rgb(var(--cx-wish-accent-rgb) / 0.1);
+}
+
+.cx-wchat-bub .cx-wish-name {
+  margin-bottom: 2px;
+  font-size: 10px;
+}
+
+/* ── Dạng "stack" (.cx-wsec-stack) ─────────────────────────────────────────
+   Mọi thẻ chung MỘT ô lưới (khung cao bằng thẻ dài nhất). data-d do JS đặt:
+   0 thẻ trên cùng, 1–2 ló ra dưới, x ẩn mà vẫn giữ chỗ, out đang bay đi.
+   touch-action: pan-y để vuốt ngang tới được JS mà vẫn cuộn dọc được trang. */
+.cx-wsec-stack .cx-wsec-list,
+.cx-wsec-spot .cx-wsec-list,
+.cx-wsec-book .cx-wsec-list {
+  max-height: none;
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.cx-wstack {
+  display: grid;
+  padding: 0 12px 28px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.cx-wstack-card {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 24px 24px;
+  border-radius: 20px;
+  color: rgb(var(--cx-wish-text-rgb));
+  background: rgb(var(--cx-wish-bubble-rgb));
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.18);
+  box-shadow: 0 14px 30px -16px rgb(0 0 0 / 0.3);
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1),
+    opacity 0.4s ease;
+}
+
+.cx-wstack-card[data-d="0"] {
+  z-index: 3;
+}
+
+.cx-wstack-card[data-d="1"] {
+  z-index: 2;
+  transform: translateY(12px) scale(0.95);
+}
+
+.cx-wstack-card[data-d="2"] {
+  z-index: 1;
+  transform: translateY(24px) scale(0.9);
+  opacity: 0.6;
+}
+
+.cx-wstack-card[data-d="x"] {
+  visibility: hidden;
+  opacity: 0;
+  transition: none;
+}
+
+.cx-wstack-card[data-d="out"] {
+  z-index: 4;
+  transform: translateX(120%) rotate(14deg);
+  opacity: 0;
+}
+
+.cx-wstack-text {
+  display: block;
+  font-size: 18px;
+  line-height: 1.5;
+  text-align: left;
+  word-break: break-word;
+}
+
+.cx-wstack-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cx-wstack-foot .cx-wish-name {
+  margin: 0;
+}
+
+/* Chữ "3 / 12" giữa hai nút Lùi/Tiếp (dạng chồng thẻ, sổ lưu bút). */
+.cx-wnav-pos {
+  min-width: 64px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: rgb(var(--cx-wish-text-rgb));
+}
+
+.cx-wnav[hidden] {
+  display: none;
+}
+
+/* ── Dạng "spotlight" (.cx-wsec-spot) ──────────────────────────────────────
+   Một câu lớn giữa mục, mọi câu chung một ô lưới — câu đang hiện (.is-on) mờ
+   dần vào. Thanh tiến độ chạy đúng CX_WISH_SPOT_MS (5s). */
+.cx-wspot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 8px 4px;
+  text-align: center;
+}
+
+.cx-wspot-q {
+  height: 40px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 88px;
+  line-height: 0.9;
+  opacity: 0.35;
+}
+
+.cx-wspot-stage {
+  display: grid;
+  width: 100%;
+  cursor: pointer;
+}
+
+.cx-wspot-item {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease,
+    visibility 0.6s;
+}
+
+.cx-wspot-item.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.cx-wspot-text {
+  margin: 0;
+  font-size: 21px;
+  font-style: italic;
+  line-height: 1.5;
+  word-break: break-word;
+  color: rgb(var(--cx-wish-text-rgb));
+}
+
+.cx-wspot-item .cx-wish-name {
+  margin: 0;
+}
+
+.cx-wspot-bar {
+  display: block;
+  width: 120px;
+  height: 2px;
+  margin-top: 24px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(var(--cx-wish-text-rgb) / 0.14);
+}
+
+.cx-wspot-bar i {
+  display: block;
+  height: 100%;
+  background: rgb(var(--cx-wish-accent-rgb));
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.cx-wspot-bar.is-run i {
+  animation: cx-wspot-prog 5s linear both;
+}
+
+@keyframes cx-wspot-prog {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.cx-wspot-pos {
+  margin-top: 10px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgb(var(--cx-wish-text-rgb));
+  opacity: 0.7;
+}
+
+/* ── Dạng "float" (.cx-wdock-float) ────────────────────────────────────────
+   Cùng khung dải nổi với livestream; bong bóng và trái tim đặt tuyệt đối dưới
+   đáy khung rồi bay lên quãng --cx-wf-h (JS đo) cộng chính chiều cao của nó. */
+/* Bong bóng bay chỉ để nhìn: không bắt chạm (.cx-wish-item vốn bật lại
+   pointer-events) — nó lướt qua cả thiệp, chặn chạm là khách bấm hụt nút bên dưới. */
+.cx-wfloat,
+.cx-wfloat .cx-wish-item {
+  pointer-events: none;
+}
+
+.cx-wfloat-bal {
+  position: absolute;
+  top: 100%;
+  max-width: 82%;
+  animation: cx-wfloat-up 9s linear both;
+}
+
+.cx-wfloat-hrt {
+  position: absolute;
+  top: 100%;
+  display: block;
+  color: rgb(var(--cx-wish-accent-rgb) / 0.6);
+  animation: cx-wfloat-up 6s ease-in both;
+}
+
+@keyframes cx-wfloat-up {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translate(var(--cx-wf-sx, 12px), calc(var(--cx-wf-h, 240px) * -0.55));
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(0, calc(var(--cx-wf-h, 240px) * -1 - 100%));
+  }
+}
+
+/* ── Dạng "guestbook" (.cx-wsec-book) ──────────────────────────────────────
+   Trang giấy kẻ dòng (dòng kẻ trùng line-height 32px của chữ), chữ nghiêng của
+   mẫu. Mọi trang chung một ô lưới; trang kế (.is-next) nằm ngay dưới để lúc
+   trang hiện tại lật đi (.is-turn) là nó đã có sẵn. Mép phải xếp thêm một tờ
+   lệch (::before) cho ra dáng cuốn sổ. */
+.cx-wbook {
+  position: relative;
+  display: grid;
+  margin: 0 8px 8px 0;
+  perspective: 1400px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.cx-wbook::before {
+  content: "";
+  grid-area: 1 / 1;
+  border-radius: 4px 14px 14px 4px;
+  background: rgb(var(--cx-wish-accent-rgb) / 0.1);
+  transform: translate(6px, 6px);
+}
+
+.cx-wbook-page {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 280px;
+  padding: 24px 24px 20px 32px;
+  border-radius: 4px 14px 14px 4px;
+  text-align: left;
+  color: rgb(var(--cx-wish-text-rgb));
+  background-color: rgb(var(--cx-wish-bubble-rgb));
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 31px,
+    rgb(var(--cx-wish-accent-rgb) / 0.14) 31px 32px
+  );
+  background-position: 0 54px;
+  box-shadow:
+    inset 14px 0 18px -16px rgb(0 0 0 / 0.35),
+    0 14px 28px -18px rgb(0 0 0 / 0.35);
+  transform-origin: left center;
+  backface-visibility: hidden;
+  visibility: hidden;
+}
+
+.cx-wbook-page.is-on {
+  z-index: 2;
+  visibility: visible;
+}
+
+.cx-wbook-page.is-next {
+  z-index: 1;
+  visibility: visible;
+}
+
+.cx-wbook-page.is-turn {
+  animation: cx-wbook-turn 0.7s cubic-bezier(0.4, 0.1, 0.3, 1) both;
+}
+
+@keyframes cx-wbook-turn {
+  to {
+    transform: rotateY(-100deg);
+    opacity: 0.2;
+  }
+}
+
+.cx-wbook-no {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-align: right;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.cx-wbook-text {
+  flex: 1;
+  margin-top: 8px;
+  font-size: 18px;
+  font-style: italic;
+  line-height: 32px;
+  word-break: break-word;
+}
+
+.cx-wbook-sig {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-wsec-list.is-live .cx-wchat-row,
+  .cx-wbook-page.is-turn,
+  .cx-wspot-bar.is-run i {
+    animation: none;
+  }
+
+  .cx-wstack-card,
+  .cx-wspot-item {
+    transition: none;
   }
 }
 

@@ -756,7 +756,8 @@ function siRenderSingleImage(fieldName) {
     const adjustBtn = isCrop
       ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siRecropSingle('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1"><i data-lucide="crop" class="text-xs" style="width:16px;height:16px"></i></x-button>`
       : isFocal
-        ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustSingleFocal('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1"><i data-lucide="crosshair" class="text-xs" style="width:16px;height:16px"></i></x-button>`
+        ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siCropSingle('${fieldName}')" title="Cắt ảnh" class="absolute bottom-1 left-1"><i data-lucide="crop" class="text-xs" style="width:16px;height:16px"></i></x-button>
+           <x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustSingleFocal('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1"><i data-lucide="crosshair" class="text-xs" style="width:16px;height:16px"></i></x-button>`
         : "";
     container.innerHTML = `
       <div class="relative ${sizeClass} rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100">
@@ -790,14 +791,15 @@ async function siHandleSingleUpload(event, fieldName) {
   }
 
   const current = siData.singleImages[fieldName].focal;
-  openFocalPointPicker(file, current, async (focal) => {
+  openFocalPointPicker(file, current, async (focal, cropped) => {
     showLoading(true, "Đang xử lý ảnh...");
     try {
       // Giữ nguyên ảnh gốc, không nén
+      const blob = cropped || file;
       siData.singleImages[fieldName] = {
-        blob: file,
+        blob,
         focal,
-        previewUrl: URL.createObjectURL(file),
+        previewUrl: URL.createObjectURL(blob),
       };
       siRenderSingleImage(fieldName);
       siMarkDirty(true);
@@ -806,18 +808,29 @@ async function siHandleSingleUpload(event, fieldName) {
     } finally {
       showLoading(false);
     }
+  }, null, null, SI_FOCAL_OPTS);
+}
+
+function siCropSingle(fieldName) {
+  const entry = siData.singleImages[fieldName];
+  if (!entry.blob) return;
+  openRatioCropSheet(entry.blob, (file) => {
+    siSetCroppedBlob(entry, file);
+    siRenderSingleImage(fieldName);
+    siMarkDirty(true);
   });
 }
 
 function siAdjustSingleFocal(fieldName) {
   const entry = siData.singleImages[fieldName];
   if (!entry.previewUrl) return;
-  openFocalPointPicker(entry.previewUrl, entry.focal, (focal) => {
+  openFocalPointPicker(entry.blob, entry.focal, (focal, cropped) => {
+    if (cropped) siSetCroppedBlob(entry, cropped);
     entry.focal = focal;
     siRenderSingleImage(fieldName);
     siMarkDirty(true);
     showToast("Đã cập nhật điểm lấy nét", "success");
-  });
+  }, null, null, SI_FOCAL_OPTS);
 }
 
 // Ảnh vừa cắt xong (QR) → vào state.
@@ -847,6 +860,24 @@ function siRemoveSingle(fieldName) {
   siRenderSingleImage(fieldName);
   siMarkDirty(true);
 }
+
+// ============= Cắt ảnh giữ nguyên tỉ lệ (cover / cô dâu / chú rể / album / chuyện tình) =============
+
+// Ảnh vừa cắt thay ảnh cũ: bỏ dấu file gốc (srcName/srcSize) để lần lưu ghi file mới,
+// điểm nhìn về giữa vì toạ độ cũ tính theo khung ảnh trước khi cắt.
+function siSetCroppedBlob(entry, file) {
+  if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+  Object.assign(entry, {
+    blob: file,
+    srcName: null,
+    srcSize: 0,
+    focal: { x: 50, y: 50 },
+    previewUrl: URL.createObjectURL(file),
+  });
+}
+
+// Bảng chỉnh điểm nhìn của tab này có thêm nút "Cắt ảnh".
+const SI_FOCAL_OPTS = { crop: true };
 
 // ============= Undo/Redo cho thao tác kéo thả =============
 
@@ -975,6 +1006,9 @@ function siRenderGallery() {
     div.innerHTML = `
       <img src="${item.previewUrl}" class="w-full h-full object-cover pointer-events-none" style="object-position: ${item.focal.x}% ${item.focal.y}%" />
       <div class="absolute top-1 left-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded pointer-events-none">${idx + 1}</div>
+      <x-button variant="overlay" size="xs" icon-only type="button" onclick="event.stopPropagation();siCropGallery(${idx})" title="Cắt ảnh" class="absolute bottom-1 left-1">
+        <i data-lucide="crop" class="text-xs" style="width:16px;height:16px"></i>
+      </x-button>
       <x-button variant="overlay" size="xs" icon-only type="button" onclick="event.stopPropagation();siAdjustGalleryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
         <i data-lucide="crosshair" class="text-xs" style="width:16px;height:16px"></i>
       </x-button>
@@ -1045,15 +1079,26 @@ async function siHandleGalleryUpload(event) {
   siMarkDirty(true);
 }
 
+function siCropGallery(idx) {
+  const item = siData.gallery[idx];
+  if (!item?.blob) return;
+  openRatioCropSheet(item.blob, (file) => {
+    siSetCroppedBlob(item, file);
+    siRenderGallery();
+    siMarkDirty(true);
+  });
+}
+
 function siAdjustGalleryFocal(idx) {
   const item = siData.gallery[idx];
   if (!item) return;
-  openFocalPointPicker(item.previewUrl, item.focal, (focal) => {
+  openFocalPointPicker(item.blob, item.focal, (focal, cropped) => {
+    if (cropped) siSetCroppedBlob(item, cropped);
     item.focal = focal;
     siRenderGallery();
     siMarkDirty(true);
     showToast("Đã cập nhật điểm lấy nét", "success");
-  });
+  }, null, null, SI_FOCAL_OPTS);
 }
 
 function siRemoveGalleryImage(idx) {
@@ -1139,6 +1184,9 @@ function siRenderLoveStory() {
           item.previewUrl
             ? `<div class="relative w-16 h-16 rounded-xl overflow-hidden border border-rose-200 flex-shrink-0">
                 <img src="${item.previewUrl}" class="w-full h-full object-cover"${fpStyle} />
+                <x-button variant="overlay" size="xs" icon-only type="button" onclick="siCropLoveStory(${idx})" title="Cắt ảnh" class="absolute bottom-0.5 left-0.5">
+                  <i data-lucide="crop" style="width:16px;height:16px;font-size:10px"></i>
+                </x-button>
                 <x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustLoveStoryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5">
                   <i data-lucide="crosshair" style="width:16px;height:16px;font-size:10px"></i>
                 </x-button>
@@ -1206,14 +1254,15 @@ async function siHandleLoveStoryUpload(event, idx) {
   }
 
   const current = siData.loveStory[idx].focal;
-  openFocalPointPicker(file, current, async (focal) => {
+  openFocalPointPicker(file, current, async (focal, cropped) => {
     showLoading(true, "Đang xử lý ảnh...");
     try {
       // Giữ nguyên ảnh gốc, không nén
       // Bỏ dấu file cũ, không thì ảnh mới trùng số byte bị coi là "chưa đổi".
-      Object.assign(siData.loveStory[idx], { blob: file, srcName: null, srcSize: 0 });
+      const blob = cropped || file;
+      Object.assign(siData.loveStory[idx], { blob, srcName: null, srcSize: 0 });
       siData.loveStory[idx].focal = focal;
-      siData.loveStory[idx].previewUrl = URL.createObjectURL(file);
+      siData.loveStory[idx].previewUrl = URL.createObjectURL(blob);
       siRenderLoveStory();
       siMarkDirty(true);
     } catch (e) {
@@ -1221,17 +1270,28 @@ async function siHandleLoveStoryUpload(event, idx) {
     } finally {
       showLoading(false);
     }
+  }, null, null, SI_FOCAL_OPTS);
+}
+
+function siCropLoveStory(idx) {
+  const item = siData.loveStory[idx];
+  if (!item?.blob) return;
+  openRatioCropSheet(item.blob, (file) => {
+    siSetCroppedBlob(item, file);
+    siRenderLoveStory();
+    siMarkDirty(true);
   });
 }
 
 function siAdjustLoveStoryFocal(idx) {
   const item = siData.loveStory[idx];
   if (!item.previewUrl) return;
-  openFocalPointPicker(item.previewUrl, item.focal, (focal) => {
+  openFocalPointPicker(item.blob, item.focal, (focal, cropped) => {
+    if (cropped) siSetCroppedBlob(item, cropped);
     item.focal = focal;
     siRenderLoveStory();
     siMarkDirty(true);
-  });
+  }, null, null, SI_FOCAL_OPTS);
 }
 
 function siRemoveLoveStoryImage(idx) {

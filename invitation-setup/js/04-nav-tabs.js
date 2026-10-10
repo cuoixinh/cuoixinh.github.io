@@ -83,7 +83,7 @@ function _savePreviewData() {
   // love_story & timeline là mảng JSONB: FormData chỉ lấy được CHUỖI JSON từ
   // hidden input nên phải ghi đè bằng mảng thật; ảnh mốc chưa lưu → blob URL để
   // preview thấy ngay.
-  data.timeline = _timelineItems.map((it) => ({ ...it }));
+  data.timeline = _timelineFilled().map((it) => ({ ...it }));
   data.love_story = _loveStoryItems.map((it, idx) => {
     const pending = _loveStoryPendingImages[idx];
     return {

@@ -8,7 +8,7 @@
     // Trùng TÊN THƯ MỤC và cột `templates.template_name`.
     id: "ribbon-love",
 
-    wishesMode: "card",
+    wishesMode: "chat",
     giftBox: "floral_pink",
 
     // Đĩa nhạc neo góc phải như mẫu tham chiếu.

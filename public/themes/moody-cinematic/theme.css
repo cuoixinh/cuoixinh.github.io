@@ -1841,3 +1841,265 @@ body,
     animation: none !important;
   }
 }
+
+/* ── ẢNH ĐỨNG ĐỘC LẬP: zoom thở chậm ────────────────────────────────────
+   Ảnh lớn của trang đầu, nền dải gia đình, ảnh tờ lịch, ảnh lấp dòng thời gian
+   và ảnh bài chuyện tình phóng nhẹ 1 → 1.06 rồi lùi lại, như máy quay đẩy chậm.
+   Khung chứa đều overflow:hidden nên không tràn. Ảnh album / QR / lightbox để yên. */
+
+.mc-ph-shot img,
+.mc-ph-fam-bg,
+.mc-cal-shot img,
+.mc-tl-fill img,
+.mc-post-figure img {
+  animation: cx-mc-breathe 12s ease-in-out infinite alternate;
+}
+
+@keyframes cx-mc-breathe {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-ph-shot img,
+  .mc-ph-fam-bg,
+  .mc-cal-shot img,
+  .mc-tl-fill img,
+  .mc-post-figure img {
+    animation: none;
+  }
+}
+
+/* ── MÀN BÌA: khung hình mở đầu phim ─────────────────────────────────────
+   Hai thanh letterbox DÀY (đen cố định --cx-deco) trượt vào kẹp ảnh bìa; thanh
+   trên = dòng tên lễ + ngày, thanh dưới = nút phát. Lời mời khách là PHỤ ĐỀ ở
+   đáy khung — nét nhận dạng của màn này. Nhịp xuất hiện: thanh → tên → phụ đề
+   → nút, ảnh trôi chậm suốt lúc chờ. */
+
+#cover-screen {
+  background: rgb(var(--cx-deco-rgb));
+}
+
+.mc-cv {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 430px;
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+.mc-cv-bar {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: clamp(96px, 17%, 160px);
+  background: rgb(var(--cx-deco-rgb));
+  animation: cx-mc-bar-in 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mc-cv-top {
+  --mc-cv-from: -100%;
+}
+
+.mc-cv-bottom {
+  --mc-cv-from: 100%;
+}
+
+.mc-cv-event {
+  font-family: "Montserrat", sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-on-image-rgb) / 0.6);
+}
+
+.mc-cv-date {
+  font-size: 20px;
+  letter-spacing: 4px;
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+.mc-cv-frame {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: rgb(var(--cx-deco-rgb));
+}
+
+.mc-cv-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.86) contrast(1.08) brightness(0.97);
+  animation: cx-mc-drift 14s ease-out both;
+}
+
+.mc-cv-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--cx-deco-rgb) / 0) 40%,
+    rgb(var(--cx-deco-rgb) / 0.72) 100%
+  );
+}
+
+.mc-cv-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.mc-cv-names {
+  font-family: "TheHamstter", cursive;
+  font-size: 44px;
+  line-height: 1.08;
+  text-shadow: 0 2px 20px rgb(var(--cx-deco-rgb) / 0.5);
+  animation: cx-mc-rise 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.8s both;
+}
+
+.mc-cv-amp {
+  display: block;
+  font-size: 28px;
+  opacity: 0.8;
+}
+
+/* Phụ đề: nền đen mờ ÔM từng dòng chữ (box-decoration-break), như sub phim. */
+.mc-cv-sub {
+  font-family: "Montserrat", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 2;
+  animation: cx-mc-fade 0.6s ease-out 1.6s both;
+}
+
+.mc-cv-sub > span {
+  padding: 2px 8px;
+  background: rgb(var(--cx-deco-rgb) / 0.62);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+#cover-guest-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Link chung (không có khách): bỏ hẳn phụ đề — câu chào khách vãn lai helper
+   đặt vào [data-cx-invite] không hợp với khung phim này. */
+.cx-guest-generic .mc-cv-sub {
+  display: none;
+}
+
+.mc-cv-play {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px 8px 8px;
+  border: 1px solid rgb(var(--cx-on-image-rgb) / 0.32);
+  color: rgb(var(--cx-on-image-rgb));
+  animation: cx-mc-fade 0.6s ease-out 2s both;
+  transition: transform 0.15s ease;
+}
+
+.mc-cv-play:active {
+  transform: scale(0.96);
+}
+
+.mc-cv-play-ic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgb(var(--cx-on-image-rgb));
+  color: rgb(var(--cx-deco-rgb));
+  font-size: 16px;
+}
+
+.mc-cv-play-ic .cx-ic {
+  margin-left: 2px;
+  fill: currentColor;
+}
+
+.mc-cv-play-txt {
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+@keyframes cx-mc-bar-in {
+  from {
+    transform: translateY(var(--mc-cv-from));
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@keyframes cx-mc-drift {
+  from {
+    transform: scale(1.12);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes cx-mc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cx-mc-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-cv-bar,
+  .mc-cv-img,
+  .mc-cv-names,
+  .mc-cv-sub,
+  .mc-cv-play {
+    animation: none;
+  }
+}

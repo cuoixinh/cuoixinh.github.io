@@ -25,7 +25,7 @@
     loveStory: "long",
 
     // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
-    wishesMode: "paged",
+    wishesMode: "spotlight",
 
     // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
     // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.

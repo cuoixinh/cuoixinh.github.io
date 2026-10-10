@@ -288,7 +288,7 @@ html.hd-on {
 
 /* Hiệu ứng vào trang: chỉ ẩn sẵn khi bộ lật trang đã bật (html.hd-on); trang vừa
    trồi vào màn (.is-seen, gắn một lần không gỡ) thì .hd-a hiện vào theo thứ tự --d.
-   Nhịp ngắn để vuốt tới là thấy chữ ngay, không phải đứng chờ. */
+   Nhịp ~1.5s, cùng nhịp hiện dần chung của các mẫu (.reveal ở styles/_common.css). */
 .hd-on .hd-a {
   opacity: 0;
 }
@@ -311,9 +311,9 @@ html.hd-on {
   opacity: 1;
   transform: none;
   transition:
-    opacity 0.5s var(--hd-ease),
-    transform 0.6s var(--hd-ease);
-  transition-delay: calc(var(--d, 0) * 60ms);
+    opacity 1.5s var(--hd-ease),
+    transform 1.5s var(--hd-ease);
+  transition-delay: calc(var(--d, 0) * 120ms);
 }
 /* Ảnh trôi chậm (Ken Burns) lần đầu trang hiện ra. */
 .hd-on .hd-zoom img {

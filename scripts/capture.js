@@ -1,4 +1,5 @@
-const puppeteer = require("puppeteer");
+// puppeteer-core lái Google Chrome đã cài trên máy (channel "chrome"), không tự tải Chromium.
+const puppeteer = require("puppeteer-core");
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -96,6 +97,7 @@ async function captureAll(onProgress = console.log, selected = null) {
     onProgress("🚀 Khởi động Chromium...");
     browser = await puppeteer.launch({
       headless: true,
+      channel: "chrome",
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
     });
 
