@@ -59,8 +59,10 @@
          · Chữ lấy từ dữ liệu phải đi qua setText(id, …) trong index.js
          · Thanh nhạc phải là thẻ con ĐẦU TIÊN của <body>
          · Màu lấy từ --cx-* / .cx-h / .cx-t / .cx-a, đừng viết mã màu thẳng
-         · Không có màn bìa: #main-card hiện sẵn (không display:none), ảnh màn
-           đầu là #main-photo (fetchpriority="high"), mọi ảnh còn lại lazy
+         · Có màn bìa (#cover-screen): ảnh màn đầu là #cover-bg-img
+           (fetchpriority="high"); ảnh của TRANG ĐẦU (#main-photo, #family-photo)
+           KHÔNG lazy vì #main-card còn display:none, các trang sau lazy được —
+           chúng nằm ngoài khung lúc vừa mở bìa
        ══════════════════════════════════════════════════════════════════════ -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
@@ -70,6 +72,54 @@
          nên tổ tiên có transform sẽ neo nó sai chỗ. -->
     <div id="cx-music-mount"></div>
 
+    <!-- ═══ MÀN BÌA — KHUNG HÌNH MỞ ĐẦU PHIM ════════════════════════════════
+         Hai thanh letterbox dày trượt vào kẹp ảnh bìa: thanh trên là dòng tên
+         lễ + ngày, thanh dưới là nút phát (Mở thiệp). Lời mời khách hiện thành
+         PHỤ ĐỀ ở đáy khung. "Mở thiệp" → openInvitation() hiện #main-card. -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center">
+      <div class="mc-cv cx-screen-h">
+        <div class="mc-cv-bar mc-cv-top">
+          <div class="mc-cv-event" id="cover-event">Lễ Thành Hôn</div>
+          <div class="cx-h mc-cv-date" id="cover-date">-- · -- · ----</div>
+        </div>
+
+        <div class="mc-cv-frame">
+          <img
+            id="cover-bg-img"
+            fetchpriority="high"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt=""
+            class="mc-cv-img"
+          />
+          <div class="mc-cv-veil"></div>
+          <div class="mc-cv-cap">
+            <div class="mc-cv-names">
+              <span id="cover-groom-name">----------</span>
+              <span class="mc-cv-amp">&amp;</span>
+              <span id="cover-bride-name">----------</span>
+            </div>
+            <!-- Phụ đề: lời mời + tên khách (helper điền theo ?name=); link chung
+                 thì ẩn cả khối (theme.css). -->
+            <div class="mc-cv-sub">
+              <span data-cx-invite>Trân trọng kính mời</span><br />
+              <span id="cover-guest-name">----------</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mc-cv-bar mc-cv-bottom">
+          <x-button
+            variant="bare"
+            onclick="openInvitation()"
+            class="open-btn mc-cv-play touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          >
+            <span class="mc-cv-play-ic"><i data-lucide="play" class="cx-ic"></i></span>
+            <span class="mc-cv-play-txt">Mở thiệp</span>
+          </x-button>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══ THÂN THIỆP — QUYỂN SÁCH LẬT NGANG ══════════════════════════════
          #main-card + ĐÚNG MỘT thẻ con bọc mọi mục (#cx-pages, ở đây là dải
          cuộn NGANG). Mỗi <section> con trực tiếp là MỘT TRANG cao trọn màn; setupBook()
@@ -78,6 +128,7 @@
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] md:rounded-lg md:shadow-2xl overflow-hidden"
+      style="display: none"
     >
       <div id="cx-pages" class="mc-pages text-center">
         <!-- ═══ TRANG: Lời mời (Mở đầu + Thư mời + Gia đình) ════════════════
@@ -103,7 +154,6 @@
           <div class="mc-cine mc-ph-shot mc-ph-bleed">
             <img
               id="main-photo"
-              fetchpriority="high"
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               alt="Ảnh cưới"
               class="w-full h-full object-cover"
@@ -150,7 +200,6 @@
           <div id="section-family" class="mc-ph-family mc-ph-bleed">
             <img
               id="family-photo"
-              loading="lazy"
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               alt=""
               class="mc-ph-fam-bg"

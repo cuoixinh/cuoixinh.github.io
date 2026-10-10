@@ -1818,6 +1818,9 @@ function closeTimePicker() {
       if (_hidden(el)) return;
       const r = el.getBoundingClientRect();
       const vh = window.innerHeight;
+      // Mẫu lật trang NGANG (moody-cinematic): mục ở trang khác vẫn có top ≈ 0,
+      // chỉ xét chiều dọc là bung ngay lúc mới vào.
+      if (r.right <= 0 || r.left >= window.innerWidth) return;
       // Mép trên đã qua giữa màn (kể cả vuốt nhanh lướt qua hẳn mốc) thì bung.
       if (r.top <= vh / 2) return _hit();
       const se = document.scrollingElement || document.documentElement;
