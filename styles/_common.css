@@ -1926,6 +1926,7 @@ x-button {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 56px;
   background: #eceff3;
 }
 
@@ -1945,6 +1946,173 @@ x-button {
   height: 100%;
   pointer-events: none; /* khung chỉ để nhìn — cú bấm phải xuống tới thiệp */
   filter: drop-shadow(0 18px 34px rgb(0 0 0 / 0.3));
+}
+
+/* Thẻ cạnh khung máy (chỉ bản xem thử mẫu): tên mẫu + hai việc của menu ba
+   chấm đặt ra ngoài cho khỏi phải mò. Màu viết cứng như vỏ máy — không đi theo
+   bộ màu của thiệp. */
+.cx-pside {
+  flex: none;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  font-family: Quicksand, system-ui, sans-serif;
+  color: #1f2430;
+}
+
+.cx-pside-eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #b4536a;
+}
+
+.cx-pside-name {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: #1f2430;
+}
+
+.cx-pside-lede {
+  margin: 12px 0 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #d9dde4;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #5b6372;
+}
+
+.cx-pside .cx-pside-guest {
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 12px 12px 12px 20px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(31 36 48 / 0.06), 0 0 0 1px rgb(31 36 48 / 0.06);
+  text-align: left;
+  cursor: pointer;
+}
+
+.cx-pside .cx-pside-guest:hover {
+  box-shadow: 0 4px 12px rgb(31 36 48 / 0.08), 0 0 0 1px rgb(31 36 48 / 0.1);
+}
+
+.cx-pside-guest-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cx-pside-guest-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2430;
+}
+
+.cx-pside-guest-sub {
+  font-size: 12px;
+  color: #7a8291;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Công tắc vẽ bằng CSS, trạng thái lấy từ aria-checked của nút cha. */
+.cx-pside-switch {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: #cfd4dc;
+  transition: background-color 0.2s ease;
+}
+
+.cx-pside-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+  transition: transform 0.2s ease;
+}
+
+.cx-pside-guest[aria-checked="true"] .cx-pside-switch {
+  background: #b4536a;
+}
+
+.cx-pside-guest[aria-checked="true"] .cx-pside-switch::after {
+  transform: translateX(20px);
+}
+
+.cx-pside .cx-pside-cta {
+  gap: 12px;
+  width: 100%;
+  height: 52px;
+  margin-top: 16px;
+  padding: 0 24px;
+  background: #1f2430;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 8px 20px -8px rgb(31 36 48 / 0.5);
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Mũi tên đứng SAU chữ (x-button chèn icon trước) — svg là flex item nên đẩy
+   bằng order, chữ là anonymous item giữ order 0. */
+.cx-pside .cx-pside-cta svg {
+  order: 1;
+  transition: transform 0.2s ease;
+}
+
+.cx-pside .cx-pside-cta:hover {
+  background: #2c3240;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 12px 24px -8px rgb(31 36 48 / 0.6);
+}
+
+.cx-pside .cx-pside-cta:hover svg {
+  transform: translateX(4px);
+}
+
+.cx-pside .cx-pside-guest:focus-visible,
+.cx-pside .cx-pside-cta:focus-visible {
+  outline: 2px solid #b4536a;
+  outline-offset: 3px;
+}
+
+/* Màn hẹp không đủ chỗ cho cả máy lẫn thẻ → chỉ còn menu ba chấm. */
+@media (max-width: 1023px) {
+  .cx-pside {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-pside-switch,
+  .cx-pside-switch::after,
+  .cx-pside .cx-pside-cta,
+  .cx-pside .cx-pside-cta svg {
+    transition: none;
+  }
 }
 
 /* Đúng ô trong suốt của ảnh: x 15→368, y 12→773 trên khổ 383×785.

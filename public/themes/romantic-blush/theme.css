@@ -303,6 +303,21 @@ html.cx-pshell-host.rb-stack body {
   display: none;
 }
 
+/* Máy có chuột: bàn tay báo dải kéo ngang được (index.js _dragScroll lo việc kéo). */
+@media (hover: hover) and (pointer: fine) {
+  /* Viết kèm cha để thắng `cursor: pointer` của .rb-nav-chip khai ở dưới. */
+  .rb-nav-list,
+  .rb-nav-list .rb-nav-chip {
+    cursor: grab;
+  }
+
+  .rb-nav-list.is-drag,
+  .rb-nav-list.is-drag .rb-nav-chip {
+    cursor: grabbing;
+    user-select: none;
+  }
+}
+
 .rb-nav-chip {
   flex: none;
   display: flex;
@@ -735,7 +750,11 @@ html.cx-pshell-host.rb-stack body {
   opacity: 0.9;
 }
 
+/* Helper gắn thêm .flex khi bật khối ở bản giả lập khách → giữ xếp dọc, canh giữa. */
 .rb-guest {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   margin-top: 12px;
   font-family: var(--rb-serif);
   font-size: 16px;
@@ -747,6 +766,18 @@ html.cx-pshell-host.rb-stack body {
   font-family: var(--rb-display);
   font-style: italic;
   font-size: 22px;
+}
+
+/* Có tên khách (khối lời mời đang hiện): màn 1 bớt địa điểm + câu tiếng Anh để
+   lời mời là thứ nổi nhất. Không có khách thì màn giữ nguyên. theme.css không qua
+   cssnano nên :not() trong :has() an toàn ở đây. */
+.rb-hero-bottom:has(> #cover-guest-wrap:not(.hidden)) .rb-hero-place,
+.rb-hero-bottom:has(> #cover-guest-wrap:not(.hidden)) .rb-hero-en {
+  display: none;
+}
+
+.rb-hero-bottom:has(> #cover-guest-wrap:not(.hidden)) .rb-guest {
+  margin-top: 4px;
 }
 
 /* ── Màn 2 · Invitation — chân dung đôi có khung lệch ─────────────────── */

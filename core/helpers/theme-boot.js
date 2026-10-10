@@ -229,7 +229,8 @@ function _cxPreviewShell() {
         <div class="cx-ppad"></div>
       </div>
       <img src="../../../assets/images/iphone_mockup.svg" alt="" class="cx-pshell-frame" />
-    </div>`;
+    </div>
+    ${opts.items.length ? _cxShellSideHtml(slug) : ""}`;
   stage.querySelector("iframe").src = src;
 
   document.documentElement.classList.add("cx-pshell-host");
@@ -239,6 +240,7 @@ function _cxPreviewShell() {
   document.body.replaceChildren(stage, ...keep);
 
   window.CXPhoneChrome?.wire(stage.querySelector(".cx-pchrome"), opts);
+  _cxShellSideWire(stage.querySelector(".cx-pside"), slug);
   if (live) _cxShellNameLive();
   else _cxShellName(slug);
 
@@ -294,19 +296,60 @@ function _cxShellOpts(slug, live) {
           {
             label: "Chọn mẫu này",
             icon: "play",
-            // Cùng đường tạo nháp với nút "Dùng mẫu" ở bảng đề xuất: hỏi trước nếu
-            // khách còn thiệp làm dở (core/helpers/draft-start.js).
-            onClick: () => {
-              if (typeof cxStartDraft !== "function") {
-                console.error("Thiếu core/helpers/draft-start.js");
-                return;
-              }
-              const el = document.querySelector(".cx-pchrome-name");
-              cxStartDraft(slug, (el && el.textContent) || _cxThemeTitle(slug));
-            },
+            onClick: () => _cxShellChoose(slug),
           },
         ],
   };
+}
+
+// Cùng đường tạo nháp với nút "Dùng mẫu" ở bảng đề xuất: hỏi trước nếu khách
+// còn thiệp làm dở (core/helpers/draft-start.js).
+function _cxShellChoose(slug) {
+  if (typeof cxStartDraft !== "function") {
+    console.error("Thiếu core/helpers/draft-start.js");
+    return;
+  }
+  const el = document.querySelector(".cx-pchrome-name");
+  cxStartDraft(slug, (el && el.textContent) || _cxThemeTitle(slug));
+}
+
+// Thẻ cạnh khung máy: bản đặt ngoài của hai mục trong menu ba chấm (menu vẫn
+// giữ). Chỉ dựng cho bản xem thử mẫu — cùng điều kiện `items` của chrome.
+function _cxShellSideHtml(slug) {
+  const g = CX_DEMO_GUEST;
+  return `
+    <aside class="cx-pside" aria-label="Mẫu thiệp">
+      <p class="cx-pside-eyebrow">Mẫu thiệp</p>
+      <h1 class="cx-pside-name">${_cxThemeTitle(slug)}</h1>
+      <p class="cx-pside-lede">Chọn mẫu rồi thay chữ, ảnh và màu thành của hai bạn.</p>
+      <x-button variant="bare" class="cx-pside-guest" role="switch" aria-checked="false" data-act="guest">
+        <span class="cx-pside-guest-text">
+          <span class="cx-pside-guest-title">Xem với tư cách khách mời</span>
+          <span class="cx-pside-guest-sub">Thiệp gửi tới: ${g.rel} ${g.name}</span>
+        </span>
+        <span class="cx-pside-switch" aria-hidden="true"></span>
+      </x-button>
+      <x-button variant="bare" class="cx-pside-cta" icon="arrow-right" data-act="choose" label="Chọn mẫu này"></x-button>
+    </aside>`;
+}
+
+// Uỷ quyền sự kiện lên <aside>: x-button tự thay mình bằng <button> (có thể trễ
+// tới DOMContentLoaded) nên không giữ tham chiếu tới nút.
+function _cxShellSideWire(side, slug) {
+  if (!side) return;
+  side.addEventListener("click", (e) => {
+    const act = e.target.closest("[data-act]")?.dataset.act;
+    if (act === "guest") _cxShellGuestToggle();
+    else if (act === "choose") _cxShellChoose(slug);
+  });
+}
+
+// Công tắc ở thẻ cạnh máy theo đúng trạng thái iframe — đổi từ menu ba chấm
+// hay từ chính công tắc đều qua đây.
+function _cxShellSideSync(on) {
+  document
+    .querySelector(".cx-pside-guest")
+    ?.setAttribute("aria-checked", on ? "true" : "false");
 }
 
 // "Xem với tư cách khách mời": nạp lại thiệp trong khung với ?guest=&rel= —
@@ -332,13 +375,15 @@ function _cxShellGuestToggle() {
   const f = document.querySelector(".cx-pshell-view");
   const url = _cxShellViewUrl();
   if (!f || !url) return;
-  if (url.searchParams.has("guest")) {
-    url.searchParams.delete("guest");
-    url.searchParams.delete("rel");
-  } else {
+  const on = !url.searchParams.has("guest");
+  if (on) {
     url.searchParams.set("guest", CX_DEMO_GUEST.name);
     url.searchParams.set("rel", CX_DEMO_GUEST.rel);
+  } else {
+    url.searchParams.delete("guest");
+    url.searchParams.delete("rel");
   }
+  _cxShellSideSync(on);
   // replace: đổi chế độ không thêm mốc lịch sử, Back vẫn về kho mẫu.
   f.contentWindow.location.replace(url.href);
 }
@@ -363,7 +408,10 @@ function _cxShellName(slug) {
     .list()
     .then((rows) => {
       const row = (rows || []).filter((t) => t.theme === slug)[0];
-      if (row && row.name) window.CXPhoneChrome?.setTitle(row.name);
+      if (!row || !row.name) return;
+      window.CXPhoneChrome?.setTitle(row.name);
+      const side = document.querySelector(".cx-pside-name");
+      if (side) side.textContent = row.name;
     })
     .catch(() => {});
 }

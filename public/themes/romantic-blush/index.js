@@ -377,17 +377,15 @@
         const chip = e.target.closest(".rb-nav-chip");
         if (!chip) return;
         _show(_groups[Number(chip.dataset.g)]?.slides[0]); // tới màn ĐẦU của mục
-        _navOpen(true, 1200); // để khách thấy mình đã tới đâu rồi mới thu
+        _navOpen(false);
       });
+      _dragScroll(_nav.querySelector(".rb-nav-list"));
       // Chạm ra ngoài bảng thì thu lại.
       card.addEventListener("click", (e) => {
         if (_nav.classList.contains("is-open") && !_nav.contains(e.target)) _navOpen(false);
       });
       // Tên bài YouTube trả trễ → vẽ lại mỗi lần trạng thái nhạc đổi.
       window.addEventListener("cx:music-state", _navSong);
-      // Mới vào: bảng ẩn, đợi màn đầu chạy xong hiệu ứng chính mới mọc lên từ vạch,
-      // để một lúc cho khách đọc rồi thu gọn về lại vạch tiến độ.
-      _navT = setTimeout(() => _navOpen(true, 3000), 1600); // khách đã tự chạm vạch thì huỷ
     }
     // Nút nhạc (theme-boot dựng neo góc màn) dời vào góc trái bảng — kiểm mỗi lần
     // vì thanh dựng lúc index.js nạp, TRƯỚC khi theme-boot dựng nút. Bê nguyên node
@@ -409,6 +407,60 @@
     _nav.querySelector(".rb-nav-bar").innerHTML = _groups
       .map((_, i) => `<i style="--n:${i}"></i>`)
       .join("");
+  }
+
+  // Dải chip trên máy tính: kéo chuột để cuộn ngang (con trỏ bàn tay ở theme.css),
+  // lăn chuột cũng cuộn ngang — không thì wheel rơi xuống #main-card và đổi màn.
+  // Kéo quá 4px mới tính là kéo; khi đó nuốt cú click để khỏi chọn nhầm chip.
+  function _dragScroll(list) {
+    let x0 = 0;
+    let left0 = 0;
+    let down = false;
+    let moved = false;
+    list.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      down = true;
+      moved = false;
+      x0 = e.clientX;
+      left0 = list.scrollLeft;
+    });
+    list.addEventListener("pointermove", (e) => {
+      if (!down) return;
+      const dx = e.clientX - x0;
+      if (!moved && Math.abs(dx) < 4) return;
+      if (!moved) {
+        moved = true;
+        list.setPointerCapture(e.pointerId);
+        list.classList.add("is-drag");
+      }
+      list.scrollLeft = left0 - dx;
+    });
+    const end = () => {
+      down = false;
+      list.classList.remove("is-drag");
+    };
+    list.addEventListener("pointerup", end);
+    list.addEventListener("pointercancel", end);
+    list.addEventListener(
+      "click",
+      (e) => {
+        if (!moved) return;
+        moved = false;
+        e.stopPropagation();
+        e.preventDefault();
+      },
+      true,
+    );
+    list.addEventListener(
+      "wheel",
+      (e) => {
+        e.stopPropagation();
+        if (list.scrollWidth <= list.clientWidth) return;
+        e.preventDefault();
+        list.scrollLeft += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      },
+      { passive: false },
+    );
   }
 
   function _progress() {
@@ -590,14 +642,14 @@
     _slides();
   }
 
-  // Tên khách của link mời — trước nằm ở màn bìa, nay ở màn 1. Helper chung điền
+  // Tên khách của link mời nằm ở màn 1 (mẫu không có bìa). Helper chung điền
   // #cover-guest-name; link chung (không ?name=) thì khối này giấu hẳn.
   if (
     new URLSearchParams(location.search).has("name") &&
     !(typeof isPreviewMode === "function" && isPreviewMode())
   ) {
     // cxToggle nằm ở theme-boot.js (nạp SAU file này) → gỡ class trực tiếp.
-    document.getElementById("rb-guest")?.classList.remove("hidden");
+    document.getElementById("cover-guest-wrap")?.classList.remove("hidden");
   }
 
   // ============= ẢNH TRANG TRÍ =============
