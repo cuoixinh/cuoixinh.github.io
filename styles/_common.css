@@ -511,13 +511,10 @@ svg.cx-ic {
 
 /* ── Lớp ĐỀ XUẤT ở trang XEM TRƯỚC mẫu thiệp ─────────────────────────────
    Do initPreviewSuggest() trong core/utils.js dựng khi mở /public/themes/* với
-   ?preview=true. Cuộn tới mục mà mẫu khai ở CX_THEME.suggest thì các thẻ NỔI
-   LÊN TRÊN thiệp — kiểu màn đề xuất cuối video của YouTube, không phải một
-   bảng đặc chiếm chỗ ở đáy màn.
-
-   Bản thân lớp phủ KHÔNG bắt chuột (chỉ có dải mờ cho chữ đọc được); chỉ thẻ,
-   nút Ẩn và hai nút hành động mới bắt — nhờ vậy khách vẫn cuộn tiếp, vẫn bấm
-   được thứ trong thiệp nằm ngoài các thẻ. Đóng thì trả về trong suốt chứ không
+   ?preview=true. Cuộn tới mục mà mẫu khai ở CX_THEME.suggest thì lớp phủ TRỌN
+   MÀN hiện lên trên thiệp — kiểu màn đề xuất cuối video của YouTube: hỏi khách
+   có thích mẫu đang xem không (kèm nút Dùng), dưới là mẫu tương tự. Mở thì bắt
+   chuột cả màn, nút Ẩn là lối về thiệp. Đóng thì trả về trong suốt chứ không
    display:none, để giữ chuyển động. */
 
 .cx-sug {
@@ -527,24 +524,20 @@ svg.cx-ic {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  /* Dải tối NHẠT dâng từ đáy: đủ để thẻ trắng và nhãn dưới nút tròn nổi khỏi
-     thiệp nền sáng (nhãn trắng còn có bóng chữ đỡ), phần trên vẫn trong để
-     không che mất thiệp. Không backdrop-filter — làm mờ vùng phía sau buộc
-     trình duyệt vẽ lại mỗi khung hình, giật trên máy yếu. */
-  background: linear-gradient(
-    to top,
-    rgb(var(--scrim-rgb) / 0.62) 0%,
-    rgb(var(--scrim-rgb) / 0.46) 28%,
-    rgb(var(--scrim-rgb) / 0.24) 55%,
-    transparent 80%
-  );
+  /* Phủ đen 20% + NHÒE cả thiệp phía sau — chữ thiệp không chồng lên chữ của
+     bảng, mà vẫn lờ mờ để khách biết mình còn ở trang mẫu. Nền phía sau sáng
+     hay tối tuỳ mẫu, nên KHÔNG có chữ nào nằm trần trên lớp phủ: mọi khối chữ
+     đều có nền kính trắng riêng (chữ đậm bên trong). Lúc mở lớp phủ chặn cuộn
+     nên thiệp đứng yên, nhòe không phải vẽ lại liên tục. */
+  background: rgb(var(--scrim-rgb) / 0.2);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  backdrop-filter: blur(14px) saturate(130%);
   opacity: 0;
   /* Đóng là ẨN HẲN chứ không chỉ trong suốt: còn visible thì các nút vô hình
      vẫn nằm trong thứ tự Tab. visibility đổi SAU khi mờ xong để giữ chuyển
      động; đóng (0.2s) nhanh hơn mở (0.3s). */
   visibility: hidden;
   pointer-events: none;
-  will-change: opacity;
   transition:
     opacity 0.2s ease-in,
     visibility 0s linear 0.2s;
@@ -553,50 +546,129 @@ svg.cx-ic {
 .cx-sug.is-open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
   transition:
     opacity 0.3s ease-out,
     visibility 0s;
 }
 
-/* Khối nội dung, dồn đáy màn. Dải tối nằm trên .cx-sug (cả màn), không phải
-   ở đây. */
+/* Khối nội dung cao trọn màn: nút Ẩn · câu hỏi (giãn ra, căn giữa dọc) ·
+   mẫu tương tự · lối phụ sát đáy. Màn quá thấp thì tự cuộn dọc. */
 
 .cx-sug-in {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
   /* Lề đáy CỐ ĐỊNH, không cộng env(safe-area-inset-bottom) — xem .cx-tabbar. */
-  padding: 12px 12px 16px;
+  padding: 12px 16px 16px;
 }
 
-/* Con của lớp phủ mới là thứ bắt chuột. .is-open để lúc đóng không có nút vô
-   hình nào nằm chắn trên thiệp. */
-
-.cx-sug.is-open .cx-sug-bar,
-.cx-sug.is-open .cx-sug-row,
-.cx-sug.is-open .cx-sug-dots,
-.cx-sug.is-open .cx-sug-acts {
-  pointer-events: auto;
+.cx-sug-in::-webkit-scrollbar {
+  display: none;
 }
-
-/* Hàng đầu: tiêu đề bên trái, nút Ẩn bên phải. */
 
 .cx-sug-bar {
   display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: -4px;
+}
+
+/* Tầng hỏi: thẻ kính (chữ trái · nút Dùng phải) + nút xem như khách dưới. */
+
+.cx-sug-ask {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+}
+
+.cx-sug-ask-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid rgb(var(--white-rgb));
+  box-shadow: 0 12px 32px -16px rgb(var(--text-heading-rgb) / 0.35);
+}
+
+/* Nền kính trắng cho các khối (thẻ hỏi, nút Ẩn, nút khách mời, thanh lối
+   phụ). Nhòe đã do .cx-sug lo cho cả màn — khai thêm backdrop-filter ở đây là
+   vô ích vì lớp phủ đã thành backdrop root, khối con chỉ "thấy" nền của nó. */
+
+.cx-sug-ask-card,
+.cx-sug-hide,
+.cx-sug-guest,
+.cx-sug-sec,
+.cx-sug-title,
+.cx-sug-err {
+  background: rgb(var(--white-rgb) / 0.72);
+}
+
+.cx-sug-ask-txt {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  color: rgb(var(--text-heading-rgb));
+}
+
+.cx-sug-ask-eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  color: rgb(var(--text-subtle-rgb));
+}
+
+.cx-sug-ask-name {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 28px;
+  overflow-wrap: anywhere;
+}
+
+.cx-sug-ask-q {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: rgb(var(--text-subtle-rgb));
+}
+
+/* Tầng mẫu tương tự. */
+
+.cx-sug-more {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* Tiêu đề dãy thẻ — chữ trắng nổi thẳng trên thiệp (không có nền đỡ) nên phải
    có bóng, thiệp nền sáng hay tối đều đọc được. */
 
+/* Nhãn viên thuốc kính trắng, ôm theo chữ, dồn trái thẳng mép dãy thẻ. */
+
 .cx-sug-title {
+  align-self: flex-start;
   min-width: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.2;
-  color: rgb(var(--white-rgb));
-  text-shadow: 0 1px 6px rgb(var(--scrim-rgb) / 0.75);
+  color: rgb(var(--text-heading-rgb));
 }
 
 /* Nút Ẩn — viên thuốc nhỏ, luôn nằm sát mép phải kể cả khi tiêu đề bị ẩn. */
@@ -609,14 +681,13 @@ svg.cx-ic {
   margin-left: auto;
   height: 32px;
   padding: 0 12px;
-  border: 1px solid rgb(var(--white-rgb) / 0.24);
+  border: 1px solid rgb(var(--white-rgb));
   cursor: pointer;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--white-rgb) / 0.12);
+  color: rgb(var(--text-subtle-rgb));
   position: relative;
   transition: background-color 0.18s ease;
 }
@@ -630,17 +701,36 @@ svg.cx-ic {
   inset: -6px;
 }
 
-.cx-sug-hide:hover {
-  background: rgb(var(--white-rgb) / 0.24);
+.cx-sug-hide:hover,
+.cx-sug-guest:hover {
+  background-color: rgb(var(--white-rgb));
 }
 
-/* Vòng focus TRẮNG cho mọi thứ bấm được trong lớp phủ: nền ở đây là dải tối,
-   vòng hồng mặc định chìm mất. */
+/* "Xem với tư cách khách mời" — pill viền mảnh dưới thẻ hỏi. */
+
+.cx-sug-guest {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid rgb(var(--white-rgb));
+  cursor: pointer;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgb(var(--text-heading-rgb));
+}
+
+/* Vòng focus màu đậm cho mọi thứ bấm được trong lớp phủ (nền kính sáng). */
 
 .cx-sug-hide:focus-visible,
+.cx-sug-guest:focus-visible,
 .cx-sug-tile:focus-visible,
-.cx-sug-dot:focus-visible {
-  outline: 2px solid rgb(var(--white-rgb));
+.cx-sug-dot:focus-visible,
+.cx-sug-retry:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-deep-rgb));
   outline-offset: 2px;
 }
 
@@ -714,7 +804,7 @@ svg.cx-ic {
   border: none;
   cursor: pointer;
   border-radius: 999px;
-  background: rgb(var(--white-rgb) / 0.45);
+  background: rgb(var(--text-heading-rgb) / 0.22);
   background-clip: content-box;
   transition:
     width 0.24s ease,
@@ -723,7 +813,7 @@ svg.cx-ic {
 
 .cx-sug-dot.is-on {
   width: 36px;
-  background-color: rgb(var(--white-rgb));
+  background-color: rgb(var(--action-primary-rgb));
 }
 
 /* Một thẻ = khổ NGANG 280px — vừa một thẻ + mép thẻ sau trên điện thoại 360px,
@@ -746,6 +836,8 @@ svg.cx-ic {
   scroll-snap-align: start;
   border-radius: 12px;
   background: rgb(var(--white-rgb));
+  /* Thẻ trắng nằm trên kính sáng — cần bóng mới tách khỏi nền. */
+  box-shadow: 0 8px 24px -12px rgb(var(--text-heading-rgb) / 0.35);
   opacity: 0;
   transform: translateY(14px) scale(0.96);
   transition:
@@ -768,6 +860,87 @@ svg.cx-ic {
 
 .cx-sug.is-open .cx-sug-card:nth-child(4) {
   transition-delay: 0.12s;
+}
+
+/* Skeleton của dãy thẻ (_skelCards ở core/utils.js) + ảnh thẻ thật đang tải.
+   Chỉ nhấp nháy độ mờ — rẻ hơn dải sáng chạy ngang. */
+
+@keyframes cx-sug-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.cx-sug-card.is-skel {
+  cursor: default;
+}
+
+.cx-sug-skel-img,
+.cx-sug-skel-line,
+.cx-sug-skel-btn,
+.cx-sug-card img.is-loading {
+  background: rgb(var(--surface-blossom-rgb));
+  animation: cx-sug-pulse 1.2s ease-in-out infinite;
+}
+
+.cx-sug-skel-img {
+  display: block;
+  flex: 0 0 auto;
+  height: 100%;
+  aspect-ratio: 391 / 722;
+  border-radius: 12px 0 0 12px;
+}
+
+.cx-sug-skel-line {
+  display: block;
+  height: 12px;
+  margin-top: 8px;
+  border-radius: 4px;
+}
+
+.cx-sug-skel-line.is-long {
+  width: 70%;
+  height: 16px;
+  margin-top: 0;
+}
+
+.cx-sug-skel-line.is-short {
+  width: 50%;
+}
+
+.cx-sug-skel-btn {
+  display: block;
+  height: 32px;
+  margin-top: auto;
+  border-radius: 999px;
+}
+
+/* Tải hỏng: dòng báo + nút Thử lại trong viên kính trắng. */
+
+.cx-sug-err {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 6px 6px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: rgb(var(--text-heading-rgb));
+}
+
+.cx-sug-retry {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid rgb(var(--text-heading-rgb) / 0.24);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb) / 0.72);
+  cursor: pointer;
+}
+
+.cx-sug-retry:hover {
+  background: rgb(var(--white-rgb));
 }
 
 /* Ảnh gốc là ảnh chụp MÀN HÌNH DỌC của thiệp nên giữ nguyên dáng dọc: cao
@@ -910,104 +1083,96 @@ svg.cx-ic {
    tròn (nhãn dưới cao thấp khác nhau thì hàng vẫn phẳng).
    Là <x-button variant="bare"> nên bàn phím có sẵn, chỉ click do JS nối. */
 
-.cx-sug-acts {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 16px;
-}
-
 .cx-sug-tile {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 8px;
   min-width: 0;
   cursor: pointer;
-  /* brand-accent trên nền hồng nhạt chỉ 2.3:1 — icon mang nghĩa cần ≥3:1. */
-  color: rgb(var(--action-primary-deep-rgb));
-}
-
-/* Vòng tròn đựng icon — nền đặc: nền trong suốt thì nút chìm vào dải tối
-   và tấm ảnh thiệp nằm dưới. */
-
-.cx-sug-tile .cx-sug-ico {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  background: rgb(var(--surface-brand-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb));
+  color: rgb(var(--text-heading-rgb));
   transition:
     transform 0.18s ease,
-    color 0.18s ease,
     background-color 0.18s ease;
 }
 
-.cx-sug-tile:hover .cx-sug-ico {
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--brand-accent-rgb));
-  border-color: rgb(var(--brand-accent-rgb));
+.cx-sug-tile:active {
+  transform: scale(0.97);
 }
 
-.cx-sug-tile:active .cx-sug-ico {
-  transform: scale(0.92);
-}
-
-/* Nút chính: pill hồng đặc, cao đúng bằng vòng tròn để cả hàng thẳng mép trên. */
+/* Nút chính — hồng đặc, đứng cạnh câu hỏi, bóng đổ cùng tông để nổi khỏi
+   thẻ kính. */
 
 .cx-sug-tile.is-primary {
-  flex-direction: row;
-  gap: 8px;
-  height: 44px;
-  padding: 0 22px;
-  border-radius: 999px;
+  flex: 0 0 auto;
   color: rgb(var(--white-rgb));
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
   background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 6px 16px rgb(var(--action-primary-rgb) / 0.35);
-  transition:
-    transform 0.18s ease,
-    background-color 0.18s ease;
+  box-shadow:
+    0 8px 20px -6px rgb(var(--action-primary-rgb) / 0.55),
+    inset 0 1px 0 rgb(var(--white-rgb) / 0.18);
 }
 
 .cx-sug-tile.is-primary:hover {
   background: rgb(var(--action-primary-hover-rgb));
 }
 
-.cx-sug-tile.is-primary:active {
-  transform: scale(0.96);
+/* Thanh lối phụ: kính mờ (nền trắng trong + viền mảnh, không backdrop-filter —
+   xem .cx-sug), hai nửa bằng nhau ngăn bởi một vạch dọc. */
+
+.cx-sug-sec {
+  flex: 0 0 auto;
+  display: flex;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  height: 44px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--white-rgb));
 }
 
-.cx-sug-tile.is-primary .cx-sug-ico {
-  width: auto;
-  height: auto;
-  border: 0;
-  background: none;
+.cx-sug-sec .cx-sug-tile {
+  flex: 1 1 0;
+  position: relative;
+  border-radius: 999px;
 }
 
-/* Nhãn cắt một dòng: nút hẹp mà chữ xuống dòng là cả hàng lệch cao nhau. */
+.cx-sug-sec .cx-sug-tile + .cx-sug-tile::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 1px;
+  background: rgb(var(--text-heading-rgb) / 0.16);
+}
+
+.cx-sug-sec .cx-sug-tile:hover {
+  background: rgb(var(--white-rgb));
+}
+
+.cx-sug-sec .cx-sug-ico {
+  opacity: 0.85;
+}
 
 .cx-sug-tile-lb {
-  max-width: 88px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  /* Dòng phải cao hơn cỡ chữ: overflow:hidden (để có dấu …) cắt theo hộp dòng,
-     line-height 1 là mất đuôi chữ g, y. */
+  /* Dòng cao hơn cỡ chữ: overflow:hidden cắt theo hộp dòng, line-height 1 là
+     mất đuôi chữ g, y. */
   line-height: 16px;
   letter-spacing: 0.2px;
-  /* Nhãn nằm trên dải TỐI dâng từ đáy lớp phủ → chữ trắng kèm bóng tối, cùng
-     công thức với .cx-sug-title. Chữ màu đậm ở đây là chìm hẳn vào nền. */
-  color: rgb(var(--white-rgb));
-  text-shadow: 0 1px 6px rgb(var(--scrim-rgb) / 0.8);
 }
 
 .cx-sug-tile.is-primary .cx-sug-tile-lb {
-  max-width: none;
-  font-size: 13px;
-  color: inherit;
-  text-shadow: none;
+  font-size: 14px;
+  letter-spacing: 0.3px;
 }
 
 .cx-sug-ico {
@@ -1022,16 +1187,21 @@ svg.cx-ic {
    đổi độ mờ không phải chuyển động dịch chỗ. */
 
 @media (prefers-reduced-motion: reduce) {
+  .cx-sug-skel-img,
+  .cx-sug-skel-line,
+  .cx-sug-skel-btn,
+  .cx-sug-card img.is-loading {
+    animation: none;
+  }
+
   .cx-sug-card,
   .cx-sug-dot,
-  .cx-sug-tile .cx-sug-ico,
-  .cx-sug-tile.is-primary {
+  .cx-sug-tile {
     transition: none;
   }
 
   .cx-sug-card,
-  .cx-sug-tile:active .cx-sug-ico,
-  .cx-sug-tile.is-primary:active {
+  .cx-sug-tile:active {
     transform: none;
   }
 }

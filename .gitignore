@@ -11,3 +11,6 @@ deploy-public.config.json
 changelogs/*.final.sql
 # Tài khoản/token test của npm run check:api — KHÔNG commit
 .env.check-api
+
+# Ảnh chụp thiệp tham khảo của npm run capture:ref — chỉ để xem, không commit
+.ref-shots/

@@ -165,6 +165,11 @@ function setupPersonalizedGreeting(
       el.dataset.cxInvite ||= el.textContent.trim();
       el.textContent = `${el.dataset.cxInvite} ${rel}`.trim();
     });
+    // Khối tên khách của nhiều mẫu ẩn sẵn, chỉ bật cho khách thật (CX_GUEST) —
+    // bật luôn ở đây để bản giả lập hiện đúng như link riêng.
+    const wrap = document.getElementById("cover-guest-wrap");
+    wrap?.classList.remove("hidden");
+    wrap?.classList.add("flex");
     return;
   }
 

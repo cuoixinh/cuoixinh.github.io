@@ -288,6 +288,10 @@ function decryptData(encryptedText) {
 
 // ============= PREVIEW MODE HELPERS =============
 
+// Khách giả lập của nút "Xem với tư cách khách mời" ở bản xem thử mẫu (menu
+// khung máy ở theme-boot.js + bảng gợi ý cuối thiệp).
+const CX_DEMO_GUEST = { name: "Nguyễn Văn An", rel: "Anh" };
+
 function isPreviewMode() {
   return window.location.search.includes("preview=true");
 }
@@ -1306,6 +1310,7 @@ function closeTimePicker() {
       if (d.type === "cx-sug-go" && typeof d.url === "string") {
         if (/^\/(?!\/)/.test(d.url)) window.location.href = d.url;
       } else if (d.type === "cx-sug-use") _chooseTheme(d.theme, d.display);
+      else if (d.type === "cx-sug-guest") window._cxShellGuestToggle?.();
     });
   }
 
@@ -1326,9 +1331,27 @@ function closeTimePicker() {
     _chooseTheme(theme, display);
   }
 
-  // Ba lối ra ở đáy bảng, dồn vào giữa: "Dùng mẫu này" là pill hồng đặc ở giữa
-  // — nút hồng đặc DUY NHẤT của cả lớp phủ — hai bên là nút TRÒN chỉ có icon
-  // kèm nhãn nhỏ bên dưới (xem .cx-sug-tile).
+  // "Xem với tư cách khách mời": nạp lại thiệp với ?guest=&rel= (wedding-helper
+  // giả lập link riêng, không ghi DB). Trong khung máy thì nhờ trang ngoài đổi
+  // (_cxShellGuestToggle ở theme-boot.js) để mục menu ba chấm cùng một trạng thái.
+  const GUEST_ON = params.has("guest");
+
+  function _guest() {
+    if (IN_SHELL) return parent.postMessage({ type: "cx-sug-guest" }, "*");
+    const q = new URLSearchParams(window.location.search);
+    if (GUEST_ON) {
+      q.delete("guest");
+      q.delete("rel");
+    } else {
+      q.set("guest", CX_DEMO_GUEST.name);
+      q.set("rel", CX_DEMO_GUEST.rel);
+    }
+    window.location.replace(window.location.pathname + "?" + q);
+  }
+
+  // "Dùng mẫu này" (primary) đứng cạnh câu hỏi "Bạn có thích mẫu này không?"
+  // ở đầu bảng — nút đặc DUY NHẤT của lớp phủ; hai lối phụ nằm chung thanh kính
+  // chia đôi ở đáy (.cx-sug-sec).
   // `go` = đường dẫn nội bộ; nút `primary` tạo nháp bằng mẫu ĐANG XEM.
   const SUG_ACTS = [
     { id: "sug-home", label: "Trang chủ", icon: "home", go: "/" },
@@ -1369,6 +1392,8 @@ function closeTimePicker() {
     eye:
       '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>' +
       '<circle cx="12" cy="12" r="3"/>',
+    // user-round: nút "Xem với tư cách khách mời".
+    guest: '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
     // eye-off: nút "Ẩn" ở góc trên phải, đúng glyph YouTube dùng cho việc tắt
     // màn đề xuất.
     hide:
@@ -1403,6 +1428,34 @@ function closeTimePicker() {
     });
   }
 
+  function _sugTile(it) {
+    return (
+      '<x-button variant="bare" class="cx-sug-tile' +
+      (it.primary ? " is-primary" : "") + '" id="' + it.id + '"' +
+      (it.aria ? ' aria-label="' + it.aria + '"' : "") + ">" +
+      '<span class="cx-sug-ico">' + _sugIcon(it.icon, it.primary ? 18 : 16) + "</span>" +
+      '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
+      "</x-button>"
+    );
+  }
+
+  // Khung chờ của dãy thẻ — cùng khổ thẻ thật nên lúc thay không xô bảng.
+  function _skelCards() {
+    let html = "";
+    for (let i = 0; i < 3; i++) {
+      html +=
+        '<div class="cx-sug-card is-skel" aria-hidden="true">' +
+        '<span class="cx-sug-skel-img"></span>' +
+        '<span class="cx-sug-info">' +
+        '<span class="cx-sug-skel-line is-long"></span>' +
+        '<span class="cx-sug-skel-line"></span>' +
+        '<span class="cx-sug-skel-line is-short"></span>' +
+        '<span class="cx-sug-skel-btn"></span>' +
+        "</span></div>";
+    }
+    return html;
+  }
+
   const panel = document.createElement("div");
   panel.id = "preview-suggest";
   panel.className = "cx-sug";
@@ -1411,44 +1464,55 @@ function closeTimePicker() {
   panel.setAttribute("data-no-scan", "");
   panel.setAttribute("role", "region");
   panel.setAttribute("aria-label", "Gợi ý mẫu thiệp khác");
-  // .cx-sug-in đỡ dải nền tối ôm SÁT khối nội dung (cao bao nhiêu cũng vậy),
-  // nên tiêu đề luôn nằm trên nền đủ tối dù màn cao hay thấp.
+  // Phủ TRỌN màn, ba tầng: hỏi về mẫu đang xem (kèm nút Dùng) · dãy mẫu khác ·
+  // lối phụ ở đáy. .cx-sug-in tự cuộn dọc khi màn quá thấp.
   panel.innerHTML =
     '<div class="cx-sug-in">' +
+    '<div class="cx-sug-ask">' +
+    // Nút Ẩn neo ngay trên góc phải thẻ hỏi — cùng bề ngang thẻ.
     '<div class="cx-sug-bar">' +
-    // Tiêu đề chỉ hiện khi đã có thẻ — tải hỏng mà vẫn còn dòng chữ trống trơn
-    // thì trông như thiệp lỗi. Nút Ẩn thì luôn có, đẩy sang phải bằng margin
-    // nên tiêu đề vắng mặt cũng không kéo nó về giữa.
-    '<span class="cx-sug-title" id="sug-title" style="display:none">' +
-    "Các mẫu bạn có thể sẽ thích</span>" +
     '<x-button variant="bare" id="sug-close" class="cx-sug-hide"' +
     ' aria-label="Ẩn gợi ý mẫu thiệp">' +
     _sugIcon("hide", 14) + "Ẩn</x-button>" +
     "</div>" +
-    '<div class="cx-sug-row" id="sug-row"></div>' +
+    '<div class="cx-sug-ask-card">' +
+    '<div class="cx-sug-ask-txt">' +
+    '<p class="cx-sug-ask-eyebrow">Bạn đang xem mẫu</p>' +
+    '<p class="cx-sug-ask-name" id="sug-cur-name">' + _esc(themeDisplay) + "</p>" +
+    '<p class="cx-sug-ask-q">Bạn có thích mẫu này không?</p>' +
+    "</div>" +
+    SUG_ACTS.filter(function (it) { return it.primary; }).map(_sugTile).join("") +
+    "</div>" +
+    '<x-button variant="bare" id="sug-guest" class="cx-sug-guest">' +
+    _sugIcon("guest", 14) +
+    (GUEST_ON ? "Xem bản mẫu" : "Xem với tư cách khách mời") +
+    "</x-button>" +
+    "</div>" +
+    '<div class="cx-sug-more">' +
+    // Dãy thẻ dựng sẵn skeleton: danh sách chỉ được gọi lúc bảng bung (xem
+    // _loadThemes), chờ mạng thì khách thấy khung đang tải chứ không thấy trống.
+    '<p class="cx-sug-title" id="sug-title">Hoặc xem thêm mẫu khác</p>' +
+    '<div class="cx-sug-row" id="sug-row">' + _skelCards() + "</div>" +
     '<div class="cx-sug-dots" id="sug-dots"></div>' +
-    '<div class="cx-sug-acts">' +
-    SUG_ACTS.map(function (it) {
-      return (
-        '<x-button variant="bare" class="cx-sug-tile' +
-        (it.primary ? " is-primary" : "") + '" id="' + it.id + '"' +
-        (it.aria ? ' aria-label="' + it.aria + '"' : "") + ">" +
-        '<span class="cx-sug-ico">' + _sugIcon(it.icon, 18) + "</span>" +
-        '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
-        "</x-button>"
-      );
-    }).join("") +
+    "</div>" +
+    '<div class="cx-sug-sec">' +
+    SUG_ACTS.filter(function (it) { return !it.primary; }).map(_sugTile).join("") +
     "</div>" +
     "</div>";
 
   // --- DANH SÁCH MẪU KHÁC ---
-  // Nạp một lần, đúng lần lớp phủ bung ra đầu tiên: khách chưa xem tới đó thì
-  // request này không tranh băng thông với ảnh thiệp.
+  // Nạp một lần, khi khách cuộn tới CÁCH mốc bung khoảng một màn (_watch): chưa
+  // xem tới đó thì không tranh băng thông với ảnh thiệp, mà tới lúc bung thì
+  // danh sách lẫn ảnh thẻ đầu đã về — đợi tới lúc bung mới gọi là thẻ hiện trễ
+  // (ảnh chụp mẫu ~150KB/tấm, danh sách còn phải gọi mạng khi cache hết hạn).
   let loaded = false;
 
   function _loadThemes() {
     if (loaded) return;
     loaded = true;
+    const row = document.getElementById("sug-row");
+    if (row && !row.querySelector(".is-skel")) row.innerHTML = _skelCards();
+    if (!window.templatesDAL) return _loadFailed();
 
     window.templatesDAL
       .list()
@@ -1469,6 +1533,8 @@ function closeTimePicker() {
         // khách vào xem một mẫu vintage thì thứ đáng gợi ý là các mẫu vintage
         // còn lại. Mẫu đang xem không nằm trong danh sách (nó ở ngay đây rồi).
         const cur = all.filter(function (t) { return t.theme === themeName; })[0];
+        const curName = document.getElementById("sug-cur-name");
+        if (cur && cur.name && curName) curName.textContent = cur.name;
         const rest = all.filter(function (t) { return t.theme !== themeName; });
         const same = cur && cur.cat
           ? rest.filter(function (t) { return t.cat === cur.cat; })
@@ -1478,17 +1544,25 @@ function closeTimePicker() {
         // hơn không gợi ý gì.
         _renderThemes(same.length ? same : rest);
       })
-      .catch(function () {
-        // Mất mạng thì chỉ mất dãy thẻ, hai nút hành động vẫn dùng được — cho
-        // phép thử lại ở lần bung sau.
-        loaded = false;
-      });
+      .catch(_loadFailed);
+  }
+
+  // Tải hỏng: thay skeleton bằng một dòng báo + nút Thử lại — bảng chỉ bung một
+  // lần (Ẩn rồi là thôi) nên không trông vào "lần bung sau" được.
+  function _loadFailed() {
+    loaded = false;
+    const row = document.getElementById("sug-row");
+    if (!row) return;
+    row.innerHTML =
+      '<div class="cx-sug-err">Không tải được danh sách mẫu.' +
+      '<x-button variant="bare" class="cx-sug-retry">Thử lại</x-button></div>';
+    row.querySelector(".cx-sug-retry")?.addEventListener("click", _loadThemes);
   }
 
   // Hai việc làm được với MỘT mẫu trong dãy, bày ngay trên thẻ: xem thử mẫu đó
   // (giống bấm cả thẻ) và tạo nháp bằng mẫu đó luôn — khách ưng ngay tấm ảnh
   // thì khỏi phải mở mẫu ra. Cả hai đều là nút PHỤ (không tô đặc): nút chính
-  // của màn là "Dùng mẫu này" ở đáy.
+  // của màn là "Dùng mẫu này" ở đầu bảng.
   const SUG_CARD_ACTS = [
     { act: "view", label: "Xem trước", icon: "eye" },
     { act: "use", label: "Dùng ngay", icon: "play", use: true },
@@ -1500,7 +1574,7 @@ function closeTimePicker() {
     const row = document.getElementById("sug-row");
     if (!row) return;
     row.innerHTML = list
-      .map(function (t) {
+      .map(function (t, i) {
         const url = t.url || "/public/themes/" + t.theme + "/?preview=true";
         const name = t.name || t.theme;
         return (
@@ -1510,8 +1584,10 @@ function closeTimePicker() {
           ' data-url="' + _esc(url) + '"' +
           ' data-theme="' + _esc(t.theme) + '"' +
           ' data-name="' + _esc(name) + '">' +
+          // Hai thẻ đầu tải ngay (lớp phủ còn ẩn lúc nạp trước), còn lại chờ
+          // khách vuốt tới.
           '<img src="/assets/images/templates/' + _esc(t.theme) + '.jpg"' +
-          ' alt="" loading="lazy" />' +
+          ' alt=""' + (i < 2 ? "" : ' loading="lazy"') + " />" +
           '<div class="cx-sug-info">' +
           '<p class="cx-sug-name">' + _esc(name) + "</p>" +
           // Mô tả bị cắt dòng → title giữ bản đủ cho người dùng chuột.
@@ -1537,6 +1613,16 @@ function closeTimePicker() {
 
     const title = document.getElementById("sug-title");
     if (title) title.style.display = list.length ? "" : "none";
+
+    // Ảnh chụp mẫu khá nặng và thẻ ngoài khung là lazy — còn nhấp nháy nền
+    // (cờ .is-loading) cho tới khi ảnh về.
+    row.querySelectorAll(".cx-sug-card img").forEach(function (img) {
+      if (img.complete && img.naturalWidth) return;
+      img.classList.add("is-loading");
+      const done = function () { img.classList.remove("is-loading"); };
+      img.addEventListener("load", done, { once: true });
+      img.addEventListener("error", done, { once: true });
+    });
 
     const cards = Array.from(row.querySelectorAll(".cx-sug-card"));
     cards.forEach(function (card) {
@@ -1694,11 +1780,20 @@ function closeTimePicker() {
 
   let watched = null;
   let watcher = null;
+  let prefetcher = null;
 
   function _watch(el) {
     if (!el || el === watched || !("IntersectionObserver" in window)) return;
     if (watcher) watcher.disconnect();
+    if (prefetcher) prefetcher.disconnect();
     watched = el;
+    // Nạp trước khi mốc còn cách đáy màn một màn hình.
+    prefetcher = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (en) { return en.isIntersecting; })) return;
+      prefetcher.disconnect();
+      _loadThemes();
+    }, { rootMargin: "0px 0px 100% 0px" });
+    prefetcher.observe(el);
     watcher = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
@@ -1728,6 +1823,8 @@ function closeTimePicker() {
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && panel.classList.contains("is-open")) _dismiss();
     });
+
+    document.getElementById("sug-guest").addEventListener("click", _guest);
 
     SUG_ACTS.forEach(function (it) {
       const el = document.getElementById(it.id);

@@ -141,22 +141,20 @@
             </div>
           </div>
 
-          <!-- Câu slogan (story_quote) — chữ viết tay màu blush, đúng lối chữ
-               tay trên trang album ở ảnh mẫu. -->
+          <!-- Tên khách mời: chỉ hiện với link riêng của khách (hoặc ?guest= ở
+               bản xem thử), index.js bỏ .hidden. Đứng CUỐI mục: thêm thẻ ở giữa là
+               lệch :nth-child mà text_overrides đã lưu. -->
           <div
-            id="story-quote"
-            class="lp-hand text-[28px] leading-tight px-6 max-w-[320px] mx-auto"
+            id="cover-guest-wrap"
+            class="hidden lp-glass flex-col items-center gap-1 px-6 py-3"
           >
-            Love Story
+            <div data-cx-invite class="cx-t lp-caps text-[11px]">
+              Trân trọng kính mời
+            </div>
+            <div class="cx-h text-[22px] leading-tight" id="cover-guest-name">
+              ----------
+            </div>
           </div>
-
-          <!-- Lối tắt xuống phần xác nhận tham dự — index.js chỉ hiện khi mục
-               Tiệc cưới + RSVP đều bật. Đứng CUỐI mục: thêm thẻ ở giữa là lệch
-               :nth-child mà text_overrides đã lưu. -->
-          <a id="lp-rsvp-cue" href="#rsvp-section" class="lp-cue hidden">
-            <i data-lucide="calendar-heart" class="cx-ic"></i>
-            Xác nhận tham dự
-          </a>
         </section>
 
         <!-- ═══ MỤC: Gia đình (enable_family) ═══════════════════════════════
@@ -401,6 +399,15 @@
           style="display: none"
         >
           <h2 class="lp-title">Chuyện Tình Yêu</h2>
+          <!-- Câu slogan (story_quote) — chữ viết tay màu blush mở đầu chuyện
+               tình. Đứng SAU tiêu đề: tiêu đề không có id nên selector của nó
+               là :nth-child(1), chèn trước là lệch text_overrides đã lưu. -->
+          <div
+            id="story-quote"
+            class="lp-hand text-[24px] leading-snug max-w-[340px] mx-auto"
+          >
+            Love Story
+          </div>
           <div id="love-story-list" class="lp-thread flex flex-col gap-5"></div>
         </section>
 

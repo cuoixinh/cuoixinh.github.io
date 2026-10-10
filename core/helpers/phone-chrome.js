@@ -45,6 +45,10 @@
       '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>' +
       '<circle cx="5" cy="12" r="1"/>',
     navigation: '<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
+    play:
+      '<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458' +
+      'l-12 7A2 2 0 0 1 5 19z"/>',
+    "user-round": '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
     refresh:
       '<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>' +
       '<path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>',

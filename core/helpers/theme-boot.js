@@ -240,7 +240,7 @@ function _cxPreviewShell() {
 }
 
 // Khai báo chrome của khung máy: quay lại (về kho mẫu nếu mở thẳng bằng link)
-// và một mục menu duy nhất — chọn luôn mẫu đang xem.
+// và menu: xem như khách mời (bật/tắt) · chọn luôn mẫu đang xem.
 //
 // `source=live` = thiệp CỦA KHÁCH nạp từ trang Thiết lập (các khung xem thử), không
 // phải mẫu đang chào bán → menu rỗng, mời chọn mẫu ở đó là lạc chỗ. `live` =
@@ -261,8 +261,14 @@ function _cxShellOpts(slug, live) {
       ? []
       : [
           {
+            label: () =>
+              _cxShellGuestOn() ? "Xem bản mẫu" : "Xem với tư cách khách mời",
+            icon: "user-round",
+            onClick: _cxShellGuestToggle,
+          },
+          {
             label: "Chọn mẫu này",
-            icon: "navigation",
+            icon: "play",
             // Cùng đường tạo nháp với nút "Dùng mẫu" ở bảng đề xuất: hỏi trước nếu
             // khách còn thiệp làm dở (core/helpers/draft-start.js).
             onClick: () => {
@@ -276,6 +282,40 @@ function _cxShellOpts(slug, live) {
           },
         ],
   };
+}
+
+// "Xem với tư cách khách mời": nạp lại thiệp trong khung với ?guest=&rel= —
+// wedding-helper giả lập link riêng của khách (chỉ đổ chữ, không ghi DB).
+// Tên khách mẫu CX_DEMO_GUEST khai ở core/utils.js (nạp trước).
+
+// Đọc URL đang chạy TRONG iframe (cùng origin), không đọc f.src — đổi chế độ
+// bằng location.replace không cập nhật thuộc tính src.
+function _cxShellViewUrl() {
+  const f = document.querySelector(".cx-pshell-view");
+  try {
+    return f && new URL(f.contentWindow.location.href);
+  } catch {
+    return f && new URL(f.src);
+  }
+}
+
+function _cxShellGuestOn() {
+  return !!_cxShellViewUrl()?.searchParams.has("guest");
+}
+
+function _cxShellGuestToggle() {
+  const f = document.querySelector(".cx-pshell-view");
+  const url = _cxShellViewUrl();
+  if (!f || !url) return;
+  if (url.searchParams.has("guest")) {
+    url.searchParams.delete("guest");
+    url.searchParams.delete("rel");
+  } else {
+    url.searchParams.set("guest", CX_DEMO_GUEST.name);
+    url.searchParams.set("rel", CX_DEMO_GUEST.rel);
+  }
+  // replace: đổi chế độ không thêm mốc lịch sử, Back vẫn về kho mẫu.
+  f.contentWindow.location.replace(url.href);
 }
 
 // Tên thật của mẫu nằm ở bảng `templates` (tên thư mục chỉ là slug). Hỏng thì
