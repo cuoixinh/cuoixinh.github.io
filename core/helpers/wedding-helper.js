@@ -1,23 +1,33 @@
-// ============================================================
-// WEDDING-HELPER.JS - Wedding data loading and personalization
-// ============================================================
-
+// Nạp dữ liệu thiệp rồi dựng, cộng phần cá nhân hoá theo khách mời của link.
+// MỘT đường dựng cho cả thiệp thật (?slug=) lẫn bản xem (?preview=true, dữ liệu từ
+// cxPreviewWedding ở public/themes/preview-data.js) — thêm bước dựng thì thêm ở đây.
 async function loadWeddingData(weddingSlug, renderCallback) {
-  if (!weddingSlug) {
-    if (!isPreviewMode()) {
-      window.location.href = "/";
-    }
+  if (!weddingSlug && !isPreviewMode()) {
+    window.location.href = "/";
     return;
   }
 
   try {
-    const wedding = await weddingBL.getWeddingBySlug(weddingSlug);
-
-    if (!weddingBL.isActive(wedding)) {
-      if (!isPreviewMode()) {
-        window.location.href = "/";
+    let wedding;
+    if (weddingSlug) {
+      wedding = await weddingBL.getWeddingBySlug(weddingSlug);
+      if (!weddingBL.isActive(wedding)) {
+        if (!isPreviewMode()) {
+          window.location.href = "/";
+        }
+        return;
       }
-      return;
+    } else {
+      if (typeof cxPreviewWedding !== "function") return;
+      wedding = await cxPreviewWedding();
+    }
+
+    // Dữ liệu xem trước có ngay tức thì — chờ parse xong để <x-button> kịp thay
+    // mình bằng <button> thật, không thì render gắn vào thẻ cũ sắp bị gỡ.
+    if (document.readyState === "loading") {
+      await new Promise((r) =>
+        document.addEventListener("DOMContentLoaded", r, { once: true }),
+      );
     }
 
     // Áp dụng tuỳ chỉnh font/màu chữ (nếu có) trước khi render
@@ -46,7 +56,8 @@ async function loadWeddingData(weddingSlug, renderCallback) {
       applyElements(wedding.theme_setting);
     }
     // Lời chúc khách mời — sau cùng vì nó tự chèn một mục vào cuối thân thiệp,
-    // và thanh ghim đáy phải nằm trên mọi thứ vừa dựng ở trên.
+    // và thanh ghim đáy phải nằm trên mọi thứ vừa dựng ở trên. Bản xem dựng bằng
+    // dữ liệu mẫu, initWishes tự chặn nút Gửi.
     if (typeof initWishes === "function") {
       initWishes(wedding);
     }

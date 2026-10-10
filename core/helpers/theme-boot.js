@@ -126,6 +126,31 @@ window.cxToggle = cxToggle;
 // Mục được gán hiệu ứng hiện dần khi cuộn tới, nếu theme không khai CX_THEME.reveal.
 const CX_REVEAL_DEFAULT = ["#main-card [id^='section-']", "#love-story"];
 
+// Từng ảnh bay vào riêng khi cuộn tới — chỉ mẫu khai CX_THEME.revealItems (mảng selector).
+// Ảnh album vẽ SAU khi có dữ liệu nên quét sau renderWedding chứ không lúc parse.
+function _cxRevealItems(selectors) {
+  const els = Array.from(document.querySelectorAll(selectors.join(","))).filter(
+    (el) => !el.classList.contains("cx-rv-item"),
+  );
+  if (!els.length || !("IntersectionObserver" in window)) return;
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const r = entry.boundingClientRect;
+        // Cao 0 = chưa mở bìa; nằm dưới màn mà chưa chạm thì chờ.
+        if (!r.height || (!entry.isIntersecting && r.top > 0)) return;
+        entry.target.classList.add("visible");
+        io.unobserve(entry.target);
+      });
+    },
+    { threshold: 0, rootMargin: "0px 0px -8% 0px" },
+  );
+  els.forEach((el) => {
+    el.classList.add("cx-rv-item");
+    io.observe(el);
+  });
+}
+
 // --- KHUNG MÁY KHI XEM TRÊN MÁY TÍNH ---
 // Trên màn rộng thì thiệp KHÔNG nở theo bề ngang màn: trang tự biến thành khung
 // điện thoại, thiệp thật chạy trong iframe cùng URL + shell=0 ở đúng khổ 390px.
@@ -379,10 +404,12 @@ function _cxMountMusic(decl) {
   _cxMountMusic(T.music);
 
   // --- NẠP DỮ LIỆU ---
+  // Thiệp thật lẫn bản xem (?preview=true) đều qua đây (xem wedding-helper.js).
   // Trong khung máy thì gửi tên đôi uyên ương ra cho chrome của trang cha
   // (_cxShellNameLive) — chỉ trang cha đó nghe, các iframe khác bỏ qua.
   loadWeddingData(getSlugFromUrl(), (w) => {
     window.renderWedding(w);
+    if (T.revealItems?.length) _cxRevealItems(T.revealItems);
     // Ảnh trên nút nhạc (CX_THEME.music.art) cần dữ liệu thiệp → áp sau render.
     if (T.music?.art)
       window.cxMusicApplyArt?.(document.getElementById("music-toggle"));
@@ -424,26 +451,34 @@ function _cxMountMusic(decl) {
   // cũ đã bị gỡ (nút mở thiệp mang .reveal mà không ai bật .visible → tàng hình).
   const _afterParse = () => {
     // --- HIỆU ỨNG CUỘN ---
+    // Bật khi mép trên đã vào màn 10% CHIỀU CAO MÀN — tính theo % mục thì mục cao vài
+    // màn phải cuộn sâu mới hiện; lề dương thì mục bay xong khi còn ngoài màn, không ai thấy. Một mục hiện thì mọi mục ĐỨNG TRƯỚC cũng hiện:
+    // vuốt mạnh có mục lướt qua mà observer không kịp bắt, để vậy là trống mãi.
+    const revealEls = Array.from(
+      document.querySelectorAll((T.reveal || CX_REVEAL_DEFAULT).join(",")),
+    );
     const revealObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            revealObserver.unobserve(entry.target);
+          const r = entry.boundingClientRect;
+          // Cao 0 = đang trong #main-card display:none (chưa mở bìa) → chờ lượt sau.
+          if (!r.height || (!entry.isIntersecting && r.top > 0)) return;
+          const upTo = revealEls.indexOf(entry.target);
+          for (let i = 0; i <= upTo; i++) {
+            revealEls[i].classList.add("visible");
+            revealObserver.unobserve(revealEls[i]);
           }
         });
       },
-      { threshold: 0.15 },
+      { threshold: 0, rootMargin: "0px 0px -10% 0px" },
     );
-    document
-      .querySelectorAll((T.reveal || CX_REVEAL_DEFAULT).join(","))
-      .forEach((el, i) => {
-        const mod = i % 3;
-        if (mod === 0) el.classList.add("reveal", "from-bottom");
-        else if (mod === 1) el.classList.add("reveal", "from-left");
-        else el.classList.add("reveal", "from-right");
-        revealObserver.observe(el);
-      });
+    revealEls.forEach((el, i) => {
+      const mod = i % 3;
+      if (mod === 0) el.classList.add("reveal", "from-bottom");
+      else if (mod === 1) el.classList.add("reveal", "from-left");
+      else el.classList.add("reveal", "from-right");
+      revealObserver.observe(el);
+    });
 
     // --- NHỊP THỞ CHO NÚT XÁC NHẬN THAM DỰ ---
     document.getElementById("btn-attend")?.classList.add("btn-idle");

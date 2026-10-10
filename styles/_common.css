@@ -318,26 +318,41 @@ svg.cx-ic {
   @apply opacity-0;
 
   transition:
-    opacity 0.6s ease,
-    transform 0.6s ease;
+    opacity 1.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal.from-bottom {
-  transform: translateY(40px);
+  transform: translateY(24px);
 }
 
 .reveal.from-left {
-  transform: translateX(-40px);
+  transform: translateX(-24px);
 }
 
 .reveal.from-right {
-  transform: translateX(40px);
+  transform: translateX(24px);
 }
 
 .reveal.visible {
   @apply opacity-100;
 
   transform: none;
+}
+
+/* Từng ảnh album (_cxRevealItems ở theme-boot.js). Dùng `translate` riêng chứ không
+   `transform` — mẫu hay tự xoay/phóng ảnh bằng transform, đè lên là mất. */
+.cx-rv-item {
+  opacity: 0;
+  translate: 0 24px;
+  transition:
+    opacity 1.5s cubic-bezier(0.22, 1, 0.36, 1),
+    translate 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cx-rv-item.visible {
+  opacity: 1;
+  translate: none;
 }
 
 /* Toast Notification Animations */

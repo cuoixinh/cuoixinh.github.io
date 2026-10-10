@@ -425,7 +425,8 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `CX_GIFT_BOXES` hoặc `"none"`), `reveal`, `focus` (id mục, chỉ khai cái khác
   mặc định), `suggest` (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử —
   mặc định `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không
-  vẽ mục đó — id trùng `CX_STEPS`), `wishesMode` (dạng lời chúc khi
+  vẽ mục đó — id trùng `CX_STEPS`), `revealItems` (selector ảnh bay vào RIÊNG từng tấm khi cuộn
+  tới — không khai thì chỉ cả mục hiện dần), `wishesMode` (dạng lời chúc khi
   `theme_setting.wishes_mode` trống),
   `music` (`{variant, chrome}` của `CXMusicPlayer.build`, `theme-boot.js` dựng vào
   `#cx-music-mount`; `art` = ảnh trên nút khi khách chưa chọn, mọi mẫu đang để
@@ -458,7 +459,9 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
 - Bind dữ liệu qua **`setText(id, value)`** (`core/utils.js`) — `el.textContent =` sẽ không
   khoá được sửa text trực tiếp.
 - Luồng: `applyThemeSetting` → `renderWedding` → `applyTextOverrides` → `applyCustomBlocks`
-  → `applyElements` (theme chỉ cần cung cấp `renderWedding`).
+  → `applyElements` (theme chỉ cần cung cấp `renderWedding`). Chuỗi này nằm DUY NHẤT ở
+  `loadWeddingData`, bản xem (`?preview=true`) cũng đi qua đó — `preview-data.js` chỉ trả
+  dữ liệu (`cxPreviewWedding`), đừng cho nó tự dựng thiệp kẻo xem thử lệch thiệp thật.
 - Chữ trang trí (chữ ký, chữ lồng) nên dùng **font tự host** khai ở `styles/_fonts.css`.
   Font là nét nhận dạng của mẫu nên KHÔNG có control nào đổi font toàn thiệp — khách muốn
   khác thì bấm thẳng vào dòng chữ đó trên thiệp mà chỉnh riêng.

@@ -44,6 +44,8 @@
     wishes: { bubble: "#faf6f4", text: "#5f5052", accent: "#a8323a", btn: "#5a4547" },
 
     reveal: ["#main-card section"],
+    // Album dài: từng ảnh bay vào lúc cuộn tới, không hiện cả mục một lượt.
+    revealItems: ["#section-photos img"],
 
     // Mẫu không vẽ gia đình, lịch trình, chuyện tình.
     skipSteps: ["family", "timeline", "love_story"],

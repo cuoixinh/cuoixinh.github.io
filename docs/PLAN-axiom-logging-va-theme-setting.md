@@ -75,7 +75,7 @@ supabase secrets set AXIOM_TOKEN=xaat-xxxx AXIOM_DATASET=cuoixinh-backend
 - Trình soạn thiệp: `invitation-setup/index.html` + `invitation-setup/js/`.
 - Thanh điều hướng dưới cùng (`#bottom-nav-bar`) có các nút: Chỉnh sửa/Xem trước, **Cấu hình** (`switchTab('config')`), Khách mời, Lưu nháp, Xuất bản.
 - Thiệp public render qua `renderWedding(w)` trong `public/themes/<theme>/index.js`, với `w` là bản ghi wedding.
-- Chế độ xem trước: `public/themes/preview-data.js` đọc `sessionStorage.preview_data` rồi gọi `renderWedding`.
+- Chế độ xem trước: `public/themes/preview-data.js` (`cxPreviewWedding`) đọc `sessionStorage.preview_data`, dựng chung đường `loadWeddingData` với thiệp thật.
 - Dữ liệu load về form qua `fillForm(data)`; lưu qua `weddingBL.updateWedding(payload)` (PATCH `wedding-admin`, truyền thẳng field → chỉ cần cột tồn tại là lưu được).
 
 ### Database
