@@ -167,7 +167,7 @@
   }
 
   // ============= ALBUM =============
-  // #cs-gal-side: 2 ảnh xếp cột phải, chữ ký tên đè lên · #gallery-grid: phần còn lại tràn
+  // #cs-gal-side: 2 ảnh xếp cột phải, chữ ký tên ở cột lề trái · #gallery-grid: phần còn lại tràn
   // bề ngang. Thứ tự lightbox = thứ tự ảnh gốc.
 
   function renderGallery(images, focalPoints) {

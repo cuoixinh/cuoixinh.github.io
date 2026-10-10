@@ -217,12 +217,13 @@ body {
 
 .cs-hero {
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  gap: 8px;
   padding-right: 16px;
 }
 
 .cs-hero-poem {
-  width: 40%;
+  width: 38%;
   flex: none;
   display: flex;
   flex-direction: column;
@@ -230,7 +231,7 @@ body {
   justify-content: center;
   gap: 20px;
   min-width: 0;
-  padding: 0 20px 0 16px;
+  padding: 0 4px 0 16px;
   color: rgb(var(--cx-body-rgb));
 }
 
@@ -255,23 +256,38 @@ body {
   color: rgb(var(--cx-body-rgb));
 }
 
+/* align-self riêng: ảnh cao theo aspect-ratio, rãnh và cột thơ kéo theo chiều cao đó. */
 .cs-hero-photo {
   position: relative;
   flex: 1;
+  align-self: flex-start;
   aspect-ratio: 0.66;
 }
 
-/* Chữ LOVE STORY dọc, vắt ngang mép trái ảnh. */
+/* Rãnh riêng giữa thơ và ảnh: chữ LOVE STORY dọc ở đầu, sợi chỉ chạy nốt chiều cao
+   ảnh — cùng kiểu sợi chỉ nối tên ở Album, chữ không đè lên ảnh. */
+.cs-vrail {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.cs-vrail::after {
+  content: "";
+  flex: 1;
+  width: 1px;
+  background: rgb(var(--cx-accent-soft-rgb));
+}
+
 .cs-vtitle {
-  position: absolute;
-  left: -8px;
-  top: 48px;
   writing-mode: vertical-rl;
   font-family: "Cinzel", serif;
   font-weight: 700;
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
   text-transform: uppercase;
   color: rgb(var(--cx-accent-rgb));
 }
@@ -308,40 +324,52 @@ body {
 
 /* ── Album ────────────────────────────────────────────────────────────────── */
 
+/* Lề trái chỉ dành cho tên, cột ảnh bên phải — cùng nhịp "chữ hẹp · ảnh rộng" của Love
+   Story. Hai cột tách hẳn nên tên dài tự xuống dòng chứ không chạm ảnh. */
 .cs-sig-wrap {
-  position: relative;
-  padding: 48px 20px 0 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64%;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px 0 16px;
 }
 
-/* Tên cô dâu + chú rể viết tay, đè lên mép trái cột ảnh. */
+/* Tên cô dâu · sợi chỉ có "&" · tên chú rể, xếp dọc giữa cột. */
 .cs-sig {
-  position: absolute;
-  left: 16px;
-  top: 0;
-  z-index: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  text-align: center;
   font-family: "KattyDiona", cursive;
-  font-size: 48px;
-  line-height: 1.1;
+  font-size: 32px;
+  line-height: 1.05;
+  overflow-wrap: break-word;
   color: rgb(var(--cx-accent-rgb));
-  transform: rotate(-8deg);
-  transform-origin: left top;
-  pointer-events: none;
 }
 
 .cs-sig-plus {
-  margin-left: 64px;
-  font-size: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+  color: rgb(var(--cx-accent-rgb));
 }
 
-.cs-sig-2 {
-  margin-left: 24px;
+.cs-sig-plus::before,
+.cs-sig-plus::after {
+  content: "";
+  width: 1px;
+  height: 28px;
+  background: rgb(var(--cx-accent-soft-rgb));
 }
 
 .cs-gal-side {
-  width: 68%;
-  margin-left: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
