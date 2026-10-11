@@ -2,57 +2,57 @@
   "image_focal_points": {
     "gallery_images": {
       "gallery-01.webp": {
-        "x": 46,
-        "y": 25
+        "x": 58,
+        "y": 47
       },
       "gallery-02.webp": {
-        "x": 53,
-        "y": 13
+        "x": 51,
+        "y": 56
       },
       "gallery-03.webp": {
-        "x": 49,
+        "x": 39,
         "y": 24
       },
       "gallery-04.webp": {
-        "x": 63,
-        "y": 14
+        "x": 45,
+        "y": 46
       },
       "gallery-05.webp": {
-        "x": 75,
-        "y": 25
+        "x": 55,
+        "y": 66
       },
       "gallery-06.webp": {
-        "x": 50,
-        "y": 24
+        "x": 51,
+        "y": 25
       },
       "gallery-07.webp": {
-        "x": 49,
-        "y": 24
+        "x": 52,
+        "y": 44
       },
       "gallery-08.webp": {
-        "x": 59,
+        "x": 54,
         "y": 18
       },
       "gallery-09.webp": {
         "x": 50,
-        "y": 61
+        "y": 50
       },
-      "gallery-10.jpg": {
-        "x": 48,
-        "y": 32
+      "gallery-10.webp": {
+        "x": 60,
+        "y": 34
       }
     },
     "cover_image_url": {
-      "x": 51,
-      "y": 18
+      "x": 48,
+      "y": 11
     },
     "groom_image_url": {
-      "x": 65,
-      "y": 14
+      "x": 53,
+      "y": 0
     },
     "bride_image_url": {
-      "x": 40,
-      "y": 23
+      "x": 48,
+      "y": 0
     }
   },
   "cover_image_url": "cover.webp",
@@ -70,147 +70,143 @@
     "gallery-07.webp",
     "gallery-08.webp",
     "gallery-09.webp",
-    "gallery-10.jpg"
+    "gallery-10.webp"
   ],
   "love_story": [
     {
-      "date": "05/2021",
-      "title": "Chung một chuyến xe",
-      "content": "Hai đứa ngồi cạnh nhau trên chuyến xe khách Hà Nội – Bắc Ninh, bắt chuyện chỉ vì cùng đọc một cuốn sách.",
+      "date": "2019",
+      "title": "Người cùng làng bên",
+      "content": "Hai nhà cách nhau một con đê, vậy mà mãi tới lễ hội làng năm ấy hai đứa mới nói chuyện lần đầu.",
       "image_url": "love-story-01.webp",
       "focal_point": {
-        "x": 44,
-        "y": 26
+        "x": 55,
+        "y": 49
       }
     },
     {
-      "date": "11/2021",
-      "title": "Lời tỏ tình muộn",
-      "content": "Sau sáu tháng nhắn tin mỗi tối, anh mới dám nói ra điều lẽ ra nên nói từ chuyến xe hôm ấy.",
+      "date": "2021",
+      "title": "Những lá thư tay",
+      "content": "Anh đi làm xa, mỗi tháng một lá thư gửi về — em giữ đủ cả ba mươi hai lá.",
       "image_url": "love-story-02.webp",
       "focal_point": {
-        "x": 44,
-        "y": 48
+        "x": 55,
+        "y": 50
       }
     },
     {
-      "date": "04/2024",
-      "title": "Về thưa chuyện hai bên",
-      "content": "Lần đầu anh xách giỏ trái cây về Đại Bái, run hơn cả ngày bảo vệ luận văn.",
+      "date": "2025",
+      "title": "Lễ chạm ngõ",
+      "content": "Hai gia đình gặp nhau bên ấm trà, mọi chuyện thành lời chỉ trong một buổi chiều.",
       "image_url": "love-story-03.webp",
       "focal_point": {
-        "x": 44,
+        "x": 56,
         "y": 23
-      }
-    },
-    {
-      "date": "02/2026",
-      "title": "Lời cầu hôn",
-      "content": "Vẫn trên chuyến xe quen thuộc ấy, anh đưa ra chiếc nhẫn và hỏi em câu quan trọng nhất.",
-      "image_url": "love-story-04.webp",
-      "focal_point": {
-        "x": 49,
-        "y": 30
       }
     }
   ],
   "content": {
-    "groom_name": "Gia Bảo",
-    "bride_name": "Ngọc Hân",
-    "groom_father": "Lê Gia Khánh",
-    "groom_mother": "Phạm Thị Nhung",
-    "groom_address": "Số 24, Ngõ 82 Phố Chùa Láng, Phường Láng Thượng, Hà Nội",
-    "bride_father": "Nguyễn Văn Chiến",
-    "bride_mother": "Ngô Thị Bích",
-    "bride_address": "Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
+    "groom_name": "Đức Anh",
+    "bride_name": "Phương Thảo",
+    "groom_father": "Trần Văn Quyết",
+    "groom_mother": "Bùi Thị Hoa",
+    "groom_address": "Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
+    "bride_father": "Đinh Công Sáu",
+    "bride_mother": "Lương Thị Thoa",
+    "bride_address": "Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
     "ceremony_name": "Lễ Thành Hôn",
-    "ceremony_date": "2026-11-08",
-    "ceremony_time": "11:00",
-    "ceremony_lunar": "Tức ngày 30 tháng 9 năm Bính Ngọ",
-    "ceremony_location": "Nhà hàng Tiệc cưới Sen Hồng, 145 Trần Duy Hưng, Hà Nội",
+    "ceremony_date": "2026-12-06",
+    "ceremony_time": "10:00",
+    "ceremony_lunar": "Tức ngày 28 tháng 10 năm Bính Ngọ",
+    "ceremony_location": "Tư gia nhà trai — Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=20.5089,106.4712&output=embed&hl=vi",
     "vu_quy_enabled": true,
-    "vu_quy_time": "08:00",
-    "vu_quy_location": "Tư gia nhà gái — Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
-    "groom_party_date": "2026-11-07",
-    "groom_party_time": "17:00",
-    "groom_party_lunar": "Tức ngày 29 tháng 9 năm Bính Ngọ",
+    "vu_quy_time": "07:30",
+    "vu_quy_location": "Tư gia nhà gái — Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=20.1176,106.1893&output=embed&hl=vi",
+    "groom_party_date": "2026-12-05",
+    "groom_party_time": "16:30",
+    "groom_party_lunar": "Tức ngày 27 tháng 10 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Nhà hàng Tiệc cưới Sen Hồng, 145 Trần Duy Hưng, Hà Nội",
-    "bride_party_date": "2026-11-07",
-    "bride_party_time": "17:30",
-    "bride_party_lunar": "Tức ngày 29 tháng 9 năm Bính Ngọ",
+    "groom_party_location": "Tư gia nhà trai — Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=20.5089,106.4712&output=embed&hl=vi",
+    "bride_party_date": "2026-12-05",
+    "bride_party_time": "17:00",
+    "bride_party_lunar": "Tức ngày 27 tháng 10 năm Bính Ngọ",
     "bride_party_show_location": true,
-    "bride_party_location": "Tư gia nhà gái — Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
-    "groom_bank_name": "Vietcombank",
-    "groom_bank_number": "1012456789011",
-    "groom_bank_owner": "LE GIA BAO",
-    "bride_bank_name": "BIDV",
-    "bride_bank_number": "21098765432100",
-    "bride_bank_owner": "NGUYEN NGOC HAN",
-    "story_quote": "Chúng mình không hứa điều gì to tát, chỉ hứa mỗi sáng thức dậy đều chọn nhau thêm một lần nữa.",
+    "bride_party_location": "Tư gia nhà gái — Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.1176,106.1893&output=embed&hl=vi",
+    "groom_bank_name": "Agribank",
+    "groom_bank_number": "3600205012345",
+    "groom_bank_owner": "TRAN DUC ANH",
+    "bride_bank_name": "VietinBank",
+    "bride_bank_number": "109002345678",
+    "bride_bank_owner": "DINH PHUONG THAO",
+    "story_quote": "Trăm năm tính cuộc vuông tròn, một lời hẹn ước sắt son trọn đời.",
     "rsvp_enabled": true,
-    "rsvp_message": "Bạn nhớ bấm xác nhận giúp chúng mình nhé, để hôm ấy chắc chắn có một chỗ ngồi mang tên bạn.",
-    "footer_text": "Cảm ơn bạn đã đọc tới dòng cuối cùng của tấm thiệp này. Hẹn gặp bạn trong ngày vui của chúng mình!",
+    "rsvp_message": "Kính mong quý vị dành chút thời gian xác nhận, để gia đình chúng tôi được đón tiếp chu đáo.",
+    "footer_text": "Sự hiện diện của quý vị là niềm vinh hạnh cho gia đình chúng tôi. Trân trọng cảm ơn.",
+    "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
     "enable_photos": true,
     "enable_timeline": true,
     "enable_love_story": true,
-    "enable_music": true,
     "enable_gift": true,
     "enable_footer": true,
+    "demo_fill_love_story": false,
     "timeline": [
       {
-        "time": "17:30",
+        "time": "16:30",
         "title": "Đón khách tại tư gia nhà gái",
         "type": "bride-party"
       },
       {
-        "time": "18:00",
-        "title": "Khai tiệc mừng ngày vui nhà gái",
+        "time": "17:00",
+        "title": "Tiệc mừng nhà gái",
         "type": "bride-party"
       },
       {
-        "time": "20:00",
-        "title": "Chụp ảnh lưu niệm cùng họ hàng",
+        "time": "19:00",
+        "title": "Tiễn khách",
         "type": "bride-party"
       },
       {
-        "time": "08:00",
+        "time": "07:30",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "09:30",
-        "title": "Đoàn nhà trai đón dâu về Hà Nội",
+        "time": "08:30",
+        "title": "Đoàn nhà trai xin dâu",
         "type": "ceremony"
       },
       {
-        "time": "11:00",
-        "title": "Lễ Thành Hôn tại nhà hàng Sen Hồng",
+        "time": "10:00",
+        "title": "Lễ Thành Hôn tại tư gia nhà trai",
         "type": "ceremony"
+      },
+      {
+        "time": "10:30",
+        "title": "Dâng hương gia tiên",
+        "type": "ceremony"
+      },
+      {
+        "time": "16:30",
+        "title": "Đón khách tại tư gia nhà trai",
+        "type": "party"
       },
       {
         "time": "17:00",
-        "title": "Đón khách và nhận lời chúc",
+        "title": "Khai tiệc mừng ngày vui",
         "type": "party"
       },
       {
-        "time": "17:30",
-        "title": "Khai tiệc mừng hạnh phúc",
-        "type": "party"
-      },
-      {
-        "time": "20:00",
+        "time": "19:30",
         "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }
-    ],
-    "ceremony_map_embed_url": "https://maps.google.com/maps?q=21.0102,105.7989&output=embed&hl=vi",
-    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=21.0553,106.1152&output=embed&hl=vi",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=21.0102,105.7989&output=embed&hl=vi",
-    "bride_party_map_embed_url": "https://maps.google.com/maps?q=21.0553,106.1152&output=embed&hl=vi"
+    ]
   },
-  "updated_at": "2026-09-23T17:11:25.558Z"
+  "updated_at": "2026-10-10T09:34:24.550Z"
 }

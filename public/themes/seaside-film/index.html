@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Seaside Film</title>
+    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm; bản mẫu (không slug) thì có. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+  </head>
+
+  <!-- Seaside Film — thiệp dài nền trắng tông be: ảnh biển tràn viền mờ dần về trắng,
+       tiêu đề mảnh Mallong, dải phim Kodak + đếm ngược, lịch đặt trên ảnh. Ảnh trang
+       trí <img data-sf-g="N"> nhận ảnh thứ N của album (index.js). Ảnh màn đầu là
+       #cover-bg-img (high); ảnh trong #main-card không lazy vì nó còn display:none. -->
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <div id="cx-music-mount"></div>
+
+    <!-- ═══ MÀN BÌA: ảnh tràn màn, dòng chữ hẹn ở đỉnh, tên đôi trên dải trắng mờ ở đáy ═══ -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center">
+      <div class="sf-cv cx-screen-h">
+        <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-cv-img" alt="" fetchpriority="high" />
+        <div class="sf-cv-veil"></div>
+
+        <div class="sf-cv-top">
+          <div class="sf-cv-tag">Hẹn gặp bạn ở đám cưới</div>
+          <div class="sf-cv-date" id="sf-cover-date">--.--.----</div>
+        </div>
+
+        <div class="sf-cv-bottom">
+          <div class="sf-cv-names">
+            <div class="sf-cv-name">
+              <span id="cover-groom-name" class="sf-cv-vn">----------</span>
+              <span id="sf-cover-groom-latin" class="sf-cv-latin"></span>
+            </div>
+            <span class="sf-cv-slash">/</span>
+            <div class="sf-cv-name">
+              <span id="cover-bride-name" class="sf-cv-vn">----------</span>
+              <span id="sf-cover-bride-latin" class="sf-cv-latin"></span>
+            </div>
+          </div>
+
+          <!-- Lời mời + tên khách: helper điền theo ?name=; link chung thì ẩn cả khối. -->
+          <div id="cover-guest-wrap" class="sf-cv-guest">
+            <span data-cx-invite class="sf-caps">Trân trọng kính mời</span>
+            <span id="cover-guest-name" class="sf-guest">----------</span>
+          </div>
+
+          <x-button variant="bare" onclick="openInvitation()" class="open-btn sf-open touch-manipulation [-webkit-tap-highlight-color:transparent]">
+            <i data-lucide="heart" class="cx-ic"></i>
+            <span>Mở thiệp</span>
+          </x-button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      style="display: none"
+    >
+      <div class="flex flex-col pb-20">
+        <!-- ═══ Mở đầu: tim · WEDDING · lời mời · hàng chữ ba cột · ảnh tràn viền ═══ -->
+        <section id="section-hero" class="sf-sec flex flex-col items-center gap-6 pt-20 text-center">
+          <i data-lucide="heart" class="sf-heart"></i>
+          <h1 class="sf-display">Wedding</h1>
+          <div class="sf-invite cx-t">Thư mời <span class="sf-em">hôn lễ</span> của chúng mình</div>
+          <div class="sf-row3 mt-10"><span>Fall in</span><span>Love</span><span>Wedding</span></div>
+          <div class="sf-bleed">
+            <img data-sf-g="0" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph sf-ph-hero" alt="" />
+          </div>
+          <!-- Lời trích lấy từ dữ liệu (story_quote); không có thì ẩn hẳn. -->
+          <div id="story-quote" class="sf-quote cx-t hidden px-8"></div>
+        </section>
+
+        <!-- ═══ Cô dâu chú rể: hai chân dung đứng cạnh nhau, vạch mảnh, tên ═══ -->
+        <section id="section-couple" class="sf-sec flex flex-col gap-14 px-6 pt-20 text-center">
+          <div class="sf-duo">
+            <div class="sf-duo-item">
+              <div class="sf-duo-frame">
+                <img id="groom-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph" alt="Chú rể" />
+              </div>
+              <span class="sf-tick"></span>
+              <span class="sf-caps">Chú rể</span>
+              <span class="sf-duo-name" id="groom-name-label">----------</span>
+            </div>
+            <div class="sf-duo-item is-low">
+              <div class="sf-duo-frame">
+                <img id="bride-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph" alt="Cô dâu" />
+              </div>
+              <span class="sf-tick"></span>
+              <span class="sf-caps">Cô dâu</span>
+              <span class="sf-duo-name" id="bride-name-label">----------</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4">
+            <div class="sf-poem cx-t">
+              Trái tim anh<br />
+              như cánh chim giữa đồng hoang<br />
+              đã tìm thấy bầu trời của mình<br />
+              trong đôi mắt em
+            </div>
+            <div class="sf-en">My heart, the bird of the wilderness,<br />has found its sky in your eyes.</div>
+          </div>
+        </section>
+
+        <!-- ═══ Dải phim Kodak: ba khung ảnh + chú thích, đếm ngược trên nền tối ═══ -->
+        <section id="section-film" class="sf-sec flex flex-col pt-20">
+          <div class="sf-row3 px-6 pb-4"><span>Welcome</span><span>To</span><span>Wedding</span></div>
+          <div class="sf-film">
+            <div class="sf-film-edge is-left"><span>KODAK 400</span><span>▸ 42</span><span>KODAK 400</span><span>▸ 43</span></div>
+            <div class="sf-film-frames">
+              <figure class="sf-frame">
+                <img data-sf-g="1" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph" alt="" />
+                <figcaption>I love three things in this world.</figcaption>
+              </figure>
+              <figure class="sf-frame">
+                <img data-sf-g="2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph" alt="" />
+                <figcaption>Sun, moon and you.</figcaption>
+              </figure>
+              <figure class="sf-frame">
+                <img data-sf-g="3" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph" alt="" />
+                <figcaption>Sun for morning, moon for night, and you forever.</figcaption>
+              </figure>
+            </div>
+            <div class="sf-film-edge is-right"><span>11</span><span>RASSVET 2010TX</span><span>12</span></div>
+          </div>
+          <!-- Đếm ngược tới giờ làm lễ; ngày lễ trống thì index.js giấu cả khối. -->
+          <div id="sf-countdown" class="sf-count">
+            <div><b id="cd-days">00</b><span>Ngày</span></div>
+            <div><b id="cd-hours">00</b><span>Giờ</span></div>
+            <div><b id="cd-minutes">00</b><span>Phút</span></div>
+            <div><b id="cd-seconds">00</b><span>Giây</span></div>
+          </div>
+        </section>
+
+        <!-- ═══ I love you: ảnh lớn + ảnh viền trắng như cắt dán đè lên, chữ dọc Forever ═══ -->
+        <section id="section-love" class="sf-sec flex flex-col gap-14 pt-20">
+          <div class="sf-poem cx-t px-8 text-center">
+            Có lẽ thế gian này có rất nhiều điều tốt đẹp<br />
+            nhưng điều tốt đẹp nhất trong lòng anh, chỉ có em
+          </div>
+          <div class="sf-collage">
+            <div class="sf-vword">Forever</div>
+            <img data-sf-g="4" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph sf-col-big" alt="" />
+            <img data-sf-g="5" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph sf-col-cut" alt="" />
+            <div class="sf-col-text">
+              <i data-lucide="heart" class="sf-heart"></i>
+              <div class="sf-display sf-display-sm">I love you</div>
+              <span class="sf-slash">/</span>
+              <div class="sf-poem cx-t">Mong gió xuân dịu dàng với em<br />xua tan muộn phiền, chỉ còn dịu êm</div>
+            </div>
+          </div>
+          <div class="sf-banner">
+            <img data-sf-g="6" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph" alt="" />
+            <div class="sf-row3 is-on-image"><span>Fall in</span><span>Love</span><span>Wedding</span></div>
+          </div>
+        </section>
+
+        <!-- ═══ Save the date: lịch đặt trên ảnh (khung phim tối) + lễ / tiệc ═══ -->
+        <section id="section-ceremony" class="sf-sec flex flex-col items-center gap-6 pt-20 text-center">
+          <i data-lucide="heart" class="sf-heart"></i>
+          <h2 class="sf-display sf-display-md">Save the date</h2>
+          <div class="flex flex-col gap-2 px-6">
+            <div class="sf-poem cx-t">“ Gặp được em, thế gian bỗng đẹp vô cùng ”</div>
+            <div class="sf-en">“ Love and freedom, you and gentleness ”</div>
+          </div>
+
+          <div class="sf-calcard mt-6">
+            <img data-sf-g="7" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="sf-ph" alt="" />
+            <div id="sf-calendar" class="sf-cal"></div>
+          </div>
+
+          <!-- Lễ rồi tới tiệc (enable_party); index.js xếp theo giờ diễn ra bằng flex `order`. -->
+          <div class="sf-events mt-6">
+            <div id="sf-ev-cer" class="sf-ev">
+              <div class="sf-caps" id="ceremony-event-name">Lễ Thành Hôn</div>
+              <div class="sf-ev-time"><span id="sf-cer-time">--:--</span><span class="sf-dot"></span><span id="sf-cer-wd"></span></div>
+              <div class="sf-ev-date" id="sf-cer-date">--.--.----</div>
+              <div class="sf-ev-sub cx-t" id="sf-cer-lunar"></div>
+              <div class="sf-ev-loc cx-t hidden" id="sf-cer-loc"></div>
+            </div>
+            <div id="section-party" class="sf-ev">
+              <div class="sf-caps" id="party-section-label">Tiệc mừng</div>
+              <div class="sf-ev-time"><span id="sf-party-time">--:--</span><span class="sf-dot"></span><span id="sf-party-wd"></span></div>
+              <div class="sf-ev-date" id="sf-party-date">--.--.----</div>
+              <div class="sf-ev-sub cx-t" id="sf-party-lunar"></div>
+              <div class="sf-ev-loc cx-t" id="sf-party-loc"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ Album (enable_photos): ảnh đầu tràn viền mờ về trắng, phần còn lại lưới lệch ═══ -->
+        <section id="section-photos" class="sf-sec flex flex-col gap-10 pt-20">
+          <div class="sf-poem cx-t px-8 text-center">
+            “ Hạnh phúc lớn nhất là được đặt tay mình vào tay em<br />
+            cùng em đi hết một đời lãng mạn ”
+          </div>
+          <div id="gallery-grid" class="sf-gal"></div>
+        </section>
+
+        <!-- ═══ Địa điểm: #map-location-name + #map-link phải đứng CUỐI mục ═══ -->
+        <section id="section-map" class="sf-sec flex flex-col items-center gap-8 px-6 pt-20 text-center">
+          <i data-lucide="heart" class="sf-heart"></i>
+          <h2 class="sf-display">Address</h2>
+          <div class="sf-venue cx-t" id="map-location-name">------------------------</div>
+          <a id="map-link" href="#" target="_blank" class="sf-map w-full block">
+            <div class="sf-map-frame">
+              <iframe
+                id="map-thumbnail-iframe"
+                src=""
+                width="100%"
+                height="100%"
+                class="border-0 pointer-events-none"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+              <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
+                <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
+                <span class="cx-t text-[11px] uppercase tracking-[2px]">Chưa có bản đồ</span>
+              </div>
+            </div>
+            <!-- Cả thẻ mở bản đồ; riêng nút "Chỉ đường" (data-sf-dir) index.js chặn lại, mở trang chỉ đường. -->
+            <div class="sf-map-bar">
+              <span class="sf-map-btn"><i data-lucide="map-pin" style="width:14px;height:14px"></i>Xem bản đồ</span>
+              <span class="sf-map-btn is-fill" data-sf-dir><i data-lucide="navigation" style="width:14px;height:14px"></i>Chỉ đường</span>
+            </div>
+          </a>
+        </section>
+
+        <!-- ═══ Xác nhận tham dự (rsvp_enabled) ═══ -->
+        <section id="rsvp-section" class="sf-sec flex flex-col items-center gap-6 px-10 pt-20 text-center" style="display: none">
+          <div class="sf-caps">Xác nhận tham dự</div>
+          <div id="rsvp-custom-message" class="hidden sf-poem cx-t"></div>
+          <div class="flex flex-col gap-4 w-full">
+            <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="sf-btn">Chắc chắn sẽ đến</x-button>
+            <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="sf-btn is-ghost">Rất tiếc, không thể đến</x-button>
+          </div>
+          <div id="attend-msg" class="sf-poem cx-t hidden"></div>
+        </section>
+
+        <!-- ═══ Hộp mừng cưới (enable_gift) — hộp do gift-box-helper vẽ ═══ -->
+        <section id="section-gift" class="sf-sec flex flex-col items-center gap-8 px-6 pt-20 text-center">
+          <i data-lucide="heart" class="sf-heart"></i>
+          <h2 class="sf-display">Gift</h2>
+          <div data-cx-gift="qr" class="grid grid-cols-2 gap-4 w-full">
+            <div class="flex flex-col gap-2 items-center">
+              <div class="sf-caps">Chú rể · <span id="groom-bank-label">----------</span></div>
+              <div class="cx-bg-qr p-2 sf-qr w-full max-w-[160px]">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="QR Chú rể" class="w-full aspect-square object-cover" loading="lazy" />
+              </div>
+              <div class="cx-t text-[12px]" id="groom-bank-name">----------------</div>
+              <div class="cx-h text-[14px] font-medium" id="groom-bank-number">------------</div>
+              <div class="cx-t text-[12px]" id="groom-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="sf-btn is-ghost is-sm"><i data-lucide="download" class="cx-ic"></i>Lưu QR</x-button>
+            </div>
+            <div class="flex flex-col gap-2 items-center">
+              <div class="sf-caps">Cô dâu · <span id="bride-bank-label">----------</span></div>
+              <div class="cx-bg-qr p-2 sf-qr w-full max-w-[160px]">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="QR Cô dâu" class="w-full aspect-square object-cover" loading="lazy" />
+              </div>
+              <div class="cx-t text-[12px]" id="bride-bank-name">----------------</div>
+              <div class="cx-h text-[14px] font-medium" id="bride-bank-number">------------</div>
+              <div class="cx-t text-[12px]" id="bride-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="sf-btn is-ghost is-sm"><i data-lucide="download" class="cx-ic"></i>Lưu QR</x-button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ Lời cảm ơn (enable_footer): "Thank you" viết tay ═══ -->
+        <section id="section-footer" class="sf-sec flex flex-col items-center gap-8 px-8 pt-20 text-center">
+          <div id="footer-text" class="sf-poem cx-t">Hãy chuẩn bị một tâm trạng thật vui và một chiếc bụng thật đói, hẹn gặp bạn ở đám cưới nhé!</div>
+          <div class="sf-thanks">Thank you</div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ═══ Phóng to ảnh ═══ -->
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
+      </x-button>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
+      <div class="w-full h-full flex items-center justify-center px-[8px]">
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
+      </div>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — giữ nguyên như base-theme ═══ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <script src="index.js"></script>
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>
