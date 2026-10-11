@@ -418,6 +418,12 @@ Không sửa file dùng chung nào khác — chèn tên theme vào helper là l�
 sửa gì vì không phải thiệp nào cũng cần. Tên thư mục **không được bắt đầu bằng `_`**:
 GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publish.
 
+**Đặt tên mẫu mới bằng tiếng Việt:** `display_name` là cụm 2–4 chữ có dấu, mang ý nghĩa
+tình yêu/hôn nhân, KHÔNG tả phong cách thiệp và không trùng tên bài hát (vd "Trọn Đời Bên
+Nhau"); tên thư mục = đúng cụm đó viết thường, bỏ dấu, nối bằng `-` (`tron-doi-ben-nhau`).
+16 mẫu phát hành trước quy ước này giữ tên thư mục tiếng Anh (chỉ đổi `display_name`):
+tên thư mục là `weddings.theme` + khoá của `template_pricing`, đổi là thiệp khách chết.
+
 | File         | Vai trò                                                                   |
 | ------------ | ------------------------------------------------------------------------- |
 | `index.html` | Markup + thứ tự nạp script (`index.js` rồi `theme-boot.js` ở CUỐI)        |

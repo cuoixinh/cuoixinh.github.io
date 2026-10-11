@@ -146,7 +146,7 @@
     "rsvp_message": "Chúng mình sẽ vui lắm nếu bạn dành một phút bấm xác nhận, để hôm ấy không thiếu bạn.",
     "footer_text": "Cảm ơn bạn đã thương chúng mình. Mong được nắm tay bạn trong ngày hạnh phúc nhất!",
     "enable_music": true,
-    "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
+    "music_url": "https://www.youtube.com/watch?v=__kGJZ-kPno&t=118",
     "enable_family": true,
     "enable_party": true,
     "enable_photos": true,
@@ -203,5 +203,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-09T16:41:47.823Z"
+  "updated_at": "2026-10-11T14:52:10.461Z"
 }
