@@ -2167,10 +2167,43 @@ x-button {
   outline-offset: 3px;
 }
 
-/* Màn hẹp không đủ chỗ cho cả máy lẫn thẻ → chỉ còn menu ba chấm. */
+/* Màn hẹp (iPad dựng đứng): thẻ thu hẹp, máy lấy cao theo bề ngang CÒN LẠI
+   (100vw − thẻ 264 − gap 32 − lề 2×32) để cả hai cùng lọt màn. */
 @media (max-width: 1023px) {
+  .cx-pshell {
+    gap: 32px;
+  }
+
+  .cx-pshell-phone {
+    --cx-pshell-h: min(
+      calc(var(--vh, 1vh) * 94),
+      calc(var(--vh, 1vh) * 100 - 32px),
+      calc((100vw - 360px) / 0.4879)
+    );
+  }
+
   .cx-pside {
-    display: none;
+    width: 264px;
+  }
+
+  .cx-pside-name {
+    font-size: 32px;
+  }
+
+  .cx-pside-lede {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    font-size: 14px;
+  }
+
+  .cx-pside .cx-pside-guest {
+    gap: 12px;
+    padding-left: 16px;
+  }
+
+  .cx-pside-guest-title {
+    font-size: 13px;
+    white-space: nowrap;
   }
 }
 
