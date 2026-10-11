@@ -171,7 +171,7 @@ body {
   animation: cx-sf-zoom 9s ease-out both;
 }
 
-/* Đỉnh tối nhẹ để chữ trắng đọc được, đáy mờ hẳn về trắng làm nền cho tên. */
+/* Đỉnh tối nhẹ cho chữ trắng phía trên, đáy phủ đen 20% làm nền cho tên (chữ trắng). */
 .sf-cv-veil {
   position: absolute;
   inset: 0;
@@ -179,9 +179,8 @@ body {
     to bottom,
     rgb(var(--cx-scrim-rgb) / 0.32) 0%,
     rgb(var(--cx-scrim-rgb) / 0) 24%,
-    rgb(var(--cx-cover-veil-rgb) / 0) 52%,
-    rgb(var(--cx-cover-veil-rgb) / 0.8) 72%,
-    rgb(var(--cx-cover-veil-rgb)) 86%
+    rgb(var(--cx-scrim-rgb) / 0) 52%,
+    rgb(var(--cx-scrim-rgb) / 0.2) 72%
   );
 }
 
@@ -222,6 +221,15 @@ body {
   align-items: center;
   gap: 24px;
   padding: 0 16px;
+  text-shadow: 0 1px 8px rgb(var(--cx-scrim-rgb) / 0.3);
+}
+
+.sf-cv-bottom .sf-cv-vn,
+.sf-cv-bottom .sf-cv-latin,
+.sf-cv-bottom .sf-cv-slash,
+.sf-cv-bottom .sf-caps,
+.sf-cv-bottom .sf-guest {
+  color: rgb(var(--cx-on-image-rgb));
 }
 
 .sf-cv-names {
@@ -286,15 +294,15 @@ body {
 .sf-open {
   gap: 8px;
   padding: 12px 32px;
-  border: 1px solid rgb(var(--cx-accent-rgb));
-  background-color: rgb(var(--cx-card-bg-rgb) / 0.6);
+  border: 1px solid rgb(var(--cx-on-image-rgb) / 0.7);
+  background-color: rgb(var(--cx-scrim-rgb) / 0.16);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   font-family: "Quicksand", sans-serif;
   font-size: 13px;
   letter-spacing: 4px;
   text-transform: uppercase;
-  color: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-on-image-rgb));
   animation: cx-sf-up 1s ease-out 1s both;
   transition: transform 0.2s;
 }
@@ -317,8 +325,19 @@ body {
 
 .sf-ph-hero {
   aspect-ratio: 4 / 5;
-  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent);
-  mask-image: linear-gradient(to bottom, #000 82%, transparent);
+  /* Mờ dần theo đường cong (nhiều mốc) qua 40% đáy — một mốc thẳng để lộ vạch mép ảnh. */
+  --sf-hero-fade: linear-gradient(
+    to bottom,
+    #000 60%,
+    rgb(0 0 0 / 0.92) 66%,
+    rgb(0 0 0 / 0.74) 73%,
+    rgb(0 0 0 / 0.5) 80%,
+    rgb(0 0 0 / 0.27) 87%,
+    rgb(0 0 0 / 0.1) 94%,
+    transparent 100%
+  );
+  -webkit-mask-image: var(--sf-hero-fade);
+  mask-image: var(--sf-hero-fade);
 }
 
 /* ── Cô dâu chú rể ────────────────────────────────────────────────────────── */
@@ -747,6 +766,20 @@ body {
 .sf-gal-grid img.is-wide {
   grid-column: span 2;
   aspect-ratio: 3 / 2;
+}
+
+/* Bay vào khi cuộn tới (.cx-rv-item ở _common.css): ảnh cột trái lướt từ trái, cột phải từ
+   phải, ảnh ngang (.is-wide) chỉ từ dưới lên — thứ tự 3 ảnh lặp lại theo renderGallery. */
+.sf-gal-grid img.cx-rv-item:nth-child(3n + 1) {
+  translate: -48px 24px;
+}
+
+.sf-gal-grid img.cx-rv-item:nth-child(3n + 2) {
+  translate: 48px 24px;
+}
+
+.sf-gal-grid img.cx-rv-item.visible {
+  translate: none;
 }
 
 /* ── Địa điểm ─────────────────────────────────────────────────────────────── */

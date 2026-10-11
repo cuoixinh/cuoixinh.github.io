@@ -70,8 +70,8 @@
   "love_story": [
     {
       "date": "07/2021",
-      "title": "Mùa hè ở bờ biển",
-      "content": "Một buổi chiều gió lớn ở Nha Trang, chiếc mũ của em bay đi và anh là người chạy theo nhặt lại.",
+      "title": "Lần đầu gặp gỡ",
+      "content": "Một buổi chiều mùa hè, tụi mình tình cờ ngồi chung bàn trong quán cà phê quen — câu chuyện bắt đầu từ một lời chào ngập ngừng.",
       "image_url": "love-story-01.webp",
       "focal_point": {
         "x": 14,
@@ -80,8 +80,8 @@
     },
     {
       "date": "05/2026",
-      "title": "Lời hứa trước biển",
-      "content": "Năm năm sau, cũng bãi biển ấy, anh quỳ xuống trên cát và em gật đầu trước cả khi anh nói hết câu.",
+      "title": "Lời hứa trọn đời",
+      "content": "Năm năm sau, anh ngỏ lời cầu hôn và em gật đầu trước cả khi anh nói hết câu.",
       "image_url": "love-story-02.webp",
       "focal_point": {
         "x": 65,
@@ -112,8 +112,8 @@
     "groom_party_time": "17:30",
     "groom_party_lunar": "Tức ngày 9 tháng 11 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Seaside Garden, The Anam Resort, Bãi Dài, Cam Lâm, Khánh Hòa",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=12.0458,109.2061&output=embed&hl=vi",
+    "groom_party_location": "Trung tâm Tiệc cưới Hoa Viên — Số 88 Trần Phú, Phường Lộc Thọ, TP. Nha Trang",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=12.2380,109.1960&output=embed&hl=vi",
     "bride_party_date": "2026-12-18",
     "bride_party_time": "17:00",
     "bride_party_lunar": "Tức ngày 9 tháng 11 năm Bính Ngọ",
@@ -126,10 +126,10 @@
     "bride_bank_name": "Techcombank",
     "bride_bank_number": "19036655112233",
     "bride_bank_owner": "LE THAO VY",
-    "story_quote": "Biển thì rộng, nhưng chỗ bình yên nhất vẫn là bên cạnh nhau.",
+    "story_quote": "Thế giới thì rộng, nhưng chỗ bình yên nhất vẫn là bên cạnh nhau.",
     "rsvp_enabled": true,
-    "rsvp_message": "Cho tụi mình biết bạn có đến không nhé — để tụi mình giữ một chỗ ngồi nhìn ra biển cho bạn.",
-    "footer_text": "Hẹn gặp bạn khi hoàng hôn buông xuống trên biển.",
+    "rsvp_message": "Cho tụi mình biết bạn có đến không nhé — để tụi mình chuẩn bị chu đáo đón bạn.",
+    "footer_text": "Rất mong được gặp bạn trong ngày vui của tụi mình.",
     "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
@@ -158,12 +158,12 @@
       },
       {
         "time": "17:30",
-        "title": "Đón khách bên bãi biển",
+        "title": "Đón khách",
         "type": "party"
       },
       {
         "time": "18:30",
-        "title": "Khai tiệc lúc hoàng hôn",
+        "title": "Khai tiệc",
         "type": "party"
       }
     ]
