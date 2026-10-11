@@ -141,7 +141,7 @@
     "rsvp_message": "Nếu bạn sắp xếp được, hãy nhắn cho chúng mình một dòng. Một chỗ ngồi bên hiên nhà đang chờ bạn.",
     "footer_text": "Cảm ơn bạn đã đọc tới đây, như đọc một lá thư tay. Mong ngày ấy được gặp bạn giữa vườn xưa.",
     "enable_music": true,
-    "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
+    "music_url": "https://www.youtube.com/watch?v=UnI8KoM3Cbs&t=85",
     "enable_family": true,
     "enable_party": true,
     "enable_photos": true,
@@ -193,5 +193,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-05T18:18:54.196Z"
+  "updated_at": "2026-10-11T15:03:11.194Z"
 }

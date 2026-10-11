@@ -151,7 +151,7 @@
     "rsvp_message": "Bấm xác nhận giúp tụi mình nha, để bàn tiệc hôm đó có đúng một chỗ dành cho bạn.",
     "footer_text": "Cảm ơn bạn đã là một phần trong câu chuyện của tụi mình. Hẹn gặp bạn ở Hội An!",
     "enable_music": true,
-    "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
+    "music_url": "https://www.youtube.com/watch?v=M9wWzXRlEjU&t=75",
     "enable_family": true,
     "enable_party": true,
     "enable_photos": true,
@@ -203,5 +203,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-05T18:07:21.596Z"
+  "updated_at": "2026-10-11T14:55:33.907Z"
 }
