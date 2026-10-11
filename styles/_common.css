@@ -4222,3 +4222,189 @@ button.cx-pchrome-btn:hover {
     box-shadow: 0 -8px 24px -12px rgb(0 0 0 / 0.18);
   }
 }
+
+/* Thẻ thiệp đang thanh toán ở bước "Xác nhận đơn hàng" (core/payment.js,
+   _stepsHTML) — cùng dáng thẻ ở "Đã chọn" (.mi-thumb): ảnh dọc cắt theo mép trên,
+   ô "Chưa có ảnh bìa" nằm dưới ảnh. Dùng cho cả trang /checkout/ lẫn hộp thoại. */
+.cx-ord-item {
+  display: flex;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 20px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 12px 24px -16px rgb(var(--shadow-card-rgb) / 0.25);
+}
+.cx-ord-thumb {
+  position: relative;
+  flex: none;
+  width: 96px;
+  height: 128px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.cx-ord-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+.cx-ord-thumb-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.3;
+  color: rgb(var(--text-subtle-rgb));
+}
+.cx-ord-thumb-empty svg {
+  color: rgb(var(--action-primary-deep-rgb) / 0.7);
+}
+
+/* Phần còn lại của bước "Xác nhận đơn hàng": thanh ba bước, nhãn khối, dòng tiền
+   kiểu hoá đơn (chấm dẫn), ô mã giảm giá dáng phiếu cắt, nhãn trấn an. */
+.cx-ord-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  list-style: none;
+}
+.cx-ord-steps li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgb(var(--text-idle-rgb));
+}
+.cx-ord-steps li span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--divider-rgb));
+  font-size: 10px;
+}
+.cx-ord-steps li + li::before {
+  content: "";
+  width: 12px;
+  height: 1px;
+  margin-right: 4px;
+  background: rgb(var(--divider-rgb));
+}
+.cx-ord-steps li.is-on {
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ord-steps li.is-on span {
+  border-color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-accent-rgb));
+  color: rgb(var(--white-rgb));
+}
+/* Bước đã qua: số thay bằng dấu tích, chữ giữ màu đậm; đoạn nối dẫn tới bước
+   đã qua / đang ở tô màu nhấn để thấy quãng đã đi. */
+.cx-ord-steps li.is-done {
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ord-steps li.is-done span {
+  border-color: rgb(var(--surface-blossom-rgb));
+  background: rgb(var(--surface-blossom-rgb));
+  color: rgb(var(--action-primary-deep-rgb));
+  font-size: 0;
+}
+.cx-ord-steps li.is-done span::after {
+  content: "✓";
+  font-size: 11px;
+  font-weight: 700;
+}
+.cx-ord-steps li.is-done + li::before,
+.cx-ord-steps li.is-on::before {
+  background: rgb(var(--brand-accent-rgb));
+}
+.cx-ord-eyebrow {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(var(--text-label-rgb));
+}
+.cx-ord-line {
+  display: flex;
+  align-items: baseline;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.cx-ord-lead {
+  flex: 1;
+  min-width: 16px;
+  margin: 0 8px;
+  border-bottom: 1px dotted rgb(var(--divider-rgb));
+  transform: translateY(-4px);
+}
+.cx-ord-coupon {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px dashed rgb(var(--brand-accent-light-rgb));
+  border-radius: 12px;
+  background: rgb(var(--surface-brand-soft-rgb));
+  text-align: left;
+  transition: background-color 0.15s;
+}
+.cx-ord-coupon:hover {
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.cx-ord-coupon:focus-visible {
+  outline: 2px solid rgb(var(--focus-ring-rgb));
+  outline-offset: 2px;
+}
+.cx-ord-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 999px;
+  font-size: 12px;
+  color: rgb(var(--text-tertiary-rgb));
+}
+
+/* Khung trang /checkout/: nền hồng nhạt loang từ đỉnh, thẻ đơn hàng đổ bóng tông
+   hồng thay cho bóng xám. */
+.cx-checkout-bg {
+  background:
+    radial-gradient(90% 360px at 50% 0, rgb(var(--surface-blossom-rgb) / 0.7), transparent),
+    rgb(var(--surface-tint-rgb));
+}
+.cx-ord-sheet {
+  border-radius: 28px;
+  box-shadow:
+    0 0 0 1px rgb(var(--border-subtle-rgb)),
+    0 24px 48px -24px rgb(var(--shadow-card-rgb) / 0.28);
+}
+
+/* Dòng "Thanh toán đơn hàng" đầu thẻ thanh toán (core/payment.js): canh giữa theo
+   tâm nút 32px ghim ở top 16px — padding đỉnh 24px + dòng 16px — px-12 chừa chỗ
+   hai nút góc. Đứng SAU .cx-ord-eyebrow để margin ở đây thắng. */
+.cx-ord-kicker {
+  margin: 0;
+  padding: 24px 48px 0;
+  text-align: center;
+  line-height: 16px;
+}
