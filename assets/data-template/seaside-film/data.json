@@ -1,91 +1,91 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.png": {
-        "x": 35,
-        "y": 25
+      "gallery-01.webp": {
+        "x": 31,
+        "y": 67
       },
-      "gallery-02.png": {
-        "x": 42,
-        "y": 26
+      "gallery-03.webp": {
+        "x": 74,
+        "y": 90
       },
-      "gallery-03.png": {
-        "x": 80,
-        "y": 24
+      "gallery-02.webp": {
+        "x": 59,
+        "y": 45
       },
-      "gallery-04.png": {
-        "x": 53,
-        "y": 22
+      "gallery-08.webp": {
+        "x": 48,
+        "y": 74
       },
-      "gallery-05.png": {
-        "x": 32,
-        "y": 52
+      "gallery-04.webp": {
+        "x": 69,
+        "y": 37
       },
-      "gallery-06.png": {
+      "gallery-05.webp": {
+        "x": 75,
+        "y": 67
+      },
+      "gallery-09.webp": {
+        "x": 50,
+        "y": 43
+      },
+      "gallery-06.webp": {
         "x": 62,
-        "y": 32
+        "y": 64
       },
-      "gallery-07.png": {
-        "x": 58,
-        "y": 73
-      },
-      "gallery-08.png": {
-        "x": 39,
-        "y": 12
-      },
-      "gallery-09.png": {
-        "x": 72,
-        "y": 20
+      "gallery-07.webp": {
+        "x": 87,
+        "y": 98
       }
     },
     "cover_image_url": {
-      "x": 39,
-      "y": 19
+      "x": 30,
+      "y": 30
     },
     "groom_image_url": {
-      "x": 51,
-      "y": 18
+      "x": 81,
+      "y": 53
     },
     "bride_image_url": {
-      "x": 47,
-      "y": 22
+      "x": 0,
+      "y": 43
     }
   },
-  "cover_image_url": "cover.png",
-  "groom_image_url": "groom.png",
-  "bride_image_url": "bride.png",
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.png",
-    "gallery-02.png",
-    "gallery-03.png",
-    "gallery-04.png",
-    "gallery-05.png",
-    "gallery-06.png",
-    "gallery-07.png",
-    "gallery-08.png",
-    "gallery-09.png"
+    "gallery-01.webp",
+    "gallery-03.webp",
+    "gallery-02.webp",
+    "gallery-08.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-09.webp",
+    "gallery-06.webp",
+    "gallery-07.webp"
   ],
   "love_story": [
     {
       "date": "07/2021",
       "title": "Mùa hè ở bờ biển",
       "content": "Một buổi chiều gió lớn ở Nha Trang, chiếc mũ của em bay đi và anh là người chạy theo nhặt lại.",
-      "image_url": "love-story-01.png",
+      "image_url": "love-story-01.webp",
       "focal_point": {
-        "x": 56,
-        "y": 17
+        "x": 14,
+        "y": 47
       }
     },
     {
       "date": "05/2026",
       "title": "Lời hứa trước biển",
       "content": "Năm năm sau, cũng bãi biển ấy, anh quỳ xuống trên cát và em gật đầu trước cả khi anh nói hết câu.",
-      "image_url": "love-story-02.png",
+      "image_url": "love-story-02.webp",
       "focal_point": {
-        "x": 54,
-        "y": 10
+        "x": 65,
+        "y": 100
       }
     }
   ],
@@ -168,5 +168,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-11T02:19:15.179Z"
+  "updated_at": "2026-10-11T13:31:48.226Z"
 }
