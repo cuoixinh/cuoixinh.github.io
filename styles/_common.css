@@ -1722,17 +1722,21 @@ x-button {
   padding: 12px 0 4px;
 }
 
-/* Hàng: logo đứng TRẦN (không nền/viền) bên trái, cao bằng thẻ navbar để hai khối
-   thẳng hàng; thẻ navbar giãn phần còn lại và chỉ mang dãy mục. */
+/* Hàng: thẻ navbar LUÔN căn giữa; logo nằm tuyệt đối ở mép trái nên không đẩy
+   thẻ lệch. Đầu trang (.is-top) thẻ hẹp lại, chừa ĐỀU hai bên một khoảng đủ cho
+   logo; cuộn xuống thì thẻ giãn ra cả hai phía và logo ẩn đi. */
 .cx-navrow {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
 }
 
 .cx-navcard {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   align-items: center;
   justify-content: space-between;
@@ -1747,26 +1751,34 @@ x-button {
 
 .cx-navlinks {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 100%;
   min-width: 0; /* để navbar.js đo được lúc dãy mục tràn (gom vào "…") */
   align-items: center;
   gap: 20px;
 }
 
-/* Cuộn khỏi đầu trang → logo thu về 0 (thẻ navbar giãn ra chiếm chỗ); .is-top
-   (đầu trang, navbar.js đặt) → logo hiện lại, thẻ bỏ nền/viền/bóng.
-   Transition chỉ có dưới .is-anim (bật từ lần cuộn đầu) — lúc chuyển trang không động. */
+/* left = lề ngang của .cx-navrow (md:px-6 · lg:px-8) — đổi lề thì đổi cả ở đây. */
 .cx-navbrand {
+  position: absolute;
+  top: 0;
+  left: 24px;
   height: 64px;
-  max-width: 0;
-  padding-right: 0;
-  margin-right: -12px;
-  overflow: hidden;
   opacity: 0;
+  transform: translateX(-8px);
   pointer-events: none;
 }
+@media (min-width: 1024px) {
+  .cx-navbrand {
+    left: 32px;
+  }
+}
+
+/* Transition chỉ có dưới .is-anim (bật từ lần cuộn đầu) — lúc chuyển trang không động. */
 .cx-navbar.is-anim .cx-navcard {
   transition:
+    max-width 0.4s ease,
     background-color 0.3s ease,
     border-color 0.3s ease,
     box-shadow 0.3s ease,
@@ -1774,23 +1786,25 @@ x-button {
 }
 .cx-navbar.is-anim .cx-navbrand {
   transition:
-    max-width 0.35s ease,
-    padding 0.35s ease,
-    margin 0.35s ease,
-    opacity 0.2s ease;
+    opacity 0.25s ease,
+    transform 0.35s ease;
 }
 .cx-navbar.is-top .cx-navbrand {
-  max-width: 320px;
-  padding-right: 36px;
-  margin-right: 0;
   opacity: 1;
+  transform: none;
   pointer-events: auto;
+  filter: drop-shadow(0 0 12px rgb(var(--white-rgb) / 0.95));
 }
+/* Đầu trang: chừa 2 × 168px (logo ~130px + khoảng thở) để thẻ cân giữa mà không
+   chạm logo; thẻ là dải KÍNH SỮA vì nền ngay dưới là tường ảnh mẫu thiệp của #hero. */
 .cx-navbar.is-top .cx-navcard {
-  background-color: transparent;
-  border-color: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
+  max-width: min(720px, 100% - 336px);
+  background-color: rgb(var(--white-rgb) / 0.72);
+  border-color: rgb(var(--white-rgb) / 0.9);
+  box-shadow:
+    0 8px 32px rgb(var(--brand-accent-rgb) / 0.14),
+    inset 0 1px 0 rgb(var(--white-rgb));
+  backdrop-filter: blur(16px) saturate(1.4);
 }
 
 .cx-navactions {
@@ -1873,14 +1887,14 @@ x-button {
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
-  color: rgb(var(--text-body-rgb));
+  color: rgb(var(--text-heading-rgb));
   transition:
     color 0.18s ease,
     opacity 0.18s ease;
 }
 
 .cx-navlink:hover {
-  opacity: 0.7;
+  color: rgb(var(--brand-accent-rgb));
 }
 
 /* Mục navbar `login: true` khi chưa đăng nhập (core/components/navbar.js). Phải
@@ -1892,6 +1906,19 @@ x-button {
 .cx-navlink.is-on {
   color: rgb(var(--brand-accent-rgb));
   font-weight: 600;
+}
+
+/* Chấm nhấn dưới mục đang mở — chỉ ở thanh trên, hàng menu trong "…" không có. */
+.cx-navbar .cx-navlink.is-on::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 9999px;
+  background: rgb(var(--brand-accent-rgb));
 }
 
 .cx-navcount {

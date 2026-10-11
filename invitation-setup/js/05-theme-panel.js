@@ -2810,7 +2810,8 @@ function _toSlug(str) {
 
 async function _isSlugAvailable(slug) {
   // Slug của chính thiệp này: link công khai trả 403 khi còn là nháp, đừng coi là trùng.
-  if (slug === WEDDING_SLUG) return true;
+  // Nháp chỉ nằm trên máy thì chưa có hàng nào mang slug đó → vẫn phải hỏi server.
+  if (slug === WEDDING_SLUG && !_isLocalDraft) return true;
   try {
     const res = await fetch(
       `${CONFIG.supabase.edgeUrl}?slug=${encodeURIComponent(slug)}`,
@@ -2830,11 +2831,16 @@ async function _isSlugAvailable(slug) {
 
 // Luồng tạo bằng AI: tên đã có mà slug còn trống / mặc định thì tự dựng slug từ tên
 // (cùng luật lúc xuất bản) rồi đổ vào ô Slug. Khách đã tự đặt, hoặc thiệp đã xuất bản
-// (link có thể đã gửi khách), thì để nguyên.
+// (link có thể đã gửi khách), thì để nguyên. Slug theo tên đã có người dùng thì KHÔNG
+// tự gắn hậu tố — chỉ báo ở ô Slug, lúc xuất bản sẽ hỏi (_confirmPublishSlug).
 async function cxAutoSlug() {
   if (IS_PUBLISHED) return;
   if (WEDDING_SLUG && !WEDDING_SLUG.startsWith("wedding-")) return;
-  const slug = await _resolvePublishSlug();
+  const { slug, taken } = await _resolvePublishSlugInfo();
+  if (taken) {
+    _setSlugTaken(taken);
+    return;
+  }
   if (!slug || slug === WEDDING_SLUG) return;
   WEDDING_SLUG = slug;
   const input = document.getElementById("slug-input");
@@ -2845,9 +2851,15 @@ async function cxAutoSlug() {
 window.cxAutoSlug = cxAutoSlug;
 
 async function _resolvePublishSlug() {
+  return (await _resolvePublishSlugInfo()).slug;
+}
+
+// { slug, taken }: `taken` = slug theo tên đã có người dùng, `slug` lúc đó là bản gắn
+// hậu tố — người gọi phải hỏi/báo khách trước khi dùng, đừng lặng lẽ đổi.
+async function _resolvePublishSlugInfo() {
   // Đã xuất bản → slug đã chốt (server chặn đổi); user đã tự nhập slug → giữ nguyên
-  if (IS_PUBLISHED) return WEDDING_SLUG;
-  if (WEDDING_SLUG && !WEDDING_SLUG.startsWith("wedding-")) return WEDDING_SLUG;
+  if (IS_PUBLISHED) return { slug: WEDDING_SLUG };
+  if (WEDDING_SLUG && !WEDDING_SLUG.startsWith("wedding-")) return { slug: WEDDING_SLUG };
 
   // Phải nhắm `input[name=...]`: `[name=...]` khớp <x-input> (host giữ nguyên
   // attribute name) — host không có .value → tên rỗng → rơi về slug wedding-xxxx.
@@ -2857,15 +2869,15 @@ async function _resolvePublishSlug() {
   const brideName = (
     document.querySelector('input[name="bride_name"]')?.value || ""
   ).trim();
-  if (!groomName || !brideName) return WEDDING_SLUG;
+  if (!groomName || !brideName) return { slug: WEDDING_SLUG };
 
   const groomSlug = _toSlug(groomName);
   const brideSlug = _toSlug(brideName);
 
   // Lần 1: họ và tên đầy đủ
   const fullSlug = _toSlug(`${groomSlug}-${brideSlug}`);
-  if (!fullSlug) return WEDDING_SLUG;
-  if (await _isSlugAvailable(fullSlug)) return fullSlug;
+  if (!fullSlug) return { slug: WEDDING_SLUG };
+  if (await _isSlugAvailable(fullSlug)) return { slug: fullSlug };
 
   // Trùng → thêm hậu tố số. Hai ràng buộc khi chọn biến thể, sai là slug đem đi
   // kiểm trùng khác slug thực sự lưu → PATCH ăn 409:
@@ -2876,12 +2888,55 @@ async function _resolvePublishSlug() {
   const stem = _toSlug(fullSlug.slice(0, SLUG_MAX_LENGTH - 3));
   for (let i = 2; i <= 5; i++) {
     const numbered = `${stem}-${i}`;
-    if (await _isSlugAvailable(numbered)) return numbered;
+    if (await _isSlugAvailable(numbered)) return { slug: numbered, taken: fullSlug };
   }
 
   // Cuối cùng: random số 2 chữ số
   const rand = Math.floor(Math.random() * 90) + 10; // 10–99
-  return `${stem}-${rand}`;
+  return { slug: `${stem}-${rand}`, taken: fullSlug };
+}
+
+// Dòng đỏ dưới ô Slug, chỉ đặt khi lưu/xuất bản gặp trùng; gõ lại là xoá. Không có slug → ẩn.
+function _setSlugTaken(slug) {
+  const el = document.getElementById("slug-status");
+  if (!el) return;
+  el.classList.toggle("hidden", !slug);
+  el.classList.add("text-red-500");
+  el.textContent = slug ? `Đường dẫn "/${slug}" đã có thiệp khác dùng — hãy đặt tên khác.` : "";
+}
+
+// Báo trùng slug rồi đưa khách tới ô Đường dẫn ở tab Cấu hình.
+function cxShowSlugTaken(slug) {
+  switchTab("config");
+  _setSlugTaken(slug);
+  showDialog({
+    type: "warning",
+    icon: "link",
+    title: "Đường dẫn đã có người dùng",
+    message: `"/${slug}" đang là đường dẫn của một thiệp khác. Hãy đặt đường dẫn khác ở mục "Đường dẫn thiệp" rồi lưu lại.`,
+  }).then(() => document.getElementById("slug-input")?.focus());
+}
+window.cxShowSlugTaken = cxShowSlugTaken;
+
+// Xuất bản lần đầu mà slug theo tên đã có người dùng: HỎI trước khi dùng bản gắn hậu
+// tố (xuất bản xong là chốt slug). Trả slug được chọn, hoặc null khi khách muốn tự đặt.
+async function _confirmPublishSlug() {
+  const { slug, taken } = await _resolvePublishSlugInfo();
+  if (!taken) return slug;
+  showLoading(false);
+  // Đường dẫn dài để trong ô ở thân hộp thoại; nhãn nút giữ ngắn.
+  const ok = await showConfirm(
+    "Đường dẫn đã có người dùng",
+    `<b style="overflow-wrap:anywhere">/${escapeHtml(taken)}</b> đang là đường dẫn của một thiệp khác. Có thể xuất bản với đường dẫn:` +
+      `<span class="cx-dlg-chip">/${escapeHtml(slug)}</span>` +
+      `Sau khi xuất bản sẽ không đổi được đường dẫn nữa.`,
+    { type: "warning", icon: "link", html: true, confirmText: "Dùng đường dẫn này", cancelText: "Tự đặt đường dẫn" },
+  );
+  if (ok) return slug;
+  switchTab("config");
+  _setSlugTaken(taken);
+  document.getElementById("slug-input")?.focus();
+  return null;
 }
 
 // Nút "Lưu" của ô Slug:
@@ -2917,6 +2972,7 @@ function _updateSlugPreview() {
   // Xem trước phải là slug ĐÃ chuẩn hoá, đúng thứ sẽ lưu — không thì người dùng
   // thấy "/Hoàng Lan" nhưng nhận về "/hoang-lan".
   const val = _toSlug(input.value);
+  _setSlugTaken(null);
   row.style.display = val ? "" : "none";
   if (!val) return;
   ["groom", "bride"].forEach((side) => {
@@ -3078,7 +3134,9 @@ async function _publishLoggedIn() {
   // xong (upload ảnh + ghi DB) thì font đã về, popup hiện ra là chữ đúng ngay.
   // Hàm idempotent nên gọi sớm không tạo thêm thẻ nào.
   _ensurePublishPopupAssets();
-  WEDDING_SLUG = await _resolvePublishSlug();
+  const slug = await _confirmPublishSlug();
+  if (!slug) return;
+  WEDDING_SLUG = slug;
   // Cập nhật input slug trong panel cấu hình nếu đang mở
   const slugInput = document.getElementById("slug-input");
   if (slugInput) {
