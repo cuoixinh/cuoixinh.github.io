@@ -89,10 +89,16 @@ function initYouTubeMusic(musicUrl) {
           onReady: (event) => {
             // Nhỏ hết cỡ trước, _fadeInMusic kéo lên khi thật sự phát.
             event.target.setVolume(0);
-            event.target.playVideo();
-            // KHÔNG coi như đang phát: trình duyệt có thể chặn (xem
-            // _playOnFirstGesture). onStateChange mới là nguồn sự thật.
-            _playOnFirstGesture();
+            // Khung chỉnh giao diện (?edit=1, tab Giao diện của trang Thiết lập)
+            // KHÔNG tự phát — nhạc chỉ nghe ở Chỉnh sửa/Xem trước; bấm nút nhạc
+            // vẫn phát được để thử trình phát.
+            if (_cxMusicNoAutoplay()) _musicUserPaused = true;
+            if (!_musicUserPaused) {
+              event.target.playVideo();
+              // KHÔNG coi như đang phát: trình duyệt có thể chặn (xem
+              // _playOnFirstGesture). onStateChange mới là nguồn sự thật.
+              _playOnFirstGesture();
+            }
             _emitMusicState();
           },
           onStateChange: (event) => {
@@ -101,6 +107,12 @@ function initYouTubeMusic(musicUrl) {
               event.target.playVideo();
             }
             const S = YT.PlayerState;
+            // Đang bị dừng (người bấm, hoặc trang cha gọi cxMusicPause) mà
+            // player tự phát — autoplay của onReady tới muộn — thì dừng lại.
+            if (event.data === S.PLAYING && _musicUserPaused) {
+              event.target.pauseVideo();
+              return;
+            }
             if (event.data === S.PLAYING && !_musicAudible) {
               _musicAudible = true;
               _fadeInMusic(event.target);
@@ -207,6 +219,31 @@ function toggleYouTubeMusic() {
   _emitMusicState();
 }
 
+function _cxMusicNoAutoplay() {
+  try {
+    return new URLSearchParams(location.search).get("edit") === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Dừng nhạc như thể người xem bấm dừng (không tự phát lại khi chạm). Trang Thiết
+ * lập gọi qua iframe khi rời tab Chỉnh sửa/Xem trước: iframe bị ẩn vẫn phát tiếp.
+ */
+function cxMusicPause() {
+  _musicUserPaused = true;
+  if (!youtubePlayer || !isYouTubePlaying) return;
+  try {
+    youtubePlayer.pauseVideo();
+  } catch (e) {
+    return;
+  }
+  isYouTubePlaying = false;
+  updateMusicIcon();
+  _emitMusicState();
+}
+
 /** Phát tiếp — CHỈ khi người dùng chưa chủ động bấm dừng. */
 function resumeMusicIfAllowed() {
   if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return false;
@@ -297,6 +334,7 @@ function _emitMusicState() {
 
 // Make toggle function global
 window.toggleYouTubeMusic = toggleYouTubeMusic;
+window.cxMusicPause = cxMusicPause;
 window.getMusicInfo = getMusicInfo;
 window.resumeMusicIfAllowed = resumeMusicIfAllowed;
 window.getMusicPosition = getMusicPosition;

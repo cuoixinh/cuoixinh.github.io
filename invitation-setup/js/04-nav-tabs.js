@@ -342,6 +342,30 @@ function togglePreview() {
  * màn: nhường lại chỗ cho chúng bằng cờ .cx-rail-off trên <html> — cờ này ép
  * --cx-rail-w về 0 nên body, navbar và mọi panel tự trả lại phần bên phải.
  */
+// Dừng nhạc trong mọi khung thiệp (xem trực tiếp, Xem trước, Giao diện) TRỪ
+// khung `keep`: khung bị ẩn vẫn phát tiếp, nên đổi tab mà để sót một khung là hai
+// bài phát chồng. Khung cùng origin nên gọi thẳng được.
+function cxPauseFrameMusic(keep) {
+  document.querySelectorAll("iframe").forEach((f) => {
+    if (f === keep) return;
+    try {
+      f.contentWindow?.cxMusicPause?.();
+    } catch (e) {
+      /* khung khác origin (YouTube…) */
+    }
+  });
+}
+
+// Đổi tab: chỉ khung thiệp của CHÍNH tab đích được phát (Chỉnh sửa = khung xem
+// trực tiếp, Xem trước = khung Xem trước); mọi nguồn khác — kể cả "Nghe thử" của
+// Cấu hình — dừng. Mọi đường đổi tab (switchTab, Khách mời, Trợ lý XuXi) đều phải
+// gọi hàm này.
+const _CX_TAB_FRAME = { edit: "live-preview-iframe", preview: "preview-iframe" };
+function cxPauseAllMusic(tab) {
+  if (typeof cxPauseYtPreview === "function") cxPauseYtPreview();
+  cxPauseFrameMusic(document.getElementById(_CX_TAB_FRAME[tab]));
+}
+
 function _syncRail(tab) {
   document.documentElement.classList.toggle("cx-rail-off", tab !== "edit");
 }
@@ -352,7 +376,7 @@ function switchTab(tab) {
   if (tab === "preview" && window.cxLiveWide?.()) tab = "edit";
   // Rời tab Giao diện còn thay đổi chưa áp dụng → hỏi trước (js/27-theme-session.js).
   if (typeof _cxThemeGuard === "function" && _cxThemeGuard(tab)) return;
-  if (typeof cxPauseYtPreview === "function") cxPauseYtPreview();
+  cxPauseAllMusic(tab);
   if (tab === "theme" && typeof _cxThemeEnter === "function") _cxThemeEnter();
 
   // Danh sách khách mời có luồng mở riêng (panel iframe + URL ?tab=guests)
