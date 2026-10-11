@@ -18,6 +18,7 @@
   const fn = (name) => `${BASE}/functions/v1/${name}`;
 
   CONFIG.env = "staging";
+  CONFIG.noInspect = false;
 
   CONFIG.supabase = {
     url: BASE,
