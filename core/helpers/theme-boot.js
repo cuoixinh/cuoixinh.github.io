@@ -26,6 +26,29 @@ function cxToggle(id, show) {
 window.cxEnabled = cxEnabled;
 window.cxToggle = cxToggle;
 
+// --- CHẶN LƯU ẢNH ---
+// Thiệp thật lẫn bản xem (?preview=true): chặn nhấn giữ (iOS: touch-callout; Android:
+// contextmenu), chuột phải và kéo ảnh ra ngoài. Chỉ làm khó, không chặn được chụp màn hình.
+// Cờ là class `cx-img-lock` trên <html>; tính năng "cho phép khách tải ảnh" gọi cxImageGuard(false).
+(function () {
+  const root = document.documentElement;
+  const css = document.createElement("style");
+  css.textContent =
+    ".cx-img-lock img{-webkit-touch-callout:none;-webkit-user-drag:none;-webkit-user-select:none;user-select:none}";
+  document.head.appendChild(css);
+  root.classList.add("cx-img-lock");
+
+  const locked = (e) => root.classList.contains("cx-img-lock") && e.target.closest?.("img");
+  document.addEventListener("contextmenu", (e) => {
+    if (locked(e)) e.preventDefault();
+  });
+  document.addEventListener("dragstart", (e) => {
+    if (locked(e)) e.preventDefault();
+  });
+
+  window.cxImageGuard = (on) => root.classList.toggle("cx-img-lock", on !== false);
+})();
+
 // --- DẢI CUỘN NGANG KÉO BẰNG CHUỘT ---
 // Máy tính không vuốt được: mẫu đánh dấu khung cuộn ngang (album…) bằng
 // `data-cx-drag` là có bàn tay + nhấn giữ kéo. Uỷ quyền trên document nên ô ảnh
