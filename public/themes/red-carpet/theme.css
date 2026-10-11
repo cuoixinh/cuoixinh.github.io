@@ -1,39 +1,40 @@
-/* Bảng màu + CSS riêng của RED CARPET — nền đỏ rượu vang, chữ kem, nhấn vàng đồng.
+/* Bảng màu + CSS riêng của RED CARPET — nền xanh đêm thành phố, chữ trắng ngà, nhấn vàng
+   đèn phố + hồng phấn hoa cưới.
    Cặp màu đi đôi, giữ khi khách đổi bộ màu: nền panel ↔ chữ heading/body,
    nền accent (vé mời, lịch) ↔ chữ on-accent. Đen phim (dải lỗ phim) là deco-2.
    CSS THUẦN, nạp bằng <link> sau styles/themes.css. */
 
 :root {
-  --cx-heading-rgb: 247 233 214;
-  --cx-body-rgb: 226 200 190;
-  --cx-accent-rgb: 226 178 107; /* vàng đồng: vé mời, nhãn nhỏ */
-  --cx-accent-soft-rgb: 184 120 112;
-  --cx-on-accent-rgb: 64 30 30; /* chữ đỏ rượu trên nền vàng */
-  --cx-on-image-rgb: 255 248 238;
+  --cx-heading-rgb: 244 238 230;
+  --cx-body-rgb: 201 204 224;
+  --cx-accent-rgb: 240 184 114; /* vàng đèn phố: vé mời, nhãn nhỏ */
+  --cx-accent-soft-rgb: 232 160 180;
+  --cx-on-accent-rgb: 22 29 56; /* chữ xanh đêm trên nền vàng */
+  --cx-on-image-rgb: 255 250 244;
   --cx-on-lightbox-rgb: 255 255 255;
 
-  --cx-card-bg-rgb: 80 38 38; /* nền thân thiệp */
-  --cx-page-bg-rgb: 48 22 22;
-  --cx-surface-rgb: 98 50 50;
-  --cx-band-rgb: 64 30 30;
-  --cx-panel-rgb: 104 54 54;
-  --cx-panel-warm-rgb: 114 62 60;
-  --cx-cover-rgb: 48 22 22;
-  --cx-cover-mid-rgb: 80 38 38;
-  --cx-cover-veil-rgb: 48 22 22;
+  --cx-card-bg-rgb: 22 29 56; /* nền thân thiệp */
+  --cx-page-bg-rgb: 14 19 38;
+  --cx-surface-rgb: 30 39 72;
+  --cx-band-rgb: 18 24 48;
+  --cx-panel-rgb: 34 44 80;
+  --cx-panel-warm-rgb: 42 48 84;
+  --cx-cover-rgb: 14 19 38;
+  --cx-cover-mid-rgb: 22 29 56;
+  --cx-cover-veil-rgb: 14 19 38;
   --cx-lightbox-bg-rgb: 0 0 0;
 
-  --cx-line-rgb: 128 70 68;
+  --cx-line-rgb: 58 70 112;
   --cx-shadow-rgb: 0 0 0;
-  --cx-scrim-rgb: 24 10 10;
+  --cx-scrim-rgb: 6 9 20;
 
-  --cx-deco-rgb: 226 178 107; /* hạt kim tuyến */
-  --cx-deco-soft-rgb: 240 214 170; /* lỗ phim */
-  --cx-deco-2-rgb: 16 8 9; /* đen phim */
-  --cx-deco-2-soft-rgb: 46 30 30;
-  --cx-shine-from-rgb: 226 178 107;
-  --cx-shine-mid-rgb: 247 222 170;
-  --cx-shine-to-rgb: 184 120 112;
+  --cx-deco-rgb: 240 184 114; /* hạt kim tuyến */
+  --cx-deco-soft-rgb: 248 222 180; /* lỗ phim */
+  --cx-deco-2-rgb: 8 10 20; /* đen phim */
+  --cx-deco-2-soft-rgb: 30 34 56;
+  --cx-shine-from-rgb: 240 184 114;
+  --cx-shine-mid-rgb: 252 226 180;
+  --cx-shine-to-rgb: 232 160 180;
 
   /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
      thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js). */
@@ -467,7 +468,7 @@ body {
   overflow: hidden;
 }
 
-/* setImageWithRing gắn viền trắng lên khung ảnh — lạc tông trên nền rượu vang. */
+/* setImageWithRing gắn viền trắng lên khung ảnh — lạc tông trên nền xanh đêm. */
 .rc-role-ph.ring-1 {
   box-shadow: none;
 }

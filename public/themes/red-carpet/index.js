@@ -1,4 +1,4 @@
-// Red Carpet — đám cưới dựng như buổi công chiếu: nền đỏ rượu vang, dải phim, vé mời có cuống.
+// Red Carpet — đám cưới dựng như buổi công chiếu: nền xanh đêm thành phố, dải phim, vé mời có cuống.
 // Chỉ khai báo CX_THEME + renderWedding; phần chạy nằm ở core/helpers/theme-boot.js.
 
 (function () {
@@ -8,40 +8,43 @@
     giftBox: "phongbi_do_hy",
     music: { variant: "disc", chrome: "fixed-corner", art: "couple" },
 
-    // Sinh lại bằng: npm run check:palette -- --write
+    // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
+    // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
+    // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
+    // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
     palette: {
-      heading: "#f7e9d6",
-      body: "#e2c8be",
-      accent: "#e2b26b",
-      accent_soft: "#b87870",
-      on_accent: "#401e1e",
-      on_image: "#fff8ee",
+      heading: "#f4eee6",
+      body: "#c9cce0",
+      accent: "#f0b872",
+      accent_soft: "#e8a0b4",
+      on_accent: "#161d38",
+      on_image: "#fffaf4",
       on_lightbox: "#ffffff",
-      card_bg: "#502626",
-      page_bg: "#301616",
-      surface: "#623232",
-      band: "#401e1e",
-      panel: "#683636",
-      panel_warm: "#723e3c",
-      cover: "#301616",
-      cover_mid: "#502626",
-      cover_veil: "#301616",
+      card_bg: "#161d38",
+      page_bg: "#0e1326",
+      surface: "#1e2748",
+      band: "#121830",
+      panel: "#222c50",
+      panel_warm: "#2a3054",
+      cover: "#0e1326",
+      cover_mid: "#161d38",
+      cover_veil: "#0e1326",
       lightbox_bg: "#000000",
-      line: "#804644",
+      line: "#3a4670",
       shadow: "#000000",
-      scrim: "#180a0a",
-      deco: "#e2b26b",
-      deco_soft: "#f0d6aa",
-      deco_2: "#100809",
-      deco_2_soft: "#2e1e1e",
-      shine_from: "#e2b26b",
-      shine_mid: "#f7deaa",
-      shine_to: "#b87870",
+      scrim: "#060914",
+      deco: "#f0b872",
+      deco_soft: "#f8deb4",
+      deco_2: "#080a14",
+      deco_2_soft: "#1e2238",
+      shine_from: "#f0b872",
+      shine_mid: "#fce2b4",
+      shine_to: "#e8a0b4",
     },
 
-    swatches: ["#e2b26b", "#f0d6aa", "#f7e9d6", "#e2c8be", "#b87870", "#804644", "#502626", "#301616", "#100809"],
+    swatches: ["#f0b872", "#f8deb4", "#f4eee6", "#c9cce0", "#e8a0b4", "#3a4670", "#161d38", "#0e1326", "#080a14"],
 
-    wishes: { bubble: "#623232", text: "#e2c8be", accent: "#e2b26b", btn: "#e2b26b" },
+    wishes: { bubble: "#1e2748", text: "#c9cce0", accent: "#f0b872", btn: "#f0b872" },
 
     reveal: ["#main-card section"],
     revealItems: ["#gallery-grid .rc-fr", "#love-story-list .rc-ch", "#section-ceremony .rc-tk"],
