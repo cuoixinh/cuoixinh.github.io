@@ -1,0 +1,1107 @@
+/* Bảng màu + CSS riêng của RED CARPET — nền xanh đêm thành phố, chữ trắng ngà, nhấn vàng
+   đèn phố + hồng phấn hoa cưới.
+   Cặp màu đi đôi, giữ khi khách đổi bộ màu: nền panel ↔ chữ heading/body,
+   nền accent (vé mời, lịch) ↔ chữ on-accent. Đen phim (dải lỗ phim) là deco-2.
+   CSS THUẦN, nạp bằng <link> sau styles/themes.css. */
+
+:root {
+  --cx-heading-rgb: 244 238 230;
+  --cx-body-rgb: 201 204 224;
+  --cx-accent-rgb: 240 184 114; /* vàng đèn phố: vé mời, nhãn nhỏ */
+  --cx-accent-soft-rgb: 232 160 180;
+  --cx-on-accent-rgb: 22 29 56; /* chữ xanh đêm trên nền vàng */
+  --cx-on-image-rgb: 255 250 244;
+  --cx-on-lightbox-rgb: 255 255 255;
+
+  --cx-card-bg-rgb: 22 29 56; /* nền thân thiệp */
+  --cx-page-bg-rgb: 14 19 38;
+  --cx-surface-rgb: 30 39 72;
+  --cx-band-rgb: 18 24 48;
+  --cx-panel-rgb: 34 44 80;
+  --cx-panel-warm-rgb: 42 48 84;
+  --cx-cover-rgb: 14 19 38;
+  --cx-cover-mid-rgb: 22 29 56;
+  --cx-cover-veil-rgb: 14 19 38;
+  --cx-lightbox-bg-rgb: 0 0 0;
+
+  --cx-line-rgb: 58 70 112;
+  --cx-shadow-rgb: 0 0 0;
+  --cx-scrim-rgb: 6 9 20;
+
+  --cx-deco-rgb: 240 184 114; /* hạt kim tuyến */
+  --cx-deco-soft-rgb: 248 222 180; /* lỗ phim */
+  --cx-deco-2-rgb: 8 10 20; /* đen phim */
+  --cx-deco-2-soft-rgb: 30 34 56;
+  --cx-shine-from-rgb: 240 184 114;
+  --cx-shine-mid-rgb: 252 226 180;
+  --cx-shine-to-rgb: 232 160 180;
+
+  /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
+     thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js). */
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-rgb);
+  --music-bubble-to-rgb: var(--cx-heading-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-rgb);
+  --music-art-to-rgb: var(--cx-heading-rgb);
+}
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+}
+
+#main-card {
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgb(var(--cx-surface-rgb) / 0.7), transparent 70%),
+    rgb(var(--cx-card-bg-rgb));
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-h {
+  font-family: "Playfair Display", serif;
+}
+
+.cx-t {
+  font-family: "Be Vietnam Pro", sans-serif;
+}
+
+/* ── Chữ ─────────────────────────────────────────────────────────────── */
+
+.rc-cap {
+  font-family: "Oswald", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rc-a {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rc-script {
+  font-family: "MonolineSignature", cursive;
+  font-size: 40px;
+  line-height: 1;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rc-num {
+  font-family: "Oswald", sans-serif;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rc-title {
+  font-family: "Playfair Display", serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.25;
+  color: rgb(var(--cx-heading-rgb));
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.rc-note {
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgb(var(--cx-body-rgb));
+  max-width: 320px;
+}
+
+/* ── Kim tuyến lấp lánh phủ nền (bìa + thân thiệp) ───────────────────── */
+
+.rc-glitter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 18px 26px, rgb(var(--cx-deco-rgb) / 0.9), transparent),
+    radial-gradient(1px 1px at 64px 90px, rgb(var(--cx-deco-soft-rgb) / 0.8), transparent),
+    radial-gradient(2px 2px at 110px 40px, rgb(var(--cx-accent-soft-rgb) / 0.7), transparent);
+  background-size: 132px 116px, 92px 148px, 172px 128px;
+  animation: cx-rc-twinkle 5s ease-in-out infinite alternate;
+}
+
+.rc-glitter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 40px 60px, rgb(var(--cx-deco-soft-rgb) / 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 90px 14px, rgb(var(--cx-deco-rgb) / 0.8), transparent);
+  background-size: 108px 124px, 156px 100px;
+  animation: cx-rc-twinkle 3.6s ease-in-out infinite alternate-reverse;
+}
+
+.rc-glitter.is-card {
+  opacity: 0.6;
+}
+
+@keyframes cx-rc-twinkle {
+  from {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+/* ── Chất liệu phim dùng chung: nền đen tuyền, lỗ phim là ô vuông trắng 8px ──
+   .rc-perf là VIỀN phim một hàng lỗ — đặt một viền trên, một viền dưới ảnh để ảnh thành
+   khung phim, đừng xếp hai viền liền nhau (trông dày). .rc-ribbon có hàng lỗ ở mép
+   trên/dưới; dải dọc (.rc-strip,
+   .rc-roll) ở mép trái/phải; mép .rc-reel một hàng giữa. */
+
+.rc-perf,
+.rc-ribbon,
+.rc-reel,
+.rc-strip,
+.rc-roll {
+  --rc-hole-x: linear-gradient(90deg, rgb(var(--cx-on-image-rgb)) 0 8px, transparent 8px);
+  --rc-hole-y: linear-gradient(180deg, rgb(var(--cx-on-image-rgb)) 0 8px, transparent 8px);
+}
+
+.rc-ribbon {
+  background-color: rgb(var(--cx-deco-2-rgb));
+  background-image: var(--rc-hole-x), var(--rc-hole-x);
+  background-size: 16px 8px;
+  background-repeat: repeat-x;
+  background-position: 4px 5px, 4px calc(100% - 5px);
+}
+
+.rc-strip,
+.rc-roll {
+  background-color: rgb(var(--cx-deco-2-rgb));
+  background-image: var(--rc-hole-y), var(--rc-hole-y);
+  background-size: 8px 16px;
+  background-repeat: repeat-y;
+  background-position: 5px 4px, calc(100% - 5px) 4px;
+  box-shadow: 0 12px 28px rgb(var(--cx-shadow-rgb) / 0.4);
+}
+
+/* ── Dải phim nằm ngang ─────────────────────────────────────────────── */
+
+.rc-perf {
+  height: 16px;
+  background-color: rgb(var(--cx-deco-2-rgb));
+  background-image: var(--rc-hole-x);
+  background-size: 16px 8px;
+  background-repeat: repeat-x;
+  background-position: 4px center;
+}
+
+/* ── Nút ─────────────────────────────────────────────────────────────── */
+
+.rc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 32px;
+  font-family: "Oswald", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  box-shadow: 0 8px 24px rgb(var(--cx-shadow-rgb) / 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rc-btn:active {
+  transform: scale(0.97);
+}
+
+.rc-btn.is-ghost {
+  background: transparent;
+  color: rgb(var(--cx-accent-rgb));
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.6);
+  box-shadow: none;
+}
+
+.rc-btn.is-full {
+  width: 100%;
+}
+
+.rc-btn.is-sm {
+  padding: 8px 16px;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.rc-btn:focus-visible,
+.rc-map:focus-visible {
+  outline: 2px solid rgb(var(--cx-accent-rgb));
+  outline-offset: 4px;
+}
+
+/* ── Màn bìa: poster phim ───────────────────────────────────────────── */
+
+.rc-cv {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: rgb(var(--cx-cover-rgb));
+}
+
+.rc-cv-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: cx-rc-push 14s ease-out both;
+}
+
+@keyframes cx-rc-push {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.rc-cv-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-cover-veil-rgb) / 0.4) 0%,
+    rgb(var(--cx-cover-veil-rgb) / 0) 18%,
+    rgb(var(--cx-cover-veil-rgb) / 0) 44%,
+    rgb(var(--cx-cover-veil-rgb) / 0.62) 70%,
+    rgb(var(--cx-cover-veil-rgb) / 0.86) 100%
+  );
+}
+
+.rc-cv-top {
+  position: relative;
+  z-index: 1;
+  padding: 32px 24px 0;
+}
+
+.rc-cv-top .rc-script {
+  color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 2px 12px rgb(var(--cx-shadow-rgb) / 0.4);
+}
+
+.rc-cv-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 0 28px 48px;
+  text-align: center;
+}
+
+.rc-cv-names {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: "Playfair Display", serif;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: rgb(var(--cx-heading-rgb));
+  overflow-wrap: anywhere;
+}
+
+.rc-amp {
+  font-style: italic;
+  font-size: 28px;
+  color: rgb(var(--cx-accent-rgb));
+  margin: 4px 0;
+}
+
+.rc-cv-date {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rc-cv-date .rc-num {
+  font-size: 20px;
+  letter-spacing: 4px;
+}
+
+.rc-cv-guest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Link chung (không tên khách): helper đổi lời mời thành "Cảm ơn bạn đã ghé xem
+   thiệp" — mẫu này bỏ hẳn khối đó, bìa chỉ còn tên đôi + ngày + nút mở. */
+.cx-guest-generic #cover-guest-wrap {
+  display: none;
+}
+
+.rc-guest {
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: 24px;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rc-cv-body .rc-btn {
+  margin-top: 8px;
+}
+
+/* ── Mục chung ──────────────────────────────────────────────────────── */
+
+.rc-sec {
+  position: relative;
+}
+
+/* ── Mở đầu ─────────────────────────────────────────────────────────── */
+
+.rc-synopsis {
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1.6;
+  color: rgb(var(--cx-heading-rgb));
+  max-width: 320px;
+}
+
+.rc-logline {
+  font-size: 14px;
+  line-height: 1.8;
+  max-width: 300px;
+}
+
+.rc-logline span {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rc-premiere {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.rc-premiere .rc-num {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.rc-hero-ph {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.rc-hero-ph img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Gia đình ───────────────────────────────────────────────────────── */
+
+.rc-fam {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+.rc-fam-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.rc-fam-col .rc-cap {
+  margin-bottom: 4px;
+}
+
+.rc-parent {
+  font-size: 16px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rc-addr {
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 4px;
+}
+
+.rc-fam-rule {
+  background: rgb(var(--cx-line-rgb));
+}
+
+/* ── Hai vai chính ──────────────────────────────────────────────────── */
+
+.rc-role {
+  display: flex;
+  flex-direction: column;
+}
+
+.rc-role-ph {
+  width: 80%;
+  margin-left: auto;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+/* setImageWithRing gắn viền trắng lên khung ảnh — lạc tông trên nền xanh đêm. */
+.rc-role-ph.ring-1 {
+  box-shadow: none;
+}
+
+.rc-role.is-rev .rc-role-ph {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.rc-role-ph img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Dải phim nằm ngang đè mép dưới ảnh, mang chữ ký Groom / Bride. */
+.rc-ribbon {
+  position: relative;
+  z-index: 1;
+  width: 88%;
+  height: 80px;
+  box-shadow: 0 12px 24px rgb(var(--cx-shadow-rgb) / 0.4);
+  margin-top: -44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rc-role.is-rev .rc-ribbon {
+  margin-left: auto;
+}
+
+.rc-ribbon .rc-script {
+  font-size: 44px;
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+.rc-role-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px 32px 0;
+}
+
+.rc-role.is-rev .rc-role-txt {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.rc-role-name {
+  font-family: "Playfair Display", serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rc-verse {
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* ── Chuyện tình: hai mép là lỗ phim dọc ────────────────────────────── */
+
+.rc-reel {
+  position: relative;
+  padding: 0 32px;
+}
+
+.rc-reel::before,
+.rc-reel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  background-color: rgb(var(--cx-deco-2-rgb));
+  background-image: var(--rc-hole-y);
+  background-size: 8px 16px;
+  background-repeat: repeat-y;
+  background-position: center 4px;
+}
+
+.rc-reel::before {
+  left: 0;
+}
+
+.rc-reel::after {
+  right: 0;
+}
+
+.rc-ch {
+  display: flex;
+  flex-direction: column;
+}
+
+.rc-ch-ph {
+  aspect-ratio: 16 / 11;
+  overflow: hidden;
+}
+
+.rc-ch-ph img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rc-ch-txt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: -40px 40px 0 12px;
+  padding: 20px;
+  background: rgb(var(--cx-band-rgb) / 0.94);
+  border-left: 2px solid rgb(var(--cx-accent-rgb));
+}
+
+.rc-ch.is-rev .rc-ch-txt {
+  margin: -40px 12px 0 40px;
+  border-left: 0;
+  border-right: 2px solid rgb(var(--cx-accent-rgb));
+  text-align: right;
+}
+
+.rc-ch.no-ph .rc-ch-txt {
+  margin-top: 0;
+}
+
+.rc-ch-title {
+  font-family: "Playfair Display", serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rc-ch-body {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ── Album: ảnh lớn + cuộn phim dọc, rồi khung phim hai cột ─────────── */
+
+.rc-gal {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rc-gal img {
+  cursor: pointer;
+}
+
+.rc-gal-lead {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+}
+
+.rc-gal-lead > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rc-strip {
+  position: absolute;
+  top: 24px;
+  bottom: 24px;
+  right: 16px;
+  width: 34%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 20px;
+}
+
+.rc-strip-cell {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.rc-strip-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Hai cuộn phim dọc liền mạch (chất liệu ở đầu file): khung nối khung, số khung (data-fr)
+   in vàng ở mép dưới; cuộn phải hạ thấp cho so le. */
+.rc-gal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.rc-roll {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+}
+
+.rc-roll + .rc-roll {
+  margin-top: 48px;
+}
+
+.rc-gal-cell {
+  position: relative;
+  padding: 4px 20px 20px;
+}
+
+.rc-gal-cell img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.rc-gal-cell::after {
+  content: "▸ " attr(data-fr);
+  position: absolute;
+  right: 22px;
+  bottom: 4px;
+  font-family: "Oswald", sans-serif;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: rgb(var(--cx-accent-rgb) / 0.7);
+}
+
+/* ── Lịch chiếu: lịch tháng trên ảnh ────────────────────────────────── */
+
+.rc-sched {
+  position: relative;
+  padding: 72px 24px;
+  overflow: hidden;
+}
+
+.rc-sched-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rc-sched-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-card-bg-rgb)) 0%,
+    rgb(var(--cx-scrim-rgb) / 0.35) 18%,
+    rgb(var(--cx-scrim-rgb) / 0.35) 82%,
+    rgb(var(--cx-card-bg-rgb)) 100%
+  );
+}
+
+.rc-sched-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px 28px;
+  text-align: center;
+  background: rgb(var(--cx-card-bg-rgb) / 0.6);
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.rc-sched-line {
+  font-size: 18px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rc-sched-lunar {
+  font-size: 13px;
+}
+
+.rc-cal {
+  width: 100%;
+  margin-top: 12px;
+  padding: 20px 16px 16px;
+  background: rgb(var(--cx-panel-rgb) / 0.92);
+}
+
+.rc-cal-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 4px 16px;
+}
+
+.rc-cal-m {
+  font-family: "Playfair Display", serif;
+  font-size: 28px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rc-cal-y {
+  font-family: "Oswald", sans-serif;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rc-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 4px;
+}
+
+.rc-cal-wd {
+  padding: 6px 0;
+  margin-bottom: 8px;
+  font-family: "Oswald", sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.rc-cal-wd:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.rc-cal-wd:nth-child(7) {
+  border-radius: 0 999px 999px 0;
+}
+
+.rc-cal-d {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  font-family: "Oswald", sans-serif;
+  font-size: 14px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.rc-cal-d.is-on {
+  width: 32px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  box-shadow: 0 0 0 4px rgb(var(--cx-accent-rgb) / 0.25);
+}
+
+.rc-cd {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.rc-cd b {
+  font-family: "Oswald", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgb(var(--cx-accent-rgb));
+  margin: 0 4px;
+}
+
+/* ── Vé mời: thân vé + cuống xé, hai khuyết tròn ở đường răng cưa ───── */
+
+.rc-tickets {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 8px 20px 0;
+}
+
+.rc-tk.is-first {
+  order: -1;
+}
+
+.rc-tk {
+  display: grid;
+  grid-template-columns: 1fr 88px;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgb(var(--cx-shadow-rgb) / 0.35);
+}
+
+.rc-tk-main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  min-width: 0;
+}
+
+.rc-tk-top,
+.rc-tk-row span,
+.rc-tk-stub span,
+.rc-tk-stub i {
+  font-family: "Oswald", sans-serif;
+  font-size: 11px;
+  font-style: normal;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.rc-tk-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rc-tk-name {
+  font-family: "Playfair Display", serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.rc-tk-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+}
+
+.rc-tk-row div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rc-tk-row b {
+  font-family: "Oswald", sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.rc-tk-lunar {
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.rc-tk-loc {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  padding-top: 10px;
+  border-top: 1px dashed rgb(var(--cx-on-accent-rgb) / 0.3);
+}
+
+.rc-tk-stub {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 8px;
+  text-align: center;
+  border-left: 2px dashed rgb(var(--cx-on-accent-rgb) / 0.35);
+}
+
+.rc-tk-stub b {
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.rc-tk-stub::before,
+.rc-tk-stub::after {
+  content: "";
+  position: absolute;
+  left: -11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgb(var(--cx-card-bg-rgb));
+}
+
+.rc-tk-stub::before {
+  top: -10px;
+}
+
+.rc-tk-stub::after {
+  bottom: -10px;
+}
+
+/* ── Lịch trình (markup của renderTimeline) ─────────────────────────── */
+
+.rc-tl .font-cormorant {
+  font-family: "Playfair Display", serif;
+}
+
+/* ── Địa điểm ───────────────────────────────────────────────────────── */
+
+.rc-venue {
+  font-size: 18px;
+  line-height: 1.5;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rc-map-frame {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
+}
+
+.rc-map-bar {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.rc-map-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-family: "Oswald", sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.6);
+}
+
+.rc-map-btn.is-fill {
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  border-color: transparent;
+}
+
+/* ── Hộp mừng cưới ──────────────────────────────────────────────────── */
+
+.rc-qr {
+  border-radius: 8px;
+}
+
+/* ── Poster cuối phim + danh đề ─────────────────────────────────────── */
+
+.rc-end {
+  position: relative;
+  min-height: 560px;
+  display: flex;
+  overflow: hidden;
+}
+
+.rc-end-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rc-end-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-card-bg-rgb)) 0%,
+    rgb(var(--cx-card-bg-rgb) / 0) 30%,
+    rgb(var(--cx-scrim-rgb) / 0.55) 60%,
+    rgb(var(--cx-card-bg-rgb)) 100%
+  );
+}
+
+.rc-end-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 24px;
+  width: 100%;
+  padding: 160px 32px 16px;
+  text-align: center;
+}
+
+.rc-credits {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rc-credits div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.rc-credits dt {
+  font-family: "Oswald", sans-serif;
+  font-size: 12px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-align: right;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rc-credits dd {
+  font-family: "Playfair Display", serif;
+  font-size: 22px;
+  text-align: left;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rc-tbc {
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: 36px;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-cv-img,
+  .rc-glitter,
+  .rc-glitter::after {
+    animation: none;
+  }
+}

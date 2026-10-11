@@ -18,7 +18,17 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { watch, statSync } from "node:fs";
 import path from "node:path";
+import vm from "node:vm";
 import { fileURLToPath } from "node:url";
+import {
+  DEFAULT_THEME,
+  REWRITE_ATTRS,
+  THEME_NAME,
+  rewriteAttr,
+  routeHead,
+  slugSegment,
+  themeDir,
+} from "../worker/route-html.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -126,6 +136,62 @@ async function buildConfig(raw) {
   }
 }
 
+// ===== Link thiệp /<slug> =====
+// Bản local của themePage() ở worker/index.js: trả trang mẫu ngay tại /<slug>.
+// Node không có HTMLRewriter nên đổi thuộc tính bằng regex — luật (thuộc tính nào,
+// đổi ra sao, chèn gì) dùng chung ở route-html.mjs; sửa cách áp ở đây thì sửa cả
+// worker. Không dựng thẻ og: chỉ crawler cần, mà crawler không tới localhost.
+
+/** Supabase của môi trường đang chạy — chạy chính config.js trong sandbox DOM giả. */
+async function supabaseConfig() {
+  const ctx = {
+    document: { querySelectorAll: () => [] },
+    location: { origin: `http://localhost:${PORT}` },
+  };
+  vm.createContext(ctx);
+  vm.runInContext(`${await buildConfig(false)}\n;globalThis.__CFG = CONFIG;`, ctx);
+  return ctx.__CFG.supabase;
+}
+
+const ATTR_RE = new RegExp(`(\\s(${REWRITE_ATTRS.join("|")})=)(?:"([^"]*)"|'([^']*)')`, "gi");
+
+function rewriteTag(tag, dir) {
+  return tag.replace(ATTR_RE, (m, pre, name, dq, sq) => {
+    const v = dq ?? sq;
+    const out = rewriteAttr(name.toLowerCase(), v, dir);
+    return out === v ? m : `${pre}"${out}"`;
+  });
+}
+
+// Chỉ đụng thuộc tính của THẺ như HTMLRewriter: nội dung <script>/<style>/comment
+// để nguyên (thẻ mở của <script src> thì vẫn đổi).
+function rewriteHtml(html, dir) {
+  return html
+    .split(/(<script\b[^>]*>[\s\S]*?<\/script>|<style\b[^>]*>[\s\S]*?<\/style>|<!--[\s\S]*?-->)/i)
+    .map((part, i) => {
+      if (i % 2 === 0) return rewriteTag(part, dir);
+      return part.startsWith("<script")
+        ? part.replace(/^<script\b[^>]*>/i, (t) => rewriteTag(t, dir))
+        : part;
+    })
+    .join("");
+}
+
+/** HTML trang mẫu cho slug; null khi không dựng được → nơi gọi trả 404.html như cũ. */
+async function slugPage(slug) {
+  const { edgeUrl, anonKey } = await supabaseConfig();
+  const r = await fetch(`${edgeUrl}?slug=${encodeURIComponent(slug)}`, {
+    headers: { Authorization: `Bearer ${anonKey}` },
+  });
+  const w = await r.json().catch(() => null);
+  if (!w || (!r.ok && w.code !== "TRIAL_EXPIRED") || w.is_published === false) return null;
+  const theme = String(w.theme || DEFAULT_THEME);
+  if (!THEME_NAME.test(theme)) return null;
+  const dir = themeDir(theme);
+  const html = await readFile(path.join(ROOT, dir, "index.html"), "utf8");
+  return rewriteHtml(html, dir).replace("</head>", routeHead(slug, theme) + "</head>");
+}
+
 /** Đường dẫn trong repo cho URL, hoặc null nếu trỏ ra ngoài. */
 function resolveSafe(pathname) {
   const p = path.resolve(ROOT, "." + decodeURIComponent(pathname));
@@ -174,8 +240,12 @@ const server = createServer(async (req, res) => {
   try {
     hit = await readTarget(target);
   } catch {
-    // Không có file → trả 404.html như Cloudflare (not_found_handling: "404-page"),
-    // nhờ vậy clean URL `/<slug>` của thiệp chạy được ở local đúng như production.
+    // Link thiệp → trang mẫu ngay tại URL đó, như worker production.
+    const slug = slugSegment(url.pathname);
+    const page = slug ? await slugPage(slug).catch(() => null) : null;
+    if (page) return send(200, MIME[".html"], RELOAD ? page + RELOAD_SNIPPET : page);
+    // Không có file → trả 404.html như Cloudflare (not_found_handling: "404-page"):
+    // đường lùi của link thiệp khi không dựng được trang mẫu.
     try {
       const body = await readFile(path.join(ROOT, "404.html"), "utf8");
       return send(404, MIME[".html"], RELOAD ? body + RELOAD_SNIPPET : body);

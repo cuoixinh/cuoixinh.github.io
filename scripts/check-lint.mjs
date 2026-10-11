@@ -353,7 +353,7 @@ rule("LINT-24", "Script CDN có integrity + crossorigin; lucide pin @1.26.0", ()
   }
   return bad(out, `${PAGES.length} trang đạt`);
 });
-rule("LINT-25", "Trang nạp đủ lucide / x-button.js / no-zoom.js theo thứ nó dùng", () => {
+rule("LINT-25", "Trang nạp đủ lucide / x-button.js / no-zoom.js / no-inspect.js theo thứ nó dùng", () => {
   const out = [];
   const loaderOf = { "invitation-setup/index.html": "invitation-setup/loader.js", "admin/index.html": "admin/loader.js" };
   const partialsOf = { "invitation-setup/index.html": "invitation-setup/partials", "admin/index.html": "admin/partials" };
@@ -367,6 +367,7 @@ rule("LINT-25", "Trang nạp đủ lucide / x-button.js / no-zoom.js theo thứ 
     if (/data-lucide=/.test(html) && !/unpkg\.com\/lucide@/.test(loaded)) out.push(`${f}: dùng data-lucide mà không nạp lucide`);
     if (/<x-button\b/.test(html) && !/x-button\.js/.test(loaded)) out.push(`${f}: dùng <x-button> mà không nạp core/x-button.js`);
     if (/(^|\/)index\.html$/.test(f) && !/no-zoom\.js/.test(read(f))) out.push(`${f}: thiếu no-zoom.js`);
+    if (/(^|\/)index\.html$/.test(f) && f !== "admin/index.html" && !/no-inspect\.js/.test(read(f))) out.push(`${f}: thiếu no-inspect.js`);
   }
   return bad(out, `${PAGES.length} trang đạt`);
 });

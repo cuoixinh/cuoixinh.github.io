@@ -1,106 +1,111 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.png": {
-        "x": 50,
-        "y": 14
+      "gallery-01.jpg": {
+        "x": 63,
+        "y": 48
       },
-      "gallery-02.png": {
-        "x": 58,
-        "y": 36
-      },
-      "gallery-03.png": {
-        "x": 91,
-        "y": 33
-      },
-      "gallery-04.png": {
-        "x": 57,
+      "gallery-03.jpg": {
+        "x": 76,
         "y": 37
       },
-      "gallery-05.png": {
-        "x": 55,
-        "y": 52
+      "gallery-02.jpg": {
+        "x": 78,
+        "y": 94
       },
-      "gallery-06.png": {
-        "x": 67,
-        "y": 19
+      "gallery-04.jpg": {
+        "x": 57,
+        "y": 73
+      },
+      "gallery-05.jpg": {
+        "x": 56,
+        "y": 39
+      },
+      "gallery-06.jpg": {
+        "x": 42,
+        "y": 44
+      },
+      "gallery-07.jpg": {
+        "x": 39,
+        "y": 67
+      },
+      "gallery-08.jpg": {
+        "x": 47,
+        "y": 26
+      },
+      "gallery-09.jpg": {
+        "x": 51,
+        "y": 52
       }
     },
     "cover_image_url": {
-      "x": 32,
-      "y": 18
+      "x": 20,
+      "y": 40
     },
     "groom_image_url": {
-      "x": 46,
-      "y": 16
+      "x": 56,
+      "y": 34
     },
     "bride_image_url": {
-      "x": 44,
-      "y": 19
+      "x": 74,
+      "y": 41
     }
   },
-  "cover_image_url": "cover.png",
-  "groom_image_url": "groom.png",
-  "bride_image_url": "bride.png",
+  "cover_image_url": "cover.jpg",
+  "groom_image_url": "groom.jpg",
+  "bride_image_url": "bride.webp",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.png",
-    "gallery-02.png",
-    "gallery-03.png",
-    "gallery-04.png",
-    "gallery-05.png",
-    "gallery-06.png"
+    "gallery-01.jpg",
+    "gallery-03.jpg",
+    "gallery-02.jpg",
+    "gallery-04.jpg",
+    "gallery-05.jpg",
+    "gallery-06.jpg",
+    "gallery-07.jpg",
+    "gallery-08.jpg",
+    "gallery-09.jpg"
   ],
   "love_story": [
     {
       "date": "09/2019",
       "title": "Buổi hòa nhạc mùa thu",
       "content": "Hai chiếc ghế liền nhau ở Nhà hát Lớn, và một bản Nocturne không ai trong hai đứa quên được.",
-      "image_url": "love-story-01.png",
+      "image_url": "love-story-01.jpg",
       "focal_point": {
-        "x": 35,
-        "y": 26
+        "x": 76,
+        "y": 35
       }
     },
     {
       "date": "03/2020",
       "title": "Bữa tối đầu tiên",
       "content": "Một nhà hàng nhỏ trên phố cổ, câu chuyện kéo dài đến khi người phục vụ lịch sự nhắc giờ đóng cửa.",
-      "image_url": "love-story-02.png",
+      "image_url": "love-story-02.webp",
       "focal_point": {
-        "x": 44,
-        "y": 21
+        "x": 54,
+        "y": 41
       }
     },
     {
       "date": "12/2021",
       "title": "Mùa đông ở Sa Pa",
       "content": "Chuyến đi đầu tiên của hai đứa, trời lạnh đến mức chỉ còn cách nắm tay nhau cho ấm.",
-      "image_url": "love-story-03.png",
+      "image_url": "love-story-03.jpg",
       "focal_point": {
-        "x": 46,
-        "y": 36
-      }
-    },
-    {
-      "date": "08/2023",
-      "title": "Ra mắt hai bên gia đình",
-      "content": "Hai nhà gặp nhau bên bàn trà, và hiểu rằng chuyện này sẽ đi xa hơn một mối tình.",
-      "image_url": "love-story-04.png",
-      "focal_point": {
-        "x": 90,
-        "y": 30
+        "x": 92,
+        "y": 27
       }
     },
     {
       "date": "02/2026",
       "title": "Lời cầu hôn",
       "content": "Vẫn Nhà hát Lớn, vẫn bản Nocturne ấy, nhưng lần này có thêm một chiếc nhẫn.",
-      "image_url": "love-story-05.png",
+      "image_url": "love-story-04.jpg",
       "focal_point": {
-        "x": 59,
-        "y": 44
+        "x": 44,
+        "y": 47
       }
     }
   ],
@@ -208,5 +213,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-03T08:17:34.994Z"
+  "updated_at": "2026-10-11T14:11:03.457Z"
 }

@@ -178,9 +178,11 @@ function _cxDeviceMinW() {
   return w && h ? Math.min(w, h) : 0;
 }
 
-// Tên mẫu suy từ đường dẫn: /public/themes/romantic-gold/ → "Romantic Gold".
-// Chỉ là bản tạm cho nhịp vẽ đầu; tên thật lấy từ bảng `templates` ngay sau đó.
+// Tên mẫu suy từ đường dẫn: /public/themes/romantic-gold/ → "Romantic Gold"; link
+// /<slug> thì worker đã khai sẵn. Chỉ là bản tạm cho nhịp vẽ đầu; tên thật lấy từ
+// bảng `templates` ngay sau đó.
 function _cxThemeSlug() {
+  if (window.__CX_ROUTE) return window.__CX_ROUTE.theme;
   const parts = location.pathname.split("/").filter(Boolean);
   const last = parts[parts.length - 1] || "";
   return (/\.html?$/.test(last) ? parts[parts.length - 2] : last) || "";
@@ -201,14 +203,18 @@ function _cxPreviewShell() {
   if (q.get("shell") === "0") return false;
   // Không mẫu, không thiệp → trang tự chuyển về "/", dựng khung chỉ để nhốt cú
   // chuyển hướng đó vào trong iframe.
-  if (q.get("preview") !== "true" && !q.get("slug")) return false;
+  if (q.get("preview") !== "true" && !q.get("slug") && !window.__CX_ROUTE) return false;
 
   const dev = _cxDeviceMinW();
   if (dev && dev < CX_SHELL_MIN_DEV_W) return false;
   if (window.innerWidth < CX_SHELL_MIN_W) return false;
 
   q.set("shell", "0");
-  const src = `${location.pathname}?${q}${location.hash}`;
+  // Link /<slug>: iframe trỏ THẲNG file mẫu kèm ?slug= — nạp lại /<slug> là tốn
+  // thêm một lượt worker, mà trang trong khung chạy y như đường cũ.
+  const route = window.__CX_ROUTE;
+  if (route) q.set("slug", route.slug);
+  const src = `${route ? `/public/themes/${route.theme}/` : location.pathname}?${q}${location.hash}`;
 
   const slug = _cxThemeSlug();
   // Thiệp THẬT (không có ?preview=true): chrome không mời chọn mẫu, tên lấy từ
@@ -218,6 +224,7 @@ function _cxPreviewShell() {
   const stage = document.createElement("div");
   stage.className = "cx-pshell";
   stage.innerHTML = `
+    ${_cxShellTopHtml()}
     <div class="cx-pshell-phone">
       <div class="cx-pshell-screen">
         ${window.CXPhoneChrome ? window.CXPhoneChrome.html(opts) : ""}
@@ -228,10 +235,11 @@ function _cxPreviewShell() {
         <!-- Dải trắng đáy: giữ thiệp khỏi chạm góc bo của thân máy. -->
         <div class="cx-ppad"></div>
       </div>
-      <img src="../../../assets/images/iphone_mockup.svg" alt="" class="cx-pshell-frame" />
+      <img src="/assets/images/iphone_mockup.svg" alt="" class="cx-pshell-frame" />
     </div>
     ${opts.items.length ? _cxShellSideHtml(slug) : ""}`;
   stage.querySelector("iframe").src = src;
+  window.lucide?.createIcons({ root: stage.querySelector(".cx-pshell-top") });
 
   document.documentElement.classList.add("cx-pshell-host");
   // Giữ lại hộp thoại + toast mà alert.js đã gắn sẵn vào <body>: "Chọn mẫu này"
@@ -264,6 +272,27 @@ function _cxPreviewShell() {
   measure();
   window.addEventListener("resize", measure, { passive: true });
   return true;
+}
+
+// Thanh đỉnh khung máy: logo (cùng <x-logo> của trang chủ) + nút về trang chủ, cho cả bản
+// mẫu lẫn thiệp thật. Trang thiệp không nạp sẵn core/x-logo.js nên tự chèn ở đây.
+function _cxShellTopHtml() {
+  if (!customElements.get("x-logo") && !document.querySelector("script[data-cx-xlogo]")) {
+    const s = document.createElement("script");
+    s.src = "/core/x-logo.js";
+    s.dataset.cxXlogo = "";
+    document.head.appendChild(s);
+  }
+  return `
+    <header class="cx-pshell-top">
+      <a href="/" class="cx-pshell-logo cx-logo" aria-label="Cưới Xinh — Trang chủ">
+        <x-logo></x-logo>
+      </a>
+      <a href="/" class="cx-pshell-home">
+        <i data-lucide="house" style="width:16px;height:16px"></i>
+        <span>Trang chủ</span>
+      </a>
+    </header>`;
 }
 
 // Khai báo chrome của khung máy: quay lại (về kho mẫu nếu mở thẳng bằng link)

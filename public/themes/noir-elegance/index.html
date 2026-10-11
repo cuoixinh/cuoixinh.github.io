@@ -41,6 +41,7 @@
     <script src="../../../core/x-button.js"></script>
     <script src="../../../core/components/music-player.js"></script>
     <script src="../../../core/helpers/no-zoom.js"></script>
+    <script src="../../../core/helpers/no-inspect.js"></script>
   </head>
 
   <!-- ══════════════════════════════════════════════════════════════════════
@@ -118,8 +119,8 @@
             <div class="ne-name text-[54px] leading-[1.1]" id="cover-bride-name">----------</div>
           </div>
 
-          <!-- Nơi đãi tiệc + ngày, đặt thấp như dòng chân thiệp -->
-          <div class="flex flex-col items-center gap-1 mt-4">
+          <!-- Nơi đãi tiệc + ngày: mở cụm dưới, đẩy xuống chân màn (.ne-cv-low) -->
+          <div class="ne-cv-low flex flex-col items-center gap-1">
             <div class="cx-h ne-on-photo text-[15px] font-semibold tracking-[1px] uppercase" id="cover-venue">
               ------------------------
             </div>

@@ -173,14 +173,17 @@ body {
    Chữ nằm giữa màn nên màn tối phủ đều hơn màn mở đầu (vốn để trống khúc
    giữa ảnh), đậm dần xuống chân nơi có nút "Mở Thiệp". */
 
+/* Lớp đen 10% phủ đều dưới gradient để chữ tách khỏi ảnh. */
 .ne-cover-shade {
-  background: linear-gradient(
-    180deg,
-    rgb(var(--cx-scrim-rgb) / 0.1) 0%,
-    rgb(var(--cx-scrim-rgb) / 0.22) 30%,
-    rgb(var(--cx-scrim-rgb) / 0.3) 60%,
-    rgb(var(--cx-scrim-rgb) / 0.5) 100%
-  );
+  background:
+    linear-gradient(rgb(var(--cx-scrim-rgb) / 0.1), rgb(var(--cx-scrim-rgb) / 0.1)),
+    linear-gradient(
+      180deg,
+      rgb(var(--cx-scrim-rgb) / 0.1) 0%,
+      rgb(var(--cx-scrim-rgb) / 0.22) 30%,
+      rgb(var(--cx-scrim-rgb) / 0.3) 60%,
+      rgb(var(--cx-scrim-rgb) / 0.5) 100%
+    );
 }
 
 /* Nút "Mở Thiệp" nằm trên ảnh tối: chữ sáng, nền tối mờ. */
@@ -233,6 +236,18 @@ body {
 
 .ne-curve circle {
   animation: cx-ne-fade 0.8s ease 1.8s both;
+}
+
+/* Chữ tách hai cụm: tên cặp đôi neo trên, nơi tiệc → nút neo dưới (chừa nét cong chân
+   màn), khúc giữa để trống cho ảnh. */
+.ne-cover-in {
+  align-self: stretch;
+  flex: 1;
+  padding: 72px 0 128px;
+}
+
+.ne-cv-low {
+  margin-top: auto;
 }
 
 .ne-cover-in > * {
@@ -998,4 +1013,10 @@ body {
   font-size: 40px;
   line-height: 0.85;
   color: rgb(var(--cx-accent-rgb));
+}
+
+/* Mở thiệp không có tên khách (cờ .cx-guest-generic của wedding-helper) thì bỏ hẳn khối
+   lời mời trên bìa, không hiện câu chào chung. */
+.cx-guest-generic #cover-guest-wrap {
+  display: none;
 }

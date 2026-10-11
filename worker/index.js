@@ -1,15 +1,24 @@
 /**
- * Worker của site chính (Workers Assets) — CHỈ làm một việc: trả thẻ preview
- * (og:*) cho link thiệp `/<slug>` để Messenger/Zalo/Facebook hiện được ảnh bìa
- * và tên khách. Crawler KHÔNG chạy JS nên trang thiệp không tự khai meta được.
+ * Worker của site chính (Workers Assets) — lo link thiệp `/<slug>`: trả thẳng
+ * trang mẫu của thiệp TẠI URL đó (rewrite, xem route-html.mjs) kèm thẻ preview
+ * og:* cho Messenger/Zalo/Facebook (crawler KHÔNG chạy JS nên trang không tự khai).
  *
- * Path khớp file tĩnh không vào đây (asset router phục vụ trước); chỉ path lạ
- * mới rơi tới — đúng chỗ 404.html đang lo chuyển hướng, nên <script> trong trang
- * trả về là BẢN SAO của 404.html: người thật vẫn đi y hệt đường cũ.
+ * Path khớp file tĩnh không vào đây (asset router phục vụ trước). Không dựng được
+ * trang mẫu thì lùi về trang chuyển hướng — BẢN SAO của 404.html → router.html.
  *
  * Không truy vấn DB: dữ liệu lấy qua Edge Function wedding-admin (?slug=).
  * Biến khai ở [vars] của wrangler.jsonc / wrangler.staging.jsonc.
  */
+
+import {
+  DEFAULT_THEME,
+  REWRITE_ATTRS,
+  THEME_NAME,
+  rewriteAttr,
+  routeHead,
+  slugSegment,
+  themeDir,
+} from "./route-html.mjs";
 
 const DEFAULT_DESC =
   "Trân trọng kính mời Quý Khách đến dự và chung vui cùng gia đình chúng tôi.";
@@ -18,9 +27,6 @@ const DEFAULT_DESC =
 // core/constant.js (worker không nạp file đó), đổi câu thì đổi cả hai.
 const DEFAULT_SHARE_TPL =
   "Trân trọng kính mời ##Relationship## đến dự lễ cưới của chúng mình. Sự hiện diện của ##Relationship## là niềm vui lớn của gia đình. Thiệp mời: ##link##";
-
-// Path có route riêng trong router.html — không phải slug thiệp.
-const ROUTE_PATHS = new Set(["manage", "account", "customer"]);
 
 // Đường phục vụ lại ảnh bìa cho og:image — KHÔNG trỏ og:image thẳng vào bucket.
 // Hai thứ ở bucket làm Facebook bỏ ô ảnh trong khi Zalo và trình duyệt vẫn hiện
@@ -46,14 +52,9 @@ export default {
 
     if (url.pathname.startsWith(OG_IMG_PREFIX)) return ogImage(env, url);
 
-    // Chỉ dựng thẻ cho GET/HEAD của một clean URL: đúng một đoạn, không dấu chấm.
-    const seg = url.pathname.replace(/^\/+|\/+$/g, "");
-    const isSlugPath =
-      (request.method === "GET" || request.method === "HEAD") &&
-      seg &&
-      !seg.includes("/") &&
-      !seg.includes(".") &&
-      !ROUTE_PATHS.has(seg);
+    // Chỉ GET/HEAD của một clean URL (luật ở slugSegment) mới là link thiệp.
+    const seg = slugSegment(url.pathname);
+    const isSlugPath = (request.method === "GET" || request.method === "HEAD") && seg;
 
     if (!isSlugPath) return env.ASSETS.fetch(request);
 
@@ -65,10 +66,19 @@ export default {
     if (asset.status !== 404) return asset;
 
     const wedding = await fetchWedding(env, seg);
-    // Không tra được (slug sai, thiệp nháp, Edge Function lỗi) → giữ nguyên hành
-    // vi cũ: 404 kèm trang chuyển hướng, không bịa thẻ preview.
+    // Không tra được (slug sai, thiệp nháp, Edge Function lỗi) → 404 kèm trang
+    // chuyển hướng, không bịa thẻ preview.
     const guest = wedding ? await decryptGuestParam(env, url, "name") : "";
     const rel = wedding ? await decryptGuestParam(env, url, "relationship") : "";
+
+    if (wedding) {
+      try {
+        const res = await themePage(env, url, seg, wedding, guest, rel);
+        if (res) return res;
+      } catch (_) {
+        /* lùi về trang chuyển hướng bên dưới */
+      }
+    }
 
     return new Response(await page(env, wedding, guest, url, rel), {
       status: wedding ? 200 : 404,
@@ -396,6 +406,49 @@ function md5(input) {
 
 /* ─────────────────────────────── trang trả về ─────────────────────────── */
 
+/**
+ * Trang mẫu của thiệp phục vụ thẳng tại `/<slug>`; null khi không dựng được (mẫu
+ * lạ, asset thiếu) để nơi gọi lùi về trang chuyển hướng.
+ */
+async function themePage(env, url, slug, w, guest, rel) {
+  const theme = String(w.theme || DEFAULT_THEME);
+  if (!THEME_NAME.test(theme)) return null;
+  const dir = themeDir(theme);
+  // Đo ảnh og (một lượt fetch) chạy song song lấy HTML — để tuần tự là người thật
+  // cũng phải chờ phần chỉ crawler cần.
+  const [tpl, og] = await Promise.all([
+    env.ASSETS.fetch(new Request(new URL(dir, url.origin))),
+    ogMeta(env, w, guest, url, rel),
+  ]);
+  if (tpl.status !== 200) return null;
+
+  const rw = new HTMLRewriter();
+  for (const attr of REWRITE_ATTRS) {
+    rw.on(`[${attr}]`, {
+      element(el) {
+        // Chỉ ghi khi đổi: ghi lại nguyên giá trị có `&amp;` (URL Google Fonts…) dễ bị mã hoá hai lần.
+        const v = el.getAttribute(attr);
+        const out = rewriteAttr(attr, v, dir);
+        if (out !== v) el.setAttribute(attr, out);
+      },
+    });
+  }
+  rw.on("title", { element: (el) => el.setInnerContent(og.title) });
+  rw.on("head", {
+    element: (el) => el.append(og.meta + routeHead(slug, theme), { html: true }),
+  });
+
+  return new Response(rw.transform(tpl).body, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      // Phản hồi mang HTML của MẪU: chủ thiệp đổi mẫu thì bản cache cũ chỉ được
+      // sống ngắn, không thì khách mở ra mẫu cũ chạy với dữ liệu mới.
+      "Cache-Control": "public, max-age=60",
+    },
+  });
+}
+
 const esc = (s) =>
   String(s ?? "")
     .replace(/&/g, "&amp;")
@@ -403,7 +456,8 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-async function page(env, w, guest, url, rel) {
+/** Thẻ og:* (+ tiêu đề) của một thiệp; không có thiệp thì rỗng. */
+async function ogMeta(env, w, guest, url, rel) {
   const title = w ? ogTitle(w, guest) : "Cưới Xinh";
   const desc = w ? ogDesc(w, guest, rel) : "";
   const src = w ? imageUrl(env, coverRef(w)) : "";
@@ -453,6 +507,11 @@ async function page(env, w, guest, url, rel) {
     <meta name="twitter:description" content="${esc(desc)}" />${imgMeta}
     <meta name="robots" content="noindex" />`
     : "";
+  return { title, meta };
+}
+
+async function page(env, w, guest, url, rel) {
+  const { title, meta } = await ogMeta(env, w, guest, url, rel);
 
   // <script> dưới đây PHẢI khớp 404.html: đó là đường chuyển hướng thật của mọi
   // link thiệp, sửa một bên mà quên bên kia là hai lối vào chạy khác nhau.

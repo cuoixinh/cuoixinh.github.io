@@ -1,0 +1,197 @@
+{
+  "image_focal_points": {
+    "gallery_images": {
+      "gallery-01.webp": {
+        "x": 55,
+        "y": 52
+      },
+      "gallery-02.webp": {
+        "x": 54,
+        "y": 36
+      },
+      "gallery-03.webp": {
+        "x": 48,
+        "y": 23
+      },
+      "gallery-04.webp": {
+        "x": 52,
+        "y": 58
+      },
+      "gallery-05.webp": {
+        "x": 31,
+        "y": 49
+      },
+      "gallery-06.webp": {
+        "x": 31,
+        "y": 60
+      },
+      "gallery-07.webp": {
+        "x": 50,
+        "y": 50
+      },
+      "gallery-08.webp": {
+        "x": 41,
+        "y": 71
+      },
+      "gallery-09.webp": {
+        "x": 52,
+        "y": 60
+      }
+    },
+    "cover_image_url": {
+      "x": 33,
+      "y": 57
+    },
+    "groom_image_url": {
+      "x": 41,
+      "y": 36
+    },
+    "bride_image_url": {
+      "x": 34,
+      "y": 31
+    }
+  },
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp",
+    "gallery-08.webp",
+    "gallery-09.webp"
+  ],
+  "love_story": [
+    {
+      "date": "2018",
+      "title": "Quen nhau",
+      "content": "Một buổi chiếu phim muộn, hai chiếc vé ngồi cạnh nhau — và một bịch bỏng ngô bị làm đổ.",
+      "image_url": "love-story-01.webp",
+      "focal_point": {
+        "x": 51,
+        "y": 54
+      }
+    },
+    {
+      "date": "2021",
+      "title": "Hiểu nhau",
+      "content": "Ba năm, hai thành phố, những cuộc gọi kéo dài tới khi một đứa ngủ quên.",
+      "image_url": "love-story-02.webp",
+      "focal_point": {
+        "x": 60,
+        "y": 65
+      }
+    },
+    {
+      "date": "2025",
+      "title": "Về chung một nhà",
+      "content": "Anh cầu hôn trong đúng rạp chiếu năm ấy, ở đúng hàng ghế G, ghế số 7 và 8.",
+      "image_url": "love-story-03.webp",
+      "focal_point": {
+        "x": 54,
+        "y": 38
+      }
+    }
+  ],
+  "content": {
+    "groom_name": "Hoàng Nam",
+    "bride_name": "Bảo Ngọc",
+    "groom_father": "Lê Văn Hùng",
+    "groom_mother": "Nguyễn Thị Lan",
+    "groom_address": "Số 18 Phan Đình Phùng, Phường Ba Đình, TP. Hà Nội",
+    "bride_father": "Phạm Quốc Bảo",
+    "bride_mother": "Trần Thị Thu Hà",
+    "bride_address": "Số 7 Lê Lợi, Phường Hồng Gai, Tỉnh Quảng Ninh",
+    "ceremony_name": "Lễ Thành Hôn",
+    "ceremony_date": "2027-01-09",
+    "ceremony_time": "10:30",
+    "ceremony_lunar": "Tức ngày 2 tháng 12 năm Bính Ngọ",
+    "ceremony_location": "Tư gia nhà trai — Số 18 Phan Đình Phùng, Phường Ba Đình, TP. Hà Nội",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=21.0409,105.8432&output=embed&hl=vi",
+    "vu_quy_enabled": true,
+    "vu_quy_time": "07:00",
+    "vu_quy_location": "Tư gia nhà gái — Số 7 Lê Lợi, Phường Hồng Gai, Tỉnh Quảng Ninh",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=20.9525,107.0800&output=embed&hl=vi",
+    "groom_party_date": "2027-01-08",
+    "groom_party_time": "17:30",
+    "groom_party_lunar": "Tức ngày 1 tháng 12 năm Bính Ngọ",
+    "groom_party_show_location": true,
+    "groom_party_location": "Trung tâm tiệc cưới Riverside Palace — Số 360 Bến Vân Đồn, TP. Hà Nội",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=21.0505,105.8460&output=embed&hl=vi",
+    "bride_party_date": "2027-01-08",
+    "bride_party_time": "11:00",
+    "bride_party_lunar": "Tức ngày 1 tháng 12 năm Bính Ngọ",
+    "bride_party_show_location": true,
+    "bride_party_location": "Nhà hàng Hoa Biển — Đường Hạ Long, Phường Bãi Cháy, Tỉnh Quảng Ninh",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.9560,107.0450&output=embed&hl=vi",
+    "groom_bank_name": "Vietcombank",
+    "groom_bank_number": "0011004567890",
+    "groom_bank_owner": "LE HOANG NAM",
+    "bride_bank_name": "Techcombank",
+    "bride_bank_number": "19034567890123",
+    "bride_bank_owner": "PHAM BAO NGOC",
+    "story_quote": "Có những bộ phim xem một lần là nhớ cả đời. Chuyện của chúng mình là một bộ phim như thế.",
+    "rsvp_enabled": true,
+    "rsvp_message": "Ghế đã chừa sẵn, chỉ chờ bạn tới. Xác nhận giúp chúng mình để nhà hàng chuẩn bị chu đáo nhé.",
+    "footer_text": "Cảm ơn bạn đã đến xem bộ phim của chúng mình. Phần hay nhất vẫn còn ở phía trước.",
+    "enable_music": true,
+    "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
+    "enable_family": true,
+    "enable_party": true,
+    "enable_photos": true,
+    "enable_timeline": true,
+    "enable_love_story": true,
+    "enable_gift": true,
+    "enable_footer": true,
+    "demo_fill_love_story": false,
+    "timeline": [
+      {
+        "time": "10:30",
+        "title": "Đón khách tại nhà hàng Hoa Biển",
+        "type": "bride-party"
+      },
+      {
+        "time": "11:00",
+        "title": "Khai tiệc mừng nhà gái",
+        "type": "bride-party"
+      },
+      {
+        "time": "07:00",
+        "title": "Lễ Vu Quy tại tư gia nhà gái",
+        "type": "ceremony"
+      },
+      {
+        "time": "08:00",
+        "title": "Nhà trai đón dâu",
+        "type": "ceremony"
+      },
+      {
+        "time": "10:30",
+        "title": "Lễ Thành Hôn tại tư gia nhà trai",
+        "type": "ceremony"
+      },
+      {
+        "time": "17:00",
+        "title": "Đón khách tại Riverside Palace",
+        "type": "party"
+      },
+      {
+        "time": "17:30",
+        "title": "Khai tiệc mừng nhà trai",
+        "type": "party"
+      },
+      {
+        "time": "20:00",
+        "title": "Cảm ơn và tiễn khách",
+        "type": "party"
+      }
+    ]
+  },
+  "updated_at": "2026-10-11T14:23:41.567Z"
+}

@@ -29,9 +29,9 @@ Sửa CSS thì `npm run watch:css` (ứng dụng) hoặc `npm run watch:themes` 
 chỗ nào rẽ nhánh theo môi trường**. Muốn đụng dữ liệu thật thì `npm run dev --
 --env=production`. **Mở bằng Live Server / `python -m http.server` là KHÔNG qua server
 này → rơi về production**; cổng in ra lúc khởi động mới là cổng chạy staging.
-Server tự tải lại trang khi file đổi (`-- --no-reload` để tắt) và trả `404.html` cho path
-lạ, nên clean URL `/<slug>` chạy giống production; còn lại local vẫn dùng full URL
-(`/admin/index.html`).
+Server tự tải lại trang khi file đổi (`-- --no-reload` để tắt) và dựng link thiệp `/<slug>`
+giống worker production (lùi về `404.html` khi không dựng được); còn lại local vẫn dùng full
+URL (`/admin/index.html`).
 
 ## Cấu trúc
 
@@ -49,7 +49,7 @@ assets/background/       Ảnh nền WebP do tab "Ảnh nền" của admin chụ
 supabase/functions/      Edge Functions
 changelogs/              Lịch sử thay đổi DB
 cloudflare-worker/       Workers proxy/cache
-worker/                  Worker của site chính — chèn thẻ og:* cho link thiệp
+worker/                  Worker của site chính — trả trang thiệp tại /<slug> + thẻ og:*
 ```
 
 **3-layer:** UI (render + events) → **BL** (validate, transform, rules) → **DAL** (query DB, API).
@@ -319,10 +319,13 @@ Cloudflare Workers Builds build từ repo private và **chỉ publish thư mục
 `wrangler.jsonc` gốc), do `scripts/deploy-public.mjs --dist --minify` dựng ra. Đụng tới
 deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
 
-- **Thẻ chia sẻ (og:*) do `worker/index.js` trả**, khai ở `main` của `wrangler.jsonc` —
-  crawler Messenger/Zalo/Facebook KHÔNG chạy JS nên trang thiệp không tự khai meta được.
-  Worker chỉ nhận path lạ (`/<slug>`), hỏi Edge Function `?slug=` rồi trả HTML mang meta +
-  đúng đoạn chuyển hướng của `404.html` — sửa `404.html` thì sửa cả bản sao trong đó.
+- **Link thiệp `/<slug>` do `worker/index.js` trả**, khai ở `main` của `wrangler.jsonc`:
+  hỏi Edge Function `?slug=` rồi trả THẲNG trang mẫu tại URL đó (rewrite, không chuyển
+  hướng) kèm thẻ og:* — crawler Messenger/Zalo/Facebook KHÔNG chạy JS nên trang thiệp
+  không tự khai meta được. Luật đổi đường dẫn + chèn `window.__CX_ROUTE` ở
+  `worker/route-html.mjs`, dùng chung với `scripts/dev-server.mjs` — sửa cách áp ở một bên
+  thì sửa cả bên kia. Không dựng được thì lùi về đúng đoạn chuyển hướng của `404.html` →
+  `router.html` — sửa `404.html` thì sửa cả bản sao trong đó.
   Ảnh của thẻ phát lại qua `/__og/<tên file>`, mã hoá lại bằng Cloudflare Images
   Transformations (phải BẬT cho zone, nếu không worker lùi về file gốc): trỏ og:image
   thẳng vào bucket thì Facebook bỏ ô ảnh với file còn EXIF của máy chụp — ảnh chụp bằng
@@ -342,8 +345,9 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
   Thư mục đã khai (`core/`, `js/`, `public/`, `assets/`…) thì file mới bên trong tự theo.
 - Cái giữ `changelogs/`, `supabase/`, `admin/` khỏi web là **`assets.directory = "./dist"`**,
   KHÔNG phải quyền private của repo. Trỏ nó về gốc repo là lộ sạch.
-- `wrangler.jsonc` phải giữ **`not_found_handling: "404-page"`**: clean URL dựa vào host trả
-  `404.html` cho path lạ, bỏ đi là mọi link thiệp `/<slug>` chết trong khi trang chủ vẫn chạy.
+- `wrangler.jsonc` phải giữ **`not_found_handling: "404-page"`**: path lạ rơi tới worker và
+  đường lùi của nó đều dựa vào đó, bỏ đi là mọi link thiệp `/<slug>` chết trong khi trang chủ
+  vẫn chạy.
 - **`admin/` chỉ chạy local** (`localhost` — Edge Function đã cho phép mọi cổng localhost).
   Kéo theo: `CONFIG.cloudflare.purgeSecret` bị `REDACT` thay bằng `null` trong bản publish.
   Chức năng nào của trang public cần một giá trị trong `REDACT` thì phải gỡ mục đó ra.
@@ -472,8 +476,12 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
 - **Mẫu mới phải thêm một `<url>` vào `sitemap.xml`** — bản mẫu (URL không có
   `?slug=`) là hàng đang bán nên cần lên tìm kiếm. Ngược lại, thiệp THẬT dùng chung URL
   đó nhưng có `?slug=`: đoạn script nhỏ đầu `<head>` của mẫu tự gắn
-  `<meta name="robots" content="noindex">` khi thấy tham số này. Chép `base-theme` là có
-  sẵn đoạn đó — đừng gỡ, gỡ là thiệp khách (tên, địa chỉ, SĐT, QR ngân hàng) lên Google.
+  `<meta name="robots" content="noindex">` khi thấy tham số này (link `/<slug>` thì worker
+  viết sẵn thẻ đó). Chép `base-theme` là có sẵn đoạn đó — đừng gỡ, gỡ là thiệp khách (tên,
+  địa chỉ, SĐT, QR ngân hàng) lên Google.
+- **JS của mẫu và helper không dùng đường dẫn tương đối** (`"../../../x"`, `"theme.css"`):
+  link `/<slug>` chạy trang mẫu ở gốc site, worker chỉ đổi được đường dẫn trong markup.
+  Viết tuyệt đối (`/assets/...`).
 - Mục Địa điểm: `#map-location-name` + `#map-link` phải đứng CUỐI `#section-map`, vẽ bằng
   `renderVenueMaps(w, side)` (`render-helper.js`) — lễ và tiệc ở hai nơi thì nó nhân cặp
   đó thành bản đồ thứ hai (id đuôi `-2`, cờ `.cx-map-dual` trên mục). `theme.css` nhắm
@@ -695,7 +703,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   và trang chủ đã có); thiếu thì lùi về `1svh`, đúng khổ nhưng kém ổn định.
 - **Chặn zoom: mọi trang `index.html` nạp `core/helpers/no-zoom.js` trong `<head>`** — trang
   mới cũng phải thêm (`base-theme` có sẵn). Safari iOS bỏ qua `user-scalable=no` của thẻ
-  viewport, nên thiếu thẻ script là trang đó chụm hai ngón vẫn zoom được.
+  viewport, nên thiếu thẻ script là trang đó chụm hai ngón vẫn zoom được. Ngay sau nó là
+  `core/helpers/no-inspect.js` (chặn chuột phải + phím tắt DevTools, bỏ qua ở localhost) —
+  chỉ để làm khó người dùng phổ thông, KHÔNG phải bảo mật. `admin/` không nạp.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
 - **Trần số thiệp mỗi tài khoản:** một tài khoản chỉ giữ được `MAX_WEDDINGS_PER_USER`
   thiệp còn hiện trong danh sách (nháp đã lưu + đã xuất bản; nháp chỉ nằm trong
