@@ -120,6 +120,7 @@ function openGuestsPage(e) {
     showToast("Cần lưu thiệp trước khi quản lý khách mời", "warning");
     return;
   }
+  cxPauseAllMusic("guests");
 
   // Lưu tab vào URL mà không reload
   const _url = new URL(window.location.href);

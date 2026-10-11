@@ -363,11 +363,14 @@ function _ytListenSync(state) {
   } catch {}
 }
 
-// Tạm dừng trình phát "Nghe thử" — switchTab gọi mỗi lần đổi tab để nhạc không phát
-// chồng với nhạc của thiệp ở tab Xem trước / khung xem trực tiếp.
+// Tạm dừng trình phát "Nghe thử" của tab Cấu hình — gọi mỗi lần rời tab (qua
+// cxPauseAllMusic) để nhạc không phát chồng với nhạc thiệp. Dừng cả lúc đang TẢI
+// ĐỆM: vừa bấm nghe / vừa tua là BUFFERING, bỏ qua ca đó thì nhạc phát tiếp sau
+// khi đã rời tab.
 function cxPauseYtPreview() {
   try {
-    if (_ytPreviewPlayer?.getPlayerState?.() === YT.PlayerState.PLAYING) _ytPreviewPlayer.pauseVideo();
+    const st = _ytPreviewPlayer?.getPlayerState?.();
+    if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.BUFFERING) _ytPreviewPlayer.pauseVideo();
   } catch {}
 }
 
