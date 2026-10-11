@@ -124,6 +124,17 @@
     }
   }
 
+  // Tô thanh bước theo bước đang hiện (1 xác nhận · 2 quét mã · 3 hoàn tất):
+  // bước trước đó đánh dấu xong, bước hiện tại đánh dấu đang ở.
+  function _setStep(n) {
+    document.querySelectorAll("#payment-steps li").forEach((li, i) => {
+      li.classList.toggle("is-done", i + 1 < n);
+      li.classList.toggle("is-on", i + 1 === n);
+      if (i + 1 === n) li.setAttribute("aria-current", "step");
+      else li.removeAttribute("aria-current");
+    });
+  }
+
   // Task 5.3: Display QR code
   function displayQRCode(qrDataString, paymentInfo, orderId) {
     const step2 = document.getElementById("payment-step-2");
@@ -565,6 +576,7 @@
     document.getElementById("payment-step-2").style.display = "none";
     const step3 = document.getElementById("payment-step-3");
     step3.style.display = "flex";
+    _setStep(3);
     // Đơn 0đ đi thẳng từ bước 1 sang đây; icon của bước 3 đã dựng lúc mount,
     // nhưng gọi lại cho chắc khi markup vừa bị thay ở luồng khác.
     window.lucide?.createIcons({ root: step3 });
@@ -601,93 +613,115 @@
   function _stepsHTML() {
     return `
           <!-- Step 1: Xác nhận đơn hàng.
-               Bố cục: mẫu đang mua → người mua → mã giảm giá → bảng tiền → dải
-               trả tiền. Mỗi khối là một hàng phẳng ngăn bằng đường kẻ, không
-               lồng nhiều lớp thẻ bo góc — màn này chỉ có một việc, đóng khung
-               nhiều thứ làm mất chỗ nhìn vào.
+               Bố cục: thanh bước → mẫu đang mua (phong bì) → người mua → chi tiết
+               thanh toán (kèm mã giảm giá) → dải trả tiền. Thẻ giữ phẳng, chỉ
+               phong bì là chỗ nhấn — màn này chỉ có một việc.
                TIỀN CHỈ ĐƯỢC KỂ MỘT LẦN: hàng sản phẩm không mang giá, mọi con
-               số (giá gốc · ưu đãi · mã giảm) dồn vào bảng tiền ở dưới, tổng
-               nằm ở dải trả tiền. Rải giá ra hai chỗ là khách phải tự đối
+               số (giá gốc · ưu đãi · mã giảm) dồn vào chi tiết thanh toán, tổng
+               nằm trên nút trả tiền. Rải giá ra hai chỗ là khách phải tự đối
                chiếu, và lúc áp mã thì hai chỗ nói hai giá khác nhau. -->
+          <!-- Ba chặng THẬT của luồng, đứng trên CẢ BA bước (khối #payment-step-N
+               tương ứng): khách do dự vì không biết bấm xong thì rơi vào đâu, và
+               đang ở màn QR thì cần biết còn một chặng nữa. Trạng thái do
+               _setStep đặt — chỗ nào chuyển bước thì gọi nó. Dòng chữ nhỏ trên cùng
+               cho biết đây là màn thanh toán, đứng NGANG HÀNG nút đóng (hộp thoại)
+               / nút quay lại (trang) nên thanh bước ở hàng dưới không đụng nút. -->
+          <p class="cx-ord-eyebrow cx-ord-kicker">Thanh toán đơn hàng</p>
+          <ol id="payment-steps" class="cx-ord-steps px-6 pt-3 m-0" aria-label="Các bước thanh toán">
+            <li><span>1</span>Xác nhận</li>
+            <li><span>2</span>Quét mã</li>
+            <li><span>3</span>Hoàn tất</li>
+          </ol>
+
           <div id="payment-step-1">
-            <!-- Tiêu đề một dòng: khách bấm "Thanh toán" mới tới đây nên câu
-                 "kiểm tra thông tin trước khi thanh toán" chỉ chiếm chỗ để nói
-                 điều họ đã biết. -->
-            <div class="px-6 pt-5 pb-3">
-              <h3 class="font-playfair text-xl font-bold m-0" style="color:rgb(var(--text-heading-rgb));">Xác nhận đơn hàng</h3>
+            <!-- Tiêu đề CHỈ cho trình đọc màn hình: thanh bước ở trên đã báo
+                 "Xác nhận", hiện thêm một dòng là nói lại điều đó và đẩy thẻ
+                 thiệp — thứ khách cần nhìn — xuống thấp. -->
+            <h3 class="sr-only">Xác nhận đơn hàng</h3>
+
+            <!-- Thiệp đang thanh toán, dựng như thẻ ở "Đã chọn" (my-invitations):
+                 ảnh bìa THẬT của khách + tên cô dâu chú rể + tên mẫu, để khách có
+                 nhiều thiệp vẫn chắc mình đang trả cho đúng thiệp. Mua mẫu mới
+                 (chưa có thiệp) thì ảnh là ảnh mẫu — xem _syncProduct.
+                 #payment-template-name phải giữ ĐÚNG tên mẫu: process() đọc lại
+                 chữ trong đó để dựng đơn. -->
+            <div class="px-6 pt-5 pb-6">
+              <div class="cx-ord-item">
+                <div class="cx-ord-thumb">
+                  <span id="payment-thumb-fallback" class="cx-ord-thumb-empty"></span>
+                  <!-- src rỗng phân giải thành URL trang hiện tại → trình duyệt tải
+                       HTML về rồi vẽ icon vỡ; đặt sẵn ảnh 1x1 trong suốt. -->
+                  <img id="payment-thumb" alt="" class="hidden"
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
+                </div>
+                <div class="min-w-0 flex-1 flex flex-col gap-1 py-1">
+                  <!-- Cùng kiểu chữ tên thiệp ở thẻ "Đã chọn" (.mi-title): Inter 16px
+                       đậm vừa, một dòng. -->
+                  <p class="text-base font-semibold leading-[1.35] m-0 truncate" style="color:rgb(var(--scrim-plum-rgb));" id="payment-product-sub">Thiệp cưới online</p>
+                  <p class="flex items-center gap-1.5 text-xs text-gray-500 m-0 min-w-0">
+                    <i data-lucide="palette" class="shrink-0" style="width:14px;height:14px"></i><span id="payment-template-name" class="truncate">-</span>
+                  </p>
+                  <p class="flex items-start gap-1.5 text-xs leading-4 text-gray-500 m-0">
+                    <i data-lucide="infinity" class="shrink-0 mt-px" style="width:14px;height:14px"></i>Thiệp cưới online · dùng trọn đời
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <!-- Mẫu đang mua. Ảnh thật của mẫu + tên cặp đôi (khi biết) để
-                 khách có nhiều nháp vẫn chắc mình đang trả cho đúng thiệp —
-                 xem _syncProduct. Chưa nạp được ảnh thì ô icon đứng thay. -->
-            <div class="mx-6 flex items-center gap-3 py-4 border-t border-gray-100">
-              <div id="payment-thumb-fallback" class="w-11 h-14 rounded-lg flex items-center justify-center shrink-0" style="background:rgb(var(--surface-brand-rgb));">
-                <i data-lucide="mail-open" class="text-lg" style="width:16px;height:16px;color:rgb(var(--brand-primary-rgb));"></i>
-              </div>
-              <!-- src rỗng phân giải thành URL trang hiện tại → trình duyệt tải
-                   HTML về rồi vẽ icon vỡ; đặt sẵn ảnh 1x1 trong suốt. -->
-              <img id="payment-thumb" alt="" class="hidden w-11 h-14 rounded-lg object-cover shrink-0"
-                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
-              <div class="min-w-0">
-                <p class="font-semibold text-sm m-0 truncate" style="color:rgb(var(--text-heading-rgb));" id="payment-template-name">-</p>
-                <p class="text-xs text-gray-500 m-0 truncate" id="payment-product-sub">Thiệp cưới online · dùng trọn đời</p>
-              </div>
-            </div>
-
-            <!-- Người mua = tài khoản đang đăng nhập, không nhập lại gì.
-                 Chưa đăng nhập thì #payment-login thế chỗ (xem _syncBuyer). -->
-            <div class="mx-6 py-4 border-t border-gray-100">
-              <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 m-0 mb-2">Người mua</p>
-              <div id="payment-user-info" class="hidden items-center gap-3">
+            <!-- Người mua = tài khoản đang đăng nhập, không nhập lại gì và KHÔNG
+                 cho đổi ở đây. Chưa đăng nhập thì #payment-login thế chỗ (xem
+                 _syncBuyer). -->
+            <div class="px-6 pb-5">
+              <p class="cx-ord-eyebrow">Người mua</p>
+              <div id="payment-user-info" class="hidden items-center gap-3 rounded-2xl px-4 py-3" style="background:rgb(var(--surface-brand-subtle-rgb));">
                 <!-- Chữ cái đầu nằm sẵn dưới ảnh: tài khoản email thuần không
                      có avatar, và link avatar Google cũng có lúc chết. -->
-                <span class="relative shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full overflow-hidden text-sm font-semibold"
-                  style="background:rgb(var(--surface-brand-rgb));color:rgb(var(--avatar-initial-rgb));">
+                <span class="relative shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full overflow-hidden text-sm font-semibold"
+                  style="background:rgb(var(--white-rgb));color:rgb(var(--avatar-initial-rgb));box-shadow:0 0 0 2px rgb(var(--white-rgb)), 0 0 0 3px rgb(var(--brand-primary-rgb));">
                   <span id="payment-avatar-ini"></span>
                   <img id="payment-avatar" src="" alt="" class="absolute inset-0 w-full h-full object-cover" />
                 </span>
                 <div class="min-w-0">
-                  <p class="text-sm font-medium m-0 truncate" style="color:rgb(var(--text-heading-rgb));" id="payment-user-name-display"></p>
-                  <p class="text-xs text-gray-400 m-0 truncate" id="payment-user-email-display"></p>
+                  <p class="text-sm font-semibold m-0 truncate" style="color:rgb(var(--text-heading-rgb));" id="payment-user-name-display"></p>
+                  <p class="text-xs text-gray-500 m-0 truncate" id="payment-user-email-display"></p>
                 </div>
-                <!-- Đường lùi cho người lỡ đăng nhập nhầm tài khoản: không có
-                     nút này thì họ kẹt ngay trước lúc trả tiền. -->
-                <button type="button" onclick="PaymentModal.switchAccount()"
-                  class="ml-auto shrink-0 text-xs font-medium underline underline-offset-2 text-gray-400 hover:text-gray-600">Đổi</button>
               </div>
-              <div id="payment-login" class="hidden flex-col items-start gap-2">
-                <p class="text-sm text-gray-500 m-0">Đăng nhập để thanh toán và quản lý thiệp của bạn.</p>
-                <x-button size="sm" onclick="PaymentModal.login()">Đăng nhập</x-button>
+              <div id="payment-login" class="hidden flex-col items-start gap-3 rounded-2xl px-4 py-4" style="background:rgb(var(--surface-brand-subtle-rgb));">
+                <p class="text-sm text-gray-600 m-0">Đăng nhập để thanh toán và quản lý thiệp của bạn.</p>
+                <x-button size="sm" icon="log-in" onclick="PaymentModal.login()">Đăng nhập</x-button>
               </div>
             </div>
 
-            <!-- Bảng tiền: nơi DUY NHẤT cộng trừ. Hai hàng giảm giá dùng
-                 style.display chứ không phải class "hidden" — hàng là flex, mà
-                 gỡ "hidden" chỉ trả về display:block nên hai đầu hàng dồn hết
-                 sang trái. -->
-            <div class="mx-6 py-4 border-t border-gray-100 flex flex-col gap-2">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-500">Giá gốc</span>
-                <span id="payment-base-price" class="text-sm font-medium" style="color:rgb(var(--text-heading-rgb));">…</span>
+            <!-- Chi tiết thanh toán: nơi DUY NHẤT cộng trừ, dựng như tờ hoá đơn
+                 (chấm dẫn từ nhãn sang số). Hai hàng giảm giá dùng style.display
+                 chứ không phải class "hidden" — hàng là flex, mà gỡ "hidden" chỉ
+                 trả về display:block nên hai đầu hàng dồn hết sang trái. -->
+            <div class="px-6 pb-5">
+              <p class="cx-ord-eyebrow">Chi tiết thanh toán</p>
+              <div class="flex flex-col gap-2.5">
+                <div class="cx-ord-line">
+                  <span class="text-gray-600">Giá mẫu thiệp</span><span class="cx-ord-lead"></span>
+                  <span id="payment-base-price" class="font-semibold" style="color:rgb(var(--text-heading-rgb));">…</span>
+                </div>
+                <div id="payment-sale-row" class="cx-ord-line" style="display:none;color:rgb(var(--action-primary-deep-rgb));">
+                  <span>Ưu đãi ra mắt</span><span class="cx-ord-lead"></span>
+                  <span id="payment-sale-amount" class="font-semibold">-0đ</span>
+                </div>
               </div>
-              <div id="payment-sale-row" class="flex items-center justify-between" style="display:none;">
-                <span class="text-sm" style="color:rgb(var(--state-success-text-rgb));">Ưu đãi ra mắt</span>
-                <span id="payment-sale-amount" class="text-sm font-medium" style="color:rgb(var(--state-success-text-rgb));">-0đ</span>
-              </div>
-              <!-- Mã giảm giá là MỘT HÀNG của bảng tiền, không phải khối riêng:
-                   hàng vừa là nút mở ô nhập, vừa là chỗ báo kết quả — mã giảm
-                   nằm đúng chỗ nó tác động. Chưa dùng thì hàng ghi lời mời,
-                   dùng rồi thì ghi mã + mức giảm. -->
-              <button type="button" id="promo-row" onclick="cxPromoOpen()" class="flex w-full items-center justify-between gap-2 text-left">
-                <span class="flex items-center gap-1.5 text-sm text-gray-500">
-                  <i data-lucide="tag" class="shrink-0" style="width:14px;height:14px"></i><span id="promo-row-label">Nhập mã giảm giá</span>
+              <!-- Mã giảm giá là MỘT HÀNG của chi tiết thanh toán, dáng phiếu cắt
+                   viền đứt: vừa là nút mở ô nhập, vừa là chỗ báo kết quả — mã
+                   giảm nằm đúng chỗ nó tác động. Chưa dùng thì ghi lời mời, dùng
+                   rồi thì ghi mã + mức giảm. -->
+              <button type="button" id="promo-row" onclick="cxPromoOpen()" class="cx-ord-coupon mt-4">
+                <span class="flex items-center gap-2 text-sm font-medium min-w-0" style="color:rgb(var(--text-heading-rgb));">
+                  <i data-lucide="ticket-percent" class="shrink-0" style="width:16px;height:16px;color:rgb(var(--brand-accent-rgb));"></i><span id="promo-row-label" class="truncate">Nhập mã giảm giá</span>
                 </span>
-                <span class="flex items-center gap-0.5 shrink-0">
-                  <span id="promo-discount-amount" class="hidden text-sm font-medium" style="color:rgb(var(--state-success-text-rgb));">-0đ</span>
-                  <i data-lucide="chevron-right" class="text-gray-400 shrink-0" style="width:14px;height:14px"></i>
+                <span class="flex items-center gap-1 shrink-0">
+                  <span id="promo-discount-amount" class="hidden text-sm font-semibold" style="color:rgb(var(--action-primary-deep-rgb));">-0đ</span>
+                  <i data-lucide="chevron-right" class="text-gray-400 shrink-0" style="width:16px;height:16px"></i>
                 </span>
               </button>
-              <div id="promo-box" style="display:none;">
+              <div id="promo-box" class="mt-3" style="display:none;">
                 <!-- Nút "Áp dụng" dùng suffix của x-input: dính liền ô nhập nên
                      không đọc thành một hành động ngang cơ nút thanh toán. -->
                 <x-input
@@ -705,48 +739,39 @@
                  toán), không phải câu "an toàn & bảo mật" suông. Nằm trong thẻ
                  chứ không nằm ở dải: dải bị ghim nên mỗi dòng thêm vào đó là
                  một dòng ăn mất của phần nội dung. -->
-            <div class="mx-6 pb-4 flex flex-col gap-1.5 text-xs text-gray-500">
-              <p class="flex items-center gap-1.5 m-0">
-                <i data-lucide="badge-check" class="shrink-0" style="width:14px;height:14px"></i>Trả một lần, dùng trọn đời — không phí gia hạn
-              </p>
-              <p class="flex items-center gap-1.5 m-0">
-                <i data-lucide="shield-check" class="shrink-0" style="width:14px;height:14px"></i>Thanh toán qua PayOS · quét VietQR
-              </p>
+            <div class="px-6 pb-6 flex flex-wrap justify-center gap-2">
+              <span class="cx-ord-chip"><i data-lucide="badge-check" style="width:14px;height:14px"></i>Trả một lần, không phí gia hạn</span>
+              <span class="cx-ord-chip"><i data-lucide="shield-check" style="width:14px;height:14px"></i>PayOS · quét VietQR</span>
             </div>
 
             <!-- Dải trả tiền. Ở dạng TRANG, mount() ghim khối này xuống đáy màn
-                 (xem _pinPaybar) nên tổng tiền + nút luôn trong tầm tay, không
-                 phải cuộn. Nó nằm TRONG #payment-step-1 là cố ý: các bước ẩn
-                 nhau bằng display:none, con cháu "fixed" cũng biến mất theo nên
-                 không cần đồng bộ ẩn/hiện thêm chỗ nào. -->
-            <div id="payment-paybar" class="p-6 pt-4 flex flex-col gap-2 border-t border-gray-100">
+                 (xem _pinPaybar — class ở đây bị ghi đè ở đó, sửa thì sửa cả hai)
+                 nên tổng tiền + nút luôn trong tầm tay. Nó nằm TRONG
+                 #payment-step-1 là cố ý: các bước ẩn nhau bằng display:none, con
+                 cháu "fixed" cũng biến mất theo nên không cần đồng bộ thêm. -->
+            <div id="payment-paybar" class="px-6 pt-5 pb-6 flex flex-col gap-3 border-t border-gray-100">
               <p id="payment-api-error" class="hidden text-xs text-red-500 text-center p-2 bg-red-50 rounded-lg m-0"></p>
-              <!-- Mức tiết kiệm ở ngay giây quyết định; ẩn khi bằng 0 (xem _syncSaving). -->
-              <p id="payment-saving" class="hidden text-center text-xs font-semibold m-0" style="color:rgb(var(--state-success-text-rgb));"></p>
+              <!-- Mức tiết kiệm ở ngay giây quyết định, dồn phải cho đứng thẳng
+                   trên con số ở đầu phải nút; ẩn khi bằng 0 (xem _syncSaving).
+                   w-fit + ml-auto chứ không inline-flex: class "hidden" bật tắt
+                   trên chính thẻ này, hai utility display đè nhau là khó đoán.
+                   Mọi chỗ nói về tiền tiết kiệm dùng chung tông hồng đậm này. -->
+              <p id="payment-saving" class="hidden w-fit ml-auto rounded-full px-3 py-1 text-xs font-semibold m-0" style="color:rgb(var(--action-primary-deep-rgb));background:rgb(var(--surface-blossom-rgb));"></p>
               <!-- Nền gradient đè lên bg-rose-600 của fill/brand: cùng một màu
                    hành động của site (--action-primary-rgb), chỉ chuyển sang hồng
-                   nhấn ở đầu kia nên nút hoà vào bảng màu của trang thay vì là
-                   mảng đặc duy nhất. -->
-              <!-- Số tiền nằm TRÊN nút chứ không ở một hàng riêng phía trên:
-                   bớt một dòng của dải ghim, và con số đứng đúng điểm bấm. Bảng
-                   tiền ở trên vẫn là chỗ duy nhất cộng trừ, đây chỉ là con số
-                   chốt. Icon đặt trong span (không dùng thuộc tính icon=) vì
-                   x-button chèn icon thành con ĐẦU TIÊN, ngoài hàng flex này. -->
+                   nhấn ở đầu kia nên nút hoà vào bảng màu của trang.
+                   Số tiền nằm TRÊN nút: con số chốt đứng đúng điểm bấm. Icon đặt
+                   trong span (không dùng thuộc tính icon=) vì x-button chèn icon
+                   thành con ĐẦU TIÊN, ngoài hàng flex này. -->
               <x-button id="payment-submit" size="lg" full onclick="PaymentModal.process()"
-                style="background:linear-gradient(135deg,rgb(var(--brand-accent-rgb)),rgb(var(--action-primary-rgb)));">
+                style="background:linear-gradient(135deg,rgb(var(--brand-accent-rgb)),rgb(var(--action-primary-rgb)));box-shadow:0 12px 24px -12px rgb(var(--action-primary-rgb) / 0.6);">
                 <span class="flex w-full items-center justify-between gap-3">
                   <span class="flex items-center gap-2">
-                    <i data-lucide="credit-card" class="shrink-0" style="width:16px;height:16px"></i>Thanh toán ngay
+                    <i data-lucide="qr-code" class="shrink-0" style="width:16px;height:16px"></i>Thanh toán ngay
                   </span>
-                  <span id="payment-total-price">…</span>
+                  <span id="payment-total-price" class="text-base font-bold">…</span>
                 </span>
               </x-button>
-              <!-- Nói trước điều sắp xảy ra: khách do dự vì không biết bấm xong
-                   thì rơi vào đâu. flex chứ không phải text-center: icon.js thay
-                   <i> bằng <svg> khối, để chảy theo dòng thì nó rớt về mép trái. -->
-              <p class="flex items-center justify-center gap-1.5 text-xs text-gray-500 m-0">
-                <i data-lucide="qr-code" class="shrink-0" style="width:14px;height:14px"></i>Bấm xong sẽ hiện mã QR để quét
-              </p>
               <!-- Cùng câu chữ với hộp đăng nhập (core/auth-ui.js). Mở tab mới
                    để khách đọc xong quay lại không mất đơn đang dở. -->
               <p class="text-center text-[11px] text-gray-400 leading-relaxed m-0">
@@ -914,7 +939,7 @@
     const msg = document.getElementById("promo-msg");
     if (!code) return;
 
-    msg.className = "text-xs px-1 text-gray-400";
+    msg.className = "text-xs px-1 mt-1.5 text-gray-400";
     msg.textContent = "Đang kiểm tra...";
     msg.classList.remove("hidden");
 
@@ -936,7 +961,7 @@
       const data = await res.json();
 
       if (!data.valid) {
-        msg.className = "text-xs px-1 text-red-500";
+        msg.className = "text-xs px-1 mt-1.5 text-red-500";
         msg.textContent = data.error || "Mã không hợp lệ hoặc đã hết hạn";
         window._appliedPromo = null;
         _setPromoRow(null, 0);
@@ -947,7 +972,7 @@
       window._appliedPromo = data;
       // Có mã là email thành bắt buộc: backend cần danh tính để chặn một người
       // giữ nhiều lượt cùng lúc (xem cx_promo_reserve).
-      msg.className = "text-xs px-1 text-green-500";
+      msg.className = "text-xs px-1 mt-1.5 font-medium text-green-700";
       const basePrice = window._paymentPricing?.price || 0;
       msg.textContent =
         _discountOf(data, basePrice) >= basePrice && basePrice > 0
@@ -957,7 +982,7 @@
       _setPromoRow(code, _discountOf(data, basePrice));
       _renderPrices();
     } catch (e) {
-      msg.className = "text-xs px-1 text-red-500";
+      msg.className = "text-xs px-1 mt-1.5 text-red-500";
       msg.textContent = "Không thể kiểm tra mã, thử lại sau";
     }
   };
@@ -1068,7 +1093,7 @@
     const bar = document.getElementById("payment-paybar");
     if (!bar) return;
     bar.className =
-      "cx-paybar-pin flex flex-col gap-2 md:p-6 md:pt-4 md:border-t md:border-gray-100";
+      "cx-paybar-pin flex flex-col gap-3 md:px-6 md:pt-5 md:pb-6 md:border-t md:border-gray-100";
 
     // Lề đáy của trang ĐO theo dải thật thay vì một số viết cứng: dòng điều
     // khoản xuống dòng ở màn hẹp, hay thêm bớt một dòng trong dải, là chiều cao
@@ -1150,6 +1175,7 @@
       document.getElementById("payment-step-1").style.display = "block";
       document.getElementById("payment-step-2").style.display = "none";
       document.getElementById("payment-step-3").style.display = "none";
+      _setStep(1);
       document.getElementById("payment-template-name").textContent =
         templateName || "-";
 
@@ -1166,52 +1192,83 @@
     }
   }
 
-  // Ảnh mẫu + dòng phụ của hàng sản phẩm. Chạy ngầm: thiếu ảnh hay thiếu tên
-  // thì hàng vẫn đứng nguyên như lúc dựng, không chặn màn xác nhận.
-  async function _syncProduct(templateName, theme, manageId) {
-    // Dọn về mặc định trước: ở dạng hộp thoại, DOM được dùng lại cho lượt mua
-    // sau nên ảnh và dòng phụ của thiệp trước còn nằm đó.
-    const img0 = document.getElementById("payment-thumb");
-    const fb0 = document.getElementById("payment-thumb-fallback");
-    if (img0) {
-      img0.onload = null;
-      img0.classList.add("hidden");
-    }
-    if (fb0) fb0.style.display = "flex";
-    const sub0 = document.getElementById("payment-product-sub");
-    if (sub0) sub0.textContent = "Thiệp cưới online · dùng trọn đời";
+  // Ô ảnh khi chưa/không có ảnh: đang chờ (icon thiệp) hoặc thiệp chưa có ảnh bìa.
+  function _thumbEmpty(kind) {
+    const el = document.getElementById("payment-thumb-fallback");
+    if (!el) return;
+    el.innerHTML =
+      kind === "none"
+        ? '<i data-lucide="image-off" style="width:20px;height:20px"></i><span>Chưa có ảnh bìa</span>'
+        : '<i data-lucide="mail-open" style="width:20px;height:20px"></i>';
+    el.style.display = "flex";
+    window.lucide?.createIcons({ root: el });
+  }
 
-    // Đang mua cho một thiệp đã có → nói rõ thiệp nào. Tên cặp đôi lấy từ đơn
-    // trong localStorage (invitation-setup ghi vào đó), khớp theo manage_id nên
-    // không sợ nhầm thiệp; không có thì giữ nguyên dòng mô tả sản phẩm.
-    const sub = document.getElementById("payment-product-sub");
-    if (sub && manageId) {
-      const email = getCurrentUser()?.email || "";
-      const rows = [
-        ...getCache(buildCacheKey("orders", email), []),
-        ...getCache(buildCacheKey("orders", "guest"), []),
-      ];
-      const hit = rows.find((o) => o && o.manage_id === manageId);
-      const couple = [hit?.groomName, hit?.brideName].filter(Boolean).join(" & ");
-      if (couple) sub.textContent = `Thiệp của ${couple}`;
-    }
-
-    // Ảnh thật của mẫu. Chỉ thay ô icon SAU khi ảnh tải xong — đổi trước là
-    // khách thấy một ô trống nhấp nháy rồi mới có ảnh.
+  // Chỉ thay ô chờ SAU khi ảnh tải xong — đổi trước là khách thấy ô trống nhấp
+  // nháy. Ảnh hỏng (đã bị dọn) thì lùi về `onFail`.
+  function _thumbShow(url, onFail) {
     const img = document.getElementById("payment-thumb");
     const fallback = document.getElementById("payment-thumb-fallback");
-    if (!img || !window.templatesDAL) return;
-    try {
-      const row = (await templatesDAL.list()).find((t) => t.theme === theme);
-      if (!row?.thumbnailUrl) return;
-      img.onload = () => {
-        img.classList.remove("hidden");
-        if (fallback) fallback.style.display = "none";
-      };
-      img.src = row.thumbnailUrl;
-    } catch (e) {
-      /* giữ ô icon */
+    if (!img || !url) return onFail();
+    img.onload = () => {
+      img.classList.remove("hidden");
+      if (fallback) fallback.style.display = "none";
+    };
+    img.onerror = onFail;
+    img.src = url;
+  }
+
+  // Thẻ thiệp của màn xác nhận. Có thiệp (manageId) thì giống thẻ ở "Đã chọn":
+  // ảnh bìa THẬT của khách + tên cặp đôi, KHÔNG BAO GIỜ rơi về ảnh mẫu — thấy ảnh
+  // mẫu là khách tưởng mình đã đặt ảnh đó. Mua mẫu mới thì sản phẩm chính là
+  // mẫu, nên ảnh mẫu. Chạy ngầm: thiếu dữ liệu thì thẻ đứng nguyên như lúc dựng.
+  async function _syncProduct(templateName, theme, manageId) {
+    // Dọn về mặc định trước: ở dạng hộp thoại, DOM được dùng lại cho lượt mua
+    // sau nên ảnh và tên của thiệp trước còn nằm đó.
+    const img0 = document.getElementById("payment-thumb");
+    if (img0) {
+      img0.onload = img0.onerror = null;
+      img0.classList.add("hidden");
     }
+    _thumbEmpty("wait");
+    const title = document.getElementById("payment-product-sub");
+    if (title) title.textContent = "Thiệp cưới online";
+
+    if (!manageId) {
+      if (!window.templatesDAL) return;
+      try {
+        const row = (await templatesDAL.list()).find((t) => t.theme === theme);
+        _thumbShow(row?.thumbnailUrl, () => {});
+      } catch (e) {
+        /* giữ ô chờ */
+      }
+      return;
+    }
+
+    // Tên cặp đôi từ đơn trong localStorage (invitation-setup ghi vào đó) hiện
+    // ngay; bản trên hệ thống về sau mới đè lên.
+    const email = getCurrentUser()?.email || "";
+    const hit = [
+      ...getCache(buildCacheKey("orders", email), []),
+      ...getCache(buildCacheKey("orders", "guest"), []),
+    ].find((o) => o && o.manage_id === manageId);
+    const setCouple = (g, b) => {
+      const couple = [g, b].filter(Boolean).join(" & ");
+      if (title && couple) title.textContent = couple;
+    };
+    setCouple(hit?.groomName, hit?.brideName);
+
+    let w = null;
+    try {
+      w = window.weddingDAL ? await weddingDAL.getWeddingById(manageId) : null;
+    } catch (e) {
+      /* nháp chưa lên hệ thống / chưa đăng nhập → không có ảnh bìa */
+    }
+    if (w) setCouple(w.groom_name, w.bride_name);
+    // Cùng thứ tự ưu tiên với thẻ ở "Đã chọn": ảnh bìa, rồi tấm album đầu.
+    const file = w ? w.cover_image_url || (w.gallery_images || [])[0] : "";
+    const url = file && window.storageDAL ? storageDAL.getPublicUrl(file) : "";
+    _thumbShow(url, () => _thumbEmpty("none"));
   }
 
   // Người mua lấy THẲNG từ tài khoản đang đăng nhập — màn này không nhập gì.
@@ -1300,13 +1357,6 @@
       document.body.style.overflow = "";
     },
 
-    /** Đăng nhập nhầm tài khoản → thoát ra rồi mời đăng nhập lại. */
-    async switchAccount() {
-      await window.CXAuth?.client?.()?.auth?.signOut();
-      _syncBuyer();
-      this.login();
-    },
-
     /** Chưa đăng nhập → mở đăng nhập ngay tại trang, xong thì vẽ lại thẻ mua. */
     login() {
       if (window.AuthUI) {
@@ -1357,6 +1407,7 @@
       `;
       document.getElementById("payment-step-1").style.display = "none";
       step2El.style.display = "flex";
+      _setStep(2);
 
       // Task 9.1: Feature flag to toggle between fake and real payment
       if (!USE_REAL_PAYMENT) {
@@ -1468,6 +1519,7 @@
         // Return to step 1 and preserve form state
         document.getElementById("payment-step-2").style.display = "none";
         document.getElementById("payment-step-1").style.display = "block";
+        _setStep(1);
 
         // Mã giảm giá hỏng giữa chừng (người khác vừa dùng hết lượt, mã hết hạn…)
         // → gỡ mã đang áp, trả tổng tiền về giá gốc và báo ngay tại ô mã.
@@ -1478,7 +1530,7 @@
           window.cxPromoOpen();
           const promoMsg = document.getElementById("promo-msg");
           if (promoMsg) {
-            promoMsg.className = "text-xs px-1 text-red-500";
+            promoMsg.className = "text-xs px-1 mt-1.5 text-red-500";
             promoMsg.textContent = error.message;
             promoMsg.classList.remove("hidden");
           }
@@ -1561,6 +1613,7 @@
       stopPolling();
       document.getElementById("payment-step-2").style.display = "none";
       document.getElementById("payment-step-1").style.display = "block";
+      _setStep(1);
 
       // Clear timeout UI
       const timeoutEl = document.getElementById("payment-timeout");
