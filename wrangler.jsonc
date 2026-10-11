@@ -38,11 +38,11 @@
     // thiệp — thiếu binding là worker không trả nổi file tĩnh nào.
     "binding": "ASSETS",
 
-    // BẮT BUỘC. Clean URL của web dựa vào việc host trả 404.html cho path không
-    // khớp file nào: 404.html chuyển sang router.html để tra slug rồi mới đưa
-    // đến trang thiệp. Bỏ dòng này là mọi link /<slug> đã phát cho khách đều
-    // chết — Workers mặc định trả 404 rỗng.
-    "not_found_handling": "404-page"
+    // BẮT BUỘC "none": path không khớp file nào phải tới worker (worker/index.js
+    // dựng trang thiệp /<slug>, path lạ khác thì nó tự trả 404.html). Để "404-page"
+    // là lượt bấm link của người thật (Sec-Fetch-Mode: navigate) nhận thẳng
+    // 404.html, worker không được gọi — chỉ bot (không gửi header đó) tới được.
+    "not_found_handling": "none"
 
     // html_handling để mặc định "auto-trailing-slash" — đúng cho /invitation-setup/,
     // /my-invitations/… vốn là thư mục có index.html.

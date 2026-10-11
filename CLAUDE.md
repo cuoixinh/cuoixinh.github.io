@@ -345,9 +345,10 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
   Thư mục đã khai (`core/`, `js/`, `public/`, `assets/`…) thì file mới bên trong tự theo.
 - Cái giữ `changelogs/`, `supabase/`, `admin/` khỏi web là **`assets.directory = "./dist"`**,
   KHÔNG phải quyền private của repo. Trỏ nó về gốc repo là lộ sạch.
-- `wrangler.jsonc` phải giữ **`not_found_handling: "404-page"`**: path lạ rơi tới worker và
-  đường lùi của nó đều dựa vào đó, bỏ đi là mọi link thiệp `/<slug>` chết trong khi trang chủ
-  vẫn chạy.
+- Hai `wrangler*.jsonc` phải giữ **`not_found_handling: "none"`** (LINT-10 gác): path không
+  khớp file nào mới tới được worker, và worker tự trả `404.html` cho path lạ. Để `"404-page"`
+  thì lượt bấm link của người thật (`Sec-Fetch-Mode: navigate`) nhận thẳng `404.html`, worker
+  không được gọi — chỉ bot tới được, nên curl thử vẫn thấy đúng.
 - **`admin/` chỉ chạy local** (`localhost` — Edge Function đã cho phép mọi cổng localhost).
   Kéo theo: `CONFIG.cloudflare.purgeSecret` bị `REDACT` thay bằng `null` trong bản publish.
   Chức năng nào của trang public cần một giá trị trong `REDACT` thì phải gỡ mục đó ra.

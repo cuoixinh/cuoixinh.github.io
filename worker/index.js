@@ -56,7 +56,7 @@ export default {
     const seg = slugSegment(url.pathname);
     const isSlugPath = (request.method === "GET" || request.method === "HEAD") && seg;
 
-    if (!isSlugPath) return env.ASSETS.fetch(request);
+    if (!isSlugPath) return notFoundPage(env, request, await env.ASSETS.fetch(request));
 
     // Hỏi asset router TRƯỚC: `/invitation-setup/`, `/checkout/`… cũng là một
     // đoạn không dấu chấm. Bình thường chúng không rơi tới worker (asset khớp
@@ -91,6 +91,20 @@ export default {
     });
   },
 };
+
+/**
+ * Asset trả 404 (not_found_handling "none" trả rỗng) → phục vụ 404.html như host tĩnh.
+ * `/404` chứ không `/404.html`: asset router chuyển hướng bản có đuôi.
+ */
+async function notFoundPage(env, request, res) {
+  if (res.status !== 404) return res;
+  const page = await env.ASSETS.fetch(new Request(new URL("/404", request.url)));
+  if (page.status !== 200) return res;
+  return new Response(page.body, {
+    status: 404,
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
 
 /* ─────────────────────────────── dữ liệu ─────────────────────────────── */
 

@@ -41,10 +41,9 @@
     // Worker gọi lại asset router qua binding này — y như production.
     "binding": "ASSETS",
 
-    // BẮT BUỘC, y như production: clean URL dựa vào việc host trả 404.html cho
-    // path không khớp file nào. Thiếu dòng này thì trang chủ vẫn chạy nhưng mọi
-    // link thiệp /<slug> chết — mà staging tồn tại chính là để bắt loại lỗi này,
-    // nên cấu hình hai bên phải giống nhau.
-    "not_found_handling": "404-page"
+    // BẮT BUỘC "none", y như production (lý do ở wrangler.jsonc): path không khớp
+    // file nào phải tới worker. Staging tồn tại chính là để bắt loại lỗi này, nên
+    // cấu hình hai bên phải giống nhau.
+    "not_found_handling": "none"
   }
 }

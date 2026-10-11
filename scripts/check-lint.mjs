@@ -163,12 +163,12 @@ rule("LINT-09", "Ba dãy worker ↔ .toml trong deploy-workers.sh cùng độ d�
   for (const t of [...p, ...s]) if (!exists(`cloudflare-worker/${t}`)) out.push(`thiếu cloudflare-worker/${t}`);
   return bad(out, `${names.join(", ")} — đủ ${p.length + s.length} file .toml`);
 });
-rule("LINT-10", "wrangler*.jsonc: assets.directory = ./dist, not_found_handling = 404-page", () => {
+rule("LINT-10", "wrangler*.jsonc: assets.directory = ./dist, not_found_handling = none", () => {
   const out = [];
   for (const f of ["wrangler.jsonc", "wrangler.staging.jsonc"]) {
     const s = read(f);
     if (!/"directory"\s*:\s*"\.\/dist"/.test(s)) out.push(`${f}: assets.directory không phải ./dist (lộ cả repo)`);
-    if (!/"not_found_handling"\s*:\s*"404-page"/.test(s)) out.push(`${f}: thiếu not_found_handling 404-page (chết link /<slug>)`);
+    if (!/"not_found_handling"\s*:\s*"none"/.test(s)) out.push(`${f}: not_found_handling phải là "none" (khác đi là người thật bấm /<slug> không tới worker)`);
   }
   return bad(out, "cả hai file đúng");
 });
