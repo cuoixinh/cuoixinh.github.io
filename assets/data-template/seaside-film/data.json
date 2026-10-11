@@ -1,0 +1,172 @@
+{
+  "image_focal_points": {
+    "gallery_images": {
+      "gallery-01.png": {
+        "x": 35,
+        "y": 25
+      },
+      "gallery-02.png": {
+        "x": 42,
+        "y": 26
+      },
+      "gallery-03.png": {
+        "x": 80,
+        "y": 24
+      },
+      "gallery-04.png": {
+        "x": 53,
+        "y": 22
+      },
+      "gallery-05.png": {
+        "x": 32,
+        "y": 52
+      },
+      "gallery-06.png": {
+        "x": 62,
+        "y": 32
+      },
+      "gallery-07.png": {
+        "x": 58,
+        "y": 73
+      },
+      "gallery-08.png": {
+        "x": 39,
+        "y": 12
+      },
+      "gallery-09.png": {
+        "x": 72,
+        "y": 20
+      }
+    },
+    "cover_image_url": {
+      "x": 39,
+      "y": 19
+    },
+    "groom_image_url": {
+      "x": 51,
+      "y": 18
+    },
+    "bride_image_url": {
+      "x": 47,
+      "y": 22
+    }
+  },
+  "cover_image_url": "cover.png",
+  "groom_image_url": "groom.png",
+  "bride_image_url": "bride.png",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.png",
+    "gallery-02.png",
+    "gallery-03.png",
+    "gallery-04.png",
+    "gallery-05.png",
+    "gallery-06.png",
+    "gallery-07.png",
+    "gallery-08.png",
+    "gallery-09.png"
+  ],
+  "love_story": [
+    {
+      "date": "07/2021",
+      "title": "Mùa hè ở bờ biển",
+      "content": "Một buổi chiều gió lớn ở Nha Trang, chiếc mũ của em bay đi và anh là người chạy theo nhặt lại.",
+      "image_url": "love-story-01.png",
+      "focal_point": {
+        "x": 56,
+        "y": 17
+      }
+    },
+    {
+      "date": "05/2026",
+      "title": "Lời hứa trước biển",
+      "content": "Năm năm sau, cũng bãi biển ấy, anh quỳ xuống trên cát và em gật đầu trước cả khi anh nói hết câu.",
+      "image_url": "love-story-02.png",
+      "focal_point": {
+        "x": 54,
+        "y": 10
+      }
+    }
+  ],
+  "content": {
+    "groom_name": "Minh Khang",
+    "bride_name": "Thảo Vy",
+    "groom_father": "Phạm Văn Hòa",
+    "groom_mother": "Nguyễn Thị Mai Lan",
+    "groom_address": "Số 45 Lê Thánh Tôn, Phường Lộc Thọ, TP. Nha Trang",
+    "bride_father": "Lê Quốc Thắng",
+    "bride_mother": "Võ Thị Ngọc Ánh",
+    "bride_address": "Số 12 Trần Phú, Phường Lộc Thọ, TP. Nha Trang",
+    "ceremony_name": "Lễ Thành Hôn",
+    "ceremony_date": "2026-12-19",
+    "ceremony_time": "10:00",
+    "ceremony_lunar": "Tức ngày 10 tháng 11 năm Bính Ngọ",
+    "ceremony_location": "Tư gia nhà trai — Số 45 Lê Thánh Tôn, Phường Lộc Thọ, TP. Nha Trang",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=12.2445,109.1925&output=embed&hl=vi",
+    "vu_quy_enabled": true,
+    "vu_quy_time": "07:30",
+    "vu_quy_location": "Tư gia nhà gái — Số 12 Trần Phú, Phường Lộc Thọ, TP. Nha Trang",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=12.2412,109.1968&output=embed&hl=vi",
+    "groom_party_date": "2026-12-18",
+    "groom_party_time": "17:30",
+    "groom_party_lunar": "Tức ngày 9 tháng 11 năm Bính Ngọ",
+    "groom_party_show_location": true,
+    "groom_party_location": "Seaside Garden, The Anam Resort, Bãi Dài, Cam Lâm, Khánh Hòa",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=12.0458,109.2061&output=embed&hl=vi",
+    "bride_party_date": "2026-12-18",
+    "bride_party_time": "17:00",
+    "bride_party_lunar": "Tức ngày 9 tháng 11 năm Bính Ngọ",
+    "bride_party_show_location": true,
+    "bride_party_location": "Tư gia nhà gái — Số 12 Trần Phú, Phường Lộc Thọ, TP. Nha Trang",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=12.2412,109.1968&output=embed&hl=vi",
+    "groom_bank_name": "Vietcombank",
+    "groom_bank_number": "0451000987654",
+    "groom_bank_owner": "PHAM MINH KHANG",
+    "bride_bank_name": "Techcombank",
+    "bride_bank_number": "19036655112233",
+    "bride_bank_owner": "LE THAO VY",
+    "story_quote": "Biển thì rộng, nhưng chỗ bình yên nhất vẫn là bên cạnh nhau.",
+    "rsvp_enabled": true,
+    "rsvp_message": "Cho tụi mình biết bạn có đến không nhé — để tụi mình giữ một chỗ ngồi nhìn ra biển cho bạn.",
+    "footer_text": "Hẹn gặp bạn khi hoàng hôn buông xuống trên biển.",
+    "enable_music": true,
+    "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
+    "enable_family": true,
+    "enable_party": true,
+    "enable_photos": true,
+    "enable_timeline": true,
+    "enable_love_story": true,
+    "enable_gift": true,
+    "enable_footer": true,
+    "demo_fill_love_story": true,
+    "timeline": [
+      {
+        "time": "17:00",
+        "title": "Tiệc thân mật tại tư gia nhà gái",
+        "type": "bride-party"
+      },
+      {
+        "time": "07:30",
+        "title": "Lễ Vu Quy tại tư gia nhà gái",
+        "type": "ceremony"
+      },
+      {
+        "time": "10:00",
+        "title": "Lễ Thành Hôn tại tư gia nhà trai",
+        "type": "ceremony"
+      },
+      {
+        "time": "17:30",
+        "title": "Đón khách bên bãi biển",
+        "type": "party"
+      },
+      {
+        "time": "18:30",
+        "title": "Khai tiệc lúc hoàng hôn",
+        "type": "party"
+      }
+    ]
+  },
+  "updated_at": "2026-10-11T02:19:15.179Z"
+}
