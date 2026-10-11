@@ -1948,6 +1948,74 @@ x-button {
   filter: drop-shadow(0 18px 34px rgb(0 0 0 / 0.3));
 }
 
+/* Thanh đỉnh khung máy: logo trái, nút "Trang chủ" phải — nằm ở hai góc trên, ngoài
+   vùng máy và thẻ cạnh máy. Dưới 1280px máy + thẻ cạnh chiếm gần hết bề ngang nên
+   logo chỉ còn biểu tượng để không đè lên góc thân máy. */
+.cx-pshell-top {
+  position: absolute;
+  top: 24px;
+  left: 32px;
+  right: 32px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  font-family: Quicksand, system-ui, sans-serif;
+}
+
+.cx-pshell-top a {
+  pointer-events: auto;
+  text-decoration: none;
+}
+
+.cx-pshell-logo {
+  /* Màu chữ của <x-logo> theo bản build ỨNG DỤNG — themes.css khai cùng tên biến
+     nhưng khác giá trị, nên chốt lại tại đây cho logo y như trang chủ. */
+  --text-body-rgb: 173 122 135;
+  --text-tertiary-rgb: 107 114 128;
+  --xl-size: 32px; /* bằng logo navbar trang chủ trên máy tính */
+  border-radius: 12px;
+}
+
+.cx-pshell-home {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px 0 16px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(31 36 48 / 0.06), 0 0 0 1px rgb(31 36 48 / 0.08);
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2430;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.cx-pshell-home:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgb(31 36 48 / 0.1), 0 0 0 1px rgb(31 36 48 / 0.12);
+}
+
+.cx-pshell-logo:focus-visible,
+.cx-pshell-home:focus-visible {
+  outline: 2px solid #b4536a;
+  outline-offset: 4px;
+}
+
+@media (max-width: 1279px) {
+  .cx-pshell-logo x-logo .xl-txt {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-pshell-home {
+    transition: none;
+  }
+}
+
 /* Thẻ cạnh khung máy (chỉ bản xem thử mẫu): tên mẫu + hai việc của menu ba
    chấm đặt ra ngoài cho khỏi phải mò. Màu viết cứng như vỏ máy — không đi theo
    bộ màu của thiệp. */

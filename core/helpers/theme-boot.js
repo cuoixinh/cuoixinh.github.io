@@ -218,6 +218,7 @@ function _cxPreviewShell() {
   const stage = document.createElement("div");
   stage.className = "cx-pshell";
   stage.innerHTML = `
+    ${_cxShellTopHtml()}
     <div class="cx-pshell-phone">
       <div class="cx-pshell-screen">
         ${window.CXPhoneChrome ? window.CXPhoneChrome.html(opts) : ""}
@@ -232,6 +233,7 @@ function _cxPreviewShell() {
     </div>
     ${opts.items.length ? _cxShellSideHtml(slug) : ""}`;
   stage.querySelector("iframe").src = src;
+  window.lucide?.createIcons({ root: stage.querySelector(".cx-pshell-top") });
 
   document.documentElement.classList.add("cx-pshell-host");
   // Giữ lại hộp thoại + toast mà alert.js đã gắn sẵn vào <body>: "Chọn mẫu này"
@@ -264,6 +266,27 @@ function _cxPreviewShell() {
   measure();
   window.addEventListener("resize", measure, { passive: true });
   return true;
+}
+
+// Thanh đỉnh khung máy: logo (cùng <x-logo> của trang chủ) + nút về trang chủ, cho cả bản
+// mẫu lẫn thiệp thật. Trang thiệp không nạp sẵn core/x-logo.js nên tự chèn ở đây.
+function _cxShellTopHtml() {
+  if (!customElements.get("x-logo") && !document.querySelector("script[data-cx-xlogo]")) {
+    const s = document.createElement("script");
+    s.src = "../../../core/x-logo.js";
+    s.dataset.cxXlogo = "";
+    document.head.appendChild(s);
+  }
+  return `
+    <header class="cx-pshell-top">
+      <a href="/" class="cx-pshell-logo cx-logo" aria-label="Cưới Xinh — Trang chủ">
+        <x-logo></x-logo>
+      </a>
+      <a href="/" class="cx-pshell-home">
+        <i data-lucide="house" style="width:16px;height:16px"></i>
+        <span>Trang chủ</span>
+      </a>
+    </header>`;
 }
 
 // Khai báo chrome của khung máy: quay lại (về kho mẫu nếu mở thẳng bằng link)
