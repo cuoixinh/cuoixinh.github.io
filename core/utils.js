@@ -328,7 +328,17 @@ function showPreviewAlert() {
 
 // ============= URL HELPERS =============
 
+// Slug thiệp đang mở: link /<slug> do worker dựng (window.__CX_ROUTE) → ?slug= →
+// luồng 404.html cũ. Nhớ kết quả: hàm bị gọi nhiều lần mà nhánh cuối xoá
+// sessionStorage ngay lần đầu, các lần sau sẽ ra null.
+let _cxSlugMemo;
 function getSlugFromUrl() {
+  if (_cxSlugMemo === undefined) _cxSlugMemo = _cxReadSlug();
+  return _cxSlugMemo;
+}
+
+function _cxReadSlug() {
+  if (window.__CX_ROUTE?.slug) return window.__CX_ROUTE.slug;
   const urlParams = new URLSearchParams(window.location.search);
   let slug = urlParams.get("slug");
 

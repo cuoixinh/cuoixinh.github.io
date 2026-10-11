@@ -51,7 +51,8 @@ repo (`assets.directory = "./dist"`).
 
 **`not_found_handling: "404-page"` trong `wrangler.jsonc` là bắt buộc.** Workers mặc định
 trả 404 rỗng cho path không khớp file nào, mà clean URL của web dựa hết vào việc host phục
-vụ `404.html` (nó chuyển sang `router.html` để tra slug). Bỏ dòng đó là **mọi link thiệp
+vụ `404.html` (nó chuyển sang `router.html` để tra slug) — vừa là lối để path lạ rơi tới
+worker (§5b), vừa là đường lùi khi worker không dựng được trang mẫu. Bỏ dòng đó là **mọi link thiệp
 `/<slug>` đã phát cho khách đều chết** — mà trang chủ vẫn chạy nên rất dễ tưởng là ổn.
 Sau khi deploy phải thử ngay một slug thật.
 
@@ -114,19 +115,24 @@ thiếu file. Thư mục đã khai thì file mới bên trong tự theo, không 
 Script tự cảnh báo khi một thẻ `<a>`/`<script>` trong HTML trỏ tới file có trong repo mà
 không nằm trong bản publish — đó chính là dấu hiệu quên khai.
 
-### 5b. Worker thẻ chia sẻ (`worker/index.js`)
+### 5b. Worker link thiệp (`worker/index.js`)
 
 Ngoài `dist/`, bản deploy còn mang MỘT worker nhỏ khai ở `main` của `wrangler.jsonc` (và
-`wrangler.staging.jsonc`). Nó tồn tại vì crawler của Messenger/Zalo/Facebook **không chạy
-JS**: link `cuoixinh.com/<slug>` vốn chỉ là `404.html` + chuyển hướng, nên bot không thấy
-tiêu đề, mô tả hay ảnh nào.
+`wrangler.staging.jsonc`). Nó làm hai việc cho link `cuoixinh.com/<slug>`: trả thẳng **trang
+mẫu của thiệp ngay tại URL đó** (rewrite — không chuyển hướng, URL giữ nguyên), và chèn thẻ
+og:* vì crawler của Messenger/Zalo/Facebook **không chạy JS**.
 
 - Chỉ path **một đoạn, không dấu chấm** mới vào worker; mọi thứ khác trả thẳng qua binding
   `ASSETS` nên hành vi của web không đổi.
 - Worker hỏi Edge Function `wedding-admin?slug=` (KHÔNG truy vấn DB), dựng `og:title` từ tên
   khách trong link + tên cô dâu chú rể, `og:description` từ **Câu mẫu chia sẻ**,
-  `og:image` từ ảnh bìa; rồi trả kèm **đúng đoạn chuyển hướng của `404.html`** — sửa
-  `404.html` thì phải sửa cả bản sao đó.
+  `og:image` từ ảnh bìa.
+- Trang mẫu lấy từ `ASSETS` (`public/themes/<theme>/index.html`), qua `HTMLRewriter`: đường
+  dẫn tương đối → tuyệt đối, cuối `<head>` thêm og + `noindex` + `window.__CX_ROUTE`
+  (slug, mẫu — `getSlugFromUrl()` đọc từ đây). Luật đổi/chèn nằm ở `worker/route-html.mjs`,
+  dùng chung với `scripts/dev-server.mjs`. Cache 60 giây vì phản hồi mang HTML của MẪU.
+- Không dựng được (thiệp nháp, mẫu lạ, lỗi) thì trả **đúng đoạn chuyển hướng của
+  `404.html`** → `router.html` như cũ — sửa `404.html` thì phải sửa cả bản sao đó.
 - Tên khách trên link mã hoá bằng CryptoJS (AES + EVP_BytesToKey/MD5) nên worker tự cài MD5.
   Đây không phải bảo mật, chỉ để lấy đúng chữ hiển thị.
 - `worker/` **không khai vào `INCLUDE`**: nó là mã worker, không phải asset.

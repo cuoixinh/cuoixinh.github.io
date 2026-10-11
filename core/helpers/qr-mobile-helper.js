@@ -76,6 +76,16 @@ function buildMobileQRWidget() {
  */
 function getQRTargetUrl() {
   const params = new URLSearchParams(window.location.search);
+  // Trong khung điện thoại của chính trang thiệp trên máy tính (cờ cx-pshell-host
+  // ở trang ngoài — trang Thiết lập cũng nhúng shell=0 nhưng không có cờ này) thì
+  // lấy URL trang ngoài: link /<slug> nạp khung bằng đường dẫn file mẫu.
+  try {
+    const top = window.parent;
+    if (top !== window && top.document.documentElement.classList.contains("cx-pshell-host"))
+      return top.location.href;
+  } catch {
+    /* khác origin → dùng URL của chính khung */
+  }
   if (params.get("source") !== "live") return window.location.href;
   return params.get("qr") || null; // URLSearchParams đã tự giải mã
 }
