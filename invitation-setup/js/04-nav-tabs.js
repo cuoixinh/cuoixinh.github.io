@@ -352,6 +352,7 @@ function switchTab(tab) {
   if (tab === "preview" && window.cxLiveWide?.()) tab = "edit";
   // Rời tab Giao diện còn thay đổi chưa áp dụng → hỏi trước (js/27-theme-session.js).
   if (typeof _cxThemeGuard === "function" && _cxThemeGuard(tab)) return;
+  if (typeof cxPauseYtPreview === "function") cxPauseYtPreview();
   if (tab === "theme" && typeof _cxThemeEnter === "function") _cxThemeEnter();
 
   // Danh sách khách mời có luồng mở riêng (panel iframe + URL ?tab=guests)

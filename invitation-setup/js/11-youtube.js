@@ -304,20 +304,70 @@ function _seekYtPreview(sec) {
   } catch {}
 }
 
-// "Nghe thử": phát chính video bên cạnh từ giây bắt đầu đang đặt — đúng đoạn
-// khách mời sẽ nghe đầu tiên.
+// "Nghe thử" ⇄ "Dừng": phát chính video bên cạnh từ giây bắt đầu đang đặt — đúng đoạn
+// khách mời sẽ nghe đầu tiên. Trạng thái nút/thanh do _ytListenSync theo player.
 function playMusicFromStart() {
   const p = _ytPreviewPlayer;
   if (!p?.seekTo || !p?.playVideo) {
     _musicStartError("Trình phát chưa sẵn sàng, thử lại sau giây lát.");
     return;
   }
-  const range = document.getElementById("music-start-range");
-  const sec = range && !range.disabled ? Number(range.value) : cxYtStart(_currentMusicUrl);
   _musicStartError("");
   try {
-    p.seekTo(sec, true);
+    if (p.getPlayerState() === YT.PlayerState.PLAYING) {
+      p.pauseVideo();
+      return;
+    }
+    p.seekTo(cxYtStart(_currentMusicUrl), true);
     p.playVideo();
+  } catch {}
+}
+
+let _ytListenTimer = null;
+let _ytDragging = false;
+
+// Đang phát: nút thành "Dừng", thanh chạy theo giây đang nghe. Dừng/hết bài: nút về
+// "Nghe thử", thanh + video lùi về đúng giây bắt đầu.
+function _ytListenSync(state) {
+  const playing = state === YT.PlayerState.PLAYING;
+  const btn = document.getElementById("music-listen-btn");
+  if (btn && btn.dataset.on !== String(playing)) {
+    btn.dataset.on = String(playing);
+    btn.innerHTML = `<i data-lucide="${playing ? "pause" : "play"}" style="width:16px;height:16px"></i>${
+      playing ? "Dừng" : "Nghe thử"
+    }`;
+    window.lucide?.createIcons({ root: btn });
+  }
+  clearInterval(_ytListenTimer);
+  _ytListenTimer = null;
+  const range = document.getElementById("music-start-range");
+  if (playing) {
+    _ytListenTimer = setInterval(() => {
+      const t = _ytPreviewPlayer?.getCurrentTime?.();
+      if (_ytDragging || t == null || !range || range.disabled) return;
+      range.value = String(Math.floor(t));
+      window.CXProgress?.paint(range);
+    }, 250);
+    return;
+  }
+  if (state !== YT.PlayerState.PAUSED && state !== YT.PlayerState.ENDED) return;
+  const start = cxYtStart(_currentMusicUrl);
+  if (range && !range.disabled) {
+    range.value = String(start);
+    window.CXProgress?.paint(range);
+  }
+  // Lệch quá nửa giây mới tua: seekTo lúc dừng lại phát sự kiện PAUSED → tránh lặp.
+  try {
+    const p = _ytPreviewPlayer;
+    if (Math.abs((p.getCurrentTime?.() || 0) - start) > 0.5) p.seekTo(start, true);
+  } catch {}
+}
+
+// Tạm dừng trình phát "Nghe thử" — switchTab gọi mỗi lần đổi tab để nhạc không phát
+// chồng với nhạc của thiệp ở tab Xem trước / khung xem trực tiếp.
+function cxPauseYtPreview() {
+  try {
+    if (_ytPreviewPlayer?.getPlayerState?.() === YT.PlayerState.PLAYING) _ytPreviewPlayer.pauseVideo();
   } catch {}
 }
 
@@ -374,6 +424,7 @@ function showYouTubePreview(videoId, url) {
       _ytPreviewPlayer.destroy();
     } catch {}
     _ytPreviewPlayer = null;
+    _ytListenSync(-1);
   }
 
   // Tạo lại player container nếu đã bị remove() lần trước
@@ -406,6 +457,7 @@ function showYouTubePreview(videoId, url) {
           const dur = Math.floor(e.target.getDuration?.() || 0);
           _setMusicStartMode(dur > 1 ? "slider" : "manual", dur);
         },
+        onStateChange: (e) => _ytListenSync(e.data),
         onError: (e) => {
           _setMusicStartMode("manual");
           if (e.data === 101 || e.data === 150) {
@@ -468,6 +520,12 @@ function _bindMusicStartControls() {
   // thả tay mới ghi vào URL.
   const range = document.getElementById("music-start-range");
   if (range) {
+    // Đang kéo thì thanh không chạy theo nhạc, kẻo giật khỏi tay.
+    range.addEventListener("pointerdown", () => (_ytDragging = true));
+    if (!window.__cxYtDragUp) {
+      window.__cxYtDragUp = true;
+      window.addEventListener("pointerup", () => (_ytDragging = false));
+    }
     range.addEventListener("input", () => {
       const p = _ytPreviewPlayer;
       try {

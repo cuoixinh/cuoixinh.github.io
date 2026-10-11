@@ -600,7 +600,7 @@ function siRenderYouTubeField(field, value, wrapClass) {
               autocomplete="off" aria-label="Giây bắt đầu phát nhạc (phút:giây)"
               class="hidden mt-1 w-20 h-9 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white text-center focus:outline-none focus:border-rose-300" />
             <div id="music-start-actions" class="mt-1 flex flex-wrap gap-2">
-              <x-button variant="soft" tone="neutral" size="xs" icon="play"
+              <x-button id="music-listen-btn" variant="soft" tone="neutral" size="xs" icon="play"
                 onclick="playMusicFromStart()" title="Phát video phía trên từ đúng giây bắt đầu">
                 Nghe thử
               </x-button>
