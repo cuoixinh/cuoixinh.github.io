@@ -49,12 +49,13 @@ mới đi thẳng Workers.
 Không có ô "Output directory" như Pages — thư mục publish khai trong `wrangler.jsonc` ở gốc
 repo (`assets.directory = "./dist"`).
 
-**`not_found_handling: "404-page"` trong `wrangler.jsonc` là bắt buộc.** Workers mặc định
-trả 404 rỗng cho path không khớp file nào, mà clean URL của web dựa hết vào việc host phục
-vụ `404.html` (nó chuyển sang `router.html` để tra slug) — vừa là lối để path lạ rơi tới
-worker (§5b), vừa là đường lùi khi worker không dựng được trang mẫu. Bỏ dòng đó là **mọi link thiệp
-`/<slug>` đã phát cho khách đều chết** — mà trang chủ vẫn chạy nên rất dễ tưởng là ổn.
-Sau khi deploy phải thử ngay một slug thật.
+**`not_found_handling: "none"` trong `wrangler.jsonc` là bắt buộc.** Với giá trị này path không
+khớp file nào mới tới worker (§5b): worker dựng trang thiệp `/<slug>`, còn path lạ khác thì
+nó tự trả `404.html` (chuyển sang `router.html` — cũng là đường lùi khi không dựng được trang
+mẫu). Để `"404-page"` thì Cloudflare trả thẳng `404.html` cho lượt **điều hướng** của trình
+duyệt (`Sec-Fetch-Mode: navigate`) mà không gọi worker: bot vẫn tới worker, curl thử vẫn
+thấy đúng, chỉ người thật là đi đường chuyển hướng cũ. Thử bằng trình duyệt, hoặc
+`curl -H "Sec-Fetch-Mode: navigate"`. Sau khi deploy phải thử ngay một slug thật.
 
 Node lấy theo `.node-version` ở gốc repo (đang là `22`). Không cần biến môi trường nào: khoá
 phía client nằm sẵn trong `core/config.js`, khoá phía server ở Supabase Edge Function chứ
@@ -266,7 +267,7 @@ Giữ chế độ này để còn đường quay lại GitHub Pages nếu Cloudf
 | Build fail ở `npm ci`                        | `package-lock.json` lệch `package.json` — commit cả hai                     |
 | Build fail, log có "✖ Phát hiện thứ giống secret" | Đúng như tên gọi. Gỡ giá trị đó ra, hoặc thêm vào `REDACT`             |
 | Build xanh nhưng web trắng / thiếu file      | Thư mục mới chưa khai vào `INCLUDE`                                        |
-| Trang chủ chạy nhưng **mọi link `/<slug>` ra 404** | Thiếu `not_found_handling: "404-page"` trong `wrangler.jsonc` (§3)    |
+| Mở `/<slug>` vẫn bị chuyển sang `/public/themes/…` | `not_found_handling` không phải `"none"` trong `wrangler.jsonc` (§3)   |
 | Deploy xanh nhưng web không đổi              | `name` trong `wrangler.jsonc` lệch tên project → đẩy sang worker khác       |
 | Web vẫn là bản cũ                            | Chưa đổi `CX_VERSION`; hoặc Cache Rule `/core/config.js` bị xoá             |
 | CSS sai bố cục sau deploy                    | Quên `npm run build` — nhưng CI luôn chạy nên chỉ xảy ra ở chế độ copy      |

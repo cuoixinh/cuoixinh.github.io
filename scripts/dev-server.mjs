@@ -244,8 +244,8 @@ const server = createServer(async (req, res) => {
     const slug = slugSegment(url.pathname);
     const page = slug ? await slugPage(slug).catch(() => null) : null;
     if (page) return send(200, MIME[".html"], RELOAD ? page + RELOAD_SNIPPET : page);
-    // Không có file → trả 404.html như Cloudflare (not_found_handling: "404-page"):
-    // đường lùi của link thiệp khi không dựng được trang mẫu.
+    // Không có file → trả 404.html như worker production (notFoundPage): đường lùi
+    // của link thiệp khi không dựng được trang mẫu.
     try {
       const body = await readFile(path.join(ROOT, "404.html"), "utf8");
       return send(404, MIME[".html"], RELOAD ? body + RELOAD_SNIPPET : body);
