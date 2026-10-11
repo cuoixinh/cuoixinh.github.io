@@ -169,12 +169,12 @@ function showToast(msg, type = "default", icon = null) {
     #cx-alert-body {
       padding: 18px 20px;
       font-size: 13px; color: rgb(var(--text-secondary-rgb)); line-height: 1.7;
-      white-space: pre-line; max-height: 50vh; overflow-y: auto;
+      white-space: pre-line; overflow-wrap: anywhere; max-height: 50vh; overflow-y: auto;
     }
     /* Nền riêng + vạch ngăn: tách hẳn phần đọc khỏi phần bấm. Chạy sát mép được
        là nhờ #cx-alert-box có overflow:hidden ôm lấy bo góc. */
     #cx-alert-footer {
-      padding: 12px 20px; display: flex; justify-content: flex-end; gap: 8px;
+      padding: 12px 20px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px;
       background: rgb(var(--surface-hover-rgb));
       border-top: 1px solid rgb(var(--border-subtle-rgb));
     }
@@ -184,6 +184,20 @@ function showToast(msg, type = "default", icon = null) {
     .cx-dlg-btn {
       cursor: pointer; font-family: inherit; border: none;
       transition: background .15s ease, border-color .15s ease;
+    }
+    /* Nhãn dài (có ghép dữ liệu người dùng) thì xuống dòng trong nút thay vì tràn khỏi
+       hộp: bỏ nowrap + chiều cao cố định của size="sm". Nhắm qua #cx-alert-footer để
+       thắng .h-8/.whitespace-nowrap bất kể thứ tự nạp stylesheet. */
+    #cx-alert-footer .cx-dlg-btn {
+      height: auto; min-height: 32px; max-width: 100%;
+      padding-top: 6px; padding-bottom: 6px;
+      white-space: normal; overflow-wrap: anywhere; text-align: center; line-height: 1.4;
+    }
+    /* Ô nổi bật một giá trị trong thân hộp thoại (đường dẫn…), bật html:true để dùng. */
+    .cx-dlg-chip {
+      display: block; margin: 10px 0; padding: 8px 12px; border-radius: 12px;
+      background: rgb(var(--surface-hover-rgb)); color: rgb(var(--text-title-rgb));
+      font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; white-space: normal;
     }
     .cx-dlg-cancel { background: rgb(var(--white-rgb)); color: rgb(var(--text-secondary-rgb)); border: 1px solid rgb(var(--border-field-rgb)); }
     .cx-dlg-cancel:hover { background: rgb(var(--surface-hover-rgb)); }

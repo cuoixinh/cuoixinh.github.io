@@ -551,8 +551,8 @@ html.cx-landing {
   z-index: 1;
   background: linear-gradient(
     to bottom,
-    rgb(var(--surface-tint-rgb) / 0.7) 0,
-    rgb(var(--surface-tint-rgb) / 0) 96px
+    rgb(var(--surface-tint-rgb) / 0.85) 0,
+    rgb(var(--surface-tint-rgb) / 0) 128px
   );
 }
 

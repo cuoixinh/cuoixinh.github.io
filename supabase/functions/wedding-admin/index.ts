@@ -1176,7 +1176,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }
 
       if (slugExisting) {
-        return new Response(JSON.stringify({ error: 'Tên slug đã được người khác sử dụng. Vui lòng chọn tên khác' }), {
+        return new Response(JSON.stringify({ error: 'Tên slug đã được người khác sử dụng. Vui lòng chọn tên khác', code: 'SLUG_TAKEN' }), {
           status: 409, headers: corsHeaders
         })
       }
@@ -1197,7 +1197,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       // slug đó; thiệp đang mang sẵn slug thì không bắt đổi giữa chừng.
       if (slugHold && slugHold.user_id !== ownerId && fields.slug && fields.slug !== existing.slug) {
         log.warn('wedding.slug_held', { id, slug: fields.slug })
-        return new Response(JSON.stringify({ error: 'Tên slug đã được người khác sử dụng. Vui lòng chọn tên khác' }), {
+        return new Response(JSON.stringify({ error: 'Tên slug đã được người khác sử dụng. Vui lòng chọn tên khác', code: 'SLUG_TAKEN' }), {
           status: 409, headers: corsHeaders
         })
       }

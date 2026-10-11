@@ -687,22 +687,34 @@ function saveAll(overrides = {}, label = "Đang lưu...") {
 }
 
 // Ghi hàng DB đầu tiên cho nháp đang nằm trên máy. Slug theo tên cô dâu chú rể
-// (cùng luật lúc xuất bản); chưa đủ hai tên mới dùng slug tạm `wedding-<id>` — xuất
-// bản / áp dụng thiệp AI sẽ thay khi có tên. Lỗi phải NÉM RA: trần số thiệp mỗi tài
-// khoản chặn tại đây. POST lại lần sau vô hại — wedding-admin trả 200 khi id đã có và
-// cùng chủ, KÈM slug đang có của hàng đó. Luôn lấy slug server trả: hàng đã có (tab cũ
-// vẫn tưởng thiệp là nháp local) thì tự đặt lại là đổi link thiệp đã gửi khách.
+// (cùng luật lúc xuất bản); chưa đủ hai tên, hoặc slug theo tên đã có người dùng, thì
+// dùng slug tạm `wedding-<id>` — xuất bản sẽ hỏi khi có tên. Slug khách TỰ GÕ mà trùng
+// thì ném SLUG_TAKEN chứ không để server lặng lẽ gắn hậu tố. Lỗi phải NÉM RA: trần số
+// thiệp mỗi tài khoản chặn tại đây. POST lại lần sau vô hại — wedding-admin trả 200 khi
+// id đã có và cùng chủ, KÈM slug đang có của hàng đó. Luôn lấy slug server trả: hàng đã
+// có (tab cũ vẫn tưởng thiệp là nháp local) thì tự đặt lại là đổi link thiệp đã gửi khách.
+function _slugTakenError(slug) {
+  return Object.assign(new Error("Đường dẫn đã có người dùng"), { code: "SLUG_TAKEN", slug });
+}
+
 async function _createDraftRow() {
-  const generatedSlug =
-    WEDDING_SLUG ||
-    (await _resolvePublishSlug()) ||
-    `wedding-${WEDDING_ID.slice(0, 8)}`;
+  const temp = `wedding-${WEDDING_ID.slice(0, 8)}`;
+  let generatedSlug = WEDDING_SLUG;
+  if (generatedSlug && !generatedSlug.startsWith("wedding-")) {
+    if (!(await _isSlugAvailable(generatedSlug))) throw _slugTakenError(generatedSlug);
+  } else if (!generatedSlug) {
+    const { slug, taken } = await _resolvePublishSlugInfo();
+    generatedSlug = (!taken && slug) || temp;
+  }
   const created = await window.weddingDAL.createDraftWedding({
     manage_id: WEDDING_ID,
     theme: WEDDING_THEME,
     slug: generatedSlug,
   });
   WEDDING_STORAGE_KEY = created?.storage_key || "";
+  // Server gắn hậu tố (có người vừa lấy slug giữa lúc kiểm và lúc tạo) → báo khách.
+  if (created?.slug && created.slug !== generatedSlug && !generatedSlug.startsWith("wedding-"))
+    showToast(`"/${generatedSlug}" vừa có người dùng, thiệp tạm lấy "/${created.slug}" — đổi ở mục Đường dẫn thiệp.`, "warning");
   WEDDING_SLUG = created?.slug || generatedSlug;
   const slugInput = document.getElementById("slug-input");
   if (slugInput) slugInput.value = WEDDING_SLUG;
@@ -980,6 +992,10 @@ async function _saveAllOnce(overrides, label) {
       window.AuthUI?.openModal?.({ onAuth: () => location.reload() });
       return false;
     }
+    if (e.code === "SLUG_TAKEN") {
+      window.cxShowSlugTaken?.(e.slug || WEDDING_SLUG);
+      return false;
+    }
     if (e.code === "FORBIDDEN" || e.status === 403) {
       showToast("Bạn không có quyền chỉnh sửa thiệp này", "error");
       return false;
@@ -1042,7 +1058,8 @@ async function applySlug() {
     if (brideLink) brideLink.value = `${DOMAIN}/${newSlug}`;
     showToast("Đã cập nhật slug!", "success");
   } catch (e) {
-    showToast(e.message, "error");
+    if (e.code === "SLUG_TAKEN") window.cxShowSlugTaken?.(newSlug);
+    else showToast(e.message, "error");
   } finally {
     showLoading(false);
   }

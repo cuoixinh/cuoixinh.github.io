@@ -5,8 +5,8 @@
 //   CXNavbar.mount({ active: "home", items: [...], actions: [...] })
 //
 // Thanh trên GIỐNG HỆT nhau ở mọi trang (khổ max-w-6xl, không tự ẩn khi cuộn):
-// logo đứng riêng bên trái, thẻ navbar chỉ mang dãy mục; ở đầu trang thẻ trong
-// suốt, cuộn xuống mới có nền và logo thu lại (cờ .is-top trên #main-nav).
+// thẻ navbar luôn căn giữa, logo nằm riêng ở mép trái; ở đầu trang thẻ hẹp và là
+// kính sữa, cuộn xuống thì giãn ra hai bên và logo ẩn (cờ .is-top trên #main-nav).
 // tabbar: false → chỉ dựng thanh trên. Dùng cho luồng MỘT CHIỀU (thanh toán):
 // dải đáy ở đó dành cho nút hành động, để thêm tab là mời khách rời luồng.
 //
