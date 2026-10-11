@@ -703,7 +703,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   và trang chủ đã có); thiếu thì lùi về `1svh`, đúng khổ nhưng kém ổn định.
 - **Chặn zoom: mọi trang `index.html` nạp `core/helpers/no-zoom.js` trong `<head>`** — trang
   mới cũng phải thêm (`base-theme` có sẵn). Safari iOS bỏ qua `user-scalable=no` của thẻ
-  viewport, nên thiếu thẻ script là trang đó chụm hai ngón vẫn zoom được.
+  viewport, nên thiếu thẻ script là trang đó chụm hai ngón vẫn zoom được. Ngay sau nó là
+  `core/helpers/no-inspect.js` (chặn chuột phải + phím tắt DevTools, bỏ qua ở localhost) —
+  chỉ để làm khó người dùng phổ thông, KHÔNG phải bảo mật. `admin/` không nạp.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
 - **Trần số thiệp mỗi tài khoản:** một tài khoản chỉ giữ được `MAX_WEDDINGS_PER_USER`
   thiệp còn hiện trong danh sách (nháp đã lưu + đã xuất bản; nháp chỉ nằm trong
