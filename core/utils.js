@@ -1774,10 +1774,10 @@ function closeTimePicker() {
 
   // --- MỐC BUNG BẢNG ---
   // Mỗi mẫu tự khai `CX_THEME.suggest` = selector của mục mà bảng phải bung ra
-  // khi khách cuộn tới. Mặc định là hộp mừng cưới — mục gần cuối thiệp ở mọi
-  // mẫu hiện có. Bung rồi thì ĐỨNG YÊN: chỉ nút X mới đóng, cuộn ngược lên
+  // khi khách cuộn tới. Mặc định là chân thiệp — mục cuối cùng ở mọi mẫu hiện
+  // có. Bung rồi thì ĐỨNG YÊN: chỉ nút X mới đóng, cuộn ngược lên
   // không thu lại (khách đang cân nhắc mẫu khác, giật bảng đi là mất mạch).
-  const SUG_ANCHOR = "#section-gift";
+  const SUG_ANCHOR = "#section-footer";
   let dismissed = false;
 
   function _open() {
@@ -1790,8 +1790,8 @@ function closeTimePicker() {
     panel.classList.remove("is-open");
   }
 
-  // Mốc dự phòng khi mục được khai KHÔNG có thật hoặc bị tắt (enable_gift =
-  // false): lấy mục hiển thị cuối cùng, để bảng vẫn có lúc xuất hiện.
+  // Mốc dự phòng khi mục được khai KHÔNG có thật hoặc bị tắt theo dữ liệu
+  // thiệp: lấy mục hiển thị cuối cùng, để bảng vẫn có lúc xuất hiện.
   function _lastSection() {
     const host = document.getElementById("main-card") || document.body;
     return Array.from(host.querySelectorAll("section"))
@@ -1891,7 +1891,7 @@ function closeTimePicker() {
     const T = window.CX_THEME || {};
     _watch(document.querySelector(T.suggest || SUG_ANCHOR));
 
-    // Mục được khai có thể bị TẮT theo dữ liệu thiệp (enable_gift = false) —
+    // Mục được khai có thể bị TẮT theo dữ liệu thiệp —
     // chỉ sau khi API trả dữ liệu mới biết. Lúc đó chuyển sang mốc dự phòng,
     // nếu không thì bảng chẳng bao giờ bung.
     setTimeout(function () {

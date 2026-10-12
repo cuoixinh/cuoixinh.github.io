@@ -69,7 +69,7 @@
     wishes: { bubble: "#ffffff", text: "#44403c", accent: "#a16207", btn: "#171717" },
 
     reveal: ["#main-card section"],
-    suggest: "#section-gift",
+    suggest: "#section-footer",
     skipSteps: [],
     loveStory: "medium",
 
