@@ -2194,19 +2194,227 @@ x-button {
   outline-offset: 3px;
 }
 
+/* Thẻ cạnh máy cao hơn màn (màn thấp, có khối Mẫu tương tự) thì tự cuộn dọc.
+   Khung cuộn cắt mọi thứ thò ra ngoài (viền focus, bóng, hai mũi tên của dải
+   Mẫu tương tự) → chừa đệm rồi rút lại bằng lề âm, chữ vẫn đứng nguyên chỗ.
+   Đệm ngang phải ≥ độ thò của .cx-pside-nav. */
+.cx-pside {
+  box-sizing: content-box;
+  margin: -8px -44px;
+  padding: 8px 44px;
+  max-height: calc(var(--vh, 1vh) * 100 - 64px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.cx-pside::-webkit-scrollbar {
+  display: none;
+}
+
+/* Khối "Mẫu tương tự" dưới nút Chọn (_cxShellSimilar ở theme-boot.js): một hàng
+   ảnh chụp mẫu khổ 391:722 như thẻ mẫu ở trang chủ. */
+.cx-pside-more {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #d9dde4;
+}
+
+.cx-pside-more-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cx-pside-more-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #b4536a;
+}
+
+.cx-pside-more-all {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5b6372;
+  text-decoration: none;
+}
+
+.cx-pside-more-all:hover {
+  color: #1f2430;
+  text-decoration: underline;
+}
+
+/* Dải ngang 3 thẻ một lượt, lật bằng .cx-pside-nav — thanh cuộn giấu đi. */
+.cx-pside-more-wrap {
+  position: relative;
+}
+
+.cx-pside-more-row {
+  display: flex;
+  gap: 12px;
+  /* Khung cuộn cắt cả chiều dọc → chừa chỗ cho thẻ nhấc lên lúc hover. */
+  margin-block: -6px;
+  padding-block: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.cx-pside-more-row::-webkit-scrollbar {
+  display: none;
+}
+
+.cx-pside-card {
+  flex: 0 0 calc((100% - 24px) / 3);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  color: #1f2430;
+  text-decoration: none;
+}
+
+.cx-pside-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 391 / 722;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 12px;
+  background: #dfe3e9;
+  box-shadow: 0 1px 2px rgb(31 36 48 / 0.06), 0 0 0 1px rgb(31 36 48 / 0.06);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.cx-pside-card:hover img {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -6px rgb(31 36 48 / 0.3), 0 0 0 1px rgb(31 36 48 / 0.1);
+}
+
+.cx-pside-card-name {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hai mũi tên treo NGOÀI hai mép dải (không đè ảnh), canh giữa phần ẢNH (trừ
+   dòng tên ~25px ở dưới). Độ thò phải lọt trong đệm ngang của .cx-pside. */
+.cx-pside .cx-pside-nav {
+  position: absolute;
+  top: calc(50% - 12px);
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  background: #fff;
+  color: #1f2430;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgb(31 36 48 / 0.18), 0 0 0 1px rgb(31 36 48 / 0.08);
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.cx-pside .cx-pside-nav.is-prev {
+  left: -40px;
+}
+
+.cx-pside .cx-pside-nav.is-next {
+  right: -40px;
+}
+
+.cx-pside .cx-pside-nav:hover {
+  transform: scale(1.06);
+}
+
+.cx-pside .cx-pside-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px rgb(31 36 48 / 0.08);
+}
+
+/* Chấm dưới dải Mẫu tương tự: một chấm một lượt 3 thẻ, chấm đang xem kéo dài. */
+.cx-pside-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.cx-pside-dots[hidden] {
+  display: none;
+}
+
+.cx-pside-dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #cfd4dc;
+  cursor: pointer;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.cx-pside-dot:hover {
+  background: #a9b0bb;
+}
+
+.cx-pside-dot.is-on {
+  width: 18px;
+  background: #b4536a;
+}
+
+.cx-pside-dot:focus-visible,
+.cx-pside .cx-pside-nav:focus-visible,
+.cx-pside-card:focus-visible,
+.cx-pside-more-all:focus-visible {
+  outline: 2px solid #b4536a;
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
 /* Màn hẹp (iPad dựng đứng): thẻ thu hẹp, máy lấy cao theo bề ngang CÒN LẠI
-   (100vw − thẻ 264 − gap 32 − lề 2×32) để cả hai cùng lọt màn. */
+   (100vw − thẻ 264 − gap 44 − lề 2×46) để cả hai cùng lọt màn. */
 @media (max-width: 1023px) {
   .cx-pshell {
-    gap: 32px;
+    gap: 44px;
   }
 
   .cx-pshell-phone {
     --cx-pshell-h: min(
       calc(var(--vh, 1vh) * 94),
       calc(var(--vh, 1vh) * 100 - 32px),
-      calc((100vw - 360px) / 0.4879)
+      calc((100vw - 400px) / 0.4879)
     );
+  }
+
+  /* Mũi tên thò ra khe 44px (trái) và lề màn ~46px (phải) — nhỏ lại cho lọt. */
+  .cx-pside {
+    margin: -8px -36px;
+    padding: 8px 36px;
+  }
+
+  .cx-pside .cx-pside-nav {
+    width: 28px;
+    height: 28px;
+    margin-top: -14px;
+  }
+
+  .cx-pside .cx-pside-nav.is-prev {
+    left: -34px;
+  }
+
+  .cx-pside .cx-pside-nav.is-next {
+    right: -34px;
   }
 
   .cx-pside {
@@ -2238,7 +2446,10 @@ x-button {
   .cx-pside-switch,
   .cx-pside-switch::after,
   .cx-pside .cx-pside-cta,
-  .cx-pside .cx-pside-cta svg {
+  .cx-pside .cx-pside-cta svg,
+  .cx-pside .cx-pside-nav,
+  .cx-pside-dot,
+  .cx-pside-card img {
     transition: none;
   }
 }

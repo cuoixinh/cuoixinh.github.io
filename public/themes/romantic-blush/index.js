@@ -76,7 +76,7 @@
     // querySelectorAll("") ném lỗi).
     reveal: ["#main-card .rb-reveal"],
 
-    suggest: "#section-gift",
+    suggest: "#section-footer",
 
     // Mẫu không có màn album: ảnh album rải vào các màn trang trí (_fillPhotos),
     // nên bước Ảnh dẫn tới màn ảnh đầu tiên. Chuyện tình chia nhiều màn trong mục.

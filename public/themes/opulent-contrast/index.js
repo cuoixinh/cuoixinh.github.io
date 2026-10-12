@@ -63,7 +63,7 @@
 
     reveal: ["#main-card section"],
 
-    suggest: "#section-gift",
+    suggest: "#section-footer",
 
     skipSteps: [],
 

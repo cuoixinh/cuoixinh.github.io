@@ -435,7 +435,7 @@ tên thư mục là `weddings.theme` + khoá của `template_pricing`, đổi l�
   `swatches` (màu gợi ý trong bộ chọn màu), `giftBox` (hộp mừng cưới mặc định — id trong
   `CX_GIFT_BOXES` hoặc `"none"`), `reveal`, `focus` (id mục, chỉ khai cái khác
   mặc định), `suggest` (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử —
-  mặc định `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không
+  mặc định `#section-footer`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không
   vẽ mục đó — id trùng `CX_STEPS`), `revealItems` (selector ảnh bay vào RIÊNG từng tấm khi cuộn
   tới — không khai thì chỉ cả mục hiện dần), `wishesMode` (dạng lời chúc khi
   `theme_setting.wishes_mode` trống),

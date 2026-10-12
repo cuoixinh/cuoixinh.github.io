@@ -81,7 +81,7 @@
     reveal: ["#main-card section:not(#section-hero)"],
 
     // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true).
-    suggest: "#section-gift",
+    suggest: "#section-footer",
 
     // Mẫu vẽ đủ mọi mục nên trang Thiết lập không phải bỏ bước nào.
     skipSteps: [],

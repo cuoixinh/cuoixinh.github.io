@@ -14,22 +14,22 @@
 update public.templates t
    set display_name = v.display_name
   from (values
-  ('basic-gold', 'Trọn Đời Bên Nhau'),
-  ('crimson-script', 'Thương Mến Gửi Trao'),
-  ('hen-uoc', 'Hẹn Ước Trăm Năm'),
-  ('hong-duyen', 'Duyên Định Ba Sinh'),
-  ('luminous-pastel', 'Mộng Đẹp Thành Đôi'),
-  ('moody-cinematic', 'Chuyện Hai Chúng Mình'),
-  ('noir-elegance', 'Vẹn Tròn Ý Nguyện'),
-  ('opulent-contrast', 'Thanh Xuân Có Nhau'),
-  ('pearl-bow', 'Bách Niên Giai Lão'),
-  ('red-carpet', 'Nắm Tay Đi Về'),
-  ('ribbon-love', 'Gắn Kết Yêu Thương'),
-  ('romantic-blush', 'Mãi Mãi Về Sau'),
-  ('romantic-gold', 'Ngày Chung Đôi'),
-  ('seaside-film', 'Từng Khoảnh Khắc'),
-  ('serene-parchment', 'Se Tơ Kết Tóc'),
-  ('vintage-forest', 'Dịu Dàng Bên Em')
+  ('basic-gold', 'Trọn đời bên nhau'),
+  ('crimson-script', 'Thương mến gửi trao'),
+  ('hen-uoc', 'Hẹn ước trăm năm'),
+  ('hong-duyen', 'Duyên định ba sinh'),
+  ('luminous-pastel', 'Mộng đẹp thành đôi'),
+  ('moody-cinematic', 'Chuyện hai chúng mình'),
+  ('noir-elegance', 'Vẹn tròn ý nguyện'),
+  ('opulent-contrast', 'Thanh xuân có nhau'),
+  ('pearl-bow', 'Bách niên giai lão'),
+  ('red-carpet', 'Nắm tay đi về'),
+  ('ribbon-love', 'Gắn kết yêu thương'),
+  ('romantic-blush', 'Mãi mãi về sau'),
+  ('romantic-gold', 'Ngày đôi ta'),
+  ('seaside-film', 'Từng khoảnh khắc'),
+  ('serene-parchment', 'Se tơ kết tóc'),
+  ('vintage-forest', 'Dịu dàng bên em')
   ) as v(template_name, display_name)
  where t.template_name = v.template_name
    and t.display_name is distinct from v.display_name;

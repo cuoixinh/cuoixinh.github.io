@@ -78,9 +78,9 @@
     reveal: ["#main-card section:not(#section-hero)"],
 
     // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true): cuộn tới
-    // mục này là bảng trượt lên. Mặc định của core/utils.js cũng là hộp mừng
-    // cưới, khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
-    suggest: "#section-gift",
+    // mục này là bảng trượt lên. Mặc định của core/utils.js cũng là chân
+    // thiệp, khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
+    suggest: "#section-footer",
 
     // id các mục trùng bảng mặc định của preview-focus-helper.js.
     onOpen: null,

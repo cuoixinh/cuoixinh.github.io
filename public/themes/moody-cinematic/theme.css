@@ -1878,8 +1878,8 @@ body,
 /* ── MÀN BÌA: khung hình mở đầu phim ─────────────────────────────────────
    Hai thanh letterbox DÀY (đen cố định --cx-deco) trượt vào kẹp ảnh bìa; thanh
    trên = dòng tên lễ + ngày, thanh dưới = nút phát. Lời mời khách là PHỤ ĐỀ ở
-   đáy khung — nét nhận dạng của màn này. Nhịp xuất hiện: thanh → tên → phụ đề
-   → nút, ảnh trôi chậm suốt lúc chờ. */
+   đáy khung — nét nhận dạng của màn này. Mọi chữ hiện gần như CÙNG LÚC (lệch
+   nhau ≤ 0.45s, xong hết trong 1.2s) để nút mở thiệp có ngay, ảnh trôi chậm suốt lúc chờ. */
 
 #cover-screen {
   background: rgb(var(--cx-deco-rgb));
@@ -1904,7 +1904,7 @@ body,
   gap: 8px;
   height: clamp(96px, 17%, 160px);
   background: rgb(var(--cx-deco-rgb));
-  animation: cx-mc-bar-in 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: cx-mc-bar-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .mc-cv-top {
@@ -1976,7 +1976,7 @@ body,
   font-size: 44px;
   line-height: 1.08;
   text-shadow: 0 2px 20px rgb(var(--cx-deco-rgb) / 0.5);
-  animation: cx-mc-rise 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.8s both;
+  animation: cx-mc-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
 }
 
 .mc-cv-amp {
@@ -1991,7 +1991,7 @@ body,
   font-size: 14px;
   font-weight: 500;
   line-height: 2;
-  animation: cx-mc-fade 0.6s ease-out 1.6s both;
+  animation: cx-mc-fade 0.75s ease-out 0.35s both;
 }
 
 .mc-cv-sub > span {
@@ -2019,7 +2019,7 @@ body,
   padding: 8px 20px 8px 8px;
   border: 1px solid rgb(var(--cx-on-image-rgb) / 0.32);
   color: rgb(var(--cx-on-image-rgb));
-  animation: cx-mc-fade 0.6s ease-out 2s both;
+  animation: cx-mc-fade 0.75s ease-out 0.45s both;
   transition: transform 0.15s ease;
 }
 

@@ -88,9 +88,9 @@
     reveal: ["#cx-no-reveal"],
 
     // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true): cuộn tới
-    // mục này là bảng trượt lên. Mặc định của core/utils.js cũng là hộp mừng
-    // cưới, khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
-    suggest: "#section-gift",
+    // mục này là bảng trượt lên. Mặc định của core/utils.js cũng là chân
+    // thiệp, khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
+    suggest: "#section-footer",
 
     // Thư mời và Gia đình không còn là mục riêng — cả hai nằm trong trang
     // #section-hero, nên phải chỉ lại cho khung xem trực tiếp biết cuộn tới đâu.

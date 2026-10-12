@@ -74,7 +74,7 @@
       "#love-story-list > *",
       "#gallery-grid > *",
     ],
-    suggest: "#section-gift",
+    suggest: "#section-footer",
     skipSteps: [],
 
     // Mốc chuyện tình nằm cạnh ảnh, cột chữ hẹp.

@@ -26,6 +26,29 @@ function cxToggle(id, show) {
 window.cxEnabled = cxEnabled;
 window.cxToggle = cxToggle;
 
+// --- CHẶN LƯU ẢNH ---
+// Thiệp thật lẫn bản xem (?preview=true): chặn nhấn giữ (iOS: touch-callout; Android:
+// contextmenu), chuột phải và kéo ảnh ra ngoài. Chỉ làm khó, không chặn được chụp màn hình.
+// Cờ là class `cx-img-lock` trên <html>; tính năng "cho phép khách tải ảnh" gọi cxImageGuard(false).
+(function () {
+  const root = document.documentElement;
+  const css = document.createElement("style");
+  css.textContent =
+    ".cx-img-lock img{-webkit-touch-callout:none;-webkit-user-drag:none;-webkit-user-select:none;user-select:none}";
+  document.head.appendChild(css);
+  root.classList.add("cx-img-lock");
+
+  const locked = (e) => root.classList.contains("cx-img-lock") && e.target.closest?.("img");
+  document.addEventListener("contextmenu", (e) => {
+    if (locked(e)) e.preventDefault();
+  });
+  document.addEventListener("dragstart", (e) => {
+    if (locked(e)) e.preventDefault();
+  });
+
+  window.cxImageGuard = (on) => root.classList.toggle("cx-img-lock", on !== false);
+})();
+
 // --- DẢI CUỘN NGANG KÉO BẰNG CHUỘT ---
 // Máy tính không vuốt được: mẫu đánh dấu khung cuộn ngang (album…) bằng
 // `data-cx-drag` là có bàn tay + nhấn giữ kéo. Uỷ quyền trên document nên ô ảnh
@@ -359,6 +382,18 @@ function _cxShellSideHtml(slug) {
         <span class="cx-pside-switch" aria-hidden="true"></span>
       </x-button>
       <x-button variant="bare" class="cx-pside-cta" icon="arrow-right" data-act="choose" label="Chọn mẫu này"></x-button>
+      <section class="cx-pside-more" hidden>
+        <div class="cx-pside-more-head">
+          <p class="cx-pside-more-title">Mẫu tương tự</p>
+          <a href="/theme-template/" class="cx-pside-more-all">Xem tất cả</a>
+        </div>
+        <div class="cx-pside-more-wrap">
+          <div class="cx-pside-more-row"></div>
+          <x-button variant="bare" class="cx-pside-nav is-prev" icon="chevron-left" icon-only data-nav="-1" aria-label="Mẫu trước" disabled></x-button>
+          <x-button variant="bare" class="cx-pside-nav is-next" icon="chevron-right" icon-only data-nav="1" aria-label="Mẫu sau" disabled></x-button>
+        </div>
+        <div class="cx-pside-dots"></div>
+      </section>
     </aside>`;
 }
 
@@ -437,12 +472,87 @@ function _cxShellName(slug) {
     .list()
     .then((rows) => {
       const row = (rows || []).filter((t) => t.theme === slug)[0];
+      _cxShellSimilar(rows, row, slug);
       if (!row || !row.name) return;
       window.CXPhoneChrome?.setTitle(row.name);
       const side = document.querySelector(".cx-pside-name");
       if (side) side.textContent = row.name;
     })
     .catch(() => {});
+}
+
+// Khối "Mẫu tương tự" dưới nút Chọn: dải ngang 3 thẻ một lượt, lật bằng hai mũi
+// tên. CHỈ mẫu cùng thể loại, cùng luật với bảng đề xuất ở core/utils.js. Bấm
+// thẻ là chuyển CẢ trang ngoài sang bản xem thử mẫu đó.
+function _cxShellSimilar(rows, cur, slug) {
+  const box = document.querySelector(".cx-pside-more");
+  if (!box) return;
+  const rest = (rows || []).filter((t) => t.theme && t.theme !== slug);
+  const same = cur && cur.category ? rest.filter((t) => t.category === cur.category) : [];
+  // Thể loại chỉ có mỗi mẫu đang xem thì thà gợi ý mẫu khác thể loại còn hơn trống.
+  const pick = same.length ? same : rest;
+  if (!pick.length) return;
+  const esc = (v) =>
+    String(v == null ? "" : v).replace(/[&<>"]/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]
+    );
+  const row = box.querySelector(".cx-pside-more-row");
+  row.innerHTML = pick
+    .map((t, i) => {
+      const url = t.previewUrl || `/public/themes/${t.theme}/?preview=true`;
+      const name = t.name || _cxThemeTitle(t.theme);
+      return `
+        <a class="cx-pside-card" href="${esc(url)}" title="${esc(name)}">
+          <img src="/assets/images/templates/${esc(t.theme)}.jpg" alt=""${i < 3 ? "" : ' loading="lazy"'} />
+          <span class="cx-pside-card-name">${esc(name)}</span>
+        </a>`;
+    })
+    .join("");
+  box.hidden = false;
+
+  // Mũi tên hết đường thì khoá. x-button tự thay mình bằng <button> (có thể trễ)
+  // nên mỗi lần đồng bộ đều tra lại theo class, và bấm thì uỷ quyền lên khung.
+  // Một lượt = 3 thẻ = bề ngang khung + một khe (gap) giữa hai thẻ.
+  const page = () => row.clientWidth + (parseFloat(getComputedStyle(row).columnGap) || 0);
+  const behavior = () =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+
+  // Chấm dưới dải: một chấm một LƯỢT 3 thẻ, bấm là lật tới lượt đó. Một lượt
+  // thì không có gì để chỉ → giấu cả dãy.
+  const dots = box.querySelector(".cx-pside-dots");
+  const pages = Math.ceil(pick.length / 3);
+  dots.hidden = pages < 2;
+  dots.innerHTML = Array.from(
+    { length: pages },
+    (_, i) => `<button type="button" class="cx-pside-dot" data-page="${i}" aria-label="Nhóm mẫu thứ ${i + 1}"></button>`
+  ).join("");
+  dots.addEventListener("click", (e) => {
+    const d = e.target.closest("[data-page]");
+    if (d) row.scrollTo({ left: page() * Number(d.dataset.page), behavior: behavior() });
+  });
+
+  const sync = () => {
+    const max = row.scrollWidth - row.clientWidth - 1;
+    box.querySelectorAll("[data-nav]").forEach((b) => {
+      // Đặt THUỘC TÍNH chứ không gán .disabled: x-button chưa nâng cấp không có
+      // thuộc tính đó, mà lúc nâng cấp nó chép attribute sang <button>.
+      b.toggleAttribute("disabled", b.dataset.nav === "-1" ? row.scrollLeft <= 1 : row.scrollLeft >= max);
+    });
+    // Lượt cuối có thể thiếu thẻ (không lật được trọn một khung) → chạm đáy là
+    // chấm cuối, đừng làm tròn theo bề ngang khung.
+    const on = row.scrollLeft >= max ? pages - 1 : Math.round(row.scrollLeft / page());
+    dots.querySelectorAll("[data-page]").forEach((d, i) => d.classList.toggle("is-on", i === on));
+  };
+  box.querySelector(".cx-pside-more-wrap").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-nav]");
+    if (!b || b.hasAttribute("disabled")) return;
+    row.scrollBy({ left: page() * Number(b.dataset.nav), behavior: behavior() });
+  });
+  row.addEventListener("scroll", sync, { passive: true });
+  window.addEventListener("resize", sync, { passive: true });
+  sync();
+  // Lượt x-button nâng cấp xong (nếu trễ hơn) thì đồng bộ lại cho chắc.
+  requestAnimationFrame(sync);
 }
 
 // Dựng trình phát nhạc theo bản khai CX_THEME.music ({variant, chrome} — tham

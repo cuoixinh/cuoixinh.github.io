@@ -80,7 +80,7 @@
     reveal: ["#main-card section"],
 
     // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true).
-    suggest: "#section-gift",
+    suggest: "#section-footer",
 
     // Bước mà trang Thiết lập KHÔNG hiện cho mẫu này (id trùng CX_STEPS ở
     // invitation-setup/js/20-steps.js): mẫu không vẽ mục Gia đình nên cũng

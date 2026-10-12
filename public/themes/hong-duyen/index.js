@@ -70,7 +70,7 @@
     // Hiệu ứng hiện dần do hdSlides lo theo TỪNG TRANG, nên hiệu ứng cuộn chung trỏ vào một id không có để hai bên không chồng
     // lên nhau (mảng rỗng làm theme-boot ném lỗi selector rỗng).
     reveal: ["#hd-no-reveal"],
-    suggest: "#section-gift",
+    suggest: "#section-footer",
     skipSteps: [],
 
     // Mỗi mốc chuyện tình chiếm trọn một trang, chữ dưới ảnh.

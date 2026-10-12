@@ -85,9 +85,9 @@ window.CX_THEME = {
   reveal: ["#main-card .cg-sec"],
 
   // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true): cuộn tới mục
-  // này là bảng trượt lên. Mặc định của core/utils.js cũng là hộp mừng cưới,
+  // này là bảng trượt lên. Mặc định của core/utils.js cũng là chân thiệp,
   // khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
-  suggest: "#section-gift",
+  suggest: "#section-footer",
 
   // Không khai `focus`: id các mục trùng bảng mặc định của preview-focus-helper.
 };
