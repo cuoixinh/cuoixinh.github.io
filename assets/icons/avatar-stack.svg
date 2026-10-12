@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+  <rect width="1000" height="1000" fill="#fff"/>
+  <circle cx="500" cy="500" r="470" fill="#FFF3F7"/>
+  <circle cx="500" cy="500" r="470" fill="none" stroke="#FDBED3" stroke-width="4"/>
+  <svg x="320" y="191.51898734177215" width="360" height="356.9620253164557" viewBox="0 0 237 235">
+  <rect x="10" y="9" width="218" height="216" rx="66" fill="#FDBED3" transform="rotate(8 119 117)"/>
+  <rect x="17" y="16" width="205" height="202" rx="56" fill="#F72F6E"/>
+  <polygon points="94,71 141.5,57 141.5,71" fill="#FFFFFF"/>
+  <rect x="84" y="75" width="70" height="85" fill="#FFFFFF"/>
+  <path d="M118.5 122 C 112 116, 100 108, 100 98 C 100 91.5, 105 88, 110 88 C 114 88, 117 90.5, 118.5 93.5 C 120 90.5, 123 88, 127 88 C 132 88, 137 91.5, 137 98 C 137 108, 125 116, 118.5 122 Z" fill="#F72F6E"/>
+  <rect x="90" y="132" width="57" height="3" rx="1.5" fill="#F72F6E"/>
+  <rect x="90" y="144" width="57" height="3" rx="1.5" fill="#F72F6E"/>
+</svg>
+  <text x="500" y="700" text-anchor="middle" font-family="Cambria" font-weight="700" font-size="112" fill="#B4536A">Cưới Xinh</text>
+  <line x1="263" y1="770" x2="315" y2="770" stroke="#F72F6E" stroke-width="3" stroke-linecap="round"/>
+  <line x1="689" y1="770" x2="741" y2="770" stroke="#F72F6E" stroke-width="3" stroke-linecap="round"/>
+  <text x="505" y="770" text-anchor="middle" dominant-baseline="central" font-family="Montserrat" font-weight="600" font-size="30" letter-spacing="10" fill="#7A8291">SINCE 2026</text>
+</svg>
