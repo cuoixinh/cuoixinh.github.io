@@ -4,6 +4,7 @@
 // (logo XuXi) thay cho glyph lucide. Hình hàng: .bnf-* ở styles/tailwind-src.css.
 
 const BENEFITS_DATA = [
+  { icon: "badge-percent", title: "Đầy đủ tính năng cần thiết — giá chỉ 109k", desc: "Cá nhân hóa tên khách, xác nhận dự, album ảnh, nhạc nền, lời chúc, hộp mừng cưới… đủ cả trong một tấm thiệp, không phát sinh thêm phí.", featured: true },
   { icon: "xuxi", img: true, title: "Trợ lý XuXi viết nội dung giúp bạn", desc: "Kể vài dòng về hai bạn, XuXi soạn luôn lời mời và chuyện tình yêu — không phải nghĩ câu chữ.", featured: true  },
   { icon: "user-check",   title: "Cá nhân hóa tên từng khách mời",       desc: "Mỗi khách nhận link thiệp riêng với tên gọi cá nhân — tạo cảm giác trân trọng và đặc biệt.",   featured: true  },
   { icon: "credit-card",  title: "Thanh toán một lần — dùng trọn đời",   desc: "Không phí hàng tháng, không giới hạn thời gian. Một lần thanh toán, sở hữu thiệp mãi mãi.",     featured: true  },
