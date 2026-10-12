@@ -2888,6 +2888,21 @@ html.cx-landing {
   line-height: 1.6;
   color: rgb(var(--text-caption-rgb));
 }
+.tg-price-tag {
+  @apply inline-flex items-center rounded-full whitespace-nowrap align-middle;
+  gap: 4px;
+  margin-left: 4px;
+  padding: 2px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-blossom-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+}
+.tg-price-tag svg.lucide {
+  font-size: 12px;
+}
 
 /* Cuộn ngang, không xuống dòng: chip là lối lọc chính trên điện thoại, xếp 2–3
    hàng thì đẩy lưới mẫu khỏi màn đầu. Chip cuối ló nửa chừng = báo còn nữa.
