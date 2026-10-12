@@ -42,7 +42,13 @@
     // dựng trang thiệp /<slug>, path lạ khác thì nó tự trả 404.html). Để "404-page"
     // là lượt bấm link của người thật (Sec-Fetch-Mode: navigate) nhận thẳng
     // 404.html, worker không được gọi — chỉ bot (không gửi header đó) tới được.
-    "not_found_handling": "none"
+    "not_found_handling": "none",
+
+    // Trang mẫu (/public/themes/<mẫu>/) LÀ file tĩnh nên bình thường không tới
+    // worker — mà link xem thử mẫu gửi qua Zalo/Messenger cần thẻ og:* (crawler
+    // không chạy JS). Cho worker chạy trước riêng nhóm này; css/js của mẫu loại ra
+    // để khỏi tốn một lượt worker mỗi file. Phải giống hệt wrangler.staging.jsonc.
+    "run_worker_first": ["/public/themes/*", "!/public/themes/*.js", "!/public/themes/*.css"]
 
     // html_handling để mặc định "auto-trailing-slash" — đúng cho /invitation-setup/,
     // /my-invitations/… vốn là thư mục có index.html.

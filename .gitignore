@@ -14,3 +14,6 @@ changelogs/*.final.sql
 
 # Ảnh chụp thiệp tham khảo của npm run capture:ref — chỉ để xem, không commit
 .ref-shots/
+
+# Trạng thái cục bộ của `wrangler dev`
+.wrangler/

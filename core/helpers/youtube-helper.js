@@ -79,7 +79,8 @@ function initYouTubeMusic(musicUrl) {
         width: "0",
         videoId: videoId,
         playerVars: {
-          autoplay: 1,
+          // Không tự phát — chờ khách cuộn sau khi mở bìa (_playOnScroll).
+          autoplay: 0,
           ...loopVars,
           controls: 0,
           showinfo: 0,
@@ -93,12 +94,7 @@ function initYouTubeMusic(musicUrl) {
             // KHÔNG tự phát — nhạc chỉ nghe ở Chỉnh sửa/Xem trước; bấm nút nhạc
             // vẫn phát được để thử trình phát.
             if (_cxMusicNoAutoplay()) _musicUserPaused = true;
-            if (!_musicUserPaused) {
-              event.target.playVideo();
-              // KHÔNG coi như đang phát: trình duyệt có thể chặn (xem
-              // _playOnFirstGesture). onStateChange mới là nguồn sự thật.
-              _playOnFirstGesture();
-            }
+            if (!_musicUserPaused) _playOnScroll();
             _emitMusicState();
           },
           onStateChange: (event) => {
@@ -132,9 +128,11 @@ function initYouTubeMusic(musicUrl) {
 
 // Mỗi lần bắt đầu phát (lần đầu, phát tiếp sau khi dừng, quay vòng) âm lượng
 // tăng dần từ 0 lên MUSIC_VOLUME trong MUSIC_FADE_MS — không phát to đột ngột.
-// iOS bỏ qua setVolume (âm lượng theo phím cứng) nên ở đó không có hiệu ứng này.
+// Đường cong bình phương: tai nghe theo log, tăng tuyến tính thì vài phần trăm
+// đầu đã nghe rõ nên vẫn thấy bật lên. iOS bỏ qua setVolume (âm lượng theo phím
+// cứng) nên ở đó không có hiệu ứng này.
 const MUSIC_VOLUME = 100;
-const MUSIC_FADE_MS = 1000;
+const MUSIC_FADE_MS = 2000;
 let _musicFadeTimer = null;
 // Riêng với isYouTubePlaying (toggle đặt trước khi player báo): chỉ dừng/hết bài
 // mới tính là tắt — BUFFERING lúc tua hay mạng chậm không fade lại từ 0.
@@ -151,7 +149,7 @@ function _fadeInMusic(player) {
   const step = () => {
     const k = Math.min(1, (Date.now() - t0) / MUSIC_FADE_MS);
     try {
-      player.setVolume(Math.round(MUSIC_VOLUME * k));
+      player.setVolume(Math.round(MUSIC_VOLUME * k * k));
     } catch (e) {}
     if (k >= 1) _stopMusicFade();
   };
@@ -159,23 +157,55 @@ function _fadeInMusic(player) {
   _musicFadeTimer = setInterval(step, 50);
 }
 
-/**
- * Trình duyệt chặn tự phát khi trang chưa có tương tác nào → chờ tương tác đầu
- * tiên (chạm/bấm/cuộn/gõ phím) rồi mới phát. Người dùng đã tự bấm tắt thì thôi.
- *
- * Có cả `scroll` vì mẫu không dùng màn bìa (không có nút "Mở thiệp") thì hành
- * động đầu tiên của khách thường là cuộn. Cuộn KHÔNG được tính là "user
- * activation" nên có máy vẫn chặn — vì vậy vẫn nghe thêm chạm/bấm/gõ phím, và
- * hàm tự vũ trang lại sau 1 giây nếu chưa phát được.
- */
-const _MUSIC_GESTURES = [
-  "pointerdown",
-  "touchstart",
-  "keydown",
-  "wheel",
-  "scroll",
-];
+// Nhạc CHỈ tự phát khi khách bắt đầu CUỘN thiệp — bấm "Mở thiệp" chưa tính: màn
+// bìa còn đó (hoặc vừa đóng mà chưa cuộn) thì im. Nghe THAO TÁC cuộn (lăn chuột,
+// vuốt, phím) chứ không nghe sự kiện `scroll`: openInvitation và onOpen của mẫu
+// lật trang tự cuộn bằng code lúc mở bìa, nghe `scroll` là nhạc bật khi chưa ai cuộn.
+const _MUSIC_SCROLLS = ["wheel", "touchmove"];
+const _MUSIC_SCROLL_KEYS = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Space", "End", "Home"];
 let _musicUserPaused = false;
+let _musicScrollArmed = false;
+
+// Thiệp không có màn bìa, hoặc bìa đã đóng (openInvitation ẩn #cover-screen).
+function _cxCoverClosed() {
+  const c = document.getElementById("cover-screen");
+  return !c || getComputedStyle(c).display === "none";
+}
+
+function _playOnScroll() {
+  if (_musicScrollArmed) return;
+  _musicScrollArmed = true;
+
+  const off = () => {
+    _MUSIC_SCROLLS.forEach((ev) => document.removeEventListener(ev, onScroll, true));
+    document.removeEventListener("keydown", onKey, true);
+    _musicScrollArmed = false;
+  };
+  const onScroll = () => {
+    if (!_cxCoverClosed()) return;
+    off();
+    if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return;
+    youtubePlayer.playVideo();
+    // Cuộn không phải "user activation": máy chưa từng được chạm (iOS hay gặp)
+    // có thể chặn phát → chờ cú chạm/bấm kế tiếp.
+    setTimeout(() => {
+      if (!isYouTubePlaying && !_musicUserPaused) _playOnFirstGesture();
+    }, 1000);
+  };
+  const onKey = (e) => {
+    if (_MUSIC_SCROLL_KEYS.indexOf(e.code) >= 0) onScroll();
+  };
+
+  _MUSIC_SCROLLS.forEach((ev) =>
+    document.addEventListener(ev, onScroll, { capture: true, passive: true }),
+  );
+  document.addEventListener("keydown", onKey, true);
+}
+
+// Lối dự phòng khi trình duyệt chặn lần phát do cuộn: cú chạm/bấm/gõ phím kế
+// tiếp mới đủ quyền phát. touchend chứ không touchstart — chạm mở đầu một cú
+// vuốt không được tính là kích hoạt.
+const _MUSIC_GESTURES = ["pointerdown", "touchend", "keydown"];
 let _musicGestureArmed = false;
 
 function _playOnFirstGesture() {
