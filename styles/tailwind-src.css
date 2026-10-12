@@ -2888,10 +2888,6 @@ html.cx-landing {
   line-height: 1.6;
   color: rgb(var(--text-caption-rgb));
 }
-.tg-sub-price {
-  font-weight: 700;
-  color: rgb(var(--action-primary-deep-rgb));
-}
 
 /* Cuộn ngang, không xuống dòng: chip là lối lọc chính trên điện thoại, xếp 2–3
    hàng thì đẩy lưới mẫu khỏi màn đầu. Chip cuối ló nửa chừng = báo còn nữa.
