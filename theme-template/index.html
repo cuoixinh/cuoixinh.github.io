@@ -290,7 +290,8 @@
             <!-- min-w-0: không có thì ô không chịu co dưới khổ tự nhiên của <input>
                  (~150px), hàng logo + ô + nút lọc vượt bề ngang máy 360–390px
                  và cả trang kéo ngang được. -->
-            <label class="tt-search flex-1 min-w-0">
+            <!-- Ô tìm TẠM ẨN (chỉ để nút lọc) — bỏ style là hiện lại, JS vẫn nối sẵn. -->
+            <label class="tt-search flex-1 min-w-0" style="display: none">
               <i data-lucide="search" style="width:18px;height:18px;color:var(--primary)"></i>
               <input
                 data-tt-search
@@ -301,7 +302,7 @@
               />
             </label>
 
-            <div class="relative shrink-0">
+            <div class="relative shrink-0 ml-auto">
               <x-button
                 variant="bare"
                 icon-only
@@ -344,7 +345,8 @@
           <!-- Từ md: ô tìm + nút lọc (bản sao của nút mobile, mở CHUNG #tt-filter-pop)
                thay cho dải chip. -->
           <div class="hidden md:flex shrink-0 items-center gap-2.5">
-            <label class="tt-search flex w-[320px] lg:w-[360px]">
+            <!-- Ô tìm TẠM ẨN như bản mobile. -->
+            <label class="tt-search flex w-[320px] lg:w-[360px]" style="display: none">
               <i data-lucide="search" style="width:18px;height:18px;color:var(--primary)"></i>
               <input
                 data-tt-search
@@ -371,8 +373,10 @@
             </div>
           </div>
         </div>
+        <!-- Dải chip TẠM ẨN ở mọi khổ — đổi danh mục qua nút lọc. Bỏ style là hiện lại. -->
         <div
           class="tg-cats md:hidden"
+          style="display: none"
           data-tg-cats
           role="group"
           aria-label="Danh mục mẫu"
