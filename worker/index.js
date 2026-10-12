@@ -3,8 +3,10 @@
  * trang mẫu của thiệp TẠI URL đó (rewrite, xem route-html.mjs) kèm thẻ preview
  * og:* cho Messenger/Zalo/Facebook (crawler KHÔNG chạy JS nên trang không tự khai).
  *
- * Path khớp file tĩnh không vào đây (asset router phục vụ trước). Không dựng được
- * trang mẫu thì lùi về trang chuyển hướng — BẢN SAO của 404.html → router.html.
+ * Path khớp file tĩnh không vào đây (asset router phục vụ trước) — trừ trang mẫu
+ * /public/themes/* (run_worker_first ở wrangler*.jsonc): bản xem thử mẫu cũng cần
+ * thẻ og:* khi gửi link. Không dựng được trang mẫu thì lùi về trang chuyển hướng —
+ * BẢN SAO của 404.html → router.html.
  *
  * Không truy vấn DB: dữ liệu lấy qua Edge Function wedding-admin (?slug=).
  * Biến khai ở [vars] của wrangler.jsonc / wrangler.staging.jsonc.
@@ -46,11 +48,28 @@ const OG_IMG_NAME = /^(?:w\/[0-9a-f]{32}\/)?(?!\.{1,2}$)[A-Za-z0-9._-]{1,120}$/;
 // nguyên tỉ lệ, chỉ thu lại ảnh quá to.
 const OG_IMG_BOX = { width: 1200, height: 1200, fit: "scale-down" };
 
+// Trang mẫu: /public/themes/<mẫu>/ (index.html thì asset router tự chuyển về dạng này).
+const THEMES_PREFIX = "/public/themes/";
+const THEME_PAGE = /^\/public\/themes\/([a-z0-9][a-z0-9-]*)\/(?:index\.html)?$/;
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith(OG_IMG_PREFIX)) return ogImage(env, url);
+
+    // Trang mẫu tới đây nhờ run_worker_first; mọi file khác trong nhóm đó (ảnh…)
+    // trả thẳng như asset router.
+    if (url.pathname.startsWith(THEMES_PREFIX)) {
+      const res = await env.ASSETS.fetch(request);
+      const theme = THEME_PAGE.exec(url.pathname)?.[1];
+      if (!theme || (request.method !== "GET" && request.method !== "HEAD")) return res;
+      try {
+        return (await templatePage(env, url, theme, res)) || res;
+      } catch (_) {
+        return res;
+      }
+    }
 
     // Chỉ GET/HEAD của một clean URL (luật ở slugSegment) mới là link thiệp.
     const seg = slugSegment(url.pathname);
@@ -489,6 +508,12 @@ async function ogMeta(env, w, guest, url, rel) {
       ? await imageMeta(src)
       : null;
 
+  const meta = w ? ogTags({ title, desc, img, dim, url, noindex: true }) : "";
+  return { title, meta };
+}
+
+/** Bộ thẻ og:* + twitter:* — dùng chung cho thiệp thật và bản xem thử mẫu. */
+function ogTags({ title, desc, img, dim, url, noindex }) {
   // secure_url + type + khổ: Messenger cần đủ bộ mới vẽ ảnh ngay lượt scrape đầu.
   const size =
     dim && dim.width && dim.height
@@ -507,8 +532,7 @@ async function ogMeta(env, w, guest, url, rel) {
     <meta name="twitter:image" content="${esc(img)}" />`
     : "";
 
-  const meta = w
-    ? `
+  return `
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Cưới Xinh" />
     <meta property="og:locale" content="vi_VN" />
@@ -518,10 +542,58 @@ async function ogMeta(env, w, guest, url, rel) {
     <meta name="description" content="${esc(desc)}" />
     <meta name="twitter:card" content="${img ? "summary_large_image" : "summary"}" />
     <meta name="twitter:title" content="${esc(title)}" />
-    <meta name="twitter:description" content="${esc(desc)}" />${imgMeta}
-    <meta name="robots" content="noindex" />`
-    : "";
-  return { title, meta };
+    <meta name="twitter:description" content="${esc(desc)}" />${imgMeta}${
+      noindex ? `
+    <meta name="robots" content="noindex" />` : ""
+    }`;
+}
+
+/**
+ * Bản xem thử mẫu (?preview=true): thẻ dựng y như link thiệp thật — tiêu đề, câu
+ * mời mặc định, ảnh bìa — từ bộ dữ liệu mẫu của chính mẫu đó
+ * (assets/data-template/<mẫu>/data.json, cũng là thứ trang hiển thị). Mẫu chưa có
+ * bộ dữ liệu thì lấy ảnh chụp mẫu. Link ?slug= cũ (thiệp thật) giữ nguyên.
+ * null = không có gì để chèn, nơi gọi trả nguyên trang.
+ */
+async function templatePage(env, url, theme, res) {
+  if (url.searchParams.get("preview") !== "true" || url.searchParams.has("slug")) return null;
+  if (res.status !== 200 || !/text\/html/.test(res.headers.get("Content-Type") || "")) return null;
+
+  const base = `/assets/data-template/${theme}/`;
+  const sample = await env.ASSETS.fetch(new Request(new URL(`${base}data.json`, url.origin)))
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+  const c = (sample && sample.content) || {};
+  const w = {
+    groom_name: c.groom_name,
+    bride_name: c.bride_name,
+    share_message_template: c.share_message_template,
+  };
+
+  // Ảnh: bìa mẫu → tấm đầu album mẫu → ảnh chụp cả mẫu (assets/images/templates).
+  const pick = [sample?.cover_image_url, sample?.gallery_images?.[0]].find(
+    (v) => typeof v === "string" && /^[A-Za-z0-9._-]+$/.test(v),
+  );
+  let path = pick ? base + pick : `/assets/images/templates/${theme}.jpg`;
+  let imgRes = await env.ASSETS.fetch(new Request(new URL(path, url.origin)));
+  if (!imgRes.ok && pick) {
+    path = `/assets/images/templates/${theme}.jpg`;
+    imgRes = await env.ASSETS.fetch(new Request(new URL(path, url.origin)));
+  }
+  const img = imgRes.ok ? url.origin + path : "";
+  const dim = imgRes.ok ? await imageMeta(imgRes) : null;
+
+  const title = ogTitle(w, "");
+  const meta = ogTags({ title, desc: ogDesc(w, "", ""), img, dim, url, noindex: false });
+
+  const rw = new HTMLRewriter()
+    .on("title", { element: (el) => el.setInnerContent(title) })
+    .on("head", { element: (el) => el.append(meta, { html: true }) });
+  const headers = new Headers(res.headers);
+  // Cache ngắn: sửa bộ dữ liệu mẫu ở admin thì thẻ đổi theo sau vài phút.
+  headers.set("Cache-Control", "public, max-age=300");
+  headers.delete("Content-Length");
+  return new Response(rw.transform(res).body, { status: 200, headers });
 }
 
 async function page(env, w, guest, url, rel) {

@@ -44,6 +44,9 @@
     // BẮT BUỘC "none", y như production (lý do ở wrangler.jsonc): path không khớp
     // file nào phải tới worker. Staging tồn tại chính là để bắt loại lỗi này, nên
     // cấu hình hai bên phải giống nhau.
-    "not_found_handling": "none"
+    "not_found_handling": "none",
+
+    // Y như production (lý do ở wrangler.jsonc): trang mẫu đi qua worker để có og:*.
+    "run_worker_first": ["/public/themes/*", "!/public/themes/*.js", "!/public/themes/*.css"]
   }
 }

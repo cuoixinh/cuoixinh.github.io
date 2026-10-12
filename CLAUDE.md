@@ -331,6 +331,9 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
   thẳng vào bucket thì Facebook bỏ ô ảnh với file còn EXIF của máy chụp — ảnh chụp bằng
   điện thoại hay dính, ảnh nào bị nén lại lúc upload thì không — trong khi Zalo và trình
   duyệt vẫn hiện, rất dễ tưởng đã xong.
+  Link xem thử MẪU (`/public/themes/<mẫu>/?preview=true`) cũng có thẻ og:* — dựng y như
+  thiệp thật từ `assets/data-template/<mẫu>/data.json` — nhờ `run_worker_first` ở CẢ HAI
+  `wrangler*.jsonc` (file tĩnh vốn không tới worker); bỏ đi là link gửi Zalo mất thẻ.
   File này KHÔNG nằm trong `dist/` nên đừng khai vào `INCLUDE`. `vars` (EDGE_URL, ANON_KEY,
   STORAGE_URL, ENCRYPTION_KEY) khai thẳng ở hai `wrangler*.jsonc` vì chúng không đi qua
   build — lệch với `core/config*.js` là thẻ đọc nhầm project, `npm run check:config` gác.
