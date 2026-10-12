@@ -85,6 +85,9 @@ function initYouTubeMusic(musicUrl) {
           controls: 0,
           showinfo: 0,
           modestbranding: 1,
+          // iOS thiếu cờ này là phát bằng trình phát toàn màn của máy — video
+          // YouTube bật ra che thiệp.
+          playsinline: 1,
         },
         events: {
           onReady: (event) => {
@@ -94,7 +97,10 @@ function initYouTubeMusic(musicUrl) {
             // KHÔNG tự phát — nhạc chỉ nghe ở Chỉnh sửa/Xem trước; bấm nút nhạc
             // vẫn phát được để thử trình phát.
             if (_cxMusicNoAutoplay()) _musicUserPaused = true;
-            if (!_musicUserPaused) _playOnScroll();
+            if (!_musicUserPaused) {
+              _primeOnTap();
+              _playOnScroll();
+            }
             _emitMusicState();
           },
           onStateChange: (event) => {
@@ -103,6 +109,14 @@ function initYouTubeMusic(musicUrl) {
               event.target.playVideo();
             }
             const S = YT.PlayerState;
+            // Lượt mở khoá của _primeOnTap đã phát được → dừng ngay, trả tiếng lại.
+            if (event.data === S.PLAYING && _musicPriming) {
+              _musicPriming = false;
+              _primeOff();
+              event.target.pauseVideo();
+              event.target.unMute();
+              return;
+            }
             // Đang bị dừng (người bấm, hoặc trang cha gọi cxMusicPause) mà
             // player tự phát — autoplay của onReady tới muộn — thì dừng lại.
             if (event.data === S.PLAYING && _musicUserPaused) {
@@ -166,6 +180,42 @@ const _MUSIC_SCROLL_KEYS = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Space
 let _musicUserPaused = false;
 let _musicScrollArmed = false;
 
+// iOS chỉ cho phát tiếng sau một cú CHẠM, mà vuốt không tính — phát lúc cuộn bị
+// chặn tới tận cú chạm kế tiếp. Nên mượn cú chạm sớm nhất (thường là "Mở thiệp")
+// phát TẮT TIẾNG rồi dừng ngay (onStateChange): trình phát đã được mở khoá, lần
+// phát lúc cuộn không cần chạm nữa. touchend/click chứ không pointerdown — chạm
+// xuống chưa phải kích hoạt trên iOS.
+const _MUSIC_PRIME_EVENTS = ["touchend", "click", "keydown"];
+let _musicPriming = false;
+let _primeOff = () => {};
+
+function _primeOnTap() {
+  const onTap = () => {
+    if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return;
+    _musicPriming = true;
+    try {
+      youtubePlayer.mute();
+      youtubePlayer.playVideo();
+    } catch (e) {}
+  };
+  _primeOff = () => {
+    _MUSIC_PRIME_EVENTS.forEach((ev) => document.removeEventListener(ev, onTap, true));
+  };
+  _MUSIC_PRIME_EVENTS.forEach((ev) =>
+    document.addEventListener(ev, onTap, { capture: true, passive: true }),
+  );
+}
+
+// Phát THẬT (cuộn, bấm nút nhạc): bỏ lượt mở khoá đang dở, trả tiếng lại.
+function _primeCancel() {
+  _primeOff();
+  if (!_musicPriming) return;
+  _musicPriming = false;
+  try {
+    youtubePlayer.unMute();
+  } catch (e) {}
+}
+
 // Thiệp không có màn bìa, hoặc bìa đã đóng (openInvitation ẩn #cover-screen).
 function _cxCoverClosed() {
   const c = document.getElementById("cover-screen");
@@ -185,6 +235,7 @@ function _playOnScroll() {
     if (!_cxCoverClosed()) return;
     off();
     if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return;
+    _primeCancel();
     youtubePlayer.playVideo();
     // Cuộn không phải "user activation": máy chưa từng được chạm (iOS hay gặp)
     // có thể chặn phát → chờ cú chạm/bấm kế tiếp.
@@ -203,9 +254,9 @@ function _playOnScroll() {
 }
 
 // Lối dự phòng khi trình duyệt chặn lần phát do cuộn: cú chạm/bấm/gõ phím kế
-// tiếp mới đủ quyền phát. touchend chứ không touchstart — chạm mở đầu một cú
-// vuốt không được tính là kích hoạt.
-const _MUSIC_GESTURES = ["pointerdown", "touchend", "keydown"];
+// tiếp mới đủ quyền phát. touchend/click chứ không touchstart/pointerdown — chạm
+// xuống chưa được tính là kích hoạt trên iOS, mà listener tự gỡ ở sự kiện đầu.
+const _MUSIC_GESTURES = ["touchend", "click", "keydown"];
 let _musicGestureArmed = false;
 
 function _playOnFirstGesture() {
@@ -218,6 +269,7 @@ function _playOnFirstGesture() {
     );
     _musicGestureArmed = false;
     if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return;
+    _primeCancel();
     youtubePlayer.playVideo();
     // Cú chạm đó vẫn chưa đủ (hiếm) → chờ tiếp cú sau.
     setTimeout(() => {
@@ -241,6 +293,7 @@ function toggleYouTubeMusic() {
     isYouTubePlaying = false;
     _musicUserPaused = true;
   } else {
+    _primeCancel();
     youtubePlayer.playVideo();
     isYouTubePlaying = true;
     _musicUserPaused = false;
@@ -278,6 +331,7 @@ function cxMusicPause() {
 function resumeMusicIfAllowed() {
   if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return false;
   try {
+    _primeCancel();
     youtubePlayer.playVideo();
   } catch (e) {
     return false;
