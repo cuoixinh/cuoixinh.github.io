@@ -1778,6 +1778,8 @@ function closeTimePicker() {
   // có. Bung rồi thì ĐỨNG YÊN: chỉ nút X mới đóng, cuộn ngược lên
   // không thu lại (khách đang cân nhắc mẫu khác, giật bảng đi là mất mạch).
   const SUG_ANCHOR = "#section-footer";
+  // Tới mốc rồi còn đợi bấy nhiêu mới bung — khách kịp đọc hết chân thiệp.
+  const SUG_DELAY_MS = 1000;
   let dismissed = false;
 
   function _open() {
@@ -1822,19 +1824,30 @@ function closeTimePicker() {
     // mép dưới. Tự đo bằng getBoundingClientRect: rootMargin của IntersectionObserver
     // bị bỏ qua khi thiệp nằm trong iframe (khung máy xem thử). Mốc sát cuối trang
     // có thể không bao giờ lên tới giữa → chạm đáy trang lúc mốc đang hiện cũng tính.
+    // Tới mốc thì hẹn SUG_DELAY_MS mới bung; trong lúc chờ mà khách cuộn ngược
+    // khỏi mốc thì huỷ hẹn, tới lại thì đếm lại từ đầu.
     let raf = 0;
-    function _check() {
-      raf = 0;
-      if (_hidden(el)) return;
+    let timer = 0;
+    function _reached() {
+      if (_hidden(el)) return false;
       const r = el.getBoundingClientRect();
       const vh = window.innerHeight;
       // Mẫu lật trang NGANG (moody-cinematic): mục ở trang khác vẫn có top ≈ 0,
       // chỉ xét chiều dọc là bung ngay lúc mới vào.
-      if (r.right <= 0 || r.left >= window.innerWidth) return;
-      // Mép trên đã qua giữa màn (kể cả vuốt nhanh lướt qua hẳn mốc) thì bung.
-      if (r.top <= vh / 2) return _hit();
+      if (r.right <= 0 || r.left >= window.innerWidth) return false;
+      // Mép trên đã qua giữa màn (kể cả vuốt nhanh lướt qua hẳn mốc).
+      if (r.top <= vh / 2) return true;
       const se = document.scrollingElement || document.documentElement;
-      if (r.top < vh && se.scrollTop + vh >= se.scrollHeight - 4) _hit();
+      return r.top < vh && se.scrollTop + vh >= se.scrollHeight - 4;
+    }
+    function _check() {
+      raf = 0;
+      if (!_reached()) {
+        clearTimeout(timer);
+        timer = 0;
+      } else if (!timer) {
+        timer = setTimeout(_hit, SUG_DELAY_MS);
+      }
     }
     function _onScroll() {
       if (!raf) raf = requestAnimationFrame(_check);
@@ -1845,6 +1858,8 @@ function closeTimePicker() {
     _unwatch = function () {
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
+      clearTimeout(timer);
+      timer = 0;
       document.removeEventListener("scroll", _onScroll, { capture: true });
       window.removeEventListener("resize", _onScroll);
     };
