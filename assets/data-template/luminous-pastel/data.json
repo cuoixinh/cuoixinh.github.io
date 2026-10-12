@@ -1,111 +1,91 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.png": {
-        "x": 58,
-        "y": 30
+      "gallery-01.webp": {
+        "x": 59,
+        "y": 24
       },
-      "gallery-02.png": {
-        "x": 50,
-        "y": 61
+      "gallery-02.webp": {
+        "x": 31,
+        "y": 35
       },
-      "gallery-03.png": {
+      "gallery-03.webp": {
         "x": 66,
-        "y": 58
+        "y": 56
       },
-      "gallery-04.png": {
-        "x": 40,
-        "y": 45
+      "gallery-04.webp": {
+        "x": 50,
+        "y": 50
       },
-      "gallery-05.png": {
-        "x": 19,
-        "y": 36
+      "gallery-05.webp": {
+        "x": 57,
+        "y": 43
       },
-      "gallery-06.png": {
-        "x": 52,
-        "y": 38
+      "gallery-06.webp": {
+        "x": 45,
+        "y": 26
       },
-      "gallery-07.png": {
-        "x": 65,
-        "y": 39
-      },
-      "gallery-08.png": {
-        "x": 38,
-        "y": 64
-      },
-      "gallery-09.png": {
-        "x": 54,
-        "y": 83
+      "gallery-07.webp": {
+        "x": 56,
+        "y": 46
       }
     },
     "cover_image_url": {
-      "x": 60,
-      "y": 35
+      "x": 66,
+      "y": 45
     },
     "groom_image_url": {
-      "x": 89,
-      "y": 34
+      "x": 48,
+      "y": 24
     },
     "bride_image_url": {
-      "x": 55,
-      "y": 27
+      "x": 60,
+      "y": 50
     }
   },
-  "cover_image_url": "cover.png",
-  "groom_image_url": "groom.png",
-  "bride_image_url": "bride.jpg",
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.png",
-    "gallery-02.png",
-    "gallery-03.png",
-    "gallery-04.png",
-    "gallery-05.png",
-    "gallery-06.png",
-    "gallery-07.png",
-    "gallery-08.png",
-    "gallery-09.png"
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp"
   ],
   "love_story": [
     {
       "date": "Hè 2020",
       "title": "Một khung hình tình cờ",
       "content": "Anh chụp vội bức ảnh phố cổ, về nhà mới thấy trong khung hình có em đang cười.",
-      "image_url": "love-story-01.png",
+      "image_url": "love-story-01.webp",
       "focal_point": {
-        "x": 50,
-        "y": 54
+        "x": 59,
+        "y": 49
       }
     },
     {
       "date": "Xuân 2021",
       "title": "Buổi cà phê đầu tiên",
       "content": "Tụi mình hẹn nhau ở quán nhỏ ven sông, nói chuyện tới lúc quán đóng cửa lúc nào không hay.",
-      "image_url": "love-story-02.png",
+      "image_url": "love-story-02.webp",
       "focal_point": {
-        "x": 40,
-        "y": 66
+        "x": 69,
+        "y": 32
       }
     },
     {
       "date": "Thu 2023",
       "title": "Chuyến đi đầu tiên",
       "content": "Hai đứa chạy xe máy vòng đèo Hải Vân, dừng lại đúng chỗ trời đang chuyển nắng.",
-      "image_url": "love-story-03.png",
+      "image_url": "love-story-03.webp",
       "focal_point": {
-        "x": 66,
-        "y": 70
-      }
-    },
-    {
-      "date": "Xuân 2026",
-      "title": "Lời cầu hôn",
-      "content": "Ở đúng góc phố nơi bức ảnh đầu tiên được chụp, anh hỏi em có muốn vào chung một khung hình mãi mãi không.",
-      "image_url": "love-story-04.png",
-      "focal_point": {
-        "x": 50,
-        "y": 53
+        "x": 48,
+        "y": 20
       }
     }
   ],
@@ -203,5 +183,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-11T14:55:33.907Z"
+  "updated_at": "2026-10-12T14:26:08.568Z"
 }
