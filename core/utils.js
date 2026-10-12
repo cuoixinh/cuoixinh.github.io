@@ -1271,6 +1271,10 @@ function closeTimePicker() {
   // khách đang soạn thiệp CỦA MÌNH, gợi ý đổi mẫu ở đó là lạc chỗ.
   if (params.get("source") === "live") return;
 
+  // `nosug=1`: CHỈ tắt bảng (quay video quảng cáo…) — khác source=live, màn bìa và
+  // thẻ cạnh khung máy vẫn giữ nguyên.
+  if (params.get("nosug") === "1") return;
+
   // shell=0 + nằm trong iframe → đang chạy TRONG khung điện thoại của bản xem
   // trước trên máy tính. Đây mới là trang có cuộn nên bảng dựng ở đây, nhưng mọi
   // cú điều hướng phải nhờ trang ngoài làm — đổi URL của iframe thì khách kẹt
