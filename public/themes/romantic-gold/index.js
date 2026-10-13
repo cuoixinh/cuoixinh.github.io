@@ -115,10 +115,10 @@
     // thứ khách thấy đầu tiên. setupMusic kéo YouTube iframe API (script bên thứ
     // ba) về ngay khi chạy — để nó đi trước là ảnh bìa xếp hàng sau.
     renderCover(w);
-    setText("rg-cover-date", _posterDate(w.ceremony_date), "----.--.--");
+    setText("rg-cover-date", _posterDate(w.ceremony_date), "--.--.----");
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
-    setText("hero-date", _posterDate(w.ceremony_date), "----.--.--");
+    setText("hero-date", _posterDate(w.ceremony_date), "--.--.----");
     setText("monogram-groom", _initial(w.groom_name), "M");
     setText("monogram-bride", _initial(w.bride_name), "H");
 
@@ -235,13 +235,13 @@
 
   // ============= POSTER MỞ ĐẦU =============
 
-  /** Ngày cưới dạng 2025.05.20 cho dòng dưới cùng của poster. */
+  /** Ngày cưới dạng 20.05.2025 cho dòng dưới cùng của poster. */
   function _posterDate(dateStr) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
     if (isNaN(d)) return "";
     const p = (n) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
+    return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`;
   }
 
   /** Chữ cái đầu của TÊN (từ cuối cùng) — dùng cho chữ lồng. */
