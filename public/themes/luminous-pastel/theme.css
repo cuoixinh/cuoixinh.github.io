@@ -718,3 +718,125 @@ body {
     transition: none;
   }
 }
+
+/* ── Màn bìa ───────────────────────────────────────────────────────────────
+   Cùng họ nền với thân thiệp (quầng pastel rất nhạt) để mở bìa không thấy đổi
+   tông. Ba quầng sáng trôi chậm phía sau thẻ kính — thứ cho kính có gì để mờ. */
+
+.lp-cover {
+  background:
+    radial-gradient(90% 50% at 0% 0%, rgb(var(--cx-deco-soft-rgb) / 0.7), transparent 70%),
+    radial-gradient(90% 50% at 100% 100%, rgb(var(--cx-accent-soft-rgb) / 0.6), transparent 70%),
+    radial-gradient(70% 40% at 100% 20%, rgb(var(--cx-deco-2-soft-rgb) / 0.45), transparent 70%),
+    rgb(var(--cx-cover-rgb));
+}
+
+/* Ảnh bìa phủ nền, chỉ 20% — quầng pastel vẫn là tông chính. */
+.lp-cover-bg {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.lp-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(36px);
+  pointer-events: none;
+  animation: cx-lp-drift 14s ease-in-out infinite alternate;
+}
+
+.lp-orb-1 {
+  top: 16%;
+  left: -12%;
+  width: 220px;
+  height: 220px;
+  background: rgb(var(--cx-deco-soft-rgb) / 0.8);
+}
+
+.lp-orb-2 {
+  bottom: 12%;
+  right: -16%;
+  width: 260px;
+  height: 260px;
+  background: rgb(var(--cx-accent-soft-rgb) / 0.7);
+  animation-duration: 18s;
+  animation-delay: -6s;
+}
+
+.lp-orb-3 {
+  top: 52%;
+  left: 40%;
+  width: 140px;
+  height: 140px;
+  background: rgb(var(--cx-deco-2-soft-rgb) / 0.7);
+  animation-duration: 16s;
+  animation-delay: -3s;
+}
+
+@keyframes cx-lp-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(24px, -32px, 0) scale(1.12);
+  }
+}
+
+/* Thẻ kính vòm trên — dáng khung cửa sổ nhà thờ, khác thẻ bo đều trong thân thiệp. */
+
+.lp-cover-card {
+  max-width: 320px;
+  border-radius: 160px 160px 28px 28px;
+  animation: cx-lp-rise 1s ease-out both;
+}
+
+@keyframes cx-lp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Ảnh nhỏ tròn trong vòng quầng sáng. */
+
+.lp-cover-thumb {
+  width: 136px;
+  height: 136px;
+  flex: none;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 4px solid rgb(var(--cx-panel-rgb) / 0.9);
+  box-shadow:
+    0 0 0 8px rgb(var(--cx-deco-soft-rgb) / 0.35),
+    0 16px 32px -16px rgb(var(--cx-heading-rgb) / 0.45);
+}
+
+/* Link chung (cờ .cx-guest-generic do wedding-helper đặt): helper bật khối lời mời
+   với dòng "Cảm ơn bạn đã ghé xem thiệp" — mẫu này bỏ hẳn, chỉ hiện với khách. */
+.cx-guest-generic #cover-guest-wrap {
+  display: none;
+}
+
+.lp-cover-rule {
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--cx-deco-rgb) / 0.6), transparent);
+}
+
+.lp-open-btn {
+  border-radius: 9999px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-orb,
+  .lp-cover-card {
+    animation: none;
+  }
+}

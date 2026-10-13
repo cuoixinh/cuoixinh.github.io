@@ -89,7 +89,14 @@
     // id các mục trùng bảng mặc định của preview-focus-helper.js nên không cần
     // khai `focus`.
 
-    onOpen: null,
+    // #main-card ẩn tới lúc mở bìa nên mọi phép đo lúc dựng đều ra 0 (tên ở mục
+    // mở đầu, mức mờ của từng tấm album) — đo lại khi thiệp hiện ra.
+    onOpen: () => {
+      lpFitHeroNames();
+      lpSyncFlow();
+      lpSyncDots();
+      lpSyncNav();
+    },
   };
 
   const _isGroom = isGroomSide();
@@ -103,6 +110,13 @@
     const side = _isGroom ? "groom" : "bride";
     const partyDate = w[`${side}_party_date`];
     const partyLocation = w[`${side}_party_location`];
+
+    // --- Màn bìa ---
+    renderCover(w);
+    setAttr("lp-cover-photo", "src", getImageUrl(w.cover_image_url));
+    applyFocalPoint("lp-cover-photo", w.image_focal_points?.cover_image_url);
+    setText("lp-cover-date", lpCoverDate(w.ceremony_date), "--.--.----");
+    lpFitCoverNames();
 
     // --- Mở đầu ---
     // Chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận src, mà
@@ -229,10 +243,10 @@
 
   window.renderWedding = renderWedding;
 
-  // ============= TÊN KHÁCH MỜI Ở MỤC MỞ ĐẦU =============
-  // Mẫu không có màn bìa nên với khách thật (CX_GUEST) wedding-helper chỉ điền
-  // chữ, không tự hiện khối lời mời (khách giả lập ?guest= thì helper tự bật).
-  // Bọc hàm chào để bật khối. index.js nạp sau wedding-helper.js.
+  // ============= TÊN KHÁCH MỜI TRÊN MÀN BÌA =============
+  // Với khách thật (CX_GUEST) wedding-helper chỉ điền chữ, không tự hiện khối lời
+  // mời (khách giả lập ?guest= và link chung thì helper tự bật). Bọc hàm chào để
+  // bật khối. index.js nạp sau wedding-helper.js.
   const _lpGreet = window.setupPersonalizedGreeting;
   window.setupPersonalizedGreeting = function (slug, isGroom, onOpen) {
     _lpGreet(slug, isGroom, onOpen);
@@ -241,6 +255,38 @@
     wrap?.classList.remove("hidden");
     wrap?.classList.add("flex");
   };
+
+  // ============= MÀN BÌA =============
+  // Tên đôi trên bìa luôn một dòng: tràn bề ngang thẻ thì thu cỡ chữ (sàn 10px).
+  // Font Cormorant tải xong thì bề ngang chữ đổi → đo lại.
+  const LP_COVER_NAMES_MIN = 10;
+  let lpCoverNamesBound = false;
+
+  function lpFitCoverNames() {
+    const box = document.querySelector(".lp-cover-names");
+    if (!box) return;
+    if (!lpCoverNamesBound) {
+      lpCoverNamesBound = true;
+      document.fonts?.ready.then(lpFitCoverNames);
+      window.addEventListener("resize", lpFitCoverNames);
+    }
+    box.style.fontSize = "";
+    // clientWidth = 0: bìa đang ẩn (khung Thiết lập bỏ qua bìa) — khỏi đo.
+    if (!box.clientWidth) return;
+    let size = parseFloat(getComputedStyle(box).fontSize);
+    while (box.scrollWidth > box.clientWidth && size > LP_COVER_NAMES_MIN) {
+      size -= 1;
+      box.style.fontSize = size + "px";
+    }
+  }
+
+  function lpCoverDate(ceremonyDate) {
+    if (!ceremonyDate) return "";
+    const d = new Date(ceremonyDate);
+    if (isNaN(d)) return "";
+    const p = (n) => String(n).padStart(2, "0");
+    return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}`;
+  }
 
   // ============= HÀNG NGÀY GIỜ + NƠI TỔ CHỨC (mục mở đầu) =============
   // Định dạng riêng của mẫu ("THỨ BẢY · 20 / 07.2025 · 17.00") nên không dùng

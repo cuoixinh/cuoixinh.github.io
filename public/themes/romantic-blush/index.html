@@ -60,15 +60,75 @@
     <!-- Trình phát nhạc — phải là con ĐẦU TIÊN của <body>. -->
     <div id="cx-music-mount"></div>
 
-    <!-- ═══ THÂN THIỆP — #main-card + ĐÚNG MỘT thẻ con flex-column ═════════ -->
+    <!-- ═══ MỤC: Màn bìa — dựng GIỐNG màn 1 (Mở đầu) ═════════════════════════
+         Cùng ảnh, cùng màn phủ, cùng lớp chữ .rb-hero-* nên mở bìa trông như màn 1
+         tự hiện chữ lên. Khác ở đáy: lời mời khách + nút "Mở Thiệp" — cú bấm đó
+         cũng là cú chạm cho nhạc nền được phát. Vuốt trên bìa không đổi màn: cử chỉ
+         lật màn gắn trên #main-card, bìa nằm ngoài thẻ đó. -->
+    <div
+      id="cover-screen"
+      class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
+    >
+      <div
+        class="rb-hero rb-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]"
+      >
+        <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="rb-full-img" alt="Ảnh cưới" fetchpriority="high" />
+        <div class="rb-hero-veil"></div>
+
+        <div class="rb-hero-top">
+          <div class="rb-hero-kicker">Invitation</div>
+          <div class="rb-hero-event" id="rb-cover-event">Lễ Thành Hôn</div>
+          <div class="rb-hero-date">
+            <span id="rb-cover-d">--</span><i></i><span id="rb-cover-m">--</span><i></i><span id="rb-cover-y">----</span>
+          </div>
+        </div>
+
+        <div class="rb-hero-bottom">
+          <div class="rb-hero-script">Forever Love</div>
+          <div class="rb-hero-names">
+            <span id="cover-groom-name">----------</span>
+            <span class="rb-hero-amp">&amp;</span>
+            <span id="cover-bride-name">----------</span>
+          </div>
+          <div class="rb-hero-rule"></div>
+
+          <!-- Tên khách của link mời: helper điền #cover-guest-name; bản "xem với tư
+               cách khách mời" (?guest=) và link chung do helper bật, link thật
+               (?name=) do index.js bật. -->
+          <div id="cover-guest-wrap" class="hidden rb-cover-guest">
+            <span data-cx-invite>Trân trọng kính mời</span>
+            <span id="cover-guest-name"></span>
+          </div>
+
+          <!-- Link chung (không có tên khách): khối lời mời ẩn, thay bằng câu này. -->
+          <div class="rb-cover-caption">Hai trái tim, một lời hẹn trọn đời</div>
+
+          <x-button
+            variant="bare"
+            onclick="openInvitation()"
+            class="open-btn rb-cover-btn relative overflow-hidden active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          >
+            <span class="relative z-10 pointer-events-none flex items-center gap-2">
+              <i data-lucide="mail-open" class="cx-ic"></i>
+              Mở Thiệp
+            </span>
+            <div class="btn-shimmer pointer-events-none"></div>
+          </x-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ THÂN THIỆP — #main-card + ĐÚNG MỘT thẻ con flex-column ═════════
+         Ẩn tới khi khách bấm "Mở thiệp" (openInvitation). -->
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      style="display: none"
     >
       <div class="rb-body">
         <!-- ═══ MÀN 1 · Mở đầu — ảnh bìa tràn màn ═══════════════════════════ -->
         <section id="section-hero" data-rb-label="Mở đầu" data-rb-main class="rb-screen rb-hero" data-rb-tone="dark">
-          <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="rb-full-img" alt="Ảnh cưới" fetchpriority="high" data-a="zoomout" />
+          <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="rb-full-img" alt="Ảnh cưới" data-a="zoomout" />
           <div class="rb-hero-veil"></div>
 
           <div class="rb-hero-top">
@@ -88,13 +148,9 @@
             </div>
             <div class="rb-hero-rule" data-a="spread" data-d="10"></div>
             <div class="rb-hero-place" id="rb-hero-place" data-a="up" data-d="10">------------------------</div>
-            <!-- Tên khách của link mời: helper điền #cover-guest-name và bật
-                 #cover-guest-wrap ở bản "xem với tư cách khách mời"; link thật
-                 (?name=) do index.js bật. -->
-            <div id="cover-guest-wrap" class="hidden rb-guest" data-a="up" data-d="11">
-              <span data-cx-invite>Trân trọng kính mời</span>
-              <span id="cover-guest-name"></span>
-            </div>
+            <!-- Giữ chỗ: lời mời khách đã lên màn bìa. Đừng xoá thẻ này — text_overrides
+                 lưu selector theo :nth-child, bỏ đi là lệch dòng chữ phía sau. -->
+            <div class="hidden" aria-hidden="true"></div>
             <div class="rb-hero-en" data-a="ch-type" data-d="11" data-step="fast">Even if the lover is across the mountain and the sea, the mountain and the sea can be levelled</div>
           </div>
         </section>

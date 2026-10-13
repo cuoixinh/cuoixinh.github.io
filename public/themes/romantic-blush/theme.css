@@ -750,36 +750,6 @@ html.cx-pshell-host.rb-stack body {
   opacity: 0.9;
 }
 
-/* Helper gắn thêm .flex khi bật khối ở bản giả lập khách → giữ xếp dọc, canh giữa. */
-.rb-guest {
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-top: 12px;
-  font-family: var(--rb-serif);
-  font-size: 16px;
-}
-
-.rb-guest #cover-guest-name {
-  display: block;
-  margin-top: 2px;
-  font-family: var(--rb-display);
-  font-style: italic;
-  font-size: 22px;
-}
-
-/* Có tên khách (khối lời mời đang hiện): màn 1 bớt địa điểm + câu tiếng Anh để
-   lời mời là thứ nổi nhất. Không có khách thì màn giữ nguyên. theme.css không qua
-   cssnano nên :not() trong :has() an toàn ở đây. */
-.rb-hero-bottom:has(> #cover-guest-wrap:not(.hidden)) .rb-hero-place,
-.rb-hero-bottom:has(> #cover-guest-wrap:not(.hidden)) .rb-hero-en {
-  display: none;
-}
-
-.rb-hero-bottom:has(> #cover-guest-wrap:not(.hidden)) .rb-guest {
-  margin-top: 4px;
-}
-
 /* ── Màn 2 · Invitation — chân dung đôi có khung lệch ─────────────────── */
 
 .rb-duo {
@@ -2175,6 +2145,140 @@ html.cx-pshell-host.rb-stack body {
 }
 
 
+/* ── Màn bìa: bản sao của màn 1 ───────────────────────────────────────────
+   Dùng lại .rb-hero / .rb-hero-* (ảnh, màn phủ, chữ) — chỉ thêm khung dọc, nhịp
+   hiện dần riêng (hiệu ứng data-a của màn chỉ chạy trong .rb-screen) và nút. */
+
+.rb-cover {
+  /* Lề đáy của .rb-hero-bottom tính theo --rb-foot; bìa không có vạch điều hướng. */
+  --rb-foot: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.rb-cover .rb-full-img {
+  animation: cx-rb-cv-zoom 1.8s ease-out both;
+}
+
+.rb-cover .rb-hero-kicker {
+  animation: cx-rb-cv-in 1s ease-out 0.2s both;
+}
+
+.rb-cover .rb-hero-event {
+  animation: cx-rb-cv-in 1s ease-out 0.4s both;
+}
+
+.rb-cover .rb-hero-date {
+  animation: cx-rb-cv-in 1s ease-out 0.6s both;
+}
+
+/* Chữ ký đã xoay bằng transform → chỉ mờ dần, đụng transform là mất góc nghiêng. */
+.rb-cover .rb-hero-script {
+  animation: cx-rb-cv-fade 1.2s ease-out 0.8s both;
+}
+
+.rb-cover .rb-hero-names {
+  animation: cx-rb-cv-in 1s ease-out 1s both;
+}
+
+.rb-cover .rb-hero-rule {
+  animation: cx-rb-cv-fade 1s ease-out 1.1s both;
+}
+
+/* Lời mời khách: dòng mời Josefin giãn rộng, tên khách Playfair nghiêng. */
+.rb-cover-guest {
+  /* Bản xem thử ?guest= được helper gắn thêm .flex → giữ hai dòng xếp dọc. */
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--rb-sans);
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 12px rgb(var(--cx-scrim-rgb) / 0.35);
+  animation: cx-rb-cv-in 1s ease-out 1.2s both;
+}
+
+/* Link chung (cờ .cx-guest-generic do wedding-helper đặt): helper bật khối này
+   với dòng "Cảm ơn bạn đã ghé xem thiệp" — mẫu này bỏ hẳn, chỉ hiện với khách. */
+.cx-guest-generic .rb-cover-guest {
+  display: none;
+}
+
+/* …và hiện câu caption một dòng vào đúng chỗ đó. Mặc định ẩn: chỉ link chung có. */
+.rb-cover-caption {
+  display: none;
+  font-family: var(--rb-serif);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-shadow: 0 2px 12px rgb(var(--cx-scrim-rgb) / 0.35);
+  color: rgb(var(--cx-on-image-rgb) / 0.92);
+  animation: cx-rb-cv-in 1s ease-out 1.2s both;
+}
+
+.cx-guest-generic .rb-cover-caption {
+  display: block;
+}
+
+.rb-cover-guest #cover-guest-name {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--rb-display);
+  font-style: italic;
+  font-size: 24px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Nút kính mờ trên ảnh; chỉ mờ dần (transform của keyframes sẽ đè active:scale-95). */
+.rb-cover-btn {
+  margin-top: 20px;
+  padding: 14px 36px;
+  font-family: var(--rb-sans);
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-on-image-rgb));
+  border: 1px solid rgb(var(--cx-on-image-rgb) / 0.7);
+  background: rgb(var(--cx-on-image-rgb) / 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: cx-rb-cv-fade 1s ease-out 1.3s both;
+}
+
+@keyframes cx-rb-cv-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cx-rb-cv-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cx-rb-cv-zoom {
+  from {
+    transform: scale(1.08);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
 /* Máy bật "giảm chuyển động": bỏ hiệu ứng, mọi thứ hiện ngay ở trạng thái cuối. */
 @media (prefers-reduced-motion: reduce) {
   .rb-fx .rb-on [data-a],
@@ -2194,6 +2298,12 @@ html.cx-pshell-host.rb-stack body {
   }
 
   .rb-nav.is-land .rb-nav-bar i {
+    animation: none;
+  }
+
+  .rb-cover .rb-full-img,
+  .rb-cover .rb-hero-top > *,
+  .rb-cover .rb-hero-bottom > * {
     animation: none;
   }
 }

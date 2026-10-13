@@ -69,13 +69,88 @@
          nên tổ tiên có transform sẽ neo nó sai chỗ. -->
     <div id="cx-music-mount"></div>
 
+    <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
+         Thẻ kính mờ vòm trên nền quầng pastel, chữ lồng tên viết tắt ở giữa.
+         Cú bấm "Mở thiệp" cũng là cú chạm cho nhạc nền được phát. -->
+    <div
+      id="cover-screen"
+      class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
+    >
+      <div
+        class="lp-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px] flex flex-col items-center justify-center px-8 text-center"
+      >
+        <!-- Ảnh bìa phủ nền, mờ 20% — ảnh của màn ĐẦU TIÊN nên được ưu tiên tải. -->
+        <img
+          id="cover-bg-img"
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          alt=""
+          fetchpriority="high"
+          class="lp-cover-bg absolute inset-0 w-full h-full object-cover"
+        />
+        <span class="lp-orb lp-orb-1"></span>
+        <span class="lp-orb lp-orb-2"></span>
+        <span class="lp-orb lp-orb-3"></span>
+
+        <div class="lp-cover-card lp-glass relative z-10 w-full flex flex-col items-center gap-5 px-8 pt-12 pb-8">
+          <div class="cx-t lp-caps text-[11px]">The Wedding Of</div>
+
+          <!-- Ảnh nhỏ trong vòng quầng sáng — cùng ảnh bìa với nền. -->
+          <div class="lp-cover-thumb">
+            <img
+              id="lp-cover-photo"
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              alt="Ảnh cưới"
+              class="w-full h-full object-cover"
+            />
+          </div>
+
+          <!-- Một dòng, không xuống dòng: tên dài thì lpFitCoverNames thu cỡ chữ. -->
+          <div class="lp-cover-names cx-h lp-caps text-[16px] font-semibold leading-snug w-full whitespace-nowrap">
+            <span id="cover-groom-name">----------</span>
+            <span class="lp-amp mx-1">&</span>
+            <span id="cover-bride-name">----------</span>
+          </div>
+
+          <div class="lp-cover-rule"></div>
+
+          <div class="flex flex-col items-center gap-1">
+            <div class="lp-hand text-[26px] leading-none">Save the date</div>
+            <div class="cx-t cx-a text-[14px] tracking-[4px]" id="lp-cover-date">--.--.----</div>
+          </div>
+
+          <!-- Lời mời khách: link riêng (?name=) do index.js bật; link chung và bản
+               "xem với tư cách khách mời" (?guest=) do helper bật. -->
+          <div id="cover-guest-wrap" class="hidden flex-col items-center gap-1">
+            <div data-cx-invite class="cx-t lp-caps text-[11px]">
+              Trân trọng kính mời
+            </div>
+            <div class="cx-h text-[22px] leading-tight" id="cover-guest-name">
+              ----------
+            </div>
+          </div>
+
+          <x-button
+            variant="bare"
+            onclick="openInvitation()"
+            class="open-btn lp-open-btn lp-glass relative overflow-hidden mt-2 px-8 py-3 cx-t text-[14px] active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          >
+            <span class="relative z-10 pointer-events-none flex items-center gap-2">
+              <i data-lucide="mail-open" class="cx-ic lp-rose text-base"></i>
+              Mở Thiệp
+            </span>
+            <div class="btn-shimmer pointer-events-none"></div>
+          </x-button>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
-         #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục.
-         Không có màn bìa: mở link là vào thẳng mục mở đầu, nên #main-card không
-         đặt display:none và openInvitation() không làm gì (nó cần #cover-screen). -->
+         #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục. Ẩn tới khi khách
+         bấm "Mở thiệp" — openInvitation() ẩn #cover-screen rồi hiện thẻ này. -->
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      style="display: none"
     >
       <div class="flex flex-col gap-12 pb-14 text-center">
         <!-- ═══ MỤC: Mở đầu ════════════════════════════════════════════════
@@ -87,11 +162,10 @@
         >
           <div class="cx-t lp-caps text-[12px]">The Wedding Of</div>
 
-          <!-- Ảnh cưới — ảnh của màn đầu tiên nên được ưu tiên tải. -->
+          <!-- Ảnh cưới — cùng ảnh với #cover-bg-img của màn bìa (đã ưu tiên tải ở đó). -->
           <div class="lp-hero-photo">
             <img
               id="main-photo"
-              fetchpriority="high"
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               alt="Ảnh cưới"
               class="w-full h-full object-cover"
@@ -139,21 +213,6 @@
               id="hero-venue-address"
             >
               ------------------------
-            </div>
-          </div>
-
-          <!-- Tên khách mời: chỉ hiện với link riêng của khách (hoặc ?guest= ở
-               bản xem thử), index.js bỏ .hidden. Đứng CUỐI mục: thêm thẻ ở giữa là
-               lệch :nth-child mà text_overrides đã lưu. -->
-          <div
-            id="cover-guest-wrap"
-            class="hidden lp-glass flex-col items-center gap-1 px-6 py-3"
-          >
-            <div data-cx-invite class="cx-t lp-caps text-[11px]">
-              Trân trọng kính mời
-            </div>
-            <div class="cx-h text-[22px] leading-tight" id="cover-guest-name">
-              ----------
             </div>
           </div>
         </section>

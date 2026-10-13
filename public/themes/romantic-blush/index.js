@@ -84,7 +84,9 @@
 
     skipSteps: [],
 
-    onOpen: null,
+    // #main-card ẩn sau màn bìa thì _collect() không thấy màn nào (offsetParent
+    // null) → dựng lại danh sách màn và hiện màn 1 khi thiệp vừa hiện ra.
+    onOpen: () => _slides(),
   };
 
   const _isGroom = isGroomSide();
@@ -106,9 +108,14 @@
     const ceremonyTime = isVuQuy ? w.vu_quy_time : w.ceremony_time;
     const ceremonyLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
 
-    // --- Màn 1 (mẫu không có màn bìa) --- chạy TRƯỚC setupMusic để ảnh màn đầu nhận src trước
-    renderHero(w, false);
+    // --- Màn bìa + Màn 1 --- chạy TRƯỚC setupMusic để ảnh màn đầu nhận src trước
     const cd = _day(w.ceremony_date);
+    renderCover(w);
+    setText("rb-cover-event", ceremonyName);
+    setText("rb-cover-d", cd ? _pad(cd.getDate()) : "", "--");
+    setText("rb-cover-m", cd ? _pad(cd.getMonth() + 1) : "", "--");
+    setText("rb-cover-y", cd ? String(cd.getFullYear()) : "", "----");
+    renderHero(w, false);
     setText("rb-hero-event", ceremonyName);
     setText("rb-hero-d", cd ? _pad(cd.getDate()) : "", "--");
     setText("rb-hero-m", cd ? _pad(cd.getMonth() + 1) : "", "--");
@@ -636,14 +643,15 @@
     });
   }
 
-  // Mẫu không có màn bìa: hiện màn 1 ngay khi nạp (đặt SAU _split — _activate cần nó).
+  // Gắn cử chỉ + dựng màn ngay khi nạp (đặt SAU _split — _activate cần nó). Lúc này
+  // #main-card còn ẩn sau màn bìa nên chưa có màn nào: CX_THEME.onOpen dựng lại.
   if (_fx()) {
     _wireGestures();
     _slides();
   }
 
-  // Tên khách của link mời nằm ở màn 1 (mẫu không có bìa). Helper chung điền
-  // #cover-guest-name; link chung (không ?name=) thì khối này giấu hẳn.
+  // Tên khách của link mời nằm trên màn bìa. Helper chung điền
+  // #cover-guest-name và tự bật khối này cho link chung/bản xem thử; link riêng (?name=) bật ở đây.
   if (
     new URLSearchParams(location.search).has("name") &&
     !(typeof isPreviewMode === "function" && isPreviewMode())
