@@ -98,6 +98,9 @@ function initYouTubeMusic(musicUrl) {
             // vẫn phát được để thử trình phát.
             if (_cxMusicNoAutoplay()) _musicUserPaused = true;
             if (!_musicUserPaused) {
+              // Trong iframe (khung xem trực tiếp tải lại sau mỗi lần sửa) thì
+              // thôi hâm nóng — mỗi lần nạp lại là tải luồng một lần.
+              if (window.parent === window) _primeWarm();
               _primeOnTap();
               _playOnScroll();
             }
@@ -109,11 +112,14 @@ function initYouTubeMusic(musicUrl) {
               event.target.playVideo();
             }
             const S = YT.PlayerState;
-            // Lượt mở khoá của _primeOnTap đã phát được → dừng ngay, trả tiếng lại.
+            // Lượt phát tắt tiếng (hâm nóng / mở khoá) đã chạy → dừng, tua về đầu
+            // bài, trả tiếng lại. Chỉ lượt do cú chạm mới đủ mở khoá iOS nên chỉ
+            // lượt đó mới gỡ listener chạm.
             if (event.data === S.PLAYING && _musicPriming) {
               _musicPriming = false;
-              _primeOff();
+              if (_musicPrimeTapped) _primeOff();
               event.target.pauseVideo();
+              event.target.seekTo(start || 0, true);
               event.target.unMute();
               return;
             }
@@ -187,12 +193,26 @@ let _musicScrollArmed = false;
 // xuống chưa phải kích hoạt trên iOS.
 const _MUSIC_PRIME_EVENTS = ["touchend", "click", "keydown"];
 let _musicPriming = false;
+let _musicPrimeTapped = false;
 let _primeOff = () => {};
+
+// Cú chạm chỉ được tính khi play() THẬT trong iframe YouTube chạy ngay lúc đó. Lần
+// phát đầu tiên YouTube còn phải tải luồng nên play() chạy muộn, ra khỏi cú chạm →
+// iOS không mở khoá. Vì vậy phát tắt tiếng một lượt ngay khi player sẵn sàng (không
+// cần chạm) để luồng tải sẵn; trình duyệt chặn lượt này cũng không sao.
+function _primeWarm() {
+  _musicPriming = true;
+  try {
+    youtubePlayer.mute();
+    youtubePlayer.playVideo();
+  } catch (e) {}
+}
 
 function _primeOnTap() {
   const onTap = () => {
     if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return;
     _musicPriming = true;
+    _musicPrimeTapped = true;
     try {
       youtubePlayer.mute();
       youtubePlayer.playVideo();
@@ -326,6 +346,28 @@ function cxMusicPause() {
   updateMusicIcon();
   _emitMusicState();
 }
+
+// Khách rời trang (về màn hình chính, đổi tab/app) thì dừng, quay lại thì phát
+// tiếp: iOS để nhạc chạy dở lúc rời Safari là bật video YouTube ra cửa sổ nổi (PiP).
+// Không đụng _musicUserPaused — đây không phải khách bấm dừng.
+let _musicHiddenPause = false;
+document.addEventListener("visibilitychange", () => {
+  if (!youtubePlayer) return;
+  if (document.hidden) {
+    if (!isYouTubePlaying) return;
+    _musicHiddenPause = true;
+    try {
+      youtubePlayer.pauseVideo();
+    } catch (e) {}
+  } else if (_musicHiddenPause) {
+    _musicHiddenPause = false;
+    if (!resumeMusicIfAllowed()) return;
+    // Máy chặn lần phát tiếp không có cú chạm → chờ cú chạm kế tiếp.
+    setTimeout(() => {
+      if (!isYouTubePlaying && !_musicUserPaused) _playOnFirstGesture();
+    }, 1000);
+  }
+});
 
 /** Phát tiếp — CHỈ khi người dùng chưa chủ động bấm dừng. */
 function resumeMusicIfAllowed() {
