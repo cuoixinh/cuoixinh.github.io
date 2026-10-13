@@ -116,6 +116,8 @@
   //   run   : chạm phát TẮT tiếng, chạy luôn; vuốt chỉ bật tiếng.
   //   prime : hâm nóng + chạm phát tắt tiếng rồi dừng; vuốt phát (logic CŨ — vuốt là bật
   //           tiếng ngay, kể cả khi lượt tắt tiếng chưa kịp PLAYING).
+  //   unlock: (host=audio) KHÔNG dùng YouTube — thẻ <audio> cùng trang; chạm thì play()+pause()
+  //           ngay trong cú chạm để mở khoá, vuốt thì play().
   //   prime2: logic MỚI của youtube-helper — chạm phát tắt tiếng rồi dừng; vuốt khi lượt
   //           đó chưa xong thì để nó chạy câm, PLAYING xong 1,5 giây mới bật tiếng.
   const PLAN = [
@@ -129,6 +131,7 @@
     ["big", "run", "Chạm phát tắt tiếng chạy luôn, vuốt bật tiếng"],
     ["big", "prime", "Logic CŨ (vuốt là bật tiếng ngay)"],
     ["big", "prime2", "Logic MỚI của thiệp — chạm rồi VUỐT NGAY, đừng đợi"],
+    ["audio", "unlock", "Thẻ <audio> (chỉ tiếng) thay YouTube — nhạc thử là giai điệu bíp ~12 giây"],
   ];
   const KEY = "cx-music-test";
   const q = new URLSearchParams(location.search);
@@ -255,6 +258,27 @@
     try { player[fn](...a); log(`→ ${fn}(${a.join(",")})`); } catch (e) { log(`✗ ${fn}: ${e.message}`); }
   };
 
+  let audio = null;
+  if (HOST === "audio") {
+    audio = new Audio("/public/music-test.wav");
+    audio.loop = true;
+    audio.preload = "auto";
+    ["play", "playing", "pause", "waiting", "stalled", "error"].forEach((ev) =>
+      audio.addEventListener(ev, () => log(`audio ${ev}${ev === "error" ? " code=" + (audio.error && audio.error.code) : ""}`))
+    );
+    ready = true;
+    log("audio sẵn sàng");
+    $("#ready").textContent = "Sẵn sàng — chạm Mở thiệp";
+    $("#ready").classList.add("ok");
+    document.querySelector("#cover .open").disabled = false;
+  }
+  const audioPlay = (why) => {
+    const p = audio.play();
+    log(`→ audio.play() (${why})`);
+    if (p && p.then) p.then(() => log("  play OK"), (err) => log(`  play BỊ CHẶN: ${err.name}`));
+  };
+
+  if (HOST !== "audio") {
   const mount = document.createElement("div");
   mount.id = "yt-mount";
   let size = 0;
@@ -308,6 +332,7 @@
   const s = document.createElement("script");
   s.src = "https://www.youtube.com/iframe_api";
   document.head.appendChild(s);
+  }
 
   // Cú chạm "Mở thiệp" (touchend như thiệp thật — click bị preventDefault nuốt).
   const openBtn = document.querySelector("#cover .open");
@@ -316,6 +341,12 @@
     e.preventDefault();
     opened = true;
     log(`chạm Mở thiệp (${e.type})`);
+    if (MODE === "unlock") {
+      // Mở khoá kiểu cổ điển của iOS: play() rồi pause() NGAY trong cú chạm — chưa kịp ra tiếng.
+      audioPlay("mở khoá");
+      audio.pause();
+      log("→ audio.pause() (ngay trong cú chạm)");
+    }
     if (MODE === "blip") { priming = true; call("unMute"); call("playVideo"); }
     if (MODE === "start") { call("unMute"); call("playVideo"); }
     if (MODE === "run") { call("mute"); call("playVideo"); }
@@ -332,8 +363,12 @@
   document.addEventListener("touchmove", (e) => {
     if (!opened || scrolled || e.target.closest?.("[data-ui]")) return;
     scrolled = true;
-    log(`vuốt lần đầu (lượt tắt tiếng ${primed ? "ĐÃ xong" : "CHƯA xong"})`);
+    log(MODE === "prime2" ? `vuốt lần đầu (lượt tắt tiếng ${primed ? "ĐÃ xong" : "CHƯA xong"})` : "vuốt lần đầu");
     priming = false;
+    if (MODE === "unlock") {
+      audioPlay("vuốt");
+      return;
+    }
     if (MODE === "prime2") {
       if (primed) { call("unMute"); call("playVideo"); }
       else { unmuteOnPlay = true; call("mute"); call("playVideo"); }
