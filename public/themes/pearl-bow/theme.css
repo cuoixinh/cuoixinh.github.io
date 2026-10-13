@@ -101,6 +101,12 @@ body {
   letter-spacing: 4px;
   text-transform: uppercase;
 }
+/* Tiêu đề lớn bằng chữ Việt: Cinzel không có dấu tiếng Việt. */
+.pb-title-en.pb-title-vn {
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 500;
+  font-size: 26px;
+}
 .pb-title-vi {
   font-size: 12px;
   letter-spacing: 3px;

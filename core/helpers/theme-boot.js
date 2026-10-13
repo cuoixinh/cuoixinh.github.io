@@ -596,6 +596,12 @@ function _cxMountMusic(decl) {
   // (_cxShellNameLive) — chỉ trang cha đó nghe, các iframe khác bỏ qua.
   loadWeddingData(getSlugFromUrl(), (w) => {
     window.renderWedding(w);
+    // Link chung (khách vãn lai) không ứng với hàng khách nào nên không ghi được
+    // xác nhận → giấu hẳn mục. Bản xem thử giữ nguyên để chủ thiệp thấy mục này.
+    if (!window.CX_GUEST && !isPreviewMode()) {
+      const rsvp = document.getElementById("rsvp-section");
+      if (rsvp) rsvp.style.display = "none";
+    }
     if (T.revealItems?.length) _cxRevealItems(T.revealItems);
     // Ảnh trên nút nhạc (CX_THEME.music.art) cần dữ liệu thiệp → áp sau render.
     if (T.music?.art)
