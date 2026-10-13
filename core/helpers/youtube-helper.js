@@ -82,6 +82,9 @@ function initYouTubeMusic(musicUrl) {
           // Không tự phát — chờ khách cuộn sau khi mở bìa (_playOnScroll).
           autoplay: 0,
           ...loopVars,
+          // iPhone mặc định phát bằng trình phát toàn màn hình của iOS (dễ bật
+          // PiP, lần bấm đầu hay hỏng vì iframe ẩn) — phát ngay trong trang.
+          playsinline: 1,
           controls: 0,
           showinfo: 0,
           modestbranding: 1,
