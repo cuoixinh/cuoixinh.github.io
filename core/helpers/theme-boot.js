@@ -596,6 +596,12 @@ function _cxMountMusic(decl) {
   // (_cxShellNameLive) — chỉ trang cha đó nghe, các iframe khác bỏ qua.
   loadWeddingData(getSlugFromUrl(), (w) => {
     window.renderWedding(w);
+    // Link chung (khách vãn lai) không ứng với hàng khách nào nên không ghi được
+    // xác nhận → giấu hẳn mục. Bản xem thử giữ nguyên để chủ thiệp thấy mục này.
+    if (!window.CX_GUEST && !isPreviewMode()) {
+      const rsvp = document.getElementById("rsvp-section");
+      if (rsvp) rsvp.style.display = "none";
+    }
     if (T.revealItems?.length) _cxRevealItems(T.revealItems);
     // Ảnh trên nút nhạc (CX_THEME.music.art) cần dữ liệu thiệp → áp sau render.
     if (T.music?.art)
@@ -614,7 +620,9 @@ function _cxMountMusic(decl) {
   // Theme chen thêm việc lúc thiệp hiện ra (dựng lại carousel, đo lại khung…)
   // bằng CX_THEME.onOpen — openInvitation() gọi nó sau khi #main-card đã hiện.
   const _openInvitation = window.openInvitation;
+  // Gọi cxMusicOnOpen TRƯỚC, ngay trong cú bấm: nhạc mượn cú bấm này để được phát.
   window.openInvitation = function () {
+    if (window.cxMusicOnOpen) window.cxMusicOnOpen();
     _openInvitation(T.onOpen);
   };
 

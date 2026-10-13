@@ -88,18 +88,20 @@
 
   const _isGroom = isGroomSide();
 
-  // Lời chào trên poster chỉ hiện khi link gửi riêng cho một khách (?name=):
-  // cờ .rg-has-guest đưa nó vào giữa poster thay "Our Love Story" (theme.css).
-  // Tên do setupPersonalizedGreeting() đổ vào #cover-guest-name.
-  // Chạy ngay: chỉ phụ thuộc URL, không đợi dữ liệu thiệp về.
-  try {
-    const q = new URLSearchParams(window.location.search);
-    // ?guest= là màn khách mời giả lập của bản xem thử (setupPersonalizedGreeting).
-    if (q.get("name") || (q.get("preview") === "true" && q.get("guest"))) {
-      document.getElementById("cover-guest-wrap")?.classList.remove("hidden");
-      document.querySelector(".rg-hero-in")?.classList.add("rg-has-guest");
+  // Lời mời khách trên màn bìa. Khách thật (CX_GUEST): helper chỉ điền chữ, không
+  // tự bật khối → bọc hàm chào để bật. Khối đang hiện (kể cả link chung, bản xem
+  // thử ?guest=) thì gắn .rg-has-guest để nó thay chỗ "Our Love Story" (theme.css).
+  // index.js nạp sau wedding-helper.js, trước theme-boot.js (nơi gọi hàm này).
+  const _rgGreet = window.setupPersonalizedGreeting;
+  window.setupPersonalizedGreeting = function (slug, isGroom, onOpen) {
+    _rgGreet(slug, isGroom, onOpen);
+    const wrap = document.getElementById("cover-guest-wrap");
+    if (!wrap) return;
+    if (window.CX_GUEST) wrap.classList.remove("hidden");
+    if (!wrap.classList.contains("hidden")) {
+      document.querySelector(".rg-cover-in")?.classList.add("rg-has-guest");
     }
-  } catch (e) {}
+  };
 
   // ============= ĐỔ DỮ LIỆU LÊN THIỆP =============
 
@@ -108,10 +110,12 @@
 
     const side = _isGroom ? "groom" : "bride";
 
-    // --- Mở đầu: poster tràn viền (mẫu này không có màn bìa) ---
-    // ĐỨNG ĐẦU hàm, trước setupMusic: đây là chỗ #main-photo nhận src, mà ảnh đó
-    // choán cả màn đầu tiên. setupMusic kéo YouTube iframe API (script bên thứ
-    // ba) về ngay khi chạy — để nó đi trước là tấm poster xếp hàng sau.
+    // --- Màn bìa + Mở đầu (poster tràn viền) ---
+    // ĐỨNG ĐẦU hàm, trước setupMusic: đây là chỗ ảnh bìa nhận src, mà ảnh đó là
+    // thứ khách thấy đầu tiên. setupMusic kéo YouTube iframe API (script bên thứ
+    // ba) về ngay khi chạy — để nó đi trước là ảnh bìa xếp hàng sau.
+    renderCover(w);
+    setText("rg-cover-date", _posterDate(w.ceremony_date), "----.--.--");
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
     setText("hero-date", _posterDate(w.ceremony_date), "----.--.--");

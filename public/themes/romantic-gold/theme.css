@@ -359,24 +359,6 @@ body {
   animation: cx-rg-fade 1.6s ease-out 0.9s both;
 }
 
-/* Thiệp gửi riêng một khách (.rg-has-guest do index.js gắn): lời mời + tên khách
-   đứng đúng chỗ "Our Love Story" (tâm poster, xuống 30px) và dòng đó ẩn đi.
-   Canh dọc bằng transform nên cũng chỉ mờ dần như dòng chữ nó thay. */
-
-.rg-has-guest > .rg-love {
-  display: none;
-}
-
-.rg-has-guest > #cover-guest-wrap {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  padding: 0 32px;
-  transform: translateY(calc(-50% + 30px));
-  animation: cx-rg-fade 1.6s ease-out 0.9s both;
-}
-
 @keyframes cx-rg-fade {
   from {
     opacity: 0;
@@ -587,6 +569,81 @@ body {
   box-shadow: 0 12px 28px rgb(var(--cx-heading-rgb) / 0.18);
 }
 
+/* ── Màn bìa: bản sao của poster mở đầu ───────────────────────────────────
+   Ảnh, lớp tối và chữ dùng chung lớp với poster (.rg-scrim/.rg-on/.rg-gold), chỉ
+   thêm nhịp hiện dần + nút "Mở Thiệp" kính mờ trên ảnh. */
+
+.rg-cover {
+  background-color: rgb(var(--cx-scrim-rgb));
+}
+
+.rg-cover #cover-bg-img {
+  animation: cx-rg-zoom 28s ease-in-out infinite alternate;
+}
+
+.rg-cover-in > * {
+  animation: cx-rg-up 1s ease-out both;
+}
+
+.rg-cover-in > :nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.rg-cover-in > :nth-child(2) {
+  animation-delay: 0.45s;
+}
+
+.rg-cover-in > :nth-child(6) {
+  animation-delay: 0.7s;
+}
+
+.rg-cover-in > :nth-child(7) {
+  animation-delay: 0.95s;
+}
+
+/* Dòng viết tay canh tâm bằng transform → chỉ mờ dần, như ở poster. */
+.rg-cover-in > .rg-script {
+  animation: cx-rg-fade 1.6s ease-out 0.9s both;
+}
+
+/* Có lời mời khách (.rg-has-guest do index.js gắn): khối đó đứng đúng chỗ "Our
+   Love Story" (tâm bìa, xuống 30px) và dòng đó ẩn đi. Canh dọc bằng transform nên
+   chỉ mờ dần như dòng chữ nó thay. */
+.rg-has-guest > .rg-love {
+  display: none;
+}
+
+.rg-has-guest > #cover-guest-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  padding: 0 32px;
+  transform: translateY(calc(-50% + 30px));
+  animation: cx-rg-fade 1.6s ease-out 0.9s both;
+}
+
+.rg-cover-btn {
+  margin-top: 8px;
+  padding: 12px 36px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-on-image-rgb));
+  border: 1px solid rgb(var(--cx-accent-soft-rgb) / 0.8);
+  background: rgb(var(--cx-on-image-rgb) / 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-shadow: 0 1px 8px rgb(var(--cx-scrim-rgb) / 0.35);
+  /* Chỉ mờ dần: keyframes có transform sẽ giữ đè lên active:scale-95 lúc bấm. */
+  animation: cx-rg-fade 1s ease-out 1.15s both;
+}
+
+.rg-cover-btn .cx-ic {
+  color: rgb(var(--cx-accent-soft-rgb));
+}
+
 /* ── Tôn trọng cài đặt "giảm chuyển động" của máy ─────────────────────────
    Người dùng bật mục này thường vì chóng mặt/say chuyển động — thiệp cưới
    không đáng để đánh đổi. Tắt sạch, giữ nguyên bố cục. */
@@ -594,6 +651,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   #section-hero #main-photo,
   .rg-hero-in > *,
+  .rg-cover #cover-bg-img,
+  .rg-cover-in > *,
   .rg-monogram {
     animation: none;
   }

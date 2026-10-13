@@ -91,21 +91,31 @@ function _glCardHTML(w) {
       </div>
       <div class="mi-card-foot">
         ${url ? `
-        <a class="mi-btn mi-btn--soft inline-flex items-center justify-center rounded-full" href="${_glEsc(url)}"
-          target="_blank" rel="noopener">${_ico("eye", 16)}Xem thiệp</a>` : ""}
+        <x-button variant="bare" class="mi-btn mi-btn--soft" data-view="${_glEsc(url)}"
+          aria-haspopup="menu">${_ico("eye", 16)}Xem thiệp</x-button>` : ""}
         <a class="mi-btn mi-btn--primary inline-flex items-center justify-center rounded-full" href="${href}">
           ${_ico("users", 16)}Quản lý khách mời</a>
       </div>
     </article>`;
 }
 
-// Nút sao chép liên kết trên thẻ (uỷ quyền một lần cho cả lưới).
+// Xem / sao chép link trên thẻ (uỷ quyền một lần cho cả lưới): hỏi Nhà trai /
+// Nhà gái trước vì mỗi nhà một link (cxPickSide).
 document.addEventListener("click", (e) => {
+  const view = e.target.closest("[data-view]");
+  if (view) {
+    cxPickSide(view, (side) => window.open(cxSideUrl(view.dataset.view, side), "_blank", "noopener"));
+    return;
+  }
   const btn = e.target.closest("[data-copy]");
   if (!btn) return;
-  navigator.clipboard
-    .writeText(btn.dataset.copy)
-    .then(() => window.showToast?.("Đã sao chép liên kết thiệp", "success"));
+  cxPickSide(btn, (side) => {
+    const who = side === "groom" ? "nhà trai" : "nhà gái";
+    navigator.clipboard
+      .writeText(cxSideUrl(btn.dataset.copy, side))
+      .then(() => window.showToast?.(`Đã sao chép liên kết thiệp ${who}`, "success"))
+      .catch(() => window.showToast?.("Không sao chép được liên kết", "error"));
+  });
 });
 
 async function loadList() {

@@ -111,6 +111,8 @@
     _opening = true;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     document.getElementById("sp-cover")?.classList.add("is-open");
+    // Mượn cú bấm cho nhạc ngay bây giờ: tới lúc openInvitation chạy thì đã hết hạn.
+    window.cxMusicOnOpen?.();
     setTimeout(() => window.openInvitation(), still ? 0 : 1000);
   }
   // Nghe ở document: <x-button> trong HTML tĩnh chỉ thay mình bằng <button> SAU

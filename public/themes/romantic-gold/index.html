@@ -51,8 +51,8 @@
 
   <!-- ROMANTIC GOLD — sage + vàng đồng; Cormorant/Inter cho phần đọc, KattyDiona
        và MoonLight (tự host) cho phần trang trí.
-       Nét riêng: KHÔNG có màn bìa — mở link là vào thẳng mục mở đầu dạng POSTER
-       (ảnh tràn viền, chữ đè lên ảnh); thân thiệp cuộn dài theo từng mục.
+       Nét riêng: màn bìa ép nhũ (khung viền đôi màu đồng), mở ra là mục mở đầu
+       dạng POSTER (ảnh tràn viền, chữ đè lên ảnh); thân thiệp cuộn dài theo từng mục.
        Dựng từ public/themes/base-theme/ — xem hướng dẫn ở đầu file đó. -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
@@ -62,13 +62,97 @@
          nên tổ tiên có transform sẽ neo nó sai chỗ. -->
     <div id="cx-music-mount"></div>
 
+    <!-- ═══ MỤC: Màn bìa — dựng GIỐNG poster mục mở đầu ═══════════════════
+         Cùng ảnh, cùng lớp tối, cùng bố cục chữ nên mở bìa trông như poster tự
+         "thức dậy" (chữ của poster hiện dần lên). Khác ở đáy: nút "Mở Thiệp" — cú
+         bấm đó cũng là cú chạm cho nhạc nền được phát. Chữ dùng .rg-on/.rg-gold
+         như poster: chữ trên ảnh phải luôn sáng, không theo màu khách chọn. -->
+    <div
+      id="cover-screen"
+      class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
+    >
+      <div
+        class="rg-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]"
+      >
+        <img
+          id="cover-bg-img"
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          alt="Ảnh cưới"
+          fetchpriority="high"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        <div class="rg-scrim absolute inset-0"></div>
+
+        <div
+          class="rg-cover-in relative z-10 cx-screen-h md:min-h-[932px] flex flex-col items-center gap-5 px-8 py-12 text-center"
+        >
+          <div class="rg-on cx-t text-[11px] tracking-[5px] uppercase opacity-80">
+            Wedding Invitation
+          </div>
+
+          <h1 class="rg-on rg-display text-[24px] leading-snug">
+            Welcome to our wedding
+          </h1>
+
+          <div class="flex-1"></div>
+
+          <div
+            class="rg-love rg-on rg-script absolute left-1/2 top-1/2 -translate-x-1/2 translate-y-[calc(-50%_+_30px)] whitespace-nowrap text-[56px] leading-none"
+          >
+            Our Love Story
+          </div>
+
+          <!-- Lời mời khách: hiện thì đứng đúng chỗ "Our Love Story" (cờ .rg-has-guest
+               do index.js gắn, theme.css ẩn dòng đó). Link riêng (?name=) do index.js
+               bật; link chung và bản "xem với tư cách khách mời" do helper bật. -->
+          <div id="cover-guest-wrap" class="hidden flex flex-col items-center gap-1">
+            <div class="rg-on cx-t text-[10px] tracking-[3px] uppercase opacity-80" data-cx-invite>
+              Trân trọng kính mời
+            </div>
+            <div class="rg-gold rg-guest" id="cover-guest-name">----------</div>
+          </div>
+
+          <div class="w-full flex items-end justify-between gap-6">
+            <div class="flex-1 flex flex-col items-center gap-1">
+              <div class="rg-gold rg-script text-[42px] leading-none" id="cover-bride-name">
+                ----------
+              </div>
+              <div class="rg-on cx-t text-[11px] tracking-[4px]">BRIDE</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center gap-1">
+              <div class="rg-gold rg-script text-[42px] leading-none" id="cover-groom-name">
+                ----------
+              </div>
+              <div class="rg-on cx-t text-[11px] tracking-[4px]">GROOM</div>
+            </div>
+          </div>
+
+          <div class="rg-on cx-t text-[14px] tracking-[3px] pt-2" id="rg-cover-date">
+            ----.--.--
+          </div>
+
+          <x-button
+            variant="bare"
+            onclick="openInvitation()"
+            class="open-btn rg-cover-btn relative overflow-hidden active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          >
+            <span class="relative z-10 pointer-events-none flex items-center gap-2">
+              <i data-lucide="mail-open" class="cx-ic"></i>
+              Mở Thiệp
+            </span>
+            <div class="btn-shimmer pointer-events-none"></div>
+          </x-button>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
-         Mẫu này KHÔNG có màn bìa: mở link là vào thẳng poster ở mục mở đầu, nên
-         #main-card không đặt display:none và không có #cover-screen. openInvitation()
-         vì thế không làm gì (nó cần cả hai thẻ) — đúng ý đồ. -->
+         Ẩn tới khi khách bấm "Mở thiệp" — openInvitation() ẩn #cover-screen rồi
+         hiện thẻ này, nên hiệu ứng của poster mở đầu chạy đúng lúc thiệp hiện ra. -->
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      style="display: none"
     >
       <div class="flex flex-col">
         <!-- ═══ MỤC: Mở đầu — POSTER ══════════════════════════════════════
@@ -79,15 +163,11 @@
           id="section-hero"
           class="relative cx-screen-h md:min-h-[932px] overflow-hidden"
         >
-          <!-- Ảnh DUY NHẤT nằm trong màn đầu, lại to nhất thiệp. src chỉ có sau
-               khi API trả dữ liệu nên preload scanner không thấy nó → phải nói rõ
-               ưu tiên, không thì trình duyệt xếp nó ngang mọi ảnh khác. Mọi ảnh
-               còn lại đều loading="lazy" để không tranh băng thông ở nhịp này. -->
+          <!-- Cùng ảnh với #cover-bg-img của màn bìa (đã được ưu tiên tải ở đó). -->
           <img
             id="main-photo"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             alt="Ảnh cưới"
-            fetchpriority="high"
             class="absolute inset-0 w-full h-full object-cover"
           />
           <!-- Hai đầu tối lại để chữ trắng đọc được trên mọi ảnh -->
@@ -157,29 +237,6 @@
               class="rg-on cx-t text-[10px] tracking-[5px] uppercase opacity-80"
             >
               Save The Date
-            </div>
-
-            <!-- Lời chào riêng: chỉ hiện khi link có ?name= (thiệp gửi cho một
-                 khách cụ thể), index.js gỡ .hidden và gắn .rg-has-guest — khối
-                 này lên giữa poster thay chỗ "Our Love Story". Id #cover-guest-name
-                 là chỗ setupPersonalizedGreeting() đổ tên vào — giữ nguyên tên id. -->
-            <div
-              id="cover-guest-wrap"
-              class="hidden flex flex-col items-center gap-1 pt-4"
-            >
-              <!-- data-cx-invite: setupPersonalizedGreeting() nối xưng hô vào sau. -->
-              <div
-                class="rg-on cx-t text-[10px] tracking-[3px] uppercase opacity-80"
-                data-cx-invite
-              >
-                Trân trọng kính mời
-              </div>
-              <div
-                class="rg-gold rg-guest"
-                id="cover-guest-name"
-              >
-                ----------
-              </div>
             </div>
           </div>
         </section>

@@ -44,8 +44,8 @@
            Dùng cho lề đáy trang + vị trí nút nổi, đổi chiều cao thanh là đổi ở
            đây. Không cộng safe-area: xem chú thích ở .cx-tabbar. */
         --tt-tabbar-h: 72px;
-        /* Nền nút "Bắt đầu miễn phí" (.tt-cta-btn) — dùng cho CẢ nút ở thanh
-           trên (desktop) lẫn nút nổi (mobile), đổi màu chỉ sửa hai dòng này. */
+        /* Nền nút nổi "Bắt đầu miễn phí" (.tt-cta-btn, chỉ có trên mobile) —
+           đổi màu chỉ sửa hai dòng này. */
         --tt-cta-from: 255 138 138;
         --tt-cta-to: 217 213 130;
       }
@@ -159,9 +159,8 @@
         width: 100%;
       }
 
-      /* Nút "Bắt đầu miễn phí" — MỘT style cho cả hai chỗ đứng: thẻ nổi giữa
-         đáy (mobile) và thanh trên (desktop). Khổ do size của <x-button> quyết
-         (md ở nút nổi, sm ở thanh trên cho hợp hàng nav); ở đây chỉ lo màu. */
+      /* Nút nổi "Bắt đầu miễn phí" giữa đáy (chỉ mobile; desktop không có nút
+         này). Khổ do size của <x-button> quyết; ở đây chỉ lo màu. */
       .tt-cta-btn {
         background: linear-gradient(
           135deg,
@@ -181,15 +180,12 @@
       }
 
       /* Quầng sáng "thở" + vệt sáng lướt qua — nút ĐỨNG YÊN, chỉ đổi bóng và
-         vệt sáng. Vệt sáng là ::after nên nút phải là khung chứa: nút nổi đã
-         `fixed`, nút ở thanh trên thì thêm `relative`. */
+         vệt sáng. Vệt sáng là ::after nên nút phải là khung chứa — nút nổi đã
+         `fixed` nên đủ. */
       .tt-cta-btn {
         overflow: hidden;
         isolation: isolate;
         animation: cx-tt-cta-glow 2.4s ease-in-out infinite;
-      }
-      .cx-navactions .tt-cta-btn {
-        position: relative;
       }
       .tt-cta-btn::after {
         content: "";
@@ -233,8 +229,8 @@
         }
       }
 
-      /* ─── Nút nổi giữa đáy ─── Chỉ có trên mobile: từ md trở lên nút "Bắt đầu
-         miễn phí" đã nằm sẵn ở thanh trên.
+      /* ─── Nút nổi giữa đáy ─── Chỉ có trên mobile: từ md trở lên trang không
+         có nút "Bắt đầu miễn phí".
          Căn giữa bằng left/right + margin auto, KHÔNG dùng translateX(-50%):
          <x-button> mang sẵn `active:scale-[0.97]`, lúc bấm transform bị thay
          nên nút sẽ nhảy sang phải. */
@@ -606,9 +602,6 @@
       integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
       crossorigin="anonymous"
     ></script>
-    <!-- Icon riêng (logo XuXi ở nút CTA của navbar) — phải nạp TRƯỚC navbar.js
-         vì thanh điều hướng dựng HTML icon ngay lúc gọi CXNavbar. -->
-    <script src="../core/helpers/icon.js"></script>
     <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
     <script src="../core/auth.js"></script>
     <script src="../core/components/navbar.js"></script>
@@ -647,15 +640,6 @@
             icon: "user",
             onClick: "CXAccount.open(this)",
             pin: true,
-          },
-        ],
-        actions: [
-          {
-            label: "Bắt đầu miễn phí",
-            icon: "xuxi",
-            onClick: "startDraft()",
-            size: "sm",
-            class: "tt-cta-btn",
           },
         ],
       });

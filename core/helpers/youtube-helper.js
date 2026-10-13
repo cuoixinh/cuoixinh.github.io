@@ -79,9 +79,12 @@ function initYouTubeMusic(musicUrl) {
         width: "0",
         videoId: videoId,
         playerVars: {
-          // Không tự phát — chờ khách cuộn sau khi mở bìa (_playOnScroll).
+          // Không tự phát — chờ cú bấm "Mở thiệp" (_armOpenPlay).
           autoplay: 0,
           ...loopVars,
+          // iPhone mặc định phát bằng trình phát toàn màn hình của iOS (dễ bật
+          // PiP, lần bấm đầu hay hỏng vì iframe ẩn) — phát ngay trong trang.
+          playsinline: 1,
           controls: 0,
           showinfo: 0,
           modestbranding: 1,
@@ -93,14 +96,9 @@ function initYouTubeMusic(musicUrl) {
           onReady: (event) => {
             // Nhỏ hết cỡ trước, _fadeInMusic kéo lên khi thật sự phát.
             event.target.setVolume(0);
-            // Khung chỉnh giao diện (?edit=1, tab Giao diện của trang Thiết lập)
-            // KHÔNG tự phát — nhạc chỉ nghe ở Chỉnh sửa/Xem trước; bấm nút nhạc
-            // vẫn phát được để thử trình phát.
+            // Khung chỉnh giao diện (?edit=1) không tự phát — bấm nút nhạc vẫn phát được.
             if (_cxMusicNoAutoplay()) _musicUserPaused = true;
-            if (!_musicUserPaused) {
-              _primeOnTap();
-              _playOnScroll();
-            }
+            else _armOpenPlay();
             _emitMusicState();
           },
           onStateChange: (event) => {
@@ -171,14 +169,12 @@ function _fadeInMusic(player) {
   _musicFadeTimer = setInterval(step, 50);
 }
 
-// Nhạc CHỈ tự phát khi khách bắt đầu CUỘN thiệp — bấm "Mở thiệp" chưa tính: màn
-// bìa còn đó (hoặc vừa đóng mà chưa cuộn) thì im. Nghe THAO TÁC cuộn (lăn chuột,
-// vuốt, phím) chứ không nghe sự kiện `scroll`: openInvitation và onOpen của mẫu
-// lật trang tự cuộn bằng code lúc mở bìa, nghe `scroll` là nhạc bật khi chưa ai cuộn.
-const _MUSIC_SCROLLS = ["wheel", "touchmove"];
-const _MUSIC_SCROLL_KEYS = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Space", "End", "Home"];
+// Nhạc phát NGAY trong cú bấm "Mở thiệp": openInvitation (bọc ở theme-boot.js) gọi
+// cxMusicOnOpen trong chính cú bấm đó — iOS chỉ cho phát có tiếng khi có cú chạm.
+// Bìa đóng mà không qua cú bấm (mẫu không bìa, bỏ qua bìa, theme tự mở bằng code)
+// thì mượn cú chạm kế tiếp bất kỳ. Trước đó _musicUserPaused giữ mọi đường phát khác.
 let _musicUserPaused = false;
-let _musicScrollArmed = false;
+let _musicOpenTap = false;
 
 // iOS chỉ cho phát tiếng sau một cú CHẠM, mà vuốt không tính — phát lúc cuộn bị
 // chặn tới tận cú chạm kế tiếp. Nên mượn cú chạm sớm nhất (thường là "Mở thiệp")
@@ -222,41 +218,47 @@ function _cxCoverClosed() {
   return !c || getComputedStyle(c).display === "none";
 }
 
-function _playOnScroll() {
-  if (_musicScrollArmed) return;
-  _musicScrollArmed = true;
-
-  const off = () => {
-    _MUSIC_SCROLLS.forEach((ev) => document.removeEventListener(ev, onScroll, true));
-    document.removeEventListener("keydown", onKey, true);
-    _musicScrollArmed = false;
-  };
-  const onScroll = () => {
+function _armOpenPlay() {
+  _musicUserPaused = true;
+  _musicOpenTap = true;
+  const evs = ["pointerdown", "touchend", "keydown"];
+  const onGesture = (e) => {
+    if (!_musicOpenTap) {
+      evs.forEach((ev) => document.removeEventListener(ev, onGesture, true));
+      return;
+    }
+    // Bìa còn đó: cú bấm "Mở thiệp" tự lo. Nút nhạc: toggleYouTubeMusic tự lo.
     if (!_cxCoverClosed()) return;
-    off();
-    if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return;
-    _primeCancel();
-    youtubePlayer.playVideo();
-    // Cuộn không phải "user activation": máy chưa từng được chạm (iOS hay gặp)
-    // có thể chặn phát → chờ cú chạm/bấm kế tiếp.
-    setTimeout(() => {
-      if (!isYouTubePlaying && !_musicUserPaused) _playOnFirstGesture();
-    }, 1000);
+    if (e.target && e.target.closest && e.target.closest("[data-cx-music]")) return;
+    _musicPlayNow();
   };
-  const onKey = (e) => {
-    if (_MUSIC_SCROLL_KEYS.indexOf(e.code) >= 0) onScroll();
-  };
-
-  _MUSIC_SCROLLS.forEach((ev) =>
-    document.addEventListener(ev, onScroll, { capture: true, passive: true }),
+  evs.forEach((ev) =>
+    document.addEventListener(ev, onGesture, { capture: true, passive: true }),
   );
-  document.addEventListener("keydown", onKey, true);
 }
 
-// Lối dự phòng khi trình duyệt chặn lần phát do cuộn: cú chạm/bấm/gõ phím kế
-// tiếp mới đủ quyền phát. touchend/click chứ không touchstart/pointerdown — chạm
-// xuống chưa được tính là kích hoạt trên iOS, mà listener tự gỡ ở sự kiện đầu.
-const _MUSIC_GESTURES = ["touchend", "click", "keydown"];
+function cxMusicOnOpen() {
+  if (!_musicOpenTap || !youtubePlayer) return;
+  // Mở bằng code (không có cú chạm) → để lượt chạm kế tiếp của _armOpenPlay.
+  if (navigator.userActivation && !navigator.userActivation.isActive) return;
+  _musicPlayNow();
+}
+
+function _musicPlayNow() {
+  _musicOpenTap = false;
+  _musicUserPaused = false;
+  if (isYouTubePlaying) return;
+  youtubePlayer.playVideo();
+  // Trình duyệt vẫn chặn (hiếm) → chờ cú chạm kế tiếp.
+  setTimeout(() => {
+    if (!isYouTubePlaying && !_musicUserPaused) _playOnFirstGesture();
+  }, 1000);
+}
+
+// Lối dự phòng khi trình duyệt chặn một lần phát: cú chạm/bấm/gõ phím kế tiếp
+// mới đủ quyền phát. touchend chứ không touchstart — chạm mở đầu một cú vuốt
+// không được tính là kích hoạt.
+const _MUSIC_GESTURES = ["pointerdown", "touchend", "keydown"];
 let _musicGestureArmed = false;
 
 function _playOnFirstGesture() {
@@ -293,7 +295,7 @@ function toggleYouTubeMusic() {
     isYouTubePlaying = false;
     _musicUserPaused = true;
   } else {
-    _primeCancel();
+    _musicOpenTap = false;
     youtubePlayer.playVideo();
     isYouTubePlaying = true;
     _musicUserPaused = false;
@@ -302,6 +304,7 @@ function toggleYouTubeMusic() {
   _emitMusicState();
 }
 
+// ?edit=1 (tab Giao diện của trang Thiết lập): nhạc chỉ nghe ở Chỉnh sửa/Xem trước.
 function _cxMusicNoAutoplay() {
   try {
     return new URLSearchParams(location.search).get("edit") === "1";
@@ -316,6 +319,7 @@ function _cxMusicNoAutoplay() {
  */
 function cxMusicPause() {
   _musicUserPaused = true;
+  _musicOpenTap = false;
   if (!youtubePlayer || !isYouTubePlaying) return;
   try {
     youtubePlayer.pauseVideo();

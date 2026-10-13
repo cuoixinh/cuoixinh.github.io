@@ -423,15 +423,20 @@ function _cxWishSyncSecTitle() {
     : "Lời chúc";
 }
 
-const CX_WISH_EMPTY_HTML =
-  '<div class="cx-wsec-empty cx-t">Chưa có lời chúc nào — bạn gửi lời đầu tiên nhé!</div>';
+// Link chung không gửi được lời chúc (_cxWishCanWrite) → đừng mời họ "gửi lời đầu tiên".
+function _cxWishEmptyHtml() {
+  const text = _cxWishCanWrite
+    ? "Chưa có lời chúc nào — bạn gửi lời đầu tiên nhé!"
+    : "Chưa có lời chúc nào.";
+  return '<div class="cx-wsec-empty cx-t">' + text + "</div>";
+}
 
 // Đổ một mảng lời chúc vào khung; mảng rỗng thì thay bằng dòng mời gửi.
 function _cxWishFillList(mount, items) {
   mount.classList.toggle("is-empty", items.length === 0);
   mount.innerHTML = items.length
     ? items.map(_cxWishItemHtml).join("")
-    : CX_WISH_EMPTY_HTML;
+    : _cxWishEmptyHtml();
 }
 
 // ── Dạng "card": dải ngang các thẻ cùng khổ ──────────────────────────────────
@@ -635,7 +640,7 @@ function _cxWishRenderCards(mount) {
   mount.classList.toggle("is-empty", _cxWishItems.length === 0);
   mount.innerHTML = _cxWishItems.length
     ? _cxWishItems.map(_cxWishCardHtml).join("")
-    : CX_WISH_EMPTY_HTML;
+    : _cxWishEmptyHtml();
   if (!_cxWishItems.length) {
     const dots = document.getElementById("cx-wcard-dots");
     if (dots) dots.hidden = true;
@@ -1682,14 +1687,23 @@ async function initWishes(wedding) {
       return;
     }
 
-    // Dựng vỏ trước rồi mới nạp: mount của danh sách nằm trong chính vỏ (mục / dải).
+    // Khách link riêng: dựng vỏ trước rồi mới nạp (mount của danh sách nằm trong
+    // chính vỏ). Khách vãn lai chỉ đọc → nạp trước, chưa có lời chúc nào thì bỏ
+    // hẳn mục, khỏi hiện một khung rỗng rồi mới gỡ.
     const guest = window.CX_GUEST;
-    _cxWishMount(!!guest);
-    applyWishStyle();
+    if (guest) {
+      _cxWishMount(true);
+      applyWishStyle();
+    }
 
     const slug = getSlugFromUrl();
     if (slug && window.guestDAL) {
       _cxWishItems = await window.guestDAL.listWishesPublic(slug);
+    }
+    if (!guest) {
+      if (!_cxWishItems.length) return;
+      _cxWishMount(false);
+      applyWishStyle();
     }
     _cxWishRender();
 

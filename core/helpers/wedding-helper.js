@@ -300,6 +300,55 @@ function _hideRsvpButtons() {
     a.classList.add("hidden");
     d.classList.add("hidden");
   }
+  _showRsvpChange();
+}
+
+// Nút "Đổi ý" ngay dưới #attend-msg (helper tự chèn, mẫu không phải khai markup).
+// Trả lời lại thì server ghi đè lần trước nên chỉ cần mở lại hai nút.
+function _showRsvpChange() {
+  const msg = document.getElementById("attend-msg");
+  if (!msg) return;
+  const old = document.getElementById("btn-rsvp-change");
+  if (old) {
+    old.classList.remove("hidden");
+    return;
+  }
+  const b = document.createElement("x-button");
+  b.setAttribute("variant", "bare");
+  b.setAttribute("id", "btn-rsvp-change");
+  b.setAttribute("class", "cx-t");
+  b.setAttribute("onclick", "changeRsvp()");
+  // Inline + token --cx-*: ăn theo bộ màu của mẫu mà không phải build CSS.
+  b.setAttribute(
+    "style",
+    // Cao 44px = vùng chạm tối thiểu trên điện thoại; nhẹ hơn hai nút chính
+    // (viền mảnh, nền trong) vì đây là hành động phụ.
+    "align-self:center;margin:12px auto 0;min-height:44px;padding:0 20px;gap:8px;" +
+      "font-size:13px;letter-spacing:.4px;line-height:1;" +
+      "color:rgb(var(--cx-accent-rgb));" +
+      "background:rgb(var(--cx-accent-rgb)/.05);" +
+      "border:1px solid rgb(var(--cx-accent-rgb)/.3);" +
+      "transition:background-color .2s ease,transform .15s ease",
+  );
+  b.innerHTML =
+    '<i data-lucide="rotate-ccw" aria-hidden="true" style="width:14px;height:14px"></i>' +
+    "<span>Đổi ý</span>";
+  msg.after(b);
+  const btn = document.getElementById("btn-rsvp-change");
+  if (btn) window.lucide?.createIcons({ root: btn });
+}
+
+function changeRsvp() {
+  const a = document.getElementById("btn-attend");
+  const d = document.getElementById("btn-decline");
+  if (!a || !d) return;
+  a.classList.remove("hidden", "btn-selected");
+  d.classList.remove("hidden", "btn-selected");
+  a.style.cssText = "";
+  d.style.cssText = "";
+  if (a.parentElement === d.parentElement) a.parentElement.classList.remove("hidden");
+  document.getElementById("attend-msg")?.classList.add("hidden");
+  document.getElementById("btn-rsvp-change")?.classList.add("hidden");
 }
 
 // Ghi "Đã xem" cho khách của link; khách đã xác nhận từ trước thì giấu luôn hai
@@ -381,4 +430,5 @@ window.loadWeddingData = loadWeddingData;
 window.setupPersonalizedGreeting = setupPersonalizedGreeting;
 window.openInvitation = openInvitation;
 window.confirmAttend = confirmAttend;
+window.changeRsvp = changeRsvp;
 window.saveQR = saveQR;

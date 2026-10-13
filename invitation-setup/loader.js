@@ -44,6 +44,7 @@
     "../core/x-button.js",
     "../core/x-logo.js",
     "../core/x-popover.js",
+    "../core/helpers/side-picker.js",
     "../core/cache-util.js",
     "../core/helpers/draft-retention.js",
     "../core/constant.js",
