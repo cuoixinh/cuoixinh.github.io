@@ -212,6 +212,12 @@
     );
 
     const htmls = await restReq;
+    // Có thẻ mount nằm SAU thẻ <script src="loader.js"> (#mount-import-modal): partial
+    // về từ cache nhanh hơn lúc parser đọc tới đó là chèn hụt → cả trang báo lỗi.
+    if (document.readyState === "loading")
+      await new Promise((r) =>
+        document.addEventListener("DOMContentLoaded", r, { once: true }),
+      );
     PARTIALS.forEach(([mountId], i) => injectPartial(mountId, htmls[i]));
 
     // Sau form-panel: thẻ mount của các bước do chính nó mang vào.
@@ -239,7 +245,10 @@
       "afterbegin",
       '<div style="padding:16px;font:14px/1.5 Inter,sans-serif;color:rgb(var(--notice-text-rgb));background:rgb(var(--notice-bg-rgb));border-bottom:1px solid rgb(var(--notice-border-rgb))">' +
         "Không tải được giao diện. Vui lòng tải lại trang." +
-        "</div>",
+        // Lý do kèm theo để khách chụp màn hình gửi lại là tra được ngay.
+        '<div style="opacity:.6;font-size:12px">' +
+        String(err?.message || err).replace(/[<>&]/g, "") +
+        "</div></div>",
     );
   });
 })();

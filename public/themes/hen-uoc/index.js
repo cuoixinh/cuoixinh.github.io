@@ -96,7 +96,7 @@
     if (w.ceremony_date) {
       const d = new Date(w.ceremony_date + "T00:00:00");
       if (!isNaN(d)) {
-        setText("hu-hero-date", `${d.getFullYear()}.${_pad(d.getMonth() + 1)}.${_pad(d.getDate())}`);
+        setText("hu-hero-date", `${_pad(d.getDate())}.${_pad(d.getMonth() + 1)}.${d.getFullYear()}`);
         setText("hu-cover-date", `${_pad(d.getDate())} · ${_pad(d.getMonth() + 1)} · ${d.getFullYear()}`);
       }
     }
@@ -233,7 +233,7 @@
       if (p.getFullYear() === y && p.getMonth() === m) marked.add(p.getDate());
     }
     const md = document.getElementById("hu-cal-md");
-    if (md) md.innerHTML = `${_pad(m + 1)}<small> / ${_pad(d.getDate())}</small>`;
+    if (md) md.innerHTML = `${_pad(d.getDate())}<small> / ${_pad(m + 1)}</small>`;
     setText("hu-cal-year", `-${y}-`);
 
     const lead = (new Date(y, m, 1).getDay() + 6) % 7;
