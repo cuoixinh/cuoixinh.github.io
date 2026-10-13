@@ -90,9 +90,8 @@ function initYouTubeMusic(musicUrl) {
           onReady: (event) => {
             // Nhỏ hết cỡ trước, _fadeInMusic kéo lên khi thật sự phát.
             event.target.setVolume(0);
-            // Khung chỉnh giao diện (?edit=1, tab Giao diện của trang Thiết lập)
-            // KHÔNG tự phát — nhạc chỉ nghe ở Chỉnh sửa/Xem trước; bấm nút nhạc
-            // vẫn phát được để thử trình phát.
+            // Không tự phát ở khung chỉnh giao diện, trong Zalo và Safari (xem
+            // _cxMusicNoAutoplay) — bấm nút nhạc vẫn phát được.
             if (_cxMusicNoAutoplay()) _musicUserPaused = true;
             if (!_musicUserPaused) _playOnScroll();
             _emitMusicState();
@@ -249,7 +248,14 @@ function toggleYouTubeMusic() {
   _emitMusicState();
 }
 
+// ?edit=1 (tab Giao diện của trang Thiết lập): nhạc chỉ nghe ở Chỉnh sửa/Xem trước.
+// Zalo và Safari: YouTube phát là iPhone bật khung PiP che thiệp, không tắt được
+// từ trang — nên chờ khách tự bấm nút nhạc. Chrome/Firefox/Edge trên iOS cũng ghi
+// "Safari" trong UA nên phải loại theo mã riêng của chúng.
 function _cxMusicNoAutoplay() {
+  const ua = navigator.userAgent || "";
+  if (/Zalo/i.test(ua)) return true;
+  if (/Safari/.test(ua) && !/Chrome|Chromium|CriOS|FxiOS|EdgiOS|Android/.test(ua)) return true;
   try {
     return new URLSearchParams(location.search).get("edit") === "1";
   } catch (e) {
