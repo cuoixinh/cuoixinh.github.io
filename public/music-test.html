@@ -23,23 +23,26 @@
 <div id="cover">
   <div id="variants"></div>
   <button type="button" class="open">Mở thiệp</button>
-  <div style="font-size:12px;color:#666">Chạm "Mở thiệp" rồi CHỈ VUỐT, không chạm thêm. Ghi lại: có PiP không, có tiếng không, tới bước nào.</div>
+  <div style="font-size:12px;color:#666">Chạm "Mở thiệp" rồi CHỈ VUỐT, không chạm thêm. Ghi lại: lúc chạm có PiP / có nghe "bụp" tiếng không; lúc vuốt có nhạc không, nhạc có tự tắt sau vài giây không.</div>
 </div>
 <pre id="log"></pre>
 <div id="content"></div>
 <script>
   // host: chỗ đặt iframe — zero (như thiệp hiện tại: 0×0 cuối trang), onscreen (2×2 px
   // ghim trong màn), big (200×200 ghim trong màn). Cả hai cái sau mờ 0.01, không bắt chạm.
-  // mode: prime (hâm nóng + chạm phát tắt tiếng rồi dừng, vuốt mới phát — như staging),
-  // run (chạm phát tắt tiếng và CHẠY LUÔN, vuốt chỉ bật tiếng), tap (không mượn chạm).
+  // mode — việc làm ở cú chạm "Mở thiệp" / lúc vuốt:
+  //   blip  : chạm phát CÓ TIẾNG rồi dừng ngay khi player báo BUFFERING; vuốt phát tiếp.
+  //   start : chạm phát có tiếng và chạy luôn (nhạc bắt đầu từ lúc mở thiệp).
+  //   run   : chạm phát TẮT tiếng, chạy luôn; vuốt chỉ bật tiếng.
+  //   prime : hâm nóng + chạm phát tắt tiếng rồi dừng; vuốt phát (cách đang ở staging).
   const q = new URLSearchParams(location.search);
-  const HOST = q.get("host") || "zero";
-  const MODE = q.get("mode") || "prime";
+  const HOST = q.get("host") || "big";
+  const MODE = q.get("mode") || "blip";
   const VIDEO = q.get("v") || "dQw4w9WgXcQ";
 
   const VARIANTS = [
-    ["big", "prime"], ["onscreen", "prime"], ["big", "run"],
-    ["onscreen", "run"], ["zero", "run"], ["zero", "prime"], ["zero", "tap"],
+    ["big", "blip"], ["zero", "blip"], ["onscreen", "blip"],
+    ["big", "start"], ["zero", "start"], ["big", "run"], ["big", "prime"],
   ];
   document.getElementById("variants").innerHTML = VARIANTS.map(([h, m], i) => {
     const on = h === HOST && m === MODE ? ' class="on"' : "";
@@ -55,14 +58,14 @@
   };
   log(`host=${HOST} mode=${MODE} UA=${navigator.userAgent.slice(0, 90)}`);
 
-  let player = null, ready = false, priming = false, opened = false, unlockedTry = false;
+  let player = null, ready = false, priming = false, opened = false, fallbackUsed = false;
   const ST = { "-1": "UNSTARTED", 0: "ENDED", 1: "PLAYING", 2: "PAUSED", 3: "BUFFERING", 5: "CUED" };
   const call = (fn, ...a) => {
     try { player[fn](...a); log(`→ ${fn}(${a.join(",")})`); } catch (e) { log(`✗ ${fn}: ${e.message}`); }
   };
 
   // Dựng chỗ đặt player theo biến thể.
-  let mount = document.createElement("div");
+  const mount = document.createElement("div");
   mount.id = "yt-mount";
   let size = 0;
   if (HOST === "zero") {
@@ -88,9 +91,12 @@
         },
         onStateChange: (e) => {
           log(`state ${ST[e.data] || e.data} muted=${player.isMuted()}`);
-          if (e.data === 1 && priming) {
+          // blip dừng ngay ở BUFFERING (play() đã chạy, tiếng chưa ra); prime đợi PLAYING.
+          const stopAt = MODE === "blip" ? [1, 3] : [1];
+          if (priming && stopAt.includes(e.data)) {
             priming = false;
-            call("pauseVideo"); call("seekTo", 0, true); call("unMute");
+            call("pauseVideo"); call("seekTo", 0, true);
+            if (MODE === "prime") call("unMute");
           }
         },
         onError: (e) => log(`onError ${e.data}`),
@@ -109,8 +115,12 @@
     e.preventDefault();
     opened = true;
     log(`chạm Mở thiệp (${e.type}) ready=${ready}`);
-    if (ready && MODE === "prime") { priming = true; call("mute"); call("playVideo"); }
-    if (ready && MODE === "run") { call("mute"); call("playVideo"); }
+    if (ready) {
+      if (MODE === "blip") { priming = true; call("unMute"); call("playVideo"); }
+      if (MODE === "start") { call("unMute"); call("playVideo"); }
+      if (MODE === "run") { call("mute"); call("playVideo"); }
+      if (MODE === "prime") { priming = true; call("mute"); call("playVideo"); }
+    }
     document.getElementById("cover").style.display = "none";
   };
   openBtn.addEventListener("touchend", onOpen, { passive: false });
@@ -122,18 +132,19 @@
     if (!opened || scrolled || !ready) return;
     scrolled = true;
     log("vuốt lần đầu");
-    if (MODE === "run") { priming = false; call("seekTo", 0, true); call("unMute"); call("playVideo"); }
-    else { priming = false; call("unMute"); call("playVideo"); }
+    priming = false;
+    if (MODE === "run") call("unMute");
+    else if (MODE !== "start") { call("unMute"); call("playVideo"); }
   }, { passive: true, capture: true });
 
-  // Cú chạm sau khi đã vuốt — lối dự phòng.
-  document.addEventListener("touchend", () => {
-    if (!scrolled || unlockedTry || !ready) return;
+  // Lối dự phòng: một cú CHẠM thật (click — vuốt không sinh click) sau khi đã vuốt.
+  document.addEventListener("click", () => {
+    if (!scrolled || fallbackUsed || !ready) return;
     if (player.getPlayerState() === 1 && !player.isMuted()) return;
-    unlockedTry = true;
+    fallbackUsed = true;
     log("chạm dự phòng");
     call("unMute"); call("playVideo");
-  }, { passive: true, capture: true });
+  }, { capture: true });
 
   document.addEventListener("visibilitychange", () => log(`visibility ${document.visibilityState}`));
   window.addEventListener("pagehide", () => log("pagehide"));
