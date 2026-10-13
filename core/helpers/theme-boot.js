@@ -26,6 +26,22 @@ function cxToggle(id, show) {
 window.cxEnabled = cxEnabled;
 window.cxToggle = cxToggle;
 
+// --- ZALO TRÊN iPHONE → MỞ BẰNG SAFARI ---
+// Trình duyệt nhúng của Zalo trên iPhone không cho video phát trong trang: nhạc nền
+// YouTube nào cũng bật trình phát toàn màn hình. Chuyển sang Safari qua scheme
+// `x-safari-https:` (không có trong tài liệu Apple, iOS 16 không chạy) — Zalo hỏi lại
+// bằng hộp thoại. Mỗi phiên chỉ thử một lần để bấm Huỷ không thành vòng lặp.
+(function () {
+  const ua = navigator.userAgent;
+  if (!/iPhone|iPad|iPod/.test(ua) || !/Zalo/i.test(ua)) return;
+  if (window.top !== window || location.protocol !== "https:") return;
+  try {
+    if (sessionStorage.getItem("cx-open-safari")) return;
+    sessionStorage.setItem("cx-open-safari", "1");
+  } catch (e) {}
+  location.href = "x-safari-" + location.href;
+})();
+
 // --- CHẶN LƯU ẢNH ---
 // Thiệp thật lẫn bản xem (?preview=true): chặn nhấn giữ (iOS: touch-callout; Android:
 // contextmenu), chuột phải và kéo ảnh ra ngoài. Chỉ làm khó, không chặn được chụp màn hình.
