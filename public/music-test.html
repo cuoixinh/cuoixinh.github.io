@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Thử nhạc iOS</title>
+<!-- Trang THỬ TẠM để dò cách phát nhạc YouTube trên iPhone (PiP, mở khoá bằng cú
+     chạm). Không trang nào liên kết tới; xoá khi đã chốt cách sửa youtube-helper. -->
+<style>
+  body { margin: 0; font: 14px/1.4 -apple-system, system-ui, sans-serif; background: #fff; color: #222; }
+  #cover { position: fixed; inset: 0; z-index: 10; background: #f4ece4; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 16px; padding: 16px 16px 32px; text-align: center; }
+  #cover .open { padding: 14px 32px; border-radius: 999px; border: 0; background: #b4536a; color: #fff; font-size: 18px; }
+  #variants { display: grid; gap: 8px; width: 100%; max-width: 360px; text-align: left; }
+  #variants a { display: block; padding: 8px 12px; border-radius: 8px; background: #fff; color: #222; text-decoration: none; border: 1px solid #ddd; }
+  #variants a.on { border-color: #b4536a; background: #fbeef1; font-weight: 600; }
+  #log { position: fixed; top: 0; left: 0; right: 0; z-index: 20; max-height: 40vh; overflow: auto; margin: 0; padding: 8px; background: rgb(0 0 0 / 0.8); color: #9f9; font: 11px/1.35 ui-monospace, monospace; white-space: pre-wrap; }
+  #content { padding: 45vh 16px 16px; }
+  #content p { height: 240px; margin: 0 0 16px; border-radius: 12px; background: linear-gradient(#eee, #ddd); display: flex; align-items: center; justify-content: center; color: #888; }
+</style>
+</head>
+<body>
+<div id="cover">
+  <div id="variants"></div>
+  <button type="button" class="open">Mở thiệp</button>
+  <div style="font-size:12px;color:#666">Chạm "Mở thiệp" rồi CHỈ VUỐT, không chạm thêm. Ghi lại: có PiP không, có tiếng không, tới bước nào.</div>
+</div>
+<pre id="log"></pre>
+<div id="content"></div>
+<script>
+  // host: chỗ đặt iframe — zero (như thiệp hiện tại: 0×0 cuối trang), onscreen (2×2 px
+  // ghim trong màn), big (200×200 ghim trong màn). Cả hai cái sau mờ 0.01, không bắt chạm.
+  // mode: prime (hâm nóng + chạm phát tắt tiếng rồi dừng, vuốt mới phát — như staging),
+  // run (chạm phát tắt tiếng và CHẠY LUÔN, vuốt chỉ bật tiếng), tap (không mượn chạm).
+  const q = new URLSearchParams(location.search);
+  const HOST = q.get("host") || "zero";
+  const MODE = q.get("mode") || "prime";
+  const VIDEO = q.get("v") || "dQw4w9WgXcQ";
+
+  const VARIANTS = [
+    ["big", "prime"], ["onscreen", "prime"], ["big", "run"],
+    ["onscreen", "run"], ["zero", "run"], ["zero", "prime"], ["zero", "tap"],
+  ];
+  document.getElementById("variants").innerHTML = VARIANTS.map(([h, m], i) => {
+    const on = h === HOST && m === MODE ? ' class="on"' : "";
+    return `<a${on} href="?host=${h}&mode=${m}&v=${VIDEO}">${i + 1}. host=${h} · mode=${m}</a>`;
+  }).join("");
+  document.getElementById("content").innerHTML = Array.from({ length: 12 }, (_, i) => `<p>Đoạn ${i + 1}</p>`).join("");
+
+  const t0 = Date.now();
+  const logEl = document.getElementById("log");
+  const log = (s) => {
+    logEl.textContent += `${((Date.now() - t0) / 1000).toFixed(2)}s ${s}\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+  };
+  log(`host=${HOST} mode=${MODE} UA=${navigator.userAgent.slice(0, 90)}`);
+
+  let player = null, ready = false, priming = false, opened = false, unlockedTry = false;
+  const ST = { "-1": "UNSTARTED", 0: "ENDED", 1: "PLAYING", 2: "PAUSED", 3: "BUFFERING", 5: "CUED" };
+  const call = (fn, ...a) => {
+    try { player[fn](...a); log(`→ ${fn}(${a.join(",")})`); } catch (e) { log(`✗ ${fn}: ${e.message}`); }
+  };
+
+  // Dựng chỗ đặt player theo biến thể.
+  let mount = document.createElement("div");
+  mount.id = "yt-mount";
+  let size = 0;
+  if (HOST === "zero") {
+    document.body.appendChild(mount);
+  } else {
+    size = HOST === "big" ? 200 : 2;
+    const wrap = document.createElement("div");
+    wrap.style.cssText = `position:fixed;left:0;bottom:0;width:${size}px;height:${size}px;overflow:hidden;opacity:0.01;pointer-events:none;z-index:30`;
+    wrap.appendChild(mount);
+    document.body.appendChild(wrap);
+  }
+
+  window.onYouTubeIframeAPIReady = () => {
+    log("API sẵn sàng");
+    player = new YT.Player("yt-mount", {
+      width: String(size), height: String(size), videoId: VIDEO,
+      playerVars: { autoplay: 0, loop: 1, playlist: VIDEO, controls: 0, modestbranding: 1, playsinline: 1 },
+      events: {
+        onReady: () => {
+          ready = true;
+          log("onReady");
+          if (MODE === "prime") { priming = true; call("mute"); call("playVideo"); }
+        },
+        onStateChange: (e) => {
+          log(`state ${ST[e.data] || e.data} muted=${player.isMuted()}`);
+          if (e.data === 1 && priming) {
+            priming = false;
+            call("pauseVideo"); call("seekTo", 0, true); call("unMute");
+          }
+        },
+        onError: (e) => log(`onError ${e.data}`),
+        onAutoplayBlocked: () => log("onAutoplayBlocked"),
+      },
+    });
+  };
+  const s = document.createElement("script");
+  s.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(s);
+
+  // Cú chạm "Mở thiệp" (touchend như thiệp thật — click bị preventDefault nuốt).
+  const openBtn = document.querySelector("#cover .open");
+  const onOpen = (e) => {
+    if (opened) return;
+    e.preventDefault();
+    opened = true;
+    log(`chạm Mở thiệp (${e.type}) ready=${ready}`);
+    if (ready && MODE === "prime") { priming = true; call("mute"); call("playVideo"); }
+    if (ready && MODE === "run") { call("mute"); call("playVideo"); }
+    document.getElementById("cover").style.display = "none";
+  };
+  openBtn.addEventListener("touchend", onOpen, { passive: false });
+  openBtn.addEventListener("click", onOpen);
+
+  // Vuốt sau khi mở = lúc nhạc phải có tiếng.
+  let scrolled = false;
+  document.addEventListener("touchmove", () => {
+    if (!opened || scrolled || !ready) return;
+    scrolled = true;
+    log("vuốt lần đầu");
+    if (MODE === "run") { priming = false; call("seekTo", 0, true); call("unMute"); call("playVideo"); }
+    else { priming = false; call("unMute"); call("playVideo"); }
+  }, { passive: true, capture: true });
+
+  // Cú chạm sau khi đã vuốt — lối dự phòng.
+  document.addEventListener("touchend", () => {
+    if (!scrolled || unlockedTry || !ready) return;
+    if (player.getPlayerState() === 1 && !player.isMuted()) return;
+    unlockedTry = true;
+    log("chạm dự phòng");
+    call("unMute"); call("playVideo");
+  }, { passive: true, capture: true });
+
+  document.addEventListener("visibilitychange", () => log(`visibility ${document.visibilityState}`));
+  window.addEventListener("pagehide", () => log("pagehide"));
+</script>
+</body>
+</html>
