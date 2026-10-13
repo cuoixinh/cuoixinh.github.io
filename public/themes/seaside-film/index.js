@@ -273,7 +273,7 @@
     }
     box.innerHTML = `
       <div class="sf-cal-year">${y}</div>
-      <div class="sf-cal-head">${pad(m + 1)}<span>/</span>${pad(d.getDate())}</div>
+      <div class="sf-cal-head">${pad(d.getDate())}<span>/</span>${pad(m + 1)}</div>
       <div class="sf-cal-grid">
         ${["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((n) => `<span class="sf-cal-wd">${n}</span>`).join("")}
         ${cells.join("")}
