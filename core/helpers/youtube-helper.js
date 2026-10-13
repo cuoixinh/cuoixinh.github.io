@@ -9,6 +9,13 @@ let isYouTubePlaying = false;
 // URL ảnh bìa (thumbnail) cho UI hiển thị sớm.
 let _musicVideoId = null;
 
+// ?cxdebug=music → nhật ký nhạc ngay trên màn hình, để dò lỗi trên điện thoại thật.
+if (/[?&]cxdebug=music\b/.test(location.search)) {
+  const s = document.createElement("script");
+  s.src = "/core/helpers/music-debug.js";
+  document.head.appendChild(s);
+}
+
 /**
  * Load YouTube IFrame API
  */
@@ -127,11 +134,16 @@ function initYouTubeMusic(musicUrl) {
               event.target.unMute();
               return;
             }
-            // Lượt phát đầu đi đường tắt tiếng (_playMusic) đã chạy → bật tiếng.
+            // Lượt phát đầu đi đường tắt tiếng (_playMusic) đã chạy → để nó chạy câm
+            // MUSIC_UNMUTE_DELAY_MS rồi mới bật tiếng.
             if (event.data === S.PLAYING && _musicUnmuteOnPlay) {
               _musicUnmuteOnPlay = false;
               _musicPrimed = true;
-              event.target.unMute();
+              setTimeout(() => {
+                if (!isYouTubePlaying || _musicUserPaused) return;
+                youtubePlayer.unMute();
+                _fadeInMusic(youtubePlayer);
+              }, MUSIC_UNMUTE_DELAY_MS);
             }
             // Đang bị dừng (người bấm, hoặc trang cha gọi cxMusicPause) mà
             // player tự phát — autoplay của onReady tới muộn — thì dừng lại.
@@ -207,7 +219,9 @@ let _primeOff = () => {};
 
 // Lần ĐẦU player thật sự chạy phải TẮT tiếng: đo trên iPhone, lần đầu đã có tiếng
 // là iOS bật video ra toàn màn hình; chạy tắt tiếng một lần rồi thì bật tiếng / phát
-// lại vẫn nằm yên trong trang. Mọi đường phát nhạc đi qua _playMusic.
+// lại vẫn nằm yên trong trang. Mọi đường phát nhạc đi qua _playMusic. Hai lần đo
+// chạy yên đều bật tiếng sau ≥1,3 giây chạy câm — bật ngay lúc PLAYING chưa đo.
+const MUSIC_UNMUTE_DELAY_MS = 1500;
 let _musicPrimed = false;
 let _musicUnmuteOnPlay = false;
 
@@ -238,14 +252,12 @@ function _primeOnTap() {
   );
 }
 
-// Phát THẬT (cuộn, bấm nút nhạc): bỏ lượt mở khoá đang dở, trả tiếng lại.
+// Phát THẬT (cuộn, bấm nút nhạc): lượt mở khoá đang dở thì thôi dừng nó, cứ để
+// chạy tiếp (vẫn tắt tiếng) — _playMusic lo bật tiếng. Đừng unMute ở đây: lượt đó
+// chưa PLAYING mà có tiếng là thành "lần đầu đã có tiếng".
 function _primeCancel() {
   _primeOff();
-  if (!_musicPriming) return;
   _musicPriming = false;
-  try {
-    youtubePlayer.unMute();
-  } catch (e) {}
 }
 
 // Thiệp không có màn bìa, hoặc bìa đã đóng (openInvitation ẩn #cover-screen).
