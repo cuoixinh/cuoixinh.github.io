@@ -614,7 +614,9 @@ function _cxMountMusic(decl) {
   // Theme chen thêm việc lúc thiệp hiện ra (dựng lại carousel, đo lại khung…)
   // bằng CX_THEME.onOpen — openInvitation() gọi nó sau khi #main-card đã hiện.
   const _openInvitation = window.openInvitation;
+  // Gọi cxMusicOnOpen TRƯỚC, ngay trong cú bấm: nhạc mượn cú bấm này để được phát.
   window.openInvitation = function () {
+    if (window.cxMusicOnOpen) window.cxMusicOnOpen();
     _openInvitation(T.onOpen);
   };
 
