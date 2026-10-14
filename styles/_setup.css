@@ -2803,9 +2803,25 @@ html.cx-rail-off {
   color: rgb(var(--action-primary-deep-rgb));
   background: rgb(var(--surface-blossom-rgb));
 }
-/* Điện thoại hẹp không đủ chỗ cho ba nút — "Nhập Excel" lùi vào menu ⋯. */
-.gs-actions .gs-act-excel {
-  display: none;
+.gs-tone-red {
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-tint-rgb));
+}
+/* Mục "Nhập bằng AI" trong menu ⋯: ô nền tím nhạt giữ nhận diện XuXi. */
+.gs-tone-ai {
+  background: rgb(var(--ai-chip-bg-rgb));
+  box-shadow: inset 0 0 0 1px rgb(var(--ai-chip-border-rgb));
+}
+/* Dưới sm hàng nút chiếm trọn một hàng (ô tìm ở hàng trên); hai nút chính chia
+   đôi phần còn lại, lề trong hẹp lại cho vừa máy 360px. */
+.gs-actions {
+  flex: 1 1 100%;
+}
+.gs-actions .gs-act-main {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-inline: 12px;
+  white-space: nowrap;
 }
 
 /* Danh sách khách: dưới md mỗi hàng là thẻ hai tầng — (avatar + tên | nút) ở
@@ -2870,6 +2886,70 @@ html.cx-rail-off {
 }
 .gs-who-txt {
   @apply flex min-w-0 flex-col;
+}
+/* Chế độ chọn nhiều để xoá (enterGuestSelect): ô avatar thành ô tích, nút thao tác
+   của hàng ẩn đi nhưng vẫn giữ chỗ để lưới cột không xô lệch. */
+.gs-pick {
+  @apply flex shrink-0 items-center justify-center rounded-full;
+  color: #fff;
+  background: rgb(var(--surface-panel-rgb));
+  box-shadow: inset 0 0 0 2px rgb(var(--border-field-rgb));
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.gs-ava.gs-pick {
+  width: 40px;
+  height: 40px;
+}
+.gs-row.is-picked {
+  background: rgb(var(--state-error-tint-rgb));
+}
+.gs-row.is-picked .gs-pick,
+.gs-pick.is-on {
+  background: rgb(var(--state-error-text-rgb));
+  box-shadow: none;
+}
+.gs-list.is-selecting .gs-acts {
+  visibility: hidden;
+}
+/* Một hàng: "Chọn tất cả" bên trái, cụm Huỷ/Xoá đẩy sát phải. Không wrap — đổi nhãn
+   "Chọn tất cả" ↔ "Bỏ chọn tất cả" sẽ làm nút nhảy hàng. */
+.gs-selbar {
+  display: none;
+  align-items: center;
+  flex: 1 1 100%;
+  gap: 8px;
+}
+.gs-toolbar.is-selecting .gs-actions {
+  display: none;
+}
+.gs-toolbar.is-selecting .gs-selbar {
+  display: flex;
+}
+.gs-selbar-acts {
+  @apply flex shrink-0 items-center;
+  margin-left: auto;
+  gap: 8px;
+}
+/* Lề trong hẹp hơn x-button md cho vừa máy 360px (cùng ô tìm ở hàng trên). */
+.gs-selbar-acts button {
+  padding-inline: 16px;
+}
+.gs-selbar-all {
+  @apply flex shrink-0 items-center whitespace-nowrap;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px 0 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-selbar-all:hover {
+  background: rgb(var(--surface-hover-rgb));
+}
+.gs-selbar-all .gs-pick {
+  width: 20px;
+  height: 20px;
 }
 .gs-name {
   @apply truncate;
@@ -3048,6 +3128,110 @@ html.cx-rail-off {
   gap: 8px;
   margin-top: 16px;
 }
+/* Bên đang mở chưa có khách (cờ do _syncStats đặt): ẩn cả thanh công cụ — chưa có
+   gì để tìm, và màn trống bên dưới đã có ba cách thêm khách. */
+.gs-toolbar.is-empty {
+  display: none;
+}
+
+/* Ba thẻ "cách thêm khách" ở màn trống: dưới sm xếp dọc (icon trái, chữ phải),
+   từ sm thành ba cột. Thẻ là vùng bấm trọn; tông AI chỉ ở thẻ XuXi. */
+.gs-paths {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 640px;
+}
+.gs-path {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
+  text-align: left;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+.gs-path:hover {
+  border-color: rgb(var(--brand-accent-rgb) / 0.6);
+  box-shadow: 0 8px 20px -12px rgb(var(--shadow-brand-rgb) / 0.5);
+}
+.gs-path:active {
+  transform: scale(0.98);
+}
+.gs-path-ico {
+  @apply flex items-center justify-center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+}
+.gs-path-txt {
+  @apply flex min-w-0 flex-col;
+  gap: 4px;
+}
+.gs-path-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-path-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-path--one .gs-path-ico {
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+.gs-path--excel .gs-path-ico {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-tint-rgb));
+}
+.gs-path--ai {
+  border-color: rgb(var(--ai-chip-border-rgb));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--ai-chip-bg-rgb)),
+    rgb(var(--white-rgb)) 70%
+  );
+}
+.gs-path--ai:hover {
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.5);
+  box-shadow: 0 8px 20px -12px rgb(var(--ai-glow-strong-rgb) / 0.6);
+}
+.gs-path--ai .gs-path-ico {
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+}
+.gs-path--ai .gs-path-title {
+  color: rgb(var(--ai-chip-text-rgb));
+}
+@media (min-width: 640px) {
+  .gs-paths {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .gs-path {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    align-items: start;
+    padding: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-path {
+    transition: none;
+  }
+  .gs-path:active {
+    transform: none;
+  }
+}
+
 .gs-empty-note {
   margin-top: 12px;
   text-align: center;
@@ -3264,6 +3448,455 @@ html.cx-rail-off {
   background: rgb(var(--white-rgb) / 0.7);
 }
 
+/* "Nhập bằng AI" — nhận diện AI chung của sản phẩm (logo XuXi + tông tím
+   --ai-*). Tím chỉ đánh dấu phần XuXi làm (nút, ô dán, đoạn khách sắp thêm trên
+   thanh sức chứa); nút chốt "Nhập N khách" vẫn là nút chính màu thương hiệu. */
+.gs-ai-go {
+  font-weight: 600;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    filter 0.15s ease,
+    opacity 0.15s ease;
+}
+.gs-ai-go {
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--ai-gradient-from-rgb)),
+    rgb(var(--ai-gradient-to-rgb))
+  );
+  box-shadow: 0 6px 16px -8px rgb(var(--ai-glow-strong-rgb) / 0.7);
+}
+.gs-ai-go:hover {
+  filter: brightness(1.06);
+}
+.gs-ai-go:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+.gs-ai-go[data-loading="1"] svg {
+  animation: cx-wand-spin 0.9s linear infinite;
+}
+.gs-sheet-ico--ai {
+  background: rgb(var(--ai-chip-bg-rgb));
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+}
+
+/* Ô dán: khung giấy viền tím, đếm ký tự ở chân. */
+.gs-ai-pad {
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.gs-ai-pad:focus-within {
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.55);
+  box-shadow: 0 0 0 4px rgb(var(--ai-chip-bg-rgb));
+}
+.gs-ai-text {
+  display: block;
+  width: 100%;
+  min-height: 200px;
+  padding: 16px;
+  resize: none;
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgb(var(--text-heading-rgb));
+  background: transparent;
+  outline: none;
+}
+.gs-ai-text::placeholder {
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-ai-text[aria-invalid="true"] {
+  background: rgb(var(--state-error-bg-rgb) / 0.35);
+}
+.gs-ai-pad-foot {
+  @apply flex items-center justify-between;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 12px;
+  border-top: 1px dashed rgb(var(--ai-chip-border-rgb));
+  background: rgb(var(--ai-chip-bg-rgb) / 0.45);
+}
+.gs-ai-tools {
+  @apply flex flex-wrap items-center;
+  gap: 4px;
+  margin-left: -8px;
+}
+.gs-ai-tools .gs-link {
+  margin-left: 4px;
+}
+/* Nút chụp ảnh chỉ có nghĩa trên máy cảm ứng (có camera, capture mở thẳng camera). */
+@media (hover: hover) and (pointer: fine) {
+  .gs-ai-tools .gs-ai-cam {
+    display: none;
+  }
+}
+/* Kéo tệp vào khung: viền đậm báo thả được. */
+.gs-ai-pad.is-drop {
+  border-color: rgb(var(--ai-gradient-from-rgb));
+  box-shadow: 0 0 0 4px rgb(var(--ai-chip-bg-rgb));
+}
+/* Các tệp ảnh/PDF đang đính kèm — mỗi tệp một hàng gọn giữa ô dán và chân ô. */
+.gs-ai-files {
+  display: grid;
+  gap: 8px;
+  margin: 0 12px 12px;
+}
+.gs-ai-files-note {
+  font-size: 12px;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-ai-file {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px 8px 8px;
+  border-radius: 12px;
+  background: rgb(var(--ai-chip-bg-rgb) / 0.6);
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+}
+.gs-ai-file-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgb(var(--border-field-rgb));
+  background: rgb(var(--surface-tint-rgb));
+}
+.gs-ai-file-thumb--pdf {
+  @apply flex items-center justify-center;
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-bg-rgb));
+  border-color: transparent;
+}
+.gs-ai-file-txt {
+  @apply flex min-w-0 flex-col;
+  gap: 4px;
+}
+.gs-ai-file-name {
+  @apply truncate;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-ai-file-meta {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-ai-read {
+  margin-bottom: 8px;
+}
+.gs-ai-count {
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-ai-count.is-over {
+  font-weight: 600;
+  color: rgb(var(--state-error-text-rgb));
+}
+.gs-ai-tip {
+  @apply flex items-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-ai-tip svg {
+  flex: none;
+  color: rgb(var(--tone-amber-rgb));
+}
+
+/* Thanh sức chứa của bên đang nhập: xám = khách có sẵn, tím = khách XuXi sắp
+   thêm, trên nền trống là chỗ còn lại. Đủ trần thì cả thẻ chuyển tông báo lỗi. */
+.gs-cap {
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--border-field-rgb));
+}
+.gs-cap-top {
+  @apply flex items-baseline justify-between;
+  gap: 8px;
+}
+.gs-cap-name {
+  @apply inline-flex items-center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-cap--groom .gs-cap-name svg {
+  color: rgb(var(--state-info-text-rgb));
+}
+.gs-cap--bride .gs-cap-name svg {
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.gs-cap-num {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-cap-num strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-cap-bar {
+  display: flex;
+  height: 8px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgb(var(--surface-control-rgb));
+}
+.gs-cap-have {
+  background: rgb(var(--text-caption-rgb) / 0.55);
+}
+.gs-cap-add {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--ai-gradient-from-rgb)),
+    rgb(var(--ai-gradient-to-rgb))
+  );
+  transition: width 0.3s ease;
+}
+.gs-cap-note {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-cap.is-full {
+  border-color: rgb(var(--state-error-text-rgb) / 0.35);
+  background: rgb(var(--state-error-bg-rgb) / 0.35);
+}
+.gs-cap.is-full .gs-cap-note {
+  font-weight: 500;
+  color: rgb(var(--state-error-text-rgb));
+}
+
+/* Lời nhắc khách thuộc nhóm bên kia, nằm giữa thanh sức chứa và danh sách. */
+.gs-ai-other {
+  margin-bottom: 8px;
+}
+.gs-ai-other svg {
+  color: rgb(var(--state-info-text-rgb));
+}
+
+/* Bước xem lại: thanh sức chứa dính đầu khi cuộn danh sách dài. */
+.gs-ai-cap {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding-bottom: 8px;
+  background: rgb(var(--white-rgb));
+}
+.gs-ai-list {
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgb(var(--border-field-rgb));
+}
+/* Hàng khách: ô nhập trông như chữ thường, chỉ hiện khung khi rê/đang sửa. */
+.gs-ai-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 8px;
+  row-gap: 4px;
+  padding: 8px 4px 8px 8px;
+  border-top: 1px solid rgb(var(--divider-rgb));
+  transition: background-color 0.2s ease;
+}
+.gs-ai-row:first-child {
+  border-top: 0;
+}
+.gs-ai-row--sk {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+}
+.gs-ai-names {
+  @apply flex min-w-0 flex-col;
+}
+.gs-ai-flag {
+  @apply inline-flex items-center;
+  grid-column: 2;
+  justify-self: start;
+  gap: 4px;
+  height: 24px;
+  margin-left: 8px;
+  padding: 0 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.gs-ai-flag:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.gs-ai-flag[hidden] {
+  display: none;
+}
+.gs-ai-row-acts {
+  @apply flex items-center;
+  grid-column: 3;
+  grid-row: 1;
+}
+.gs-ai-in {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 16px;
+  color: rgb(var(--text-heading-rgb));
+  background: transparent;
+  border: 1px solid transparent;
+  outline: none;
+  text-overflow: ellipsis;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+.gs-ai-in::placeholder {
+  font-weight: 400;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-ai-in:hover {
+  background: rgb(var(--surface-tint-rgb));
+}
+.gs-ai-in:focus {
+  background: rgb(var(--white-rgb));
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.55);
+  box-shadow: 0 0 0 4px rgb(var(--ai-chip-bg-rgb));
+}
+.gs-ai-rel {
+  font-weight: 600;
+  color: rgb(var(--ai-chip-text-rgb));
+}
+.gs-ai-name {
+  font-weight: 600;
+}
+/* Dưới sm giữ 16px như mọi ô nhập: nhỏ hơn là Safari iOS tự zoom khi chạm. */
+.gs-ai-disp {
+  height: 32px;
+  color: rgb(var(--text-subtle-rgb));
+}
+/* Hàng sẽ không được nhập: mờ đi + nhãn lý do (chữ, không chỉ màu). */
+.gs-ai-row.is-other,
+.gs-ai-row.is-dup,
+.gs-ai-row.is-over {
+  background: rgb(var(--surface-tint-rgb) / 0.7);
+}
+.gs-ai-row.is-other .gs-ai-in,
+.gs-ai-row.is-dup .gs-ai-in,
+.gs-ai-row.is-over .gs-ai-in {
+  opacity: 0.6;
+}
+.gs-ai-row.is-other .gs-ai-flag {
+  color: rgb(var(--state-info-text-rgb));
+  background: rgb(var(--state-info-bg-rgb));
+  cursor: pointer;
+}
+.gs-ai-row.is-other .gs-ai-flag:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.gs-ai-row.is-dup .gs-ai-flag {
+  color: rgb(var(--text-subtle-rgb));
+  background: rgb(var(--surface-control-rgb));
+}
+.gs-ai-row.is-over .gs-ai-flag {
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-bg-rgb));
+}
+.gs-ai-row.is-empty .gs-ai-flag {
+  color: rgb(var(--state-warning-text-rgb));
+  background: rgb(var(--state-warning-bg-rgb));
+}
+.gs-ai-row.is-empty .gs-ai-name {
+  border-color: rgb(var(--state-warning-text-rgb) / 0.5);
+}
+
+/* Chờ XuXi đọc: logo "thở" — chuyển động duy nhất của popup. */
+.gs-ai-wait {
+  @apply flex items-center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(var(--ai-chip-text-rgb));
+  background: rgb(var(--ai-chip-bg-rgb));
+}
+.gs-ai-wait-ico {
+  flex: none;
+  animation: cx-ai-breathe 1.6s ease-in-out infinite;
+}
+@keyframes cx-ai-breathe {
+  50% {
+    transform: scale(1.12);
+    opacity: 0.7;
+  }
+}
+
+@media (min-width: 640px) {
+  .gs-ai-text,
+  .gs-ai-in {
+    font-size: 14px;
+  }
+  .gs-ai-disp {
+    font-size: 13px;
+  }
+  .gs-ai-row {
+    grid-template-columns: 112px minmax(0, 1fr) auto auto;
+    align-items: center;
+    padding-left: 12px;
+  }
+  .gs-ai-names {
+    flex-direction: row;
+    gap: 4px;
+  }
+  .gs-ai-flag {
+    grid-column: 3;
+    grid-row: 1;
+    margin-left: 0;
+  }
+  .gs-ai-row-acts {
+    grid-column: 4;
+    opacity: 0.55;
+  }
+  .gs-ai-row:hover .gs-ai-row-acts,
+  .gs-ai-row:focus-within .gs-ai-row-acts {
+    opacity: 1;
+  }
+  .gs-ai-disp {
+    height: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-ai-wait-ico,
+  .gs-ai-go[data-loading="1"] svg {
+    animation: none;
+  }
+  .gs-cap-add,
+  .gs-ai-row,
+  .gs-ai-in,
+  .gs-ai-pad {
+    transition: none;
+  }
+}
+
 /* Popup lời chúc. */
 .gs-wish {
   padding: 12px;
@@ -3306,8 +3939,13 @@ html.cx-rail-off {
   .gs-search {
     flex: 1 1 0;
   }
-  .gs-actions .gs-act-excel {
-    display: inline-flex;
+  .gs-actions,
+  .gs-selbar {
+    flex: none;
+  }
+  .gs-actions .gs-act-main {
+    flex: none;
+    padding-inline: 20px;
   }
   .gs-pages {
     display: flex;

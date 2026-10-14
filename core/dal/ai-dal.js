@@ -146,6 +146,31 @@ class AiDAL {
   }
 
   /**
+   * Tách danh sách khách (`mode: "guests"`) từ chữ dán tự do, kèm tuỳ chọn tối đa 5
+   * tệp `files: [{mime, data base64}]` (ảnh/PDF) → { guests, truncated }. Mỗi khách
+   * {full_name, display_name, relationship, side}, side = nhóm ghi trong danh sách
+   * ("" = không chia nhóm). Bắt buộc đăng nhập; chỉ ĐỌC, ghi là việc của guest-handler.
+   */
+  async parseGuests({ text, files }) {
+    const token = await this._token();
+    if (!token) throw Object.assign(new Error("Đăng nhập để nhập khách bằng AI"), { needLogin: true });
+
+    const res = await fetch(this._url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: CONFIG.supabase.anonKey,
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ mode: "guests", device: window.cxDeviceId?.() || "", text: text || "", ...(files?.length ? { files } : {}) }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw this._err(json, "XuXi chưa đọc được danh sách, thử lại nhé");
+    return { guests: Array.isArray(json.guests) ? json.guests : [], truncated: !!json.truncated };
+  }
+
+  /**
    * Sinh nội dung dạng STREAMING: server trả NDJSON, mỗi dòng một sự kiện —
    * block: 1 block sạch; full: kết quả đầy đủ (đường non-stream);
    * meta: {done,provider} | {error}.

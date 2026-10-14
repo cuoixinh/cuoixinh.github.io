@@ -175,10 +175,16 @@ export function readUsage(meta: any): GeminiUsage | undefined {
   }
 }
 
+// Một part của lượt hỏi: chữ, hoặc tệp nhúng base64 (ảnh/PDF) để model tự đọc.
+export type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } }
+
+// Prompt là chuỗi (trường hợp thường) hoặc dãy part khi kèm tệp.
+export type GeminiPrompt = string | GeminiPart[]
+
 // Gọi Gemini generateContent với generationConfig tuỳ tác vụ. `usageOut` (nếu có)
 // nhận số token của lượt gọi thành công.
 export async function callGemini(
-  prompt: string,
+  prompt: GeminiPrompt,
   apiKey: string,
   genConfig: Record<string, unknown>,
   timeoutMs = REQ_TIMEOUT_MS,
@@ -191,7 +197,7 @@ export async function callGemini(
       headers: { 'Content-Type': 'application/json' },
       signal: t.signal,
       body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        contents: [{ role: 'user', parts: typeof prompt === 'string' ? [{ text: prompt }] : prompt }],
         generationConfig: geminiGenConfig(genConfig),
       }),
     })
@@ -274,7 +280,7 @@ function shuffle<T>(a: T[]): T[] {
 // Thử từng key theo thứ tự orderKeysByQuota; hỏng thì sang key kế tiếp, riêng 429
 // thì cho key đó nghỉ để các lượt sau khỏi đụng vào nữa.
 export async function callGeminiRotating(
-  prompt: string,
+  prompt: GeminiPrompt,
   keys: string[],
   genConfig: Record<string, unknown>,
   timeoutMs = REQ_TIMEOUT_MS,
@@ -312,7 +318,7 @@ export async function callGeminiRotating(
 // Trả { raw, provider } hoặc null — khi null thì đã có sẵn MỘT sự kiện
 // `ai.<tag>_failed` kèm mã lỗi + message thật của Gemini.
 export async function generateWithGemini(
-  prompt: string,
+  prompt: GeminiPrompt,
   cfg: {
     gemini: Record<string, unknown>
     timeoutMs?: number

@@ -193,6 +193,45 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       Còn lại theo thiết kế: tạo thiệp mới với slug KHÁC vẫn được 3 ngày mới (phải gửi lại
       link, bị trần `MAX_WEDDINGS_PER_USER`).
 
+### Đợt rà 2026-10-15 — "Nhập khẩu với AI" (trang Khách mời, chưa deploy)
+
+Luồng: `invitation-setup/guests/` → `ai-invitation` (`mode=guests`, chỉ ĐỌC, gửi chữ +
+≤ 5 ảnh/PDF cho Gemini) → người dùng sửa → `guest-handler?action=import` (ghi, kiểm chủ thiệp).
+
+- [x] **A23. Danh sách khách (họ tên, SĐT, ảnh viết tay) gửi sang Gemini bản MIỄN PHÍ.** →
+      **Chấp nhận (quyết định 2026-10-15):** giữ free tier, không thêm cảnh báo trong popup.
+      Rủi ro đã biết: điều khoản free tier cho Google dùng nội dung để cải tiến sản phẩm (có
+      thể có người đọc) — dữ liệu cá nhân của bên thứ ba, liên quan Nghị định 13/2023; prompt
+      bảo AI bỏ SĐT khi xuất nhưng dữ liệu vẫn đã gửi đi. Áp cho cả `ai-chat`. Đổi ý thì chỉ
+      cần chuyển `GEMINI_API_KEYS` sang key của project có bật thanh toán — mã không đổi.
+- [x] **A24. Một tài khoản đốt hết quota Gemini của mọi tính năng AI bằng PDF nhiều trang.**
+      **Đã vá:** `ai-invitation` đếm trang PDF (`pdfPageCount`, `/Type /Page` thô), tổng
+      ≤ `MAX_GUEST_PDF_PAGES` (10) mỗi lượt; PDF không đếm được trang (nén object stream) chỉ
+      nhận ≤ ~2MB. Mỗi tệp tính 1 lượt AI (`cost` của `enforceRateLimit`,
+      `_shared/ai-rate-limit.ts` — `cost` mặc định 1 nên `ai-chat` không đổi). Client kiểm
+      cùng luật ở `_aiPdfPages` (`invitation-setup/guests/index.js`).
+- [x] **A25. `ai-invitation` đọc trọn body trước khi kiểm đăng nhập.** Ai cũng POST được body
+      hàng chục MB. **Đã vá:** kiểm `Content-Length` đầu handler — > `MAX_BODY_GUESTS` (12MB)
+      là 413; mode khác `guests` mà > `MAX_BODY_TEXT` (100KB) cũng 413. Request không khai
+      `Content-Length` (chunked) vẫn lọt — trần cứng còn lại là giới hạn body của Supabase.
+- [x] **A26. Tệp gửi AI chỉ tin `mime` client khai.** **Đã vá:** `fileMagicOk` kiểm byte đầu
+      (JPEG `/9j/`, PNG `iVBORw0KGgo`, WebP `RIFF…WEBP`, PDF `JVBERi0`) trước khi trừ lượt AI.
+- [x] **A27. `showToast` gán `innerHTML`** (`core/helpers/alert.js`) — thông báo lỗi nhập khách
+      ghép `err.message` từ server. **Đã vá** chỗ mới bằng `escapeHtml`. Chỗ CŨ trên trang
+      Khách mời (`"Nhập khẩu thất bại: " + err.message`…) chưa rà hết → xem bất biến ở mục C.
+- [x] **Đã kiểm, đúng:** `ai-invitation mode=guests` bắt buộc JWT (401 trước mọi thứ khác);
+      validate chữ ≤ 8.000, ≤ 5 tệp, mỗi tệp ≤ 4MB, tổng ≤ 8MB, MIME allowlist, base64 hợp lệ
+      — tất cả TRƯỚC khi trừ lượt; output ép schema + cắt độ dài + ≤ 200 khách; tệp không lưu
+      Storage, log chỉ có số lượng (không tên khách); ghi khách vẫn qua `denyIfNotOwner` của
+      `guest-handler`; mọi dữ liệu AI/người dùng chèn vào popup qua `escapeHtml`/`textContent`;
+      mammoth.js nạp lười từ cdnjs có SRI.
+- [ ] **A28. Rủi ro thấp, chấp nhận tạm:** (1) `xlsx-js-style@1.2.0` bọc SheetJS 0.18.x —
+      prototype pollution khi đọc file Excel độc (CVE-2023-30533), chỉ hại người tự mở file;
+      cả luồng "Nhập từ Excel" cũ cũng dính → nâng khi có bản dựa trên SheetJS ≥ 0.19.3.
+      (2) Người đăng nhập nhồi prompt để dùng XuXi như LLM chùa — đầu ra bị ép mảng chuỗi
+      ≤ 200 ký tự, 15 lượt/ngày, giá trị lạm dụng thấp. (3) `guest-handler` đếm rồi mới chèn,
+      không atomic — hai lần nhập song song có thể vượt trần 100 vài khách.
+
 ---
 
 ## B. ĐÃ ĐÓNG từ trước — đừng dò lại
@@ -308,6 +347,11 @@ danh sách này, đừng chờ đợt rà sau.
 - [ ] **Thêm cache (Worker/KV)** → key phải gồm MỌI thứ ảnh hưởng tới quyền xem. Response chỉ
       chủ sở hữu đọc được thì **không cache** (A7).
 - [ ] **Thêm script từ CDN** → pin version + `integrity` + `crossorigin` (A14).
+- [ ] **Gọi `showToast(...)`** → nó gán `innerHTML`: mọi chuỗi từ server/người dùng/tên tệp
+      ghép vào phải qua `escapeHtml()` (A27).
+- [ ] **Gửi dữ liệu người dùng cho AI** → kiểm ở server TRƯỚC khi trừ lượt: kích thước, loại
+      (byte đầu, không tin `mime`), và thứ quyết định số token (số trang, số tệp) — tính hạn mức
+      theo đúng chi phí (`cost`), không theo số request (A24–A26).
 - [ ] **Thêm host/miền mới** → khai vào `ALLOWED_ORIGINS` của **ba** function
       (`_shared/ai-provider.ts`, `wedding-admin`, `guest-handler`), `ALLOWED_BASE_URLS` của
       `payment-handler`, `ALLOWED_IMAGE_HOSTS` của `wedding-admin`, và `connect-src` của CSP

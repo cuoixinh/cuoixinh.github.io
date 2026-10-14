@@ -197,6 +197,12 @@ Sửa văn phong / cấu trúc nội dung: hàm `buildPrompt()` và `RESPONSE_SC
 
 ---
 
+### `mode: "guests"` — Nhập khách mời bằng AI
+
+Trang Khách mời (`invitation-setup/guests/`) gửi `{ mode: "guests", text }` (tối đa 8.000 ký tự) kèm **tuỳ chọn** `files: [{ mime, data }]` — tối đa 5 ảnh/PDF, mỗi tệp ~4MB, tổng ~8MB, PDF tổng ≤ 10 trang (PDF không đếm được trang thì ≤ 2MB), server kiểm byte đầu đúng định dạng, **mỗi tệp tính 1 lượt AI** (chữ khi đó là phần gõ thêm: khách bổ sung hoặc lời dặn) — ảnh JPG/PNG/WebP (trình duyệt đã nén) hoặc PDF, base64; Gemini tự đọc tệp, nhiều tệp gộp thành một danh sách. File .txt/.csv/.docx thì trình duyệt tự lấy chữ đổ vào ô dán, vẫn đi đường `text` → trả `{ guests: [{ full_name, display_name, relationship, side }], truncated }` (`truncated` = quá 200 khách, phần sau bị bỏ), `side` là nhóm "Nhà trai/Nhà gái" ghi trong văn bản (rỗng khi không chia nhóm). Trang chỉ nhập khách khớp tab đang mở hoặc không rõ nhóm; khách ghi dưới nhóm bên kia hiện mờ và bị bỏ qua. **Bắt buộc đăng nhập** (401 kèm `login: true`), dùng chung hạn mức "inv:" với các mode khác. Function chỉ ĐỌC: người dùng sửa ở bước xem lại rồi trang ghi qua `guest-handler?action=import` (kiểu "thêm vào") — trần 100 khách mỗi bên vẫn do `guest-handler` giữ. Không log tên khách.
+
+---
+
 ## 9. Danh sách file liên quan
 
 - `supabase/functions/_shared/card-schema.ts` — hợp đồng dữ liệu thiệp (whitelist field, nhãn văn phong, luật xưng hô, tầng validate output) dùng chung với `ai-chat`
@@ -208,3 +214,4 @@ Sửa văn phong / cấu trúc nội dung: hàm `buildPrompt()` và `RESPONSE_SC
 - `core/config.js` — `CONFIG.supabase.aiInvitationUrl`
 - `invitation-setup/index.html` — banner + `#ai-modal` + nạp `ai-dal.js`
 - `invitation-setup/ai-modal.js` — `openAiModal / submitAiGenerate / _renderAiPreview / applyAiResult`
+- `invitation-setup/guests/index.js` — "Nhập bằng AI" (`openAiImport / runAiParse / confirmAiImport`), luật trùng/trần ở `core/bl/guest-bl.js` (`planAiImport`)

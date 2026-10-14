@@ -118,12 +118,16 @@
               <input id="gs-search" type="search" placeholder="Tìm theo tên khách" autocomplete="off"
                 aria-label="Tìm khách mời theo tên" oninput="onGuestSearch(this.value)" />
             </label>
+            <!-- Hai việc chính đứng ngoài (Nhập từ Excel · Thêm khách), mọi việc khác —
+                 kể cả "Nhập bằng AI" — ở menu ⋯ (_initMoreMenu). Dưới sm hai nút chia đôi
+                 một hàng, nhãn Excel rút gọn cho vừa máy 360px. -->
             <div class="gs-actions">
-              <x-button variant="outline" tone="neutral" onclick="pickExcel()" class="gs-act-excel">
+              <x-button variant="outline" tone="neutral" onclick="pickExcel()" class="gs-act-main">
                 <i data-lucide="file-spreadsheet" class="gs-excel" style="width:16px;height:16px"></i>
-                <span>Nhập Excel</span>
+                <span class="sm:hidden">Nhập Excel</span>
+                <span class="hidden sm:inline">Nhập từ Excel</span>
               </x-button>
-              <x-button onclick="openAddGuestModal(_currentTab)">
+              <x-button onclick="openAddGuestModal(_currentTab)" class="gs-act-main">
                 <i data-lucide="user-plus" style="width:16px;height:16px"></i>
                 <span>Thêm khách</span>
               </x-button>
@@ -140,6 +144,8 @@
                 <i data-lucide="ellipsis" style="width:18px;height:18px"></i>
               </x-button>
             </div>
+            <!-- Cụm "Chọn nhiều để xoá" — thế chỗ .gs-actions khi đang chọn (_syncSelBar). -->
+            <div id="gs-selbar" class="gs-selbar" role="toolbar" aria-label="Chọn nhiều khách"></div>
             <input id="gs-file" type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event, _currentTab)" />
           </div>
 
@@ -307,8 +313,89 @@
       </div>
     </div>
 
+    <!-- Popup "Nhập bằng AI" (JS: _ai* ở index.js). Hai bước trong cùng vỏ:
+         #ai-paste (dán văn bản) → #ai-review (sửa từng khách, xem còn bao nhiêu chỗ).
+         Chỉ nhập vào bên của tab đang mở; khách ghi dưới nhóm bên kia bị bỏ qua.
+         Ghi vào DB vẫn qua guest-handler như nhập Excel. -->
+    <div id="ai-import-modal" class="gs-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ai-title">
+      <div class="gs-sheet gs-ai sm:max-w-[600px]">
+        <div class="gs-sheet-head">
+          <span class="gs-sheet-ico gs-sheet-ico--ai"><i data-icon="xuxi" data-size="26"></i></span>
+          <div class="flex-1 min-w-0">
+            <!-- Tiêu đề (ghi bên đang nhập) + dòng phụ một dòng — _aiShowStage() đặt theo bước. -->
+            <h2 id="ai-title" class="gs-sheet-title">Nhập bằng AI</h2>
+            <p id="ai-sub" class="gs-sheet-sub truncate"></p>
+          </div>
+          <x-button variant="ghost" tone="neutral" icon-only type="button" onclick="closeAiImport()"
+            aria-label="Đóng" class="-mr-2 -mt-1">
+            <i data-lucide="x" style="width:18px;height:18px"></i>
+          </x-button>
+        </div>
+
+        <!-- Bước 1: dán danh sách. -->
+        <div id="ai-paste" class="flex-1 min-h-0 overflow-y-auto px-5 pb-4 space-y-4">
+          <div class="gs-ai-pad">
+            <label for="ai-text" class="sr-only">Danh sách khách mời</label>
+            <!-- <x-textarea> (core/x-controls.js): có sẵn nút "x" xoá nhanh. spellcheck +
+                 aria-describedby đặt ở index.js vì component chỉ chuyển data-* xuống. -->
+            <x-textarea bare id="ai-text" height="216px" input-class="gs-ai-text"
+              placeholder="Dán danh sách khách mời vào đây..."></x-textarea>
+            <!-- Các tệp ảnh/PDF đang đính kèm (_aiRenderFiles, tối đa 5) — dưới ô dán; chữ trong ô gửi kèm. -->
+            <div id="ai-file-card" class="gs-ai-files hidden"></div>
+            <!-- Chân ô: chọn tệp (txt/csv/docx/xlsx → đổ chữ vào ô; ảnh/PDF → gửi AI đọc),
+                 chụp ảnh (chỉ hiện trên máy cảm ứng), dán ví dụ, đếm ký tự. -->
+            <div class="gs-ai-pad-foot">
+              <div class="gs-ai-tools">
+                <x-button id="ai-pick" variant="ghost" tone="neutral" size="sm" type="button" onclick="aiPickFile()"
+                  title="Chọn ảnh, PDF, Word, Excel hoặc .txt">
+                  <i data-lucide="paperclip" style="width:15px;height:15px"></i><span>Chọn tệp</span>
+                </x-button>
+                <x-button id="ai-cam-btn" variant="ghost" tone="neutral" size="sm" type="button" onclick="aiTakePhoto()"
+                  class="gs-ai-cam" title="Chụp ảnh danh sách khách">
+                  <i data-lucide="camera" style="width:15px;height:15px"></i><span>Chụp ảnh</span>
+                </x-button>
+                <button id="ai-sample" type="button" class="gs-link" onclick="fillAiSample()">Dán ví dụ</button>
+              </div>
+              <span id="ai-count" class="gs-ai-count"></span>
+            </div>
+            <input id="ai-file" type="file" class="hidden" multiple
+              accept=".txt,.csv,.doc,.docx,.xls,.xlsx,.pdf,image/*,text/plain,text/csv,application/pdf" />
+            <input id="ai-cam" type="file" class="hidden" accept="image/*" capture="environment" />
+          </div>
+          <p id="ai-err" class="gs-err hidden">
+            <i data-lucide="circle-alert" style="width:14px;height:14px"></i>
+            <span id="ai-err-txt"></span>
+          </p>
+          <div id="ai-cap-now"></div>
+        </div>
+
+        <!-- Bước 2: xem lại — _aiRenderReview() vẽ thanh sức chứa + hàng khách. -->
+        <div id="ai-review" class="hidden flex-1 min-h-0 overflow-y-auto px-5 pb-4"></div>
+
+        <div class="gs-sheet-foot">
+          <x-button id="ai-back" variant="ghost" tone="neutral" type="button" onclick="aiBackToPaste()" class="hidden -ml-2">
+            <i data-lucide="arrow-left" style="width:16px;height:16px"></i>
+            <span>Sửa danh sách</span>
+          </x-button>
+          <div class="flex-1"></div>
+          <x-button id="ai-cancel" variant="ghost" tone="neutral" type="button" onclick="closeAiImport()">Huỷ</x-button>
+          <x-button id="ai-go" variant="bare" size="md" type="button" onclick="runAiParse()" class="gs-ai-go">
+            <i data-lucide="sparkles" style="width:16px;height:16px"></i>
+            <span>Phân tích danh sách</span>
+          </x-button>
+          <x-button id="ai-save" type="button" onclick="confirmAiImport()" class="hidden min-w-[120px]">
+            <i data-lucide="user-plus" style="width:16px;height:16px"></i>
+            <span id="ai-save-txt">Nhập khách</span>
+          </x-button>
+        </div>
+      </div>
+    </div>
+    <!-- Gợi ý xưng hô cho ô xưng hô ở bước xem lại (_aiInitRelList đổ GUEST_RELATIONS). -->
+    <datalist id="ai-rel-list"></datalist>
+
     <!-- Scripts -->
     <script src="../../core/x-button.js"></script>
+    <script src="../../core/x-controls.js"></script>
     <script src="../../core/x-logo.js"></script>
     <script src="../../core/x-combobox.js"></script>
     <script src="../../core/x-popover.js"></script>
@@ -330,6 +417,9 @@
     <script src="../../core/helpers/alert.js"></script>
     <script src="../../core/constant.js"></script>
     <script src="../../core/share-social.js"></script>
+    <!-- "Nhập bằng AI": logo XuXi (<i data-icon>) + gọi ai-invitation. -->
+    <script src="../../core/helpers/icon.js"></script>
+    <script src="../../core/dal/ai-dal.js"></script>
     <script src="index.js"></script>
   </body>
 </html>

@@ -49,6 +49,7 @@ export interface RateLimitOpts {
   anonLimit: number // hạn mức của khách chưa đăng nhập
   origin: string | null
   log: Logger
+  cost?: number     // số lượt lượt gọi này tiêu (mặc định 1; VD mỗi tệp gửi AI đọc = 1)
 }
 
 // Trả null nếu còn lượt (và đã ghi nhận lượt này); trả Response 429 nếu đã hết.
@@ -62,6 +63,7 @@ export async function enforceRateLimit(
     ? [`${f}:u:${o.user.id}`]
     : [`${f}:ip:${clientIp(req)}`, ...(o.device ? [`${f}:dev:${o.device}`] : [])]
   const limit = o.user ? o.limit : o.anonLimit
+  const cost = Math.max(1, Math.floor(o.cost ?? 1))
   const today = new Date().toISOString().slice(0, 10)
 
   const { data, error } = await admin
@@ -82,10 +84,15 @@ export async function enforceRateLimit(
       .map((r) => [r.subject, r.count ?? 0]),
   )
 
-  if (subjects.some((s) => (counts.get(s) ?? 0) >= limit)) {
+  const used = (s: string) => counts.get(s) ?? 0
+  // cost = 1 thì y hệt luật cũ (đã dùng >= limit là chặn).
+  if (subjects.some((s) => used(s) + cost > limit)) {
+    const left = Math.max(0, limit - Math.max(...subjects.map(used)))
     return json(
       {
-        error: o.user
+        error: cost > 1 && left > 0
+          ? `Lượt này cần ${cost} lượt AI (mỗi tệp tính 1 lượt) nhưng hôm nay bạn chỉ còn ${left} lượt. Bỏ bớt tệp rồi thử lại.`
+          : o.user
           ? `Bạn đã dùng hết ${limit} lượt AI hôm nay rồi. Bạn quay lại vào ngày mai nhé.`
           : `Bạn đã dùng hết ${limit} lượt AI hôm nay rồi. Vui lòng đăng nhập để tiếp tục sử dụng.`,
         // Cờ cho client biết dựng chữ "đăng nhập" bấm được. Hạn mức của tài khoản
@@ -102,7 +109,7 @@ export async function enforceRateLimit(
   const { error: upErr } = await admin
     .from(USAGE_TABLE)
     .upsert(
-      subjects.map((s) => ({ subject: s, day: today, count: (counts.get(s) ?? 0) + 1 })),
+      subjects.map((s) => ({ subject: s, day: today, count: used(s) + cost })),
       { onConflict: 'subject,day' },
     )
 
