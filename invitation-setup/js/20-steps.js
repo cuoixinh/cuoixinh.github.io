@@ -514,8 +514,24 @@ function cxGoStep(id, opts = {}) {
   }
   // Bản xem trực tiếp bám theo bước — không tải lại, chỉ cuộn tới mục tương ứng.
   window.cxLiveFocus?.();
+  if (opts.hash !== false) _cxWriteHash();
 }
 window.cxGoStep = cxGoStep;
+
+// Ghi bước đang mở vào #hash để F5 mở lại đúng bước. replaceState chứ không push:
+// nút Back là lối thoát của tab Giao diện (27-theme-session.js), đừng chèn mốc.
+function _cxWriteHash() {
+  if (!_cxStepId || location.hash === `#${_cxStepId}`) return;
+  const u = new URL(location.href);
+  u.hash = _cxStepId;
+  history.replaceState(history.state, "", u);
+}
+
+// Bước ghi trên #hash (vd `#photos`), -1 khi không có / không phải id bước.
+function _cxHashStep() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  return id ? cxStepIndexOf(id) : -1;
+}
 
 function cxStepPrev() {
   if (_cxStepIndex > 0) cxGoStep(_cxStepIndex - 1);
@@ -579,11 +595,21 @@ function _cxInitSteps() {
     // ô. Bước đang mở vừa bị bỏ thì quay về bước đầu.
     const i = _cxStepId ? cxStepIndexOf(_cxStepId) : -1;
     _cxStepIndex = i < 0 ? 0 : i;
+    if (i < 0) {
+      _cxStepId = _cxStepAt(0)?.id || null;
+      if (location.hash) _cxWriteHash();
+    }
     _cxBarSig = null; // ép vẽ lại: danh sách bước đổi mà trạng thái có thể không
     cxRenderSteps();
   });
 
-  cxGoStep(0, { scroll: false });
+  window.addEventListener("hashchange", () => {
+    const i = _cxHashStep();
+    if (i >= 0 && i !== _cxStepIndex) cxGoStep(i);
+  });
+
+  const fromHash = _cxHashStep();
+  cxGoStep(fromHash < 0 ? 0 : fromHash, { scroll: false, hash: fromHash >= 0 });
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_cxInitSteps);
