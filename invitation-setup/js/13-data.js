@@ -818,34 +818,19 @@ async function _saveAllOnce(overrides, label) {
 
     // Step 3: Add uploaded filenames to payload
     for (const [fieldName, filename] of Object.entries(uploadedFilenames)) {
-      if (fieldName === "gallery_images") {
-        // Get existing gallery filenames from form
-        const textarea = document.querySelector(
-          'textarea[name="gallery_images_raw"]',
-        );
-        const existingFilenames = textarea
-          ? textarea.value.trim().split("\n").filter(Boolean)
-          : [];
-
-        // Merge existing filenames with newly uploaded filenames
-        payload.gallery_images = [...existingFilenames, ...filename];
-      } else {
-        payload[fieldName] = filename;
-      }
+      if (fieldName !== "gallery_images") payload[fieldName] = filename;
     }
 
-    // Handle gallery images if no new uploads
-    if (!uploadedFilenames.gallery_images) {
-      const textarea = document.querySelector(
-        'textarea[name="gallery_images_raw"]',
-      );
-      if (textarea) {
-        payload.gallery_images = textarea.value
-          .trim()
-          .split("\n")
-          .filter(Boolean);
-      }
-    }
+    // Album theo thứ tự kéo thả (galleryItems): ảnh mới đổi sang tên file vừa
+    // upload, ảnh chưa upload được (chưa đăng nhập) thì bỏ ra.
+    const newGalleryFilenames = uploadedFilenames.gallery_images || [];
+    payload.gallery_images = galleryItems()
+      .map((k) =>
+        k instanceof File
+          ? newGalleryFilenames[pendingUploads.galleryImages.indexOf(k)]
+          : k,
+      )
+      .filter(Boolean);
 
     // Step 3.4: Ô ảnh chỉ được mang TÊN FILE trong Storage (hoặc URL trên host của
     // hệ thống) — gỡ `blob:`/`data:` trước khi dựng focal point lẫn khi lưu.
@@ -855,7 +840,6 @@ async function _saveAllOnce(overrides, label) {
     // gallery_images lưu dạng map { filename: {x,y} } — tra theo tên file (key ổn định),
     // không phụ thuộc thứ tự/ index nên thêm/xoá/sắp xếp lại ảnh không làm lệch dữ liệu
     const galleryFocalMap = {};
-    const newGalleryFilenames = uploadedFilenames.gallery_images || [];
     pendingUploads.galleryImages.forEach((file, i) => {
       const fn = newGalleryFilenames[i];
       if (fn) galleryFocalMap[fn] = getGalleryFocalPoint(file);
@@ -915,22 +899,13 @@ async function _saveAllOnce(overrides, label) {
       }
     }
 
-    // Update gallery textarea with all filenames (existing + new)
+    // Textarea nhận cả album đã lưu, đúng thứ tự vừa ghi
     if (uploadedFilenames.gallery_images) {
       const textarea = document.querySelector(
         'textarea[name="gallery_images_raw"]',
       );
-      if (textarea) {
-        const existingFilenames = textarea.value
-          .trim()
-          .split("\n")
-          .filter(Boolean);
-        const allFilenames = [
-          ...existingFilenames,
-          ...uploadedFilenames.gallery_images,
-        ];
-        textarea.value = allFilenames.join("\n");
-      }
+      if (textarea) textarea.value = payload.gallery_images.join("\n");
+      _galleryOrder = [...payload.gallery_images];
     }
 
     // Step 6: Clear pending uploads and deleted images
