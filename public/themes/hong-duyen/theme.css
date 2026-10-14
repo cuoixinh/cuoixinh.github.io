@@ -710,7 +710,7 @@ html.hd-on {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   width: 100%;
-  margin-top: calc(var(--hd-screen) * 0.07);
+  margin-top: auto;
 }
 .hd-parents {
   display: flex;
@@ -733,8 +733,7 @@ html.hd-on {
   color: rgb(var(--cx-body-rgb));
 }
 .hd-family .hd-poem {
-  margin-top: auto;
-  padding-top: 16px;
+  margin: calc(var(--hd-screen) * 0.04) 0 auto;
   color: rgb(var(--cx-heading-rgb));
 }
 
@@ -1001,26 +1000,29 @@ html.hd-on {
 
 /* ── Lịch trình: tiêu đề trên mảng đỏ, danh sách trên nền trắng ────── */
 .hd-plan {
-  --band-h: 30%;
-  padding-top: calc(var(--hd-screen) * 0.1);
+  --band-h: 24%;
+  padding-top: calc(var(--hd-screen) * 0.08);
 }
 .hd-plan .hd-title {
-  margin: 8px 0 calc(var(--hd-screen) * 0.1);
+  margin: 8px 0 calc(var(--hd-screen) * 0.06);
 }
+/* Danh sách chiếm hết phần trắng dưới mảng đỏ, các nhóm (lễ · tiệc) dàn đều theo
+   chiều cao — để co theo nội dung thì máy cao bỏ trống cả khúc đáy trang. */
 .hd-plan-list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  justify-content: space-evenly;
+  gap: calc(var(--hd-screen) * 0.04);
+  flex: 1;
   width: 100%;
   max-width: 340px;
-  margin: auto 0;
 }
 .hd-plan-label {
-  margin-bottom: 8px;
-  padding-bottom: 6px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid rgb(var(--cx-line-rgb));
   text-align: center;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: rgb(var(--cx-heading-rgb));
 }
@@ -1028,16 +1030,16 @@ html.hd-on {
   display: flex;
   align-items: baseline;
   gap: 16px;
-  padding: 5px 0;
+  padding: min(10px, calc(var(--hd-screen) * 0.012)) 0;
 }
 .hd-plan-time {
   flex: none;
-  width: 52px;
-  font-size: 16px;
+  width: 60px;
+  font-size: 18px;
   font-style: italic;
 }
 .hd-plan-title {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
   color: rgb(var(--cx-body-rgb));
 }
@@ -1045,7 +1047,7 @@ html.hd-on {
 /* ── Album: băng ảnh vuốt ngang trên mảng đỏ giữa ─────────────────── */
 .hd-album {
   --band-top: 20%;
-  --band-h: 62%;
+  --band-h: 66%;
   padding-left: 0;
   padding-right: 0;
   padding-top: calc(var(--hd-screen) * 0.07);
@@ -1068,7 +1070,7 @@ html.hd-on {
 }
 .hd-reel-cell {
   flex: 0 0 76%;
-  height: calc(var(--hd-screen) * 0.62);
+  height: calc(var(--hd-screen) * 0.66);
   overflow: hidden;
   cursor: pointer;
   scroll-snap-align: center;
@@ -1151,7 +1153,7 @@ html.hd-on {
 
 /* ── Hộp mừng cưới: tiêu đề trên mảng đỏ, thẻ QR trắng chồng xuống ─── */
 .hd-gift {
-  --band-h: 36%;
+  --band-h: 27%;
   padding-top: calc(var(--hd-screen) * 0.08);
 }
 .hd-gift .hd-title {
@@ -1159,6 +1161,13 @@ html.hd-on {
 }
 .hd-gift > .hd-sub {
   margin-bottom: calc(var(--hd-screen) * 0.05);
+}
+/* Hộp mừng cưới (gift-box-helper chèn .cx-gb cuối mục) đứng giữa phần trắng còn
+   lại — để nguyên thì hộp dính dưới lời dẫn, nửa dưới trang bỏ trống. */
+.hd-gift .cx-gb {
+  position: relative;
+  z-index: 1;
+  margin: auto 0;
 }
 .hd-gift-grid {
   position: relative;

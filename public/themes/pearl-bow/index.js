@@ -100,7 +100,11 @@
     renderHero(w, false);
     if (w.ceremony_date) {
       const d = new Date(w.ceremony_date + "T00:00:00");
-      if (!isNaN(d)) setText("pb-cover-date", `${_pad(d.getDate())} · ${_pad(d.getMonth() + 1)} · ${d.getFullYear()}`);
+      if (!isNaN(d)) {
+        const ddmmyy = `${_pad(d.getDate())} · ${_pad(d.getMonth() + 1)} · ${d.getFullYear()}`;
+        setText("pb-cover-date", ddmmyy);
+        setText("pb-hero-date", ddmmyy);
+      }
     }
     if (w.story_quote) setText("story-quote", w.story_quote);
 
