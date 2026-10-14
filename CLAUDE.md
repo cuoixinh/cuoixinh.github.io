@@ -341,7 +341,9 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
 - **Đưa staging lên production: `npm run production`** (merge nhánh staging vào nhánh
   production rồi push, xong quay về nhánh cũ). Nó CHẶN khi cây làm việc bẩn, khi nhánh
   local lệch remote, hoặc khi `CX_VERSION` chưa đổi; và liệt kê SQL/Edge Function trong
-  đợt để nhắc làm hai tầng đó trên production TRƯỚC.
+  đợt để nhắc làm hai tầng đó trên production TRƯỚC. Production lệch staging (sửa tay, gỡ
+  đụng độ sai) thì **`npm run sync-production`**: chép trọn source staging sang nhánh
+  production thành thay đổi đã stage, KHÔNG commit/push — staging là bản chuẩn.
 
 - `INCLUDE` trong script là **danh sách CHO PHÉP**: thứ gì không khai thì KHÔNG ra web.
   **Thêm thư mục/trang mới ở gốc phải khai vào `INCLUDE`**, nếu không production thiếu file.
