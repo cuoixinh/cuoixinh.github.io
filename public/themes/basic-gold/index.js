@@ -22,10 +22,10 @@ window.CX_THEME = {
 
   // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
   // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
-  giftBox: "none",
+  giftBox: "phongbi_xanh_la",
 
   // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-  music: { variant: "bar", chrome: "fixed-top", art: "couple" },
+  music: { variant: "disc", chrome: "fixed-corner", art: "couple" },
 
   // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện và là điểm
   // "Khôi phục mặc định".

@@ -181,8 +181,7 @@
           // neo mép trên nên y đọc thẳng là khoảng cách tới đỉnh.
           home: { x: 50, y: 2 },
           // Không có fs: mẫu này dựng bằng utility Tailwind (w-8, text-[13px]…)
-          // nên kéo rộng hẹp chỉ đổi bề ngang thanh, giống hệt lúc nó nằm trên
-          // đỉnh thiệp ở basic-gold.
+          // nên kéo rộng hẹp chỉ đổi bề ngang thanh, giống hệt dạng bar + fixed-top.
           colors: [C.BG, C.TEXT, C.CTRL, C.CTRL_BG],
         },
         {
