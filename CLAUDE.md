@@ -620,8 +620,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `music-player-helper.js` — theme chỉ đánh dấu vai trò bằng `data-cx-music="…"`.
   Có 6 dạng (`bar` · `mini` · `pill` · `square` · `disc` · `ring`); mẫu KHAI dạng
   ở `CX_THEME.music` chứ không tự gọi `build()`, vì `index.js` còn được nạp trong
-  iframe rỗng chỉ để đọc bản khai. Thanh ngang (`bar` + `fixed-top`) chỉ dùng ở
-  `basic-gold`, các mẫu khác neo góc màn (`fixed-corner`) — khổ neo góc của hai
+  iframe rỗng chỉ để đọc bản khai. Mọi mẫu đang neo góc màn (`fixed-corner`); thanh
+  ngang (`bar` + `fixed-top`) hiện chưa mẫu nào dùng — khổ neo góc của hai
   dạng không tròn (`pill`, `square`) khai riêng ở `styles/_music-player.css`.
   Nút neo màn hình **không bao giờ hiện ở màn bìa**: chỉ lộ ra khi đã mở bìa VÀ cuộn
   (`data-cx-reveal-on-scroll`) — mẫu không cuộn trang (slide) phải khai `revealOnScroll: 0`.
