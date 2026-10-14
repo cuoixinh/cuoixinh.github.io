@@ -154,6 +154,18 @@ async function _idbRemoveGallery(file) {
   await _idbDelete(key);
 }
 
+// Thứ tự album sau kéo thả: tên file cho ảnh đã lưu, khoá IDB cho ảnh chưa upload.
+async function _idbSaveGalleryOrder() {
+  await _idbPut({
+    key: `${WEDDING_ID}_go`,
+    type: "gallery_order",
+    weddingId: WEDDING_ID,
+    order: galleryItems().map((k) =>
+      k instanceof File ? { k: _galleryIdbKeys.get(k) } : { f: k },
+    ),
+  });
+}
+
 async function _idbSaveGalleryFocal(filename) {
   await _idbPut({
     key: `${WEDDING_ID}_gf_${filename}`,
@@ -216,6 +228,14 @@ async function _idbRestoreAll() {
       if (r.focalPoint)
         pendingFocalPoints.gallery_images.set(r.file, r.focalPoint);
       _galleryIdbKeys.set(r.file, r.key);
+    }
+
+    const orderRec = mine.find((r) => r.type === "gallery_order");
+    if (Array.isArray(orderRec?.order)) {
+      const fileOf = new Map([..._galleryIdbKeys].map(([f, k]) => [k, f]));
+      _galleryOrder = orderRec.order
+        .map((o) => o.f || fileOf.get(o.k))
+        .filter(Boolean);
     }
 
     // Restore focal-only adjustments for DB gallery images

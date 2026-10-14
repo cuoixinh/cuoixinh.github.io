@@ -460,14 +460,10 @@ window.cxAiMediaSink = {
       const saved = document.querySelector(`input[name="${f}"]`)?.value;
       return saved ? getImageUrl(saved) : "";
     };
-    const saved = _gallerySavedFilenames();
-    const gallery = [
-      ...saved.map((name, index) => ({ url: getImageUrl(name), index })),
-      ...pendingUploads.galleryImages.map((file, j) => ({
-        url: _cxFileUrl(file),
-        index: saved.length + j,
-      })),
-    ];
+    const gallery = galleryItems().map((k, index) => ({
+      url: k instanceof File ? _cxFileUrl(k) : getImageUrl(k),
+      index,
+    }));
     const vuQuy = _aiFieldValue("vu_quy_enabled") === "true";
     const places = {};
     const maps = {};
@@ -518,9 +514,7 @@ window.cxAiMediaSink = {
   },
 
   removeGallery(item) {
-    const saved = _gallerySavedFilenames().length;
-    if (item.index < saved) removeExistingGalleryImage(item.index);
-    else removeGalleryImage(item.index - saved);
+    removeGalleryItem(item.index);
   },
 
   async setMusic(url, title) {

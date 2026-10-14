@@ -122,6 +122,14 @@ function removeImage(fieldName) {
   showToast("Đã xóa ảnh", "default", "trash-2");
 }
 
+// Xoá theo vị trí trong lưới (thứ tự kéo thả) — tự rẽ sang ảnh đã lưu / ảnh mới.
+function removeGalleryItem(globalIndex) {
+  const key = galleryItems()[globalIndex];
+  if (key instanceof File)
+    removeGalleryImage(pendingUploads.galleryImages.indexOf(key));
+  else if (key) removeExistingGalleryImage(_gallerySavedFilenames().indexOf(key));
+}
+
 function removeGalleryImage(index) {
   // Remove from pending uploads (temp images not yet saved)
   // These are NEW images user just selected, not in DB yet

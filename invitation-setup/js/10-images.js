@@ -41,59 +41,39 @@ function renderGalleryGrid() {
   container.innerHTML = "";
   document.getElementById("gallery-add-btn")?.remove();
 
-  // Get existing filenames from textarea
-  const textarea = document.querySelector(
-    'textarea[name="gallery_images_raw"]',
-  );
-  const existingFilenames = textarea
-    ? textarea.value.trim().split("\n").filter(Boolean)
-    : [];
-
-  // Render existing images from DB
-  existingFilenames.forEach((filename, index) => {
-    const fullUrl = getImageUrl(filename);
-    const fp = getGalleryFocalPoint(filename);
+  // Ảnh đã lưu (tên file) và ảnh mới chọn (File) xếp chung theo galleryItems().
+  const items = galleryItems();
+  items.forEach((key, index) => {
+    const isNew = key instanceof File;
+    const url = isNew ? URL.createObjectURL(key) : getImageUrl(key);
+    const fp = getGalleryFocalPoint(key);
     const div = document.createElement("div");
     div.className =
       "relative rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100";
-    div.style.width = "100%";
-    div.style.aspectRatio = "1";
+    div.dataset.gidx = index;
+    div.title = "Kéo để đổi thứ tự";
+    Object.assign(div.style, {
+      width: "100%",
+      aspectRatio: "1",
+      cursor: "grab",
+      userSelect: "none",
+      webkitUserSelect: "none",
+      webkitTouchCallout: "none",
+    });
     div.innerHTML = `
-      <img src="${cxImgSrc(fullUrl)}" alt="Gallery ${index + 1}" class="w-full h-full object-contain" style="object-position:${cxFocal(fp)}" />
-      <x-button variant="overlay" size="xs" icon-only onclick="adjustGalleryFocalPoint(${index}, '${fullUrl}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
+      <img src="${cxImgSrc(url)}" alt="Ảnh ${index + 1}" draggable="false" class="w-full h-full object-contain pointer-events-none" style="object-position:${cxFocal(fp)}" />
+      <span class="absolute top-1 left-1 rounded-full text-white font-semibold text-center pointer-events-none" style="min-width:20px;height:20px;padding:0 4px;font-size:10px;line-height:20px;background:rgb(0 0 0 / 0.5)">${index + 1}</span>
+      <x-button variant="overlay" size="xs" icon-only onclick="adjustGalleryFocalPoint(${index}, '${url}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
         <i data-lucide="focus" class="w-3.5 h-3.5"></i>
       </x-button>
-      <x-button tone="danger" size="xs" icon-only onclick="removeExistingGalleryImage(${index})" title="Xoá ảnh" class="absolute top-1 right-1">
+      <x-button tone="danger" size="xs" icon-only onclick="removeGalleryItem(${index})" title="Xoá ảnh" class="absolute top-1 right-1">
         <img src="../assets/icons/bin.png" alt="Delete" class="w-3.5 h-3.5" />
       </x-button>
     `;
     container.appendChild(div);
   });
 
-  // Render pending new uploads
-  pendingUploads.galleryImages.forEach((file, index) => {
-    const url = URL.createObjectURL(file);
-    const globalIndex = existingFilenames.length + index;
-    const fp = getGalleryFocalPoint(file);
-    const div = document.createElement("div");
-    div.className =
-      "relative rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100";
-    div.style.width = "100%";
-    div.style.aspectRatio = "1";
-    div.innerHTML = `
-      <img src="${cxImgSrc(url)}" alt="New ${index + 1}" class="w-full h-full object-contain" style="object-position:${cxFocal(fp)}" />
-      <x-button variant="overlay" size="xs" icon-only onclick="adjustGalleryFocalPoint(${globalIndex}, '${url}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
-        <i data-lucide="focus" class="w-3.5 h-3.5"></i>
-      </x-button>
-      <x-button tone="danger" size="xs" icon-only onclick="removeGalleryImage(${index})" title="Xoá ảnh" class="absolute top-1 right-1">
-        <img src="../assets/icons/bin.png" alt="Delete" class="w-3.5 h-3.5" />
-      </x-button>
-    `;
-    container.appendChild(div);
-  });
-
-  const totalImages =
-    existingFilenames.length + pendingUploads.galleryImages.length;
+  const totalImages = items.length;
 
   const count = document.getElementById("gallery-count");
   if (count) count.textContent = `${totalImages}/${MAX_GALLERY_IMAGES} ảnh`;
@@ -113,6 +93,128 @@ function renderGalleryGrid() {
   }
 
   if (typeof lucide !== "undefined") lucide.createIcons({ root: container });
+  _galleryDragInit(container);
+}
+
+// Kéo thả sắp xếp album. Chuột: kéo quá 6px là bắt đầu; cảm ứng: phải GIỮ 250ms
+// (vuốt ngay là cuộn như thường). Ô gốc mờ đi làm chỗ thả, một bản sao nổi theo
+// con trỏ; thả ra mới đổi thứ tự thật (galleryReorder). Gắn một lần cho container.
+function _galleryDragInit(container) {
+  if (container._cxDrag) return;
+  container._cxDrag = true;
+  let st = null;
+  const tiles = () => [...container.querySelectorAll("[data-gidx]")];
+
+  const begin = () => {
+    const r = st.tile.getBoundingClientRect();
+    const ghost = st.tile.cloneNode(true);
+    Object.assign(ghost.style, {
+      position: "fixed",
+      left: `${r.left}px`,
+      top: `${r.top}px`,
+      width: `${r.width}px`,
+      height: `${r.height}px`,
+      margin: "0",
+      zIndex: "9999",
+      pointerEvents: "none",
+      transform: "scale(1.06)",
+      boxShadow: "0 12px 28px rgb(0 0 0 / 0.25)",
+      cursor: "grabbing",
+    });
+    document.body.appendChild(ghost);
+    st.ghost = ghost;
+    st.dx = st.x - r.left;
+    st.dy = st.y - r.top;
+    st.tile.style.opacity = "0.35";
+    st.tile.style.outline = "2px dashed rgb(244 63 94 / 0.7)";
+    st.tile.style.outlineOffset = "-2px";
+    document.documentElement.style.cursor = "grabbing";
+    st.on = true;
+    navigator.vibrate?.(10);
+  };
+
+  const finish = (commit) => {
+    if (!st) return;
+    clearTimeout(st.timer);
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onCancel);
+    const wasOn = st.on;
+    st.ghost?.remove();
+    document.documentElement.style.cursor = "";
+    st = null;
+    if (!wasOn) return;
+    const order = tiles().map((t) => Number(t.dataset.gidx));
+    if (commit && order.some((v, i) => v !== i)) galleryReorder(order);
+    else renderGalleryGrid();
+  };
+
+  const onMove = (e) => {
+    if (!st || e.pointerId !== st.id) return;
+    st.x = e.clientX;
+    st.y = e.clientY;
+    if (!st.on) {
+      const far = Math.hypot(st.x - st.x0, st.y - st.y0);
+      if (st.touch) {
+        if (far > 8) finish(false); // ngón tay trôi trước khi đủ giờ giữ → đang cuộn
+      } else if (far > 6) begin();
+      return;
+    }
+    e.preventDefault();
+    st.ghost.style.left = `${st.x - st.dx}px`;
+    st.ghost.style.top = `${st.y - st.dy}px`;
+
+    // Gần mép khung cuộn thì cuộn theo.
+    const sc = document.getElementById("setup-scroll");
+    if (sc) {
+      const b = sc.getBoundingClientRect();
+      if (st.y < b.top + 48) sc.scrollTop -= 12;
+      else if (st.y > b.bottom - 48) sc.scrollTop += 12;
+    }
+
+    const over = document.elementFromPoint(st.x, st.y)?.closest("[data-gidx]");
+    if (!over || over === st.tile || !container.contains(over)) return;
+    const list = tiles();
+    const from = list.indexOf(st.tile);
+    const to = list.indexOf(over);
+    container.insertBefore(st.tile, from < to ? over.nextSibling : over);
+  };
+  const onUp = (e) => {
+    if (st && e.pointerId === st.id) finish(true);
+  };
+  const onCancel = (e) => {
+    if (st && e.pointerId === st.id) finish(false);
+  };
+
+  // Đang kéo bằng cảm ứng thì chặn cuộn trang (pointermove không chặn được).
+  container.addEventListener(
+    "touchmove",
+    (e) => {
+      if (st?.on) e.preventDefault();
+    },
+    { passive: false },
+  );
+
+  container.addEventListener("pointerdown", (e) => {
+    if (st || e.button > 0) return;
+    const tile = e.target.closest("[data-gidx]");
+    if (!tile || e.target.closest("button")) return;
+    st = {
+      id: e.pointerId,
+      tile,
+      touch: e.pointerType !== "mouse",
+      x0: e.clientX,
+      y0: e.clientY,
+      x: e.clientX,
+      y: e.clientY,
+      on: false,
+    };
+    if (st.touch) st.timer = setTimeout(() => st && !st.on && begin(), 250);
+    else e.preventDefault(); // khỏi bôi đen chữ khi kéo chuột
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+  });
 }
 
 // Khung xem trước của ảnh chân dung/bìa: form chỉ cần nhận ra ảnh nào đang gắn
@@ -310,15 +412,42 @@ function _gallerySavedFilenames() {
   return textarea ? textarea.value.trim().split("\n").filter(Boolean) : [];
 }
 
-// Quy đổi global index (vị trí hiển thị trong lưới) sang key ổn định để tra/lưu điểm lấy nét
-function resolveGalleryFocalKey(globalIndex) {
-  const existingFilenames = _gallerySavedFilenames();
-  if (globalIndex < existingFilenames.length) {
-    return existingFilenames[globalIndex];
-  }
-  return (
-    pendingUploads.galleryImages[globalIndex - existingFilenames.length] || null
+// Thứ tự hiển thị của album do kéo thả đặt: tên file (ảnh đã lưu) hoặc File (ảnh
+// mới). Có thể còn mục đã xoá — galleryItems() lọc lúc đọc nên không cần dọn.
+let _galleryOrder = [];
+
+// Toàn bộ album theo thứ tự hiển thị; ảnh chưa có trong _galleryOrder đứng cuối
+// (đã lưu trước, mới chọn sau). Mọi chỗ cần thứ tự album phải đọc qua đây.
+function galleryItems() {
+  const saved = _gallerySavedFilenames();
+  const pending = pendingUploads.galleryImages;
+  const out = _galleryOrder.filter((k) =>
+    k instanceof File ? pending.includes(k) : saved.includes(k),
   );
+  [...saved, ...pending].forEach((k) => {
+    if (!out.includes(k)) out.push(k);
+  });
+  return out;
+}
+
+// `order[i]` = vị trí cũ của ảnh đứng thứ i. Ghi lại textarea theo thứ tự mới để
+// nháp localStorage cũng giữ được thứ tự ảnh đã lưu.
+function galleryReorder(order) {
+  const items = galleryItems();
+  _galleryOrder = order.map((i) => items[i]).filter((k) => k !== undefined);
+  const textarea = document.querySelector('textarea[name="gallery_images_raw"]');
+  if (textarea)
+    textarea.value = _galleryOrder
+      .filter((k) => !(k instanceof File))
+      .join("\n");
+  _idbSaveGalleryOrder();
+  renderGalleryGrid();
+  _imagesChanged();
+}
+
+// Vị trí trong lưới → key ổn định (tên file / File) để tra/lưu điểm lấy nét
+function resolveGalleryFocalKey(globalIndex) {
+  return galleryItems()[globalIndex] || null;
 }
 
 function getGalleryFocalPoint(key) {

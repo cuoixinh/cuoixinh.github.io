@@ -46,19 +46,11 @@ function _savePreviewData() {
     data[field] = URL.createObjectURL(file);
   }
 
-  // Gallery: existing filenames → full URLs
-  const galleryTextarea = form.querySelector('[name="gallery_images_raw"]');
-  const existingFilenames = galleryTextarea
-    ? galleryTextarea.value.trim().split("\n").filter(Boolean)
-    : [];
-  const existingGalleryUrls = existingFilenames.map((f) => getImageUrl(f));
-
-  // Gallery: pending files → blob URLs
-  const pendingGalleryUrls = pendingUploads.galleryImages.map((f) =>
-    URL.createObjectURL(f),
+  // Gallery theo thứ tự kéo thả: ảnh đã lưu → full URL, ảnh mới → blob URL
+  const galleryKeys = galleryItems();
+  const allGalleryUrls = galleryKeys.map((k) =>
+    k instanceof File ? URL.createObjectURL(k) : getImageUrl(k),
   );
-
-  const allGalleryUrls = [...existingGalleryUrls, ...pendingGalleryUrls];
   if (allGalleryUrls.length) data.gallery_images = allGalleryUrls;
 
   // Build image_focal_points (single images + gallery with URL keys)
@@ -70,13 +62,9 @@ function _savePreviewData() {
     bride_qr_url: pendingFocalPoints.bride_qr_url,
     gallery_images: {},
   };
-  existingFilenames.forEach((filename, i) => {
-    const fp = pendingFocalPoints.gallery_images.get(filename);
-    if (fp) focalPoints.gallery_images[existingGalleryUrls[i]] = fp;
-  });
-  pendingUploads.galleryImages.forEach((file, i) => {
-    const fp = pendingFocalPoints.gallery_images.get(file);
-    if (fp) focalPoints.gallery_images[pendingGalleryUrls[i]] = fp;
+  galleryKeys.forEach((k, i) => {
+    const fp = pendingFocalPoints.gallery_images.get(k);
+    if (fp) focalPoints.gallery_images[allGalleryUrls[i]] = fp;
   });
   data.image_focal_points = focalPoints;
 
