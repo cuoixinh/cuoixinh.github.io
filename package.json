@@ -25,6 +25,7 @@
     "check:lint": "node scripts/check-lint.mjs",
     "check:api": "node scripts/check-api.mjs",
     "production": "bash scripts/promote-production.sh",
+    "sync-production": "bash scripts/sync-production.sh",
     "deploy:public": "node scripts/deploy-public.mjs",
     "sql:merge": "node scripts/merge-changelogs.mjs"
   },

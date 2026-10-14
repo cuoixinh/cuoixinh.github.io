@@ -551,7 +551,7 @@ body {
   margin-top: 4px;
 }
 
-/* --- Tiệc: lịch kính mờ đè lên ảnh tràn viền --- */
+/* --- Tiệc: lịch trong suốt đè lên ảnh tràn viền --- */
 .cg-cal {
   position: relative;
   width: calc(100% + 64px);
@@ -572,15 +572,49 @@ body {
   object-fit: cover;
 }
 
+/* Lớp phủ tối mỏng, đậm ở giữa (chỗ lưới ngày) nhạt dần ra mép — lịch không
+   có nền nên chữ đọc được là nhờ lớp này + bóng chữ. */
+.cg-cal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 50%,
+    rgb(var(--cx-scrim-rgb) / 0.42),
+    rgb(var(--cx-scrim-rgb) / 0.16)
+  );
+  pointer-events: none;
+}
+
 .cg-cal-panel {
   position: relative;
+  z-index: 2;
   width: 100%;
   max-width: 320px;
   padding: 20px 16px;
-  border-radius: 16px;
-  background: rgb(var(--cx-panel-rgb) / 0.72);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+}
+
+/* Chữ của lịch (calendar-helper tô bằng inline style) đổi sang màu chữ-trên-ảnh;
+   ngày cưới (ô có nền màu nhấn) giữ màu on-accent. */
+.cg-cal-panel > div > div:first-child,
+.cg-cal-panel > div > div:nth-child(3) > div > div {
+  color: rgb(var(--cx-on-image-rgb)) !important;
+  text-shadow: 0 1px 6px rgb(var(--cx-scrim-rgb) / 0.55);
+}
+
+.cg-cal-panel > div > div:first-child {
+  font-size: 16px !important;
+}
+
+.cg-cal-panel > div > div:nth-child(3) > div > div {
+  font-weight: 500;
+}
+
+.cg-cal-panel > div > div:nth-child(3) > div > div[style*="--cx-accent-rgb"] {
+  color: rgb(var(--cx-on-accent-rgb)) !important;
+  text-shadow: none;
+  box-shadow: 0 0 0 2px rgb(var(--cx-on-image-rgb) / 0.85) !important;
 }
 
 /* Hàng thứ của lịch (markup do calendar-helper dựng bằng inline style) thành
