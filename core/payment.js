@@ -546,6 +546,11 @@
         });
     }
 
+    _renderSuccess(manage_id);
+  }
+
+  // Chỉ VẼ màn "Thanh toán thành công" (không ghi đơn, không xuất bản).
+  function _renderSuccess(manage_id) {
     const buyer = _buyer() || { name: "", phone: "" };
     const templateName = document.getElementById(
       "payment-template-name",
@@ -554,6 +559,27 @@
     // Update success screen
     document.getElementById("success-name").textContent = buyer.name;
     document.getElementById("success-template").textContent = templateName;
+
+    // Gói vừa mua: lấy từ báo giá của lượt này (gói chọn + hạn server tính).
+    const q = window._planQuote;
+    const plan = q?.plans?.find((x) => x.id === window._paymentPlan);
+    const planRow = document.getElementById("success-plan-row");
+    const expRow = document.getElementById("success-expiry-row");
+    if (planRow) planRow.style.display = plan ? "flex" : "none";
+    // Gói vĩnh viễn không có ngày → bỏ đoạn "· hiển thị đến …".
+    if (expRow) expRow.style.display = plan?.expires_at ? "inline" : "none";
+    const until = plan
+      ? plan.expires_at ? `hết ngày ${_fmtDate(plan.expires_at)}` : "Vĩnh viễn"
+      : "";
+    if (plan) {
+      document.getElementById("success-plan").textContent = plan.label;
+      document.getElementById("success-expiry").textContent = until;
+    }
+    const subEl = document.getElementById("success-sub");
+    if (subEl)
+      subEl.textContent = q?.current_plan && plan
+        ? `Đã nâng lên gói ${plan.label} — khách mời xem được thiệp ${plan.expires_at ? `đến ${until}` : "mãi mãi"}.`
+        : "Thiệp cưới đã là của bạn — bắt đầu nhập thông tin ngay nhé.";
     // Hồ sơ tài khoản có thể không có số điện thoại → giấu cả hàng thay vì để
     // một dòng nhãn trống.
     const phoneRow = document.getElementById("success-phone-row");
@@ -573,6 +599,7 @@
     }
 
     // Show success screen
+    document.getElementById("payment-step-1").style.display = "none";
     document.getElementById("payment-step-2").style.display = "none";
     const step3 = document.getElementById("payment-step-3");
     step3.style.display = "flex";
@@ -720,15 +747,22 @@
                    viền đứt: vừa là nút mở ô nhập, vừa là chỗ báo kết quả — mã
                    giảm nằm đúng chỗ nó tác động. Chưa dùng thì ghi lời mời, dùng
                    rồi thì ghi mã + mức giảm. -->
-              <button type="button" id="promo-row" onclick="cxPromoToggle()" class="cx-ord-coupon mt-4">
-                <span class="flex items-center gap-2 text-sm font-medium min-w-0" style="color:rgb(var(--text-heading-rgb));">
-                  <i data-lucide="ticket-percent" class="shrink-0" style="width:16px;height:16px;color:rgb(var(--brand-accent-rgb));"></i><span id="promo-row-label" class="truncate">Nhập mã giảm giá</span>
-                </span>
-                <span class="flex items-center gap-1 shrink-0">
-                  <span id="promo-discount-amount" class="hidden text-sm font-semibold" style="color:rgb(var(--action-primary-deep-rgb));">-0đ</span>
-                  <i data-lucide="chevron-right" class="text-gray-400 shrink-0" style="width:16px;height:16px"></i>
-                </span>
-              </button>
+              <!-- Vỏ #promo-ticket mang cờ .is-applied (đặt ở _setPromoRow): đã áp mã
+                   thì mũi tên nhường chỗ cho nút ✕ gỡ mã. Nút ✕ là ANH EM của nút
+                   hàng (button không lồng được button), đè lên chỗ mũi tên. -->
+              <div id="promo-ticket" class="cx-ord-coupon-wrap mt-4">
+                <button type="button" id="promo-row" onclick="cxPromoToggle()" class="cx-ord-coupon">
+                  <span class="flex items-center gap-2 text-sm font-medium min-w-0" style="color:rgb(var(--text-heading-rgb));">
+                    <i data-lucide="ticket-percent" class="shrink-0" style="width:16px;height:16px;color:rgb(var(--brand-accent-rgb));"></i><span id="promo-row-label" class="truncate">Nhập mã giảm giá</span>
+                  </span>
+                  <span class="flex items-center gap-1 shrink-0">
+                    <span id="promo-discount-amount" class="hidden text-sm font-semibold" style="color:rgb(var(--action-primary-deep-rgb));">-0đ</span>
+                    <i data-lucide="chevron-right" class="cx-ord-coupon-chev text-gray-400 shrink-0" style="width:16px;height:16px"></i>
+                  </span>
+                </button>
+                <x-button variant="bare" icon-only onclick="cxPromoRemove()" class="cx-ord-coupon-x"
+                  title="Gỡ mã giảm giá" aria-label="Gỡ mã giảm giá"><i data-lucide="x" style="width:14px;height:14px"></i></x-button>
+              </div>
               <div id="promo-box" class="mt-3" style="display:none;">
                 <!-- Nút "Áp dụng" dùng suffix của x-input: dính liền ô nhập nên
                      không đọc thành một hành động ngang cơ nút thanh toán.
@@ -743,7 +777,7 @@
                     suffix-btn-action="applyPromo()"
                   ></x-input>
                 </div>
-                <p id="promo-msg" class="hidden text-xs mt-1.5 m-0"></p>
+                <p id="promo-msg" class="cx-ord-msg hidden" role="status" aria-live="polite"></p>
               </div>
             </div>
 
@@ -813,62 +847,59 @@
                Thứ tự: báo xong → VIỆC TIẾP THEO (link thiết lập thiệp) → thông
                tin đơn để đối chiếu. Link thiết lập là thứ khách cần ngay, nên nó
                đứng trên chứ không nằm dưới bảng thông tin đơn. -->
-          <div id="payment-step-3" class="hidden p-5 sm:p-8 flex-col items-center gap-4 sm:gap-5 text-center">
+          <div id="payment-step-3" class="hidden cx-ok flex-col items-center text-center">
             <!-- Mảng XANH (token --state-success-*), cố ý không dùng màu thương
-                 hiệu: ô này báo TRẠNG THÁI, không phải chỗ mời bấm. -->
-            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,rgb(var(--state-success-accent-rgb)),rgb(var(--state-success-text-rgb)));box-shadow:0 12px 24px -10px rgb(var(--state-success-accent-rgb) / .55);">
-              <i data-lucide="check" style="width:28px;height:28px"></i>
-            </div>
-            <div>
-              <h3 class="font-playfair text-[22px] sm:text-2xl font-bold m-0" style="color:rgb(var(--text-heading-rgb));">Thanh toán thành công!</h3>
-              <p class="text-[13px] sm:text-sm text-gray-500 leading-relaxed mt-1.5 m-0">Thiệp cưới đã là của bạn — bắt đầu nhập thông tin ngay nhé.</p>
+                 hiệu: ô này báo TRẠNG THÁI, không phải chỗ mời bấm. Vòng sáng
+                 lan một nhịp (.cx-ok-badge::before). -->
+            <div class="cx-ok-badge"><i data-lucide="check" style="width:28px;height:28px"></i></div>
+            <h3 class="font-playfair cx-ok-title">Thanh toán thành công!</h3>
+            <p id="success-sub" class="cx-ok-sub">Thiệp cưới đã là của bạn — bắt đầu nhập thông tin ngay nhé.</p>
+
+            <!-- Gói vừa mua: dải nổi bật ngay dưới tiêu đề (showSuccessScreen điền,
+                 không biết gói thì ẩn cả hai hàng #success-plan-row/#success-expiry-row). -->
+            <div id="success-plan-row" class="cx-ok-plan">
+              <i data-lucide="calendar-check" style="width:16px;height:16px"></i>
+              <span>Gói <b id="success-plan"></b></span>
+              <span id="success-expiry-row" class="cx-ok-plan-until">· hiển thị đến <b id="success-expiry"></b></span>
             </div>
 
-            <!-- Link setup thiệp -->
-            <div id="success-manage-block" class="w-full p-3.5 sm:p-4 rounded-2xl border text-left" style="border-color:rgb(var(--brand-primary-rgb));background:rgb(var(--surface-brand-subtle-rgb));">
-              <p class="flex items-center gap-1.5 text-xs font-semibold m-0 mb-1" style="color:rgb(var(--text-heading-rgb));">
-                <i data-lucide="link" style="width:14px;height:14px"></i>Link thiết lập thiệp cưới
-              </p>
-              <p class="text-[11px] text-gray-400 mb-2.5 m-0 leading-relaxed">Lưu lại link này để quay lại chỉnh sửa thiệp bất cứ lúc nào.</p>
-              <div class="flex gap-2 items-center">
-                <input id="success-manage-link" readonly
-                  class="flex-1 h-9 px-3 rounded-lg border border-gray-200 text-[11px] font-mono text-gray-600 bg-white outline-none min-w-0" />
-                <x-button size="sm" icon-only onclick="copyManageLink()" class="flex-shrink-0" aria-label="Sao chép link thiết lập">
-                  <i data-lucide="copy" style="width:16px;height:16px"></i>
+            <!-- Tờ hoá đơn: nhãn — chấm dẫn — giá trị, cùng kiểu bảng tiền bước 1. -->
+            <div class="cx-ok-receipt">
+              <p class="cx-ord-eyebrow cx-ok-receipt-head">Thông tin đơn hàng</p>
+              <div class="cx-ord-line cx-ok-line">
+                <span class="text-gray-500">Mẫu thiệp</span><span class="cx-ord-lead"></span>
+                <span id="success-template" class="cx-ok-val"></span>
+              </div>
+              <div class="cx-ord-line cx-ok-line">
+                <span class="text-gray-500">Người mua</span><span class="cx-ord-lead"></span>
+                <span id="success-name" class="cx-ok-val"></span>
+              </div>
+              <!-- Số điện thoại lấy từ hồ sơ tài khoản, có thể trống → ẩn hàng
+                   này khi rỗng (xem showSuccessScreen). -->
+              <div id="success-phone-row" class="cx-ord-line cx-ok-line">
+                <span class="text-gray-500">Điện thoại</span><span class="cx-ord-lead"></span>
+                <span id="success-phone" class="cx-ok-val"></span>
+              </div>
+            </div>
+
+            <!-- Link thiết lập: một hàng, nhãn nhỏ phía trên. -->
+            <div id="success-manage-block" class="cx-ok-link">
+              <p class="cx-ok-link-label"><i data-lucide="link" style="width:12px;height:12px"></i>Link thiết lập thiệp — lưu lại để quay lại chỉnh sửa</p>
+              <div class="cx-ok-link-row">
+                <input id="success-manage-link" readonly class="cx-ok-link-input" />
+                <x-button variant="bare" icon-only onclick="copyManageLink()" class="cx-ok-link-copy" aria-label="Sao chép link thiết lập">
+                  <i data-lucide="copy" style="width:14px;height:14px"></i>
                 </x-button>
               </div>
             </div>
 
-            <div class="w-full rounded-2xl border border-gray-100 overflow-hidden text-left">
-              <p class="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400 m-0 bg-gray-50">Thông tin đơn hàng</p>
-              <div class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
-                <span class="text-xs text-gray-400 w-20 shrink-0">Mẫu thiệp</span>
-                <span id="success-template" class="text-xs font-semibold flex-1 min-w-0 break-words" style="color:rgb(var(--text-heading-rgb));"></span>
-              </div>
-              <div class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
-                <span class="text-xs text-gray-400 w-20 shrink-0">Người mua</span>
-                <span id="success-name" class="text-xs font-semibold flex-1 min-w-0 break-words" style="color:rgb(var(--text-heading-rgb));"></span>
-              </div>
-              <!-- Số điện thoại lấy từ hồ sơ tài khoản, có thể trống → ẩn hàng
-                   này khi rỗng (xem showSuccessScreen). -->
-              <div id="success-phone-row" class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
-                <span class="text-xs text-gray-400 w-20 shrink-0">Điện thoại</span>
-                <span id="success-phone" class="text-xs font-semibold flex-1 min-w-0 break-words" style="color:rgb(var(--text-heading-rgb));"></span>
-              </div>
-            </div>
-
-            <!-- Hẹp thì XẾP DỌC, nút chính lên trên (col-reverse giữ nguyên thứ
-                 tự DOM "phụ trước, chính sau" của hàng ngang). Khổ md chứ không
-                 lg: nhãn của nút lg là whitespace-nowrap + px-7 nên không co
-                 được, hai nút cạnh nhau ở 390px là tràn chữ ra ngoài viền. -->
-            <div class="flex flex-col-reverse sm:flex-row gap-2.5 w-full">
-              <x-button variant="outline" tone="neutral" size="md" onclick="PaymentModal.close()" class="sm:flex-1">
-                Đóng
-              </x-button>
-              <a id="success-manage-btn" href="#"
-                class="sm:flex-1 h-10 px-5 rounded-full text-white font-semibold text-sm no-underline inline-flex items-center justify-center gap-2 whitespace-nowrap" style="background:rgb(var(--action-primary-rgb));">
+            <!-- Đáy: MỘT nút chính vừa phải ôm theo chữ + "Đóng" dạng chữ nhỏ — màn này
+                 chỉ có một việc nên đừng cho hai nút to ngang nhau. -->
+            <div class="cx-ok-foot">
+              <a id="success-manage-btn" href="#" class="cx-ok-cta">
                 <i data-lucide="square-pen" style="width:16px;height:16px"></i>Thiết lập ngay
               </a>
+              <x-button variant="bare" onclick="PaymentModal.close()" class="cx-ok-close">Để sau</x-button>
             </div>
           </div>
     `;
@@ -918,6 +949,7 @@
 
   // Hàng mã giảm giá trong bảng tiền. code=null là trả hàng về lời mời ban đầu.
   function _setPromoRow(code, discount) {
+    document.getElementById("promo-ticket")?.classList.toggle("is-applied", !!code);
     const label = document.getElementById("promo-row-label");
     const amount = document.getElementById("promo-discount-amount");
     if (label) label.textContent = code ? `Mã ${code}` : "Nhập mã giảm giá";
@@ -927,13 +959,12 @@
     }
   }
 
-  // Tổng tiết kiệm = phần hạ so với giá gốc + mức giảm của mã. Bằng 0 thì ẩn
-  // hẳn dòng, không hiện "Tiết kiệm 0đ".
+  // Tổng tiết kiệm (so với giá gốc). Bằng 0 thì ẩn hẳn dòng, không hiện "Tiết
+  // kiệm 0đ".
   function _syncSaving() {
     const el = document.getElementById("payment-saving");
     if (!el) return;
     // Tiết kiệm = giá gốc − số phải trả (có mã thì ưu đãi ra mắt đã bị thay bằng mã).
-    const pricing = window._paymentPricing || {};
     const saved = Number.isFinite(window._discountedTotal)
       ? Math.max(0, _promoBase() - window._discountedTotal)
       : 0;
@@ -950,6 +981,20 @@
     document.getElementById("promo-input")?.focus();
   };
 
+  // Gỡ mã đang áp (nút ✕ trên hàng mã): bảng tiền về giá bán, ô nhập mở sẵn
+  // + trống để gõ mã khác ngay.
+  window.cxPromoRemove = function () {
+    window._promoCandidate = null;
+    window._appliedPromo = null;
+    const input = document.getElementById("promo-input");
+    if (input) input.value = "";
+    document.getElementById("promo-msg")?.classList.add("hidden");
+    _setPromoRow(null, 0);
+    _renderPlans();
+    _renderPrices();
+    window.cxPromoOpen();
+  };
+
   // Bấm hàng mã: mở/gấp ô nhập. Gấp chỉ ẩn đi nên chữ đang gõ dở vẫn còn.
   window.cxPromoToggle = function () {
     const box = document.getElementById("promo-box");
@@ -960,12 +1005,14 @@
 
   window.applyPromo = async function () {
     const code = (document.getElementById("promo-input").value || "").trim().toUpperCase();
-    const msg = document.getElementById("promo-msg");
     if (!code) return;
+    // Chưa có báo giá thì chưa có nền để tính mức giảm / đơn tối thiểu.
+    if (!Number.isFinite(window._paymentPricing?.price)) {
+      _promoMsg("info", "Đang tải bảng giá, thử lại sau giây lát");
+      return;
+    }
 
-    msg.className = "text-xs px-1 mt-1.5 text-gray-400";
-    msg.textContent = "Đang kiểm tra...";
-    msg.classList.remove("hidden");
+    _promoMsg("wait", "Đang kiểm tra mã…");
 
     try {
       // Chỉ XEM TRƯỚC mức giảm, chưa giữ lượt của mã. Lượt thật do backend giành
@@ -986,31 +1033,82 @@
       const data = await res.json();
 
       if (!data.valid) {
-        msg.className = "text-xs px-1 mt-1.5 text-red-500";
-        msg.textContent = data.error || "Mã không hợp lệ hoặc đã hết hạn";
+        _promoMsg("err", data.error || "Mã không hợp lệ hoặc đã hết hạn");
+        window._promoCandidate = null;
         window._appliedPromo = null;
         _setPromoRow(null, 0);
+        _renderPlans();
         _renderPrices();
         return;
       }
 
-      window._appliedPromo = data;
-      // Có mã là email thành bắt buộc: backend cần danh tính để chặn một người
-      // giữ nhiều lượt cùng lúc (xem cx_promo_reserve).
-      msg.className = "text-xs px-1 mt-1.5 font-medium text-green-700";
-      const basePrice = _promoBase();
-      msg.textContent =
-        _discountOf(data, basePrice) >= basePrice && basePrice > 0
-          ? "Áp dụng thành công — thiệp này miễn phí!"
-          : "Áp dụng thành công!";
-      // Ghi thẳng mã vào hàng: bảng tiền tự nói vì đâu mà rẻ đi.
-      _setPromoRow(code, _discountOf(data, basePrice));
-      _renderPrices();
+      // Mã hợp lệ ở server → giữ làm ỨNG VIÊN; có áp hay không còn tuỳ gói đang
+      // chọn (đơn tối thiểu, có lợi hơn ưu đãi ra mắt không) — _syncPromo xét.
+      window._promoCandidate = { ...data, code: data.code || code };
+      _syncPromo();
     } catch (e) {
-      msg.className = "text-xs px-1 mt-1.5 text-red-500";
-      msg.textContent = "Không thể kiểm tra mã, thử lại sau";
+      _promoMsg("err", "Không thể kiểm tra mã, thử lại sau");
     }
   };
+
+  // Dòng báo dưới ô mã: kind = wait (đang kiểm) · ok · free (về 0đ) · err · info.
+  // Kiểu ở .cx-ord-msg--* (styles/_common.css); ẩn bằng class "hidden".
+  const PROMO_MSG_ICON = { ok: "circle-check", free: "gift", err: "circle-alert", info: "info" };
+  function _promoMsg(kind, text) {
+    const msg = document.getElementById("promo-msg");
+    if (!msg) return;
+    msg.className = `cx-ord-msg cx-ord-msg--${kind}`;
+    const ico = kind === "wait"
+      ? '<span class="cx-ord-msg-spin" aria-hidden="true"></span>'
+      : `<i data-lucide="${PROMO_MSG_ICON[kind]}" style="width:14px;height:14px"></i>`;
+    msg.innerHTML = `${ico}<span></span>`;
+    msg.lastChild.textContent = text; // chữ từ server → textContent, không ghép HTML
+    window.lucide?.createIcons({ root: msg });
+  }
+
+  // Mã có áp được cho MỘT mức giá không. base = giá gốc của gói (nền tính mã),
+  // sale = giá đang bán (đã trừ ưu đãi ra mắt). Khớp hai chốt ở server: đơn tối
+  // thiểu (cx_promo_reserve) và "không lợi hơn giá đang giảm" (payment-handler).
+  function _promoVerdict(promo, base, sale) {
+    if (!promo || !Number.isFinite(sale)) return null;
+    const total = base - _discountOf(promo, base);
+    const min = promo.min_order_amount || 0;
+    if (min > 0 && base < min)
+      return { ok: false, total, text: `Đơn tối thiểu ${_fmtVnd(min)} mới dùng được mã này` };
+    if (base > sale && total >= sale)
+      return { ok: false, total, text: `Mã này ít ưu đãi hơn giá đang giảm (${_fmtVnd(sale)}) nên không áp dụng` };
+    return {
+      ok: true,
+      total,
+      text: total <= 0 ? "Áp dụng thành công — thiệp này miễn phí!" : "Áp dụng thành công!",
+    };
+  }
+
+  // Xét lại mã ứng viên theo gói ĐANG chọn — gọi sau khi áp mã và mỗi lần đổi gói,
+  // để câu báo + bảng tiền không còn nói theo gói cũ. Không hợp lệ thì gỡ mã khỏi
+  // đơn nhưng giữ ứng viên: quay lại gói hợp lệ là mã tự áp lại.
+  function _syncPromo() {
+    const promo = window._promoCandidate;
+    const v = promo && _promoVerdict(promo, _promoBase(), window._paymentPricing?.price);
+    if (!v) {
+      window._appliedPromo = null;
+      _setPromoRow(null, 0);
+    } else if (v.ok) {
+      window._appliedPromo = promo;
+      _setPromoRow(promo.code, _discountOf(promo, _promoBase()));
+      _promoMsg(v.total <= 0 ? "free" : "ok", v.text);
+    } else {
+      window._appliedPromo = null;
+      _setPromoRow(null, 0);
+      // Bung ô mã (không focus — đang bấm thẻ gói, bật bàn phím là phiền) để lời
+      // báo không nằm trong khối ẩn.
+      const box = document.getElementById("promo-box");
+      if (box) box.style.display = "block";
+      _promoMsg("err", v.text);
+    }
+    _renderPlans();
+    _renderPrices();
+  }
 
   // Mức giảm hiển thị. Con số CHỐT vẫn do backend tính lại lúc tạo đơn — đây
   // chỉ là bản xem trước, phải khớp công thức trong cx_promo_reserve. basePrice
@@ -1046,9 +1144,11 @@
     const baseEl = document.getElementById("payment-base-price");
     const saleRow = document.getElementById("payment-sale-row");
     const saleEl = document.getElementById("payment-sale-amount");
+    // Hàng giá gói: có ưu đãi ra mắt hoặc đang áp mã thì đều là GIÁ GỐC (mã tính
+    // lại từ giá gốc) — hiện giá bán ở đây là bảng tiền cộng không ra tổng.
     if (baseEl)
       baseEl.textContent = known
-        ? fmt(hasDiscount ? originalPrice : price)
+        ? fmt(hasDiscount || window._appliedPromo ? _promoBase() : price)
         : blank;
     if (saleRow) saleRow.style.display = hasDiscount ? "flex" : "none";
     if (saleEl && hasDiscount)
@@ -1147,10 +1247,8 @@
     }
     _renderPlans();
     _syncPlanNote(p);
-    if (window._appliedPromo) {
-      _setPromoRow(window._appliedPromo.code, p ? _discountOf(window._appliedPromo, _promoBase()) : 0);
-    }
-    _renderPrices();
+    if (window._promoCandidate) _syncPromo();
+    else _renderPrices();
   }
   window.cxPickPlan = _selectPlan;
 
@@ -1174,8 +1272,15 @@
       .map((p) => {
         const on = p.id === window._paymentPlan;
         const badge = !q.current_plan && p.id === "3m" ? '<span class="cx-ord-plan-badge">Khuyên dùng</span>' : "";
-        const price = p.available ? (q.current_plan ? "+" : "") + _fmtVnd(p.amount) : "—";
-        const was = p.available && p.original_price > p.amount
+        // Đang có mã mà mã áp được cho gói này → thẻ hiện đúng số phải trả sau
+        // mã (mã thay ưu đãi ra mắt nên bỏ giá gạch), khớp với tổng trên nút.
+        const v = p.available && window._promoCandidate
+          ? _promoVerdict(window._promoCandidate, Math.max(p.original_price || 0, p.amount), p.amount)
+          : null;
+        const withPromo = v && v.ok;
+        const shown = withPromo ? Math.max(0, v.total) : p.amount;
+        const price = p.available ? (q.current_plan ? "+" : "") + _fmtVnd(shown) : "—";
+        const was = p.available && !withPromo && p.original_price > p.amount
           ? `<s class="cx-ord-plan-was">${_fmtVnd(p.original_price)}</s>`
           : "";
         const name = p.months
@@ -1187,7 +1292,7 @@
           `>${badge}<span class="cx-ord-plan-dot" aria-hidden="true"></span>` +
           `<span class="cx-ord-plan-name">${name}</span>` +
           `<span class="cx-ord-plan-price">${price}</span>${was}` +
-          `<span class="cx-ord-plan-sub">${sub(p)}</span></button>`
+          `<span class="cx-ord-plan-sub">${withPromo ? "Đã gồm mã" : sub(p)}</span></button>`
         );
       })
       .join("");
@@ -1279,6 +1384,7 @@
       window._paymentTheme = theme || "basic-gold";
       window._existingManageId = existingManageId || null;
       window._appliedPromo = null;
+      window._promoCandidate = null;
       window._discountedTotal = null;
       // Reset promo UI — gấp ô mã lại như lúc mới vào.
       const promoInput = document.getElementById("promo-input");
@@ -1669,16 +1775,13 @@
         // → gỡ mã đang áp, trả tổng tiền về giá gốc và báo ngay tại ô mã.
         if (error.promoError) {
           window._appliedPromo = null;
+          window._promoCandidate = null;
           // Ô mã có thể đang gấp lại → bung ra, không thì lời báo lỗi nằm trong
           // khối ẩn và khách chỉ thấy tổng tiền tự nhảy về giá cũ.
           window.cxPromoOpen();
-          const promoMsg = document.getElementById("promo-msg");
-          if (promoMsg) {
-            promoMsg.className = "text-xs px-1 mt-1.5 text-red-500";
-            promoMsg.textContent = error.message;
-            promoMsg.classList.remove("hidden");
-          }
+          _promoMsg("err", error.message);
           _setPromoRow(null, 0);
+          _renderPlans();
           _renderPrices();
           return;
         }

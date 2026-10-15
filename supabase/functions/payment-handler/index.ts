@@ -545,6 +545,16 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     // ── Mã giảm 100%: không có gì để thu ──
     // PayOS không tạo được đơn 0đ nên bỏ qua hẳn cổng thanh toán, tự đánh dấu
     // hoàn tất và gỡ hạn dùng thử (expires_at = null) đúng như webhook vẫn làm.
+    // Áp mã là BỎ ưu đãi ra mắt; mã nhỏ hơn ưu đãi đó thì khách trả ĐẮT hơn không
+    // dùng mã → từ chối và nhả lượt, đừng thu tiền nhiều hơn giá đang bán.
+    if (appliedPromoCode && promoBase > basePrice && paymentAmount >= basePrice) {
+      await releasePromo();
+      return new Response(JSON.stringify({
+        error: `Mã này ít ưu đãi hơn giá đang giảm (${basePrice.toLocaleString("vi-VN")}đ) nên không áp dụng`,
+        promo_error: "no_benefit",
+      }), { status: 400, headers: JSON_HEADERS });
+    }
+
     if (paymentAmount <= 0) {
       // Nhánh này cấp thẳng sản phẩm mà không qua thanh toán, nên phải biết CHẮC
       // ai nhận: email gõ tay thì bịa được, chỉ user_id từ JWT mới tin được.

@@ -4612,6 +4612,101 @@ button.cx-pchrome-btn:hover {
   outline: 2px solid rgb(var(--focus-ring-rgb));
   outline-offset: 2px;
 }
+/* Dòng báo dưới ô mã giảm giá (core/payment.js → _promoMsg). Dải nhỏ có icon,
+   tông theo trạng thái; .hidden phải thắng display:flex nên khai lại ở đây. */
+.cx-ord-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  animation: cx-ord-msg-in 0.2s ease-out;
+}
+.cx-ord-msg.hidden {
+  display: none;
+}
+.cx-ord-msg svg,
+.cx-ord-msg-spin {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.cx-ord-msg--ok {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-accent-rgb) / 0.1);
+}
+.cx-ord-msg--free {
+  color: rgb(var(--action-primary-deep-rgb));
+  background: linear-gradient(90deg, rgb(var(--surface-blossom-rgb)), rgb(var(--surface-brand-soft-rgb)));
+  font-weight: 600;
+}
+.cx-ord-msg--err {
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-text-rgb) / 0.08);
+}
+.cx-ord-msg--info,
+.cx-ord-msg--wait {
+  color: rgb(var(--text-tertiary-rgb));
+  background: rgb(var(--surface-tint-rgb));
+}
+.cx-ord-msg-spin {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgb(var(--divider-rgb));
+  border-top-color: rgb(var(--brand-accent-rgb));
+  border-radius: 999px;
+  animation: cx-ord-spin 0.7s linear infinite;
+}
+@keyframes cx-ord-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes cx-ord-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Nút ✕ gỡ mã (core/payment.js → cxPromoRemove): chỉ hiện khi vỏ có .is-applied,
+   đè lên chỗ mũi tên nên hàng chừa thêm lề phải. `button.` để thắng utility của
+   x-button. */
+.cx-ord-coupon-wrap {
+  position: relative;
+}
+button.cx-ord-coupon-x {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: none;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  margin-top: -12px;
+  border-radius: 999px;
+  color: rgb(var(--text-tertiary-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 0 0 1px rgb(var(--border-subtle-rgb));
+  transition: color 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+button.cx-ord-coupon-x:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: none;
+}
+.cx-ord-coupon-wrap.is-applied button.cx-ord-coupon-x {
+  display: inline-flex;
+}
+.cx-ord-coupon-wrap.is-applied .cx-ord-coupon {
+  padding-right: 44px;
+}
+.cx-ord-coupon-wrap.is-applied .cx-ord-coupon-chev {
+  display: none;
+}
 /* Ô nhập mã giảm giá (#promo-box): ô + nút "Áp dụng" của <x-input> gộp thành MỘT
    khung — khung mang viền/bo góc, ô bên trong trong suốt, nút nằm gọn bên phải.
    Nhắm theo thẻ con vì x-input tự dựng markup; `input`/`button` ở đây phải thắng
@@ -4678,6 +4773,198 @@ button.cx-pchrome-btn:hover {
 }
 .cx-ord-promo button[onclick="applyPromo()"]:active {
   transform: scale(0.97);
+}
+/* Màn "Thanh toán thành công" (core/payment.js → #payment-step-3). Ẩn/hiện bằng
+   style.display = flex nên vỏ chỉ khai bố cục, không khai display. */
+.cx-ok {
+  gap: 16px;
+  padding: 32px 24px 24px;
+}
+.cx-ok-badge {
+  position: relative;
+  display: flex;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(135deg, rgb(var(--state-success-accent-rgb)), rgb(var(--state-success-text-rgb)));
+  box-shadow: 0 12px 24px -10px rgb(var(--state-success-accent-rgb) / 0.55);
+  animation: cx-ok-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cx-ok-badge::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  border: 2px solid rgb(var(--state-success-accent-rgb) / 0.35);
+  animation: cx-ok-ring 1.2s ease-out 0.2s both;
+}
+.cx-ok-title {
+  margin: 4px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ok-sub {
+  max-width: 320px;
+  margin: -8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgb(var(--text-tertiary-rgb));
+}
+/* Dải gói vừa mua. */
+.cx-ok-plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: linear-gradient(90deg, rgb(var(--surface-blossom-rgb)), rgb(var(--surface-brand-soft-rgb)));
+}
+.cx-ok-plan b {
+  font-weight: 700;
+}
+.cx-ok-plan-until {
+  color: rgb(var(--text-heading-rgb));
+}
+/* Tờ hoá đơn. */
+.cx-ok-receipt {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 16px;
+  text-align: left;
+}
+.cx-ok-receipt-head {
+  margin-bottom: 12px;
+}
+.cx-ok-line {
+  font-size: 13px;
+}
+.cx-ok-line + .cx-ok-line {
+  margin-top: 8px;
+}
+.cx-ok-val {
+  min-width: 0;
+  max-width: 60%;
+  overflow: hidden;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgb(var(--text-heading-rgb));
+}
+/* Link thiết lập. */
+.cx-ok-link {
+  width: 100%;
+  text-align: left;
+}
+.cx-ok-link-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: rgb(var(--text-tertiary-rgb));
+}
+.cx-ok-link-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 12px;
+  border-radius: 12px;
+  background: rgb(var(--surface-tint-rgb));
+}
+.cx-ok-link-input {
+  min-width: 0;
+  flex: 1;
+  height: 32px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: rgb(var(--text-body-rgb));
+}
+button.cx-ok-link-copy {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 0 0 1px rgb(var(--border-subtle-rgb));
+}
+button.cx-ok-link-copy:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--brand-accent-rgb));
+}
+/* Đáy: một nút chính ôm chữ + "Để sau" dạng chữ. */
+.cx-ok-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.cx-ok-cta {
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--action-primary-rgb)));
+  box-shadow: 0 8px 16px -10px rgb(var(--action-primary-rgb) / 0.7);
+  transition: filter 0.15s, transform 0.15s;
+}
+.cx-ok-cta:hover {
+  filter: brightness(1.05);
+}
+.cx-ok-cta:active {
+  transform: scale(0.97);
+}
+button.cx-ok-close {
+  height: 28px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: rgb(var(--text-tertiary-rgb));
+  background: transparent;
+}
+button.cx-ok-close:hover {
+  color: rgb(var(--text-heading-rgb));
+}
+@keyframes cx-ok-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+@keyframes cx-ok-ring {
+  from {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.35);
+    opacity: 0;
+  }
 }
 /* Ba thẻ chọn gói (core/payment.js → _renderPlans). Thẻ đang chọn thêm .is-on,
    gói không mua được (đang dùng / thấp hơn) thêm thuộc tính disabled. Lưới chừa
