@@ -78,7 +78,9 @@ async function verifyWebhookSignature(payload: Record<string, any>, receivedSign
  * giả mạo không qua được. Trả false khi thiếu credential, lỗi mạng, hoặc đơn
  * chưa ở trạng thái PAID (thà bỏ sót còn hơn mở nhầm).
  */
-async function confirmWithPayOS(orderCode: unknown, log: Logger): Promise<boolean> {
+// Trả true chỉ khi PayOS nói đơn đã PAID **và** số tiền PayOS thu khớp số trong
+// payload — payload ở nhánh này là dữ liệu không ký, số tiền trong đó tự điền được.
+async function confirmWithPayOS(orderCode: unknown, amount: unknown, log: Logger): Promise<boolean> {
   const clientId = Deno.env.get("PAYOS_CLIENT_ID");
   const apiKey = Deno.env.get("PAYOS_API_KEY");
   if (!clientId || !apiKey || orderCode === null || orderCode === undefined) {
@@ -96,7 +98,12 @@ async function confirmWithPayOS(orderCode: unknown, log: Logger): Promise<boolea
       return false;
     }
     const body = await res.json();
-    return body?.code === "00" && body?.data?.status === "PAID";
+    const paid = body?.code === "00" && body?.data?.status === "PAID";
+    if (paid && body?.data?.amount !== amount) {
+      log.error("payos.confirm_amount_mismatch", { orderCode, payos: body?.data?.amount, payload: amount });
+      return false;
+    }
+    return paid;
   } catch (error) {
     // Đường xác minh dự phòng chết thì đơn thật cũng bị từ chối — im lặng ở đây
     // là khách trả tiền mà thiệp không mở, không ai biết.
@@ -155,7 +162,7 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       let verifiedBy = signatureValid ? "signature" : "";
 
       if (!signatureValid) {
-        const confirmed = await confirmWithPayOS(orderCode, log);
+        const confirmed = await confirmWithPayOS(orderCode, payload?.data?.amount, log);
         if (confirmed) verifiedBy = "payos_api";
         // Chữ ký lệch mà PayOS xác nhận là đơn thật → quy ước ký đang sai, phải
         // thấy được để sửa; nhưng đừng chặn tiền của khách vì lỗi của mình.
@@ -206,7 +213,7 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       
       const { data: weddingData, error: weddingError } = await supabaseClient
         .from("weddings")
-        .select("id, theme, payment_amount, payment_status, plan, plan_expires_at, pending_plan, pending_amount")
+        .select("id, theme, payment_amount, payment_status, plan, plan_expires_at, pending_plan, pending_amount, pending_theme")
         .eq("payment_order_id", fullOrderId)
         .single();
 
@@ -308,6 +315,7 @@ serve(withAxiom("payos-webhook", async (req, log) => {
         };
       updateFields.pending_plan = null;
       updateFields.pending_amount = null;
+      updateFields.pending_theme = null;
       // Thanh toán thành công → gỡ hạn dùng thử, áp gói. Đơn tạo trước khi có gói
       // (pending_plan null) là đơn mua trọn đời như xưa.
       if (payment_status === "completed") {
@@ -316,6 +324,14 @@ serve(withAxiom("payos-webhook", async (req, log) => {
         updateFields.expires_at = null;
         updateFields.plan = to;
         updateFields.plan_expires_at = planExpiry(from, weddingData.plan_expires_at, to);
+        // Trả giá mẫu nào nhận mẫu đó: đơn chốt tiền theo mẫu lúc tạo, mà thiệp chưa
+        // trả tiền vẫn đổi mẫu được giữa chừng (docs/security-checklist.md A29).
+        if (weddingData.pending_theme && weddingData.pending_theme !== weddingData.theme) {
+          log.warn("payos.theme_restored", {
+            manage_id, paid_theme: weddingData.pending_theme, current_theme: weddingData.theme,
+          });
+          updateFields.theme = weddingData.pending_theme;
+        }
         if (isUpgrade) updateFields.payment_amount = (weddingData.payment_amount ?? 0) + paymentData.amount;
       }
 

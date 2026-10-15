@@ -56,17 +56,6 @@ async function generateSignature(data: Record<string, any>, secretKey: string): 
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function verifyWebhookSignature(payload: Record<string, any>, receivedSignature: string, secretKey: string): Promise<boolean> {
-  try {
-    const { signature, ...dataToVerify } = payload;
-    const expectedSignature = await generateSignature(dataToVerify, secretKey);
-    return expectedSignature === receivedSignature;
-  } catch (error) {
-    console.error("Signature verification error:", error);
-    return false;
-  }
-}
-
 /**
  * Mã đơn gửi PayOS, cũng là khoá của `weddings.payment_order_id` (UNIQUE) và của
  * lượt mã giảm giá trong `promo_redemptions.order_id`.
@@ -179,14 +168,7 @@ serve(withAxiom("payment-handler", async (req, log) => {
     const path = url.pathname;
     log.info("payment.route", { path });
     
-    // For webhook endpoint, we don't need Supabase client with auth
-    // PayOS webhook doesn't send Authorization header
-    const isWebhook = path.endsWith("/webhook");
-    
-    const supabaseClient = createDbClient(
-      log,
-      isWebhook ? Deno.env.get("SUPABASE_ANON_KEY") ?? "" : Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    );
+    const supabaseClient = createDbClient(log, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
 
     if (req.method === "POST" && path.endsWith("/create-payment")) {
       return await handleCreatePayment(req, supabaseClient, log);
@@ -194,17 +176,10 @@ serve(withAxiom("payment-handler", async (req, log) => {
       return await handleQuote(req, supabaseClient, log);
     } else if (req.method === "GET" && path.endsWith("/check-payment-status")) {
       return await handleCheckPaymentStatus(req, supabaseClient, log);
-    } else if (path.endsWith("/webhook")) {
-      // Support both GET (for PayOS verification) and POST (for actual webhook)
-      if (req.method === "GET") {
-        return new Response(JSON.stringify({ message: "Webhook endpoint is active" }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      } else if (req.method === "POST") {
-        return await handleWebhook(req, supabaseClient, log);
-      }
     } else {
+      // Webhook PayOS KHÔNG còn ở đây — chỉ một đường là Edge Function payos-webhook
+      // (qua cloudflare-worker/payos-webhook-proxy.js). Đường cũ chốt đơn mà không
+      // biết gói/nâng gói nên đã gỡ (docs/security-checklist.md A30).
       return new Response(JSON.stringify({ error: "Not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -460,6 +435,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       plan_expires_at: planExpiry(upgrade?.from ?? null, upgrade?.planExpiresAt, plan),
       pending_plan: null,
       pending_amount: null,
+      pending_theme: null,
       expires_at: null,
     });
 
@@ -662,6 +638,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
           payment_order_id: fullOrderId,
           pending_plan: plan,
           pending_amount: paymentAmount,
+          pending_theme: theme_name,
         })
         .eq("id", manage_id)
       : await supabaseClient
@@ -675,6 +652,9 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
           payment_amount: paymentAmount,
           pending_plan: plan,
           pending_amount: paymentAmount,
+          // Mẫu ĐÃ BÁO GIÁ cho đơn này: thiệp chưa trả tiền vẫn đổi mẫu được, nên
+          // webhook đặt lại theme theo cột này — trả giá mẫu nào nhận mẫu đó (A29).
+          pending_theme: theme_name,
           theme: theme || "template1",
         }, {
           onConflict: "id",
@@ -763,158 +743,6 @@ async function handleCheckPaymentStatus(req: Request, supabaseClient: any, log: 
   } catch (error) {
     log.error("payment.status_check_failed", { message: error.message });
     return new Response(JSON.stringify({ error: error.message || "Failed to check payment status" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-}
-
-async function handleWebhook(req: Request, supabaseClient: any, log: Logger) {
-  try {
-    const payload = await req.json();
-    const { checksumKey } = getPayOSCredentials();
-    const receivedSignature = payload.signature;
-
-    if (!receivedSignature) {
-      log.warn("payment.webhook_no_signature", {});
-      return new Response(JSON.stringify({ error: "Missing signature" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const isValid = await verifyWebhookSignature(payload, receivedSignature, checksumKey);
-    if (!isValid) {
-      log.warn("payment.webhook_bad_signature", { order_code: payload?.data?.orderCode });
-      return new Response(JSON.stringify({ error: "Invalid signature" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (payload.code !== "00") {
-      console.log("Payment not successful:", payload.code, payload.desc);
-      return new Response(JSON.stringify({ success: true, message: "Payment not successful" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const paymentData = payload.data;
-    
-    // Get manage_id from database using orderCode
-    const fullOrderId = `ORDER-${paymentData.orderCode}`;
-    const { data: weddingData, error: fetchError } = await supabaseClient
-      .from("weddings")
-      .select("id, theme, payment_amount")
-      .eq("payment_order_id", fullOrderId)
-      .single();
-
-    if (fetchError || !weddingData) {
-      log.error("payment.webhook_wedding_not_found", { order_code: paymentData.orderCode, message: fetchError?.message });
-      return new Response(JSON.stringify({ error: "Wedding record not found" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const manage_id = weddingData.id;
-    const theme_name = weddingData.theme || "template1";
-
-    // SECURITY: số tiền kỳ vọng là payment_amount đã chốt lúc tạo đơn (đã trừ mã
-    // giảm giá) — do chính backend ghi nên vẫn tin được. Đơn cũ chưa có
-    // payment_amount thì rơi về giá niêm yết của theme.
-    let expectedAmount = weddingData.payment_amount;
-    if (expectedAmount == null) {
-      const { data: pricingData, error: pricingError } = await supabaseClient
-        .from("template_pricing")
-        .select("price")
-        .eq("template_name", theme_name)
-        .eq("is_active", true)
-        .single();
-
-      if (pricingError || !pricingData) {
-        log.error("payment.webhook_pricing_failed", { order_code: paymentData.orderCode, theme: weddingData.theme, message: pricingError?.message });
-        return new Response(JSON.stringify({ error: "Invalid template pricing" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      expectedAmount = pricingData.price;
-    }
-
-    if (paymentData.amount !== expectedAmount) {
-      log.error("payment.webhook_amount_mismatch", { order_code: paymentData.orderCode, expected: expectedAmount, got: paymentData.amount });
-      return new Response(JSON.stringify({ error: "Amount mismatch" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: existingPayment } = await supabaseClient
-      .from("weddings")
-      .select("transaction_id")
-      .eq("transaction_id", paymentData.reference)
-      .single();
-
-    if (existingPayment) {
-      console.log("Duplicate transaction, already processed");
-      return new Response(JSON.stringify({ success: true, message: "Already processed" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { error: updateError } = await supabaseClient
-      .from("weddings")
-      .update({
-        payment_status: "completed",
-        transaction_id: paymentData.reference,
-        payment_time: new Date(paymentData.transactionDateTime).toISOString(),
-        payment_amount: paymentData.amount,
-      })
-      .eq("id", manage_id);
-
-    if (updateError) {
-      log.error("payment.webhook_update_failed", { order_code: paymentData.orderCode, manage_id, message: updateError.message });
-      throw new Error("Database update failed");
-    }
-
-    // Tiền đã vào → chốt lượt mã giảm giá đang giữ chỗ. Lỗi thì chỉ ghi log,
-    // không được chặn webhook.
-    const { error: redeemError } = await supabaseClient.rpc("cx_promo_redeem", { p_order_id: fullOrderId });
-    if (redeemError) log.error("payment.promo_redeem_failed", { order_id: fullOrderId, message: redeemError.message });
-
-    await supabaseClient.from("payment_logs").insert({
-      order_id: paymentData.orderCode.toString(),
-      manage_id,
-      event_type: "webhook_received",
-      payload: paymentData,
-    });
-
-    await supabaseClient.from("payment_logs").insert({
-      order_id: paymentData.orderCode.toString(),
-      manage_id,
-      event_type: "completed",
-      payload: { transaction_id: paymentData.reference, amount: paymentData.amount },
-    });
-
-    console.log("Payment webhook processed successfully:", manage_id);
-    return new Response(JSON.stringify({ success: true, message: "Webhook processed" }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    log.error("payment.webhook_failed", { message: error.message });
-    try {
-      await supabaseClient.from("payment_logs").insert({
-        order_id: "unknown",
-        event_type: "failed",
-        payload: { error: error.message },
-      });
-    } catch (logError) {
-      log.error("payment.webhook_log_failed", { message: logError.message });
-    }
-    return new Response(JSON.stringify({ error: error.message || "Webhook processing failed" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

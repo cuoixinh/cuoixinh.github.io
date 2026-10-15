@@ -817,9 +817,9 @@ tc("API-WH-07", "orderCode không có trong DB → 404", ["payos"], async () => 
   const r = await WH(webhookBody("ORDER-1", 1000));
   return { pass: r.status === 404, got: `${r.status}` };
 });
-tc("API-WH-13", "Webhook cũ trong payment-handler từ chối payload giả", [], async () => {
+tc("API-WH-13", "Đường webhook cũ trong payment-handler đã gỡ → 404", [], async () => {
   const r = await PAY("/webhook", { method: "POST", body: { code: "00", data: { orderCode: 1, amount: 1 }, signature: "x" } });
-  return { pass: r.status === 401, got: `${r.status}` };
+  return { pass: r.status === 404, got: `${r.status}` };
 });
 
 // ================= GH — guest-handler =================
