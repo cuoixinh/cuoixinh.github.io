@@ -7,6 +7,14 @@ import {
   WEDDING_LIMIT_MESSAGE,
 } from "../_shared/wedding-limits.ts";
 import { getUniqueSlug } from "../_shared/slug-holds.ts";
+import {
+  currentPlan,
+  isPlanId,
+  planExpiry,
+  PLANS,
+  quotePlans,
+  type PlanId,
+} from "../_shared/plans.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -182,6 +190,8 @@ serve(withAxiom("payment-handler", async (req, log) => {
 
     if (req.method === "POST" && path.endsWith("/create-payment")) {
       return await handleCreatePayment(req, supabaseClient, log);
+    } else if (req.method === "POST" && path.endsWith("/quote")) {
+      return await handleQuote(req, supabaseClient, log);
     } else if (req.method === "GET" && path.endsWith("/check-payment-status")) {
       return await handleCheckPaymentStatus(req, supabaseClient, log);
     } else if (path.endsWith("/webhook")) {
@@ -209,6 +219,62 @@ serve(withAxiom("payment-handler", async (req, log) => {
   }
 }));
 
+const JSON_HEADERS = { ...corsHeaders, "Content-Type": "application/json" };
+
+async function fetchActivePricing(supabaseClient: any, theme: string) {
+  return await supabaseClient
+    .from("template_pricing")
+    .select("price, original_price, template_name")
+    .eq("template_name", theme)
+    .eq("is_active", true)
+    .maybeSingle();
+}
+
+// Báo giá ba gói cho màn thanh toán. Có manage_id của thiệp ĐÃ thanh toán mà người
+// gọi là chủ → báo giá NÂNG gói (phần chênh) theo mẫu đang lưu; còn lại là mua mới.
+async function handleQuote(req: Request, supabaseClient: any, log: Logger) {
+  const body = await req.json().catch(() => ({}));
+  let theme: string = body.theme || "template1";
+  let from: PlanId | null = null;
+  let curExpires: string | null = null;
+
+  const buyerId = body.manage_id ? await resolveAuthUserId(req, supabaseClient) : null;
+  if (body.manage_id && buyerId) {
+    const { data: row, error } = await supabaseClient
+      .from("weddings")
+      .select("user_id, theme, payment_status, plan, plan_expires_at")
+      .eq("id", body.manage_id)
+      .maybeSingle();
+    if (error) {
+      log.error("payment.quote_wedding_failed", { manage_id: body.manage_id, code: error.code, message: error.message });
+      return new Response(JSON.stringify({ error: "Không tải được thông tin thiệp" }), { status: 500, headers: JSON_HEADERS });
+    }
+    if (row && row.user_id === buyerId) {
+      from = currentPlan(row);
+      if (from) {
+        theme = row.theme || theme;
+        curExpires = row.plan_expires_at;
+      }
+    }
+  }
+
+  const { data: pricing, error: pricingError } = await fetchActivePricing(supabaseClient, theme);
+  if (pricingError) {
+    log.error("payment.quote_pricing_failed", { theme, code: pricingError.code, message: pricingError.message });
+    return new Response(JSON.stringify({ error: "Không tải được bảng giá" }), { status: 500, headers: JSON_HEADERS });
+  }
+  if (!pricing || !(pricing.price > 0)) {
+    return new Response(JSON.stringify({ error: "Mẫu chưa có giá", code: "NO_PRICING" }), { status: 404, headers: JSON_HEADERS });
+  }
+
+  return new Response(JSON.stringify({
+    theme,
+    current_plan: from,
+    plan_expires_at: from ? curExpires : null,
+    plans: quotePlans(pricing.price, pricing.original_price, from, curExpires),
+  }), { status: 200, headers: JSON_HEADERS });
+}
+
 async function handleCreatePayment(req: Request, supabaseClient: any, log: Logger) {
   // Đơn đang giữ lượt mã giảm giá. Khai ngoài try để catch cuối cùng nhả được
   // lượt: hỏng ở bất kỳ bước nào sau khi trừ lượt thì khách còn chưa nhìn thấy
@@ -227,7 +293,19 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
 
   try {
     const body = await req.json();
-    const { manage_id, customer_name, customer_phone, customer_email, template_name, theme, promo_code } = body;
+    const { manage_id, customer_name, customer_phone, customer_email, template_name, theme, promo_code, plan } = body;
+
+    // Client cũ (chưa có bước chọn gói) không gửi plan: đừng đoán thay khách — đoán
+    // 3 tháng là khách tưởng mua trọn đời, đoán vĩnh viễn là QR khác số đang hiện.
+    if (!isPlanId(plan)) {
+      log.warn("payment.plan_missing", { plan });
+      return new Response(JSON.stringify({
+        error: "Vui lòng tải lại trang và chọn gói thiệp",
+        code: "PLAN_REQUIRED",
+      }), { status: 400, headers: JSON_HEADERS });
+    }
+    // Thiệp đã thanh toán → đơn này là NÂNG gói (đặt ở phép kiểm quyền bên dưới).
+    let upgrade: { from: PlanId; theme: string; planExpiresAt: string | null; paidAmount: number } | null = null;
 
     // customer_phone KHÔNG bắt buộc: màn thanh toán lấy người mua thẳng từ tài
     // khoản đang đăng nhập, mà cả hai đường đăng nhập (OTP email, Google) đều
@@ -249,7 +327,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     if (manage_id) {
       const { data: owned, error: ownedError } = await supabaseClient
         .from("weddings")
-        .select("user_id, slug")
+        .select("user_id, slug, theme, payment_status, payment_amount, plan, plan_expires_at")
         .eq("id", manage_id)
         .maybeSingle();
 
@@ -275,6 +353,16 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
         }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       existingSlug = owned?.slug ?? null;
+
+      const from = owned ? currentPlan(owned) : null;
+      if (from) {
+        upgrade = {
+          from,
+          theme: owned.theme || "template1",
+          planExpiresAt: owned.plan_expires_at ?? null,
+          paidAmount: owned.payment_amount ?? 0,
+        };
+      }
 
       // Trần số thiệp/tài khoản. Hàm này `upsert` nên một manage_id CHƯA có hàng
       // DB chính là một đường TẠO thiệp nữa, đi vòng qua chốt ở wedding-admin —
@@ -320,13 +408,10 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     }
 
     // SECURITY: Get price from database based on theme, not from client
-    const theme_name = theme || "template1";
-    const { data: pricingData, error: pricingError } = await supabaseClient
-      .from("template_pricing")
-      .select("price, original_price, template_name")
-      .eq("template_name", theme_name)
-      .eq("is_active", true)
-      .single();
+    // Nâng gói thì tính theo mẫu ĐANG LƯU (đã khoá từ lúc thanh toán), không theo
+    // theme client gửi — gửi mẫu rẻ hơn là trả phần chênh ít hơn.
+    const theme_name = upgrade ? upgrade.theme : (theme || "template1");
+    const { data: pricingData, error: pricingError } = await fetchActivePricing(supabaseClient, theme_name);
 
     if (pricingError || !pricingData) {
       // Hai ca khác hẳn nhau nên phải phân biệt được trên Axiom: truy vấn hỏng,
@@ -343,15 +428,40 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       });
     }
 
-    const basePrice = pricingData.price;
-
     // Validate amount is positive
-    if (basePrice <= 0) {
+    if (!(pricingData.price > 0)) {
       return new Response(JSON.stringify({ error: "Invalid price configuration" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Số tiền của lượt này: giá gói khi mua mới, phần chênh khi nâng gói — cùng một
+    // phép tính với màn báo giá (quotePlans), kể cả luật gói nào được nâng.
+    const quote = quotePlans(
+      pricingData.price,
+      pricingData.original_price,
+      upgrade?.from ?? null,
+      upgrade?.planExpiresAt,
+    ).find((q) => q.id === plan)!;
+    if (!quote.available) {
+      log.warn("payment.plan_unavailable", { manage_id, plan, from: upgrade?.from, reason: quote.reason });
+      return new Response(JSON.stringify({
+        error: quote.reason === "too_late"
+          ? "Gói này đã quá hạn để nâng, vui lòng chọn gói Vĩnh viễn"
+          : "Thiệp đang ở gói này hoặc gói cao hơn",
+        code: "PLAN_UNAVAILABLE",
+      }), { status: 409, headers: JSON_HEADERS });
+    }
+    const basePrice = quote.amount;
+    // Trường gói ghi khi đơn HOÀN TẤT (đơn 0đ ghi ngay, đơn PayOS do webhook ghi).
+    const planDoneFields = () => ({
+      plan,
+      plan_expires_at: planExpiry(upgrade?.from ?? null, upgrade?.planExpiresAt, plan),
+      pending_plan: null,
+      pending_amount: null,
+      expires_at: null,
+    });
 
     // Sinh mã đơn TRƯỚC khi gọi PayOS: giữ chỗ mã giảm giá gắn theo order_id này.
     const payosOrderCode = newOrderCode();
@@ -370,6 +480,9 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
         p_order_id: fullOrderId,
         p_base_amount: basePrice,
         p_user_key: userKey,
+        // Mã % tính trên GIÁ GỐC của gói (giá gạch ngang); đơn nâng gói không có giá
+        // gốc → null = tính trên số phải trả (dqvinh_002_promo_discount_on_original).
+        p_discount_base: quote.original_price ?? null,
       });
 
       if (reserveError) {
@@ -419,9 +532,11 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       (await getUniqueSlug(supabaseClient, baseSlug, { ownerId: buyerId, excludeId: manage_id, log }));
 
     const pricingPayload = {
-      price: pricingData.price,
-      original_price: pricingData.original_price,
+      price: quote.amount,
+      original_price: quote.original_price,
       template_name: pricingData.template_name,
+      plan,
+      upgrade_from: upgrade?.from ?? null,
       discount_amount: discountAmount,
       final_price: paymentAmount,
     };
@@ -448,20 +563,31 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       const freeTransactionId = `PROMO-${appliedPromoCode}-${payosOrderCode}`;
       const freePaidAt = new Date().toISOString();
 
-      const { error: freeError } = await supabaseClient
-        .from("weddings")
-        .upsert({
-          id: manage_id,
-          user_id: buyerId,
-          slug: finalSlug,
-          payment_status: "completed",
-          payment_order_id: fullOrderId,
-          payment_amount: 0,
-          payment_time: freePaidAt,
-          transaction_id: freeTransactionId,
-          expires_at: null,
-          theme: theme || "template1",
-        }, { onConflict: "id", ignoreDuplicates: false });
+      // Nâng gói: hàng đã có, chỉ đổi gói + mốc giao dịch (slug/mẫu đã chốt).
+      const { error: freeError } = upgrade
+        ? await supabaseClient
+          .from("weddings")
+          .update({
+            ...planDoneFields(),
+            payment_order_id: fullOrderId,
+            payment_time: freePaidAt,
+            transaction_id: freeTransactionId,
+          })
+          .eq("id", manage_id)
+        : await supabaseClient
+          .from("weddings")
+          .upsert({
+            id: manage_id,
+            user_id: buyerId,
+            slug: finalSlug,
+            payment_status: "completed",
+            payment_order_id: fullOrderId,
+            payment_amount: 0,
+            payment_time: freePaidAt,
+            transaction_id: freeTransactionId,
+            ...planDoneFields(),
+            theme: theme || "template1",
+          }, { onConflict: "id", ignoreDuplicates: false });
 
       if (freeError) {
         log.error("payment.free_upsert_failed", { order_id: fullOrderId, manage_id, message: freeError.message });
@@ -477,7 +603,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
         order_id: fullOrderId,
         manage_id,
         event_type: "completed",
-        payload: { customer_name, customer_phone, customer_email, template_name, amount: 0, promo_code: appliedPromoCode },
+        payload: { customer_name, customer_phone, customer_email, template_name, amount: 0, promo_code: appliedPromoCode, plan, upgrade_from: upgrade?.from ?? null },
       });
 
       return new Response(JSON.stringify({
@@ -515,21 +641,34 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       payosCredentials.checksumKey,
     );
 
-    // Upsert wedding record with payment info (insert if not exists, update if exists)
-    const { error: upsertError } = await supabaseClient
-      .from("weddings")
-      .upsert({
-        id: manage_id,
-        user_id: buyerId,
-        slug: finalSlug,
-        payment_status: "pending",
-        payment_order_id: fullOrderId,
-        payment_amount: paymentAmount,
-        theme: theme || "template1",
-      }, {
-        onConflict: "id",
-        ignoreDuplicates: false
-      });
+    // Nâng gói KHÔNG được đụng payment_status/payment_amount: thiệp đang là
+    // "completed", hạ về "pending" là mở khoá đổi mẫu, và đơn bỏ ngang thì thiệp hết
+    // hạn gói không bao giờ bị khoá nữa (luật khoá gói chỉ xét hàng "completed").
+    const { error: upsertError } = upgrade
+      ? await supabaseClient
+        .from("weddings")
+        .update({
+          payment_order_id: fullOrderId,
+          pending_plan: plan,
+          pending_amount: paymentAmount,
+        })
+        .eq("id", manage_id)
+      : await supabaseClient
+        .from("weddings")
+        .upsert({
+          id: manage_id,
+          user_id: buyerId,
+          slug: finalSlug,
+          payment_status: "pending",
+          payment_order_id: fullOrderId,
+          payment_amount: paymentAmount,
+          pending_plan: plan,
+          pending_amount: paymentAmount,
+          theme: theme || "template1",
+        }, {
+          onConflict: "id",
+          ignoreDuplicates: false
+        });
 
     if (upsertError) {
       log.error("payment.upsert_failed", { order_id: fullOrderId, manage_id, message: upsertError.message });
@@ -540,7 +679,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       order_id: fullOrderId,
       manage_id,
       event_type: "created",
-      payload: { customer_name, customer_phone, customer_email, template_name, amount: paymentAmount, promo_code: appliedPromoCode },
+      payload: { customer_name, customer_phone, customer_email, template_name, amount: paymentAmount, promo_code: appliedPromoCode, plan, upgrade_from: upgrade?.from ?? null },
     });
 
     return new Response(JSON.stringify({
@@ -585,7 +724,7 @@ async function handleCheckPaymentStatus(req: Request, supabaseClient: any, log: 
 
     const { data, error } = await supabaseClient
       .from("weddings")
-      .select("id, slug, payment_status, transaction_id, payment_time")
+      .select("id, slug, payment_status, pending_plan, transaction_id, payment_time")
       .eq("payment_order_id", order_id)
       .single();
 
@@ -596,8 +735,10 @@ async function handleCheckPaymentStatus(req: Request, supabaseClient: any, log: 
       });
     }
 
-    const response: any = { status: data.payment_status || "pending" };
-    if (data.payment_status === "completed") {
+    // Đơn còn treo pending_plan là CHƯA trả xong — kể cả đơn nâng gói của thiệp đã
+    // "completed" từ trước (không xét thì màn QR báo xong ngay khi chưa trả).
+    const response: any = { status: data.pending_plan ? "pending" : (data.payment_status || "pending") };
+    if (response.status === "completed") {
       response.manage_id = data.id;
       response.slug = data.slug;
       response.transaction_id = data.transaction_id;

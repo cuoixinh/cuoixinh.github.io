@@ -14,7 +14,7 @@ const CL_WEDDING_BATCH = 30;
 // Server nhận tối đa ngần này slug mỗi lượt (MAX_DELETE_SLUG_HOLDS ở cleanup.ts).
 const CL_HOLD_BATCH = 100;
 
-const CL_REASON = { unpaid: "Chưa thanh toán", draft: "Nháp" };
+const CL_REASON = { unpaid: "Chưa thanh toán", draft: "Nháp", plan: "Hết hạn gói" };
 const CL_IMG_KIND = {
   orphan_folder: "Thư mục của thiệp đã xoá",
   unused: "Ảnh thừa trong thiệp còn sống",
@@ -123,8 +123,9 @@ async function clScanWeddings() {
 
 function clRenderWeddings(data) {
   const unpaid = clWeddings.filter((w) => w.reason === "unpaid").length;
+  const plan = clWeddings.filter((w) => w.reason === "plan").length;
   document.getElementById("cl-wed-summary").textContent =
-    `${clWeddings.length} thiệp (${unpaid} chưa thanh toán, ${clWeddings.length - unpaid} nháp) · mốc ${clDate(data.cutoff)}`;
+    `${clWeddings.length} thiệp (${unpaid} chưa thanh toán, ${plan} hết hạn gói, ${clWeddings.length - unpaid - plan} nháp) · mốc ${clDate(data.cutoff)}`;
   const list = document.getElementById("cl-wed-list");
   if (!clWeddings.length) {
     list.innerHTML = '<p class="text-sm text-gray-400">Không có thiệp nào quá hạn.</p>';

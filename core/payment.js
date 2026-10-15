@@ -662,10 +662,18 @@
                     <i data-lucide="palette" class="shrink-0" style="width:14px;height:14px"></i><span id="payment-template-name" class="truncate">-</span>
                   </p>
                   <p class="flex items-start gap-1.5 text-xs leading-4 text-gray-500 m-0">
-                    <i data-lucide="infinity" class="shrink-0 mt-px" style="width:14px;height:14px"></i>Thiệp cưới online · dùng trọn đời
+                    <i data-lucide="calendar-clock" class="shrink-0 mt-px" style="width:14px;height:14px"></i><span id="payment-plan-line">Thiệp cưới online</span>
                   </p>
                 </div>
               </div>
+            </div>
+
+            <!-- Chọn gói: ba thẻ do _renderPlans vẽ từ báo giá của server. Thiệp
+                 đã thanh toán thì đây là bảng NÂNG gói (giá trên thẻ = phần chênh). -->
+            <div class="px-6 pb-5">
+              <p id="payment-plans-title" class="cx-ord-eyebrow">Chọn gói</p>
+              <div id="payment-plans" class="cx-ord-plans" role="radiogroup" aria-labelledby="payment-plans-title"></div>
+              <p id="payment-plan-note" class="cx-ord-plan-note" style="display:none;"></p>
             </div>
 
             <!-- Người mua = tài khoản đang đăng nhập, không nhập lại gì và KHÔNG
@@ -700,7 +708,7 @@
               <p class="cx-ord-eyebrow">Chi tiết thanh toán</p>
               <div class="flex flex-col gap-2.5">
                 <div class="cx-ord-line">
-                  <span class="text-gray-600">Giá mẫu thiệp</span><span class="cx-ord-lead"></span>
+                  <span id="payment-base-label" class="text-gray-600">Giá mẫu thiệp</span><span class="cx-ord-lead"></span>
                   <span id="payment-base-price" class="font-semibold" style="color:rgb(var(--text-heading-rgb));">…</span>
                 </div>
                 <div id="payment-sale-row" class="cx-ord-line" style="display:none;color:rgb(var(--action-primary-deep-rgb));">
@@ -712,7 +720,7 @@
                    viền đứt: vừa là nút mở ô nhập, vừa là chỗ báo kết quả — mã
                    giảm nằm đúng chỗ nó tác động. Chưa dùng thì ghi lời mời, dùng
                    rồi thì ghi mã + mức giảm. -->
-              <button type="button" id="promo-row" onclick="cxPromoOpen()" class="cx-ord-coupon mt-4">
+              <button type="button" id="promo-row" onclick="cxPromoToggle()" class="cx-ord-coupon mt-4">
                 <span class="flex items-center gap-2 text-sm font-medium min-w-0" style="color:rgb(var(--text-heading-rgb));">
                   <i data-lucide="ticket-percent" class="shrink-0" style="width:16px;height:16px;color:rgb(var(--brand-accent-rgb));"></i><span id="promo-row-label" class="truncate">Nhập mã giảm giá</span>
                 </span>
@@ -723,14 +731,18 @@
               </button>
               <div id="promo-box" class="mt-3" style="display:none;">
                 <!-- Nút "Áp dụng" dùng suffix của x-input: dính liền ô nhập nên
-                     không đọc thành một hành động ngang cơ nút thanh toán. -->
-                <x-input
-                  id="promo-input"
-                  placeholder="Nhập mã giảm giá"
-                  uppercase
-                  suffix-btn-label="Áp dụng"
-                  suffix-btn-action="applyPromo()"
-                ></x-input>
+                     không đọc thành một hành động ngang cơ nút thanh toán.
+                     .cx-ord-promo gộp ô + nút thành MỘT khung (styles/_common.css). -->
+                <div class="cx-ord-promo">
+                  <i data-lucide="ticket-percent" class="cx-ord-promo-ico" style="width:18px;height:18px"></i>
+                  <x-input
+                    id="promo-input"
+                    placeholder="Nhập mã giảm giá"
+                    uppercase
+                    suffix-btn-label="Áp dụng"
+                    suffix-btn-action="applyPromo()"
+                  ></x-input>
+                </div>
                 <p id="promo-msg" class="hidden text-xs mt-1.5 m-0"></p>
               </div>
             </div>
@@ -740,7 +752,7 @@
                  chứ không nằm ở dải: dải bị ghim nên mỗi dòng thêm vào đó là
                  một dòng ăn mất của phần nội dung. -->
             <div class="px-6 pb-6 flex flex-wrap justify-center gap-2">
-              <span class="cx-ord-chip"><i data-lucide="badge-check" style="width:14px;height:14px"></i>Trả một lần, không phí gia hạn</span>
+              <span class="cx-ord-chip"><i data-lucide="badge-check" style="width:14px;height:14px"></i>Trả một lần, không tự động gia hạn</span>
               <span class="cx-ord-chip"><i data-lucide="shield-check" style="width:14px;height:14px"></i>PayOS · quét VietQR</span>
             </div>
 
@@ -763,13 +775,17 @@
                    Số tiền nằm TRÊN nút: con số chốt đứng đúng điểm bấm. Icon đặt
                    trong span (không dùng thuộc tính icon=) vì x-button chèn icon
                    thành con ĐẦU TIÊN, ngoài hàng flex này. -->
-              <x-button id="payment-submit" size="lg" full onclick="PaymentModal.process()"
+              <!-- Hai tầng chữ bên trái (hành động + gói đang mua) để khách
+                   bấm là biết mình trả cho gói nào; tổng tiền tách bằng vạch mảnh. -->
+              <x-button id="payment-submit" size="lg" full onclick="PaymentModal.process()" class="cx-ord-pay"
                 style="background:linear-gradient(135deg,rgb(var(--brand-accent-rgb)),rgb(var(--action-primary-rgb)));box-shadow:0 12px 24px -12px rgb(var(--action-primary-rgb) / 0.6);">
-                <span class="flex w-full items-center justify-between gap-3">
-                  <span class="flex items-center gap-2">
-                    <i data-lucide="qr-code" class="shrink-0" style="width:16px;height:16px"></i>Thanh toán ngay
+                <span class="cx-ord-pay-in">
+                  <span class="cx-ord-pay-ico"><i data-lucide="qr-code" style="width:18px;height:18px"></i></span>
+                  <span class="cx-ord-pay-txt">
+                    <span class="cx-ord-pay-label">Thanh toán ngay</span>
+                    <span id="payment-submit-sub" class="cx-ord-pay-sub">Kích hoạt tức thì</span>
                   </span>
-                  <span id="payment-total-price" class="text-base font-bold">…</span>
+                  <span id="payment-total-price" class="cx-ord-pay-total">…</span>
                 </span>
               </x-button>
               <!-- Cùng câu chữ với hộp đăng nhập (core/auth-ui.js). Mở tab mới
@@ -925,13 +941,21 @@
     el.classList.toggle("hidden", saved <= 0);
   }
 
-  // Bung ô nhập mã (một chiều — đã mở thì để mở, khách vừa gõ dở mà nó tự gấp
-  // lại là mất chữ). Hàng mã ở lại vì nó còn là chỗ báo kết quả.
+  // Bung ô nhập mã. Một chiều — nhánh báo lỗi mã gọi để chắc ô đang mở; bấm vào
+  // hàng mã thì đi qua cxPromoToggle. Hàng mã ở lại vì nó còn là chỗ báo kết quả.
   window.cxPromoOpen = function () {
     const box = document.getElementById("promo-box");
     if (!box) return;
     box.style.display = "block";
     document.getElementById("promo-input")?.focus();
+  };
+
+  // Bấm hàng mã: mở/gấp ô nhập. Gấp chỉ ẩn đi nên chữ đang gõ dở vẫn còn.
+  window.cxPromoToggle = function () {
+    const box = document.getElementById("promo-box");
+    if (!box) return;
+    if (box.style.display === "none") window.cxPromoOpen();
+    else box.style.display = "none";
   };
 
   window.applyPromo = async function () {
@@ -948,9 +972,10 @@
       // khi bấm Thanh toán (payment-handler → cx_promo_reserve), nên mã vẫn có
       // thể hết lượt giữa chừng — lúc đó create-payment trả về promo_error.
       const theme = window._paymentTheme ? `&theme=${encodeURIComponent(window._paymentTheme)}` : "";
+      const amount = window._paymentPricing?.price > 0 ? `&amount=${window._paymentPricing.price}` : "";
       const token = await _authToken();
       const res = await fetch(
-        `${CONFIG.supabase.edgeUrl}?resource=promo&code=${encodeURIComponent(code)}${theme}`,
+        `${CONFIG.supabase.edgeUrl}?resource=promo&code=${encodeURIComponent(code)}${theme}${amount}`,
         {
           headers: {
             apikey: CONFIG.supabase.anonKey,
@@ -988,11 +1013,14 @@
   };
 
   // Mức giảm hiển thị. Con số CHỐT vẫn do backend tính lại lúc tạo đơn — đây
-  // chỉ là bản xem trước, phải khớp công thức trong cx_promo_reserve.
+  // chỉ là bản xem trước, phải khớp công thức trong cx_promo_reserve: mã % tính
+  // trên GIÁ GỐC của gói (giá gạch ngang) nếu có, rồi trừ vào giá đang bán.
   function _discountOf(promo, basePrice) {
     if (!promo) return 0;
+    const original = window._paymentPricing?.originalPrice || 0;
+    const percentBase = Math.max(original, basePrice);
     const raw = promo.discount_type === "percent"
-      ? Math.round(basePrice * promo.discount_value / 100)
+      ? Math.round(percentBase * promo.discount_value / 100)
       : promo.discount_value;
     return Math.min(Math.max(raw, 0), basePrice);
   }
@@ -1032,25 +1060,34 @@
   }
 
   /**
-   * Giá CHỐT của một mẫu chỉ có MỘT nguồn: hàng `template_pricing` — đúng bảng
-   * mà payment-handler đọc lúc tạo đơn (templatesDAL trả kèm, khớp theo
-   * `theme`). Nơi gọi thường chỉ biết mỗi `theme` (danh sách thiệp, nút trả
-   * tiền trong trang Thiết lập), nên chốt giá phải nằm ở đây; giá truyền vào
-   * chỉ là bản nháp để bảng tiền có số ngay. Viết cứng một con số dự phòng là
-   * khách nhìn một giá còn quét QR trả một giá khác.
+   * Giá CHỐT chỉ có MỘT nguồn: payment-handler/quote báo giá ba gói từ hàng
+   * `template_pricing` (giá gói 3 tháng) × hệ số gói ở server — đúng phép tính lúc
+   * tạo đơn. Thiệp đã thanh toán thì server trả bảng NÂNG gói (giá = phần chênh).
+   * Client không giữ hệ số nào: viết cứng là khách nhìn một giá, quét QR trả giá khác.
    */
   let _pricingSeq = 0;
-  async function _resolvePricing(theme) {
+  async function _resolvePricing(theme, manageId) {
     const seq = ++_pricingSeq;
     window._pricingPending = true;
+    window._planQuote = null;
+    _renderPlans();
     _renderPrices();
 
-    let row = null;
+    let quote = null;
     try {
-      const rows = (await window.templatesDAL?.list()) || [];
-      row = rows.find((t) => t.theme === theme) || null;
+      const token = await _authToken();
+      const res = await fetch(`${PAYMENT_API_URL}/quote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: ANON_KEY,
+          Authorization: `Bearer ${token || ANON_KEY}`,
+        },
+        body: JSON.stringify({ theme, manage_id: manageId || undefined }),
+      });
+      if (res.ok) quote = await res.json();
     } catch (e) {
-      /* mất mạng: giữ giá nháp nơi gọi đưa sang, nếu có */
+      /* mất mạng: để "Liên hệ" + khoá nút, không đoán giá */
     }
     if (seq !== _pricingSeq) return; // lượt mua khác đã mở đè lên
 
@@ -1058,15 +1095,116 @@
     // người mua để nó không mời đăng nhập trong khi nút đã mở.
     _syncBuyer();
     window._pricingPending = false;
-    if (row) {
-      window._paymentPricing = {
-        price: Number.isFinite(row.price) ? row.price : null,
-        originalPrice: Number.isFinite(row.originalPrice)
-          ? row.originalPrice
-          : null,
-      };
+    window._planQuote = quote;
+    if (quote?.theme) window._paymentTheme = quote.theme;
+    const plans = quote?.plans || [];
+    const pick =
+      plans.find((p) => p.id === window._paymentPlan && p.available) ||
+      // Mua mới mặc định gói "Khuyên dùng" (3 tháng); nâng gói thì gói rẻ nhất còn nâng được.
+      (!quote?.current_plan && plans.find((p) => p.id === "3m" && p.available)) ||
+      plans.find((p) => p.available);
+    _selectPlan(pick ? pick.id : null);
+  }
+
+  const _fmtVnd = (v) => `${v.toLocaleString("vi-VN")}đ`;
+  const _fmtDate = (iso) => new Date(iso).toLocaleDateString("vi-VN");
+
+  // Chọn một gói: đổi bảng tiền theo đúng số của gói đó (giá mua mới hoặc phần
+  // chênh khi nâng). Mã giảm giá đã áp vẫn giữ, mức giảm tự tính lại theo số mới.
+  function _selectPlan(id) {
+    const q = window._planQuote;
+    const p = q?.plans?.find((x) => x.id === id && x.available) || null;
+    window._paymentPlan = p ? p.id : null;
+    window._paymentPricing = {
+      price: p ? p.amount : null,
+      originalPrice: p && p.original_price > p.amount ? p.original_price : null,
+    };
+
+    const label = document.getElementById("payment-base-label");
+    if (label)
+      label.textContent = !p
+        ? "Giá mẫu thiệp"
+        : q.current_plan
+          ? `Nâng lên gói ${p.label}`
+          : `Gói ${p.label}`;
+    const line = document.getElementById("payment-plan-line");
+    if (line) {
+      const cur = q?.current_plan && q.plans.find((x) => x.id === q.current_plan);
+      line.textContent = cur
+        ? `Đang dùng gói ${cur.label}` +
+          (q.plan_expires_at ? ` · hạn ${_fmtDate(q.plan_expires_at)}` : "")
+        : p
+          ? `Thiệp cưới online · ${p.months ? `hiển thị ${p.months} tháng` : "dùng trọn đời"}`
+          : "Thiệp cưới online";
+    }
+    _renderPlans();
+    _syncPlanNote(p);
+    if (window._appliedPromo) {
+      _setPromoRow(window._appliedPromo.code, _discountOf(window._appliedPromo, p ? p.amount : 0));
     }
     _renderPrices();
+  }
+  window.cxPickPlan = _selectPlan;
+
+  // Ba thẻ gói. Gói đang dùng / thấp hơn / quá hạn để nâng vẫn hiện (khách cần
+  // thấy mình đang ở đâu) nhưng khoá lại. Huy hiệu "Khuyên dùng" chỉ khi mua mới.
+  function _renderPlans() {
+    const box = document.getElementById("payment-plans");
+    if (!box) return;
+    const q = window._planQuote;
+    const title = document.getElementById("payment-plans-title");
+    if (title) title.textContent = q?.current_plan ? "Nâng cấp gói" : "Chọn gói";
+    if (!q?.plans?.length) {
+      const msg = window._pricingPending ? "Đang tải bảng giá…" : "Mẫu này chưa có giá, vui lòng liên hệ.";
+      box.innerHTML = `<p class="text-xs text-gray-400 m-0" style="grid-column:1/-1">${msg}</p>`;
+      return;
+    }
+    const SUB = { current: "Đang dùng", too_late: "Đã quá hạn nâng", lower: "Gói thấp hơn" };
+    const sub = (p) =>
+      SUB[p.reason] || (q.current_plan ? "Trả thêm" : p.months ? `${p.months} tháng` : "Trọn đời");
+    box.innerHTML = q.plans
+      .map((p) => {
+        const on = p.id === window._paymentPlan;
+        const badge = !q.current_plan && p.id === "3m" ? '<span class="cx-ord-plan-badge">Khuyên dùng</span>' : "";
+        const price = p.available ? (q.current_plan ? "+" : "") + _fmtVnd(p.amount) : "—";
+        const was = p.available && p.original_price > p.amount
+          ? `<s class="cx-ord-plan-was">${_fmtVnd(p.original_price)}</s>`
+          : "";
+        const name = p.months
+          ? p.label
+          : `<i data-lucide="infinity" style="width:14px;height:14px"></i>${p.label}`;
+        return (
+          `<button type="button" role="radio" aria-checked="${on}" class="cx-ord-plan${on ? " is-on" : ""}"` +
+          (p.available ? ` onclick="cxPickPlan('${p.id}')"` : " disabled") +
+          `>${badge}<span class="cx-ord-plan-dot" aria-hidden="true"></span>` +
+          `<span class="cx-ord-plan-name">${name}</span>` +
+          `<span class="cx-ord-plan-price">${price}</span>${was}` +
+          `<span class="cx-ord-plan-sub">${sub(p)}</span></button>`
+        );
+      })
+      .join("");
+    window.lucide?.createIcons({ root: box });
+  }
+
+  // Dòng ngay dưới các thẻ: gói đang chọn mở thiệp tới NGÀY NÀO (server tính, kể cả
+  // khi nâng gói — hạn mới tính từ ngày mua gói đầu, không phải từ hôm nay). Cùng
+  // lúc đổi dòng phụ trên nút thanh toán.
+  function _syncPlanNote(p) {
+    const note = document.getElementById("payment-plan-note");
+    const sub = document.getElementById("payment-submit-sub");
+    if (sub)
+      sub.textContent = p
+        ? `${window._planQuote?.current_plan ? "Nâng lên" : "Gói"} ${p.label}`
+        : "Kích hoạt tức thì";
+    if (!note) return;
+    // Gói vĩnh viễn không có ngày để báo → ẩn dòng này.
+    if (!p || !p.expires_at) {
+      note.style.display = "none";
+      return;
+    }
+    note.innerHTML = `<i data-lucide="calendar-check" style="width:14px;height:14px"></i><span>Khách mời xem được thiệp đến hết ngày <b>${_fmtDate(p.expires_at)}</b></span>`;
+    note.style.display = "flex";
+    window.lucide?.createIcons({ root: note });
   }
 
   // Nút thanh toán cần CẢ HAI: có người mua (không có danh tính thì không dựng
@@ -1143,15 +1281,12 @@
       if (promoBox) promoBox.style.display = "none";
       _setPromoRow(null, 0);
 
-      // Chốt giá MỘT LẦN rồi dùng lại ở mọi chỗ (bảng tiền, tổng, dòng tiết
-      // kiệm). Đây mới là bản nháp của nơi gọi — _resolvePricing ở cuối hàm
-      // mới chốt theo `template_pricing`.
-      window._paymentPricing = {
-        price: Number.isFinite(pricing.price) ? pricing.price : null,
-        originalPrice: Number.isFinite(pricing.originalPrice)
-          ? pricing.originalPrice
-          : null,
-      };
+      // Giá tuỳ gói, mà gói chỉ biết sau khi có báo giá → bảng tiền để dấu chờ
+      // tới lúc _resolvePricing (cuối hàm) xong; giá nơi gọi đưa sang (gói 3 tháng)
+      // không dùng làm bản nháp, hiện ra rồi nhảy số là khách hoang mang.
+      window._paymentPricing = { price: null, originalPrice: null };
+      window._paymentPlan = null;
+      window._planQuote = null;
       window._pricingPending = true;
 
       // Lưu order pending ngay khi mở modal (nếu chưa có)
@@ -1188,7 +1323,7 @@
 
       _syncBuyer();
       _syncProduct(templateName, theme, existingManageId);
-      _resolvePricing(window._paymentTheme);
+      _resolvePricing(window._paymentTheme, existingManageId);
     }
   }
 
@@ -1488,6 +1623,7 @@
           customer_email: email,
           template_name: templateName,
           theme: window._paymentTheme || "basic-gold",
+          plan: window._paymentPlan,
           is_existing_draft: !!window._existingManageId,
           // SECURITY: Amount is determined by backend from database
         };

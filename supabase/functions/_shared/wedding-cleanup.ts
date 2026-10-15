@@ -9,14 +9,14 @@ import { slugHoldCutoff } from './slug-holds.ts'
 // deno-lint-ignore no-explicit-any
 type Db = any
 
-export type ExpiredReason = 'unpaid' | 'draft'
+export type ExpiredReason = 'unpaid' | 'draft' | 'plan'
 
 export const EXPIRED_SELECT =
-  `id, slug, groom_name, bride_name, is_published, payment_status, expires_at, updated_at, ` +
+  `id, slug, groom_name, bride_name, is_published, payment_status, expires_at, plan_expires_at, updated_at, ` +
   WEDDING_IMAGE_SELECT
 
 /**
- * Hai nhóm quá hạn. `ids` có thì chỉ xét trong các id đó — dùng để KIỂM LẠI danh
+ * Ba nhóm quá hạn. `ids` có thì chỉ xét trong các id đó — dùng để KIỂM LẠI danh
  * sách admin gửi lên trước khi xoá. Lỗi truy vấn trả `error`, nơi gọi phải DỪNG.
  */
 export async function findExpiredWeddings(
@@ -49,22 +49,35 @@ export async function findExpiredWeddings(
     .order('updated_at', { ascending: true })
     .limit(opts.limit)
 
+  // (3) Đã thanh toán gói 3/6 tháng, hết hạn gói thêm `days` ngày. plan_expires_at
+  // null = vĩnh viễn (kể cả mọi thiệp mua trước khi có gói) nên không bao giờ dính.
+  let planQ = supabase
+    .from('weddings')
+    .select(EXPIRED_SELECT)
+    .eq('payment_status', 'completed')
+    .not('plan_expires_at', 'is', null)
+    .lt('plan_expires_at', cutoff)
+    .order('plan_expires_at', { ascending: true })
+    .limit(opts.limit)
+
   if (opts.ids) {
     unpaidQ = unpaidQ.in('id', opts.ids)
     draftQ = draftQ.in('id', opts.ids)
+    planQ = planQ.in('id', opts.ids)
   }
 
-  const [u, d] = await Promise.all([unpaidQ, draftQ])
-  if (u.error || d.error) {
+  const [u, d, p] = await Promise.all([unpaidQ, draftQ, planQ])
+  if (u.error || d.error || p.error) {
     return {
       cutoff,
-      error: `unpaid: ${u.error?.message ?? 'ok'} · draft: ${d.error?.message ?? 'ok'}`,
+      error: `unpaid: ${u.error?.message ?? 'ok'} · draft: ${d.error?.message ?? 'ok'} · plan: ${p.error?.message ?? 'ok'}`,
       victims: [] as Array<{ row: Record<string, unknown>; reason: ExpiredReason }>,
     }
   }
   const victims = [
     ...(u.data ?? []).map((row: Record<string, unknown>) => ({ row, reason: 'unpaid' as const })),
     ...(d.data ?? []).map((row: Record<string, unknown>) => ({ row, reason: 'draft' as const })),
+    ...(p.data ?? []).map((row: Record<string, unknown>) => ({ row, reason: 'plan' as const })),
   ]
   return { cutoff, victims, error: undefined as string | undefined }
 }

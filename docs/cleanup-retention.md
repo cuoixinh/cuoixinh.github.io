@@ -38,7 +38,16 @@ stateDiagram-v2
 | Nháp       | `is_published = false`                                               | không — 403 `NOT_PUBLISHED` |
 | Dùng thử   | `is_published`, `expires_at > now()`                                 | có                  |
 | Hết hạn    | `is_published`, `expires_at < now()`, `payment_status <> 'completed'` | **không** — 403     |
-| Kích hoạt  | `expires_at is null` hoặc `payment_status = 'completed'`              | có, vĩnh viễn       |
+| Kích hoạt  | `payment_status = 'completed'`, `plan_expires_at` null (gói vĩnh viễn hoặc mua trước khi có gói) | có, vĩnh viễn |
+| Gói còn hạn | `payment_status = 'completed'`, `plan_expires_at > now()`           | có                  |
+| Hết hạn gói | `payment_status = 'completed'`, `plan_expires_at < now()`           | **không** — 403 `PLAN_EXPIRED` |
+
+**Gói thời hạn** (3 tháng · 6 tháng · vĩnh viễn): số tháng, hệ số giá và luật nâng gói chỉ nằm
+ở `supabase/functions/_shared/plans.ts`. Giá gói = `template_pricing.price` × hệ số (3 tháng ×1,
+6 tháng ×1.3, vĩnh viễn ×1.5). Nâng gói trả phần chênh, hạn mới tính từ ngày bắt đầu gói cũ;
+đơn nâng KHÔNG hạ `payment_status` (hạ xuống là thiệp hết gói thoát khoá). Đơn đang chờ nằm ở
+`pending_plan` + `pending_amount`, `payos-webhook` áp xong thì xoá về null — còn treo
+`pending_plan` nghĩa là chưa trả, kể cả khi thiệp đã `completed`.
 
 ## 3. `expires_at` — ai được ghi, ghi lúc nào
 
@@ -108,7 +117,12 @@ Ba câu quét:
             AND expires_at IS NOT NULL AND expires_at < now() - RETENTION_DAYS
 (2) draft:  NOT is_published AND updated_at < now() - RETENTION_DAYS
 (3) sổ giữ slug: wedding_slug_holds.deleted_at < now() - SLUG_HOLD_DAYS (90)
+(4) plan:   payment_status = 'completed' AND plan_expires_at IS NOT NULL
+            AND plan_expires_at < now() - RETENTION_DAYS
 ```
+
+Nhóm (4) dùng chung `RETENTION_DAYS` với nhóm (1); bản sao phía web là
+`CONFIG.retention.planExpiredDays`.
 
 Câu (3) chạy SAU phần thiệp và hỏng thì chỉ ghi log (`cleanup.slug_holds_failed`), không làm
 hỏng lượt dọn thiệp: sót hàng hết hạn chỉ tốn chỗ, không chặn ai. `?days=` KHÔNG áp cho câu

@@ -4,6 +4,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createDbClient } from "../_shared/db-client.ts";
 import { withAxiom, type Logger } from "../_shared/axiom.ts";
+import { currentPlan, isPlanId, planExpiry } from "../_shared/plans.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -205,7 +206,7 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       
       const { data: weddingData, error: weddingError } = await supabaseClient
         .from("weddings")
-        .select("id, theme, payment_amount")
+        .select("id, theme, payment_amount, payment_status, plan, plan_expires_at, pending_plan, pending_amount")
         .eq("payment_order_id", fullOrderId)
         .single();
 
@@ -227,10 +228,31 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       const manage_id = weddingData.id;
       const theme_name = weddingData.theme || "template1";
 
-      // Số tiền kỳ vọng là payment_amount đã chốt lúc tạo đơn — đã trừ mã giảm
-      // giá và do chính payment-handler ghi nên vẫn tin được (không phải số
-      // client gửi lên). Đơn cũ chưa có payment_amount → rơi về giá niêm yết.
-      let expectedAmount: number | null = weddingData.payment_amount ?? null;
+      // Thiệp đã "completed" mà đơn còn treo pending_plan = đơn NÂNG gói. Đã
+      // completed mà không còn pending_plan = đơn này áp xong rồi (PayOS gửi lặp)
+      // → trả 200 luôn, áp lần nữa là cộng hạn hai lần.
+      const isUpgrade = weddingData.payment_status === "completed";
+      if (isUpgrade && !weddingData.pending_plan) {
+        log.info("payos.already_applied", { orderCode: orderCodeFromPayOS, manage_id });
+        return new Response(JSON.stringify({ success: true, message: "Already processed" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Số tiền kỳ vọng là số đã chốt lúc tạo đơn (pending_amount, đơn cũ trước khi
+      // có gói thì payment_amount) — đã trừ mã giảm giá và do chính payment-handler
+      // ghi nên vẫn tin được. Đơn cũ hơn nữa chưa có cả hai → rơi về giá niêm yết.
+      let expectedAmount: number | null = weddingData.pending_amount ??
+        (isUpgrade ? null : weddingData.payment_amount) ?? null;
+
+      if (expectedAmount === null && isUpgrade) {
+        log.error("payos.upgrade_amount_missing", { orderCode: orderCodeFromPayOS, manage_id });
+        return new Response(JSON.stringify({ error: "Missing order amount" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       if (expectedAmount === null) {
         const { data: pricingData, error: pricingError } = await supabaseClient
@@ -275,20 +297,41 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       // Update wedding record
       const payment_status = paymentData.code === "00" ? "completed" : "failed";
 
-      const updateFields: Record<string, unknown> = {
-        payment_status,
-        transaction_id: paymentData.transactionDateTime || paymentData.orderCode,
-        payment_time: new Date().toISOString(),
-      };
-      // Thanh toán thành công → gỡ hạn dùng thử: mở thiệp vĩnh viễn (không hết hạn).
+      // Đơn nâng gói thất bại: thiệp vẫn giữ gói cũ, KHÔNG được hạ payment_status
+      // (hạ là thiệp hết hạn gói thoát khoá) — chỉ gỡ đơn đang treo.
+      const updateFields: Record<string, unknown> = isUpgrade && payment_status !== "completed"
+        ? {}
+        : {
+          payment_status,
+          transaction_id: paymentData.transactionDateTime || paymentData.orderCode,
+          payment_time: new Date().toISOString(),
+        };
+      updateFields.pending_plan = null;
+      updateFields.pending_amount = null;
+      // Thanh toán thành công → gỡ hạn dùng thử, áp gói. Đơn tạo trước khi có gói
+      // (pending_plan null) là đơn mua trọn đời như xưa.
       if (payment_status === "completed") {
+        const to = isPlanId(weddingData.pending_plan) ? weddingData.pending_plan : "lifetime";
+        const from = isUpgrade ? currentPlan(weddingData) : null;
         updateFields.expires_at = null;
+        updateFields.plan = to;
+        updateFields.plan_expires_at = planExpiry(from, weddingData.plan_expires_at, to);
+        if (isUpgrade) updateFields.payment_amount = (weddingData.payment_amount ?? 0) + paymentData.amount;
       }
 
-      const { error: updateError } = await supabaseClient
+      // Khoá theo đúng đơn + trạng thái vừa đọc: hai lượt webhook chạy song song thì
+      // lượt sau chờ khoá hàng, đọc lại điều kiện và không khớp → không áp lần hai.
+      let updateQ = supabaseClient
         .from("weddings")
         .update(updateFields)
-        .eq("id", manage_id);
+        .eq("id", manage_id)
+        .eq("payment_order_id", fullOrderId);
+      updateQ = weddingData.pending_plan
+        ? updateQ.eq("pending_plan", weddingData.pending_plan)
+        : updateQ.is("pending_plan", null);
+      // Hỏi cả is.null: neq của PostgREST bỏ sót hàng NULL.
+      if (!isUpgrade) updateQ = updateQ.or("payment_status.is.null,payment_status.neq.completed");
+      const { data: updated, error: updateError } = await updateQ.select("id");
 
       if (updateError) {
         console.error("Update error:", updateError);
@@ -300,6 +343,14 @@ serve(withAxiom("payos-webhook", async (req, log) => {
         });
         return new Response(JSON.stringify({ error: "Failed to update payment status" }), {
           status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (!updated?.length) {
+        log.info("payos.already_applied", { orderCode: orderCodeFromPayOS, manage_id });
+        return new Response(JSON.stringify({ success: true, message: "Already processed" }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }

@@ -140,7 +140,7 @@ const batches = new Set(); // promo batch_id
 let seq = 0;
 const qaSlug = () => `qa-${RUN}-${++seq}`;
 const S = {}; // trạng thái dùng chung giữa các ca
-let THEME, THEME_ALT, PRICE;
+let THEME, THEME_ALT, PRICE, ORIGINAL;
 
 async function newWedding(owner = "u1", fields = {}) {
   const id = nodeCrypto.randomUUID();
@@ -174,7 +174,8 @@ async function newPromo(fields) {
   batches.add(r.json.batch_id);
   return r.json;
 }
-const payBody = (manage_id, extra = {}) => ({ manage_id, customer_name: "QA Tester", customer_email: "qa@example.com", template_name: THEME, theme: THEME, ...extra });
+// plan 3m = đúng giá template_pricing.price (PRICE) — các phép so số tiền bên dưới dựa vào đó.
+const payBody = (manage_id, extra = {}) => ({ manage_id, customer_name: "QA Tester", customer_email: "qa@example.com", template_name: THEME, theme: THEME, plan: "3m", ...extra });
 const orderStatus = async (order_id) => (await PAY("/check-payment-status", { query: { order_id } })).json;
 
 // Chữ ký webhook theo tài liệu PayOS: sắp khoá a→z, null → rỗng, HMAC-SHA256 hex.
@@ -644,6 +645,13 @@ tc("API-PAY-05", "Không SĐT vẫn tạo được; giá lấy từ DB, bỏ qua
   c.ok("có order_id", /^ORDER-\d+$/.test(S.O1 || ""), S.O1);
   return c.done();
 });
+tc("API-PAY-05b", "Thiếu / sai gói → 400 PLAN_REQUIRED, không tạo đơn", ["u1", "Wpay"], async () => {
+  const r = await PAY("/create-payment", { method: "POST", ...auth("u1"), body: payBody(S.Wpay.id, { plan: "12m" }) });
+  const c = checker();
+  c.eq("status", r.status, 400);
+  c.eq("code", r.json?.code, "PLAN_REQUIRED");
+  return c.done();
+});
 tc("API-PAY-07", "Đơn thanh toán không đổi slug thiệp đã có", ["u1", "Wpay", "O1"], async () => {
   const g = await WA({ ...auth("u1"), query: { id: S.Wpay.id } });
   return { pass: g.json?.slug === S.Wpay.slug, got: `${g.json?.slug} (cần ${S.Wpay.slug})` };
@@ -710,14 +718,15 @@ tc("API-WR-15", "Xoá cả lô, giữ mã đã dùng", ["admin", "P100"], async 
   const r = await WA({ method: "DELETE", admin: true, query: { resource: "promo-codes", batch_id: S.P100batch } });
   return { pass: r.status === 200 && r.json?.deleted === 1 && r.json?.kept === 1, got: `${r.status} ${J(r.json)}` };
 });
-tc("API-PAY-11", "Mã 10% → số tiền = giá − 10%, giữ lượt", ["u1", "admin"], async () => {
+tc("API-PAY-11", "Mã 10% → số tiền = giá − 10% GIÁ GỐC, giữ lượt", ["u1", "admin"], async () => {
   const p = await newPromo({ mode: "single", code: `QA${RUN}P10`, discount_type: "percent", discount_value: 10 });
   S.Wpromo = await newWedding("u1");
   const r = await PAY("/create-payment", { method: "POST", ...auth("u1"), body: payBody(S.Wpromo.id, { promo_code: p.codes[0].code }) });
   S.O2 = r.json?.order_id;
   S.O2amount = r.json?.pricing?.final_price;
   await retire(S.Wpromo);
-  const want = PRICE - Math.round(PRICE * 10 / 100);
+  // Mã % tính trên giá gốc (gạch ngang) của gói nếu có, kẹp không quá giá bán.
+  const want = PRICE - Math.min(PRICE, Math.round(Math.max(ORIGINAL ?? 0, PRICE) * 10 / 100));
   const c = checker();
   c.eq("status", r.status, 200);
   c.eq("pricing.final_price", r.json?.pricing?.final_price, want);
@@ -1087,6 +1096,7 @@ if (tpl.status !== 200) {
 const priced = tpl.json.filter((t) => t.price != null);
 THEME = priced[0]?.theme;
 PRICE = priced[0]?.price;
+ORIGINAL = priced[0]?.originalPrice ?? null;
 THEME_ALT = tpl.json.find((t) => t.theme !== THEME)?.theme;
 if (!THEME) {
   console.error("✗ Không có mẫu nào có giá trên staging — nhóm PAY/WH sẽ hỏng.");

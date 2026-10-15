@@ -17,3 +17,6 @@ changelogs/*.final.sql
 
 # Trạng thái cục bộ của `wrangler dev`
 .wrangler/
+
+# Cấu hình Claude Code riêng từng máy — chứa SUPABASE_ACCESS_TOKEN, không commit
+.claude/settings.local.json

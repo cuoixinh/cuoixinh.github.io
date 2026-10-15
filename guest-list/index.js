@@ -42,10 +42,17 @@ function _glCover(w) {
 const _ico = (name, size) =>
   `<i data-lucide="${name}"${size ? ` style="width:${size}px;height:${size}px"` : ""}></i>`;
 
-// Nhãn hạn dùng thử (dùng lại .mi-tag của my-invitations). expires_at null = đã
-// kích hoạt; hết hạn thì khách mời không mở được thiệp nhưng chủ thiệp vẫn quản
-// lý danh sách được — chỉ báo, không chặn.
+// Nhãn hạn dùng thử / hạn gói (dùng lại .mi-tag của my-invitations). expires_at null =
+// đã kích hoạt, khi đó plan_expires_at (gói 3/6 tháng) mới quyết định còn hạn hay
+// không; hết hạn thì khách mời không mở được thiệp nhưng chủ thiệp vẫn quản lý danh
+// sách được — chỉ báo, không chặn.
+const _glPlanOver = (w) => !!w.plan_expires_at && new Date(w.plan_expires_at) <= Date.now();
+
 function _glTag(w) {
+  if (!w.expires_at && w.plan_expires_at)
+    return _glPlanOver(w)
+      ? `<span class="mi-tag mi-tag--due">${_ico("clock-alert")}Hết hạn gói</span>`
+      : `<span class="mi-tag mi-tag--live">${_ico("calendar-clock")}Còn hạn đến ${new Date(w.plan_expires_at).toLocaleDateString("vi-VN")}</span>`;
   if (!w.expires_at)
     return `<span class="mi-tag mi-tag--live">${_ico("badge-check")}Đã kích hoạt</span>`;
   const days = Math.ceil((new Date(w.expires_at) - Date.now()) / 86400000);
@@ -55,7 +62,8 @@ function _glTag(w) {
 }
 
 function _glHint(w) {
-  if (!w.expires_at || new Date(w.expires_at) > Date.now()) return "";
+  const trialOver = !!w.expires_at && new Date(w.expires_at) <= Date.now();
+  if (!trialOver && !_glPlanOver(w)) return "";
   return `<p class="mi-hint mi-hint--warn">${_ico("info")}<span>Khách tạm không mở được thiệp, danh sách vẫn quản lý bình thường.</span></p>`;
 }
 

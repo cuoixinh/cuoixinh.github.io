@@ -65,7 +65,8 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     // Hết hạn dùng thử: edge function trả 403 TRIAL_EXPIRED. Đây KHÔNG phải lỗi —
     // hiện màn khoá thay vì đá về trang chủ, nếu không khách mời (và cả chủ thiệp)
     // không hiểu vì sao link chết.
-    if (error && error.code === "TRIAL_EXPIRED") {
+    // Hết hạn gói 3/6 tháng (PLAN_EXPIRED) cũng khoá y vậy, chỉ khác câu chữ.
+    if (error && (error.code === "TRIAL_EXPIRED" || error.code === "PLAN_EXPIRED")) {
       showLockedInvitation(error.info);
       return;
     }
@@ -114,8 +115,13 @@ function showLockedInvitation(info) {
         esc(names) +
         "</p>"
       : "") +
-    '<p style="margin:0;font-size:14px;line-height:1.6">Thiệp đã hết hạn dùng thử nên tạm ' +
-    "thời chưa mở cho khách mời. Chủ thiệp cần kích hoạt để mở lại.</p>" +
+    '<p style="margin:0;font-size:14px;line-height:1.6">' +
+    (info && info.code === "PLAN_EXPIRED"
+      ? "Thiệp đã hết thời hạn hiển thị nên tạm thời chưa mở cho khách mời. " +
+        "Chủ thiệp cần nâng gói để mở lại."
+      : "Thiệp đã hết hạn dùng thử nên tạm thời chưa mở cho khách mời. " +
+        "Chủ thiệp cần kích hoạt để mở lại.") +
+    "</p>" +
     // Lối ra duy nhất của màn phủ kín: không có nút này khách mời chỉ còn cách
     // đóng tab (nút Back đưa về chính link thiệp → lại màn khoá).
     '<a href="/" style="display:inline-flex;align-items:center;justify-content:center;' +

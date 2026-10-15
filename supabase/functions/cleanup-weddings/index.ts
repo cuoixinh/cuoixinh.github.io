@@ -78,11 +78,13 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
   }
 
   const unpaidCount = victims.filter((v) => v.reason === 'unpaid').length
+  const planCount = victims.filter((v) => v.reason === 'plan').length
   log.info('cleanup.run', {
     days,
     dry_run: dryRun,
     unpaid: unpaidCount,
-    drafts: victims.length - unpaidCount,
+    plan_expired: planCount,
+    drafts: victims.length - unpaidCount - planCount,
   })
 
   if (dryRun) {
@@ -103,7 +105,7 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
           slug: row.slug,
           name: [row.groom_name, row.bride_name].filter(Boolean).join(' & '),
           reason,
-          expires_at: row.expires_at,
+          expires_at: row.expires_at ?? row.plan_expires_at,
           updated_at: row.updated_at,
           files: weddingFileNames(row).length,
         })),
@@ -114,6 +116,7 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
 
   let deletedUnpaid = 0
   let deletedDraft = 0
+  let deletedPlan = 0
   let filesRemoved = 0
   const errors: Array<{ id: string; error: string }> = []
 
@@ -122,6 +125,7 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
       const files = await deleteWeddingHard(supabase, row)
       filesRemoved += files
       if (reason === 'unpaid') deletedUnpaid++
+      else if (reason === 'plan') deletedPlan++
       else deletedDraft++
       log.info('cleanup.deleted', { id: row.id, slug: row.slug, reason, files })
     } catch (e) {
@@ -146,6 +150,7 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
       slug_holds_error: holds.error ?? null,
       deleted_unpaid: deletedUnpaid,
       deleted_draft: deletedDraft,
+      deleted_plan: deletedPlan,
       files_removed: filesRemoved,
       errors,
     }),

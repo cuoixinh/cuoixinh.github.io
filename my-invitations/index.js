@@ -367,6 +367,9 @@ function _cardFromWedding(w) {
     theme: w.theme || "",
     published: !!w.is_published,
     expiresAt: w.expires_at || null,
+    // Gói đã thanh toán (null = chưa thanh toán). plan_expires_at null = vĩnh viễn.
+    plan: w.plan || null,
+    planExpiresAt: w.plan_expires_at || null,
     createdAt: w.created_at,
     local: false,
     cover: _coverUrl(w),
@@ -480,12 +483,24 @@ async function refreshCards() {
 
 const DAY_MS = 86400000;
 
-/** draft · trial · expired · active (đã kích hoạt) · published (không rõ hạn). */
+/**
+ * draft · trial · expired · active (vĩnh viễn) · plan (gói 3/6 tháng còn hạn) ·
+ * planExpired (hết hạn gói) · published (không rõ hạn).
+ */
 function cardState(c) {
   if (!c.published) return "draft";
   if (c.expiresAt === undefined) return "published";
+  if (c.planExpiresAt)
+    return new Date(c.planExpiresAt) > Date.now() ? "plan" : "planExpired";
   if (!c.expiresAt) return "active";
   return daysLeft(c) > 0 ? "trial" : "expired";
+}
+
+// Còn dưới chừng này ngày thì nhãn gói chuyển tông cảnh báo + mời nâng gói.
+const PLAN_WARN_DAYS = 14;
+
+function planDaysLeft(c) {
+  return Math.max(0, Math.ceil((new Date(c.planExpiresAt) - Date.now()) / DAY_MS));
 }
 
 // Số ngày còn lại, LÀM TRÒN LÊN (còn vài giờ vẫn là "còn 1 ngày"). Kẹp trên bằng
@@ -747,6 +762,7 @@ function cardHTML(c, i) {
 // Câu nhắc hạn dọn dẹp tự động — số ngày lấy ở CONFIG.retention, không viết cứng.
 // Dùng cho tooltip lẫn dải ghim ở đầu trang, nên chỉ là TEXT thuần.
 const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau ${CONFIG.retention.unpaidDays} ngày kể từ khi hết hạn dùng thử.`;
+const PLAN_KEEP_TEXT = `Hết hạn gói thì khách mời không mở được thiệp; sau ${CONFIG.retention.planExpiredDays} ngày thiệp sẽ tự động xoá. Nâng lên gói Vĩnh viễn để giữ thiệp mãi mãi.`;
 
 // Nháp trên máy (chưa có bản ghi DB) và nháp đã lưu trên hệ thống có hạn riêng.
 function draftKeepText(c) {
@@ -758,12 +774,16 @@ function draftKeepText(c) {
 // MỘT nhãn trạng thái mỗi thẻ: tông màu + icon + chữ, chi tiết hạn nằm ở title.
 function tagHTML(c, state) {
   const days = daysLeft(c);
+  const planEnd = c.planExpiresAt ? new Date(c.planExpiresAt).toLocaleDateString("vi-VN") : "";
+  const soon = state === "plan" && planDaysLeft(c) <= PLAN_WARN_DAYS;
   const T = {
     draft: ["draft", "pen-line", "Nháp", draftKeepText(c)],
     trial: ["trial", "clock", `Dùng thử · còn ${days} ngày`, UNPAID_KEEP_TEXT],
     expired: ["due", "clock-alert", "Hết hạn dùng thử", UNPAID_KEEP_TEXT],
     published: ["due", "credit-card", "Chưa kích hoạt", UNPAID_KEEP_TEXT],
-    active: ["live", "badge-check", "Đã kích hoạt", ""],
+    active: ["live", "badge-check", "Vĩnh viễn", ""],
+    plan: [soon ? "trial" : "live", "calendar-clock", `Còn hạn đến ${planEnd}`, PLAN_KEEP_TEXT],
+    planExpired: ["due", "clock-alert", "Hết hạn gói", PLAN_KEEP_TEXT],
   }[state];
   const tip = T[3] ? ` title="${escAttr(T[3])}"` : "";
   return `<span class="mi-tag mi-tag--${T[0]}"${tip}>${_ico(T[1])}${T[2]}</span>`;
@@ -779,6 +799,11 @@ function hintHTML(c, state) {
     trial: ["", "info", "Kích hoạt để thiệp mở vĩnh viễn"],
     expired: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
     published: ["warn", "triangle-alert", "Kích hoạt để mở thiệp cho khách mời"],
+    plan:
+      planDaysLeft(c) <= PLAN_WARN_DAYS
+        ? ["warn", "triangle-alert", `Gói còn ${planDaysLeft(c)} ngày — nâng gói để giữ thiệp`]
+        : null,
+    planExpired: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
   }[state];
   if (!H) return "";
   return `<p class="mi-hint${H[0] ? ` mi-hint--${H[0]}` : ""}">${_ico(H[1])}<span>${H[2]}</span></p>`;
@@ -806,9 +831,16 @@ function _cardActions(c, i, state) {
   // Đổi đường dẫn chỉ khi CHƯA xuất bản (server cũng chặn).
   const slug = { id: "slug", icon: "link-2", label: "Đổi link", menuLabel: "Đổi đường dẫn", run: `openSlugModal(${i})`, pick: () => openSlugModal(i) };
   const activate = { id: "activate", icon: "credit-card", label: "Kích hoạt thiệp", run: `activateCard(${i})` };
+  // Nâng gói đi chung trang thanh toán: server thấy thiệp đã trả tiền nên tự báo
+  // giá phần chênh.
+  const upgrade = { id: "upgrade", icon: "sparkles", label: "Nâng gói", menuLabel: "Nâng cấp gói", run: `activateCard(${i})`, pick: () => activateCard(i) };
 
   if (state === "trial" || state === "expired" || state === "published")
     return [activate, live && view, edit, live && share].filter(Boolean);
+  if (state === "planExpired") return [upgrade, edit, live && view].filter(Boolean);
+  if (state === "plan" && planDaysLeft(c) <= PLAN_WARN_DAYS)
+    return [upgrade, live && view, edit, live && share].filter(Boolean);
+  if (state === "plan" && live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit, upgrade];
   if (live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit];
   return [edit, c.slug && slug].filter(Boolean);
 }
