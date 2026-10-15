@@ -52,9 +52,9 @@ function _glTag(w) {
   if (!w.expires_at && w.plan_expires_at)
     return _glPlanOver(w)
       ? `<span class="mi-tag mi-tag--due">${_ico("clock-alert")}Hết hạn gói</span>`
-      : `<span class="mi-tag mi-tag--live">${_ico("calendar-clock")}Còn hạn đến ${new Date(w.plan_expires_at).toLocaleDateString("vi-VN")}</span>`;
+      : `<span class="mi-tag mi-tag--live">${_ico("badge-check")}Đã thanh toán · ${{ "3m": "3 tháng", "6m": "6 tháng" }[w.plan] || ""} · đến ${new Date(w.plan_expires_at).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>`;
   if (!w.expires_at)
-    return `<span class="mi-tag mi-tag--live">${_ico("badge-check")}Đã kích hoạt</span>`;
+    return `<span class="mi-tag mi-tag--live">${_ico("badge-check")}Đã thanh toán</span>`;
   const days = Math.ceil((new Date(w.expires_at) - Date.now()) / 86400000);
   return days > 0
     ? `<span class="mi-tag mi-tag--trial">${_ico("clock")}Dùng thử · còn ${Math.min(days, CONFIG.trialDays)} ngày</span>`

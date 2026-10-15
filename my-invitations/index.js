@@ -499,6 +499,13 @@ function cardState(c) {
 // Còn dưới chừng này ngày thì nhãn gói chuyển tông cảnh báo + mời nâng gói.
 const PLAN_WARN_DAYS = 14;
 
+// Ngày hết hạn gói, dd/mm/yyyy đủ hai chữ số ("16/1/2027" trông như ghi vội).
+function planEndText(c) {
+  return c.planExpiresAt
+    ? new Date(c.planExpiresAt).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : "";
+}
+
 function planDaysLeft(c) {
   return Math.max(0, Math.ceil((new Date(c.planExpiresAt) - Date.now()) / DAY_MS));
 }
@@ -774,16 +781,18 @@ function draftKeepText(c) {
 // MỘT nhãn trạng thái mỗi thẻ: tông màu + icon + chữ, chi tiết hạn nằm ở title.
 function tagHTML(c, state) {
   const days = daysLeft(c);
-  const planEnd = c.planExpiresAt ? new Date(c.planExpiresAt).toLocaleDateString("vi-VN") : "";
+  const planName = { "3m": "3 tháng", "6m": "6 tháng" }[c.plan] || "";
   const soon = state === "plan" && planDaysLeft(c) <= PLAN_WARN_DAYS;
   const T = {
     draft: ["draft", "pen-line", "Nháp", draftKeepText(c)],
     trial: ["trial", "clock", `Dùng thử · còn ${days} ngày`, UNPAID_KEEP_TEXT],
     expired: ["due", "clock-alert", "Hết hạn dùng thử", UNPAID_KEEP_TEXT],
     published: ["due", "credit-card", "Chưa kích hoạt", UNPAID_KEEP_TEXT],
-    active: ["live", "badge-check", "Vĩnh viễn", ""],
-    plan: [soon ? "trial" : "live", "calendar-clock", `Còn hạn đến ${planEnd}`, PLAN_KEEP_TEXT],
-    planExpired: ["due", "clock-alert", "Hết hạn gói", PLAN_KEEP_TEXT],
+    active: ["live", "badge-check", "Đã thanh toán · Vĩnh viễn", ""],
+    // Nói thẳng ĐÃ THANH TOÁN + gói; ngày hết hạn ở dòng gợi ý ngay dưới (hintHTML)
+    // để nhãn không dài quá ở khổ điện thoại.
+    plan: [soon ? "trial" : "live", "badge-check", `Đã thanh toán · ${planName}`, PLAN_KEEP_TEXT],
+    planExpired: ["due", "clock-alert", `Hết hạn gói ${planName}`, PLAN_KEEP_TEXT],
   }[state];
   const tip = T[3] ? ` title="${escAttr(T[3])}"` : "";
   return `<span class="mi-tag mi-tag--${T[0]}"${tip}>${_ico(T[1])}${T[2]}</span>`;
@@ -801,8 +810,8 @@ function hintHTML(c, state) {
     published: ["warn", "triangle-alert", "Kích hoạt để mở thiệp cho khách mời"],
     plan:
       planDaysLeft(c) <= PLAN_WARN_DAYS
-        ? ["warn", "triangle-alert", `Gói còn ${planDaysLeft(c)} ngày — nâng gói để giữ thiệp`]
-        : null,
+        ? ["warn", "triangle-alert", `Còn ${planDaysLeft(c)} ngày (đến ${planEndText(c)}) — nâng gói để giữ thiệp`]
+        : ["", "calendar-check", `Khách mời xem được đến hết ngày ${planEndText(c)}`],
     planExpired: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
   }[state];
   if (!H) return "";
