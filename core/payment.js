@@ -932,11 +932,11 @@
   function _syncSaving() {
     const el = document.getElementById("payment-saving");
     if (!el) return;
+    // Tiết kiệm = giá gốc − số phải trả (có mã thì ưu đãi ra mắt đã bị thay bằng mã).
     const pricing = window._paymentPricing || {};
-    const price = pricing.price || 0;
-    const original = pricing.originalPrice || 0;
-    const saved =
-      Math.max(0, original - price) + _discountOf(window._appliedPromo, price);
+    const saved = Number.isFinite(window._discountedTotal)
+      ? Math.max(0, _promoBase() - window._discountedTotal)
+      : 0;
     el.textContent = `Tổng tiết kiệm ${saved.toLocaleString("vi-VN")}đ`;
     el.classList.toggle("hidden", saved <= 0);
   }
@@ -972,7 +972,7 @@
       // khi bấm Thanh toán (payment-handler → cx_promo_reserve), nên mã vẫn có
       // thể hết lượt giữa chừng — lúc đó create-payment trả về promo_error.
       const theme = window._paymentTheme ? `&theme=${encodeURIComponent(window._paymentTheme)}` : "";
-      const amount = window._paymentPricing?.price > 0 ? `&amount=${window._paymentPricing.price}` : "";
+      const amount = _promoBase() > 0 ? `&amount=${_promoBase()}` : "";
       const token = await _authToken();
       const res = await fetch(
         `${CONFIG.supabase.edgeUrl}?resource=promo&code=${encodeURIComponent(code)}${theme}${amount}`,
@@ -998,7 +998,7 @@
       // Có mã là email thành bắt buộc: backend cần danh tính để chặn một người
       // giữ nhiều lượt cùng lúc (xem cx_promo_reserve).
       msg.className = "text-xs px-1 mt-1.5 font-medium text-green-700";
-      const basePrice = window._paymentPricing?.price || 0;
+      const basePrice = _promoBase();
       msg.textContent =
         _discountOf(data, basePrice) >= basePrice && basePrice > 0
           ? "Áp dụng thành công — thiệp này miễn phí!"
@@ -1013,14 +1013,12 @@
   };
 
   // Mức giảm hiển thị. Con số CHỐT vẫn do backend tính lại lúc tạo đơn — đây
-  // chỉ là bản xem trước, phải khớp công thức trong cx_promo_reserve: mã % tính
-  // trên GIÁ GỐC của gói (giá gạch ngang) nếu có, rồi trừ vào giá đang bán.
+  // chỉ là bản xem trước, phải khớp công thức trong cx_promo_reserve. basePrice
+  // phải là _promoBase(): áp mã thì bỏ ưu đãi ra mắt, tính lại từ giá gốc.
   function _discountOf(promo, basePrice) {
     if (!promo) return 0;
-    const original = window._paymentPricing?.originalPrice || 0;
-    const percentBase = Math.max(original, basePrice);
     const raw = promo.discount_type === "percent"
-      ? Math.round(percentBase * promo.discount_value / 100)
+      ? Math.round(basePrice * promo.discount_value / 100)
       : promo.discount_value;
     return Math.min(Math.max(raw, 0), basePrice);
   }
@@ -1030,10 +1028,18 @@
   // Vẽ bảng tiền + con số trên nút theo window._paymentPricing. Giá chưa biết
   // thì để dấu chờ; hỏi xong mà mẫu không có hàng `template_pricing` thì ghi
   // "Liên hệ" và khoá nút — không có con số nào đúng để dựng đơn cho mẫu đó.
+  // Số tiền làm nền cho mã giảm giá — khớp promoBase ở payment-handler: GIÁ GỐC của
+  // gói (mã thay cho ưu đãi ra mắt, không cộng dồn), không có giá gốc thì giá bán.
+  function _promoBase() {
+    const { price, originalPrice } = window._paymentPricing || {};
+    return Math.max(originalPrice || 0, price || 0);
+  }
+
   function _renderPrices() {
     const { price, originalPrice } = window._paymentPricing || {};
     const known = Number.isFinite(price);
-    const hasDiscount = known && originalPrice > price;
+    // Đang áp mã thì ẩn hàng ưu đãi ra mắt: mã thay cho nó.
+    const hasDiscount = known && !window._appliedPromo && originalPrice > price;
     const fmt = (v) => `${v.toLocaleString("vi-VN")}đ`;
     const blank = window._pricingPending ? "…" : "Liên hệ";
 
@@ -1048,9 +1054,11 @@
     if (saleEl && hasDiscount)
       saleEl.textContent = `-${fmt(originalPrice - price)}`;
 
-    const total = known
-      ? price - _discountOf(window._appliedPromo, price)
-      : null;
+    const total = !known
+      ? null
+      : window._appliedPromo
+        ? _promoBase() - _discountOf(window._appliedPromo, _promoBase())
+        : price;
     window._discountedTotal = total;
     const totalEl = document.getElementById("payment-total-price");
     if (totalEl) totalEl.textContent = known ? fmt(total) : blank;
@@ -1140,7 +1148,7 @@
     _renderPlans();
     _syncPlanNote(p);
     if (window._appliedPromo) {
-      _setPromoRow(window._appliedPromo.code, _discountOf(window._appliedPromo, p ? p.amount : 0));
+      _setPromoRow(window._appliedPromo.code, p ? _discountOf(window._appliedPromo, _promoBase()) : 0);
     }
     _renderPrices();
   }

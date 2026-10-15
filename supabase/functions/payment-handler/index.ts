@@ -471,6 +471,10 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     // Lượt KHÔNG hoàn lại nếu khách bỏ ngang; chỉ nhả khi đơn tạo không thành.
     let discountAmount = 0;
     let appliedPromoCode: string | null = null;
+    // Áp mã = BỎ mọi ưu đãi khác (ưu đãi ra mắt): đơn tính lại từ GIÁ GỐC của gói
+    // rồi mới trừ mã — cả % lẫn đơn tối thiểu đều xét trên giá gốc. Đơn nâng gói
+    // không có giá gốc → giữ số phải trả.
+    const promoBase = promo_code ? (quote.original_price ?? basePrice) : basePrice;
     let userKey: string | null = null;
     if (promo_code) {
       userKey = await resolveUserKey(req, supabaseClient, customer_email);
@@ -478,11 +482,8 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
         p_code: promo_code,
         p_manage_id: manage_id,
         p_order_id: fullOrderId,
-        p_base_amount: basePrice,
+        p_base_amount: promoBase,
         p_user_key: userKey,
-        // Mã % tính trên GIÁ GỐC của gói (giá gạch ngang); đơn nâng gói không có giá
-        // gốc → null = tính trên số phải trả (dqvinh_002_promo_discount_on_original).
-        p_discount_base: quote.original_price ?? null,
       });
 
       if (reserveError) {
@@ -508,7 +509,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       reservedOrderId = fullOrderId;
     }
 
-    const paymentAmount = Math.max(0, basePrice - discountAmount);
+    const paymentAmount = Math.max(0, promoBase - discountAmount);
 
     // Generate slug from customer name (remove Vietnamese accents) and ensure it's unique
     const removeVietnameseAccents = (str: string): string => {

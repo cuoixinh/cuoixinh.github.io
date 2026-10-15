@@ -718,15 +718,16 @@ tc("API-WR-15", "Xoá cả lô, giữ mã đã dùng", ["admin", "P100"], async 
   const r = await WA({ method: "DELETE", admin: true, query: { resource: "promo-codes", batch_id: S.P100batch } });
   return { pass: r.status === 200 && r.json?.deleted === 1 && r.json?.kept === 1, got: `${r.status} ${J(r.json)}` };
 });
-tc("API-PAY-11", "Mã 10% → số tiền = giá − 10% GIÁ GỐC, giữ lượt", ["u1", "admin"], async () => {
+tc("API-PAY-11", "Mã 10% → bỏ ưu đãi ra mắt: số tiền = giá gốc − 10%, giữ lượt", ["u1", "admin"], async () => {
   const p = await newPromo({ mode: "single", code: `QA${RUN}P10`, discount_type: "percent", discount_value: 10 });
   S.Wpromo = await newWedding("u1");
   const r = await PAY("/create-payment", { method: "POST", ...auth("u1"), body: payBody(S.Wpromo.id, { promo_code: p.codes[0].code }) });
   S.O2 = r.json?.order_id;
   S.O2amount = r.json?.pricing?.final_price;
   await retire(S.Wpromo);
-  // Mã % tính trên giá gốc (gạch ngang) của gói nếu có, kẹp không quá giá bán.
-  const want = PRICE - Math.min(PRICE, Math.round(Math.max(ORIGINAL ?? 0, PRICE) * 10 / 100));
+  // Áp mã = bỏ ưu đãi ra mắt: tính lại từ giá gốc (gạch ngang) của gói nếu có.
+  const base = Math.max(ORIGINAL ?? 0, PRICE);
+  const want = base - Math.round(base * 10 / 100);
   const c = checker();
   c.eq("status", r.status, 200);
   c.eq("pricing.final_price", r.json?.pricing?.final_price, want);
