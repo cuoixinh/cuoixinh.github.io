@@ -42,7 +42,12 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0
 }
 
+// Trần khách mỗi bên: thiệp đã thanh toán (payment_status = 'completed') và chưa.
+// Bản sao ở CONFIG.guestImport (maxPerSide / maxPerSideUnpaid) — đổi phải đổi cả hai.
 const MAX_PER_SIDE = 100
+const MAX_PER_SIDE_UNPAID = 5
+const sideCap = (paymentStatus: unknown) =>
+  paymentStatus === 'completed' ? MAX_PER_SIDE : MAX_PER_SIDE_UNPAID
 const MAX_WISHES_PER_GUEST = 3
 // Trần một lời chúc khách GỬI — trùng CX_WISH_MAX_LEN ở core/helpers/wishes-helper.js.
 // Quá trần là 400, KHÔNG cắt lặng lẽ (khách tưởng gửi đủ mà mất đuôi câu).
@@ -63,6 +68,11 @@ function sanitizeGuest(raw: Record<string, unknown>, wedding_id: string, side: s
     relationship: String(raw.relationship ?? '').trim().slice(0, MAX_REL_LEN),
   }
 }
+
+// Khoá trùng khi nhập danh sách: cùng Họ tên + Tên trên thiệp + Xưng hô là một khách.
+// Bản sao ở guestBL.planAiImport (client) — đổi phải đổi cả hai.
+const guestKey = (g: { full_name?: unknown; display_name?: unknown; relationship?: unknown }) =>
+  [g.full_name, g.display_name, g.relationship].map(v => String(v ?? '').trim()).join('||')
 
 // ── Khớp khách theo link cá nhân hoá ─────────────────────────────────────────
 // CỔNG CHẶN THẬT của mọi thao tác công khai (rsvp, gửi lời chúc): tham số
@@ -274,11 +284,13 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (action === 'wedding') {
       const { data, error } = await supabase
         .from('weddings')
-        .select('slug, share_message_template')
+        .select('slug, share_message_template, payment_status')
         .eq('id', wedding_id)
         .single()
       if (error) return fail('Thiệp không tồn tại', 404)
-      return ok(data)
+      // Trả trần đã suy ra, không trả payment_status (dữ liệu thanh toán).
+      const { payment_status, ...rest } = data
+      return ok({ ...rest, max_per_side: sideCap(payment_status) })
     }
 
     return fail('action không hợp lệ cho GET')
@@ -550,14 +562,21 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     const denied = await denyIfNotOwner(wedding_id)
     if (denied) return denied
 
-    // Xác nhận wedding tồn tại
-    const { data: wedding } = await supabase
+    // Xác nhận wedding tồn tại + lấy trạng thái thanh toán để chọn trần. Đọc hỏng là
+    // dừng: đoán sai trần là mở rộng giới hạn cho thiệp chưa thanh toán.
+    const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select('id')
+      .select('id, payment_status')
       .eq('id', wedding_id)
       .maybeSingle()
 
+    if (wErr) return fail('Không đọc được thiệp, vui lòng thử lại', 500)
     if (!wedding) return fail('Thiệp không tồn tại', 404)
+
+    const cap = sideCap(wedding.payment_status)
+    const capMsg = cap === MAX_PER_SIDE
+      ? `Đã đạt giới hạn ${cap} khách mời mỗi bên`
+      : `Thiệp chưa thanh toán chỉ thêm được ${cap} khách mời mỗi bên. Thanh toán để mở tới ${MAX_PER_SIDE} khách.`
 
     // Đếm hiện tại của bên này
     const { count: currentCount, error: countErr } = await supabase
@@ -566,7 +585,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       .eq('wedding_id', wedding_id)
       .eq('side', side)
 
-    // Đếm hỏng mà vẫn chạy tiếp thì `existing = 0` → trần MAX_PER_SIDE coi như
+    // Đếm hỏng mà vẫn chạy tiếp thì `existing = 0` → trần mỗi bên coi như
     // không tồn tại. Dừng lại, đừng đoán.
     if (countErr) return fail('Không đếm được danh sách khách, vui lòng thử lại', 500)
 
@@ -574,9 +593,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     // ── Thêm 1 khách ──
     if (action === 'insert-one') {
-      if (existing >= MAX_PER_SIDE) {
-        return fail(`Đã đạt giới hạn ${MAX_PER_SIDE} khách mời mỗi bên`)
-      }
+      if (existing >= cap) return fail(capMsg)
 
       const g = sanitizeGuest(body.guest ?? {}, wedding_id, side)
       if (!g.full_name) return fail('Họ và tên không được để trống')
@@ -601,12 +618,12 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       if (guests.length === 0) return fail('Không có dữ liệu hợp lệ')
 
       if (overwrite) {
-        // Xóa các bản ghi trùng full_name + display_name, giữ bản ghi không trùng
-        const importKeys = new Set(guests.map(g => `${g.full_name}||${g.display_name}`))
+        // Xóa các bản ghi trùng (guestKey), giữ bản ghi không trùng
+        const importKeys = new Set(guests.map(guestKey))
 
         const { data: existingRows, error: exErr } = await supabase
           .from('guests')
-          .select('id, full_name, display_name')
+          .select('id, full_name, display_name, relationship')
           .eq('wedding_id', wedding_id)
           .eq('side', side)
 
@@ -615,7 +632,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         if (exErr) return fail(exErr.message, 500)
 
         const idsToDelete = (existingRows ?? [])
-          .filter(e => importKeys.has(`${e.full_name}||${e.display_name}`))
+          .filter(e => importKeys.has(guestKey(e)))
           .map(e => e.id)
 
         if (idsToDelete.length > 0) {
@@ -636,9 +653,11 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         if (afterErr) return fail('Không đếm được danh sách khách, vui lòng thử lại', 500)
 
         const remaining = (afterCount ?? 0)
-        if (remaining + guests.length > MAX_PER_SIDE) {
+        if (remaining + guests.length > cap) {
           return fail(
-            `Tổng khách bên ${side === 'groom' ? 'nhà trai' : 'nhà gái'} sẽ vượt ${MAX_PER_SIDE}. Hiện còn ${remaining} khách.`,
+            cap === MAX_PER_SIDE
+              ? `Tổng khách bên ${side === 'groom' ? 'nhà trai' : 'nhà gái'} sẽ vượt ${cap}. Hiện còn ${remaining} khách.`
+              : `${capMsg} Hiện đang có ${remaining} khách.`,
             409
           )
         }
@@ -654,19 +673,17 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         // Bỏ qua trùng lặp
         const { data: existingRows, error: exErr } = await supabase
           .from('guests')
-          .select('full_name, display_name')
+          .select('full_name, display_name, relationship')
           .eq('wedding_id', wedding_id)
           .eq('side', side)
 
         // Đọc hỏng → không thấy ai trùng → chèn lại toàn bộ danh sách.
         if (exErr) return fail(exErr.message, 500)
 
-        const existingKeys = new Set(
-          (existingRows ?? []).map(g => `${g.full_name}||${g.display_name}`)
-        )
+        const existingKeys = new Set((existingRows ?? []).map(guestKey))
 
-        const newGuests = guests.filter(g => !existingKeys.has(`${g.full_name}||${g.display_name}`))
-        const canInsert = Math.max(0, MAX_PER_SIDE - existing)
+        const newGuests = guests.filter(g => !existingKeys.has(guestKey(g)))
+        const canInsert = Math.max(0, cap - existing)
         const toInsert = newGuests.slice(0, canInsert)
 
         if (toInsert.length > 0) {

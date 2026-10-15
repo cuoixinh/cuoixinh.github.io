@@ -2803,9 +2803,25 @@ html.cx-rail-off {
   color: rgb(var(--action-primary-deep-rgb));
   background: rgb(var(--surface-blossom-rgb));
 }
-/* Điện thoại hẹp không đủ chỗ cho ba nút — "Nhập Excel" lùi vào menu ⋯. */
-.gs-actions .gs-act-excel {
-  display: none;
+.gs-tone-red {
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-tint-rgb));
+}
+/* Mục "Nhập bằng AI" trong menu ⋯: ô nền tím nhạt giữ nhận diện XuXi. */
+.gs-tone-ai {
+  background: rgb(var(--ai-chip-bg-rgb));
+  box-shadow: inset 0 0 0 1px rgb(var(--ai-chip-border-rgb));
+}
+/* Dưới sm hàng nút chiếm trọn một hàng (ô tìm ở hàng trên); hai nút chính chia
+   đôi phần còn lại, lề trong hẹp lại cho vừa máy 360px. */
+.gs-actions {
+  flex: 1 1 100%;
+}
+.gs-actions .gs-act-main {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-inline: 12px;
+  white-space: nowrap;
 }
 
 /* Danh sách khách: dưới md mỗi hàng là thẻ hai tầng — (avatar + tên | nút) ở
@@ -2870,6 +2886,70 @@ html.cx-rail-off {
 }
 .gs-who-txt {
   @apply flex min-w-0 flex-col;
+}
+/* Chế độ chọn nhiều để xoá (enterGuestSelect): ô avatar thành ô tích, nút thao tác
+   của hàng ẩn đi nhưng vẫn giữ chỗ để lưới cột không xô lệch. */
+.gs-pick {
+  @apply flex shrink-0 items-center justify-center rounded-full;
+  color: #fff;
+  background: rgb(var(--surface-panel-rgb));
+  box-shadow: inset 0 0 0 2px rgb(var(--border-field-rgb));
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.gs-ava.gs-pick {
+  width: 40px;
+  height: 40px;
+}
+.gs-row.is-picked {
+  background: rgb(var(--state-error-tint-rgb));
+}
+.gs-row.is-picked .gs-pick,
+.gs-pick.is-on {
+  background: rgb(var(--state-error-text-rgb));
+  box-shadow: none;
+}
+.gs-list.is-selecting .gs-acts {
+  visibility: hidden;
+}
+/* Một hàng: "Chọn tất cả" bên trái, cụm Huỷ/Xoá đẩy sát phải. Không wrap — đổi nhãn
+   "Chọn tất cả" ↔ "Bỏ chọn tất cả" sẽ làm nút nhảy hàng. */
+.gs-selbar {
+  display: none;
+  align-items: center;
+  flex: 1 1 100%;
+  gap: 8px;
+}
+.gs-toolbar.is-selecting .gs-actions {
+  display: none;
+}
+.gs-toolbar.is-selecting .gs-selbar {
+  display: flex;
+}
+.gs-selbar-acts {
+  @apply flex shrink-0 items-center;
+  margin-left: auto;
+  gap: 8px;
+}
+/* Lề trong hẹp hơn x-button md cho vừa máy 360px (cùng ô tìm ở hàng trên). */
+.gs-selbar-acts button {
+  padding-inline: 16px;
+}
+.gs-selbar-all {
+  @apply flex shrink-0 items-center whitespace-nowrap;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px 0 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-selbar-all:hover {
+  background: rgb(var(--surface-hover-rgb));
+}
+.gs-selbar-all .gs-pick {
+  width: 20px;
+  height: 20px;
 }
 .gs-name {
   @apply truncate;
@@ -3048,6 +3128,110 @@ html.cx-rail-off {
   gap: 8px;
   margin-top: 16px;
 }
+/* Bên đang mở chưa có khách (cờ do _syncStats đặt): ẩn cả thanh công cụ — chưa có
+   gì để tìm, và màn trống bên dưới đã có ba cách thêm khách. */
+.gs-toolbar.is-empty {
+  display: none;
+}
+
+/* Ba thẻ "cách thêm khách" ở màn trống: dưới sm xếp dọc (icon trái, chữ phải),
+   từ sm thành ba cột. Thẻ là vùng bấm trọn; tông AI chỉ ở thẻ XuXi. */
+.gs-paths {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 640px;
+}
+.gs-path {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
+  text-align: left;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+.gs-path:hover {
+  border-color: rgb(var(--brand-accent-rgb) / 0.6);
+  box-shadow: 0 8px 20px -12px rgb(var(--shadow-brand-rgb) / 0.5);
+}
+.gs-path:active {
+  transform: scale(0.98);
+}
+.gs-path-ico {
+  @apply flex items-center justify-center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+}
+.gs-path-txt {
+  @apply flex min-w-0 flex-col;
+  gap: 4px;
+}
+.gs-path-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-path-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-path--one .gs-path-ico {
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+.gs-path--excel .gs-path-ico {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-tint-rgb));
+}
+.gs-path--ai {
+  border-color: rgb(var(--ai-chip-border-rgb));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--ai-chip-bg-rgb)),
+    rgb(var(--white-rgb)) 70%
+  );
+}
+.gs-path--ai:hover {
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.5);
+  box-shadow: 0 8px 20px -12px rgb(var(--ai-glow-strong-rgb) / 0.6);
+}
+.gs-path--ai .gs-path-ico {
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+}
+.gs-path--ai .gs-path-title {
+  color: rgb(var(--ai-chip-text-rgb));
+}
+@media (min-width: 640px) {
+  .gs-paths {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .gs-path {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    align-items: start;
+    padding: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-path {
+    transition: none;
+  }
+  .gs-path:active {
+    transform: none;
+  }
+}
+
 .gs-empty-note {
   margin-top: 12px;
   text-align: center;
@@ -3264,6 +3448,887 @@ html.cx-rail-off {
   background: rgb(var(--white-rgb) / 0.7);
 }
 
+/* "Nhập bằng AI" — nhận diện AI chung của sản phẩm (logo XuXi + tông tím
+   --ai-*). Tím chỉ đánh dấu phần XuXi làm (nút, ô dán, đoạn khách sắp thêm trên
+   thanh sức chứa); nút chốt "Nhập N khách" vẫn là nút chính màu thương hiệu. */
+.gs-ai-go {
+  font-weight: 600;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    filter 0.15s ease,
+    opacity 0.15s ease;
+}
+.gs-ai-go {
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--ai-gradient-from-rgb)),
+    rgb(var(--ai-gradient-to-rgb))
+  );
+  box-shadow: 0 6px 16px -8px rgb(var(--ai-glow-strong-rgb) / 0.7);
+}
+.gs-ai-go:hover {
+  filter: brightness(1.06);
+}
+.gs-ai-go:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.gs-ai-go[data-loading="1"] {
+  opacity: 0.7;
+  cursor: progress;
+}
+.gs-ai-go[data-loading="1"] svg {
+  animation: cx-wand-spin 0.9s linear infinite;
+}
+.gs-sheet-ico--ai {
+  background: rgb(var(--ai-chip-bg-rgb));
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+}
+
+/* Ô dán: khung giấy viền tím, đếm ký tự ở chân. */
+.gs-ai-pad {
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.gs-ai-pad:focus-within {
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.55);
+}
+.gs-ai-text {
+  display: block;
+  width: 100%;
+  min-height: 200px;
+  padding: 16px;
+  resize: none;
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgb(var(--text-heading-rgb));
+  background: transparent;
+  outline: none;
+}
+.gs-ai-text::placeholder {
+  color: rgb(var(--text-placeholder-rgb));
+}
+.gs-ai-text[aria-invalid="true"] {
+  background: rgb(var(--state-error-bg-rgb) / 0.35);
+}
+.gs-ai-pad-foot {
+  @apply flex items-center justify-between;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 12px;
+  border-top: 1px dashed rgb(var(--ai-chip-border-rgb));
+  background: rgb(var(--ai-chip-bg-rgb) / 0.45);
+}
+.gs-ai-tools {
+  @apply flex flex-wrap items-center;
+  gap: 4px;
+  margin-left: -4px;
+}
+/* Nút "+" ở chân ô dán: tròn tím nhạt, xoay thành dấu × khi menu đang mở. */
+.gs-ai-plus {
+  @apply inline-flex items-center justify-center rounded-full;
+  width: 32px;
+  height: 32px;
+  color: rgb(var(--ai-chip-text-rgb));
+  background: rgb(var(--ai-chip-bg-rgb));
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+  transition: background-color 0.15s ease, transform 0.2s ease;
+}
+.gs-ai-plus:hover {
+  background: rgb(var(--white-rgb));
+}
+.gs-ai-plus.is-open {
+  transform: rotate(45deg);
+}
+.gs-ai-plus:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+/* Kéo tệp vào khung: viền đậm báo thả được. */
+.gs-ai-pad.is-drop {
+  border-color: rgb(var(--ai-gradient-from-rgb));
+  box-shadow: 0 0 0 4px rgb(var(--ai-chip-bg-rgb));
+}
+/* Các tệp ảnh/PDF đang đính kèm — mỗi tệp một hàng gọn giữa ô dán và chân ô. */
+/* Tệp đính kèm: dải thẻ ngang khổ cố định, nhiều tệp thì vuốt ngang (thẻ cắt dở ở mép
+   báo còn tệp). Đệm trên/phải chừa chỗ cho nút × nhô ra góc thẻ. */
+.gs-ai-files {
+  display: grid;
+  margin: 0 12px 4px;
+}
+.gs-ai-strip {
+  display: flex;
+  gap: 12px;
+  padding: 12px 12px 12px 4px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+.gs-ai-file {
+  position: relative;
+  display: grid;
+  flex: 0 0 184px;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 12px;
+  scroll-snap-align: start;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+  box-shadow: 0 2px 8px -4px rgb(var(--shadow-card-rgb) / 0.2);
+}
+.gs-ai-file-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgb(var(--border-field-rgb));
+  background: rgb(var(--surface-tint-rgb));
+}
+/* Nút bỏ tệp: tròn nhỏ nhô ra góc phải trên; vùng bấm nới rộng bằng ::before. */
+.gs-ai-file-x {
+  @apply flex items-center justify-center rounded-full;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--text-heading-rgb));
+  border: 2px solid rgb(var(--white-rgb));
+  transition: background-color 0.15s ease;
+}
+.gs-ai-file-x::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+.gs-ai-file-x:hover {
+  background: rgb(var(--state-error-text-rgb));
+}
+.gs-ai-file-thumb--pdf,
+.gs-ai-file-thumb--doc,
+.gs-ai-file-thumb--xls {
+  @apply flex items-center justify-center;
+  border-color: transparent;
+}
+.gs-ai-file-thumb--pdf {
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-bg-rgb));
+}
+.gs-ai-file-thumb--doc {
+  color: rgb(var(--state-info-text-rgb));
+  background: rgb(var(--state-info-bg-rgb));
+}
+.gs-ai-file-thumb--xls {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-tint-rgb));
+}
+.gs-ai-file-txt {
+  @apply flex min-w-0 flex-col;
+}
+.gs-ai-file-name {
+  @apply truncate;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-ai-file-meta {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-ai-count {
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-ai-count.is-over {
+  font-weight: 600;
+  color: rgb(var(--state-error-text-rgb));
+}
+.gs-ai-tip {
+  @apply flex items-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-ai-tip svg {
+  flex: none;
+  color: rgb(var(--tone-amber-rgb));
+}
+
+/* Giới hạn tệp dưới ô dán: danh sách chấm, nhãn đậm. */
+.gs-ai-formats {
+  display: grid;
+  gap: 2px;
+  padding-left: 16px;
+  list-style: disc;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-ai-formats li::marker {
+  color: rgb(var(--ai-chip-text-rgb));
+}
+.gs-ai-formats b {
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+
+/* Popup AI (cả hai bước): thanh sức chứa gọn một dòng — tên bên · vạch · số; ghi chú dòng dưới. */
+.gs-ai .gs-cap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border-color: transparent;
+  background: rgb(var(--surface-tint-rgb));
+}
+.gs-ai .gs-cap .gs-cap-top {
+  display: contents;
+}
+.gs-ai .gs-cap .gs-cap-name {
+  grid-column: 1;
+  grid-row: 1;
+}
+.gs-ai .gs-cap .gs-cap-bar {
+  grid-column: 2;
+  grid-row: 1;
+  height: 6px;
+  margin-top: 0;
+}
+.gs-ai .gs-cap .gs-cap-num {
+  grid-column: 3;
+  grid-row: 1;
+}
+.gs-ai .gs-cap .gs-cap-note {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+.gs-ai .gs-cap.is-full {
+  background: rgb(var(--state-error-bg-rgb) / 0.5);
+}
+
+/* Thanh sức chứa của bên đang nhập: xám = khách có sẵn, tím = khách XuXi sắp
+   thêm, trên nền trống là chỗ còn lại. Đủ trần thì cả thẻ chuyển tông báo lỗi. */
+.gs-cap {
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--border-field-rgb));
+}
+.gs-cap-top {
+  @apply flex items-baseline justify-between;
+  gap: 8px;
+}
+.gs-cap-name {
+  @apply inline-flex items-center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-cap--groom .gs-cap-name svg {
+  color: rgb(var(--state-info-text-rgb));
+}
+.gs-cap--bride .gs-cap-name svg {
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.gs-cap-num {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-cap-num strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-cap-bar {
+  display: flex;
+  height: 8px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgb(var(--surface-control-rgb));
+}
+/* Vạch khách có sẵn đổi màu theo mức đầy (is-ok/warn/full, _aiCapHTML); phần sắp thêm
+   tím nhạt; chưa có khách thì chỉ còn nền xám của vạch. */
+.gs-cap-have.is-ok {
+  background: rgb(var(--state-success-text-rgb));
+}
+.gs-cap-have.is-warn {
+  background: rgb(var(--state-warning-text-rgb));
+}
+.gs-cap-have.is-full {
+  background: rgb(var(--state-error-text-rgb));
+}
+.gs-cap-add {
+  background: rgb(var(--ai-gradient-from-rgb) / 0.4);
+  transition: width 0.3s ease;
+}
+.gs-cap-note {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-cap.is-full {
+  border-color: rgb(var(--state-error-text-rgb) / 0.35);
+  background: rgb(var(--state-error-bg-rgb) / 0.35);
+}
+.gs-cap.is-full .gs-cap-note {
+  font-weight: 500;
+  color: rgb(var(--state-error-text-rgb));
+}
+
+/* Bước xem lại — đầu bước: khối tổng kết (.gs-ai-sum) + dải lọc; từ sm dính đầu khi cuộn,
+   dưới sm cuộn đi theo danh sách (số khách sẽ nhập vẫn nằm trên nút ở chân popup). */
+.gs-ai-cap {
+  padding-bottom: 12px;
+  background: rgb(var(--white-rgb));
+}
+.gs-ai-sum {
+  display: grid;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgb(var(--ai-chip-bg-rgb) / 0.6);
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+}
+.gs-ai-sum.is-full {
+  background: rgb(var(--state-error-bg-rgb) / 0.4);
+  border-color: rgb(var(--state-error-text-rgb) / 0.3);
+}
+.gs-ai-sum-main {
+  @apply flex items-center;
+  gap: 12px;
+  min-width: 0;
+}
+.gs-ai-sum-n {
+  flex: none;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--ai-chip-text-rgb));
+}
+.gs-ai-sum.is-full .gs-ai-sum-n {
+  color: rgb(var(--state-error-text-rgb));
+}
+.gs-ai-sum-txt {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.gs-ai-sum-txt b {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-ai-sum-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-ai-sum.is-full .gs-ai-sum-note {
+  font-weight: 500;
+  color: rgb(var(--state-error-text-rgb));
+}
+.gs-ai-sum-cap {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed rgb(var(--ai-chip-border-rgb));
+}
+.gs-ai-sum.is-full .gs-ai-sum-cap {
+  border-color: rgb(var(--state-error-text-rgb) / 0.3);
+}
+.gs-ai-sum-cap-top {
+  @apply flex items-baseline justify-between;
+  gap: 8px;
+}
+.gs-ai-sum .gs-cap-bar {
+  height: 6px;
+  margin-top: 0;
+  background: rgb(var(--white-rgb));
+}
+.gs-ai-sum-key {
+  @apply flex flex-wrap items-center;
+  gap: 4px 12px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-ai-sum-key span {
+  @apply inline-flex items-center;
+  gap: 4px;
+}
+.gs-ai-key-have,
+.gs-ai-key-add {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+}
+.gs-ai-key-have {
+  background: rgb(var(--text-caption-rgb) / 0.55);
+}
+.gs-ai-key-add {
+  background: linear-gradient(90deg, rgb(var(--ai-gradient-from-rgb)), rgb(var(--ai-gradient-to-rgb)));
+}
+
+/* Nhắc soát chính tả khi danh sách đọc từ ảnh/PDF — giữa đầu bước và danh sách. */
+.gs-ai-read {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgb(var(--surface-tint-rgb));
+}
+
+.gs-ai-list {
+  display: grid;
+  gap: 8px;
+}
+/* Mỗi khách một THẺ. Đầu thẻ: lời mời xem trước ("Kính mời Anh Minh" — đúng cách
+   thiệp gọi khách) · nhãn trạng thái bằng chữ · nút bỏ. Thân: ba ô có nhãn riêng —
+   điện thoại xưng hô + họ tên một hàng, tên trên thiệp hàng dưới; từ sm ba ô một hàng.
+   Khách không được nhập: vạch màu mép trái + thẻ nền nhạt + ô mờ. */
+.gs-ai-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-areas:
+    "top top"
+    "rel name"
+    "disp disp";
+  gap: 8px;
+  padding: 12px 12px 12px 16px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--border-field-rgb) / 0.7);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.gs-ai-row:focus-within {
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.45);
+  box-shadow: 0 8px 20px -12px rgb(var(--ai-glow-strong-rgb) / 0.5);
+}
+.gs-ai-row::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: -1px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: transparent;
+}
+.gs-ai-row.is-empty::before {
+  background: rgb(var(--state-warning-text-rgb));
+}
+.gs-ai-row.is-other::before {
+  background: rgb(var(--state-info-text-rgb));
+}
+.gs-ai-row.is-dup::before {
+  background: rgb(var(--text-caption-rgb));
+}
+.gs-ai-row.is-over::before {
+  background: rgb(var(--state-error-text-rgb));
+}
+.gs-ai-row--sk {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+}
+
+.gs-ai-top {
+  @apply flex items-center;
+  grid-area: top;
+  gap: 8px;
+  min-width: 0;
+}
+.gs-ai-greet {
+  @apply truncate;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-ai-greet b {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-ai-greet i {
+  font-style: normal;
+  color: rgb(var(--text-placeholder-rgb));
+}
+/* Nhãn trạng thái (chỉ để đọc): chữ + biểu tượng. */
+.gs-ai-st {
+  @apply inline-flex shrink-0 items-center whitespace-nowrap rounded-full;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-tint-rgb));
+}
+.gs-ai-st svg {
+  flex: none;
+}
+/* Chân thẻ của khách bên kia: lý do + nút nhập vào bên đang mở. Chỉ thẻ .is-other mới
+   có ô "adopt" trong lưới, nên thẻ khác không dư một khoảng trống. */
+.gs-ai-adopt {
+  display: none;
+  grid-area: adopt;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed rgb(var(--state-info-text-rgb) / 0.3);
+  font-size: 12px;
+  color: rgb(var(--state-info-text-rgb));
+}
+.gs-ai-adopt > span {
+  @apply inline-flex items-center;
+  gap: 4px;
+}
+.gs-ai-row.is-other {
+  grid-template-areas:
+    "top top"
+    "rel name"
+    "disp disp"
+    "adopt adopt";
+}
+.gs-ai-row.is-other .gs-ai-adopt {
+  display: flex;
+}
+.gs-ai-adopt-btn {
+  @apply inline-flex items-center rounded-full;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--state-info-text-rgb));
+  transition: filter 0.15s ease;
+}
+.gs-ai-adopt-btn:hover {
+  filter: brightness(1.1);
+}
+.gs-ai-x {
+  flex: none;
+  margin: -4px -4px -4px 0;
+}
+
+.gs-ai-f {
+  @apply flex min-w-0 flex-col;
+  gap: 4px;
+}
+.gs-ai-f--rel {
+  grid-area: rel;
+}
+.gs-ai-f--name {
+  grid-area: name;
+}
+.gs-ai-f--disp {
+  grid-area: disp;
+}
+.gs-ai-lb {
+  padding-left: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: rgb(var(--text-caption-rgb));
+}
+/* 14px vẫn không bị Safari iOS tự zoom: trang khoá maximum-scale=1 ở thẻ viewport. */
+.gs-ai-in {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--surface-tint-rgb));
+  border: 1px solid rgb(var(--border-field-rgb) / 0.5);
+  outline: none;
+  text-overflow: ellipsis;
+  cursor: text;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+.gs-ai-in::placeholder {
+  font-weight: 400;
+  color: rgb(var(--text-placeholder-rgb));
+}
+.gs-ai-in:hover {
+  border-color: rgb(var(--border-field-rgb));
+}
+.gs-ai-in:focus {
+  background: rgb(var(--white-rgb));
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.55);
+}
+.gs-ai-relbox {
+  position: relative;
+  display: block;
+}
+.gs-ai-relchev {
+  @apply flex items-center;
+  position: absolute;
+  top: 0;
+  right: 8px;
+  bottom: 0;
+  color: rgb(var(--text-caption-rgb));
+  pointer-events: none;
+}
+.gs-ai-relbox .gs-ai-rel {
+  padding-right: 28px;
+}
+.x-pop.gs-ai-rel-pop {
+  max-height: 264px;
+  overflow-y: auto;
+  border-radius: 16px;
+}
+.gs-ai-rel {
+  font-weight: 600;
+  color: rgb(var(--ai-chip-text-rgb));
+}
+.gs-ai-name {
+  font-weight: 600;
+}
+.gs-ai-disp {
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-ai-row.is-empty .gs-ai-name {
+  border-color: rgb(var(--state-warning-text-rgb) / 0.5);
+  background: rgb(var(--state-warning-bg-rgb) / 0.4);
+}
+
+/* Khách không được nhập. */
+.gs-ai-row.is-other,
+.gs-ai-row.is-dup,
+.gs-ai-row.is-over {
+  background: rgb(var(--surface-tint-rgb) / 0.7);
+}
+.gs-ai-row.is-other .gs-ai-f,
+.gs-ai-row.is-dup .gs-ai-f,
+.gs-ai-row.is-over .gs-ai-f,
+.gs-ai-row.is-other .gs-ai-greet,
+.gs-ai-row.is-dup .gs-ai-greet,
+.gs-ai-row.is-over .gs-ai-greet {
+  opacity: 0.6;
+}
+.gs-ai-row.is-other .gs-ai-st,
+.gs-ai-chip.is-other svg {
+  color: rgb(var(--state-info-text-rgb));
+}
+.gs-ai-row.is-other .gs-ai-st {
+  background: rgb(var(--state-info-bg-rgb));
+}
+.gs-ai-row.is-dup .gs-ai-st {
+  color: rgb(var(--text-subtle-rgb));
+  background: rgb(var(--surface-control-rgb));
+}
+.gs-ai-row.is-over .gs-ai-st,
+.gs-ai-chip.is-over svg {
+  color: rgb(var(--state-error-text-rgb));
+}
+.gs-ai-row.is-over .gs-ai-st {
+  background: rgb(var(--state-error-bg-rgb));
+}
+.gs-ai-row.is-empty .gs-ai-st,
+.gs-ai-chip.is-empty svg {
+  color: rgb(var(--state-warning-text-rgb));
+}
+.gs-ai-row.is-empty .gs-ai-st {
+  background: rgb(var(--state-warning-bg-rgb));
+}
+.gs-ai-chip.is-ok svg {
+  color: rgb(var(--state-success-text-rgb));
+}
+.gs-ai-chip.is-dup svg {
+  color: rgb(var(--text-subtle-rgb));
+}
+/* Lọc: chỉ hàng được đánh dấu lúc bấm chip (data-in, _aiApplyFilter). */
+.gs-ai-list[data-filter] .gs-ai-row {
+  display: none;
+}
+.gs-ai-list[data-filter] .gs-ai-row[data-in] {
+  display: grid;
+}
+/* Dải chip đếm/lọc dưới khối tổng kết — một hàng, vuốt ngang khi chật. */
+.gs-ai-tally {
+  @apply flex items-center;
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.gs-ai-tally:empty {
+  display: none;
+}
+.gs-ai-chip {
+  @apply inline-flex shrink-0 items-center whitespace-nowrap rounded-full;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--text-body-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--border-field-rgb));
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.gs-ai-chip b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-ai-chip:hover {
+  background: rgb(var(--surface-tint-rgb));
+}
+.gs-ai-chip[aria-pressed="true"] {
+  color: rgb(var(--ai-chip-text-rgb));
+  background: rgb(var(--ai-chip-bg-rgb));
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.55);
+}
+.gs-ai-row.is-empty .gs-ai-name {
+  border-color: rgb(var(--state-warning-text-rgb) / 0.5);
+}
+
+/* Chờ XuXi đọc: logo "thở" — chuyển động duy nhất của popup. */
+.gs-ai-wait {
+  @apply flex items-center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(var(--ai-chip-text-rgb));
+  background: rgb(var(--ai-chip-bg-rgb));
+}
+/* Nút dừng kiểu khung chat: tròn đỏ, ô vuông trắng ở giữa. */
+.gs-ai-wait-stop {
+  @apply flex items-center justify-center rounded-full;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  background: rgb(var(--state-error-text-rgb));
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.gs-ai-wait-stop i {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: rgb(var(--white-rgb));
+}
+.gs-ai-wait-stop:hover {
+  filter: brightness(1.1);
+}
+.gs-ai-wait-stop:active {
+  transform: scale(0.92);
+}
+.gs-ai-wait-ico {
+  flex: none;
+  animation: cx-ai-breathe 1.6s ease-in-out infinite;
+}
+@keyframes cx-ai-breathe {
+  50% {
+    transform: scale(1.12);
+    opacity: 0.7;
+  }
+}
+
+@media (min-width: 640px) {
+  .gs-ai-text {
+    font-size: 14px;
+  }
+  .gs-ai-in {
+    font-size: 13px;
+  }
+  .gs-ai-in {
+    height: 32px;
+  }
+  .gs-ai-cap {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  /* Tổng kết hai cột: số khách sẽ nhập · sức chứa (ngăn bằng gạch đứt). */
+  .gs-ai-sum {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    align-items: center;
+    gap: 20px;
+    padding: 16px 20px;
+  }
+  .gs-ai-sum-n {
+    font-size: 40px;
+  }
+  .gs-ai-sum-cap {
+    padding: 0 0 0 20px;
+    border-top: 0;
+    border-left: 1px dashed rgb(var(--ai-chip-border-rgb));
+  }
+  .gs-ai-row {
+    grid-template-columns: 128px minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "top top top"
+      "rel name disp";
+    column-gap: 12px;
+    padding: 12px 12px 16px 20px;
+  }
+  .gs-ai-row.is-other {
+    grid-template-areas:
+      "top top top"
+      "rel name disp"
+      "adopt adopt adopt";
+  }
+  .gs-ai-x {
+    opacity: 0.55;
+  }
+  .gs-ai-row:hover .gs-ai-x,
+  .gs-ai-row:focus-within .gs-ai-x {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-ai-wait-ico,
+  .gs-ai-go[data-loading="1"] svg {
+    animation: none;
+  }
+  .gs-cap-add,
+  .gs-ai-plus,
+  .gs-ai-row,
+  .gs-ai-in,
+  .gs-ai-pad {
+    transition: none;
+  }
+}
+
 /* Popup lời chúc. */
 .gs-wish {
   padding: 12px;
@@ -3306,8 +4371,13 @@ html.cx-rail-off {
   .gs-search {
     flex: 1 1 0;
   }
-  .gs-actions .gs-act-excel {
-    display: inline-flex;
+  .gs-actions,
+  .gs-selbar {
+    flex: none;
+  }
+  .gs-actions .gs-act-main {
+    flex: none;
+    padding-inline: 20px;
   }
   .gs-pages {
     display: flex;

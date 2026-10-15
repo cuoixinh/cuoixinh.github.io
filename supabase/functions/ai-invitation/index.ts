@@ -1,9 +1,10 @@
-// ai-invitation — ba tác vụ AI lẻ cho trang thiết lập và admin (Gemini, xoay vòng
+// ai-invitation — các tác vụ AI lẻ cho trang thiết lập và admin (Gemini, xoay vòng
 // nhiều key): mode=optimize (viết lại 1 ô văn bản), mode=love_story (tách đoạn kể
-// thành các mốc), mode=sample (dựng dữ liệu demo cho mẫu thiệp).
+// thành các mốc), mode=sample (dựng dữ liệu demo cho mẫu thiệp), mode=guests (tách
+// danh sách khách dán tự do thành từng khách — chỉ ĐỌC, ghi DB vẫn là guest-handler).
 // Sinh CẢ thiệp nay là việc của ai-chat — trang thiết lập không còn popup "Tạo bằng AI".
 //
-// Không bắt buộc đăng nhập: cách đếm hạn mức nằm ở _shared/ai-rate-limit.ts (tiền
+// Không bắt buộc đăng nhập (trừ mode=guests — chỉ chủ thiệp mới nhập khách): cách đếm hạn mức nằm ở _shared/ai-rate-limit.ts (tiền
 // tố "inv:"), đây chỉ khai hai con số. Validate + clamp cả input lẫn
 // output, CORS allowlist, timeout khi gọi provider, không rò lỗi chi tiết của
 // provider ra client; API key chỉ nằm trong secret.
@@ -15,8 +16,10 @@ import { withAxiom, type Logger } from '../_shared/axiom.ts'
 import {
   corsHeaders,
   errMsg,
+  GEMINI_MODEL_GUESTS,
   generateWithGemini,
   json,
+  type GeminiPart,
 } from '../_shared/ai-provider.ts'
 import { enforceRateLimit, sanitizeDevice } from '../_shared/ai-rate-limit.ts'
 // Hợp đồng dữ liệu thiệp (whitelist field, nhãn văn phong, tầng validate output)
@@ -44,6 +47,50 @@ const DAILY_LIMIT      = 15      // số lần gọi AI tối đa / user đã đ
 const ANON_DAILY_LIMIT = 5       // số lần gọi AI tối đa / khách chưa đăng nhập / ngày
 const MAX_STORY_LOVE_LEN = 1500  // textarea "chuyện tình" (nguyên văn, khớp maxlength client)
 const MAX_OPTIMIZE_IN  = 800     // độ dài tối đa văn bản đầu vào cho nút "Tối ưu"
+const MAX_GUESTS_IN    = 8000    // ô dán danh sách khách (khớp AI_GUEST_MAX_CHARS ở trang Khách mời)
+// Trần số khách AI trả về (văn bản có thể ghi cả hai nhóm, 2 × MAX_PER_SIDE của
+// guest-handler). Trần THẬT mỗi bên do guest-handler giữ lúc ghi.
+const MAX_GUESTS_OUT   = 200
+// Tệp đính kèm của mode=guests (ảnh đã nén ở trình duyệt, hoặc PDF): tối đa
+// MAX_GUEST_FILES tệp một lượt, mỗi tệp ~4MB, tổng ~8MB (tính theo độ dài base64).
+// Khớp aiMaxFiles / aiFileMaxMB / aiFilesMaxMB của CONFIG.guestImport ở client.
+const GUEST_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+const MAX_GUEST_FILES = 5
+// Word/Excel/.txt: trình duyệt đọc ra chữ rồi gửi kèm trong `docs` (tính chung số tệp
+// với ảnh/PDF). Trần tổng ký tự — khớp aiDocsMaxChars của client.
+const MAX_GUEST_DOCS_IN = 20000
+const GUEST_DOC_TYPES = ['Word', 'Excel', '.txt', 'CSV']
+const MAX_GUEST_FILE_B64 = 5_600_000
+const MAX_GUEST_FILES_B64 = 11_200_000
+// PDF tốn token theo SỐ TRANG — một file 4MB có thể vài trăm trang, đủ đốt quota Gemini
+// của mọi tính năng AI. Đếm thô được thì giới hạn tổng trang; không đếm được (PDF nén
+// object stream) thì chỉ nhận file nhỏ. Khớp aiPdfMaxPages / aiPdfUnknownMaxMB ở client.
+const MAX_GUEST_PDF_PAGES = 10
+const MAX_GUEST_PDF_UNKNOWN_B64 = 2_800_000
+// Trần body đọc vào (kiểm Content-Length TRƯỚC khi parse, kể cả khách chưa đăng nhập):
+// mode=guests mang tệp nên cao, mọi mode khác chỉ là chữ ngắn.
+const MAX_BODY_GUESTS = 12_000_000
+const MAX_BODY_TEXT = 100_000
+
+// Nhận diện tệp theo vài byte đầu — không tin trường mime client gửi.
+function fileMagicOk(mime: string, b64: string): boolean {
+  if (mime === 'image/jpeg') return b64.startsWith('/9j/')
+  if (mime === 'image/png') return b64.startsWith('iVBORw0KGgo')
+  if (mime === 'application/pdf') return b64.startsWith('JVBERi0')
+  if (mime === 'image/webp') {
+    try { return atob(b64.slice(0, 16)).slice(8, 12) === 'WEBP' } catch { return false }
+  }
+  return false
+}
+
+// Số trang PDF đếm thô (không giải nén) từ đối tượng /Type /Page. 0 = không đếm được.
+function pdfPageCount(b64: string): number {
+  try {
+    return (atob(b64).match(/\/Type\s*\/Page(?![A-Za-z])/g) ?? []).length
+  } catch {
+    return 0
+  }
+}
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Cho phép: origin nằm trong allowlist, hoặc bất kỳ localhost/127.0.0.1 (mọi cổng, để dev).
@@ -170,6 +217,83 @@ ${text}
 """`
 }
 
+// ── Prompt "Nhập khách bằng AI" (mode=guests) ──────────────────────────────
+// Xưng hô gợi ý — bản sao GUEST_RELATIONS ở invitation-setup/guests/index.js, đổi
+// một bên thì đổi cả bên kia (AI vẫn được trả xưng hô ngoài danh sách).
+const GUEST_RELATIONS = [
+  'Bạn', 'Anh', 'Chị', 'Em', 'Anh chị', 'Vợ chồng', 'Cô', 'Chú', 'Bác', 'Dì', 'Cậu',
+  'Mợ', 'Thím', 'Ông', 'Bà', 'Thầy', 'Cô giáo', 'Đồng nghiệp', 'Sếp', 'Họ hàng', 'Gia đình',
+]
+
+const GUEST_ITEM_SCHEMA = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      full_name: { type: 'string', description: 'Tên người/nhóm như người dùng ghi, đã bỏ xưng hô đứng đầu' },
+      display_name: { type: 'string', description: 'Cách gọi trên thiệp nếu khác full_name, không thì ""' },
+      relationship: { type: 'string', description: 'Xưng hô dùng để mời khách' },
+      side: { type: 'string', enum: ['groom', 'bride', 'unknown'] },
+    },
+    required: ['full_name', 'relationship', 'side'],
+  },
+}
+
+// fromFile = danh sách nằm trong tệp đính kèm (ảnh/PDF) gửi cùng lượt; khi đó `text`
+// (có thể rỗng) là phần người dùng gõ thêm — khách bổ sung hoặc lời dặn cách đọc.
+type GuestDoc = { name: string; type: string; text: string }
+
+// Tên tệp/sheet nằm trong prompt: một dòng, bỏ ngoặc kép để không phá khối trích.
+const guestFileName = (v: unknown) =>
+  String(v ?? '').replace(/[\r\n"“”]+/g, ' ').trim().slice(0, 120) || 'không tên'
+
+// files: số ảnh/PDF gửi kèm (đánh số 1..files, mỗi tệp có dòng "Tệp N: …" đứng trước);
+// docs: chữ trích từ Word/Excel/.txt, đánh số tiếp theo, mỗi tệp một khối có rào.
+function buildGuestsPrompt(text: string, files = 0, docs: GuestDoc[] = []): string {
+  const attached = files > 0 || docs.length > 0
+  const intro = attached
+    ? `Bạn là XuXi, trợ lý của Cưới Xinh. Người dùng gửi danh sách khách mời đám cưới trong MỘT HOẶC NHIỀU TỆP (ảnh chụp giấy viết tay, ảnh màn hình Zalo, PDF, Word, Excel…). Mỗi tệp được đánh số và ghi tên: ảnh/PDF gửi kèm, có dòng "Tệp N: …" đứng ngay trước; Word/Excel/.txt đã đổi sang chữ, nằm giữa dòng "=== Tệp N … ===" và "=== Hết tệp N ===" ở cuối lời nhắn này. Đọc kỹ MỌI chữ trong từng tệp, kể cả chữ viết tay, giữ đúng dấu tiếng Việt; chữ nào không đọc chắc thì ghi đúng như nhìn thấy, KHÔNG đoán thành tên khác. Nhiều tệp là các phần của CÙNG một danh sách: đọc lần lượt theo số tệp, gộp lại; một người xuất hiện ở nhiều tệp (ảnh chụp chồng lên nhau) chỉ xuất MỘT lần. Tên tệp hoặc tên sheet có thể cho biết nhóm (VD "khach-nha-gai.xlsx", sheet "Nhà gái:") — dùng nó như tiêu đề nhóm ở mục 6. Nội dung Excel: mỗi hàng một dòng, các ô ngăn bằng " | ", hàng đầu thường là tiêu đề cột chứ không phải khách. Rồi TÁCH thành từng khách mời — mỗi khách là MỘT lời mời (một người, một cặp vợ chồng, hoặc một gia đình).`
+    : `Bạn là XuXi, trợ lý của Cưới Xinh. Người dùng DÁN một danh sách khách mời đám cưới (chép từ Zalo, ghi chú điện thoại, Excel, viết tay…). Hãy TÁCH thành từng khách mời — mỗi khách là MỘT lời mời (một người, một cặp vợ chồng, hoặc một gia đình).`
+  const docBlock = docs.length
+    ? `
+
+Nội dung trích từ tệp:
+${docs.map((d, i) => {
+  const no = files + i + 1
+  return `=== Tệp ${no}: "${d.name}" (${d.type}) ===\n${d.text}\n=== Hết tệp ${no} ===`
+}).join('\n\n')}`
+    : ''
+  const userText = !attached
+    ? `
+
+Danh sách người dùng dán:
+"""
+${text}
+"""`
+    : text
+      ? `
+
+Người dùng gõ thêm kèm tệp — có thể là khách BỔ SUNG (xuất ra như khách trong tệp, xếp SAU khách trong tệp) hoặc LỜI DẶN cách đọc tệp (VD "tệp 2 là nhà gái", "bỏ qua cột cuối") — làm theo lời dặn nhưng vẫn giữ đúng các QUY TẮC trên:
+"""
+${text}
+"""`
+      : ''
+  return `${intro}
+
+QUY TẮC:
+1. Chỉ lấy người có trong văn bản. KHÔNG bịa thêm người, KHÔNG thêm họ/tên đệm người dùng không ghi.
+2. Dòng tiêu đề nhóm (VD "Nhà trai:", "Bạn đại học:") và dòng ghi chú chung KHÔNG xuất thành khách — nhưng tiêu đề nhóm vẫn dùng để xác định "side" (mục 6). Trong một dòng khách, bỏ phần không phải tên: số thứ tự, số điện thoại, địa chỉ, số người đi kèm, tiền mừng, ghi chú trong ngoặc.
+3. "relationship" là XƯNG HÔ dùng để mời. Ưu tiên một giá trị trong: ${GUEST_RELATIONS.join(', ')}. Văn bản ghi rõ cách gọi khác (VD "Ông bà", "Anh Hai") thì giữ nguyên (tối đa 3 chữ). Không suy ra được thì dùng "Bạn".
+4. "full_name": tên như người dùng ghi, ĐÃ BỎ xưng hô đứng đầu, viết hoa chữ cái đầu mỗi từ, đủ dấu. VD "anh Tuấn" → full_name "Tuấn", relationship "Anh".
+5. "display_name": cách gọi trên thiệp, CHỈ điền khi khác full_name — VD "Gia đình chú Ba" → full_name "Ba", relationship "Chú", display_name "Ba và gia đình"; "vợ chồng Nam - Hoa" → full_name "Nam - Hoa", relationship "Vợ chồng", display_name "". KHÔNG lặp xưng hô trong display_name. Còn lại để "".
+6. "side": "groom" nếu khách nằm dưới tiêu đề/nhãn kiểu "Nhà trai", "Bên chú rể", "Khách của chồng"; "bride" nếu "Nhà gái", "Bên cô dâu", "Khách của vợ"; văn bản không chia nhóm hoặc không rõ thì "unknown".
+7. XƯNG HÔ GHÉP đứng liền nhau rồi tới tên riêng (VD "anh chị", "cô chú", "ông bà", "bác") là MỘT cặp, chung MỘT thiệp — KHÔNG tách dù sau đó có hai tên. VD "anh chị Huyền Sang" → MỘT khách: full_name "Huyền Sang", relationship "Anh chị"; "cô chú Lan - Hùng" → full_name "Lan - Hùng", relationship "Cô chú".
+   Ngược lại, nhiều người cách nhau bằng dấu phẩy, mỗi người một xưng hô riêng (VD "anh Tuấn, chị Hà") thì tách thành nhiều khách.
+8. Giữ đúng thứ tự xuất hiện. Tối đa ${MAX_GUESTS_OUT} khách.
+
+ĐẦU RA: DUY NHẤT một MẢNG JSON các object {full_name, display_name, relationship, side}, không markdown. Không tìm thấy khách nào thì trả [].${userText}${docBlock}`
+}
+
 // Schema ép cấu trúc cho Gemini: MẢNG các phần tử theo anyOf (mỗi block một dạng
 // riêng). Nhờ anyOf, block "love" BẮT BUỘC có title + content.
 const BLOCK_TEXT = {
@@ -249,6 +373,48 @@ const GEN_CFG_LOVE = {
   maxOutputTokens: 16384,
 }
 
+// Trích xuất thuần (không sáng tác) → nhiệt độ thấp, tắt thinking. Danh sách dài
+// thì output cũng dài nên nới trần token + thời gian chờ.
+const GEN_CFG_GUESTS = {
+  temperature: 0.2,
+  responseMimeType: 'application/json',
+  responseSchema: GUEST_ITEM_SCHEMA,
+  thinkingConfig: THINK_OFF,
+  maxOutputTokens: 32768,
+}
+const GUESTS_TIMEOUT_MS = 45000
+
+type ParsedGuest = { full_name: string; display_name: string; relationship: string; side: string }
+
+// Parse + clamp danh sách khách (độ dài cột khớp sanitizeGuest của guest-handler).
+// Trả null khi JSON hỏng hẳn — khác guests [] (AI đọc xong mà không thấy khách nào).
+// truncated = có khách bị cắt vì vượt MAX_GUESTS_OUT, để trang báo cho người dùng.
+function cleanGuestItems(rawText: string): { guests: ParsedGuest[]; truncated: boolean } | null {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(rawText)
+  } catch {
+    const m = rawText.match(/\[[\s\S]*\]/)
+    if (!m) return null
+    try { parsed = JSON.parse(m[0]) } catch { return null }
+  }
+  const arr: any[] = Array.isArray(parsed)
+    ? parsed
+    : (Array.isArray((parsed as any)?.guests) ? (parsed as any).guests : [])
+  const out: ParsedGuest[] = []
+  let truncated = false
+  for (const it of arr) {
+    const full_name = clampStr(it?.full_name, 200)
+    if (!full_name) continue
+    if (out.length >= MAX_GUESTS_OUT) { truncated = true; break }
+    let display_name = clampStr(it?.display_name, 200)
+    if (display_name === full_name) display_name = ''
+    const side = it?.side === 'groom' || it?.side === 'bride' ? it.side : ''
+    out.push({ full_name, display_name, relationship: clampStr(it?.relationship, 100) || 'Bạn', side })
+  }
+  return { guests: out, truncated }
+}
+
 // Parse + clamp danh sách mốc chuyện tình (chấp nhận mảng thẳng hoặc {items|love_story:[...]}).
 function cleanLoveItems(rawText: string): Array<{ date: string; title: string; content: string }> {
   let parsed: unknown
@@ -314,6 +480,7 @@ function enforceAiLimit(
   body: Record<string, unknown>,
   origin: string | null,
   log: Logger,
+  cost = 1,
 ): Promise<Response | null> {
   return enforceRateLimit(req, admin, {
     feature: 'inv',
@@ -323,6 +490,7 @@ function enforceAiLimit(
     anonLimit: ANON_DAILY_LIMIT,
     origin,
     log,
+    cost,
   })
 }
 
@@ -414,6 +582,113 @@ async function handleLoveStory(
   return json({ items, provider: res.provider }, 200, origin)
 }
 
+// ── Nhánh "Nhập khách bằng AI" (mode=guests) ────────────────────────────────
+// Nhận { text } và/hoặc { files:[{mime, data base64, name}] } (ảnh/PDF) + { docs:[{name,
+// type, text}] } (chữ trích từ Word/Excel/.txt) — tổng ≤ 5 tệp, chữ thành phần gõ thêm → trả
+// { guests:[{full_name, display_name, relationship, side}], truncated } —
+// side là nhóm ghi trong văn bản ("" = không chia nhóm); trang chỉ nhập khách khớp
+// tab đang mở hoặc không rõ nhóm. BẮT BUỘC đăng nhập vì chỉ chủ thiệp
+// mới ghi được khách; danh sách khách là dữ liệu cá nhân nên không log tên.
+async function handleGuests(
+  req: Request,
+  admin: ReturnType<typeof createClient>,
+  user: { id: string } | null,
+  origin: string | null,
+  body: Record<string, unknown>,
+  log: Logger,
+): Promise<Response> {
+  if (!user) return json({ error: 'Đăng nhập để nhập khách bằng AI', login: true }, 401, origin)
+
+  // Chữ (tuỳ chọn khi có tệp) + tối đa MAX_GUEST_FILES tệp ảnh/PDF cho model tự đọc.
+  if ((body.files !== undefined && !Array.isArray(body.files)) || (body.docs !== undefined && !Array.isArray(body.docs))) {
+    return json({ error: 'Danh sách tệp không hợp lệ' }, 400, origin)
+  }
+  const files = (body.files ?? []) as { mime?: unknown; data?: unknown; name?: unknown }[]
+  const rawDocs = (body.docs ?? []) as { name?: unknown; type?: unknown; text?: unknown }[]
+  if (files.length + rawDocs.length > MAX_GUEST_FILES) {
+    return json({ error: `Mỗi lượt tối đa ${MAX_GUEST_FILES} tệp` }, 400, origin)
+  }
+  const raw = String(body.text ?? '')
+  if (raw.length > MAX_GUESTS_IN) {
+    return json({ error: `Danh sách dài quá ${MAX_GUESTS_IN} ký tự, hãy chia làm nhiều lần` }, 400, origin)
+  }
+  const text = clampText(raw, MAX_GUESTS_IN)
+  const docs: GuestDoc[] = []
+  let docChars = 0
+  for (const d of rawDocs) {
+    const t = String(d?.text ?? '').trim()
+    if (!t) return json({ error: 'Có tệp không có chữ nào' }, 400, origin)
+    docChars += t.length
+    if (docChars > MAX_GUEST_DOCS_IN) {
+      return json({ error: `Nội dung các tệp Word/Excel/.txt dài quá ${MAX_GUEST_DOCS_IN} ký tự, hãy chia làm nhiều lần` }, 400, origin)
+    }
+    const type = String(d?.type ?? '')
+    docs.push({ name: guestFileName(d?.name), type: GUEST_DOC_TYPES.includes(type) ? type : 'Văn bản', text: t })
+  }
+  let parts: GeminiPart[] | null = null
+  if (files.length) {
+    parts = []
+    let total = 0
+    let pages = 0
+    for (const f of files) {
+      const mime = String(f?.mime ?? '')
+      const data = String(f?.data ?? '')
+      if (!GUEST_FILE_TYPES.includes(mime)) {
+        return json({ error: 'Chỉ đọc được ảnh (JPG, PNG, WebP) hoặc PDF' }, 400, origin)
+      }
+      total += data.length
+      if (!data || data.length > MAX_GUEST_FILE_B64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(data)) {
+        return json({ error: 'Có tệp quá lớn hoặc hỏng, mỗi tệp phải nhỏ hơn 4MB' }, 400, origin)
+      }
+      if (total > MAX_GUEST_FILES_B64) {
+        return json({ error: 'Tổng dung lượng tệp vượt 8MB, hãy bớt tệp rồi thử lại' }, 400, origin)
+      }
+      if (!fileMagicOk(mime, data)) {
+        return json({ error: 'Có tệp không đúng định dạng ảnh/PDF' }, 400, origin)
+      }
+      if (mime === 'application/pdf') {
+        const n = pdfPageCount(data)
+        if (!n && data.length > MAX_GUEST_PDF_UNKNOWN_B64) {
+          return json({ error: 'Không đếm được số trang của PDF lớn này, hãy xuất lại PDF hoặc chụp ảnh danh sách' }, 400, origin)
+        }
+        pages += n || 1
+        if (pages > MAX_GUEST_PDF_PAGES) {
+          return json({ error: `PDF tối đa ${MAX_GUEST_PDF_PAGES} trang mỗi lượt, hãy tách bớt trang` }, 400, origin)
+        }
+      }
+      parts.push({ text: `Tệp ${parts.length / 2 + 1}: "${guestFileName(f?.name)}" (${mime === 'application/pdf' ? 'PDF' : 'Ảnh'})` })
+      parts.push({ inlineData: { mimeType: mime, data } })
+    }
+    parts.push({ text: buildGuestsPrompt(text, files.length, docs) })
+  } else if (!text && !docs.length) {
+    return json({ error: 'Hãy dán danh sách khách mời trước' }, 400, origin)
+  }
+
+  // Mỗi tệp tính một lượt AI (tệp tốn token hơn chữ nhiều); chỉ chữ = 1 lượt.
+  const limited = await enforceAiLimit(req, admin, user, body, origin, log, Math.max(1, files.length))
+  if (limited) return limited
+
+  const res = await generateWithGemini(
+    parts ?? buildGuestsPrompt(text, 0, docs),
+    { gemini: GEN_CFG_GUESTS, timeoutMs: GUESTS_TIMEOUT_MS, model: GEMINI_MODEL_GUESTS },
+    log,
+    'guests',
+  )
+  if (!res) return json({ error: 'Dịch vụ AI đang bận, vui lòng thử lại sau ít phút.' }, 503, origin)
+
+  const parsed = cleanGuestItems(res.raw)
+  if (!parsed) {
+    log.error('ai.guests_parse_failed', { raw_len: String(res.raw).length })
+    return json({ error: 'XuXi chưa đọc được danh sách, thử lại nhé.' }, 502, origin)
+  }
+
+  log.info('ai.guests_parsed', {
+    count: parsed.guests.length, truncated: parsed.truncated, in_len: text.length,
+    files: files.length || undefined, docs: docs.length || undefined, provider: res.provider, model: GEMINI_MODEL_GUESTS,
+  })
+  return json({ ...parsed, provider: res.provider }, 200, origin)
+}
+
 // ── Nhánh "Dữ liệu mẫu" (mode=sample) ───────────────────────────────────────
 // Nhận { tone?, region?, hint? } → trả { data: {story_quote, love_story, timeline,
 // fields} } y hệt nhánh sinh thiệp nên client dùng chung code áp kết quả. Vẫn đi
@@ -468,6 +743,13 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(origin) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405, origin)
 
+  // Chặn body khổng lồ TRƯỚC khi đọc/xác thực — ai cũng gọi được function này.
+  const bodyLen = Number(req.headers.get('content-length') ?? 0)
+  if (bodyLen > MAX_BODY_GUESTS) {
+    log.warn('ai.body_too_large', { bytes: bodyLen })
+    return json({ error: 'Dữ liệu gửi lên quá lớn' }, 413, origin)
+  }
+
   const admin = createDbClient(log)
 
   // 1) Xác thực (TUỲ CHỌN). Có JWT user hợp lệ → luồng đăng nhập; nếu không
@@ -488,6 +770,12 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
     return json({ error: 'Dữ liệu không hợp lệ' }, 400, origin)
   }
 
+  // Chỉ mode=guests được mang tệp; mode khác mà body lớn là bất thường.
+  if (body.mode !== 'guests' && bodyLen > MAX_BODY_TEXT) {
+    log.warn('ai.body_too_large', { bytes: bodyLen, mode: String(body.mode ?? '') })
+    return json({ error: 'Dữ liệu gửi lên quá lớn' }, 413, origin)
+  }
+
   // 2.5) Nhánh "Tối ưu": làm giàu 1 ô văn bản (shape input khác, xử lý riêng).
   if (body.mode === 'optimize') {
     return await handleOptimize(req, admin, user, origin, body, log)
@@ -503,5 +791,10 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
     return await handleSampleData(req, admin, user, origin, body, log)
   }
 
-  return json({ error: 'Thiếu mode hợp lệ (optimize | love_story | sample)' }, 400, origin)
+  // 2.8) Nhánh "Nhập khách bằng AI": tách danh sách dán tự do thành từng khách.
+  if (body.mode === 'guests') {
+    return await handleGuests(req, admin, user, origin, body, log)
+  }
+
+  return json({ error: 'Thiếu mode hợp lệ (optimize | love_story | sample | guests)' }, 400, origin)
 }))

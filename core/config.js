@@ -13,7 +13,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.10.14-10";
+const CX_VERSION = "2026.10.14-11";
  
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -208,6 +208,31 @@ const CONFIG = {
     maxRows: 100,
     maxFieldLength: 200,
     batchSize: 50,
+    // Trần khách MỖI BÊN — bản sao MAX_PER_SIDE của guest-handler (chốt thật ở
+    // server), ở đây chỉ để UI báo còn bao nhiêu chỗ. Đổi một bên phải đổi cả bên kia.
+    maxPerSide: 100,
+    // Thiệp chưa thanh toán — khớp MAX_PER_SIDE_UNPAID của guest-handler. Trang Khách mời
+    // dùng `max_per_side` server trả về, hai số này chỉ là bản lùi khi chưa nạp xong.
+    maxPerSideUnpaid: 5,
+    // Ô dán danh sách của "Nhập bằng AI" — khớp MAX_GUESTS_IN của ai-invitation.
+    aiMaxChars: 8000,
+    // Tệp gửi thẳng cho AI (PDF, ảnh): tối đa aiMaxFiles tệp một lượt, mỗi tệp
+    // aiFileMaxMB, tổng aiFilesMaxMB — khớp MAX_GUEST_FILE(S)* của ai-invitation.
+    // Ảnh được thu cạnh dài về aiImageMaxSide rồi nén JPEG trước khi gửi.
+    aiMaxFiles: 5,
+    aiFileMaxMB: 4,
+    aiFilesMaxMB: 8,
+    // PDF: tổng trang mỗi lượt; PDF không đếm được trang chỉ nhận ≤ aiPdfUnknownMaxMB.
+    // Khớp MAX_GUEST_PDF_PAGES / MAX_GUEST_PDF_UNKNOWN_B64 của ai-invitation.
+    aiPdfMaxPages: 10,
+    // Word/Excel/.txt đọc ra chữ ở trình duyệt rồi gửi kèm (tính chung aiMaxFiles):
+    // tổng ký tự mọi tệp — khớp MAX_GUEST_DOCS_IN của ai-invitation.
+    aiDocsMaxChars: 20000,
+    aiPdfUnknownMaxMB: 2,
+    // Trần tệp GỐC người dùng chọn (trước khi nén/đọc) — chặn ảnh/Word/Excel khổng lồ
+    // làm treo trình duyệt. Chỉ ở client: server không bao giờ nhận tệp gốc.
+    aiSourceMaxMB: 20,
+    aiImageMaxSide: 1600,
   },
 
   // Default Music

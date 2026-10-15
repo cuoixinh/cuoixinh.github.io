@@ -10,9 +10,24 @@
 
 import type { Logger } from './axiom.ts'
 
-export const GEMINI_MODEL = 'gemini-3.6-flash'
-// Trần output của GEMINI_MODEL do Google cho phép — đổi model thì soát lại số này.
-export const GEMINI_MAX_OUTPUT_TOKENS = 65536
+// Model + trần output đọc từ secret của Edge Function để đổi model không phải sửa
+// mã/deploy lại; thiếu hoặc sai định dạng thì lùi về mặc định. Trần output là của Google
+// cho model đó — đổi model thì soát lại số này.
+//   GEMINI_MODEL         — model chung (chat XuXi, sinh/tối ưu nội dung thiệp…)
+//   GEMINI_MODEL_GUESTS  — riêng "Nhập khách bằng AI" (đọc ảnh/PDF/Excel)
+const DEFAULT_GEMINI_MODEL = 'gemini-3.6-flash'
+const DEFAULT_GEMINI_MODEL_GUESTS = 'gemini-2.5-flash'
+const DEFAULT_GEMINI_MAX_OUTPUT_TOKENS = 65536
+// Tên model nằm trong URL gọi API — chỉ nhận ký tự của tên model, chặn chèn đường dẫn/tham số.
+function envModel(name: string, fallback: string): string {
+  const v = (Deno.env.get(name) ?? '').trim()
+  return /^[a-z0-9][a-z0-9.-]{0,63}$/.test(v) ? v : fallback
+}
+export const GEMINI_MODEL = envModel('GEMINI_MODEL', DEFAULT_GEMINI_MODEL)
+export const GEMINI_MODEL_GUESTS = envModel('GEMINI_MODEL_GUESTS', DEFAULT_GEMINI_MODEL_GUESTS)
+const envMaxOut = Number(Deno.env.get('GEMINI_MAX_OUTPUT_TOKENS'))
+export const GEMINI_MAX_OUTPUT_TOKENS =
+  Number.isInteger(envMaxOut) && envMaxOut > 0 ? envMaxOut : DEFAULT_GEMINI_MAX_OUTPUT_TOKENS
 export const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 export const REQ_TIMEOUT_MS = 25000 // timeout mỗi lần gọi provider
@@ -150,8 +165,8 @@ function suffixedKeys(): string[] {
 // generationConfig gửi đi thật: bản lite không có thinking, gửi `thinkingConfig` là
 // 400 INVALID_ARGUMENT — bỏ ở đây để function khỏi phải biết đang chạy model nào.
 // Mọi chỗ gửi request tới Gemini (kể cả đường stream của ai-chat) phải đi qua hàm này.
-export function geminiGenConfig(cfg: Record<string, unknown>): Record<string, unknown> {
-  if (!GEMINI_MODEL.includes('lite')) return cfg
+export function geminiGenConfig(cfg: Record<string, unknown>, model = GEMINI_MODEL): Record<string, unknown> {
+  if (!model.includes('lite')) return cfg
   const { thinkingConfig: _drop, ...rest } = cfg
   return rest
 }
@@ -175,24 +190,31 @@ export function readUsage(meta: any): GeminiUsage | undefined {
   }
 }
 
+// Một part của lượt hỏi: chữ, hoặc tệp nhúng base64 (ảnh/PDF) để model tự đọc.
+export type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } }
+
+// Prompt là chuỗi (trường hợp thường) hoặc dãy part khi kèm tệp.
+export type GeminiPrompt = string | GeminiPart[]
+
 // Gọi Gemini generateContent với generationConfig tuỳ tác vụ. `usageOut` (nếu có)
 // nhận số token của lượt gọi thành công.
 export async function callGemini(
-  prompt: string,
+  prompt: GeminiPrompt,
   apiKey: string,
   genConfig: Record<string, unknown>,
   timeoutMs = REQ_TIMEOUT_MS,
   usageOut?: GeminiUsage,
+  model = GEMINI_MODEL,
 ): Promise<string> {
   const t = withTimeout(timeoutMs)
   try {
-    const res = await fetch(`${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${apiKey}`, {
+    const res = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: t.signal,
       body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: geminiGenConfig(genConfig),
+        contents: [{ role: 'user', parts: typeof prompt === 'string' ? [{ text: prompt }] : prompt }],
+        generationConfig: geminiGenConfig(genConfig, model),
       }),
     })
     if (!res.ok) throw new ProviderError('gemini', res.status, await readErrorDetail(res))
@@ -274,20 +296,21 @@ function shuffle<T>(a: T[]): T[] {
 // Thử từng key theo thứ tự orderKeysByQuota; hỏng thì sang key kế tiếp, riêng 429
 // thì cho key đó nghỉ để các lượt sau khỏi đụng vào nữa.
 export async function callGeminiRotating(
-  prompt: string,
+  prompt: GeminiPrompt,
   keys: string[],
   genConfig: Record<string, unknown>,
   timeoutMs = REQ_TIMEOUT_MS,
   log?: Logger,
   tag = 'ai',
   usageOut?: GeminiUsage,
+  model = GEMINI_MODEL,
 ): Promise<string> {
   const { order, cooling } = orderKeysByQuota(keys)
   let lastErr: unknown = null
   for (let i = 0; i < order.length; i++) {
     const idx = order[i]
     try {
-      return await callGemini(prompt, keys[idx], genConfig, timeoutMs, usageOut)
+      return await callGemini(prompt, keys[idx], genConfig, timeoutMs, usageOut, model)
     } catch (e) {
       lastErr = e
       const quota = isQuotaError(e)
@@ -312,10 +335,11 @@ export async function callGeminiRotating(
 // Trả { raw, provider } hoặc null — khi null thì đã có sẵn MỘT sự kiện
 // `ai.<tag>_failed` kèm mã lỗi + message thật của Gemini.
 export async function generateWithGemini(
-  prompt: string,
+  prompt: GeminiPrompt,
   cfg: {
     gemini: Record<string, unknown>
     timeoutMs?: number
+    model?: string // mặc định GEMINI_MODEL
   },
   log: Logger,
   tag: string,
@@ -329,7 +353,7 @@ export async function generateWithGemini(
   try {
     const usage: GeminiUsage = {}
     return {
-      raw: await callGeminiRotating(prompt, keys, cfg.gemini, cfg.timeoutMs, log, `ai.${tag}`, usage),
+      raw: await callGeminiRotating(prompt, keys, cfg.gemini, cfg.timeoutMs, log, `ai.${tag}`, usage, cfg.model),
       provider: 'gemini',
       usage,
     }
