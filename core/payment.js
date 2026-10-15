@@ -127,6 +127,10 @@
   // Tô thanh bước theo bước đang hiện (1 xác nhận · 2 quét mã · 3 hoàn tất):
   // bước trước đó đánh dấu xong, bước hiện tại đánh dấu đang ở.
   function _setStep(n) {
+    // Đã thanh toán xong thì không còn gì để "quay lại": ẩn nút ← của trang
+    // /checkout/ (lối ra ở bước 3 là "Thiết lập ngay" / "Để sau").
+    const back = document.getElementById("checkout-back");
+    if (back) back.style.display = n === 3 ? "none" : "";
     document.querySelectorAll("#payment-steps li").forEach((li, i) => {
       li.classList.toggle("is-done", i + 1 < n);
       li.classList.toggle("is-on", i + 1 === n);
@@ -1336,6 +1340,31 @@
   // Dạng TRANG (/checkout/) thay vì hộp thoại: đóng thì rời trang chứ không ẩn đi.
   let _pageMode = false;
 
+  // Bước QR có MỐC LỊCH SỬ riêng (chỉ dạng trang): Back của trình duyệt / vuốt lùi /
+  // nút ← quay về bước 1 thay vì rời trang. Mọi lối ra đều đi qua popstate dưới đây.
+  const _onQrStep = () => window.history.state?.cxPay === 2;
+  function _pushQrStep() {
+    if (_pageMode && !_onQrStep()) window.history.pushState({ cxPay: 2 }, "");
+  }
+  function _backToStep1() {
+    stopPolling();
+    document.getElementById("payment-step-2").style.display = "none";
+    document.getElementById("payment-step-1").style.display = "block";
+    _setStep(1);
+    const timeoutEl = document.getElementById("payment-timeout");
+    if (timeoutEl) timeoutEl.style.display = "none";
+  }
+  window.addEventListener("popstate", () => {
+    if (!_pageMode) return;
+    // Đã thanh toán xong: lùi khỏi mốc QR là rời luôn trang, đừng mở lại màn chọn
+    // gói của thiệp vừa trả tiền.
+    if (document.getElementById("payment-step-3")?.style.display === "flex") {
+      window.history.back();
+      return;
+    }
+    if (document.getElementById("payment-step-2")?.style.display !== "none") _backToStep1();
+  });
+
   // Ghim dải trả tiền xuống đáy màn ở khổ điện thoại (chỉ dạng trang — trong
   // hộp thoại thì khối này đã nằm cuối thẻ, ghim theo màn hình là nó thoát ra
   // ngoài hộp). Phần ghim nằm ở .cx-paybar-pin (styles/_common.css), từ md thì
@@ -1575,6 +1604,11 @@
       _pageMode = true;
       const host = typeof root === "string" ? document.querySelector(root) : root;
       if (!host) return;
+      // Trang dựng LẠI trên mốc QR cũ (F5 ở bước QR, hay Back từ "Thiết lập ngay"
+      // mà trình duyệt không giữ trang): đơn cũ đã mất, trang mở ở bước 1 → lùi bỏ
+      // mốc đó, không thì phải bấm Back hai lần mới rời được trang. Bước 2/3 còn ẩn
+      // nên popstate không làm gì thêm.
+      if (_onQrStep()) window.history.back();
       host.innerHTML = _stepsHTML();
       _pinPaybar();
       // Markup chèn động → lucide không tự quét, phải dựng icon cho phần vừa chèn.
@@ -1594,7 +1628,13 @@
       // Dạng trang: "đóng" nghĩa là rời khỏi trang. Quay lại chỗ vừa bấm nếu
       // có, không thì về danh sách thiệp — đừng để khách kẹt ở trang trống.
       if (_pageMode) {
-        if (window.history.length > 1) window.history.back();
+        const done = document.getElementById("payment-step-3")?.style.display === "flex";
+        if (_onQrStep() && !done) {
+          window.history.back(); // popstate đưa về bước 1
+          return;
+        }
+        const steps = _onQrStep() ? 2 : 1;
+        if (window.history.length > steps) window.history.go(-steps);
         else window.location.href = "/my-invitations/";
         return;
       }
@@ -1656,6 +1696,7 @@
       `;
       document.getElementById("payment-step-1").style.display = "none";
       step2El.style.display = "flex";
+      _pushQrStep();
       _setStep(2);
 
       // Task 9.1: Feature flag to toggle between fake and real payment
@@ -1770,6 +1811,9 @@
         document.getElementById("payment-step-2").style.display = "none";
         document.getElementById("payment-step-1").style.display = "block";
         _setStep(1);
+        // Bỏ mốc QR vừa đẩy (bước 2 đã ẩn nên popstate không làm gì thêm) — không
+        // thì khách phải bấm Back hai lần mới rời được trang.
+        if (_onQrStep()) window.history.back();
 
         // Mã giảm giá hỏng giữa chừng (người khác vừa dùng hết lượt, mã hết hạn…)
         // → gỡ mã đang áp, trả tổng tiền về giá gốc và báo ngay tại ô mã.
@@ -1856,15 +1900,8 @@
 
     // Task 5.8: Create new payment
     createNewPayment() {
-      // Reset and restart payment process
-      stopPolling();
-      document.getElementById("payment-step-2").style.display = "none";
-      document.getElementById("payment-step-1").style.display = "block";
-      _setStep(1);
-
-      // Clear timeout UI
-      const timeoutEl = document.getElementById("payment-timeout");
-      if (timeoutEl) timeoutEl.style.display = "none";
+      if (_onQrStep()) window.history.back(); // popstate → _backToStep1
+      else _backToStep1();
     },
 
     /**
