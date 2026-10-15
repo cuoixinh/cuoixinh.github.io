@@ -151,7 +151,7 @@ async function scanExpired(supabase: Db, log: Logger, days: number) {
       name: [row.groom_name, row.bride_name].filter(Boolean).join(' & '),
       reason,
       payment_status: row.payment_status,
-      expires_at: row.expires_at,
+      expires_at: row.expires_at ?? row.plan_expires_at,
       updated_at: row.updated_at,
       files: weddingFileNames(row).length,
       guests: guests?.get(String(row.id)) ?? null,

@@ -13,6 +13,7 @@ import {
 } from '../_shared/wedding-images.ts'
 import { handleCleanup } from './cleanup.ts'
 import { findSlugHold, getUniqueSlug } from '../_shared/slug-holds.ts'
+import { currentPlan, isPlanExpired } from '../_shared/plans.ts'
 import {
   checkWeddingLimit,
   MAX_WEDDINGS_PER_USER,
@@ -70,7 +71,8 @@ function escapePostgrestPattern(value: string): string {
 // ALLOWLIST (không phải blocklist): field nào không có tên ở đây sẽ bị loại khỏi
 // payload của người dùng thường. Quan trọng nhất là các cột thanh toán
 // (payment_status, payment_amount, transaction_id, payment_time,
-// payment_order_id, expires_at) — chỉ payment-handler / payos-webhook được ghi.
+// payment_order_id, expires_at, plan, plan_expires_at, pending_plan,
+// pending_amount) — chỉ payment-handler / payos-webhook được ghi.
 const CUSTOMER_EDITABLE_FIELDS = new Set([
   // is_active = false là thao tác "xoá thiệp" ở trang Quản lý thiệp (ẩn khỏi
   // danh sách, dữ liệu/ảnh vẫn còn). Quyền đã chặn ở trên theo user_id.
@@ -1407,7 +1409,17 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       // Thanh toán rồi mới bị từ chối.
       const themeParam = url.searchParams.get('theme')?.trim()
       const minOrder = data.min_order_amount ?? 0
-      if (themeParam && minOrder > 0) {
+      // Có gói thì số tiền đơn tuỳ gói đang chọn: màn thanh toán gửi kèm `amount`
+      // (chỉ để báo sớm, payment-handler tự tính lại), không thì so giá mẫu như cũ.
+      const amountParam = Number(url.searchParams.get('amount'))
+      if (minOrder > 0 && amountParam > 0) {
+        if (amountParam < minOrder) {
+          return new Response(JSON.stringify({
+            valid: false,
+            error: `Đơn tối thiểu ${minOrder.toLocaleString('vi-VN')}đ mới dùng được mã này`,
+          }), { status: 200, headers: corsHeaders })
+        }
+      } else if (themeParam && minOrder > 0) {
         const { data: pricing, error: pricingErr } = await supabase
           .from('template_pricing')
           .select('price')
@@ -1453,7 +1465,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       // hai cột này là mọi thiệp cùng mẫu trông giống hệt nhau.
       const { data, error } = await supabase
         .from('weddings')
-        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at, cover_image_url, gallery_images')
+        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at, payment_status, plan, plan_expires_at, cover_image_url, gallery_images')
         .eq('user_id', userId)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
@@ -1463,7 +1475,14 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
       }
 
-      return new Response(JSON.stringify(data ?? []), {
+      // Gói của chính chủ thiệp là TRẠNG THÁI để vẽ nhãn hạn; payment_status chỉ lấy
+      // để suy ra gói (thiệp mua trước khi có gói = vĩnh viễn) rồi bỏ.
+      const rows = (data ?? []).map(({ payment_status, plan, plan_expires_at, ...w }: Record<string, unknown>) => {
+        const cur = currentPlan({ payment_status: payment_status as string, plan: plan as string })
+        return { ...w, plan: cur, plan_expires_at: cur ? plan_expires_at : null }
+      })
+
+      return new Response(JSON.stringify(rows), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
@@ -1534,7 +1553,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // response trước khi trả về — không để dữ liệu thanh toán rời khỏi DB.
     let query = supabase
       .from('weddings')
-      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status, user_id, storage_key`)
+      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status, plan, plan_expires_at, user_id, storage_key`)
 
     if (slug) {
       query = query.eq('slug', slug)
@@ -1605,8 +1624,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       const trialOver = !!data.expires_at && new Date(data.expires_at).getTime() < Date.now()
       const locked = data.is_published && trialOver && data.payment_status !== 'completed'
       const themeLocked = data.payment_status === 'completed'
+      // Hết hạn gói 3/6 tháng đã thanh toán: khoá y như hết dùng thử, mã riêng để
+      // màn khoá nói đúng lý do (khách mời cần chủ thiệp NÂNG gói, không phải kích hoạt).
+      const planLocked = data.is_published && isPlanExpired(data)
+      const plan = currentPlan(data)
+      const planExpiresAt = plan ? data.plan_expires_at : null
       delete data.expires_at
       delete data.payment_status
+      delete data.plan
+      delete data.plan_expires_at
 
       // Nháp không có link công khai: chưa xuất bản thì chưa vào dùng thử, nên mở
       // được ở đây là gửi khách xem mãi mà không bao giờ hết hạn.
@@ -1628,6 +1654,17 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
+      if (planLocked && slug) {
+        log.info('wedding.plan_locked', { slug })
+        return new Response(JSON.stringify({
+          error: 'Thiệp đã hết thời hạn hiển thị',
+          code: 'PLAN_EXPIRED',
+          groom_name: data.groom_name,
+          bride_name: data.bride_name,
+          theme: data.theme,
+        }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
       // Đường tra theo id (chủ thiệp đang mở trình chỉnh sửa): không chặn, nhưng
       // nói cho biết thiệp đang khoá với khách mời. Đây là TRẠNG THÁI, không phải
       // dữ liệu thanh toán — thiếu nó chủ thiệp bấm xuất bản xong vẫn tưởng thiệp
@@ -1638,6 +1675,13 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       // không phải dữ liệu thanh toán — trình chỉnh sửa cần nó để không mời khách
       // bấm vào một thao tác chắc chắn bị PATCH từ chối.
       data.theme_locked = themeLocked
+
+      // Gói + hạn chỉ cho chủ thiệp (đường id), link công khai không cần biết.
+      if (id) {
+        data.plan = plan
+        data.plan_expires_at = planExpiresAt
+        data.plan_locked = planLocked
+      }
     }
 
     return new Response(JSON.stringify(data), {

@@ -43,7 +43,7 @@
            hộp thoại thanh toán. Nằm ngoài #checkout-root vì mount() ghi đè ruột
            khối đó; nó ngang hàng dòng "Thanh toán đơn hàng" (.cx-ord-kicker). -->
       <div class="relative">
-      <x-button variant="outline" size="sm" icon-only onclick="PaymentModal.close()" class="absolute top-4 left-4 z-20" aria-label="Quay lại">
+      <x-button id="checkout-back" variant="outline" size="sm" icon-only onclick="PaymentModal.close()" class="absolute top-4 left-4 z-20" aria-label="Quay lại">
         <i data-lucide="arrow-left" class="text-gray-400" style="width:16px;height:16px"></i>
       </x-button>
 

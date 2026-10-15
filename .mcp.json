@@ -6,7 +6,7 @@
         "-y",
         "@supabase/mcp-server-supabase@latest",
         "--read-only",
-        "--project-ref=lcobawmkywtxhpezndsh",
+        "--project-ref=gmtnoxdwoumbtdmqmisk",
         "--features=database,docs,functions,debugging"
       ],
       "env": {

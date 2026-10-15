@@ -3270,7 +3270,10 @@ function showPublishSuccessPopup() {
   // Thiệp hết hạn dùng thử: xuất bản lại KHÔNG mở khoá (edge function vẫn chặn link
   // công khai) → nói thẳng ở đây, không thì chủ thiệp thấy link chết mà không hiểu vì sao.
   const keepHtml = paid
-    ? ""
+    ? IS_PLAN_LOCKED
+      ? `<p class="ps-keep ps-warn">Thiệp đã <b>hết hạn gói</b>: khách mời mở link chỉ thấy màn tạm khoá.
+         Nâng gói ở trang Quản lý thiệp để mở lại — để quá ${CONFIG.retention.planExpiredDays} ngày thiệp sẽ tự động xoá.</p>`
+      : ""
     : IS_TRIAL_LOCKED
       ? `<p class="ps-keep ps-warn">Thiệp đã <b>hết hạn dùng thử</b>: khách mời mở link chỉ thấy màn tạm khoá.
          Thanh toán để mở lại — để quá ${CONFIG.retention.unpaidDays} ngày thiệp sẽ tự động xoá.</p>`

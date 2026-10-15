@@ -231,6 +231,27 @@ Luồng: `invitation-setup/guests/` → `ai-invitation` (`mode=guests`, chỉ Đ
       (2) Người đăng nhập nhồi prompt để dùng XuXi như LLM chùa — đầu ra bị ép mảng chuỗi
       ≤ 200 ký tự, 15 lượt/ngày, giá trị lạm dụng thấp. (3) `guest-handler` đếm rồi mới chèn,
       không atomic — hai lần nhập song song có thể vượt trần 100 vài khách.
+- [x] **A29. Tạo đơn mẫu rẻ, đổi sang mẫu đắt rồi mới trả (rà 2026-10-16).** Đơn PayOS chốt
+      tiền theo mẫu LÚC TẠO ĐƠN, nhưng thiệp chưa thanh toán vẫn PATCH đổi `theme` được (khoá
+      A6 chỉ chặn sau khi `completed`) → quét QR cũ trả giá mẫu rẻ, thiệp giữ mẫu đắt.
+      **Đã vá:** `payment-handler` ghi mẫu đã báo giá vào `weddings.pending_theme`
+      (`changelogs/RC02/schema/dqvinh_003_wedding_pending_theme.sql`); `payos-webhook` trả xong
+      thì đặt lại `theme = pending_theme` (log `payos.theme_restored`). Trả giá mẫu nào nhận
+      mẫu đó, không ai mất tiền oan. Đơn nâng gói lấy mẫu từ DB nên vốn không dính.
+- [x] **A30. Đường webhook cũ `payment-handler/webhook` còn chạy song song.** Chốt `completed`
+      mà không biết gói (thiếu `plan` = vĩnh viễn) lẫn đơn nâng gói. **Đã gỡ:** chỉ còn
+      `payos-webhook` (qua `cloudflare-worker/payos-webhook-proxy.js`); path cũ trả 404
+      (API-WH-13).
+- [x] **A31. Lớp xác minh dự phòng của `payos-webhook` không so số tiền.** Chữ ký lệch thì
+      `confirmWithPayOS` hỏi PayOS đơn đã `PAID` chưa, nhưng số tiền vẫn lấy từ payload KHÔNG
+      ký. **Đã vá:** đòi thêm `data.amount` PayOS trả về khớp số trong payload (lệch → log
+      `payos.confirm_amount_mismatch`, 401).
+- [x] **Đã kiểm, đúng (gói thời hạn, 2026-10-16):** `create-payment` bỏ qua mọi số tiền client
+      gửi, giá = `template_pricing` × hệ số gói (`_shared/plans.ts`); `plan` lạ → 400
+      `PLAN_REQUIRED`; nâng gói lấy mẫu từ DB, không hạ gói / nâng quá hạn (`quotePlans`);
+      mã giảm tính trong `cx_promo_reserve` trên giá gốc lấy từ DB, mã kém hơn ưu đãi ra mắt
+      bị từ chối + nhả lượt (`no_benefit`); webhook lặp không cộng hạn hai lần (update khoá
+      theo `payment_order_id` + `pending_plan`); đơn nâng gói không hạ `payment_status`.
 
 ---
 

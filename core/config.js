@@ -13,7 +13,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.10.14-11";
+const CX_VERSION = "2026.10.15-5";
  
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -189,6 +189,7 @@ const CONFIG = {
     unpaidDays: 30, // đã xuất bản nhưng chưa thanh toán
     serverDraftDays: 30, // nháp đã lưu trên hệ thống (đã đăng nhập)
     localDraftDays: 30, // nháp chỉ nằm trong trình duyệt của máy này
+    planExpiredDays: 30, // đã thanh toán gói 3/6 tháng, tính từ lúc hết hạn gói
   },
 
   // Trần số thiệp một tài khoản được giữ trên hệ thống — nháp đã lưu lẫn thiệp đã

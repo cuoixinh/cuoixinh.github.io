@@ -98,7 +98,7 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
   nhập, qua `core/auth.js`) và upload ảnh lên Storage (`core/dal/storage-dal.js`).
   Worker ở `cloudflare-worker/` cũng theo luật này — chúng cache lại phản hồi của Edge
   Function, không tự truy vấn bảng.
-- **MCP chỉ để ĐỌC** (project `lcobawmkywtxhpezndsh`). Dùng `list_tables`/`execute_sql` để
+- **MCP chỉ để ĐỌC** (project STAGING `gmtnoxdwoumbtdmqmisk`). Dùng `list_tables`/`execute_sql` để
   biết schema thật — changelogs là lịch sử, không phải nguồn sự thật.
 - **Không sửa DB qua MCP.** Mọi thay đổi schema → script SQL **idempotent** trong
   `changelogs/RC<NN>/{schema,data,manual}/dqvinh_<số 3 chữ số>_<tên>.sql` (số để sort chữ
@@ -608,9 +608,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   (số nút) và `--i` (nút đang chọn), nút đang chọn thêm `.is-on` — JS chỉ đặt bấy nhiêu.
   Dùng cho vùng miền ở popup AI và các tab Nhà trai/Nhà gái.
 - **Giá thiệp chỉ có MỘT nguồn: bảng `template_pricing`** (`templatesDAL` trả kèm theo
-  `theme`) — đúng bảng mà `payment-handler` đọc lúc tạo đơn. Màn thanh toán tự tra giá
-  theo `theme` (`_resolvePricing` ở `core/payment.js`), tham số `price`/`original` trên
-  URL `/checkout/` chỉ là bản nháp cho đỡ nháy số. **Đừng viết giá dự phòng ở client**:
+  `theme`) — `price` là giá gói 3 tháng; gói 6 tháng/vĩnh viễn = giá đó × hệ số khai DUY
+  NHẤT ở `supabase/functions/_shared/plans.ts`. Màn thanh toán xin báo giá ba gói qua
+  `payment-handler/quote` (`_resolvePricing` ở `core/payment.js`) — client không giữ hệ số
+  nào; tham số `price`/`original` trên URL `/checkout/` không còn dùng làm giá. **Đừng viết giá dự phòng ở client**:
   mẫu thiếu hàng giá thì hiện "Liên hệ" và khoá nút, chứ hiện một con số là khách nhìn
   một giá còn quét QR trả một giá khác.
 - **Thẻ mẫu thiệp:** markup ở `core/components/item-template.js`
@@ -725,8 +726,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   CẢ HAI đường tạo hàng `weddings` phải hỏi qua đó — POST của `wedding-admin` và
   `upsert` của `payment-handler` — sót một chỗ là còn đường tạo thiệp không giới hạn.
   `CONFIG.maxWeddings` là bản sao để UI chặn sớm, đổi phải đổi cả hai.
-- **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán và nháp bỏ quên bị cron xoá
-  vĩnh viễn, thiệp hết hạn dùng thử bị khoá với khách mời. Số ngày ở `CONFIG.retention` **và**
+- **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán, thiệp hết hạn gói 3/6
+  tháng và nháp bỏ quên bị cron xoá vĩnh viễn; thiệp hết hạn dùng thử/hết hạn gói bị khoá
+  với khách mời. Số ngày ở `CONFIG.retention` **và**
   biến `RETENTION_DAYS` của Edge Function — hai nơi, đổi phải đổi cả hai. Đụng tới `expires_at`,
   hạn giữ dữ liệu hay màn khoá thì đọc `docs/cleanup-retention.md` trước.
 

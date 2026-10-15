@@ -4612,6 +4612,573 @@ button.cx-pchrome-btn:hover {
   outline: 2px solid rgb(var(--focus-ring-rgb));
   outline-offset: 2px;
 }
+/* Dòng báo dưới ô mã giảm giá (core/payment.js → _promoMsg). Dải nhỏ có icon,
+   tông theo trạng thái; .hidden phải thắng display:flex nên khai lại ở đây. */
+.cx-ord-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  animation: cx-ord-msg-in 0.2s ease-out;
+}
+.cx-ord-msg.hidden {
+  display: none;
+}
+.cx-ord-msg svg,
+.cx-ord-msg-spin {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.cx-ord-msg--ok {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-accent-rgb) / 0.1);
+}
+.cx-ord-msg--free {
+  color: rgb(var(--action-primary-deep-rgb));
+  background: linear-gradient(90deg, rgb(var(--surface-blossom-rgb)), rgb(var(--surface-brand-soft-rgb)));
+  font-weight: 600;
+}
+.cx-ord-msg--err {
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-text-rgb) / 0.08);
+}
+.cx-ord-msg--info,
+.cx-ord-msg--wait {
+  color: rgb(var(--text-tertiary-rgb));
+  background: rgb(var(--surface-tint-rgb));
+}
+.cx-ord-msg-spin {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgb(var(--divider-rgb));
+  border-top-color: rgb(var(--brand-accent-rgb));
+  border-radius: 999px;
+  animation: cx-ord-spin 0.7s linear infinite;
+}
+@keyframes cx-ord-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes cx-ord-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Nút ✕ gỡ mã (core/payment.js → cxPromoRemove): chỉ hiện khi vỏ có .is-applied,
+   đè lên chỗ mũi tên nên hàng chừa thêm lề phải. `button.` để thắng utility của
+   x-button. */
+.cx-ord-coupon-wrap {
+  position: relative;
+}
+button.cx-ord-coupon-x {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: none;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  margin-top: -12px;
+  border-radius: 999px;
+  color: rgb(var(--text-tertiary-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 0 0 1px rgb(var(--border-subtle-rgb));
+  transition: color 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+button.cx-ord-coupon-x:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: none;
+}
+.cx-ord-coupon-wrap.is-applied button.cx-ord-coupon-x {
+  display: inline-flex;
+}
+.cx-ord-coupon-wrap.is-applied .cx-ord-coupon {
+  padding-right: 44px;
+}
+.cx-ord-coupon-wrap.is-applied .cx-ord-coupon-chev {
+  display: none;
+}
+/* Ô nhập mã giảm giá (#promo-box): ô + nút "Áp dụng" của <x-input> gộp thành MỘT
+   khung — khung mang viền/bo góc, ô bên trong trong suốt, nút nằm gọn bên phải.
+   Nhắm theo thẻ con vì x-input tự dựng markup; `input`/`button` ở đây phải thắng
+   utility (h-10, border…) nên selector có thêm tên thẻ. */
+.cx-ord-promo {
+  position: relative;
+  padding: 4px;
+  border: 1px solid rgb(var(--brand-accent-light-rgb));
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cx-ord-promo:focus-within {
+  border-color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 0 0 4px rgb(var(--brand-accent-rgb) / 0.12);
+}
+.cx-ord-promo-ico {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  z-index: 1;
+  margin-top: -9px;
+  color: rgb(var(--brand-accent-rgb));
+  pointer-events: none;
+}
+.cx-ord-promo input {
+  height: 44px;
+  padding-left: 36px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ord-promo input::placeholder {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgb(var(--text-tertiary-rgb));
+}
+.cx-ord-promo input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.cx-ord-promo button[onclick="applyPromo()"] {
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--action-primary-rgb)));
+  box-shadow: 0 8px 16px -10px rgb(var(--action-primary-rgb) / 0.7);
+  transition: filter 0.15s, transform 0.15s;
+}
+.cx-ord-promo button[onclick="applyPromo()"]:hover {
+  color: rgb(var(--white-rgb));
+  filter: brightness(1.05);
+}
+.cx-ord-promo button[onclick="applyPromo()"]:active {
+  transform: scale(0.97);
+}
+/* Màn "Thanh toán thành công" (core/payment.js → #payment-step-3). Ẩn/hiện bằng
+   style.display = flex nên vỏ chỉ khai bố cục, không khai display. */
+.cx-ok {
+  gap: 16px;
+  padding: 32px 24px 24px;
+}
+.cx-ok-badge {
+  position: relative;
+  display: flex;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(135deg, rgb(var(--state-success-accent-rgb)), rgb(var(--state-success-text-rgb)));
+  box-shadow: 0 12px 24px -10px rgb(var(--state-success-accent-rgb) / 0.55);
+  animation: cx-ok-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cx-ok-badge::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  border: 2px solid rgb(var(--state-success-accent-rgb) / 0.35);
+  animation: cx-ok-ring 1.2s ease-out 0.2s both;
+}
+.cx-ok-title {
+  margin: 4px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ok-sub {
+  max-width: 320px;
+  margin: -8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgb(var(--text-tertiary-rgb));
+}
+/* Dải gói vừa mua. */
+.cx-ok-plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: linear-gradient(90deg, rgb(var(--surface-blossom-rgb)), rgb(var(--surface-brand-soft-rgb)));
+}
+.cx-ok-plan b {
+  font-weight: 700;
+}
+.cx-ok-plan-until {
+  color: rgb(var(--text-heading-rgb));
+}
+/* Tờ hoá đơn. */
+.cx-ok-receipt {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 16px;
+  text-align: left;
+}
+.cx-ok-receipt-head {
+  margin-bottom: 12px;
+}
+.cx-ok-line {
+  font-size: 13px;
+}
+.cx-ok-line + .cx-ok-line {
+  margin-top: 8px;
+}
+.cx-ok-val {
+  min-width: 0;
+  max-width: 60%;
+  overflow: hidden;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgb(var(--text-heading-rgb));
+}
+/* Link thiết lập. */
+.cx-ok-link {
+  width: 100%;
+  text-align: left;
+}
+.cx-ok-link-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: rgb(var(--text-tertiary-rgb));
+}
+.cx-ok-link-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 12px;
+  border-radius: 12px;
+  background: rgb(var(--surface-tint-rgb));
+}
+.cx-ok-link-input {
+  min-width: 0;
+  flex: 1;
+  height: 32px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: rgb(var(--text-body-rgb));
+}
+button.cx-ok-link-copy {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 0 0 1px rgb(var(--border-subtle-rgb));
+}
+button.cx-ok-link-copy:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--brand-accent-rgb));
+}
+/* Đáy: một nút chính ôm chữ + "Để sau" dạng chữ. */
+.cx-ok-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.cx-ok-cta {
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--action-primary-rgb)));
+  box-shadow: 0 8px 16px -10px rgb(var(--action-primary-rgb) / 0.7);
+  transition: filter 0.15s, transform 0.15s;
+}
+.cx-ok-cta:hover {
+  filter: brightness(1.05);
+}
+.cx-ok-cta:active {
+  transform: scale(0.97);
+}
+button.cx-ok-close {
+  height: 28px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: rgb(var(--text-tertiary-rgb));
+  background: transparent;
+}
+button.cx-ok-close:hover {
+  color: rgb(var(--text-heading-rgb));
+}
+@keyframes cx-ok-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+@keyframes cx-ok-ring {
+  from {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+/* Ba thẻ chọn gói (core/payment.js → _renderPlans). Thẻ đang chọn thêm .is-on,
+   gói không mua được (đang dùng / thấp hơn) thêm thuộc tính disabled. Lưới chừa
+   12px phía trên cho huy hiệu "Khuyên dùng" nhô ra khỏi mép thẻ. */
+.cx-ord-plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 12px;
+}
+.cx-ord-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 112px;
+  padding: 24px 4px 12px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.cx-ord-plan:hover {
+  border-color: rgb(var(--brand-accent-light-rgb));
+  transform: translateY(-1px);
+}
+.cx-ord-plan.is-on {
+  border-color: rgb(var(--brand-accent-rgb));
+  background: linear-gradient(180deg, rgb(var(--surface-blossom-rgb) / 0.6), rgb(var(--white-rgb)));
+  box-shadow:
+    0 0 0 1px rgb(var(--brand-accent-rgb)),
+    0 12px 24px -16px rgb(var(--action-primary-rgb) / 0.5);
+}
+.cx-ord-plan[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  background: rgb(var(--surface-tint-rgb));
+}
+.cx-ord-plan:focus-visible {
+  outline: 2px solid rgb(var(--focus-ring-rgb));
+  outline-offset: 2px;
+}
+/* Chấm chọn góc phải: vòng rỗng → vòng đặc có dấu ✓ khi .is-on. */
+.cx-ord-plan-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid rgb(var(--divider-rgb));
+  border-radius: 999px;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.cx-ord-plan.is-on .cx-ord-plan-dot {
+  border-color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-accent-rgb));
+}
+.cx-ord-plan.is-on .cx-ord-plan-dot::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  color: rgb(var(--white-rgb));
+}
+.cx-ord-plan-badge {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--action-primary-rgb)));
+  box-shadow: 0 4px 8px -4px rgb(var(--action-primary-rgb) / 0.6);
+}
+.cx-ord-plan-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ord-plan-price {
+  margin-top: 4px;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.cx-ord-plan-was {
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1;
+  color: rgb(var(--text-tertiary-rgb));
+}
+.cx-ord-plan-sub {
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 11px;
+  color: rgb(var(--text-tertiary-rgb));
+}
+/* Màn hẹp (điện thoại nhỏ ~360px): thẻ chỉ còn ~90px nên thu chữ + khe, huy hiệu
+   gọn lại cho khỏi tràn mép thẻ. */
+@media (max-width: 400px) {
+  .cx-ord-plans {
+    gap: 6px;
+  }
+  .cx-ord-plan {
+    min-height: 104px;
+    padding: 24px 2px 12px;
+  }
+  .cx-ord-plan-name {
+    font-size: 12px;
+  }
+  .cx-ord-plan-price {
+    font-size: 14px;
+  }
+  .cx-ord-plan-was,
+  .cx-ord-plan-sub {
+    font-size: 10px;
+  }
+  .cx-ord-plan-badge {
+    padding: 2px 6px;
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+}
+/* Dòng "xem được đến ngày …" dưới các thẻ — hiện bằng style.display = flex. */
+.cx-ord-plan-note {
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.cx-ord-plan-note svg {
+  flex-shrink: 0;
+  color: rgb(var(--brand-accent-rgb));
+}
+
+/* Nút "Thanh toán ngay" hai tầng chữ. `button.` để thắng h-12/px-7 của size lg
+   (cùng độ đặc hiệu thì utility nằm sau trong build.css). */
+button.cx-ord-pay {
+  height: auto;
+  min-height: 56px;
+  padding: 8px 16px 8px 8px;
+}
+.cx-ord-pay-in {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+}
+.cx-ord-pay-ico {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb) / 0.2);
+}
+.cx-ord-pay-txt {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+.cx-ord-pay-label {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.cx-ord-pay-sub {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+}
+.cx-ord-pay-total {
+  flex-shrink: 0;
+  padding-left: 12px;
+  border-left: 1px solid rgb(var(--white-rgb) / 0.35);
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
 .cx-ord-chip {
   display: inline-flex;
   align-items: center;
