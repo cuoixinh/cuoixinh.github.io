@@ -78,6 +78,11 @@ document.addEventListener("keydown", (e) => {
   if (document.getElementById("cx-alert-backdrop")?.classList.contains("visible")) return;
   if (document.getElementById("wishes-modal")) { _closeWishesModal(); return; }
   if (!document.getElementById("import-mapping-modal").classList.contains("hidden")) { closeMappingModal(); return; }
+  // Menu nút "+" đang mở thì Esc chỉ đóng menu.
+  const attach = document.getElementById("ai-attach-pop");
+  if (attach?.isOpen) { attach.close(); return; }
+  const relPop = document.getElementById("ai-rel-pop");
+  if (relPop?.isOpen) { relPop.close(); return; }
   if (!document.getElementById("ai-import-modal").classList.contains("hidden")) { closeAiImport(); return; }
   if (!document.getElementById("add-guest-modal").classList.contains("hidden")) { closeAddGuestModal(); return; }
   if (_sel.side) exitGuestSelect();
@@ -611,19 +616,13 @@ async function confirmImport() {
 // guestBL.planAiImport tính theo đúng luật server; server vẫn kiểm trần lúc ghi.
 
 const AI_GUEST_MAX_CHARS = CONFIG.guestImport.aiMaxChars;
-const AI_SAMPLE = `- anh Tuấn, chị Hà (bạn đại học)
-- Gia đình chú Ba
-- vợ chồng Nam - Hoa
-- Sếp Quang, phòng kinh doanh
-- Cô Lan (cô giáo cấp 3)
-- Nguyễn Thị Mai - 0912 345 678
-- em Bống
-- Ông bà nội`;
 
 // side: bên của tab lúc bấm nút — cả lượt nhập chỉ ghi vào bên này. files: các tệp
-// ảnh/PDF đang đính kèm [{kind, mime, data base64, name, size, url}] (≤ aiMaxFiles) —
-// gửi cùng chữ trong ô (chữ khi đó là khách bổ sung / lời dặn, không bắt buộc). fromFile: kết quả đang xem đọc từ tệp (nhắc kiểm tra kỹ tên, dấu).
-const _ai = { rows: [], side: "groom", busy: false, plan: null, files: [], fromFile: false };
+// đang đính kèm (≤ aiMaxFiles): ảnh/PDF {kind, mime, data base64, name, size, url} gửi
+// thẳng cho AI; Word/Excel/.txt {kind:"doc", fmt, text, name, size, lines} đã đọc ra chữ,
+// gửi ngầm (KHÔNG đổ vào ô dán). Chữ trong ô là khách bổ sung / lời dặn, không bắt buộc. fromFile: kết quả đang xem đọc từ tệp (nhắc kiểm tra kỹ tên, dấu).
+// abort: AbortController của lượt phân tích đang chạy (null = không chạy).
+const _ai = { rows: [], side: "groom", busy: false, plan: null, files: [], fromFile: false, abort: null, filter: "" };
 
 // mammoth.js (đọc chữ trong .docx) chỉ nạp khi người dùng chọn file Word.
 const AI_MAMMOTH = {
@@ -631,37 +630,31 @@ const AI_MAMMOTH = {
   sri: "sha512-wuWo/cLB9W5BsZeyTYLuiTwr+FDlvjQC7C6atr+To7Jk92XHWI7WsImJZiruw7C9bnc8Zg7N0ncQI2Q/B4PQYw==",
 };
 
-const _AI_FLAG = {
-  dup:   { cls: "is-dup",   label: "Đã có", tip: "Trùng Họ tên + Tên trên thiệp với một khách đã có, sẽ bỏ qua" },
-  empty: { cls: "is-empty", label: "Thiếu tên", tip: "Nhập họ và tên để nhập khách này" },
+// Trạng thái từng hàng ở bước xem lại: biểu tượng ở ô đầu hàng + nhãn ở dải đếm phía
+// trên (thứ tự khai = thứ tự chip). Thẻ "other" có thêm nút nhập vào bên đang mở.
+const _AI_ST = {
+  ok:    { icon: "check",        label: "Sẽ nhập" },
+  empty: { icon: "pencil-line",  label: "Thiếu tên", tip: "Nhập họ và tên để nhập khách này" },
+  other: { icon: "arrow-left-right", label: "" },
+  dup:   { icon: "copy",         label: "Đã có", tip: "Trùng Họ tên, Tên trên thiệp và Xưng hô với một khách đã có, sẽ bỏ qua" },
+  over:  { icon: "ban",          label: "Hết chỗ" },
 };
 
 function _aiEl(id) { return document.getElementById(id); }
 
 const _aiOtherSide = () => (_ai.side === "groom" ? "bride" : "groom");
-// "nhà gái" → "Nhà gái" (tên tab).
-const _aiTab = (side) => _SIDE_LABEL[side].replace(/^n/, "N");
 
-// Cờ của một trạng thái hàng. "other" (khách ghi dưới nhóm bên kia) là cờ DUY NHẤT
-// bấm được: bấm là nhập khách đó vào bên đang mở — phòng AI gắn nhầm nhóm.
 function _aiFlag(st) {
   const me = _SIDE_LABEL[_ai.side];
+  const base = _AI_ST[st] || _AI_ST.ok;
   if (st === "other") {
-    return { cls: "is-other", label: `Thuộc ${_SIDE_LABEL[_aiOtherSide()]}`, action: true,
-      tip: `XuXi xếp khách này vào nhóm ${_SIDE_LABEL[_aiOtherSide()]}. Bấm để nhập vào ${me}` };
+    const o = _SIDE_LABEL[_aiOtherSide()];
+    return { ...base, label: `Thuộc ${o}`, action: true,
+      tip: `XuXi xếp khách này vào nhóm ${o}` };
   }
-  if (st === "over") {
-    return { cls: "is-over", label: "Hết chỗ",
-      tip: `Danh sách ${me} đã đủ ${_maxPerSide()} khách, khách này sẽ không được nhập` };
-  }
-  return _AI_FLAG[st];
-}
-
-function _aiInitRelList() {
-  const list = _aiEl("ai-rel-list");
-  if (list && !list.childElementCount) {
-    list.innerHTML = GUEST_RELATIONS.map((v) => `<option value="${escapeHtml(v)}"></option>`).join("");
-  }
+  if (st === "over") return { ...base, tip: `Danh sách ${me} đã đủ ${_maxPerSide()} khách, khách này sẽ không được nhập` };
+  if (st === "ok") return { ...base, tip: `Sẽ nhập vào ${me}` };
+  return base;
 }
 
 function openAiImport() {
@@ -671,25 +664,49 @@ function openAiImport() {
     showToast(`Chưa tải xong danh sách khách ${_SIDE_LABEL[_currentTab]}, thử lại sau giây lát`, "warning");
     return;
   }
-  // Đổi tab thì bỏ bản nháp của bên kia, tránh nhập nhầm bên.
-  if (_ai.side !== _currentTab) { _ai.rows = []; _aiSetText(""); _aiDetach(); }
+  // Mỗi lần mở là một lượt mới: không giữ chữ, tệp, kết quả của lần trước.
+  _ai.rows = [];
+  _ai.filter = "";
+  _aiSetText("");
+  _aiDetach();
+  _aiError("");
   _ai.side = _currentTab;
-  _aiInitRelList();
   _aiShowStage("paste");
   _aiSyncCount();
   _aiRenderCap(_aiEl("ai-cap-now"), null);
+  const { aiMaxFiles, aiFileMaxMB, aiFilesMaxMB } = CONFIG.guestImport;
+  _aiEl("ai-formats-max").textContent = `Tối đa ${aiMaxFiles} tệp mỗi lượt`;
+  _aiEl("ai-formats-size").textContent = `Ảnh/PDF tối đa ${aiFileMaxMB}MB/tệp, tổng ${aiFilesMaxMB}MB`;
   _modalShow(_aiEl("ai-import-modal"), _aiEl("ai-text"));
 }
 
+// Đóng popup giữa lúc XuXi đang đọc = huỷ lượt đó luôn, không chạy ngầm.
 function closeAiImport() {
-  if (_ai.busy) return;
+  if (_ai.abort) aiCancelParse();
+  else if (_ai.busy) return;
   _modalHide(_aiEl("ai-import-modal"));
 }
 
-function fillAiSample() {
-  _aiSetText(AI_SAMPLE);
-  _aiSyncCount();
-  _aiEl("ai-text").focus();
+// Nút Huỷ ở chân popup: đang đọc thì dừng lượt đó và quay về ô dán, không thì đóng.
+function aiCancelOrClose() {
+  if (_ai.abort) aiCancelParse();
+  else closeAiImport();
+}
+
+// Huỷ lượt phân tích đang chạy, về ô dán (giữ nguyên chữ và tệp đã chọn).
+function aiCancelParse() {
+  const ctrl = _ai.abort;
+  if (!ctrl) return;
+  _ai.abort = null;
+  ctrl.abort();
+  _aiSetBusy(false);
+  _aiShowStage("paste");
+}
+
+// Nút cạnh nút chính: "Huỷ" ở ô dán và lúc XuXi đang đọc (dừng lượt đó), "Đóng" ở bước xem lại.
+function _aiSyncCancel() {
+  const review = !_aiEl("ai-review").classList.contains("hidden");
+  _aiEl("ai-cancel").textContent = review && !_ai.busy ? "Đóng" : "Huỷ";
 }
 
 function aiBackToPaste() {
@@ -703,10 +720,10 @@ function _aiShowStage(stage) {
   const review = stage === "review";
   _aiEl("ai-paste").classList.toggle("hidden", review);
   _aiEl("ai-review").classList.toggle("hidden", !review);
-  _aiEl("ai-back").classList.toggle("hidden", !review);
-  _aiEl("ai-cancel").classList.toggle("hidden", review);
+  _aiSyncCancel();
   _aiEl("ai-go").classList.toggle("hidden", review);
-  _aiEl("ai-save").classList.toggle("hidden", !review);
+  // Lúc XuXi đang đọc chưa có gì để nhập — chân popup chỉ còn nút Huỷ.
+  _aiEl("ai-save").classList.toggle("hidden", !review || _ai.busy);
   _aiEl("ai-title").textContent = review
     ? `Kiểm tra khách ${_SIDE_LABEL[_ai.side]} trước khi nhập`
     : `Nhập khách ${_SIDE_LABEL[_ai.side]} bằng AI`;
@@ -722,6 +739,7 @@ function _aiSyncCount() {
   const count = _aiEl("ai-count");
   count.textContent = `${n.toLocaleString("vi-VN")} / ${AI_GUEST_MAX_CHARS.toLocaleString("vi-VN")} ký tự`;
   count.classList.toggle("is-over", over);
+  _aiSyncGo();
   if (over) _aiError(`Danh sách dài quá ${AI_GUEST_MAX_CHARS.toLocaleString("vi-VN")} ký tự. Hãy chia làm nhiều lần nhập.`);
   else _aiError("");
 }
@@ -733,21 +751,44 @@ function _aiError(msg) {
   _aiEl("ai-text").setAttribute("aria-invalid", msg ? "true" : "false");
 }
 
+// "Phân tích danh sách" chỉ bấm được khi đã có chữ hoặc tệp (và không đang chạy).
+function _aiSyncGo() {
+  const empty = !_ai.files.length && !_aiEl("ai-text").value.trim();
+  _aiEl("ai-go").disabled = _ai.busy || empty;
+}
+
 function _aiSetBusy(busy) {
   _ai.busy = busy;
   const go = _aiEl("ai-go");
-  go.disabled = busy;
+  _aiSyncGo();
   go.dataset.loading = busy ? "1" : "";
   go.querySelector("span").textContent = busy ? "XuXi đang đọc…" : "Phân tích danh sách";
-  _aiEl("ai-back").disabled = busy;
+  _aiSyncCancel();
+  _aiEl("ai-save").classList.toggle("hidden", busy || _aiEl("ai-review").classList.contains("hidden"));
   _aiEl("ai-text").readOnly = busy;
-  ["ai-pick", "ai-cam-btn"].forEach((id) => { const b = _aiEl(id); if (b) b.disabled = busy; });
+  _aiEl("ai-plus").disabled = busy;
+  if (busy) _aiEl("ai-attach-pop")?.close?.();
 }
 
 // ── Tệp: chọn / chụp / kéo thả / dán ảnh ──────────────────────────────────────
 
-function aiPickFile() { if (!_ai.busy) _aiEl("ai-file").click(); }
-function aiTakePhoto() { if (!_ai.busy) _aiEl("ai-cam").click(); }
+// Menu nút "+": Camera chỉ có trên máy cảm ứng (điện thoại, iPad) — ở máy tính
+// capture không mở được camera mà chỉ ra hộp chọn tệp, trùng với "Ảnh".
+function toggleAiAttachMenu() {
+  if (_ai.busy) return;
+  const pop = _aiEl("ai-attach-pop");
+  if (!pop.isOpen) {
+    const pick = (id) => () => _aiEl(id).click();
+    pop.setItems([
+      ...(matchMedia("(pointer: coarse)").matches
+        ? [{ icon: _popIco("camera", "gs-tone-pink"), label: "Camera", onClick: pick("ai-cam") }] : []),
+      { icon: _popIco("image", "gs-tone-green"), label: "Ảnh", onClick: pick("ai-photo") },
+      { icon: _popIco("paperclip", "gs-tone-blue"), label: "Tệp", onClick: pick("ai-file") },
+    ]);
+    lucide.createIcons({ root: pop });
+  }
+  pop.toggle(_aiEl("ai-plus"));
+}
 
 const _aiExt = (name) => (String(name).toLowerCase().match(/\.([a-z0-9]+)$/) || [])[1] || "";
 const _aiSize = (b) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
@@ -761,7 +802,7 @@ async function _aiHandleFiles(list) {
   }
 }
 
-// Một tệp bất kỳ → chữ (đổ vào ô dán) hoặc tệp đính kèm (gửi AI đọc). Trả false khi lỗi.
+// Một tệp bất kỳ → tệp đính kèm: ảnh/PDF gửi AI đọc, Word/Excel/.txt đọc ra chữ. Trả false khi lỗi.
 async function _aiHandleFile(file) {
   if (!file || _ai.busy) return false;
   const ext = _aiExt(file.name);
@@ -789,15 +830,14 @@ async function _aiHandleFile(file) {
     } else if (ext === "docx") {
       await _aiLoadMammoth();
       const { value } = await window.mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
-      _aiUseText(value, file.name);
+      _aiAddDoc(value, "Word", file);
     } else if (ext === "doc") {
       throw new Error("File Word đời cũ (.doc) chưa đọc được. Hãy lưu lại dạng .docx hoặc PDF rồi chọn lại.");
     } else if (ext === "xlsx" || ext === "xls") {
-      // Đổi bảng tính thành chữ cho XuXi tách — hợp với file không có cột rõ ràng.
       const wb = _XLSX.read(await file.arrayBuffer(), { type: "array" });
-      _aiUseText(wb.SheetNames.map((n) => _XLSX.utils.sheet_to_csv(wb.Sheets[n], { blankrows: false })).join("\n"), file.name);
+      _aiAddDoc(_aiSheetsToText(wb), "Excel", file);
     } else if (type.startsWith("text/") || ext === "txt" || ext === "csv") {
-      _aiUseText(await file.text(), file.name);
+      _aiAddDoc(await file.text(), ext === "csv" ? "CSV" : ".txt", file);
     } else {
       throw new Error("Chưa đọc được loại tệp này. Hãy chọn ảnh, PDF, Word (.docx), Excel hoặc .txt.");
     }
@@ -810,6 +850,24 @@ async function _aiHandleFile(file) {
 
 // Kiểm PDF trước khi đính kèm (cùng luật với ai-invitation): đúng chữ ký "%PDF-",
 // tổng số trang ≤ aiPdfMaxPages; không đếm được trang (PDF nén) thì chỉ nhận file nhỏ.
+// Bảng tính → chữ cho XuXi: mỗi hàng một dòng, ô ngăn bằng " | " (dấu phẩy hay lẫn
+// với dấu phẩy trong tên/ghi chú). Bỏ hàng trống và cột trống hẳn; nhiều sheet thì ghi
+// tên sheet làm tiêu đề nhóm (sheet hay đặt tên "Nhà trai"/"Nhà gái").
+function _aiSheetsToText(wb) {
+  const parts = [];
+  wb.SheetNames.forEach((name) => {
+    const rows = _XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: false, defval: "", blankrows: false })
+      .map((r) => r.map((c) => String(c).replace(/\s+/g, " ").trim()))
+      .filter((r) => r.some(Boolean));
+    if (!rows.length) return;
+    const width = Math.max(...rows.map((r) => r.length));
+    const keep = [...Array(width).keys()].filter((i) => rows.some((r) => r[i]));
+    const lines = rows.map((r) => keep.map((i) => r[i] || "").join(" | ").replace(/( \| )+$/, ""));
+    parts.push((wb.SheetNames.length > 1 ? `${name}:\n` : "") + lines.join("\n"));
+  });
+  return parts.join("\n\n");
+}
+
 async function _aiPdfPages(file) {
   const { aiPdfMaxPages, aiPdfUnknownMaxMB } = CONFIG.guestImport;
   const bin = new TextDecoder("latin1").decode(await file.arrayBuffer());
@@ -835,19 +893,24 @@ function _aiCheckFile(size, name) {
 // Cùng luật với ai-invitation (MAX_GUEST_FILES, MAX_GUEST_FILES_B64) — server vẫn kiểm lại.
 function _aiCheckRoom(size) {
   const { aiMaxFiles, aiFilesMaxMB } = CONFIG.guestImport;
-  if (_ai.files.length >= aiMaxFiles) throw new Error(`Mỗi lượt tối đa ${aiMaxFiles} ảnh/PDF. Bỏ bớt tệp hoặc nhập phần còn lại ở lượt sau.`);
-  const used = _ai.files.reduce((n, f) => n + f.size, 0);
+  if (_ai.files.length >= aiMaxFiles) throw new Error(`Mỗi lượt tối đa ${aiMaxFiles} tệp. Bỏ bớt tệp hoặc nhập phần còn lại ở lượt sau.`);
+  const used = _aiBinSize();
   if (used + size > aiFilesMaxMB * 1048576) throw new Error(`Tổng dung lượng tệp vượt ${aiFilesMaxMB}MB. Bỏ bớt tệp rồi thử lại.`);
 }
 
-// Chữ lấy từ tệp → nối vào cuối ô dán (giữ chữ đang gõ; người dùng còn sửa được).
-function _aiUseText(text, name) {
+const _aiBinSize = () => _ai.files.reduce((n, f) => n + (f.kind === "doc" ? 0 : f.size), 0);
+const _aiDocChars = () => _ai.files.reduce((n, f) => n + (f.kind === "doc" ? f.text.length : 0), 0);
+
+// Chữ đọc từ Word/Excel/.txt → một tệp đính kèm (gửi ngầm, ghi rõ tên tệp cho AI).
+function _aiAddDoc(text, fmt, file) {
   const t = String(text || "").replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
-  if (!t) throw new Error(`Không thấy chữ nào trong “${name}”.`);
-  const cur = _aiEl("ai-text").value.trim();
-  _aiSetText(cur ? `${cur}\n\n${t}` : t);
-  _aiSyncCount();
-  _aiEl("ai-text").focus();
+  if (!t) throw new Error(`Không thấy chữ nào trong “${file.name}”.`);
+  _aiCheckRoom(0);
+  const max = CONFIG.guestImport.aiDocsMaxChars;
+  if (_aiDocChars() + t.length > max) {
+    throw new Error(`Nội dung các tệp Word/Excel/.txt dài quá ${max.toLocaleString("vi-VN")} ký tự. Hãy chia làm nhiều lượt.`);
+  }
+  _aiAttach({ kind: "doc", fmt, text: t, size: file.size, lines: t.split("\n").filter((l) => l.trim()).length }, file.name);
 }
 
 function _aiBase64(blob) {
@@ -904,27 +967,31 @@ function _aiAttach(att, name) {
   _aiRenderFiles();
 }
 
+const _aiKindLabel = (f) => (f.kind === "doc" ? f.fmt : f.kind === "image" ? "Ảnh" : "PDF");
+
 function _aiRenderFiles() {
   const box = _aiEl("ai-file-card");
   if (!box) return;
-  box.innerHTML = _ai.files.map((f, i) => {
+  const chips = _ai.files.map((f, i) => {
+    const kind = _aiKindLabel(f);
     const thumb = f.kind === "image"
       ? `<img class="gs-ai-file-thumb" src="${f.url}" alt="" />`
-      : `<span class="gs-ai-file-thumb gs-ai-file-thumb--pdf">${_ico("file-text", 22)}</span>`;
-    const name = escapeHtml(f.name || (f.kind === "image" ? "Ảnh chụp" : "Tệp PDF"));
+      : `<span class="gs-ai-file-thumb gs-ai-file-thumb--${f.kind === "doc" ? (f.fmt === "Excel" ? "xls" : "doc") : "pdf"}">${
+        _ico(f.fmt === "Excel" ? "file-spreadsheet" : "file-text", 20)}</span>`;
+    const name = escapeHtml(f.name || (f.kind === "image" ? "Ảnh chụp" : `Tệp ${kind}`));
+    const meta = f.kind === "doc" ? `${kind} · ${f.lines} dòng` : `${kind} · ${_aiSize(f.size)}`;
     return `
-      <div class="gs-ai-file">
+      <div class="gs-ai-file" title="${name}">
         ${thumb}
         <span class="gs-ai-file-txt">
           <span class="gs-ai-file-name">${name}</span>
-          <span class="gs-ai-file-meta">${f.kind === "image" ? "Ảnh" : "PDF"} · ${_aiSize(f.size)}</span>
+          <span class="gs-ai-file-meta">${meta}</span>
         </span>
-        <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" onclick="aiRemoveFile(${i})"
-          title="Bỏ tệp" aria-label="Bỏ tệp ${name}">${_ico("x", 16)}</x-button>
+        <x-button variant="bare" type="button" class="gs-ai-file-x" onclick="aiRemoveFile(${i})"
+          title="Bỏ tệp" aria-label="Bỏ tệp ${name}">${_ico("x", 12)}</x-button>
       </div>`;
-  }).join("") + (_ai.files.length
-    ? `<p class="gs-ai-files-note">${_ai.files.length}/${CONFIG.guestImport.aiMaxFiles} tệp · mỗi tệp tính 1 lượt AI</p>`
-    : "");
+  }).join("");
+  box.innerHTML = _ai.files.length ? `<div class="gs-ai-strip">${chips}</div>` : "";
   lucide.createIcons({ root: box });
   _aiSyncAttachUi();
 }
@@ -948,11 +1015,10 @@ function _aiDetach() {
 function _aiSyncAttachUi() {
   const on = _ai.files.length > 0;
   _aiEl("ai-file-card")?.classList.toggle("hidden", !on);
-  _aiEl("ai-sample")?.classList.toggle("hidden", on);
   const ta = _aiEl("ai-text");
   if (ta) {
     ta.placeholder = on
-      ? "Gõ thêm khách hoặc dặn XuXi, VD: trang 2 là nhà gái (không bắt buộc)"
+      ? "Thêm ghi chú cho XuXi (không bắt buộc)"
       : "Dán danh sách khách mời vào đây...";
   }
   _aiSyncCount();
@@ -960,9 +1026,10 @@ function _aiSyncAttachUi() {
 
 async function runAiParse() {
   if (_ai.busy) return;
-  const files = _ai.files;
+  const files = _ai.files.filter((f) => f.kind !== "doc");
+  const docs = _ai.files.filter((f) => f.kind === "doc");
   const text = _aiEl("ai-text").value.trim();
-  if (!files.length && !text) {
+  if (!_ai.files.length && !text) {
     _aiError("Dán danh sách, chọn tệp hoặc chụp ảnh danh sách khách mời trước đã.");
     _aiEl("ai-text").focus();
     return;
@@ -970,8 +1037,8 @@ async function runAiParse() {
   if (text.length > AI_GUEST_MAX_CHARS) { _aiSyncCount(); return; }
   // Kiểm lại trước khi gửi (phòng trạng thái lệch) — cùng luật với server.
   const { aiMaxFiles, aiFilesMaxMB } = CONFIG.guestImport;
-  if (files.length > aiMaxFiles) { _aiError(`Mỗi lượt tối đa ${aiMaxFiles} ảnh/PDF.`); return; }
-  if (files.reduce((n, f) => n + f.size, 0) > aiFilesMaxMB * 1048576) {
+  if (_ai.files.length > aiMaxFiles) { _aiError(`Mỗi lượt tối đa ${aiMaxFiles} tệp.`); return; }
+  if (_aiBinSize() > aiFilesMaxMB * 1048576) {
     _aiError(`Tổng dung lượng tệp vượt ${aiFilesMaxMB}MB. Bỏ bớt tệp rồi thử lại.`);
     return;
   }
@@ -983,16 +1050,25 @@ async function runAiParse() {
   }
   _aiError("");
 
+  const ctrl = new AbortController();
+  _ai.abort = ctrl;
   _aiSetBusy(true);
   _aiShowStage("review");
   _aiEl("ai-save").disabled = true;
   _aiRenderLoading();
   try {
-    const { guests, truncated } = await aiDAL.parseGuests(
-      { text, files: files.map((f) => ({ mime: f.mime, data: f.data })) },
-    );
+    const { guests, truncated } = await aiDAL.parseGuests({
+      text,
+      files: files.map((f) => ({ mime: f.mime, data: f.data, name: f.name })),
+      docs: docs.map((f) => ({ name: f.name, type: f.fmt, text: f.text })),
+    }, ctrl.signal);
+    // Đã huỷ (Huỷ / đóng popup) thì bỏ kết quả về muộn.
+    if (ctrl.signal.aborted) return;
+    _ai.abort = null;
     _ai.rows = guestBL.normalizeAiGuests(guests);
+    // Nhắc soát chính tả chỉ khi AI phải "nhìn" ảnh/PDF; chữ từ Word/Excel là nguyên văn.
     _ai.fromFile = files.length > 0;
+    _ai.filter = "";
     _aiSetBusy(false);
     _aiRenderReview();
     _aiEl("ai-review").scrollTop = 0;
@@ -1000,6 +1076,8 @@ async function runAiParse() {
       showToast(`Danh sách quá dài, XuXi chỉ đọc ${guests.length} khách đầu. Phần còn lại hãy nhập ở lượt sau.`, "warning");
     }
   } catch (err) {
+    if (ctrl.signal.aborted) return;
+    _ai.abort = null;
     _aiSetBusy(false);
     _aiShowStage("paste");
     _aiError(err.message || "XuXi chưa đọc được danh sách, vui lòng thử lại.");
@@ -1009,11 +1087,13 @@ async function runAiParse() {
 function _aiRenderLoading() {
   const row = `<div class="gs-ai-row gs-ai-row--sk"><span class="gs-sk h-8 w-20"></span><span class="gs-sk h-8 flex-1"></span></div>`;
   const n = _ai.files.length;
-  const what = n ? `XuXi đang đọc ${n > 1 ? `${n} tệp` : _ai.files[0].kind === "image" ? "ảnh" : "tệp PDF"} và tách tên, xưng hô.` : "XuXi đang tách tên và xưng hô.";
+  const what = n ? `XuXi đang đọc ${n > 1 ? `${n} tệp` : _ai.files[0].kind === "image" ? "ảnh" : `tệp ${_aiKindLabel(_ai.files[0])}`} và tách tên, xưng hô.` : "XuXi đang tách tên và xưng hô.";
   _aiEl("ai-review").innerHTML = `
     <div class="gs-ai-wait" role="status">
       <span class="gs-ai-wait-ico"><i data-icon="xuxi" data-size="22"></i></span>
-      <span>${what} Danh sách dài có thể mất một lúc.</span>
+      <span class="flex-1 min-w-0">${what} Danh sách dài có thể mất một lúc.</span>
+      <x-button variant="bare" type="button" class="gs-ai-wait-stop" onclick="aiCancelParse()"
+        title="Dừng đọc" aria-label="Dừng đọc"><i aria-hidden="true"></i></x-button>
     </div>
     <div class="gs-ai-list animate-pulse" aria-hidden="true">${row.repeat(5)}</div>`;
 }
@@ -1033,10 +1113,20 @@ function _aiCapHTML(plan) {
   const over = plan ? plan.over : 0;
   const pct = (n) => `${Math.min(100, (n / max) * 100).toFixed(2)}%`;
   const free = Math.max(0, max - have);
+  // Mức đầy của khách có sẵn → màu vạch: xanh · vàng (từ 80%) · đỏ (đủ trần).
+  const lv = have >= max ? "full" : have >= max * 0.8 ? "warn" : "ok";
   let note;
-  if (!plan) note = free ? `Còn chỗ cho ${free} khách` : "Đã đủ khách, không nhập thêm được";
-  else if (over) note = `Thêm ${add} khách. ${over} khách vượt trần ${max} sẽ không được nhập.`;
-  else note = add ? `Thêm ${add} khách, sau đó còn ${free - add} chỗ` : (free ? "Không có khách mới cho bên này" : "Đã đủ khách, không nhập thêm được");
+  const full = `Danh sách đã đủ ${max} khách, không thêm được nữa`;
+  if (!plan) note = free ? `Đã có ${have} khách, thêm được tối đa ${free} khách nữa` : full;
+  else if (over) {
+    note = add
+      ? `Sẽ thêm ${add} khách. ${over} khách còn lại không thêm được vì mỗi bên chỉ tối đa ${max} khách.`
+      : full;
+  } else if (add) {
+    note = free - add
+      ? `Sẽ thêm ${add} khách, sau đó còn thêm được ${free - add} khách nữa`
+      : `Sẽ thêm ${add} khách, danh sách vừa đủ ${max} khách`;
+  } else note = free ? `Không có khách mới để thêm vào ${_SIDE_LABEL[side]}` : full;
   return `
     <div class="gs-cap gs-cap--${side}${over || !free ? " is-full" : ""}">
       <div class="gs-cap-top">
@@ -1044,7 +1134,7 @@ function _aiCapHTML(plan) {
         <span class="gs-cap-num"><strong>${have + add}</strong>/${max}</span>
       </div>
       <div class="gs-cap-bar" role="img" aria-label="Nhà ${side === "groom" ? "trai" : "gái"}: có sẵn ${have}, thêm ${add}, tối đa ${max}">
-        <i class="gs-cap-have" style="width:${pct(have)}"></i><i class="gs-cap-add" style="width:${pct(Math.min(add, free))}"></i>
+        <i class="gs-cap-have is-${lv}" style="width:${pct(have)}"></i><i class="gs-cap-add" style="width:${pct(Math.min(add, free))}"></i>
       </div>
       <p class="gs-cap-note">${note}</p>
     </div>`;
@@ -1056,21 +1146,33 @@ function _aiRenderCap(box, plan) {
 }
 
 function _aiRowHTML(r) {
+  const k = escapeHtml(r.key);
   return `
-    <div class="gs-ai-row" data-key="${escapeHtml(r.key)}">
-      <input class="gs-ai-in gs-ai-rel" data-f="relationship" value="${escapeHtml(r.relationship)}" list="ai-rel-list"
-        maxlength="100" placeholder="Xưng hô" aria-label="Xưng hô" autocomplete="off" />
-      <div class="gs-ai-names">
-        <input class="gs-ai-in gs-ai-name" data-f="full_name" value="${escapeHtml(r.full_name)}" maxlength="200"
-          placeholder="Họ và tên" aria-label="Họ và tên" autocomplete="off" />
-        <input class="gs-ai-in gs-ai-disp" data-f="display_name" value="${escapeHtml(r.display_name)}" maxlength="200"
-          placeholder="+ Tên trên thiệp" aria-label="Tên trên thiệp (trống = dùng họ tên)" autocomplete="off" />
-      </div>
-      <x-button variant="bare" type="button" class="gs-ai-flag" data-ai="adopt" hidden></x-button>
-      <span class="gs-ai-row-acts">
-        <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" data-ai="remove"
+    <div class="gs-ai-row" data-key="${k}">
+      <div class="gs-ai-top">
+        <p class="gs-ai-greet" data-greet></p>
+        <span class="gs-ai-st"></span>
+        <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" data-ai="remove" class="gs-ai-x"
           title="Bỏ khách này" aria-label="Bỏ khách này">${_ico("x", 15)}</x-button>
-      </span>
+      </div>
+      <label class="gs-ai-f gs-ai-f--rel"><span class="gs-ai-lb">Xưng hô</span>
+        <span class="gs-ai-relbox">
+          <input class="gs-ai-in gs-ai-rel" data-f="relationship" value="${escapeHtml(r.relationship)}" maxlength="100"
+            placeholder="Bạn" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="ai-rel-pop" />
+          <span class="gs-ai-relchev" aria-hidden="true">${_ico("chevron-down", 16)}</span>
+        </span></label>
+      <label class="gs-ai-f gs-ai-f--name"><span class="gs-ai-lb">Họ và tên</span>
+        <input class="gs-ai-in gs-ai-name" data-f="full_name" value="${escapeHtml(r.full_name)}" maxlength="200"
+          placeholder="Nhập họ và tên" autocomplete="off" /></label>
+      <label class="gs-ai-f gs-ai-f--disp"><span class="gs-ai-lb">Tên trên thiệp</span>
+        <input class="gs-ai-in gs-ai-disp" data-f="display_name" value="${escapeHtml(r.display_name)}" maxlength="200"
+          placeholder="${escapeHtml(r.full_name) || "Để trống = dùng họ tên"}" autocomplete="off" /></label>
+      <div class="gs-ai-adopt">
+        <span>${_ico("info", 14)}XuXi xếp khách này vào ${escapeHtml(_SIDE_LABEL[_aiOtherSide()])}</span>
+        <x-button variant="bare" type="button" class="gs-ai-adopt-btn" data-ai="adopt">
+          ${_ico("corner-down-left", 14)}<span>Nhập vào ${escapeHtml(_SIDE_LABEL[_ai.side])}</span>
+        </x-button>
+      </div>
     </div>`;
 }
 
@@ -1086,12 +1188,14 @@ function _aiRenderReview() {
   }
 
   box.innerHTML = `
-    <div class="gs-ai-cap" data-cap></div>
+    <div class="gs-ai-cap"><div data-cap></div><div class="gs-ai-tally" data-tally role="group" aria-label="Lọc theo trạng thái"></div></div>
     ${_ai.fromFile ? `<p class="gs-ai-tip gs-ai-read">${_ico("scan-eye", 16)}<span>Danh sách đọc từ tệp — kiểm tra kỹ tên và dấu, nhất là chữ viết tay.</span></p>` : ""}
-    <p class="gs-ai-tip gs-ai-other hidden" data-other>${_ico("info", 16)}<span></span></p>
-    <div class="gs-ai-list" aria-label="Khách ${_SIDE_LABEL[_ai.side]} sắp nhập">${_ai.rows.map(_aiRowHTML).join("")}</div>`;
+    <div class="gs-ai-list" aria-label="Khách ${_SIDE_LABEL[_ai.side]} sắp nhập">
+      ${_ai.rows.map(_aiRowHTML).join("")}
+    </div>`;
   lucide.createIcons({ root: box });
   _aiRefresh();
+  _aiApplyFilter();
 }
 
 // Cập nhật cờ hàng + thanh sức chứa + nút nhập mà KHÔNG dựng lại ô nhập (giữ con
@@ -1104,37 +1208,78 @@ function _aiRefresh() {
     if (!r) return;
     const st = _ai.plan.status[r.key];
     const flag = _aiFlag(st);
-    row.classList.remove("is-other", "is-dup", "is-over", "is-empty");
-    const chip = row.querySelector(".gs-ai-flag");
-    if (flag) {
-      row.classList.add(flag.cls);
-      chip.hidden = false;
-      chip.disabled = !flag.action;
-      chip.innerHTML = escapeHtml(flag.label) + (flag.action ? _ico("corner-down-left", 12) : "");
-      if (flag.action) lucide.createIcons({ root: chip });
-      chip.title = flag.tip;
-      chip.setAttribute("aria-label", flag.tip);
-    } else {
-      chip.hidden = true;
+    row.classList.remove("is-ok", "is-other", "is-dup", "is-over", "is-empty");
+    row.classList.add(`is-${st}`);
+    const cell = row.querySelector(".gs-ai-st");
+    if (cell.dataset.st !== st) {
+      cell.dataset.st = st;
+      cell.innerHTML = `${_ico(flag.icon, 12)}<span>${escapeHtml(flag.label)}</span>`;
+      lucide.createIcons({ root: cell });
     }
+    // Lời mời xem trước — đúng cách thiệp gọi khách (xưng hô + tên trên thiệp, trống thì họ tên).
+    const who = (r.display_name.trim() || r.full_name.trim());
+    row.querySelector("[data-greet]").innerHTML = who
+      ? `Kính mời <b>${escapeHtml([r.relationship.trim(), who].filter(Boolean).join(" "))}</b>`
+      : `<i>Chưa có tên khách</i>`;
+    cell.title = flag.tip || flag.label;
   });
   const cap = box.querySelector("[data-cap]");
   if (cap) _aiRenderCap(cap, _ai.plan);
-
-  const other = _ai.plan.other;
-  const note = box.querySelector("[data-other]");
-  if (note) {
-    const o = _aiOtherSide();
-    note.classList.toggle("hidden", !other);
-    note.querySelector("span").textContent = other
-      ? `${other} khách ghi dưới nhóm ${_SIDE_LABEL[o]} sẽ không được nhập ở đây. Chuyển sang tab ${_aiTab(o)} để nhập, ` +
-        `hoặc bấm nhãn “Thuộc ${_SIDE_LABEL[o]}” nếu XuXi xếp nhầm.`
-      : "";
-  }
+  _aiRenderTally(box.querySelector("[data-tally]"));
 
   const ok = _ai.plan.ok;
   _aiEl("ai-save-txt").textContent = ok ? `Nhập ${ok} khách` : "Không có khách để nhập";
   _aiEl("ai-save").disabled = !ok;
+}
+
+// Dải chip đếm theo trạng thái — cũng là bộ lọc. Chỉ hiện trạng thái đang có khách.
+function _aiRenderTally(box) {
+  if (!box) return;
+  const n = {};
+  Object.values(_ai.plan.status).forEach((st) => (n[st] = (n[st] || 0) + 1));
+  if (_ai.filter && !n[_ai.filter]) _ai.filter = "";
+  const chip = (key, icon, label, count) => `
+    <button type="button" class="gs-ai-chip${key ? ` is-${key}` : ""}" data-filter="${key}" aria-pressed="${_ai.filter === key}">
+      ${icon ? _ico(icon, 12) : ""}<span>${escapeHtml(label)}</span><b>${count}</b>
+    </button>`;
+  box.innerHTML = chip("", "", "Tất cả", _ai.rows.length) +
+    Object.keys(_AI_ST).filter((k) => n[k]).map((k) => chip(k, _AI_ST[k].icon, _aiFlag(k).label, n[k])).join("");
+  lucide.createIcons({ root: box });
+}
+
+// Lọc theo trạng thái LÚC BẤM (data-in): sửa một hàng làm nó đổi trạng thái thì nó vẫn
+// nằm yên trong bộ lọc, không biến mất giữa lúc gõ.
+function _aiApplyFilter() {
+  const list = _aiEl("ai-review").querySelector(".gs-ai-list");
+  if (!list) return;
+  const f = _ai.filter;
+  list.toggleAttribute("data-filter", !!f);
+  list.querySelectorAll(".gs-ai-row[data-key]").forEach((row) => {
+    row.toggleAttribute("data-in", !f || _ai.plan.status[row.dataset.key] === f);
+  });
+}
+
+// Gợi ý xưng hô cho ô ở bước xem lại (thay <datalist>: mũi tên lệch, danh sách hệ thống
+// không bám theo ô khi cuộn). all = hiện đủ danh sách (lúc mới focus/bấm), không thì lọc theo chữ đã gõ.
+let _aiRelInput = null;
+function _aiRelOpen(input, all) {
+  const pop = _aiEl("ai-rel-pop");
+  const cur = input.value.trim();
+  const q = all ? "" : _fold(cur);
+  const list = GUEST_RELATIONS.filter((v) => !q || _fold(v).includes(q));
+  if (!list.length) { pop.close(); return; }
+  _aiRelInput = input;
+  pop.style.width = `${Math.max(160, input.offsetWidth)}px`;
+  pop.setItems(list.map((v) => ({
+    label: escapeHtml(v), active: v === cur,
+    onClick: () => {
+      input.value = v;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      pop.close();
+    },
+  })));
+  if (pop.isOpen && pop._anchorEl === input) pop.place();
+  else pop.open(input);
 }
 
 // Gán value bằng code thì nút "x" của <x-textarea> không tự biết — đồng bộ tay.
@@ -1148,7 +1293,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const ta = _aiEl("ai-text");
   ta?.setAttribute("spellcheck", "false");
   ta?.setAttribute("aria-describedby", "ai-err");
-  ["ai-file", "ai-cam"].forEach((id) => _aiEl(id)?.addEventListener("change", (e) => {
+  _aiEl("ai-attach-pop")?.addEventListener("open", () => _aiEl("ai-plus").classList.add("is-open"));
+  _aiEl("ai-attach-pop")?.addEventListener("close", () => _aiEl("ai-plus").classList.remove("is-open"));
+  ["ai-file", "ai-photo", "ai-cam"].forEach((id) => _aiEl(id)?.addEventListener("change", (e) => {
     const list = Array.from(e.target.files || []);
     e.target.value = "";
     _aiHandleFiles(list);
@@ -1179,15 +1326,42 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const review = _aiEl("ai-review");
+  review?.addEventListener("focusin", (e) => { if (e.target.matches?.(".gs-ai-rel")) _aiRelOpen(e.target, true); });
+  review?.addEventListener("keydown", (e) => {
+    if (e.target.matches?.(".gs-ai-rel") && e.key === "Tab") _aiEl("ai-rel-pop")?.close();
+  });
+  // Danh sách bám theo ô khi cuộn (x-popover tự đặt lại), ô trôi khỏi khung thì ẩn.
+  review?.addEventListener("scroll", () => {
+    const pop = _aiEl("ai-rel-pop");
+    if (!pop?.isOpen || !_aiRelInput) return;
+    const a = _aiRelInput.getBoundingClientRect();
+    const v = review.getBoundingClientRect();
+    if (a.bottom < v.top || a.top > v.bottom) pop.close();
+  }, { passive: true });
   review?.addEventListener("input", (e) => {
+    if (e.target.matches?.(".gs-ai-rel")) _aiRelOpen(e.target, false);
     const f = e.target.dataset?.f;
     const key = e.target.closest(".gs-ai-row")?.dataset.key;
     const r = key && _ai.rows.find((x) => x.key === key);
     if (!f || !r) return;
     r[f] = e.target.value;
+    if (f === "full_name") {
+      // Tên trên thiệp để trống = dùng họ tên → placeholder là đúng họ tên đó.
+      e.target.closest(".gs-ai-row").querySelector(".gs-ai-disp").placeholder = r.full_name.trim() || "Để trống = dùng họ tên";
+    }
     _aiRefresh();
   });
   review?.addEventListener("click", (e) => {
+    const rel = e.target.closest(".gs-ai-relbox")?.querySelector(".gs-ai-rel");
+    if (rel) { if (!_aiEl("ai-rel-pop").isOpen) _aiRelOpen(rel, true); return; }
+    const chip = e.target.closest("[data-filter]");
+    if (chip && chip.tagName === "BUTTON") {
+      _ai.filter = _ai.filter === chip.dataset.filter ? "" : chip.dataset.filter;
+      _aiRenderTally(chip.parentElement);
+      _aiApplyFilter();
+      review.scrollTop = 0;
+      return;
+    }
     const btn = e.target.closest("[data-ai]");
     const key = btn?.closest(".gs-ai-row")?.dataset.key;
     if (!key) return;

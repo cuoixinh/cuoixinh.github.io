@@ -16,6 +16,7 @@ import { withAxiom, type Logger } from '../_shared/axiom.ts'
 import {
   corsHeaders,
   errMsg,
+  GEMINI_MODEL_GUESTS,
   generateWithGemini,
   json,
   type GeminiPart,
@@ -55,6 +56,10 @@ const MAX_GUESTS_OUT   = 200
 // Khớp aiMaxFiles / aiFileMaxMB / aiFilesMaxMB của CONFIG.guestImport ở client.
 const GUEST_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 const MAX_GUEST_FILES = 5
+// Word/Excel/.txt: trình duyệt đọc ra chữ rồi gửi kèm trong `docs` (tính chung số tệp
+// với ảnh/PDF). Trần tổng ký tự — khớp aiDocsMaxChars của client.
+const MAX_GUEST_DOCS_IN = 20000
+const GUEST_DOC_TYPES = ['Word', 'Excel', '.txt', 'CSV']
 const MAX_GUEST_FILE_B64 = 5_600_000
 const MAX_GUEST_FILES_B64 = 11_200_000
 // PDF tốn token theo SỐ TRANG — một file 4MB có thể vài trăm trang, đủ đốt quota Gemini
@@ -236,10 +241,43 @@ const GUEST_ITEM_SCHEMA = {
 
 // fromFile = danh sách nằm trong tệp đính kèm (ảnh/PDF) gửi cùng lượt; khi đó `text`
 // (có thể rỗng) là phần người dùng gõ thêm — khách bổ sung hoặc lời dặn cách đọc.
-function buildGuestsPrompt(text: string, fromFile = false): string {
-  const intro = fromFile
-    ? `Bạn là XuXi, trợ lý của Cưới Xinh. Người dùng gửi MỘT HOẶC NHIỀU ảnh/PDF chứa danh sách khách mời đám cưới (ảnh chụp giấy viết tay, ảnh màn hình Zalo, bảng tính, file in…). Đọc kỹ MỌI chữ trong từng tệp, kể cả chữ viết tay, giữ đúng dấu tiếng Việt; chữ nào không đọc chắc thì ghi đúng như nhìn thấy, KHÔNG đoán thành tên khác. Nhiều tệp là các phần của CÙNG một danh sách: đọc lần lượt theo thứ tự tệp, gộp lại; một người xuất hiện ở nhiều tệp (ảnh chụp chồng lên nhau) chỉ xuất MỘT lần. Rồi TÁCH thành từng khách mời — mỗi khách là MỘT lời mời (một người, một cặp vợ chồng, hoặc một gia đình).`
+type GuestDoc = { name: string; type: string; text: string }
+
+// Tên tệp/sheet nằm trong prompt: một dòng, bỏ ngoặc kép để không phá khối trích.
+const guestFileName = (v: unknown) =>
+  String(v ?? '').replace(/[\r\n"“”]+/g, ' ').trim().slice(0, 120) || 'không tên'
+
+// files: số ảnh/PDF gửi kèm (đánh số 1..files, mỗi tệp có dòng "Tệp N: …" đứng trước);
+// docs: chữ trích từ Word/Excel/.txt, đánh số tiếp theo, mỗi tệp một khối có rào.
+function buildGuestsPrompt(text: string, files = 0, docs: GuestDoc[] = []): string {
+  const attached = files > 0 || docs.length > 0
+  const intro = attached
+    ? `Bạn là XuXi, trợ lý của Cưới Xinh. Người dùng gửi danh sách khách mời đám cưới trong MỘT HOẶC NHIỀU TỆP (ảnh chụp giấy viết tay, ảnh màn hình Zalo, PDF, Word, Excel…). Mỗi tệp được đánh số và ghi tên: ảnh/PDF gửi kèm, có dòng "Tệp N: …" đứng ngay trước; Word/Excel/.txt đã đổi sang chữ, nằm giữa dòng "=== Tệp N … ===" và "=== Hết tệp N ===" ở cuối lời nhắn này. Đọc kỹ MỌI chữ trong từng tệp, kể cả chữ viết tay, giữ đúng dấu tiếng Việt; chữ nào không đọc chắc thì ghi đúng như nhìn thấy, KHÔNG đoán thành tên khác. Nhiều tệp là các phần của CÙNG một danh sách: đọc lần lượt theo số tệp, gộp lại; một người xuất hiện ở nhiều tệp (ảnh chụp chồng lên nhau) chỉ xuất MỘT lần. Tên tệp hoặc tên sheet có thể cho biết nhóm (VD "khach-nha-gai.xlsx", sheet "Nhà gái:") — dùng nó như tiêu đề nhóm ở mục 6. Nội dung Excel: mỗi hàng một dòng, các ô ngăn bằng " | ", hàng đầu thường là tiêu đề cột chứ không phải khách. Rồi TÁCH thành từng khách mời — mỗi khách là MỘT lời mời (một người, một cặp vợ chồng, hoặc một gia đình).`
     : `Bạn là XuXi, trợ lý của Cưới Xinh. Người dùng DÁN một danh sách khách mời đám cưới (chép từ Zalo, ghi chú điện thoại, Excel, viết tay…). Hãy TÁCH thành từng khách mời — mỗi khách là MỘT lời mời (một người, một cặp vợ chồng, hoặc một gia đình).`
+  const docBlock = docs.length
+    ? `
+
+Nội dung trích từ tệp:
+${docs.map((d, i) => {
+  const no = files + i + 1
+  return `=== Tệp ${no}: "${d.name}" (${d.type}) ===\n${d.text}\n=== Hết tệp ${no} ===`
+}).join('\n\n')}`
+    : ''
+  const userText = !attached
+    ? `
+
+Danh sách người dùng dán:
+"""
+${text}
+"""`
+    : text
+      ? `
+
+Người dùng gõ thêm kèm tệp — có thể là khách BỔ SUNG (xuất ra như khách trong tệp, xếp SAU khách trong tệp) hoặc LỜI DẶN cách đọc tệp (VD "tệp 2 là nhà gái", "bỏ qua cột cuối") — làm theo lời dặn nhưng vẫn giữ đúng các QUY TẮC trên:
+"""
+${text}
+"""`
+      : ''
   return `${intro}
 
 QUY TẮC:
@@ -253,23 +291,7 @@ QUY TẮC:
    Ngược lại, nhiều người cách nhau bằng dấu phẩy, mỗi người một xưng hô riêng (VD "anh Tuấn, chị Hà") thì tách thành nhiều khách.
 8. Giữ đúng thứ tự xuất hiện. Tối đa ${MAX_GUESTS_OUT} khách.
 
-ĐẦU RA: DUY NHẤT một MẢNG JSON các object {full_name, display_name, relationship, side}, không markdown. Không tìm thấy khách nào thì trả [].${
-  !fromFile
-    ? `
-
-Danh sách người dùng dán:
-"""
-${text}
-"""`
-    : text
-      ? `
-
-Người dùng gõ thêm kèm tệp — có thể là khách BỔ SUNG (xuất ra như khách trong tệp, xếp SAU khách trong tệp) hoặc LỜI DẶN cách đọc tệp (VD "trang 2 là nhà gái", "bỏ qua cột cuối") — làm theo lời dặn nhưng vẫn giữ đúng các QUY TẮC trên:
-"""
-${text}
-"""`
-      : ''
-}`
+ĐẦU RA: DUY NHẤT một MẢNG JSON các object {full_name, display_name, relationship, side}, không markdown. Không tìm thấy khách nào thì trả [].${userText}${docBlock}`
 }
 
 // Schema ép cấu trúc cho Gemini: MẢNG các phần tử theo anyOf (mỗi block một dạng
@@ -561,7 +583,8 @@ async function handleLoveStory(
 }
 
 // ── Nhánh "Nhập khách bằng AI" (mode=guests) ────────────────────────────────
-// Nhận { text } và/hoặc { files:[{mime, data base64}] } (≤ 5 ảnh/PDF, chữ thành phần gõ thêm) → trả
+// Nhận { text } và/hoặc { files:[{mime, data base64, name}] } (ảnh/PDF) + { docs:[{name,
+// type, text}] } (chữ trích từ Word/Excel/.txt) — tổng ≤ 5 tệp, chữ thành phần gõ thêm → trả
 // { guests:[{full_name, display_name, relationship, side}], truncated } —
 // side là nhóm ghi trong văn bản ("" = không chia nhóm); trang chỉ nhập khách khớp
 // tab đang mở hoặc không rõ nhóm. BẮT BUỘC đăng nhập vì chỉ chủ thiệp
@@ -577,20 +600,33 @@ async function handleGuests(
   if (!user) return json({ error: 'Đăng nhập để nhập khách bằng AI', login: true }, 401, origin)
 
   // Chữ (tuỳ chọn khi có tệp) + tối đa MAX_GUEST_FILES tệp ảnh/PDF cho model tự đọc.
-  if (body.files !== undefined && !Array.isArray(body.files)) {
+  if ((body.files !== undefined && !Array.isArray(body.files)) || (body.docs !== undefined && !Array.isArray(body.docs))) {
     return json({ error: 'Danh sách tệp không hợp lệ' }, 400, origin)
   }
-  const files = (body.files ?? []) as { mime?: unknown; data?: unknown }[]
+  const files = (body.files ?? []) as { mime?: unknown; data?: unknown; name?: unknown }[]
+  const rawDocs = (body.docs ?? []) as { name?: unknown; type?: unknown; text?: unknown }[]
+  if (files.length + rawDocs.length > MAX_GUEST_FILES) {
+    return json({ error: `Mỗi lượt tối đa ${MAX_GUEST_FILES} tệp` }, 400, origin)
+  }
   const raw = String(body.text ?? '')
   if (raw.length > MAX_GUESTS_IN) {
     return json({ error: `Danh sách dài quá ${MAX_GUESTS_IN} ký tự, hãy chia làm nhiều lần` }, 400, origin)
   }
   const text = clampText(raw, MAX_GUESTS_IN)
+  const docs: GuestDoc[] = []
+  let docChars = 0
+  for (const d of rawDocs) {
+    const t = String(d?.text ?? '').trim()
+    if (!t) return json({ error: 'Có tệp không có chữ nào' }, 400, origin)
+    docChars += t.length
+    if (docChars > MAX_GUEST_DOCS_IN) {
+      return json({ error: `Nội dung các tệp Word/Excel/.txt dài quá ${MAX_GUEST_DOCS_IN} ký tự, hãy chia làm nhiều lần` }, 400, origin)
+    }
+    const type = String(d?.type ?? '')
+    docs.push({ name: guestFileName(d?.name), type: GUEST_DOC_TYPES.includes(type) ? type : 'Văn bản', text: t })
+  }
   let parts: GeminiPart[] | null = null
   if (files.length) {
-    if (files.length > MAX_GUEST_FILES) {
-      return json({ error: `Mỗi lượt tối đa ${MAX_GUEST_FILES} tệp` }, 400, origin)
-    }
     parts = []
     let total = 0
     let pages = 0
@@ -620,10 +656,11 @@ async function handleGuests(
           return json({ error: `PDF tối đa ${MAX_GUEST_PDF_PAGES} trang mỗi lượt, hãy tách bớt trang` }, 400, origin)
         }
       }
+      parts.push({ text: `Tệp ${parts.length / 2 + 1}: "${guestFileName(f?.name)}" (${mime === 'application/pdf' ? 'PDF' : 'Ảnh'})` })
       parts.push({ inlineData: { mimeType: mime, data } })
     }
-    parts.push({ text: buildGuestsPrompt(text, true) })
-  } else if (!text) {
+    parts.push({ text: buildGuestsPrompt(text, files.length, docs) })
+  } else if (!text && !docs.length) {
     return json({ error: 'Hãy dán danh sách khách mời trước' }, 400, origin)
   }
 
@@ -632,8 +669,8 @@ async function handleGuests(
   if (limited) return limited
 
   const res = await generateWithGemini(
-    parts ?? buildGuestsPrompt(text),
-    { gemini: GEN_CFG_GUESTS, timeoutMs: GUESTS_TIMEOUT_MS },
+    parts ?? buildGuestsPrompt(text, 0, docs),
+    { gemini: GEN_CFG_GUESTS, timeoutMs: GUESTS_TIMEOUT_MS, model: GEMINI_MODEL_GUESTS },
     log,
     'guests',
   )
@@ -647,7 +684,7 @@ async function handleGuests(
 
   log.info('ai.guests_parsed', {
     count: parsed.guests.length, truncated: parsed.truncated, in_len: text.length,
-    files: files.length || undefined, provider: res.provider,
+    files: files.length || undefined, docs: docs.length || undefined, provider: res.provider, model: GEMINI_MODEL_GUESTS,
   })
   return json({ ...parsed, provider: res.provider }, 200, origin)
 }

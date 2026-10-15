@@ -156,20 +156,23 @@ class GuestBL {
 
   /**
    * Gắn trạng thái cho từng hàng sắp nhập vào MỘT bên, theo đúng luật của guest-handler khi
-   * nhập kiểu "thêm vào" (khoá trùng = Họ tên + Tên trên thiệp, cắt ở trần mỗi bên):
+   * nhập kiểu "thêm vào" (khoá trùng = Họ tên + Tên trên thiệp + Xưng hô, cắt ở trần mỗi bên):
    * other (ghi dưới nhóm bên kia) · empty (thiếu họ tên) · dup (đã có / lặp trong
    * danh sách) · over (hết chỗ) · ok.
    */
   planAiImport(rows, existing, side, max = CONFIG.guestImport.maxPerSide) {
-    const keyOf = (g) => `${String(g.full_name || "").trim()}||${String(g.display_name || "").trim()}`;
-    const seen = new Set((existing || []).map(keyOf));
+    // Khoá trùng = Họ tên + Tên trên thiệp + Xưng hô — khớp guestKey của guest-handler. Xưng hô
+    // trống của hàng sắp nhập thành "Bạn" như lúc gửi đi (importAiGuests).
+    const keyOf = (g, def = "") => [g.full_name, g.display_name, String(g.relationship || "").trim() || def]
+      .map((v) => String(v || "").trim()).join("||");
+    const seen = new Set((existing || []).map((g) => keyOf(g)));
     let free = Math.max(0, max - (existing || []).length);
     const status = {};
     let ok = 0, over = 0, other = 0;
     for (const r of rows) {
       if (r.group && r.group !== side) { status[r.key] = "other"; other++; continue; }
       if (!r.full_name.trim()) { status[r.key] = "empty"; continue; }
-      const k = keyOf(r);
+      const k = keyOf(r, "Bạn");
       if (seen.has(k)) { status[r.key] = "dup"; continue; }
       seen.add(k);
       if (free > 0) { status[r.key] = "ok"; free--; ok++; }

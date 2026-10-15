@@ -225,6 +225,9 @@ const CONFIG = {
     // PDF: tổng trang mỗi lượt; PDF không đếm được trang chỉ nhận ≤ aiPdfUnknownMaxMB.
     // Khớp MAX_GUEST_PDF_PAGES / MAX_GUEST_PDF_UNKNOWN_B64 của ai-invitation.
     aiPdfMaxPages: 10,
+    // Word/Excel/.txt đọc ra chữ ở trình duyệt rồi gửi kèm (tính chung aiMaxFiles):
+    // tổng ký tự mọi tệp — khớp MAX_GUEST_DOCS_IN của ai-invitation.
+    aiDocsMaxChars: 20000,
     aiPdfUnknownMaxMB: 2,
     // Trần tệp GỐC người dùng chọn (trước khi nén/đọc) — chặn ảnh/Word/Excel khổng lồ
     // làm treo trình duyệt. Chỉ ở client: server không bao giờ nhận tệp gốc.

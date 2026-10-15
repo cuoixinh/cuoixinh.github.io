@@ -69,6 +69,11 @@ function sanitizeGuest(raw: Record<string, unknown>, wedding_id: string, side: s
   }
 }
 
+// Khoá trùng khi nhập danh sách: cùng Họ tên + Tên trên thiệp + Xưng hô là một khách.
+// Bản sao ở guestBL.planAiImport (client) — đổi phải đổi cả hai.
+const guestKey = (g: { full_name?: unknown; display_name?: unknown; relationship?: unknown }) =>
+  [g.full_name, g.display_name, g.relationship].map(v => String(v ?? '').trim()).join('||')
+
 // ── Khớp khách theo link cá nhân hoá ─────────────────────────────────────────
 // CỔNG CHẶN THẬT của mọi thao tác công khai (rsvp, gửi lời chúc): tham số
 // name/relationship trên link mã hoá bằng khoá nằm trong bundle client nên ai
@@ -613,12 +618,12 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       if (guests.length === 0) return fail('Không có dữ liệu hợp lệ')
 
       if (overwrite) {
-        // Xóa các bản ghi trùng full_name + display_name, giữ bản ghi không trùng
-        const importKeys = new Set(guests.map(g => `${g.full_name}||${g.display_name}`))
+        // Xóa các bản ghi trùng (guestKey), giữ bản ghi không trùng
+        const importKeys = new Set(guests.map(guestKey))
 
         const { data: existingRows, error: exErr } = await supabase
           .from('guests')
-          .select('id, full_name, display_name')
+          .select('id, full_name, display_name, relationship')
           .eq('wedding_id', wedding_id)
           .eq('side', side)
 
@@ -627,7 +632,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         if (exErr) return fail(exErr.message, 500)
 
         const idsToDelete = (existingRows ?? [])
-          .filter(e => importKeys.has(`${e.full_name}||${e.display_name}`))
+          .filter(e => importKeys.has(guestKey(e)))
           .map(e => e.id)
 
         if (idsToDelete.length > 0) {
@@ -668,18 +673,16 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         // Bỏ qua trùng lặp
         const { data: existingRows, error: exErr } = await supabase
           .from('guests')
-          .select('full_name, display_name')
+          .select('full_name, display_name, relationship')
           .eq('wedding_id', wedding_id)
           .eq('side', side)
 
         // Đọc hỏng → không thấy ai trùng → chèn lại toàn bộ danh sách.
         if (exErr) return fail(exErr.message, 500)
 
-        const existingKeys = new Set(
-          (existingRows ?? []).map(g => `${g.full_name}||${g.display_name}`)
-        )
+        const existingKeys = new Set((existingRows ?? []).map(guestKey))
 
-        const newGuests = guests.filter(g => !existingKeys.has(`${g.full_name}||${g.display_name}`))
+        const newGuests = guests.filter(g => !existingKeys.has(guestKey(g)))
         const canInsert = Math.max(0, cap - existing)
         const toInsert = newGuests.slice(0, canInsert)
 

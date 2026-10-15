@@ -150,8 +150,10 @@ class AiDAL {
    * tệp `files: [{mime, data base64}]` (ảnh/PDF) → { guests, truncated }. Mỗi khách
    * {full_name, display_name, relationship, side}, side = nhóm ghi trong danh sách
    * ("" = không chia nhóm). Bắt buộc đăng nhập; chỉ ĐỌC, ghi là việc của guest-handler.
+   * docs: [{name, type, text}] — chữ trích từ Word/Excel/.txt, server ghi rõ từng tệp cho AI.
+   * signal: AbortSignal để huỷ giữa chừng (fetch ném AbortError).
    */
-  async parseGuests({ text, files }) {
+  async parseGuests({ text, files, docs }, signal) {
     const token = await this._token();
     if (!token) throw Object.assign(new Error("Đăng nhập để nhập khách bằng AI"), { needLogin: true });
 
@@ -162,7 +164,8 @@ class AiDAL {
         apikey: CONFIG.supabase.anonKey,
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ mode: "guests", device: window.cxDeviceId?.() || "", text: text || "", ...(files?.length ? { files } : {}) }),
+      body: JSON.stringify({ mode: "guests", device: window.cxDeviceId?.() || "", text: text || "", ...(files?.length ? { files } : {}), ...(docs?.length ? { docs } : {}) }),
+      signal,
     });
 
     const json = await res.json().catch(() => ({}));
