@@ -1,6 +1,7 @@
 // Màn "Khách mời": liệt kê thiệp ĐÃ XUẤT BẢN của tài khoản (weddingDAL.listMyWeddings,
 // luôn hỏi thẳng server) để chọn một thiệp rồi sang trang quản lý khách mời sẵn có
 // (invitation-setup/guests/?id=…&from=list — `from=list` cho nút quay lại về đây).
+// Chỉ có MỘT thiệp đã xuất bản thì chuyển thẳng sang trang quản lý của thiệp đó.
 // Nháp không có ở đây: quản lý khách mời cần thiệp đã xuất bản (link gửi khách).
 
 let _glUser = null;
@@ -42,30 +43,54 @@ function _glCover(w) {
 const _ico = (name, size) =>
   `<i data-lucide="${name}"${size ? ` style="width:${size}px;height:${size}px"` : ""}></i>`;
 
-// Nhãn hạn dùng thử / hạn gói (dùng lại .mi-tag của my-invitations). expires_at null =
-// đã kích hoạt, khi đó plan_expires_at (gói 3/6 tháng) mới quyết định còn hạn hay
-// không; hết hạn thì khách mời không mở được thiệp nhưng chủ thiệp vẫn quản lý danh
-// sách được — chỉ báo, không chặn.
-const _glPlanOver = (w) => !!w.plan_expires_at && new Date(w.plan_expires_at) <= Date.now();
+// Nhãn + dòng gợi ý theo đúng bộ của "Thiệp của tôi" (tagHTML/hintHTML ở
+// my-invitations/index.js) — sửa chữ/tông ở bên đó thì sửa cả ở đây. Nhãn chỉ nói
+// trạng thái + gói, ngày hết hạn xuống dòng gợi ý để nhãn không tràn ở khổ điện thoại.
+// Hết hạn thì khách mời không mở được thiệp nhưng chủ thiệp vẫn quản lý danh sách.
+const _GL_PLAN_WARN_DAYS = 14;
+const _glDays = (iso) => Math.ceil((new Date(iso) - Date.now()) / 86400000);
+const _glDate = (iso) =>
+  new Date(iso).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+function _glStateOf(w) {
+  if (w.plan_expires_at) return _glDays(w.plan_expires_at) > 0 ? "plan" : "planExpired";
+  if (!w.expires_at) return "active";
+  return _glDays(w.expires_at) > 0 ? "trial" : "expired";
+}
 
 function _glTag(w) {
-  if (!w.expires_at && w.plan_expires_at)
-    return _glPlanOver(w)
-      ? `<span class="mi-tag mi-tag--due">${_ico("clock-alert")}Hết hạn gói</span>`
-      : `<span class="mi-tag mi-tag--live">${_ico("badge-check")}Đã thanh toán · ${{ "3m": "3 tháng", "6m": "6 tháng" }[w.plan] || ""} · đến ${new Date(w.plan_expires_at).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}</span>`;
-  if (!w.expires_at)
-    return `<span class="mi-tag mi-tag--live">${_ico("badge-check")}Đã thanh toán</span>`;
-  const days = Math.ceil((new Date(w.expires_at) - Date.now()) / 86400000);
-  return days > 0
-    ? `<span class="mi-tag mi-tag--trial">${_ico("clock")}Dùng thử · còn ${Math.min(days, CONFIG.trialDays)} ngày</span>`
-    : `<span class="mi-tag mi-tag--due">${_ico("clock-alert")}Hết hạn dùng thử</span>`;
+  const state = _glStateOf(w);
+  const planName = { "3m": "3 tháng", "6m": "6 tháng" }[w.plan] || "";
+  const soon = state === "plan" && _glDays(w.plan_expires_at) <= _GL_PLAN_WARN_DAYS;
+  const T = {
+    trial: ["trial", "clock", `Dùng thử · còn ${Math.min(_glDays(w.expires_at || 0), CONFIG.trialDays)} ngày`],
+    expired: ["due", "clock-alert", "Hết hạn dùng thử"],
+    active: ["live", "badge-check", "Đã thanh toán · Vĩnh viễn"],
+    plan: [soon ? "trial" : "live", "badge-check", `Đã thanh toán · ${planName}`],
+    planExpired: ["due", "clock-alert", `Hết hạn gói ${planName}`],
+  }[state];
+  return `<span class="mi-tag mi-tag--${T[0]}">${_ico(T[1])}${T[2]}</span>`;
 }
 
 function _glHint(w) {
-  const trialOver = !!w.expires_at && new Date(w.expires_at) <= Date.now();
-  if (!trialOver && !_glPlanOver(w)) return "";
-  return `<p class="mi-hint mi-hint--warn">${_ico("info")}<span>Khách tạm không mở được thiệp, danh sách vẫn quản lý bình thường.</span></p>`;
+  const state = _glStateOf(w);
+  let H = null;
+  if (state === "expired" || state === "planExpired")
+    H = ["warn", "triangle-alert", "Khách tạm không mở được thiệp, danh sách vẫn quản lý bình thường"];
+  else if (state === "plan") {
+    const left = _glDays(w.plan_expires_at);
+    H = left <= _GL_PLAN_WARN_DAYS
+      ? ["warn", "triangle-alert", `Còn ${left} ngày (đến ${_glDate(w.plan_expires_at)})`]
+      : ["", "calendar-check", `Khách mời xem được đến hết ngày ${_glDate(w.plan_expires_at)}`];
+  }
+  if (!H) return "";
+  return `<p class="mi-hint${H[0] ? ` mi-hint--${H[0]}` : ""}">${_ico(H[1])}<span>${H[2]}</span></p>`;
 }
+
+// `from` cho nút quay lại của trang quản lý: "list" về màn này, "tab" lùi lịch sử
+// (màn này đã bị thay bằng location.replace nên lùi là về trang trước nó).
+const _glGuestsHref = (w, from) =>
+  `/invitation-setup/guests/?id=${encodeURIComponent(w.id)}&from=${from}`;
 
 // Thẻ cùng khung với "Quản lý thiệp": ảnh + chữ ở trên, chân thẻ là "Xem thiệp"
 // (mở thiệp thật ở tab mới) + nút chính "Quản lý khách mời".
@@ -73,7 +98,7 @@ function _glHint(w) {
 function _glCardHTML(w) {
   const names = [w.groom_name, w.bride_name].filter(Boolean).join(" & ") || "Thiệp cưới";
   const cover = _glCover(w);
-  const href = `/invitation-setup/guests/?id=${encodeURIComponent(w.id)}&from=list`;
+  const href = _glGuestsHref(w, "list");
   const url = w.slug ? `${location.origin}/${w.slug}` : "";
   const created = w.created_at ? new Date(w.created_at).toLocaleDateString("vi-VN") : "";
   return `
@@ -147,6 +172,12 @@ async function loadList() {
     .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   if (!published.length) {
     _glState("empty");
+    return;
+  }
+  // Chỉ một thiệp thì không có gì để chọn: vào thẳng trang quản lý khách mời.
+  // replace để Back không quay về màn này rồi lại bị đẩy đi.
+  if (published.length === 1) {
+    location.replace(_glGuestsHref(published[0], "tab"));
     return;
   }
   const list = document.getElementById("list");
