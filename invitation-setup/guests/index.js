@@ -1,7 +1,10 @@
 const WEDDING_ID = new URLSearchParams(window.location.search).get("id");
 // ?from=list: mở từ màn "Khách mời" (/guest-list/) — nút quay lại về đó thay vì
-// trang Thiết lập. Chỉ nhận đúng giá trị này, không nhận URL tuỳ ý.
-const FROM_LIST = new URLSearchParams(window.location.search).get("from") === "list";
+// trang Thiết lập. ?from=tab: màn đó tự chuyển thẳng tới đây (chỉ có một thiệp) nên
+// quay lại là lùi lịch sử. Chỉ nhận đúng hai giá trị này, không nhận URL tuỳ ý.
+const FROM = new URLSearchParams(window.location.search).get("from");
+const FROM_LIST = FROM === "list";
+const FROM_TAB = FROM === "tab";
 
 let _importState = { headers: [], data: [], side: "" };
 let _currentTab = "groom";
@@ -10,10 +13,11 @@ let _currentTab = "groom";
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Đứng TRƯỚC lucide: CDN icon lỗi là dòng dưới ném, nút quay lại kẹt ở nhãn cũ.
-  if (FROM_LIST) {
+  if (FROM_LIST || FROM_TAB) {
+    const label = FROM_LIST ? "Chọn thiệp khác" : "Quay lại";
     const back = document.getElementById("gs-back");
-    back?.setAttribute("title", "Chọn thiệp khác");
-    back?.setAttribute("aria-label", "Chọn thiệp khác");
+    back?.setAttribute("title", label);
+    back?.setAttribute("aria-label", label);
   }
   _initMoreMenu();
   _bindStatFilters();
@@ -96,6 +100,12 @@ function goBack() {
   }
   if (FROM_LIST) {
     window.location.href = "/guest-list/";
+    return;
+  }
+  // Mở thẳng link (không có trang trước) thì về danh sách thiệp thay vì đứng yên.
+  if (FROM_TAB) {
+    if (history.length > 1) history.back();
+    else window.location.href = "/my-invitations/";
     return;
   }
   window.location.href = `../index.html?id=${WEDDING_ID}`;
