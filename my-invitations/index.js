@@ -836,7 +836,7 @@ function _cardActions(c, i, state) {
   const live = c.published && c.slug;
   const view = { id: "view", icon: "eye", label: "Xem", menuLabel: "Xem thiệp", run: `viewCard(${i}, this)`, pick: (b) => viewCard(i, b) };
   const edit = { id: "edit", icon: "file-pen", label: "Chỉnh sửa", run: `openEditor(${i})`, pick: () => openEditor(i) };
-  const share = { id: "share", icon: "share-2", label: "Chia sẻ", menuLabel: "Chia sẻ thiệp", run: `shareCard(${i})`, pick: () => shareCard(i) };
+  const share = { id: "share", icon: "share-2", label: "Chia sẻ", menuLabel: "Chia sẻ thiệp", run: `shareCard(${i}, this)`, pick: (b) => shareCard(i, b) };
   // Đổi đường dẫn chỉ khi CHƯA xuất bản (server cũng chặn).
   const slug = { id: "slug", icon: "link-2", label: "Đổi link", menuLabel: "Đổi đường dẫn", run: `openSlugModal(${i})`, pick: () => openSlugModal(i) };
   const activate = { id: "activate", icon: "credit-card", label: "Kích hoạt thiệp", run: `activateCard(${i})` };
@@ -951,18 +951,23 @@ function openEditor(i) {
   window.location.href = `/invitation-setup/?id=${c.id}`;
 }
 
-// Xem và sao chép hỏi Nhà trai / Nhà gái trước (cxPickSide), vì mỗi nhà một link
-// (?isGroom). Chia sẻ vẫn dùng link CHUNG của thiệp.
+// Xem, chia sẻ và sao chép hỏi Nhà trai / Nhà gái trước (cxPickSide), vì mỗi nhà
+// một link (?isGroom).
 function viewCard(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
   cxPickSide(btn, (side) => window.open(cxSideUrl(publicUrl(c), side), "_blank"));
 }
 
-async function shareCard(i) {
+function shareCard(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
-  const url = publicUrl(c);
+  cxPickSide(btn, (side) => _shareSide(c, side));
+}
+
+// Bấm mục trong popover vẫn là thao tác của người dùng nên navigator.share chạy được.
+async function _shareSide(c, side) {
+  const url = cxSideUrl(publicUrl(c), side);
   const title = [c.groom, c.bride].filter(Boolean).join(" & ") || "Thiệp cưới";
   if (navigator.share) {
     try {
@@ -972,7 +977,8 @@ async function shareCard(i) {
       if (e.name === "AbortError") return; // người dùng đóng bảng chia sẻ
     }
   }
-  if (await _copyText(url)) showToast("Đã sao chép link thiệp", "success");
+  const who = side === "groom" ? "nhà trai" : "nhà gái";
+  if (await _copyText(url)) showToast(`Đã sao chép link thiệp ${who}`, "success");
 }
 
 function copyLink(i, btn) {
