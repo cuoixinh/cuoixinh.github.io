@@ -1570,7 +1570,7 @@ function _emptyPathsHTML(side) {
     </button>`;
   return `<div class="gs-paths">
     ${card("ai", `<i data-icon="xuxi" data-size="28"></i>`, "Nhập khẩu với AI",
-      "Chép từ Zalo, ghi chú… XuXi tách tên và xưng hô giúp bạn.", `switchTab('${side}'); openAiImport()`)}
+      "Hỗ trợ văn bản, ảnh chụp, PDF, Word, Excel. Tự động tách tên, xưng hô từng khách.", `switchTab('${side}'); openAiImport()`)}
     ${card("one", _ico("user-plus", 20), "Thêm từng khách",
       "Gõ tên và xưng hô cho một người.", `openAddGuestModal('${side}')`)}
     ${card("excel", _ico("file-spreadsheet", 20), "Nhập từ Excel",
