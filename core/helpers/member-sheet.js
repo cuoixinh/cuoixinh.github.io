@@ -27,6 +27,31 @@ const _cxMemRights = `
     </div>
   </div>`;
 
+// Khung xương lúc đọc thành viên: dáng của form mời (trường hợp hay gặp nhất) — ô email,
+// ba ô chọn bên, hai ô quyền hạn, nút chính.
+const _cxMemSkeleton = `
+  <div class="cx-mem-pad cx-mem-stack cx-mem-sk-wrap" aria-hidden="true">
+    <div class="cx-mem-field">
+      <span class="cx-mem-sk" style="width:140px;height:14px"></span>
+      <span class="cx-mem-sk" style="height:52px;border-radius:14px"></span>
+      <span class="cx-mem-sk" style="width:85%;height:12px"></span>
+    </div>
+    <div class="cx-mem-field">
+      <span class="cx-mem-sk" style="width:160px;height:14px"></span>
+      <div class="cx-mem-sides">
+        <span class="cx-mem-sk" style="height:88px;border-radius:16px"></span>
+        <span class="cx-mem-sk" style="height:88px;border-radius:16px"></span>
+        <span class="cx-mem-sk" style="height:88px;border-radius:16px"></span>
+      </div>
+    </div>
+    <div class="cx-mem-rights">
+      <span class="cx-mem-sk" style="height:96px;border-radius:14px"></span>
+      <span class="cx-mem-sk" style="height:96px;border-radius:14px"></span>
+    </div>
+    <span class="cx-mem-sk" style="height:52px"></span>
+  </div>
+  <p class="sr-only" role="status">Đang tải</p>`;
+
 // opts.names: "Minh Anh & Quốc Huy" — dòng phụ của tiêu đề + lời nhắn sao chép.
 async function cxOpenMemberSheet(weddingId, opts = {}) {
   if (document.getElementById("cx-mem")) return;
@@ -45,16 +70,27 @@ async function cxOpenMemberSheet(weddingId, opts = {}) {
         </div>
         <button type="button" class="cx-mem-x" data-mem-close aria-label="Đóng">${_cxMemIco("x")}</button>
       </header>
-      <div class="cx-mem-body"><p class="cx-mem-loading">Đang tải…</p></div>
+      <div class="cx-mem-body">${_cxMemSkeleton}</div>
     </section>`;
   document.body.appendChild(root);
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = "hidden";
+  // Khoá trang bằng position:fixed chứ không chỉ overflow:hidden — iOS bỏ qua overflow
+  // khi bàn phím bung: trang phía sau trôi theo cú vuốt, ẩn bàn phím xong kẹt ở chỗ lệch
+  // và popup không cuộn lại được nữa. Đóng popup thì trả trang về đúng chỗ cũ.
+  const body = document.body;
+  const scrollY = window.scrollY;
+  const prev = { position: body.style.position, top: body.style.top, left: body.style.left, right: body.style.right, overflow: body.style.overflow };
+  Object.assign(body.style, { position: "fixed", top: `-${scrollY}px`, left: "0", right: "0", overflow: "hidden" });
   window.lucide?.createIcons({ root });
+
+  // Bàn phím vừa ẩn (ô nhập mất focus): kéo khung nhìn về 0 — iOS đẩy nó lên lúc bung
+  // bàn phím và không tự trả về.
+  const onBlur = () => setTimeout(() => window.scrollTo(0, 0), 60);
+  root.addEventListener("focusout", onBlur);
 
   const close = () => {
     document.removeEventListener("keydown", onKey, true);
-    document.body.style.overflow = prevOverflow;
+    Object.assign(body.style, prev);
+    window.scrollTo(0, scrollY);
     root.remove();
   };
   const onKey = (e) => {
@@ -65,18 +101,53 @@ async function cxOpenMemberSheet(weddingId, opts = {}) {
     if (e.target === root || e.target.closest("[data-mem-close]")) close();
   });
 
-  const ctx = { weddingId, names, body: root.querySelector(".cx-mem-body"), close };
+  const ctx = { weddingId, names, body: root.querySelector(".cx-mem-body"), box: root.querySelector(".cx-mem-box"), close };
   try {
     _cxMemRender(ctx, await guestDAL.getMember(weddingId));
   } catch (e) {
-    ctx.body.innerHTML = `<p class="cx-mem-loading cx-mem-loading--err">${escapeHtml(e.message || "Không tải được thành viên")}</p>`;
+    _cxMemResize(ctx.box, () => {
+      ctx.body.innerHTML = `<p class="cx-mem-loading cx-mem-loading--err">${escapeHtml(e.message || "Không tải được thành viên")}</p>`;
+    });
   }
 }
 
 function _cxMemRender(ctx, member) {
-  if (member) _cxMemRenderMember(ctx, member);
-  else _cxMemRenderForm(ctx);
-  window.lucide?.createIcons({ root: ctx.body });
+  _cxMemResize(ctx.box, () => {
+    if (member) _cxMemRenderMember(ctx, member);
+    else _cxMemRenderForm(ctx);
+    window.lucide?.createIcons({ root: ctx.body });
+  });
+}
+
+// Đổi ruột popup (khung xương → form / thẻ thành viên, mở khung xác nhận gỡ…) mà
+// không giật: đo chiều cao trước và sau `change`, rồi cho hộp trượt giữa hai số. Hết
+// chuyển động thì trả height về tự do (max-height của .cx-mem-box vẫn chặn trần).
+function _cxMemResize(box, change) {
+  const from = box.getBoundingClientRect().height;
+  change();
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  box.style.transition = "none";
+  box.style.height = "auto";
+  const to = box.getBoundingClientRect().height;
+  if (Math.abs(to - from) < 2) {
+    box.style.height = "";
+    box.style.transition = "";
+    return;
+  }
+  box.style.height = `${from}px`;
+  box.getBoundingClientRect(); // chốt mốc đầu trước khi bật transition
+  box.style.transition = "height 0.28s cubic-bezier(0.4, 0, 0.2, 1)";
+  box.style.height = `${to}px`;
+  const run = (box._cxResizeRun = (box._cxResizeRun || 0) + 1);
+  const done = (e) => {
+    if (e && e.target !== box) return;
+    if (run !== box._cxResizeRun) return; // lượt đổi mới hơn đã thay lượt này
+    box.removeEventListener("transitionend", done);
+    box.style.height = "";
+    box.style.transition = "";
+  };
+  box.addEventListener("transitionend", done);
+  setTimeout(done, 400); // transitionend có lúc không tới (tab ẩn, hộp bị gỡ)
 }
 
 // Chưa mời ai: email + chọn bên (không chọn sẵn — người lập thiệp có thể là cô dâu hay
@@ -195,10 +266,11 @@ function _cxMemRenderMember(ctx, member) {
   const confirmBox = ctx.body.querySelector(".cx-mem-confirm");
   const actionsBox = ctx.body.querySelector(".cx-mem-actions");
   // style.display chứ không phải class "hidden": hai khối có display riêng ở CSS.
-  const toggleConfirm = (on) => {
-    confirmBox.style.display = on ? "" : "none";
-    actionsBox.style.display = on ? "none" : "";
-  };
+  const toggleConfirm = (on) =>
+    _cxMemResize(ctx.box, () => {
+      confirmBox.style.display = on ? "" : "none";
+      actionsBox.style.display = on ? "none" : "";
+    });
   ctx.body.querySelector("[data-mem-remove]").addEventListener("click", () => toggleConfirm(true));
   ctx.body.querySelector("[data-mem-cancel]").addEventListener("click", () => toggleConfirm(false));
   ctx.body.querySelector("[data-mem-confirm]").addEventListener("click", async (e) => {

@@ -5433,6 +5433,7 @@ button.cx-ord-pay {
   max-height: calc(var(--vh, 1vh) * 92);
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border-radius: 28px 28px 0 0;
   background: rgb(var(--white-rgb));
   box-shadow: 0 -16px 40px rgb(var(--scrim-plum-rgb) / 0.18);
@@ -5489,6 +5490,21 @@ button.cx-ord-pay {
   border-radius: 999px;
   color: rgb(var(--text-heading-rgb));
   background: rgb(var(--surface-control-rgb));
+}
+/* Khung xương lúc đọc thành viên (_cxMemSkeleton). */
+@keyframes cx-mem-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+.cx-mem-sk-wrap {
+  padding-bottom: 28px;
+  animation: cx-mem-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.cx-mem-sk {
+  display: block;
+  border-radius: 999px;
+  background: rgb(var(--skeleton-base-rgb));
 }
 .cx-mem-loading {
   margin: 0;
