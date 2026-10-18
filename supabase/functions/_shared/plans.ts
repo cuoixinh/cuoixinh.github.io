@@ -42,8 +42,9 @@ export function freeSide(row: FreeRow): 'groom' | 'bride' | null {
 
 /**
  * Cắt dữ liệu thiệp Miễn phí trước khi trả cho trang công khai: 5 ảnh album đầu, ảnh
- * chuyện tình từ mốc thứ 6 trở đi bỏ trống, tắt xác nhận tham dự / lời chúc / hộp mừng
- * cưới và GỠ hẳn thông tin ngân hàng (giấu bằng giao diện thì xem nguồn vẫn lấy được).
+ * chuyện tình từ mốc thứ 6 trở đi bỏ trống, tắt hộp mừng cưới và GỠ hẳn thông tin ngân
+ * hàng (giấu bằng giao diện thì xem nguồn vẫn lấy được). Xác nhận tham dự và lời chúc
+ * vẫn mở như gói trả phí.
  */
 export function applyFreeLimits(data: Record<string, unknown>) {
   if (Array.isArray(data.gallery_images)) {
@@ -60,8 +61,6 @@ export function applyFreeLimits(data: Record<string, unknown>) {
       return ++kept <= FREE_PLAN.loveStoryImages ? it : { ...(it as Record<string, unknown>), image_url: null }
     })
   }
-  data.rsvp_enabled = false
-  data.enable_wishes = false
   data.enable_gift = false
   for (const side of ['groom', 'bride']) {
     for (const k of ['bank_name', 'bank_number', 'bank_owner', 'qr_url']) data[`${side}_${k}`] = null

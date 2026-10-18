@@ -45,7 +45,7 @@ Xuất bản xong được 3 ngày dùng thử đủ tính năng. Sau đó (ho�
 bước thanh toán. Mỗi tài khoản chỉ dùng được 1 thiệp gói Miễn phí: được 30 ngày tính từ lúc
 chọn, có giới hạn: chỉ MỘT thiệp (nhà trai hoặc nhà gái, chọn ở bước thanh toán — link bên
 kia mở ra thiệp bên đã chọn), tối đa 20 khách mời, hiện 5 ảnh
-album đầu tiên, không có xác nhận tham dự, lời chúc và hộp mừng cưới. Hết dùng thử hay hết 30 ngày Miễn phí
+album đầu tiên, vẫn có xác nhận tham dự và lời chúc của khách nhưng không có hộp mừng cưới (QR). Hết dùng thử hay hết 30 ngày Miễn phí
 mà chưa nâng gói thì khách mời mở link sẽ thấy màn "Thiệp đang tạm khoá"; nâng gói là mở lại ngay,
 nội dung còn nguyên. Để quá 30 ngày nữa thì thiệp bị xoá vĩnh viễn. Gói trả phí mở cả hai
 thiệp, 100 khách mời mỗi thiệp; sửa nội dung, ảnh, bảng màu và font lúc nào cũng được. RIÊNG MẪU THIỆP thì chốt: giá tính theo mẫu đã

@@ -539,7 +539,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select('id, enable_wishes, payment_status, free_side')
+      .select('id, enable_wishes')
       .eq('slug', slug)
       .maybeSingle()
 
@@ -549,7 +549,6 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     }
     if (!wedding) return fail('Thiệp không tồn tại', 404)
     if (wedding.enable_wishes === false) return fail('Thiệp này đang tắt phần lời chúc', 403)
-    if (isFreePlan(wedding)) return fail('Thiệp gói Miễn phí không nhận lời chúc', 403)
 
     const { error: listErr, guest } = await findGuestByLink(
       supabase, wedding.id, name, relationship,
@@ -599,13 +598,12 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select('id, payment_status, free_side')
+      .select('id')
       .eq('slug', slug)
       .maybeSingle()
 
     if (wErr) return fail(wErr.message, 500)
     if (!wedding) return fail('Thiệp không tồn tại', 404)
-    if (isFreePlan(wedding)) return fail('Thiệp gói Miễn phí không nhận xác nhận tham dự', 403)
 
     const { error: listErr, guest } = await findGuestByLink(
       supabase, wedding.id, name, relationship,
