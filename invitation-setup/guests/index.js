@@ -22,25 +22,45 @@ document.addEventListener("DOMContentLoaded", async () => {
   _initMoreMenu();
   _bindStatFilters();
   lucide.createIcons();
-  if (!WEDDING_ID) { showToast("Không tìm thấy ID thiệp", "warning"); return; }
-  await Promise.all([
-    loadGuestList("groom"),
-    loadGuestList("bride"),
-    _getWedding().then((w) => {
-      _applyFreeSide();
-      _syncTopSub(w);
-    }),
-  ]);
+  const boot = document.getElementById("gs-body");
+  if (!WEDDING_ID) {
+    boot?.classList.remove("gs-booting");
+    showToast("Không tìm thấy ID thiệp", "warning");
+    return;
+  }
+  // Thông tin thiệp TRƯỚC danh sách: nó quyết định bên nào được mở (gói Miễn phí /
+  // thành viên một bên) — thành viên một bên đọc danh sách bên kia là 403. Cả trang ở
+  // khung xương (.gs-booting) tới khi danh sách về.
+  _renderGuestSkeleton("groom");
+  _renderGuestSkeleton("bride");
+  let w = null;
+  try {
+    w = await _getWedding();
+  } catch (e) {
+    console.error("getWedding error:", e);
+  }
+  _applySideLock();
+  _syncTopSub(w);
+  const only = _lockedSide();
+  await Promise.all((only ? [only] : ["groom", "bride"]).map((s) => loadGuestList(s)));
+  boot?.classList.remove("gs-booting");
 });
 
-// Gói Miễn phí chỉ mở một bên (free_side, guest-handler trả): ẩn hẳn dải chọn bên và
-// đứng yên ở bên đó — bên kia không mời được khách nào.
-function _applyFreeSide() {
-  const side = _wedding?.free_side;
-  if (side !== "groom" && side !== "bride") return;
+// Bên DUY NHẤT trang này được mở (guest-handler trả): gói Miễn phí chỉ mở free_side,
+// thành viên được mời một bên chỉ quản lý member_side. null = cả hai bên.
+function _lockedSide() {
+  const s = _wedding?.free_side || _wedding?.member_side;
+  return s === "groom" || s === "bride" ? s : null;
+}
+
+// Có bên khoá thì ẩn hẳn dải chọn bên và đứng yên ở bên đó.
+function _applySideLock() {
+  const side = _lockedSide();
+  if (!side) return;
   document.getElementById("guest-seg")?.classList.add("hidden");
   switchTab(side);
 }
+
 
 // Event delegation cho nút trong danh sách (tránh inline onclick với dữ liệu user)
 document.addEventListener("click", (e) => {
@@ -138,8 +158,8 @@ function _syncTopSub(w) {
 // Dải segmented (.cx-seg ở styles/_common.css): con trượt chạy theo --i, nút
 // đang chọn mang .is-on. Ô thống kê luôn là số của bên đang mở.
 function switchTab(side) {
-  const only = _wedding?.free_side;
-  if (only === "groom" || only === "bride") side = only;
+  const only = _lockedSide();
+  if (only) side = only;
   if (_sel.side && _sel.side !== side) exitGuestSelect();
   _currentTab = side;
   const seg = document.getElementById("guest-seg");

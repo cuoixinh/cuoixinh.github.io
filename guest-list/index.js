@@ -28,10 +28,6 @@ function _glState(state, count) {
     ?.classList.toggle("hidden", state !== "guest" && state !== "empty");
   document.getElementById("gl-count").textContent =
     state === "list" ? `${count} thiệp` : "";
-  // Nút tải lại chỉ có nghĩa khi đã đăng nhập.
-  document
-    .getElementById("btn-refresh")
-    ?.classList.toggle("hidden", !_glUser || state === "loading");
 }
 
 // Ảnh bìa = ảnh THẬT của khách (như thẻ ở my-invitations), không rơi về ảnh mẫu.
@@ -60,6 +56,11 @@ function _glStateOf(w) {
 }
 
 function _glTag(w) {
+  // Thiệp được mời cùng quản lý: nói rõ của người khác + bên được giao, thay nhãn gói.
+  if (w.shared) {
+    const side = { groom: "Khách nhà trai", bride: "Khách nhà gái" }[w.member_side] || "Cả hai bên";
+    return `<span class="mi-tag mi-tag--live">${_ico("users-round")}Được chia sẻ · ${side}</span>`;
+  }
   const state = _glStateOf(w);
   const planName = { "3m": "3 tháng", "6m": "6 tháng" }[w.plan] || "";
   const soon = state === "plan" && _glDays(w.plan_expires_at) <= _GL_PLAN_WARN_DAYS;
@@ -102,9 +103,13 @@ function _glCardHTML(w) {
   const cover = _glCover(w);
   const href = _glGuestsHref(w, "list");
   const url = w.slug ? `${location.origin}/${w.slug}` : "";
-  // Gói Miễn phí chỉ mở một bên → Xem/Sao chép đi thẳng bên đó (cxPickSide only).
-  const only = w.free_side ? ` data-only="${_glEsc(w.free_side)}"` : "";
+  // Gói Miễn phí / thành viên một bên → Xem/Sao chép đi thẳng bên đó (cxPickSide only).
+  const oneSide = w.free_side || w.member_side;
+  const only = oneSide ? ` data-only="${_glEsc(oneSide)}"` : "";
   const created = w.created_at ? new Date(w.created_at).toLocaleDateString("vi-VN") : "";
+  // Mời thành viên: chỉ thiệp của chính mình, không ở gói Miễn phí (server chặn lại lần
+  // nữa). Có nút này thì chân thẻ hẹp (.gl-foot) hai nút phụ chỉ còn icon cho vừa một hàng.
+  const canInvite = !w.shared && !w.free_side;
   return `
     <article class="mi-card">
       <div class="mi-card-top">
@@ -126,10 +131,13 @@ function _glCardHTML(w) {
           </div>` : ""}
         </div>
       </div>
-      <div class="mi-card-foot">
+      <div class="mi-card-foot${canInvite ? " gl-foot" : ""}">
         ${url ? `
         <x-button variant="bare" class="mi-btn mi-btn--soft" data-view="${_glEsc(url)}"${only}
-          aria-haspopup="menu">${_ico("eye", 16)}Xem thiệp</x-button>` : ""}
+          aria-haspopup="menu" aria-label="Xem thiệp" title="Xem thiệp">${_ico("eye", 16)}<span${canInvite ? ' class="gl-btn-txt"' : ""}>Xem thiệp</span></x-button>` : ""}
+        ${canInvite ? `
+        <x-button variant="bare" class="mi-btn mi-btn--soft" data-members="${_glEsc(w.id)}" data-names="${_glEsc([w.groom_name, w.bride_name].filter(Boolean).join(" & "))}"
+          aria-label="Thêm thành viên" title="Thêm thành viên">${_ico("user-plus", 16)}<span class="gl-btn-txt">Thêm thành viên</span></x-button>` : ""}
         <a class="mi-btn mi-btn--primary inline-flex items-center justify-center rounded-full" href="${href}">
           ${_ico("users", 16)}Quản lý khách mời</a>
       </div>
@@ -139,6 +147,11 @@ function _glCardHTML(w) {
 // Xem / sao chép link trên thẻ (uỷ quyền một lần cho cả lưới): hỏi Nhà trai /
 // Nhà gái trước vì mỗi nhà một link (cxPickSide).
 document.addEventListener("click", (e) => {
+  const mem = e.target.closest("[data-members]");
+  if (mem) {
+    cxOpenMemberSheet(mem.dataset.members, { names: mem.dataset.names });
+    return;
+  }
   const view = e.target.closest("[data-view]");
   if (view) {
     cxPickSide(view, (side) => window.open(cxSideUrl(view.dataset.view, side), "_blank", "noopener"), { only: view.dataset.only });
@@ -164,7 +177,13 @@ async function loadList() {
   _glState("loading");
   let weddings;
   try {
-    weddings = await weddingDAL.listMyWeddings();
+    // Thiệp của mình + thiệp được mời cùng quản lý (thành viên). Danh sách được mời hỏng
+    // thì vẫn hiện thiệp của mình, không chặn cả trang.
+    const [mine, shared] = await Promise.all([
+      weddingDAL.listMyWeddings(),
+      window.guestDAL ? guestDAL.listSharedWeddings().catch(() => []) : [],
+    ]);
+    weddings = mine.concat(shared);
   } catch (e) {
     if (seq === _glSeq) _glState("error");
     return;
@@ -176,12 +195,6 @@ async function loadList() {
     .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   if (!published.length) {
     _glState("empty");
-    return;
-  }
-  // Chỉ một thiệp thì không có gì để chọn: vào thẳng trang quản lý khách mời.
-  // replace để Back không quay về màn này rồi lại bị đẩy đi.
-  if (published.length === 1) {
-    location.replace(_glGuestsHref(published[0], "tab"));
     return;
   }
   const list = document.getElementById("list");

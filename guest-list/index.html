@@ -44,21 +44,6 @@
             và theo dõi ai đã xem, ai sẽ đến.
           </p>
         </div>
-        <div class="mi-tools">
-          <!-- Danh sách luôn lấy tươi (listMyWeddings không cache) — nút này chỉ
-               để hỏi lại ngay. Ẩn khi chưa đăng nhập (_glState). -->
-          <x-button
-            id="btn-refresh"
-            variant="bare"
-            icon-only
-            onclick="loadList()"
-            title="Tải lại danh sách"
-            aria-label="Tải lại danh sách"
-            class="mi-tool hidden"
-          >
-            <i data-lucide="refresh-cw" style="width:18px;height:18px"></i>
-          </x-button>
-        </div>
       </header>
 
       <!-- Khung xương lúc chờ API: hình khớp .mi-card thật, lặp đủ một hàng lưới. -->
@@ -223,15 +208,20 @@
     </script>
     <script src="../core/cache-util.js"></script>
     <script src="../core/config.js"></script>
+    <!-- openBottomSheet / escapeHtml cho bảng Thành viên (core/helpers/member-sheet.js). -->
+    <script src="../core/utils.js"></script>
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/auth-ui.js"></script>
     <script src="../core/dal/wedding-dal.js"></script>
     <script src="../core/dal/storage-dal.js"></script>
+    <!-- Thiệp người khác mời mình cùng quản lý khách (guestDAL.listSharedWeddings). -->
+    <script src="../core/dal/guest-dal.js"></script>
     <!-- core/supabase.js dựng sẵn cả WeddingBL/ImageBL — thiếu hai file này là
          ReferenceError dù trang chỉ đọc. -->
     <script src="../core/bl/wedding-bl.js"></script>
     <script src="../core/bl/image-bl.js"></script>
     <script src="../core/supabase.js"></script>
+    <script src="../core/helpers/member-sheet.js"></script>
     <script src="index.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="../core/helpers/nav-cart-count.js"></script>

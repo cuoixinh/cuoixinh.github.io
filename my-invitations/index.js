@@ -469,18 +469,6 @@ function newInvitation() {
   cxStartDefaultDraft();
 }
 
-// Nút "Tải lại": danh sách vốn đã luôn lấy tươi, nút này chỉ để hỏi lại ngay
-// mà không phải tải lại trang.
-async function refreshCards() {
-  const btn = document.getElementById("btn-refresh");
-  btn?.classList.add("animate-spin");
-  try {
-    await loadCards();
-  } finally {
-    btn?.classList.remove("animate-spin");
-  }
-}
-
 // ===== TRẠNG THÁI THẺ =====
 
 const DAY_MS = 86400000;
@@ -1130,16 +1118,6 @@ async function _saveSlug(c, raw) {
   } finally {
     showLoading(false);
   }
-}
-
-function showHelp() {
-  showAlert(
-    "Quản lý thiệp cưới",
-    "Mỗi thẻ là một tấm thiệp. Bấm vào ảnh hoặc tên để mở trình chỉnh sửa.\n" +
-      `Thiệp xuất bản được dùng thử ${CONFIG.trialDays} ngày; sau đó chọn gói Miễn phí (${CONFIG.freePlanDays} ngày, có giới hạn), 3 tháng hoặc Vĩnh viễn.\n` +
-      "Nút ⋯ ở chân mỗi thẻ chứa nút Xoá thiệp và những nút không đủ chỗ hiện trên thẻ.",
-    "info",
-  );
 }
 
 // ===== TIỆN ÍCH =====

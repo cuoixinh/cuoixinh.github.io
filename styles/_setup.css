@@ -3153,6 +3153,32 @@ html.cx-rail-off {
   background: rgb(var(--skeleton-base-rgb));
 }
 
+/* Khung xương CẢ TRANG lúc mới mở: cờ .gs-booting trên .gs-body (index.html), init ở
+   guests/index.js gỡ khi thiệp + danh sách đã nạp xong. Dải tab, ô thống kê, thanh công
+   cụ thành khối xám cùng nhịp với khung danh sách (_renderGuestSkeleton). */
+@keyframes cx-gs-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+.gs-booting .gs-seg,
+.gs-booting .gs-stat,
+.gs-booting .gs-search,
+.gs-booting .gs-actions > * {
+  border-color: transparent !important;
+  background: rgb(var(--skeleton-base-rgb)) !important;
+  box-shadow: none !important;
+  pointer-events: none;
+  animation: cx-gs-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.gs-booting .gs-seg::before,
+.gs-booting .gs-seg > *,
+.gs-booting .gs-stat > *,
+.gs-booting .gs-search > *,
+.gs-booting .gs-actions > * > * {
+  visibility: hidden;
+}
+
 .gs-pager {
   @apply flex flex-wrap items-center justify-between;
   gap: 8px;

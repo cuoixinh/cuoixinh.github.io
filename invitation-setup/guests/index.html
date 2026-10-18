@@ -61,7 +61,8 @@
          TRONG thẻ nên khổ không bị đẩy lệch so với header. -->
     <div class="flex-1 min-h-0 px-2 sm:px-4 pb-2">
       <div id="guests-scroll" class="gs-card h-full overflow-y-auto overscroll-contain max-w-4xl mx-auto">
-        <div class="gs-body">
+        <!-- gs-booting: khung xương cả trang tới khi nạp xong (gỡ ở init, guests/index.js). -->
+        <div id="gs-body" class="gs-body gs-booting">
           <!-- Dải segmented có con trượt chạy (.cx-seg ở styles/_common.css);
                --i do switchTab() đặt, số khách mỗi bên do _syncCounts() đổ vào. -->
           <div id="guest-seg" class="cx-seg gs-seg" style="--n: 2" role="tablist" aria-label="Khách nhà trai hoặc nhà gái">

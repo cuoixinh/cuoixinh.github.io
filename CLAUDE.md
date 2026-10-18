@@ -732,6 +732,11 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `?id=` của trình chỉnh sửa luôn đủ, cắt ở đó là lần lưu sau ghi đè mất dữ liệu. **Mỗi tài
   khoản 1 thiệp Miễn phí** (`hasOtherFreeWedding`, 409 `FREE_LIMIT`). Xem
   `docs/cleanup-retention.md`.
+- **Thành viên thiệp:** chủ thiệp mời 1 người (bảng `wedding_members`, theo email) cùng
+  quản lý KHÁCH MỜI, giới hạn theo bên — không sửa thiệp, không thanh toán, không có ở gói
+  Miễn phí. Quyền chỉ kiểm ở `authorize` của `guest-handler`; thêm thao tác khách mời mới
+  phải đi qua đó (và `denySide`). Mời/gỡ ở thẻ thiệp của `/guest-list/`
+  (`core/helpers/member-sheet.js`); thiệp được mời cũng hiện ở đó (`action=shared`).
 - **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán, thiệp hết hạn gói 3/6
   tháng và nháp bỏ quên bị cron xoá vĩnh viễn; thiệp hết hạn dùng thử/hết hạn gói bị khoá
   với khách mời. Số ngày ở `CONFIG.retention` **và**

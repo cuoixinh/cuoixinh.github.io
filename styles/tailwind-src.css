@@ -3236,11 +3236,6 @@ html.cx-landing {
   color: rgb(var(--brand-accent-rgb));
   border-color: rgb(var(--brand-accent-rgb));
 }
-.mi-tools .mi-btn,
-.mi-tools .mi-btn-sk {
-  margin-left: auto;
-}
-
 /* Nút của trang: x-button variant="bare" + các lớp này (bare chỉ cho hình pill). */
 .mi-btn {
   height: 40px;
@@ -3541,6 +3536,20 @@ html.cx-landing {
    .is-measuring trong lúc đo để lấy bề rộng TỰ NHIÊN của từng nút. */
 .mi-card-foot > .mi-btn {
   flex: 1 1 auto;
+}
+/* /guest-list/: thẻ có nút "Thêm thành viên" (ba nút một hàng). Nhãn hai nút phụ hiện
+   theo bề ngang CỦA CHÍNH chân thẻ, không theo khổ màn — lưới máy tính chia nhiều cột
+   nên thẻ còn hẹp hơn điện thoại. 480px ≈ đủ chỗ cho cả ba nhãn. */
+.gl-foot {
+  container-type: inline-size;
+}
+.gl-btn-txt {
+  display: none;
+}
+@container (min-width: 480px) {
+  .gl-btn-txt {
+    display: inline;
+  }
 }
 .mi-card-foot > .mi-btn--more {
   flex: none;

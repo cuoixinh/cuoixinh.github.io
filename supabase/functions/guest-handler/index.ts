@@ -1,7 +1,7 @@
 import type { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
-import { FREE_PLAN, freeSide, isFreePlan } from '../_shared/plans.ts'
+import { currentPlan, FREE_PLAN, freeSide, isFreePlan } from '../_shared/plans.ts'
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*' (danh sách giống ai-invitation). CORS chỉ ràng
@@ -179,54 +179,101 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     Deno.env.get('ADMIN_SECRET_TOKEN') ?? '',
   )
 
-  async function getUserId(): Promise<string | null> {
+  // Người gọi (token Supabase). email chỉ có khi ĐÃ XÁC MINH — khớp thành viên theo email
+  // chưa xác minh là ai đăng ký trước bằng email cô dâu cũng vào được. Nhớ trong request.
+  let _authUser: { id: string; email: string | null } | null | undefined
+  async function getAuthUser(): Promise<{ id: string; email: string | null } | null> {
+    if (_authUser !== undefined) return _authUser
+    _authUser = null
     const authHeader = req.headers.get('Authorization') || ''
     const jwt = authHeader.replace(/^Bearer\s+/i, '').trim()
     if (!jwt || jwt === Deno.env.get('SUPABASE_ANON_KEY')) return null
     try {
       const { data, error } = await supabase.auth.getUser(jwt)
-      if (error) return null
-      return data.user?.id ?? null
+      const u = data?.user
+      if (error || !u) return null
+      _authUser = { id: u.id, email: u.email && u.email_confirmed_at ? u.email.toLowerCase() : null }
     } catch {
-      return null
+      _authUser = null
     }
+    return _authUser
   }
 
-  // Trả về Response lỗi nếu người gọi không phải chủ thiệp, null nếu hợp lệ.
-  async function denyIfNotOwner(wedding_id: string): Promise<Response | null> {
-    if (isAdmin) return null
+  type Access = {
+    role: 'admin' | 'owner' | 'member'
+    side: 'groom' | 'bride' | null // thành viên chỉ quản lý bên này; null = cả hai
+    wedding: { user_id: string | null; payment_status: string | null; free_side: string | null; is_active: boolean | null } | null
+  }
 
-    const userId = await getUserId()
-    if (!userId) {
-      return fail('Vui lòng đăng nhập để quản lý khách mời', 401)
-    }
+  // Ai được quản lý khách mời của thiệp: admin, chủ thiệp (weddings.user_id), hoặc thành
+  // viên (wedding_members, khớp email đã xác minh) — thành viên không áp cho gói Miễn phí.
+  // Trả Response lỗi hoặc quyền của người gọi. Đọc hỏng là DỪNG, không đoán quyền.
+  async function authorize(wedding_id: string): Promise<Response | Access> {
+    const user = isAdmin ? null : await getAuthUser()
+    if (!isAdmin && !user) return fail('Vui lòng đăng nhập để quản lý khách mời', 401)
 
-    const { data: wedding } = await supabase
+    const { data: wedding, error } = await supabase
       .from('weddings')
-      .select('user_id')
+      .select('user_id, payment_status, free_side, is_active')
       .eq('id', wedding_id)
       .maybeSingle()
-
+    if (error) {
+      log.error('guest.auth_wedding_failed', { wedding_id, code: error.code, message: error.message })
+      return fail('Không đọc được thiệp, vui lòng thử lại', 500)
+    }
     if (!wedding) return fail('Thiệp không tồn tại', 404)
+    if (isAdmin) return { role: 'admin', side: null, wedding }
 
     // Thiệp cũ chưa có chủ: chưa claim thì chưa cho thao tác khách mời — chủ thật
     // chỉ cần mở trang chỉnh sửa thiệp một lần (đã đăng nhập) là nhận chủ, xem
     // wedding-admin PATCH.
-    if (wedding.user_id !== userId) {
-      log.warn('guest.forbidden', { wedding_id, userId })
-      return fail('Bạn không có quyền quản lý khách mời của thiệp này', 403)
+    if (wedding.user_id === user!.id) return { role: 'owner', side: null, wedding }
+
+    // Chủ thiệp đã xoá thiệp (is_active = false, chờ cron xoá hẳn) thì thành viên mất quyền ngay.
+    if (user!.email && !isFreePlan(wedding) && wedding.is_active !== false) {
+      const { data: m, error: mErr } = await supabase
+        .from('wedding_members')
+        .select('id, side, user_id')
+        .eq('wedding_id', wedding_id)
+        .eq('email', user!.email)
+        .maybeSingle()
+      if (mErr) {
+        log.error('guest.member_lookup_failed', { wedding_id, code: mErr.code, message: mErr.message })
+        return fail('Không kiểm được quyền, vui lòng thử lại', 500)
+      }
+      if (m) {
+        if (!m.user_id) {
+          // Lần đầu vào: đánh dấu đã tham gia. Hỏng không chặn quyền, chỉ chủ thiệp
+          // thấy nhầm "Chờ đăng nhập" — vẫn log để biết.
+          const { error: jErr } = await supabase
+            .from('wedding_members')
+            .update({ user_id: user!.id, joined_at: new Date().toISOString() })
+            .eq('id', m.id)
+          if (jErr) log.error('guest.member_join_failed', { wedding_id, code: jErr.code, message: jErr.message })
+        }
+        return { role: 'member', side: m.side === 'groom' || m.side === 'bride' ? m.side : null, wedding }
+      }
     }
-    return null
+
+    log.warn('guest.forbidden', { wedding_id, userId: user!.id })
+    return fail('Bạn không có quyền quản lý khách mời của thiệp này', 403)
   }
 
-  // Với thao tác chỉ có guest id: suy ra wedding_id từ chính các bản ghi guest,
-  // rồi kiểm tra quyền. Chặn việc sửa/xoá guest thuộc thiệp của người khác.
-  async function denyIfNotOwnerOfGuests(ids: string[]): Promise<Response | null> {
+  const SIDE_NAME: Record<string, string> = { groom: 'nhà trai', bride: 'nhà gái' }
+  // Thành viên giới hạn một bên mà đụng sang bên kia → 403.
+  function denySide(a: Access, side: unknown): Response | null {
+    if (!a.side || side === a.side) return null
+    return fail(`Bạn chỉ quản lý được khách ${SIDE_NAME[a.side]} của thiệp này`, 403)
+  }
+
+  // Với thao tác chỉ có guest id: suy ra wedding_id + bên từ chính các bản ghi guest,
+  // rồi kiểm tra quyền. Chặn sửa/xoá guest thuộc thiệp (hoặc bên) của người khác.
+  async function denyIfNotAllowedGuests(ids: string[]): Promise<Response | null> {
     if (isAdmin) return null
 
     const { data: rows, error } = await supabase
       .from('guests')
-      .select('wedding_id')
+      .select('wedding_id, side')
       .in('id', ids)
 
     if (error) return fail(error.message, 500)
@@ -235,12 +282,18 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     const weddingIds = [...new Set(rows.map(r => r.wedding_id))]
     if (weddingIds.length > 1) return fail('Yêu cầu không hợp lệ', 400)
 
-    return await denyIfNotOwner(weddingIds[0])
+    const a = await authorize(weddingIds[0])
+    if (a instanceof Response) return a
+    for (const r of rows) {
+      const d = denySide(a, r.side)
+      if (d) return d
+    }
+    return null
   }
 
   // ── GET công khai: danh sách lời chúc của một thiệp ──────────────────────
   // Ai mở link thiệp cũng đọc được (bảng lời chúc vốn để mọi khách cùng xem),
-  // nên KHÔNG qua denyIfNotOwner. Chỉ trả tên hiển thị + xưng hô + nội dung —
+  // nên KHÔNG qua authorize. Chỉ trả tên hiển thị + xưng hô + nội dung —
   // không có full_name, link, hay trạng thái xác nhận tham dự.
   if (req.method === 'GET' && action === 'wishes-list') {
     const slug = String(url.searchParams.get('slug') ?? '').trim()
@@ -277,17 +330,51 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     return ok(items.slice(0, MAX_WISHES_RETURNED))
   }
 
+  // ── GET: thiệp người khác mời mình cùng quản lý khách (trang Khách mời) ──
+  // Cùng dạng hàng với my-weddings của wedding-admin (gói suy ra, không trả dữ liệu
+  // thanh toán) + member_side. Bỏ thiệp đã ẩn, gói Miễn phí, và thiệp của chính mình.
+  if (req.method === 'GET' && action === 'shared') {
+    const user = await getAuthUser()
+    if (!user) return fail('Vui lòng đăng nhập', 401)
+    if (!user.email) return ok([])
+
+    const { data: ms, error: mErr } = await supabase
+      .from('wedding_members')
+      .select('wedding_id, side')
+      .eq('email', user.email)
+    if (mErr) return fail(mErr.message, 500)
+    if (!ms?.length) return ok([])
+
+    const { data: ws, error: wErr } = await supabase
+      .from('weddings')
+      .select('id, slug, groom_name, bride_name, theme, is_published, is_active, created_at, expires_at, payment_status, plan, plan_expires_at, cover_image_url, gallery_images, free_side, user_id')
+      .in('id', ms.map(m => m.wedding_id))
+    if (wErr) return fail(wErr.message, 500)
+
+    const sideOf = new Map(ms.map(m => [m.wedding_id, m.side]))
+    const rows = (ws ?? [])
+      .filter(w => w.is_active !== false && w.user_id !== user.id && !isFreePlan(w))
+      .map(({ payment_status, plan, plan_expires_at, free_side: _fs, user_id: _u, is_active: _a, ...w }) => {
+        const cur = currentPlan({ payment_status, plan })
+        return { ...w, plan: cur, plan_expires_at: cur ? plan_expires_at : null, free_side: null, shared: true, member_side: sideOf.get(w.id) ?? null }
+      })
+    return ok(rows)
+  }
+
   // ── GET: đọc guests hoặc thông tin thiệp ─────────────────────────────────
   if (req.method === 'GET') {
     const wedding_id = url.searchParams.get('wedding_id')
     if (!wedding_id) return fail('Thiếu wedding_id')
 
-    const denied = await denyIfNotOwner(wedding_id)
-    if (denied) return denied
+    const access = await authorize(wedding_id)
+    if (access instanceof Response) return access
 
-    // Danh sách khách
+    // Danh sách khách — thành viên một bên chỉ nhận bên đó.
     if (action === 'list') {
-      const side = url.searchParams.get('side')
+      const asked = url.searchParams.get('side')
+      const denied = asked ? denySide(access, asked) : null
+      if (denied) return denied
+      const side = asked || access.side
       let query = supabase.from('guests').select('*').eq('wedding_id', wedding_id)
       if (side) query = query.eq('side', side)
       const { data, error } = await query.order('created_at', { ascending: true })
@@ -312,6 +399,25 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         side_caps: { groom: sideCap(row, 'groom'), bride: sideCap(row, 'bride') },
         free_side: freeSide(row),
         is_free: isFreePlan(row),
+        // Trang Khách mời: owner thấy nút Thành viên; member chỉ thấy bên member_side.
+        role: access.role,
+        member_side: access.side,
+      })
+    }
+
+    // Thành viên của thiệp — chỉ chủ thiệp xem.
+    if (action === 'members') {
+      if (access.role === 'member') return fail('Chỉ chủ thiệp quản lý thành viên', 403)
+      const { data, error } = await supabase
+        .from('wedding_members')
+        .select('email, side, user_id, created_at')
+        .eq('wedding_id', wedding_id)
+        .maybeSingle()
+      if (error) return fail(error.message, 500)
+      return ok({
+        member: data
+          ? { email: data.email, side: data.side, joined: !!data.user_id, created_at: data.created_at }
+          : null,
       })
     }
 
@@ -329,7 +435,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!ids.every(id => uuidRe.test(id))) return fail('ID không hợp lệ')
 
-    const denied = await denyIfNotOwnerOfGuests(ids)
+    const denied = await denyIfNotAllowedGuests(ids)
     if (denied) return denied
 
     const { error } = await supabase.from('guests').delete().in('id', ids)
@@ -349,7 +455,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       const full = String(full_name ?? '').trim().slice(0, MAX_FIELD_LEN)
       if (!full) return fail('Họ và tên không được để trống')
 
-      const denied = await denyIfNotOwnerOfGuests([id])
+      const denied = await denyIfNotAllowedGuests([id])
       if (denied) return denied
 
       const { error } = await supabase.from('guests').update({
@@ -374,7 +480,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         if (!u.link || u.link.length > 2048) return fail('Link không hợp lệ')
       }
 
-      const denied = await denyIfNotOwnerOfGuests(updates.map(u => u.id))
+      const denied = await denyIfNotAllowedGuests(updates.map(u => u.id))
       if (denied) return denied
 
       // Upsert link cho từng guest trong batch
@@ -393,7 +499,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       const { guest_id, wish_id } = body
       if (!guest_id || !wish_id) return fail('Thiếu guest_id hoặc wish_id')
 
-      const denied = await denyIfNotOwnerOfGuests([guest_id])
+      const denied = await denyIfNotAllowedGuests([guest_id])
       if (denied) return denied
 
       const { data: row, error: readErr } = await supabase
@@ -578,6 +684,42 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     return ok({ matched: true })
   }
 
+  // ── POST: chủ thiệp mời / gỡ thành viên (tối đa 1 người, xem dqvinh_006) ──
+  if (req.method === 'POST' && (action === 'member-add' || action === 'member-remove')) {
+    const body = await req.json()
+    const wedding_id = String(body.wedding_id ?? '')
+    if (!wedding_id) return fail('Thiếu wedding_id')
+
+    const access = await authorize(wedding_id)
+    if (access instanceof Response) return access
+    if (access.role === 'member') return fail('Chỉ chủ thiệp quản lý thành viên', 403)
+
+    if (action === 'member-remove') {
+      const { error } = await supabase.from('wedding_members').delete().eq('wedding_id', wedding_id)
+      if (error) return fail(error.message, 500)
+      return ok({ removed: true })
+    }
+
+    if (access.wedding && isFreePlan(access.wedding)) {
+      return fail('Gói Miễn phí không thêm được thành viên. Nâng gói để mời người cùng quản lý khách mời.', 403)
+    }
+    const email = String(body.email ?? '').trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return fail('Email không hợp lệ')
+    const me = isAdmin ? null : await getAuthUser()
+    if (me?.email && me.email === email) return fail('Đây là email của chính bạn — hãy nhập email của người cùng quản lý')
+    const side = body.side === 'groom' || body.side === 'bride' ? body.side : null
+
+    const { data, error } = await supabase
+      .from('wedding_members')
+      .insert({ wedding_id, email, side, invited_by: me?.id ?? null })
+      .select('email, side, user_id, created_at')
+      .single()
+    if (error?.code === '23505') return fail('Thiệp đã có thành viên. Gỡ người hiện tại trước khi mời người khác.', 409)
+    if (error) return fail(error.message, 500)
+    log.info('guest.member_added', { wedding_id, side })
+    return ok({ member: { email: data.email, side: data.side, joined: !!data.user_id, created_at: data.created_at } }, 201)
+  }
+
   // ── POST: thêm 1 khách hoặc import ──────────────────────────────────────
   if (req.method === 'POST') {
     const body = await req.json()
@@ -587,8 +729,10 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       return fail('Thiếu wedding_id hoặc side không hợp lệ')
     }
 
-    const denied = await denyIfNotOwner(wedding_id)
-    if (denied) return denied
+    const access = await authorize(wedding_id)
+    if (access instanceof Response) return access
+    const sideDenied = denySide(access, side)
+    if (sideDenied) return sideDenied
 
     // Xác nhận wedding tồn tại + lấy trạng thái thanh toán để chọn trần. Đọc hỏng là
     // dừng: đoán sai trần là mở rộng giới hạn cho thiệp chưa thanh toán.
