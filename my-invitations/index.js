@@ -853,12 +853,12 @@ function _cardActions(c, i, state) {
 
   if (state === "trial" || state === "expired" || state === "published")
     return [activate, live && view, edit, live && share].filter(Boolean);
-  if (state === "free" || state === "freeExpired")
-    return [{ ...activate, label: "Nâng gói", icon: "sparkles" }, live && view, edit, live && share].filter(Boolean);
-  if (state === "planExpired") return [upgrade, edit, live && view].filter(Boolean);
+  // Gói Miễn phí đi y như gói trả phí: còn hạn thì Chia sẻ là nút chính, Nâng gói lùi
+  // về cuối; hết hạn thì Nâng gói lên đầu như hết hạn gói.
+  if (state === "planExpired" || state === "freeExpired") return [upgrade, edit, live && view].filter(Boolean);
   if (state === "plan" && planDaysLeft(c) <= PLAN_WARN_DAYS)
     return [upgrade, live && view, edit, live && share].filter(Boolean);
-  if (state === "plan" && live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit, upgrade];
+  if ((state === "plan" || state === "free") && live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit, upgrade];
   if (live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit];
   return [edit, c.slug && slug].filter(Boolean);
 }

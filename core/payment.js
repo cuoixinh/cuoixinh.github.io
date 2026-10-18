@@ -613,6 +613,43 @@
     window.lucide?.createIcons({ root: step3 });
   }
 
+  // Màn hoàn tất của gói Miễn phí: cùng màn bước 3 với gói trả phí, đổi chữ + nút chính
+  // thành Chia sẻ thiệp (link đi thẳng bên đã chọn). Hạn = hôm nay + freePlanDays, đúng
+  // cách server tính lúc nhận free_side.
+  function _renderFreeSuccess(manage_id, slug, side) {
+    _renderSuccess(manage_id);
+    const who = side === "bride" ? "nhà gái" : "nhà trai";
+    const until = new Date(Date.now() + CONFIG.freePlanDays * 86400000).toISOString();
+    document.getElementById("success-title").textContent = "Đã kích hoạt gói Miễn phí!";
+    document.getElementById("success-sub").textContent =
+      `Thiệp ${who} đã mở cho khách mời — gửi link ngay nhé.`;
+    document.getElementById("success-plan").textContent = `Miễn phí · thiệp ${who}`;
+    document.getElementById("success-expiry").textContent = `hết ngày ${_fmtDate(until)}`;
+    document.getElementById("success-plan-row").style.display = "flex";
+    document.getElementById("success-expiry-row").style.display = "inline";
+    window._freeShareUrl = slug
+      ? `${window.location.origin}/${slug}?isGroom=${side !== "bride"}`
+      : null;
+    if (window._freeShareUrl) {
+      document.getElementById("success-manage-btn").style.display = "none";
+      document.getElementById("success-share-btn").style.display = "";
+    }
+  }
+
+  window.cxShareFreeCard = async function () {
+    const url = window._freeShareUrl;
+    if (!url) return;
+    if (navigator.share) {
+      // Khách đóng bảng chia sẻ cũng ném lỗi (AbortError) — không phải lỗi thật.
+      await navigator.share({ title: "Thiệp cưới", url }).catch(() => {});
+      return;
+    }
+    navigator.clipboard
+      .writeText(url)
+      .then(() => window.showToast?.("Đã sao chép liên kết thiệp", "success"))
+      .catch(() => window.showToast?.("Không sao chép được liên kết", "error"));
+  };
+
   // Task 5.11: Update localStorage order status
   function updateOrderStatus(manage_id, transaction_id, payment_time) {
     const storageKey = buildCacheKey("orders", getCurrentUser()?.email || "guest");
@@ -875,7 +912,7 @@
                  hiệu: ô này báo TRẠNG THÁI, không phải chỗ mời bấm. Vòng sáng
                  lan một nhịp (.cx-ok-badge::before). -->
             <div class="cx-ok-badge"><i data-lucide="check" style="width:28px;height:28px"></i></div>
-            <h3 class="font-playfair cx-ok-title">Thanh toán thành công!</h3>
+            <h3 id="success-title" class="font-playfair cx-ok-title">Thanh toán thành công!</h3>
             <p id="success-sub" class="cx-ok-sub">Thiệp cưới đã là của bạn — bắt đầu nhập thông tin ngay nhé.</p>
 
             <!-- Gói vừa mua: dải nổi bật ngay dưới tiêu đề (showSuccessScreen điền,
@@ -922,6 +959,11 @@
               <a id="success-manage-btn" href="#" class="cx-ok-cta">
                 <i data-lucide="square-pen" style="width:16px;height:16px"></i>Thiết lập ngay
               </a>
+              <!-- Gói Miễn phí (_renderFreeSuccess): thiệp đã xuất bản nên việc tiếp theo là
+                   gửi cho khách, nút này thế chỗ "Thiết lập ngay". -->
+              <x-button id="success-share-btn" variant="bare" onclick="cxShareFreeCard()" class="cx-ok-cta" style="display:none;">
+                <i data-lucide="share-2" style="width:16px;height:16px"></i>Chia sẻ thiệp
+              </x-button>
               <x-button variant="bare" onclick="PaymentModal.close()" class="cx-ok-close">Để sau</x-button>
             </div>
           </div>
@@ -1342,9 +1384,11 @@
     const btn = document.getElementById("payment-submit");
     btn?.setAttribute("disabled", "");
     try {
-      await weddingBL.updateWedding({ id: window._existingManageId, free_side: window._freeSide });
-      window.showToast?.("Đã chuyển thiệp sang gói Miễn phí", "success");
-      window.location.href = "/my-invitations/";
+      const id = window._existingManageId;
+      await weddingBL.updateWedding({ id, free_side: window._freeSide });
+      // Slug chỉ để dựng link chia sẻ; đọc hỏng thì màn hoàn tất vẫn hiện, chỉ thiếu nút đó.
+      const slug = await weddingBL.getWeddingById(id).then((w) => w?.slug || null, () => null);
+      _renderFreeSuccess(id, slug, window._freeSide);
     } catch (e) {
       if (e.code === "FREE_LIMIT") {
         // Tài khoản đã có thiệp Miễn phí khác (báo giá cũ chưa biết): khoá thẻ, về gói 3 tháng.
@@ -1373,7 +1417,7 @@
     { label: "Xác nhận tham dự", free: false, paid: true },
     { label: "Lời chúc của khách", free: false, paid: true },
     { label: "Hộp mừng cưới (QR)", free: false, paid: true },
-    { label: "Quản lý khách, xuất Excel", free: true, paid: true },
+    { label: "Quản lý khách mời", free: true, paid: true },
   ];
 
   // Chỉ có khi MUA gói (bảng nâng gói đã nói rõ phần chênh). Bấm tiêu đề cột = chọn gói,
