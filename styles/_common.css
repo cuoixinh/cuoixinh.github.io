@@ -558,6 +558,14 @@ svg.cx-ic {
     visibility 0s linear 0.2s;
 }
 
+/* Màn rộng (?desktopMode=true): lớp phủ chỉ trùm cột #main-card, không cả màn. */
+@media (min-width: 768px) {
+  .cx-sug {
+    left: max(0px, calc(50% - var(--cx-card-max) / 2));
+    right: max(0px, calc(50% - var(--cx-card-max) / 2));
+  }
+}
+
 .cx-sug.is-open {
   opacity: 1;
   visibility: visible;
@@ -1261,6 +1269,31 @@ svg.cx-ic {
   min-height: calc(var(--vh, 1svh) * 100);
 }
 
+/* Khổ thân thiệp trên màn rộng: đè md:max-w-[768px] viết trong markup mọi mẫu. Thứ
+   neo theo cột thiệp (nút nhạc, dải lời chúc, lớp ghim, chấm slide) tính lề bằng
+   chính biến này — đổi khổ chỉ sửa ở đây. */
+:root {
+  --cx-card-max: 640px;
+}
+
+@media (min-width: 768px) {
+  #main-card {
+    max-width: var(--cx-card-max);
+  }
+}
+
+/* Màn bìa dạng thẻ (md:min-h-[932px] trong #cover-screen fixed + md:py-5): màn laptop
+   thấp hơn 972px là thẻ tràn khung nhìn, mất đầu/đuôi mà không cuộn tới được. Chặn cả
+   lớp ruột mang cùng class (romantic-gold…), sót là nút "Mở thiệp" ở đáy bị cắt. */
+@media (min-width: 768px) {
+  #cover-screen .md\:min-h-\[932px\] {
+    min-height: min(932px, calc(var(--vh, 1vh) * 100 - 40px));
+    min-height: min(932px, calc(var(--vh, 1svh) * 100 - 40px));
+    max-height: calc(var(--vh, 1vh) * 100 - 40px);
+    max-height: calc(var(--vh, 1svh) * 100 - 40px);
+  }
+}
+
 /* Link chung (khách vãn lai): "Cảm ơn bạn đã ghé xem thiệp · <tên đôi>", không mời.
    Cờ + chữ do setupPersonalizedGreeting (wedding-helper) đặt. */
 .cx-guest-generic #cover-guest-name,
@@ -1939,6 +1972,12 @@ x-button {
    + shell=0) ở đúng khổ 390px. Thân máy là assets/images/iphone_mockup.svg
    (383×785, vùng màn hình TRONG SUỐT) phủ LÊN iframe — đổi ảnh khác thì phải đo
    lại cả tỉ lệ 0.4879 lẫn bộ inset của .cx-pshell-screen. */
+/* Bản giả lập trong tab Giao diện › Desktop: logo / "Trang chủ" chỉ để nhìn —
+   bấm là iframe rời thiệp sang trang chủ. */
+.cx-pshell-sim .cx-pshell-top {
+  pointer-events: none;
+}
+
 .cx-pshell-host,
 .cx-pshell-host body {
   overflow: hidden;
@@ -2886,6 +2925,14 @@ button.cx-pchrome-btn:hover {
   transition:
     transform 0.35s ease,
     opacity 0.35s ease;
+}
+
+/* Màn rộng: bó dải vào đúng cột của #main-card, không trải hết bề ngang màn. */
+@media (min-width: 768px) {
+  .cx-wdock {
+    left: max(0px, calc(50% - var(--cx-card-max) / 2));
+    right: max(0px, calc(50% - var(--cx-card-max) / 2));
+  }
 }
 
 .cx-wdock.is-on {

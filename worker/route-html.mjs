@@ -48,9 +48,22 @@ export function rewriteAttr(name, value, dir) {
     .join(", ");
 }
 
-/** Khối chèn cuối <head>: noindex viết sẵn phía server + slug/mẫu cho JS (`window.__CX_ROUTE`). */
-export function routeHead(slug, theme) {
-  const json = JSON.stringify({ slug, theme }).replace(/</g, "\\u003c");
+/** Chủ thiệp bật "xem lớn trên máy tính" (`theme_setting.desktop_wide`) — khi đó theme-boot.js không dựng khung máy. */
+export function desktopWide(w) {
+  let ts = w && w.theme_setting;
+  if (typeof ts === "string") {
+    try {
+      ts = JSON.parse(ts);
+    } catch (_) {
+      ts = null;
+    }
+  }
+  return !!(ts && ts.desktop_wide);
+}
+
+/** Khối chèn cuối <head>: noindex viết sẵn phía server + slug/mẫu/cờ xem lớn cho JS (`window.__CX_ROUTE`). */
+export function routeHead(slug, theme, wide = false) {
+  const json = JSON.stringify(wide ? { slug, theme, wide: true } : { slug, theme }).replace(/</g, "\\u003c");
   return `
     <meta name="robots" content="noindex,nofollow" />
     <script>window.__CX_ROUTE=${json}</script>

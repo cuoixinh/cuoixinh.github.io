@@ -31,6 +31,25 @@
         <!-- Vỏ máy nằm ĐÈ lên iframe (vùng màn hình của ảnh là trong suốt). -->
         <img src="../assets/images/iphone_mockup.svg" alt="" class="cx-phone-frame" />
       </div>
+      <!-- Màn MÁY TÍNH — thay khung điện thoại khi mở bảng Desktop (cờ .cx-desk-on
+           trên stage, _syncDeskStage ở js/05-theme-panel.js). Thiệp dựng ở khổ
+           1440×900 rồi thu bằng transform (cxDeskFit). -->
+      <div class="cx-desk">
+        <div class="cx-desk-bar" aria-hidden="true">
+          <span class="cx-desk-dot"></span>
+          <span class="cx-desk-dot"></span>
+          <span class="cx-desk-dot"></span>
+          <span id="cx-desk-url" class="cx-desk-url"></span>
+        </div>
+        <div class="cx-desk-view">
+          <iframe
+            id="theme-desk-iframe"
+            title="Xem thiệp trên máy tính"
+            class="cx-desk-frame"
+            allow="autoplay; encrypted-media"
+          ></iframe>
+        </div>
+      </div>
     </div>
 
     <!-- Thanh kéo đổi rộng cột chỉnh (chỉ desktop; cũng đóng vai khe 16px) -->
@@ -442,6 +461,29 @@
               <div id="cx-wish-palette" class="cx-pick-grid"></div>
             </div>
             <!-- /theme-wish-panel -->
+
+            <!-- Bảng DESKTOP: theme_setting.desktop_wide — thiệp THẬT trên màn rộng
+                 mở thẳng cỡ lớn, bỏ khung điện thoại (_cxPreviewShell ở
+                 theme-boot.js). Mở bảng này thì khung phía trên thành màn máy tính. -->
+            <div
+              id="theme-desktop-panel"
+              class="hidden space-y-2"
+            >
+              <label class="cx-le-check">
+                <input
+                  type="checkbox"
+                  id="theme-desktop-wide"
+                  onchange="onDesktopWideToggle(this.checked)"
+                />
+                <span>Cho phép xem lớn trên màn máy tính</span>
+              </label>
+              <p class="text-[12px] leading-snug text-gray-500">
+                <b class="font-semibold text-gray-700">Tắt:</b> khách mở trên máy tính
+                thấy thiệp trong khung điện thoại.
+                <b class="font-semibold text-gray-700">Bật:</b> thiệp hiện cỡ lớn giữa màn.
+              </p>
+            </div>
+            <!-- /theme-desktop-panel -->
 
             <!-- Bảng ĐIỀU CHỈNH THÀNH PHẦN: mở khi vừa thả hoặc bấm vào thành phần
                  trên thiệp. Mẫu / kích thước là phần chung; các tuỳ chọn riêng dựng

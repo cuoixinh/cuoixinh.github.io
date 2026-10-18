@@ -634,9 +634,10 @@ input.flatpickr-input[readonly] {
 }
 
 /* Thanh công cụ của bảng chỉnh: mỗi ô (icon + nhãn ngắn) mở một bảng, ô đang mở
-   tô hồng (JS chỉ gạt .is-on). Mobile là MỘT hàng 5 ô chia đều ở đáy — đủ chỗ cho
-   cả năm nên không cuộn ngang; từ md thành cột dọc bên trái cột chỉnh (xem khối
-   md ở dưới). Nhãn phải ngắn (CTRL_VIEWS[].tab) để ô 75px ở máy 375px không cắt. */
+   tô hồng (JS chỉ gạt .is-on). Mobile là MỘT hàng ở đáy, khổ ô cố định 5,5 ô một
+   màn — ô thứ sáu lấp ló báo còn vuốt ngang được, không bao giờ xuống dòng; từ md
+   thành cột dọc bên trái cột chỉnh (xem khối md ở dưới). Nhãn phải ngắn
+   (CTRL_VIEWS[].tab) để ô ở máy 375px không cắt. */
 .cx-ctabs {
   @apply relative flex shrink-0 border-t border-gray-100 bg-white px-1 py-1;
 
@@ -644,10 +645,18 @@ input.flatpickr-input[readonly] {
 }
 
 .cx-ctabs-track {
-  @apply grid w-full grid-cols-5 gap-1;
+  @apply relative flex w-full gap-1 overflow-x-auto;
+
+  scrollbar-width: none;
+}
+
+.cx-ctabs-track::-webkit-scrollbar {
+  display: none;
 }
 
 .cx-ctab {
+  flex: 0 0 calc((100% - 20px) / 5.5);
+
   @apply flex min-h-[52px] min-w-0 flex-col items-center justify-center gap-1
          rounded-xl px-1 py-1.5 text-[12px] font-medium leading-none text-gray-500
          transition-[background-color,color] duration-150;
@@ -1402,7 +1411,7 @@ input.flatpickr-input[readonly] {
   }
 
   .cx-ctabs-track {
-    @apply grid-cols-1 content-start gap-1;
+    @apply grid grid-cols-1 content-start gap-1 overflow-visible;
   }
 
   .cx-ctab {
@@ -2416,6 +2425,85 @@ html.cx-rail-off {
    (_cxPhoneFit ở js/22-live-preview.js). */
 .cx-theme-stage {
   @apply min-w-0;
+}
+
+/* Màn MÁY TÍNH của bảng Desktop (tab Giao diện): thay khung điện thoại khi stage
+   mang cờ .cx-desk-on. Khổ ngoài + tỉ lệ thu do cxDeskFit (js/05-theme-panel.js)
+   đặt inline; iframe luôn dựng ở 1440×900 như màn laptop thật. */
+.cx-desk {
+  display: none;
+  flex: none;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 16px 32px rgb(var(--shadow-panel-rgb) / 0.3);
+}
+
+.cx-desk-on .cx-desk {
+  display: flex;
+}
+
+.cx-desk-on .cx-phone {
+  display: none;
+}
+
+.cx-desk-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  background: rgb(var(--surface-control-rgb));
+}
+
+.cx-desk-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgb(var(--border-subtle-rgb));
+}
+
+.cx-desk-url {
+  flex: 1;
+  min-width: 0;
+  height: 16px;
+  margin-left: 8px;
+  padding: 0 8px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgb(var(--white-rgb));
+  color: rgb(var(--text-idle-rgb));
+  font-size: 10px;
+  line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cx-desk-view {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+}
+
+.cx-desk-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1440px;
+  height: 900px;
+  border: 0;
+  transform-origin: 0 0;
+}
+
+/* Mobile: tấm chỉnh nổi đè nửa dưới khung → màn máy tính neo lên đỉnh. */
+@media (max-width: 767px) {
+  .cx-theme-stage.cx-desk-on {
+    align-items: flex-start;
+    padding: 12px 8px;
+  }
 }
 
 /* Thân máy = ảnh assets/images/iphone_mockup.svg (383×785, vùng màn hình TRONG SUỐT)

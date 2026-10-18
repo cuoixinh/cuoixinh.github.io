@@ -597,7 +597,7 @@ body {
 
 @media (min-width: 768px) {
   .lp-progress {
-    max-width: 768px;
+    max-width: var(--cx-card-max);
   }
 }
 

@@ -179,7 +179,8 @@ function _cxRevealItems(selectors) {
 // điện thoại, thiệp thật chạy trong iframe cùng URL + shell=0 ở đúng khổ 390px.
 // Cờ shell=0 là thứ chặn đệ quy, đừng bỏ. Áp cho CẢ bản xem thử mẫu
 // (?preview=true) LẪN thiệp thật của khách: thiệp dựng cho khổ 390px nên kéo
-// rộng ra là bố cục loãng ra, không phải thứ khách mời nên thấy.
+// rộng ra là bố cục loãng ra. Riêng thiệp thật, chủ thiệp bật
+// `theme_setting.desktop_wide` (tab Giao diện) thì bỏ khung, thiệp mở thẳng cỡ lớn.
 // Ảnh thân máy dùng đường dẫn tương đối như mọi tài nguyên khác của theme
 // (trang thiệp luôn ở /public/themes/<tên>/). Style: .cx-pshell* ở _common.css.
 const CX_SHELL_MIN_W = 820;
@@ -201,6 +202,18 @@ function _cxDeviceMinW() {
   return w && h ? Math.min(w, h) : 0;
 }
 
+// theme_setting.desktop_wide — bản sao desktopWide() ở worker/route-html.mjs.
+function _cxDesktopWide(ts) {
+  if (typeof ts === "string") {
+    try {
+      ts = JSON.parse(ts);
+    } catch (_) {
+      ts = null;
+    }
+  }
+  return !!(ts && ts.desktop_wide);
+}
+
 // Tên mẫu suy từ đường dẫn: /public/themes/romantic-gold/ → "Romantic Gold"; link
 // /<slug> thì worker đã khai sẵn. Chỉ là bản tạm cho nhịp vẽ đầu; tên thật lấy từ
 // bảng `templates` ngay sau đó.
@@ -219,18 +232,26 @@ function _cxThemeTitle(slug) {
 }
 
 function _cxPreviewShell() {
-  // Nằm trong iframe = đang xem qua trang Thiết lập, nơi đã có khung máy riêng.
-  if (window.self !== window.top) return false;
-
   const q = new URLSearchParams(location.search);
+  // ?desktopFrame=1: tab Giao diện › Desktop giả lập màn máy tính trong một iframe
+  // 1440px — dựng khung như thiệp thật mở trên máy tính, bỏ qua mọi phép đo khổ máy.
+  const sim = q.get("desktopFrame") === "1";
+  // Nằm trong iframe = đang xem qua trang Thiết lập, nơi đã có khung máy riêng.
+  if (window.self !== window.top && !sim) return false;
+
   if (q.get("shell") === "0") return false;
   // Không mẫu, không thiệp → trang tự chuyển về "/", dựng khung chỉ để nhốt cú
   // chuyển hướng đó vào trong iframe.
   if (q.get("preview") !== "true" && !q.get("slug") && !window.__CX_ROUTE) return false;
+  // Link /<slug>: worker đã đọc sẵn cờ xem lớn. Link ?slug= thì chưa biết, khung
+  // dựng trước rồi iframe báo ra (cx-shell-wide) sau khi có dữ liệu.
+  if (q.get("preview") !== "true" && window.__CX_ROUTE?.wide) return false;
+  // ?desktopMode=true: xem thẳng cỡ lớn như thiệp đã bật xem lớn (rà giao diện máy tính).
+  if (q.get("desktopMode") === "true") return false;
 
   const dev = _cxDeviceMinW();
-  if (dev && dev < CX_SHELL_MIN_DEV_W) return false;
-  if (window.innerWidth < CX_SHELL_MIN_W) return false;
+  if (!sim && dev && dev < CX_SHELL_MIN_DEV_W) return false;
+  if (!sim && window.innerWidth < CX_SHELL_MIN_W) return false;
 
   q.set("shell", "0");
   // Link /<slug>: iframe trỏ THẲNG file mẫu kèm ?slug= — nạp lại /<slug> là tốn
@@ -242,7 +263,7 @@ function _cxPreviewShell() {
   const slug = _cxThemeSlug();
   // Thiệp THẬT (không có ?preview=true): chrome không mời chọn mẫu, tên lấy từ
   // chính thiệp đang chạy trong iframe.
-  const live = q.get("preview") !== "true";
+  const live = q.get("preview") !== "true" || sim;
   const opts = _cxShellOpts(slug, live);
   const stage = document.createElement("div");
   stage.className = "cx-pshell";
@@ -265,6 +286,7 @@ function _cxPreviewShell() {
   window.lucide?.createIcons({ root: stage.querySelector(".cx-pshell-top") });
 
   document.documentElement.classList.add("cx-pshell-host");
+  if (sim) document.documentElement.classList.add("cx-pshell-sim");
   // Giữ lại hộp thoại + toast mà alert.js đã gắn sẵn vào <body>: "Chọn mẫu này"
   // hỏi qua showConfirm khi còn nháp dở, mất hai thẻ này là bấm không ra gì.
   const keep = document.querySelectorAll("body > #cx-alert-backdrop, body > #cx-toast");
@@ -272,7 +294,7 @@ function _cxPreviewShell() {
 
   window.CXPhoneChrome?.wire(stage.querySelector(".cx-pchrome"), opts);
   _cxShellSideWire(stage.querySelector(".cx-pside"), slug);
-  if (live) _cxShellNameLive();
+  if (live) _cxShellNameLive(src);
   else _cxShellName(slug);
 
   // Ô màn hình là % của thân máy (px), thiệp lại dựng ở 390px cố định → tỉ lệ
@@ -456,13 +478,16 @@ function _cxShellGuestToggle() {
 // giữ nguyên tên suy từ slug — không có gì để báo cho khách ở đây.
 // Tên trên chrome của thiệp THẬT = tên cô dâu chú rể, mà dữ liệu chỉ có trong
 // iframe (trang cha không gọi API lần nữa) → iframe gửi ra bằng postMessage.
-function _cxShellNameLive() {
+// Cùng kênh đó: thiệp bật xem lớn thì iframe báo cx-shell-wide → mở thẳng URL của
+// iframe (đã có shell=0) thay cho khung.
+function _cxShellNameLive(src) {
   window.addEventListener("message", (e) => {
     if (e.origin !== location.origin) return;
     const d = e.data;
     if (d && d.type === "cx-shell-title" && d.title) {
       window.CXPhoneChrome?.setTitle(d.title);
     }
+    if (d && d.type === "cx-shell-wide") location.replace(src);
   });
 }
 
@@ -595,6 +620,12 @@ function _cxMountMusic(decl) {
   // Trong khung máy thì gửi tên đôi uyên ương ra cho chrome của trang cha
   // (_cxShellNameLive) — chỉ trang cha đó nghe, các iframe khác bỏ qua.
   loadWeddingData(getSlugFromUrl(), (w) => {
+    // Thiệp bật xem lớn mà đang chạy trong khung máy: báo trang cha mở lại không
+    // khung NGAY, trước renderWedding — vẽ trước là ảnh thiệp bắt đầu tải phí.
+    if (inShell && !isPreviewMode() && _cxDesktopWide(w?.theme_setting)) {
+      window.parent.postMessage({ type: "cx-shell-wide" }, location.origin);
+      return;
+    }
     window.renderWedding(w);
     // Link chung (khách vãn lai) không ứng với hàng khách nào nên không ghi được
     // xác nhận → giấu hẳn mục. Bản xem thử giữ nguyên để chủ thiệp thấy mục này.

@@ -384,7 +384,7 @@ html.hd-on {
 }
 @media (min-width: 768px) {
   .hd-dots {
-    right: max(6px, calc(50% - 384px + 12px));
+    right: max(6px, calc(50% - var(--cx-card-max) / 2 + 12px));
   }
 }
 @media (prefers-reduced-motion: reduce) {
