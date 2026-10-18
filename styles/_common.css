@@ -1294,7 +1294,7 @@ svg.cx-ic {
   }
 }
 
-/* Link chung (khách vãn lai): "Cảm ơn bạn đã ghé xem thiệp · <tên đôi>", không mời.
+/* Link chung (khách vãn lai): "Chúng mình sắp cưới rồi!" (CX_VISITOR_LINE), không mời.
    Cờ + chữ do setupPersonalizedGreeting (wedding-helper) đặt. */
 .cx-guest-generic #cover-guest-name,
 .cx-guest-generic [data-cx-invite-to] {

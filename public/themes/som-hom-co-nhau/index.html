@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Sớm Hôm Có Nhau</title>
+    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
+         địa chỉ, số điện thoại và QR tài khoản của khách. Bản mẫu thì vẫn cho lập chỉ mục. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+    <script src="../../../core/helpers/no-inspect.js"></script>
+  </head>
+
+  <!-- Mẫu SỚM HÔM CÓ NHAU — thiệp trang dài nền trắng tối giản: ảnh lớn xen những câu
+       ca dao/lời văn căn giữa, khối ảnh dựng theo bố cục cố định ([data-sh-take] ở
+       #section-photos, index.js đổ ảnh lần lượt). -->
+
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <div id="cx-music-mount"></div>
+
+    <!-- ═══ MỤC: Màn bìa — phong bì mở sẵn, ảnh cắm nghiêng, bó hoa ở góc ═══
+         Ảnh bìa thò khỏi miệng phong bì, hai ảnh album nấp sau. Chạm phong bì (hoặc nút)
+         thì shOpenCover (index.js) bật nhạc NGAY trong cú chạm, chạy cảnh mở rồi mới gọi
+         openInvitation(). Đừng gắn .open-btn: theme-boot sẽ mở thẳng, bỏ qua cảnh mở. -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
+      <div id="sh-cover" class="sh-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px] flex flex-col items-center justify-center px-6">
+        <div class="sh-petals" aria-hidden="true"></div>
+
+        <div class="sh-cv-top">
+          <div data-cx-invite class="cx-t sh-cv-kick">Trân trọng kính mời</div>
+          <div class="sh-serif sh-cv-guest" id="cover-guest-name">----------</div>
+          <div data-cx-invite-to class="cx-t sh-cv-small">tới dự lễ thành hôn của chúng mình</div>
+        </div>
+
+        <div class="sh-env" id="sh-env" role="button" tabindex="0" aria-label="Mở thiệp">
+          <div class="sh-env-part sh-env-back"></div>
+          <div class="sh-pol sh-pol-l"><div class="sh-pol-in" data-sh-shot="0"></div></div>
+          <div class="sh-pol sh-pol-r"><div class="sh-pol-in" data-sh-shot="1"></div></div>
+          <div class="sh-pol sh-pol-c">
+            <div class="sh-pol-in">
+              <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+            </div>
+          </div>
+          <div class="sh-env-part sh-env-front"></div>
+
+          <!-- Bó hoa góc trái: hồng nhiều lớp cánh · hoa nhỏ · lá có gân · nhánh quả mọng.
+               Hình khai một lần trong <defs>, <use> mang class tô màu (fill/stroke kế thừa
+               xuống hình) — màu lấy từ token ở theme.css. -->
+          <svg class="sh-env-part sh-bouquet" viewBox="0 0 170 170" aria-hidden="true">
+            <defs>
+              <radialGradient id="sh-shade">
+                <stop offset="0" style="stop-color: rgb(var(--cx-shadow-rgb)); stop-opacity: 0.55" />
+                <stop offset="0.5" style="stop-color: rgb(var(--cx-shadow-rgb)); stop-opacity: 0.14" />
+                <stop offset="1" style="stop-color: rgb(var(--cx-shadow-rgb)); stop-opacity: 0" />
+              </radialGradient>
+              <g id="sh-rose">
+                <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(30)" />
+                <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(90)" />
+                <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(150)" />
+                <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(210)" />
+                <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(270)" />
+                <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(330)" />
+                <g transform="scale(0.72)">
+                  <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" />
+                  <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(72)" />
+                  <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(144)" />
+                  <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(216)" />
+                  <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(288)" />
+                </g>
+                <g transform="scale(0.44)">
+                  <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(45)" />
+                  <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(135)" />
+                  <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(225)" />
+                  <path d="M0 0 C-11 -5 -13 -19 0 -22 C13 -19 11 -5 0 0Z" transform="rotate(315)" />
+                </g>
+                <circle r="22" fill="url(#sh-shade)" stroke="none" />
+                <path d="M-6 3 C-7 -6 6 -7 6 1" fill="none" />
+                <path d="M-3 0 C-3 -4 3 -4 3 0" fill="none" />
+              </g>
+              <path id="sh-leaf" d="M0 0 C10 -11 28 -11 40 0 C28 11 10 11 0 0Z M3 0 L37 0" />
+              <g id="sh-bloom">
+                <circle cx="0" cy="-6" r="6" /><circle cx="5.7" cy="-1.9" r="6" /><circle cx="3.5" cy="4.9" r="6" /><circle cx="-3.5" cy="4.9" r="6" /><circle cx="-5.7" cy="-1.9" r="6" />
+              </g>
+            </defs>
+
+            <g class="sh-fl-sprig">
+              <path d="M58 92 C52 60 46 38 30 14" />
+              <path d="M70 84 C76 56 86 36 104 22" />
+              <path d="M48 98 C30 84 18 76 4 74" />
+              <circle cx="30" cy="14" r="2.6" /><circle cx="36" cy="26" r="2.2" /><circle cx="42" cy="40" r="2" />
+              <circle cx="25" cy="21" r="1.8" /><circle cx="104" cy="22" r="2.6" /><circle cx="96" cy="30" r="2.2" />
+              <circle cx="88" cy="42" r="1.8" /><circle cx="4" cy="74" r="2.2" /><circle cx="14" cy="78" r="1.8" />
+            </g>
+
+            <use href="#sh-leaf" class="sh-leaf-u" transform="translate(74 104) rotate(-30)" />
+            <use href="#sh-leaf" class="sh-leaf-u" transform="translate(50 112) rotate(205)" />
+            <use href="#sh-leaf" class="sh-leaf-u" transform="translate(98 120) rotate(16) scale(0.8)" />
+            <use href="#sh-leaf" class="sh-leaf-u" transform="translate(40 82) rotate(-118) scale(0.8)" />
+            <use href="#sh-leaf" class="sh-leaf-u" transform="translate(62 140) rotate(110) scale(0.7)" />
+
+            <use href="#sh-rose" class="sh-rose-c" transform="translate(38 126) scale(0.62)" />
+            <use href="#sh-rose" class="sh-rose-a" transform="translate(66 96)" />
+            <use href="#sh-rose" class="sh-rose-b" transform="translate(100 126) scale(0.74)" />
+
+            <use href="#sh-bloom" class="sh-bloom-u" transform="translate(94 90)" />
+            <circle class="sh-bloom-c" cx="94" cy="90" r="2.6" />
+            <use href="#sh-bloom" class="sh-bloom-u" transform="translate(26 104) scale(0.78)" />
+            <circle class="sh-bloom-c" cx="26" cy="104" r="2" />
+            <use href="#sh-bloom" class="sh-bloom-u is-lilac" transform="translate(72 140) scale(0.66)" />
+            <circle class="sh-bloom-c" cx="72" cy="140" r="1.8" />
+          </svg>
+
+          <div class="sh-env-part sh-seal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20 C5 15 2 11.5 2 8.2 C2 5.4 4.2 3.5 6.8 3.5 C8.8 3.5 10.6 4.6 12 6.5 C13.4 4.6 15.2 3.5 17.2 3.5 C19.8 3.5 22 5.4 22 8.2 C22 11.5 19 15 12 20Z" /></svg>
+          </div>
+          <div class="sh-burst" aria-hidden="true"></div>
+        </div>
+
+        <div class="sh-cv-names">
+          <div class="sh-serif sh-cv-couple">
+            <span id="cover-groom-name">----------</span> <em>&amp;</em> <span id="cover-bride-name">----------</span>
+          </div>
+          <div class="cx-t sh-cv-date"><span id="sh-cover-date">--.--.----</span></div>
+        </div>
+
+        <x-button variant="bare" id="sh-open-btn" class="sh-cv-btn touch-manipulation [-webkit-tap-highlight-color:transparent]">
+          Chạm để mở thiệp
+        </x-button>
+      </div>
+    </div>
+
+    <!-- ═══ THÂN THIỆP ═══ -->
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      style="display: none"
+    >
+      <div class="sh-body flex flex-col">
+        <!-- ═══ MỤC: Mở đầu — bài đăng ═══ -->
+        <section id="section-hero" class="sh-sec sh-hero">
+          <div class="cx-t sh-kicker">Thiệp mời cưới</div>
+          <h1 class="cx-h sh-post-title">Chúng mình về chung một nhà</h1>
+          <div class="sh-post-meta">
+            <span class="cx-a">
+              <span id="couple-names-groom">----------</span> &amp; <span id="couple-names-bride">----------</span>
+            </span>
+            <span class="cx-t sh-muted" id="sh-post-date">--:-- · --.--.----</span>
+          </div>
+          <div id="story-quote" class="cx-t sh-post-caption">Trăm năm tính cuộc vuông tròn, một lời hẹn ước sắt son trọn đời</div>
+
+          <div class="sh-frame sh-r-tall">
+            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" />
+          </div>
+
+          <div class="cx-t sh-poem">
+            Có những ngày rất đỗi bình thường<br />
+            bỗng hoá thành thiêng liêng<br />
+            vì từ hôm ấy, có một người<br />
+            cùng mình đi hết quãng đời còn lại<br />
+            Ngày vui của chúng mình sẽ trọn vẹn hơn<br />
+            khi có bạn ở đó, cùng chung vui
+          </div>
+          <div class="sh-heart"><i data-lucide="heart" class="cx-ic"></i></div>
+        </section>
+
+        <!-- ═══ MỤC: Gia đình ═══ -->
+        <!-- Kiểu thiệp Việt: cha mẹ hai họ đứng trước, rồi mới tới đôi trẻ. -->
+        <section id="section-family" class="sh-sec">
+          <div class="sh-couple">
+            <div class="sh-person">
+              <div class="cx-t sh-tt">Nhà trai</div>
+              <div class="cx-t sh-parent" id="groom-father">--------------------</div>
+              <div class="cx-t sh-parent" id="groom-mother">--------------------</div>
+              <div class="cx-t sh-addr" id="groom-address">----------------------------------------</div>
+            </div>
+            <div class="sh-person">
+              <div class="cx-t sh-tt">Nhà gái</div>
+              <div class="cx-t sh-parent" id="bride-father">--------------------</div>
+              <div class="cx-t sh-parent" id="bride-mother">--------------------</div>
+              <div class="cx-t sh-addr" id="bride-address">----------------------------------------</div>
+            </div>
+          </div>
+
+          <div class="cx-t sh-poem sh-muted">Trân trọng báo tin lễ thành hôn của con chúng tôi</div>
+
+          <div class="sh-couple">
+            <div class="sh-person">
+              <div class="sh-ava">
+                <img id="groom-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Chú Rể" class="w-full h-full object-cover" />
+              </div>
+              <div class="cx-t sh-role">Chú rể</div>
+              <div class="cx-h sh-pname" id="groom-name-label">----------</div>
+            </div>
+            <div class="sh-person">
+              <div class="sh-ava">
+                <img id="bride-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cô Dâu" class="w-full h-full object-cover" />
+              </div>
+              <div class="cx-t sh-role">Cô dâu</div>
+              <div class="cx-h sh-pname" id="bride-name-label">----------</div>
+            </div>
+          </div>
+          <div class="cx-t sh-poem">Thuận vợ thuận chồng, tát biển Đông cũng cạn</div>
+        </section>
+
+        <!-- ═══ MỤC: Album ảnh — bố cục dài xen thơ ═══
+             Mỗi .sh-blk = câu thơ + một hàng ảnh; data-sh-take = số ảnh hàng đó lấy,
+             data-sh-shape = kiểu hàng (theme.css). Hết ảnh thì cả khối ẩn. -->
+        <section id="section-photos" class="sh-sec">
+          <div class="sh-blk">
+            <div class="cx-t sh-poem sh-muted">Trăm năm tình viên mãn<br />bạc đầu nghĩa phu thê</div>
+            <div class="cx-h sh-date-dot" id="sh-date-dot">--.--.----</div>
+            <div class="cx-t sh-poem">Từ hôm nay, hai đứa mình là một nhà<br />chung một mái ấm, chung một lối về</div>
+            <div class="sh-row" data-sh-take="1" data-sh-shape="tall"></div>
+          </div>
+
+          <div class="sh-blk">
+            <div class="cx-t sh-poem">Mình nên duyên từ những điều giản dị<br />một bữa cơm chung, một câu hỏi han mỗi tối</div>
+            <div class="sh-row" data-sh-take="1" data-sh-shape="wide"></div>
+            <div class="sh-row" data-sh-take="2" data-sh-shape="pair"></div>
+          </div>
+
+          <div class="sh-blk">
+            <div class="cx-t sh-poem">“Thương nhau củ ấu cũng tròn”</div>            <div class="sh-row" data-sh-take="1" data-sh-shape="pano"></div>
+          </div>
+
+          <div class="sh-blk">
+            <div class="cx-t sh-poem sh-right">Anh không hứa cho em cả thế giới<br />chỉ hứa mỗi sớm thức dậy<br />người đầu tiên anh thương<br />vẫn là em</div>
+            <div class="sh-side">
+              <div class="sh-row" data-sh-take="1" data-sh-shape="side"></div>
+              <div class="sh-script sh-side-script">Always you.</div>
+            </div>
+          </div>
+
+          <div class="sh-blk">
+            <div class="cx-t sh-poem">Có những người đi cùng ta một đoạn<br />và có một người ở lại cả một đời</div>
+            <div class="sh-row" data-sh-take="2" data-sh-shape="pano2"></div>
+          </div>
+
+          <div class="sh-blk">
+            <div class="cx-t sh-poem sh-en">Just married</div>
+            <div class="cx-t sh-poem">Về chung một mái nhà<br />cùng nhau vun vén những ngày bình yên</div>
+            <div class="sh-row" data-sh-take="4" data-sh-shape="quad"></div>
+          </div>
+
+          <div class="sh-blk">
+            <div class="cx-t sh-poem">Hạnh phúc là được nắm tay nhau<br />đi qua những ngày rất đỗi bình thường</div>
+            <div class="sh-row" data-sh-take="1" data-sh-shape="tall"></div>
+          </div>
+
+          <div class="sh-blk">
+            <div class="cx-t sh-poem">“Sớm hôm có nhau, buồn vui có nhau”</div>
+            <div class="sh-row" data-sh-take="1" data-sh-shape="offset"></div>
+          </div>
+
+          <div class="sh-blk">
+            <div class="cx-t sh-poem">Đã thương thì thương cho trót<br />đã thương thì thương cho trọn tới bạc đầu</div>
+            <div class="sh-row" data-sh-take="2" data-sh-shape="pair"></div>
+          </div>
+
+          <div class="sh-blk">
+            <div class="cx-t sh-poem">“Cảm ơn em đã đến, và ở lại”</div>
+            <div class="sh-row" data-sh-take="1" data-sh-shape="wide"></div>
+          </div>
+
+          <!-- Ảnh còn dư sau các khối trên dồn vào lưới cuối. -->
+          <div class="sh-blk">
+            <div class="sh-row" data-sh-take="rest" data-sh-shape="grid"></div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Thư mời — khối ngày lớn ═══ -->
+        <section id="section-ceremony" class="sh-sec">
+          <div class="sh-bigdate">
+            <div class="cx-t sh-bd-year" id="sh-cer-year">----</div>
+            <div class="sh-bd-mid">
+              <div class="cx-h sh-bd-num" id="invite-day">--</div>
+              <div class="sh-bd-line"></div>
+              <div class="cx-h sh-bd-num" id="sh-cer-month">--</div>
+            </div>
+            <div class="cx-t sh-bd-week" id="invite-weekday">------</div>
+          </div>
+
+          <div class="cx-t sh-tt">Trân trọng kính mời</div>
+          <div class="cx-t sh-poem">tới dự <span id="ceremony-event-name">Lễ Thành Hôn</span> của</div>
+          <div class="cx-h sh-names">
+            <span id="invite-groom">----------</span>
+            <span class="cx-a">&amp;</span>
+            <span id="invite-bride">----------</span>
+          </div>
+          <div class="cx-t sh-poem">
+            Được tổ chức vào lúc <span id="invite-time">--:--</span><br />
+            <span id="invite-lunar" class="sh-muted">--------------------</span>
+          </div>
+          <div id="ceremony-location-wrap" class="hidden cx-t sh-poem sh-muted">
+            <span id="ceremony-location-text"></span>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Tiệc cưới — lịch tháng đè ảnh ═══ -->
+        <section id="section-party" class="sh-sec">
+          <div class="sh-calcard">
+            <div class="sh-calcard-bg" data-sh-shot="last"></div>
+            <div class="sh-calcard-in">
+              <div class="cx-t sh-cal-label" id="party-section-label">Tiệc Mừng Lễ Thành Hôn</div>
+              <div class="cx-h sh-cal-when" id="party-datetime">--:-- - --.--.----</div>
+              <div class="cx-t sh-cal-lunar" id="party-lunar">(Ngày âm lịch)</div>
+              <div class="cx-t sh-cal-month" id="sh-cal-month">Tháng -- · ----</div>
+              <div id="sh-calendar" class="sh-cal-grid"></div>
+              <div class="cx-t sh-cal-loc">
+                <i data-lucide="map-pin" class="cx-ic"></i>
+                <span id="party-location">------------------------</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══ MỤC: Xác nhận tham dự ═══ -->
+          <div id="rsvp-section" class="sh-rsvp" style="display: none">
+            <div class="cx-t sh-tt">Xác nhận tham dự</div>
+            <div id="rsvp-custom-message" class="hidden cx-t sh-poem sh-muted"></div>
+            <div class="sh-rsvp-btns">
+              <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="sh-btn">
+                <i data-lucide="circle-check" class="cx-ic"></i>
+                Chắc chắn tham dự
+              </x-button>
+              <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="sh-btn sh-btn-line">
+                <i data-lucide="circle-x" class="cx-ic"></i>
+                Rất tiếc, không thể tham dự
+              </x-button>
+            </div>
+            <div id="attend-msg" class="cx-a sh-poem hidden"></div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Lịch trình ═══ -->
+        <section id="section-timeline" class="hidden sh-sec">
+          <div class="cx-t sh-tt">Lịch trình ngày cưới</div>
+          <!-- Trục dọc giữa, mốc so le hai bên — shRenderTimeline (index.js). -->
+          <div id="timeline-list-render" class="sh-plan"></div>
+        </section>
+
+        <!-- ═══ MỤC: Chuyện tình yêu ═══ -->
+        <section id="love-story" class="sh-sec" style="display: none">
+          <div class="cx-t sh-tt">Chuyện tình yêu</div>
+          <!-- Mỗi mốc: ảnh polaroid nghiêng + năm chữ chìm, đổi bên xen kẽ — shRenderLoveStory. -->
+          <div id="love-story-list" class="sh-story"></div>
+        </section>
+
+        <!-- ═══ MỤC: Hộp mừng cưới ═══ -->
+        <section id="section-gift" class="sh-sec">
+          <div class="cx-t sh-tt">Hộp mừng cưới</div>
+          <div data-cx-gift="qr" class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2 items-center">
+              <div class="cx-t sh-addr">Chú rể · <span id="groom-bank-label">----------</span></div>
+              <div class="cx-bg-qr sh-qr">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="QR Chú Rể" class="w-full aspect-square object-cover" />
+              </div>
+              <div class="cx-t sh-addr" id="groom-bank-name">----------------</div>
+              <div class="cx-h sh-pname" id="groom-bank-number">------------</div>
+              <div class="cx-t sh-addr" id="groom-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="sh-btn sh-btn-sm sh-btn-line">
+                <i data-lucide="download" class="cx-ic"></i>
+                Lưu QR
+              </x-button>
+            </div>
+            <div class="flex flex-col gap-2 items-center">
+              <div class="cx-t sh-addr">Cô dâu · <span id="bride-bank-label">----------</span></div>
+              <div class="cx-bg-qr sh-qr">
+                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="QR Cô Dâu" class="w-full aspect-square object-cover" />
+              </div>
+              <div class="cx-t sh-addr" id="bride-bank-name">----------------</div>
+              <div class="cx-h sh-pname" id="bride-bank-number">------------</div>
+              <div class="cx-t sh-addr" id="bride-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="sh-btn sh-btn-sm sh-btn-line">
+                <i data-lucide="download" class="cx-ic"></i>
+                Lưu QR
+              </x-button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Địa điểm — #map-location-name + #map-link phải đứng CUỐI mục ═══ -->
+        <section id="section-map" class="sh-sec">
+          <div class="cx-t sh-tt">Địa điểm tổ chức</div>
+          <div class="cx-t sh-muted sh-hint">Chạm vào bản đồ để chỉ đường ↓</div>
+          <div class="cx-h sh-map-name" id="map-location-name">------------------------</div>
+          <a id="map-link" href="#" target="_blank" class="sh-map block">
+            <div class="w-full h-40 relative overflow-hidden">
+              <iframe
+                id="map-thumbnail-iframe"
+                src=""
+                width="100%"
+                height="100%"
+                class="border-0 pointer-events-none"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+              <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
+                <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
+                <span class="cx-t text-[11px] uppercase tracking-[2px]">Chưa có bản đồ</span>
+              </div>
+            </div>
+            <div class="sh-map-bar cx-t">
+              <span>Địa điểm tổ chức</span>
+              <span class="flex items-center gap-1">Mở Maps <i data-lucide="chevron-right" class="cx-ic"></i></span>
+            </div>
+          </a>
+        </section>
+
+        <!-- ═══ MỤC: Lời cảm ơn ═══ -->
+        <section id="section-footer" class="sh-sec sh-footer">
+          <div class="cx-t sh-poem sh-muted">Nếu bạn ở xa hay bận việc không thể tới dự<br />chúng mình vẫn luôn trân quý tấm lòng<br />và lời chúc phúc bạn gửi tới</div>
+          <div id="footer-text" class="cx-t sh-poem">Sự hiện diện của bạn là niềm vinh hạnh<br />cho gia đình chúng mình</div>
+          <div class="sh-script sh-thanks">Thank you</div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ═══ Phóng to ảnh ═══ -->
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
+      </x-button>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
+      <div class="w-full h-full flex items-center justify-center px-[8px]">
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
+      </div>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — giữ như base-theme ═══ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <script src="index.js"></script>
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>

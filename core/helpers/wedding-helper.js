@@ -144,7 +144,8 @@ function showLockedInvitation(info) {
   document.body.style.overflow = "hidden";
 }
 
-const CX_VISITOR_LINE = "Cảm ơn bạn đã ghé xem thiệp";
+// Dòng thay lời mời ở link chung (không biết khách là ai): báo tin, không mời đích danh.
+const CX_VISITOR_LINE = "Chúng mình sắp cưới rồi!";
 
 // Bỏ qua màn bìa: chỉ các khung của trang Thiết lập (Xem trực tiếp `source=live`,
 // tab Giao diện `edit=1`) — ở đó khách đang chỉnh thân thiệp. Bản xem thử mẫu và

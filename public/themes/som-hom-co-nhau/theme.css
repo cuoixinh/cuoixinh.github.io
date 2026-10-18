@@ -1,0 +1,1420 @@
+/* Mẫu SỚM HÔM CÓ NHAU — nền trắng tối giản, chữ nhỏ giãn dòng rộng, tông tím: chữ và nút
+   tím than, điểm nhấn tím oải hương ở chữ viết tay. CSS thuần, nạp sau styles/themes.css. */
+
+:root {
+  --cx-heading-rgb: 59 42 77;
+  --cx-body-rgb: 58 51 66;
+  --cx-accent-rgb: 123 94 167;
+  --cx-accent-soft-rgb: 233 225 243;
+  --cx-on-accent-rgb: 255 255 255;
+  --cx-on-image-rgb: 255 255 255;
+  --cx-on-lightbox-rgb: 255 255 255;
+  --cx-card-bg-rgb: 255 255 255;
+  --cx-page-bg-rgb: 245 241 249;
+  --cx-surface-rgb: 247 243 251;
+  --cx-band-rgb: 243 237 249;
+  --cx-panel-rgb: 255 255 255;
+  --cx-panel-warm-rgb: 251 248 253;
+  --cx-cover-rgb: 255 255 255;
+  --cx-cover-mid-rgb: 243 237 249;
+  --cx-cover-veil-rgb: 255 255 255;
+  --cx-lightbox-bg-rgb: 0 0 0;
+  --cx-line-rgb: 230 221 239;
+  --cx-shadow-rgb: 42 29 56;
+  --cx-scrim-rgb: 42 29 56;
+  --cx-deco-rgb: 148 102 201;
+  --cx-deco-soft-rgb: 234 223 246;
+  --cx-deco-2-rgb: 117 107 128;
+  --cx-deco-2-soft-rgb: 230 221 239;
+  --cx-shine-from-rgb: 255 255 255;
+  --cx-shine-mid-rgb: 243 237 249;
+  --cx-shine-to-rgb: 230 221 239;
+
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-rgb);
+  --music-bubble-to-rgb: var(--cx-heading-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-rgb);
+  --music-art-to-rgb: var(--cx-heading-rgb);
+}
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+}
+
+.cx-h,
+.cx-t {
+  font-family: "Be Vietnam Pro", sans-serif;
+}
+
+/* ── Khung chung ─────────────────────────────────────────────────────────── */
+
+.sh-body {
+  padding: 16px 16px 64px;
+  gap: 48px;
+}
+
+.sh-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+}
+
+.sh-poem {
+  font-size: 12px;
+  line-height: 2.2;
+  letter-spacing: 1px;
+  font-weight: 300;
+}
+
+.sh-muted {
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+.sh-right {
+  text-align: right;
+}
+
+.sh-en {
+  line-height: 1;
+  font-weight: 400;
+}
+
+.sh-tt,
+.sh-kicker {
+  font-size: 12px;
+  letter-spacing: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.sh-kicker {
+  font-size: 11px;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+.sh-hint {
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin-top: -8px;
+}
+
+.sh-heart {
+  display: flex;
+  justify-content: center;
+  color: rgb(var(--cx-deco-rgb));
+  font-size: 20px;
+}
+
+.sh-script {
+  font-family: "MrDakota", cursive;
+  color: rgb(var(--cx-deco-rgb));
+  font-size: 36px;
+  line-height: 1.4;
+}
+
+.sh-frame {
+  width: 100%;
+  overflow: hidden;
+}
+
+.sh-r-tall {
+  aspect-ratio: 342 / 463;
+}
+
+/* ── Màn bìa: phong bì mở sẵn ────────────────────────────────────────────────
+   Lớp trong .sh-env: thân sau (1) · hai ảnh nấp (2) · ảnh bìa cắm nghiêng (3) · thân
+   trước khoét chữ V (4) · bó hoa SVG góc trái (5) · dấu sáp + cánh hoa (6). .is-open
+   (shOpenCover) chạy cảnh mở. Lắc lư lúc chờ dùng `rotate`/`translate`, bay ra dùng
+   `transform` — tách thuộc tính để cảnh mở nối tiếp từ đúng tư thế đang lắc. */
+
+.sh-serif {
+  font-family: "Cormorant Garamond", serif;
+}
+
+.sh-cover {
+  gap: 24px;
+  background:
+    radial-gradient(90% 50% at 50% 55%, rgb(var(--cx-accent-soft-rgb) / 0.55), transparent 70%),
+    radial-gradient(60% 40% at 10% 0%, rgb(var(--cx-deco-soft-rgb) / 0.6), transparent 70%),
+    linear-gradient(rgb(var(--cx-cover-rgb)), rgb(var(--cx-cover-mid-rgb)));
+}
+
+.sh-cv-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  transition:
+    opacity 0.5s ease,
+    translate 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sh-cv-kick {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+.sh-cv-guest {
+  font-size: 36px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.3;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.sh-cv-small {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+.sh-env {
+  position: relative;
+  z-index: 2;
+  width: 300px;
+  height: 192px;
+  margin-top: 124px;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  animation: cx-sh-float 5s ease-in-out infinite;
+}
+
+.sh-env-part {
+  position: absolute;
+  inset: 0;
+}
+
+/* Thân sau: lòng phong bì lộ ra trong chữ V — tông đậm, tối dần về đáy cho có chiều sâu. */
+.sh-env-back {
+  z-index: 1;
+  border-radius: 4px;
+  background:
+    linear-gradient(rgb(var(--cx-shadow-rgb) / 0.04), rgb(var(--cx-shadow-rgb) / 0.16) 60%),
+    linear-gradient(rgb(var(--cx-accent-rgb) / 0.38), rgb(var(--cx-deco-rgb) / 0.3)),
+    rgb(var(--cx-panel-rgb));
+  box-shadow:
+    0 2px 6px rgb(var(--cx-shadow-rgb) / 0.08),
+    0 32px 48px -16px rgb(var(--cx-shadow-rgb) / 0.28);
+}
+
+/* Thân trước: khoét V sâu tới chỗ dấu sáp; mép V có một vệt sáng mảnh như cạnh giấy. */
+.sh-env-front {
+  z-index: 4;
+  border-radius: 4px;
+  clip-path: polygon(0 0, 50% 48%, 100% 0, 100% 100%, 0 100%);
+  background:
+    radial-gradient(120% 80% at 50% 100%, rgb(var(--cx-panel-rgb) / 0.35), transparent 60%),
+    linear-gradient(rgb(var(--cx-accent-soft-rgb)), rgb(var(--cx-deco-soft-rgb)));
+}
+
+.sh-env-front::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 50% 48%, 100% 0, 100% 1.5%, 50% 49.5%, 0 1.5%);
+  background: rgb(var(--cx-panel-rgb) / 0.8);
+}
+
+/* Ảnh: khung polaroid trắng, viền đáy dày hơn. */
+.sh-pol {
+  position: absolute;
+  padding: 6px 6px 16px;
+  background: rgb(var(--cx-panel-rgb));
+  box-shadow:
+    0 1px 2px rgb(var(--cx-shadow-rgb) / 0.1),
+    0 16px 32px -10px rgb(var(--cx-shadow-rgb) / 0.3);
+  transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sh-pol-in {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: rgb(var(--cx-line-rgb));
+}
+
+.sh-pol-in img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Ảnh bìa cắm nghiêng lệch phải như thiệp mẫu; đáy chìm dưới thân trước. */
+.sh-pol-c {
+  z-index: 3;
+  width: 156px;
+  left: 118px;
+  top: -116px;
+  transform: rotate(8deg);
+  animation: cx-sh-sway 5s ease-in-out infinite;
+}
+
+/* Hai ảnh nấp sau ảnh bìa, chỉ ló một mép — mở ra mới bay. */
+.sh-pol-l,
+.sh-pol-r {
+  z-index: 2;
+  width: 120px;
+}
+
+.sh-pol-l {
+  left: 88px;
+  top: -60px;
+  transform: rotate(-8deg);
+}
+
+.sh-pol-r {
+  left: 168px;
+  top: -44px;
+  transform: rotate(18deg);
+}
+
+/* Bó hoa: neo gốc dưới-trái, đung đưa nhẹ. */
+.sh-bouquet {
+  inset: auto;
+  left: -44px;
+  top: -100px;
+  width: 176px;
+  height: 176px;
+  z-index: 5;
+  overflow: visible;
+  transform-origin: 30% 70%;
+  animation: cx-sh-bouquet 6s ease-in-out infinite;
+  filter: drop-shadow(0 6px 8px rgb(var(--cx-shadow-rgb) / 0.16));
+}
+
+.sh-fl-sprig path {
+  fill: none;
+  stroke: rgb(var(--cx-deco-2-rgb) / 0.7);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.sh-fl-sprig circle {
+  fill: rgb(var(--cx-accent-rgb));
+}
+
+/* Hình trong <defs> kế thừa fill/stroke từ <use> — mỗi class dưới là một màu hoa/lá. */
+.sh-leaf-u {
+  fill: rgb(var(--cx-deco-2-rgb) / 0.62);
+  stroke: rgb(var(--cx-on-accent-rgb) / 0.35);
+  stroke-width: 0.7;
+}
+
+.sh-rose-a,
+.sh-rose-b,
+.sh-rose-c {
+  stroke: rgb(var(--cx-on-accent-rgb) / 0.32);
+  stroke-width: 0.7;
+  stroke-linecap: round;
+}
+
+.sh-rose-a {
+  fill: rgb(var(--cx-accent-rgb));
+}
+
+.sh-rose-b {
+  fill: rgb(var(--cx-deco-rgb));
+}
+
+.sh-rose-c {
+  fill: rgb(var(--cx-heading-rgb));
+}
+
+.sh-bloom-u {
+  fill: rgb(var(--cx-panel-warm-rgb));
+  stroke: rgb(var(--cx-deco-2-rgb) / 0.3);
+  stroke-width: 0.6;
+}
+
+.sh-bloom-u.is-lilac {
+  fill: rgb(var(--cx-deco-soft-rgb));
+}
+
+.sh-bloom-c {
+  fill: rgb(var(--cx-deco-rgb));
+}
+
+/* Dấu sáp trái tim ngay mũi chữ V. */
+.sh-seal {
+  inset: auto;
+  left: 50%;
+  top: 66px;
+  width: 52px;
+  height: 52px;
+  margin-left: -26px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;
+  background: radial-gradient(circle at 34% 28%, rgb(var(--cx-deco-rgb)), rgb(var(--cx-accent-rgb)) 48%, rgb(var(--cx-heading-rgb)) 100%);
+  box-shadow:
+    0 6px 14px rgb(var(--cx-shadow-rgb) / 0.28),
+    inset 0 -3px 6px rgb(var(--cx-shadow-rgb) / 0.25),
+    inset 0 2px 3px rgb(var(--cx-on-accent-rgb) / 0.3);
+  transition:
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.4s ease 0.1s;
+}
+
+.sh-seal::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--cx-on-accent-rgb) / 0.35);
+}
+
+.sh-seal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: cx-sh-ring 2.8s ease-out infinite;
+}
+
+.sh-seal svg {
+  width: 20px;
+  height: 20px;
+  fill: rgb(var(--cx-on-accent-rgb) / 0.9);
+  filter: drop-shadow(0 1px 0 rgb(var(--cx-shadow-rgb) / 0.35));
+}
+
+.sh-cv-names {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  transition:
+    opacity 0.5s ease,
+    translate 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sh-cv-couple {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.sh-cv-couple em {
+  font-style: italic;
+  color: rgb(var(--cx-deco-rgb));
+  margin: 0 4px;
+}
+
+/* Ngày kẹp giữa hai vạch mảnh. */
+.sh-cv-date {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+.sh-cv-date::before,
+.sh-cv-date::after {
+  content: "";
+  width: 32px;
+  height: 1px;
+  background: rgb(var(--cx-deco-2-rgb) / 0.4);
+}
+
+.sh-cv-btn {
+  position: relative;
+  z-index: 1;
+  height: 40px;
+  padding: 0 24px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-heading-rgb));
+  background: rgb(var(--cx-panel-rgb) / 0.6);
+  border: 1px solid rgb(var(--cx-heading-rgb) / 0.2);
+  backdrop-filter: blur(4px);
+  animation: cx-sh-blink 2.8s ease-in-out infinite;
+  transition:
+    opacity 0.4s ease,
+    translate 0.5s ease;
+}
+
+/* Cánh hoa rơi lúc chờ (shPetals) + cánh hoa bung lúc mở (shBurst) — cùng một hình. */
+.sh-petals {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sh-petals i,
+.sh-burst i {
+  position: absolute;
+  width: var(--s, 12px);
+  height: calc(var(--s, 12px) * 0.75);
+  border-radius: 80% 0 80% 0;
+  background: linear-gradient(135deg, rgb(var(--cx-deco-soft-rgb)), rgb(var(--cx-deco-rgb) / 0.55));
+}
+
+.sh-petals i {
+  top: -24px;
+  opacity: 0.7;
+  animation: cx-sh-fall var(--t, 12s) linear var(--dl, 0s) infinite;
+}
+
+.sh-burst {
+  position: absolute;
+  left: 50%;
+  top: 40px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.sh-burst i {
+  margin: -6px 0 0 -6px;
+  opacity: 0;
+}
+
+/* ── Cảnh mở ── */
+
+.sh-cover.is-open .sh-env,
+.sh-cover.is-open .sh-pol-c,
+.sh-cover.is-open .sh-bouquet,
+.sh-cover.is-open .sh-seal::after {
+  animation-play-state: paused;
+}
+
+.sh-cover.is-open .sh-cv-top {
+  opacity: 0;
+  translate: 0 -24px;
+}
+
+.sh-cover.is-open .sh-cv-names,
+.sh-cover.is-open .sh-cv-btn {
+  opacity: 0;
+  translate: 0 16px;
+}
+
+/* Nhịp nhấp nháy giữ opacity của nút — phải tắt thì nút mới mờ đi được. */
+.sh-cover.is-open .sh-cv-btn {
+  animation: none;
+}
+
+.sh-cover.is-open .sh-seal {
+  transform: translateY(-8px) scale(1.3);
+  opacity: 0;
+}
+
+/* Ảnh bìa rút lên giữa, đứng thẳng lại; hai ảnh nấp vọt khỏi miệng phong bì rồi rơi
+   xuống đậu dưới hai bên ảnh bìa (cx-sh-out-l/r). */
+.sh-cover.is-open .sh-pol-c {
+  transform: translate(-46px, -112px) rotate(-1deg) scale(1.3);
+  transition: transform 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+
+.sh-cover.is-open .sh-pol-l {
+  animation: cx-sh-out-l 1.8s cubic-bezier(0.45, 0, 0.25, 1) 0.5s forwards;
+}
+
+.sh-cover.is-open .sh-pol-r {
+  animation: cx-sh-out-r 1.8s cubic-bezier(0.45, 0, 0.25, 1) 0.62s forwards;
+}
+
+.sh-cover.is-open .sh-env-back,
+.sh-cover.is-open .sh-env-front,
+.sh-cover.is-open .sh-bouquet {
+  translate: 0 220px;
+  opacity: 0;
+  transition:
+    translate 1s cubic-bezier(0.55, 0, 0.6, 0.4) 0.95s,
+    opacity 0.5s ease 0.95s;
+}
+
+.sh-cover.is-open .sh-burst i {
+  animation: cx-sh-burst 2s cubic-bezier(0.22, 1, 0.36, 1) calc(0.35s + var(--dl, 0ms)) forwards;
+}
+
+/* Giữ nguyên lớp suốt đường bay — phong bì đã chìm đi (từ 0.95s) trước khi ảnh rơi xuống. */
+@keyframes cx-sh-out-l {
+  0% {
+    transform: rotate(-8deg);
+  }
+  40% {
+    transform: translate(-56px, -150px) rotate(-18deg) scale(1.04);
+  }
+  100% {
+    transform: translate(-100px, 64px) rotate(-8deg) scale(1.02);
+  }
+}
+
+@keyframes cx-sh-out-r {
+  0% {
+    transform: rotate(18deg);
+  }
+  40% {
+    transform: translate(48px, -150px) rotate(20deg) scale(1.04);
+  }
+  100% {
+    transform: translate(40px, 52px) rotate(9deg) scale(1.02);
+  }
+}
+
+@keyframes cx-sh-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -6px;
+  }
+}
+
+@keyframes cx-sh-sway {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  50% {
+    rotate: -1.5deg;
+  }
+}
+
+@keyframes cx-sh-bouquet {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  50% {
+    rotate: 2.5deg;
+  }
+}
+
+@keyframes cx-sh-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(var(--cx-accent-rgb) / 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgb(var(--cx-accent-rgb) / 0);
+  }
+}
+
+@keyframes cx-sh-blink {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Cánh hoa rơi chéo, đưa nhẹ sang ngang. */
+@keyframes cx-sh-fall {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(var(--sw, 24px), calc(var(--vh, 1vh) * 55)) rotate(200deg);
+  }
+  100% {
+    transform: translate(calc(var(--sw, 24px) * -0.5), calc(var(--vh, 1vh) * 112)) rotate(400deg);
+  }
+}
+
+/* Bung theo hình quạt tới (--x, --y) rồi bồng bềnh rơi xuống. */
+@keyframes cx-sh-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg) scale(0.3);
+  }
+  10% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(var(--x), var(--y)) rotate(var(--rot)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--x) * 1.3), calc(var(--y) + 160px)) rotate(calc(var(--rot) * 2)) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-env,
+  .sh-pol-c,
+  .sh-bouquet,
+  .sh-seal::after,
+  .sh-cv-btn,
+  .sh-petals i {
+    animation: none;
+  }
+
+  .sh-petals {
+    display: none;
+  }
+}
+
+/* ── Nút đen ─────────────────────────────────────────────────────────────── */
+
+.sh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: rgb(var(--cx-card-bg-rgb));
+  background: rgb(var(--cx-heading-rgb));
+  border: 1px solid rgb(var(--cx-heading-rgb));
+  transition: transform 0.15s;
+}
+
+.sh-btn:active {
+  transform: scale(0.96);
+}
+
+.sh-btn-line {
+  color: rgb(var(--cx-heading-rgb));
+  background: transparent;
+}
+
+.sh-btn-sm {
+  height: 32px;
+  padding: 0 16px;
+  font-size: 12px;
+}
+
+/* ── Mở đầu: bài đăng ────────────────────────────────────────────────────── */
+
+.sh-hero {
+  text-align: left;
+  gap: 12px;
+}
+
+.sh-post-title {
+  font-size: 22px;
+  line-height: 1.6;
+  letter-spacing: 1px;
+  font-weight: 500;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.sh-post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+
+.sh-post-caption {
+  font-size: 12px;
+  line-height: 2;
+  letter-spacing: 1px;
+  text-align: right;
+  margin-bottom: 4px;
+}
+
+.sh-hero .sh-poem {
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* ── Gia đình ────────────────────────────────────────────────────────────── */
+
+.sh-couple {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.sh-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.sh-ava {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.sh-role {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+.sh-pname {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.sh-person .sh-tt {
+  margin-bottom: 8px;
+}
+
+.sh-parent {
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.sh-addr {
+  font-size: 11px;
+  line-height: 1.8;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+/* ── Album: hàng ảnh theo kiểu (data-sh-shape) ───────────────────────────── */
+
+.sh-blk {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sh-row {
+  display: grid;
+  gap: 8px;
+}
+
+.sh-cell {
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.sh-row[data-sh-shape="tall"] .sh-cell {
+  aspect-ratio: 342 / 463;
+}
+
+.sh-row[data-sh-shape="wide"] .sh-cell {
+  aspect-ratio: 342 / 239;
+}
+
+.sh-row[data-sh-shape="pano"] .sh-cell,
+.sh-row[data-sh-shape="pano2"] .sh-cell {
+  aspect-ratio: 342 / 197;
+}
+
+.sh-row[data-sh-shape="pair"] {
+  grid-template-columns: 1fr 1fr;
+}
+
+.sh-row[data-sh-shape="pair"] .sh-cell {
+  aspect-ratio: 166 / 239;
+}
+
+.sh-row[data-sh-shape="quad"],
+.sh-row[data-sh-shape="grid"] {
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.sh-row[data-sh-shape="grid"] {
+  gap: 8px;
+}
+
+.sh-row[data-sh-shape="quad"] .sh-cell,
+.sh-row[data-sh-shape="grid"] .sh-cell {
+  aspect-ratio: 171 / 264;
+}
+
+/* Hàng đôi chỉ còn một ảnh thì ảnh đó chiếm trọn bề ngang. */
+.sh-row[data-sh-n="1"] {
+  grid-template-columns: 1fr;
+}
+
+.sh-row[data-sh-shape="offset"] {
+  width: 79%;
+  margin-left: auto;
+}
+
+.sh-row[data-sh-shape="offset"] .sh-cell {
+  aspect-ratio: 270 / 366;
+}
+
+.sh-side {
+  position: relative;
+  min-height: 100px;
+}
+
+.sh-row[data-sh-shape="side"] {
+  width: 68%;
+}
+
+.sh-row[data-sh-shape="side"] .sh-cell {
+  aspect-ratio: 234 / 339;
+}
+
+.sh-side-script {
+  position: absolute;
+  right: 0;
+  bottom: 24px;
+  width: 64%;
+  text-align: left;
+}
+
+.sh-date-dot {
+  font-size: 13px;
+  letter-spacing: 3px;
+  font-weight: 500;
+}
+
+/* ── Thư mời: khối ngày lớn ──────────────────────────────────────────────── */
+
+.sh-bigdate {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.sh-bd-year {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: right;
+}
+
+.sh-bd-week {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: left;
+}
+
+.sh-bd-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.sh-bd-num {
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+
+.sh-bd-line {
+  width: 148px;
+  height: 1px;
+  background: rgb(var(--cx-heading-rgb));
+}
+
+.sh-names {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+/* ── Tiệc cưới: lịch tháng đè ảnh ────────────────────────────────────────── */
+
+.sh-calcard {
+  position: relative;
+  overflow: hidden;
+  min-height: 600px;
+  display: flex;
+}
+
+.sh-calcard-bg {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--cx-heading-rgb));
+}
+
+.sh-calcard-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgb(var(--cx-scrim-rgb) / 0.15), rgb(var(--cx-scrim-rgb) / 0.55));
+}
+
+.sh-calcard-in {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 32px 24px;
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+.sh-cal-label {
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.sh-cal-when {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.sh-cal-lunar,
+.sh-cal-loc {
+  font-size: 12px;
+  letter-spacing: 1px;
+  line-height: 2;
+  opacity: 0.9;
+}
+
+.sh-cal-loc {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.sh-cal-month {
+  margin-top: 16px;
+  font-size: 13px;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+
+.sh-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sh-cal-h {
+  font-size: 11px;
+  opacity: 0.7;
+  padding: 4px 0;
+}
+
+.sh-cal-d {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 32px;
+  font-size: 12px;
+}
+
+.sh-cal-d span {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.sh-cal-d.is-on span {
+  background: rgb(var(--cx-on-image-rgb));
+  color: rgb(var(--cx-heading-rgb));
+  font-weight: 600;
+}
+
+/* ── Xác nhận tham dự ────────────────────────────────────────────────────── */
+
+.sh-rsvp {
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.sh-rsvp-btns {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Hai nút cùng khổ, đủ chỗ cho nhãn dài nhất ("Rất tiếc, không thể tham dự") trên một dòng. */
+.sh-rsvp-btns .sh-btn {
+  width: 100%;
+  max-width: 296px;
+  padding: 0 16px;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+/* ── Hộp mừng cưới ───────────────────────────────────────────────────────── */
+
+.sh-qr {
+  width: 100%;
+  max-width: 160px;
+  padding: 8px;
+  border: 1px solid rgb(var(--cx-line-rgb));
+}
+
+/* ── Địa điểm ────────────────────────────────────────────────────────────── */
+
+.sh-map-name {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.sh-map {
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgb(var(--cx-line-rgb));
+}
+
+.sh-map-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: rgb(var(--cx-card-bg-rgb));
+  background: rgb(var(--cx-heading-rgb));
+}
+
+/* ── Lịch trình: dạng chương trình in, "việc ······ giờ" ─────────────────── */
+
+.sh-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  text-align: left;
+}
+
+.sh-plan-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.sh-plan-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgb(var(--cx-heading-rgb));
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.sh-plan-label b {
+  font-weight: 400;
+  letter-spacing: 2px;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+/* Tên việc dài thì xuống dòng, đường chấm + giờ vẫn bám dòng cuối (baseline). */
+.sh-plan-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.sh-plan-title {
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0.5px;
+}
+
+.sh-plan-dots {
+  flex: 1;
+  min-width: 16px;
+  border-bottom: 1px dotted rgb(var(--cx-heading-rgb) / 0.4);
+  transform-origin: left;
+}
+
+.sh-plan-time {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Chuyện tình yêu: polaroid nghiêng + năm chữ chìm ────────────────────── */
+
+.sh-story {
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+  padding-top: 32px;
+}
+
+.sh-mile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.sh-mile.is-r {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.sh-mile-year {
+  position: absolute;
+  top: -32px;
+  right: 0;
+  z-index: 0;
+  font-size: 72px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -2px;
+  color: rgb(var(--cx-line-rgb));
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.sh-mile.is-r .sh-mile-year {
+  right: auto;
+  left: 0;
+}
+
+.sh-mile-year.is-long {
+  font-size: 40px;
+  top: -20px;
+}
+
+/* Độ nghiêng tĩnh dùng `transform`, tách khỏi `rotate` của hiệu ứng vào. */
+.sh-snap {
+  position: relative;
+  z-index: 1;
+  width: 72%;
+  padding: 8px 8px 32px;
+  background: rgb(var(--cx-panel-rgb));
+  box-shadow: 0 12px 32px rgb(var(--cx-shadow-rgb) / 0.12);
+  transform: rotate(-3deg);
+}
+
+.sh-mile.is-r .sh-snap {
+  transform: rotate(3deg);
+}
+
+.sh-snap-img {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.sh-mile-text {
+  position: relative;
+  z-index: 1;
+  width: 80%;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sh-mile.no-img .sh-mile-text {
+  margin-top: 48px;
+}
+
+.sh-mile-no {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgb(var(--cx-deco-rgb));
+}
+
+.sh-mile-title {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.sh-mile-body {
+  font-size: 12px;
+  line-height: 2;
+  letter-spacing: 0.5px;
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+/* ── Chuyển động khi vuốt (shMotion ở index.js) ─────────────────────────────
+   Trạng thái CHỜ khai theo [data-fx], .is-in đưa về chỗ. Ảnh bên trong dùng `scale`
+   cho lúc vào, parallax dùng `translate` — hai thuộc tính riêng nên không đè nhau. */
+
+.sh-fx {
+  transition:
+    opacity 0.9s ease,
+    translate 1.2s cubic-bezier(0.22, 1, 0.36, 1),
+    scale 1.2s cubic-bezier(0.22, 1, 0.36, 1),
+    rotate 1.2s cubic-bezier(0.22, 1, 0.36, 1),
+    clip-path 1.4s cubic-bezier(0.65, 0, 0.35, 1),
+    filter 1s ease;
+  transition-delay: var(--d, 0ms);
+}
+
+.sh-fx[data-fx="fade"] {
+  opacity: 0;
+  translate: 0 20px;
+  filter: blur(6px);
+}
+
+/* Màn mở từ dưới lên + ảnh bên trong thu từ phóng to về. */
+.sh-fx[data-fx="rise"] {
+  opacity: 0;
+  translate: 0 56px;
+  clip-path: inset(18% 0 0 0);
+}
+
+.sh-fx[data-fx="rise"] img,
+.sh-fx[data-fx="left"] img,
+.sh-fx[data-fx="right"] img,
+.sh-fx[data-fx="tilt"] img {
+  scale: 1.18;
+  transition: scale 1.8s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms);
+}
+
+.sh-fx[data-fx="left"] {
+  opacity: 0;
+  translate: -64px 0;
+}
+
+.sh-fx[data-fx="right"] {
+  opacity: 0;
+  translate: 64px 0;
+}
+
+.sh-fx[data-fx="tilt"] {
+  opacity: 0;
+  translate: 48px 32px;
+  rotate: 5deg;
+}
+
+.sh-fx[data-fx="pop"] {
+  opacity: 0;
+  translate: 0 40px;
+  scale: 0.9;
+  rotate: var(--r, -2deg);
+}
+
+.sh-fx[data-fx="zoom"] {
+  opacity: 0;
+  scale: 0.5;
+  transition-timing-function: ease, ease, cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Chữ viết tay hiện như đang được viết từ trái sang. */
+.sh-fx[data-fx="write"] {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.8s cubic-bezier(0.65, 0, 0.35, 1) var(--d, 0ms);
+}
+
+.sh-fx[data-fx="line"] {
+  scale: 0 1;
+}
+/* Lịch: từng ngày rơi xuống nối nhau theo --i (index.js đặt). */
+.sh-fx[data-fx="days"] > div {
+  opacity: 0;
+  translate: 0 -12px;
+  transition:
+    opacity 0.5s ease,
+    translate 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i, 0) * 18ms + 200ms);
+}
+
+.sh-fx.is-in[data-fx] {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+  rotate: 0deg;
+  clip-path: inset(0 0 0 0);
+  filter: none;
+}
+
+.sh-fx.is-in[data-fx] img {
+  scale: 1;
+}
+
+.sh-fx.is-in[data-fx="days"] > div {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.sh-heart.is-in svg {
+  animation: cx-sh-beat 2.4s ease-in-out 1.2s infinite;
+}
+
+@keyframes cx-sh-beat {
+  0%,
+  60%,
+  100% {
+    transform: scale(1);
+  }
+  15%,
+  40% {
+    transform: scale(1.25);
+  }
+}
+
+/* Parallax: ảnh cao hơn khung 16% để lúc trôi không lộ mép. */
+.sh-par {
+  overflow: hidden;
+}
+
+.sh-par img {
+  position: relative;
+  top: -8%;
+  height: 116%;
+  will-change: translate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-fx,
+  .sh-fx img,
+  .sh-fx[data-fx="days"] > div {
+    transition: none;
+  }
+
+  .sh-heart.is-in svg {
+    animation: none;
+  }
+}
+
+/* ── Lời cảm ơn ──────────────────────────────────────────────────────────── */
+
+.sh-footer {
+  gap: 24px;
+}
+
+.sh-thanks {
+  font-family: "Signora", cursive;
+  color: rgb(var(--cx-heading-rgb));
+  font-size: 44px;
+  margin-top: 16px;
+}

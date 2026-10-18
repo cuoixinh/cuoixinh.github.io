@@ -818,7 +818,7 @@ body {
 }
 
 /* Link chung (cờ .cx-guest-generic do wedding-helper đặt): helper bật khối lời mời
-   với dòng "Cảm ơn bạn đã ghé xem thiệp" — mẫu này bỏ hẳn, chỉ hiện với khách. */
+   với dòng báo tin CX_VISITOR_LINE — mẫu này bỏ hẳn, chỉ hiện với khách. */
 .cx-guest-generic #cover-guest-wrap {
   display: none;
 }
