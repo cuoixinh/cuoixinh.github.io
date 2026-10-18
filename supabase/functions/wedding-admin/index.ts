@@ -1292,6 +1292,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     const { error } = await supabase
       .from('weddings').update(fields).eq('id', id)
 
+    // Index weddings_one_free_per_user (RC02/schema/dqvinh_005) chặn lượt chọn Miễn phí
+    // thứ hai lọt qua hasOtherFreeWedding vì chạy song song.
+    if (error?.code === '23505' && error.message?.includes('weddings_one_free_per_user')) {
+      log.warn('wedding.free_limit_race', { id })
+      return new Response(JSON.stringify({ error: FREE_LIMIT_MESSAGE, code: 'FREE_LIMIT' }), {
+        status: 409, headers: corsHeaders
+      })
+    }
+
     if (error) {
       log.error('wedding.update_failed', {
         id,

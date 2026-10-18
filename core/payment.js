@@ -1360,8 +1360,6 @@
     }
   }
 
-  // Ba thẻ gói. Gói đang dùng / thấp hơn / quá hạn để nâng vẫn hiện (khách cần
-  // thấy mình đang ở đâu) nhưng khoá lại. Huy hiệu "Khuyên dùng" chỉ khi mua mới.
   // Bảng so sánh: hàng = quyền lợi, cột = gói trong báo giá (+ Miễn phí khi thẻ đó có).
   // `free` là giá trị của gói Miễn phí, `paid` của mọi gói trả tiền; true/false vẽ ✓/✗.
   // Con số phải khớp FREE_PLAN (_shared/plans.ts) và trần khách của guest-handler.
@@ -1425,6 +1423,8 @@
   }
 
 
+  // Ba thẻ gói. Gói đang dùng / thấp hơn / quá hạn để nâng vẫn hiện (khách cần
+  // thấy mình đang ở đâu) nhưng khoá lại. Huy hiệu "Khuyên dùng" chỉ khi mua mới.
   function _renderPlans() {
     const box = document.getElementById("payment-plans");
     if (!box) return;
