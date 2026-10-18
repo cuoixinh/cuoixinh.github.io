@@ -1,6 +1,7 @@
 import type { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
+import { FREE_PLAN, freeSide, isFreePlan } from '../_shared/plans.ts'
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*' (danh sách giống ai-invitation). CORS chỉ ràng
@@ -42,12 +43,26 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0
 }
 
-// Trần khách mỗi bên: thiệp đã thanh toán (payment_status = 'completed') và chưa.
-// Bản sao ở CONFIG.guestImport (maxPerSide / maxPerSideUnpaid) — đổi phải đổi cả hai.
+// Trần khách mỗi bên: đã thanh toán 100; gói Miễn phí FREE_PLAN.guests ở bên đã chọn,
+// 0 ở bên kia; chưa chọn gói (nháp, dùng thử) 5. Bản sao ở CONFIG.guestImport
+// (maxPerSide / maxPerSideUnpaid) — đổi phải đổi cả hai.
 const MAX_PER_SIDE = 100
 const MAX_PER_SIDE_UNPAID = 5
-const sideCap = (paymentStatus: unknown) =>
-  paymentStatus === 'completed' ? MAX_PER_SIDE : MAX_PER_SIDE_UNPAID
+type CapRow = { payment_status?: string | null; free_side?: string | null }
+function sideCap(row: CapRow, side: string): number {
+  if (row.payment_status === 'completed') return MAX_PER_SIDE
+  const open = freeSide(row)
+  if (!open) return MAX_PER_SIDE_UNPAID
+  return side === open ? FREE_PLAN.guests : 0
+}
+function capMessage(row: CapRow, side: string, cap: number): string {
+  if (row.payment_status === 'completed') return `Đã đạt giới hạn ${cap} khách mời mỗi bên`
+  const open = freeSide(row)
+  if (open && side !== open)
+    return `Gói Miễn phí chỉ mở thiệp ${open === 'groom' ? 'nhà trai' : 'nhà gái'}. Nâng gói để mời khách bên này.`
+  if (open) return `Gói Miễn phí mời được tối đa ${cap} khách. Nâng gói để mời tới ${MAX_PER_SIDE} khách mỗi bên.`
+  return `Thiệp chưa thanh toán chỉ thêm được ${cap} khách mời mỗi bên. Thanh toán để mở tới ${MAX_PER_SIDE} khách.`
+}
 const MAX_WISHES_PER_GUEST = 3
 // Trần một lời chúc khách GỬI — trùng CX_WISH_MAX_LEN ở core/helpers/wishes-helper.js.
 // Quá trần là 400, KHÔNG cắt lặng lẽ (khách tưởng gửi đủ mà mất đuôi câu).
@@ -284,13 +299,20 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (action === 'wedding') {
       const { data, error } = await supabase
         .from('weddings')
-        .select('slug, share_message_template, payment_status')
+        .select('slug, share_message_template, payment_status, free_side')
         .eq('id', wedding_id)
         .single()
       if (error) return fail('Thiệp không tồn tại', 404)
       // Trả trần đã suy ra, không trả payment_status (dữ liệu thanh toán).
-      const { payment_status, ...rest } = data
-      return ok({ ...rest, max_per_side: sideCap(payment_status) })
+      const { payment_status, free_side, ...rest } = data
+      const row = { payment_status, free_side }
+      return ok({
+        ...rest,
+        max_per_side: Math.max(sideCap(row, 'groom'), sideCap(row, 'bride')),
+        side_caps: { groom: sideCap(row, 'groom'), bride: sideCap(row, 'bride') },
+        free_side: freeSide(row),
+        is_free: isFreePlan(row),
+      })
     }
 
     return fail('action không hợp lệ cho GET')
@@ -409,14 +431,19 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (!text) return fail('Lời chúc không được để trống')
     if (text.length > MAX_WISH_LEN) return fail(`Lời chúc tối đa ${MAX_WISH_LEN} ký tự`)
 
-    const { data: wedding } = await supabase
+    const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select('id, enable_wishes')
+      .select('id, enable_wishes, payment_status, free_side')
       .eq('slug', slug)
       .maybeSingle()
 
+    if (wErr) {
+      log.error('guest.wish_wedding_failed', { slug, code: wErr.code, message: wErr.message })
+      return fail('Không đọc được thiệp, vui lòng thử lại', 500)
+    }
     if (!wedding) return fail('Thiệp không tồn tại', 404)
     if (wedding.enable_wishes === false) return fail('Thiệp này đang tắt phần lời chúc', 403)
+    if (isFreePlan(wedding)) return fail('Thiệp gói Miễn phí không nhận lời chúc', 403)
 
     const { error: listErr, guest } = await findGuestByLink(
       supabase, wedding.id, name, relationship,
@@ -466,12 +493,13 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select('id')
+      .select('id, payment_status, free_side')
       .eq('slug', slug)
       .maybeSingle()
 
     if (wErr) return fail(wErr.message, 500)
     if (!wedding) return fail('Thiệp không tồn tại', 404)
+    if (isFreePlan(wedding)) return fail('Thiệp gói Miễn phí không nhận xác nhận tham dự', 403)
 
     const { error: listErr, guest } = await findGuestByLink(
       supabase, wedding.id, name, relationship,
@@ -566,17 +594,15 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     // dừng: đoán sai trần là mở rộng giới hạn cho thiệp chưa thanh toán.
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select('id, payment_status')
+      .select('id, payment_status, free_side')
       .eq('id', wedding_id)
       .maybeSingle()
 
     if (wErr) return fail('Không đọc được thiệp, vui lòng thử lại', 500)
     if (!wedding) return fail('Thiệp không tồn tại', 404)
 
-    const cap = sideCap(wedding.payment_status)
-    const capMsg = cap === MAX_PER_SIDE
-      ? `Đã đạt giới hạn ${cap} khách mời mỗi bên`
-      : `Thiệp chưa thanh toán chỉ thêm được ${cap} khách mời mỗi bên. Thanh toán để mở tới ${MAX_PER_SIDE} khách.`
+    const cap = sideCap(wedding, side)
+    const capMsg = capMessage(wedding, side, cap)
 
     // Đếm hiện tại của bên này
     const { count: currentCount, error: countErr } = await supabase

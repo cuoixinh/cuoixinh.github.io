@@ -118,7 +118,7 @@ function cxPickPreviewSide(btn) {
       _cxPreviewSide = side;
       switchTab("preview");
     },
-    { placement: "top", active: _cxPreviewSide },
+    { placement: "top", active: _cxPreviewSide, only: IS_THEME_LOCKED ? null : FREE_SIDE },
   );
 }
 window.cxPickPreviewSide = cxPickPreviewSide;

@@ -5013,6 +5013,91 @@ button.cx-ok-close:hover {
     opacity: 0;
   }
 }
+/* Bảng so sánh gói (core/payment.js → _renderCompare): khối riêng dưới thẻ gói, cột
+   gói đang chọn thêm .is-on. */
+.cx-ord-cmp-card {
+  padding: 16px 12px 8px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 20px;
+  background: rgb(var(--white-rgb));
+}
+.cx-ord-cmp-card > .cx-ord-eyebrow {
+  padding-left: 4px;
+}
+.cx-ord-cmp {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+.cx-ord-cmp-lbl {
+  width: 34%;
+}
+.cx-ord-cmp th,
+.cx-ord-cmp td {
+  padding: 10px 4px;
+  border-top: 1px solid rgb(var(--border-subtle-rgb));
+  text-align: center;
+  vertical-align: middle;
+  font-weight: 500;
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ord-cmp thead th,
+.cx-ord-cmp thead td {
+  padding: 0;
+  border-top: 0;
+}
+.cx-ord-cmp tbody th {
+  padding-left: 4px;
+  text-align: left;
+  font-weight: 400;
+  color: rgb(var(--text-secondary-rgb));
+}
+.cx-ord-cmp .is-on {
+  background: rgb(var(--surface-blossom-rgb) / 0.5);
+}
+.cx-ord-cmp thead .is-on {
+  border-radius: 12px 12px 0 0;
+}
+.cx-ord-cmp tbody tr:last-child .is-on {
+  border-radius: 0 0 12px 12px;
+}
+.cx-ord-cmp-pick {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 4px;
+  border-radius: 12px 12px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ord-cmp .is-on .cx-ord-cmp-pick {
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.cx-ord-cmp-pick[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cx-ord-cmp-pick:focus-visible {
+  outline: 2px solid rgb(var(--focus-ring-rgb));
+  outline-offset: -2px;
+}
+.cx-ord-cmp-yes {
+  display: inline-block;
+  color: rgb(var(--state-success-text-rgb));
+}
+.cx-ord-cmp-no {
+  display: inline-block;
+  color: rgb(var(--divider-rgb));
+}
+.cx-ord-cmp-lim {
+  font-weight: 700;
+  color: rgb(var(--action-primary-deep-rgb));
+}
 /* Ba thẻ chọn gói (core/payment.js → _renderPlans). Thẻ đang chọn thêm .is-on,
    gói không mua được (đang dùng / thấp hơn) thêm thuộc tính disabled. Lưới chừa
    12px phía trên cho huy hiệu "Khuyên dùng" nhô ra khỏi mép thẻ. */
@@ -5123,6 +5208,24 @@ button.cx-ok-close:hover {
   line-height: 1;
   color: rgb(var(--text-tertiary-rgb));
 }
+/* Thẻ Miễn phí: icon quà thế chỗ giá (gói này không có giá để hiện), nhãn hồng ở đáy
+   nói đây là ưu đãi một lần; thẻ khoá (đã dùng) thì icon về xám theo opacity của thẻ. */
+.cx-ord-plan-gift {
+  color: rgb(var(--brand-accent-rgb));
+}
+.cx-ord-plan[disabled] .cx-ord-plan-gift {
+  color: rgb(var(--text-tertiary-rgb));
+}
+.cx-ord-plan-tag {
+  margin-top: auto;
+  padding: 2px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
 .cx-ord-plan-sub {
   margin-top: auto;
   padding-top: 4px;
@@ -5170,6 +5273,58 @@ button.cx-ok-close:hover {
 .cx-ord-plan-note svg {
   flex-shrink: 0;
   color: rgb(var(--brand-accent-rgb));
+}
+
+/* Hộp gói Miễn phí dưới các thẻ (payment.js → _syncFree): chọn bên + giới hạn. */
+.cx-ord-free {
+  min-width: 0;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+}
+.cx-ord-free-label {
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+/* Hai ô radio Nhà trai / Nhà gái: ô đang chọn thêm .is-on (_syncFree). */
+.cx-ord-free-opts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.cx-ord-free-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 12px;
+  background: rgb(var(--white-rgb));
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(var(--text-heading-rgb));
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.cx-ord-free-opt:hover {
+  border-color: rgb(var(--brand-accent-light-rgb));
+}
+.cx-ord-free-opt.is-on {
+  border-color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-brand-subtle-rgb));
+  box-shadow: 0 0 0 1px rgb(var(--brand-accent-rgb));
+  font-weight: 600;
+}
+.cx-ord-free-opt input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: rgb(var(--action-primary-rgb));
 }
 
 /* Nút "Thanh toán ngay" hai tầng chữ. `button.` để thắng h-12/px-7 của size lg

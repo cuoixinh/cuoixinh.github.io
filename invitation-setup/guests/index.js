@@ -23,8 +23,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   _bindStatFilters();
   lucide.createIcons();
   if (!WEDDING_ID) { showToast("Không tìm thấy ID thiệp", "warning"); return; }
-  await Promise.all([loadGuestList("groom"), loadGuestList("bride"), _getWedding().then(_syncTopSub)]);
+  await Promise.all([
+    loadGuestList("groom"),
+    loadGuestList("bride"),
+    _getWedding().then((w) => {
+      _applyFreeSide();
+      _syncTopSub(w);
+    }),
+  ]);
 });
+
+// Gói Miễn phí chỉ mở một bên (free_side, guest-handler trả): ẩn hẳn dải chọn bên và
+// đứng yên ở bên đó — bên kia không mời được khách nào.
+function _applyFreeSide() {
+  const side = _wedding?.free_side;
+  if (side !== "groom" && side !== "bride") return;
+  document.getElementById("guest-seg")?.classList.add("hidden");
+  switchTab(side);
+}
 
 // Event delegation cho nút trong danh sách (tránh inline onclick với dữ liệu user)
 document.addEventListener("click", (e) => {
@@ -122,6 +138,8 @@ function _syncTopSub(w) {
 // Dải segmented (.cx-seg ở styles/_common.css): con trượt chạy theo --i, nút
 // đang chọn mang .is-on. Ô thống kê luôn là số của bên đang mở.
 function switchTab(side) {
+  const only = _wedding?.free_side;
+  if (only === "groom" || only === "bride") side = only;
   if (_sel.side && _sel.side !== side) exitGuestSelect();
   _currentTab = side;
   const seg = document.getElementById("guest-seg");
@@ -662,7 +680,7 @@ function _aiFlag(st) {
     return { ...base, label: `Thuộc ${o}`, action: true,
       tip: `XuXi xếp khách này vào nhóm ${o}` };
   }
-  if (st === "over") return { ...base, tip: `Danh sách ${me} đã đủ ${_maxPerSide()} khách, khách này sẽ không được nhập` };
+  if (st === "over") return { ...base, tip: `Danh sách ${me} đã đủ ${_maxPerSide(_ai.side)} khách, khách này sẽ không được nhập` };
   if (st === "ok") return { ...base, tip: `Sẽ nhập vào ${me}` };
   return base;
 }
@@ -1053,7 +1071,7 @@ async function runAiParse() {
     return;
   }
   // Bên đã đủ khách: dừng trước khi tốn một lượt AI.
-  const max = _maxPerSide();
+  const max = _maxPerSide(_ai.side);
   if (_allGuests[_ai.side].length >= max) {
     _aiError(`Danh sách ${_SIDE_LABEL[_ai.side]} đã đủ ${max} khách, không nhập thêm được.`);
     return;
@@ -1110,18 +1128,18 @@ function _aiRenderLoading() {
 
 // Trạng thái từng hàng tính lại mỗi lần sửa.
 function _aiReplan() {
-  _ai.plan = guestBL.planAiImport(_ai.rows, _allGuests[_ai.side], _ai.side, _maxPerSide());
+  _ai.plan = guestBL.planAiImport(_ai.rows, _allGuests[_ai.side], _ai.side, _maxPerSide(_ai.side));
 }
 
 // Thanh sức chứa của bên đang nhập: khách có sẵn · khách sắp thêm · phần vượt trần.
 // plan = null → chỉ vẽ phần có sẵn (bước dán).
 function _aiCapHTML(plan) {
   const side = _ai.side;
-  const max = _maxPerSide();
+  const max = _maxPerSide(side);
   const have = _allGuests[side].length;
   const add = plan ? plan.ok : 0;
   const over = plan ? plan.over : 0;
-  const pct = (n) => `${Math.min(100, (n / max) * 100).toFixed(2)}%`;
+  const pct = (n) => `${Math.min(100, (n / Math.max(1, max)) * 100).toFixed(2)}%`;
   const free = Math.max(0, max - have);
   // Mức đầy của khách có sẵn → màu vạch: xanh · vàng (từ 80%) · đỏ (đủ trần).
   const lv = have >= max ? "full" : have >= max * 0.8 ? "warn" : "ok";
@@ -1403,7 +1421,7 @@ async function confirmAiImport() {
     await loadGuestList(side);
     // capped: server thấy danh sách đã kín (thiết bị khác vừa thêm khách) nên cắt bớt.
     const skipMsg = res.capped
-      ? `. ${res.skipped} khách không nhập được vì danh sách đã đủ ${_maxPerSide()} khách hoặc trùng`
+      ? `. ${res.skipped} khách không nhập được vì danh sách đã đủ ${_maxPerSide(side)} khách hoặc trùng`
       : res.skipped ? `, bỏ qua ${res.skipped} trùng` : "";
     showToast(`Đã nhập ${res.inserted || 0} khách ${_SIDE_LABEL[side]}${skipMsg}`,
       res.inserted && !res.capped ? "success" : "warning");
@@ -1429,9 +1447,11 @@ async function _getWedding() {
   return _wedding;
 }
 
-// Trần khách mỗi bên của thiệp này (server suy từ trạng thái thanh toán). Chưa nạp
-// được thì lùi về trần chưa thanh toán — server vẫn kiểm lại lúc ghi.
-function _maxPerSide() {
+// Trần khách của một bên (server suy từ gói: gói Miễn phí chỉ mở một bên, bên kia 0).
+// Chưa nạp được thì lùi về trần chưa thanh toán — server vẫn kiểm lại lúc ghi.
+function _maxPerSide(side) {
+  const caps = _wedding?.side_caps;
+  if (side && caps && caps[side] != null) return caps[side];
   return _wedding?.max_per_side || CONFIG.guestImport.maxPerSideUnpaid;
 }
 

@@ -3344,6 +3344,7 @@ function showPublishSuccessPopup() {
   if (!slug) return;
   const generalUrl = `${DOMAIN}/${slug}`;
   const groomUrl = `${generalUrl}?isGroom=true`;
+  const brideUrl = `${generalUrl}?isGroom=false`;
 
   const form = document.getElementById("wedding-form");
   const fd = form ? new FormData(form) : null;
@@ -3379,9 +3380,12 @@ function showPublishSuccessPopup() {
       </div>
     </div>`;
 
-  // Luôn đủ hai link: mọi chỗ đưa link thiệp đều cho chọn nhà trai / nhà gái.
+  // Đủ hai link (mọi chỗ đưa link thiệp đều cho chọn nhà trai / nhà gái), trừ gói Miễn
+  // phí chỉ mở một bên (FREE_SIDE) — link bên kia chỉ chuyển về bên này.
   const linksHtml =
-    linkRow("Thiệp nhà gái", generalUrl) + linkRow("Thiệp nhà trai", groomUrl);
+    FREE_SIDE && !IS_THEME_LOCKED
+      ? linkRow(FREE_SIDE === "groom" ? "Thiệp nhà trai" : "Thiệp nhà gái", FREE_SIDE === "groom" ? groomUrl : brideUrl)
+      : linkRow("Thiệp nhà gái", brideUrl) + linkRow("Thiệp nhà trai", groomUrl);
 
   // Đã thanh toán (IS_THEME_LOCKED) → không mời thanh toán nữa, nút chính là Khách mời.
   // Chưa thanh toán → nút chính là "Thanh toán ngay", "Để sau" chỉ đóng popup.

@@ -80,10 +80,15 @@ rule("LINT-02", "CONFIG.retention (unpaid/serverDraft) = mặc định RETENTION
   const s = m && Number(m[1]);
   return { pass: u === s && d === s, got: `unpaidDays ${u} · serverDraftDays ${d} · RETENTION_DAYS mặc định ${s} (biến môi trường thật phải soi ở Dashboard)` };
 });
-rule("LINT-03", "CONFIG.trialDays = số ngày dùng thử server cộng vào expires_at", () => {
+rule("LINT-03", "CONFIG.trialDays = số ngày dùng thử server cộng vào expires_at; CONFIG.freePlanDays = FREE_PLAN.days", () => {
   const a = num(CFG, "trialDays");
   const m = read(WA).match(/expiresAt\.setDate\(expiresAt\.getDate\(\)\s*\+\s*(\d+)\)/);
-  return { pass: m && Number(m[1]) === a, got: `client ${a} · server ${m?.[1]}` };
+  const f = num(CFG, "freePlanDays");
+  const fm = read("supabase/functions/_shared/plans.ts").match(/FREE_PLAN\s*=\s*\{[^}]*?\bdays:\s*(\d+)/);
+  return {
+    pass: !!m && Number(m[1]) === a && !!fm && Number(fm[1]) === f,
+    got: `dùng thử: client ${a} · server ${m?.[1]} · Miễn phí: client ${f} · server ${fm?.[1]}`,
+  };
 });
 rule("LINT-04", "Trần khách mời / lời chúc khớp client ↔ guest-handler", () => {
   const pairs = [

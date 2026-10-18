@@ -55,6 +55,7 @@ const _glDate = (iso) =>
 function _glStateOf(w) {
   if (w.plan_expires_at) return _glDays(w.plan_expires_at) > 0 ? "plan" : "planExpired";
   if (!w.expires_at) return "active";
+  if (w.free_side) return _glDays(w.expires_at) > 0 ? "free" : "expired";
   return _glDays(w.expires_at) > 0 ? "trial" : "expired";
 }
 
@@ -64,7 +65,8 @@ function _glTag(w) {
   const soon = state === "plan" && _glDays(w.plan_expires_at) <= _GL_PLAN_WARN_DAYS;
   const T = {
     trial: ["trial", "clock", `Dùng thử · còn ${Math.min(_glDays(w.expires_at || 0), CONFIG.trialDays)} ngày`],
-    expired: ["due", "clock-alert", "Hết hạn dùng thử"],
+    expired: ["due", "clock-alert", w.free_side ? "Hết hạn gói Miễn phí" : "Hết hạn dùng thử"],
+    free: ["trial", "gift", `Miễn phí · còn ${Math.min(_glDays(w.expires_at || 0), CONFIG.freePlanDays)} ngày`],
     active: ["live", "badge-check", "Đã thanh toán · Vĩnh viễn"],
     plan: [soon ? "trial" : "live", "badge-check", `Đã thanh toán · ${planName}`],
     planExpired: ["due", "clock-alert", `Hết hạn gói ${planName}`],
@@ -100,6 +102,8 @@ function _glCardHTML(w) {
   const cover = _glCover(w);
   const href = _glGuestsHref(w, "list");
   const url = w.slug ? `${location.origin}/${w.slug}` : "";
+  // Gói Miễn phí chỉ mở một bên → Xem/Sao chép đi thẳng bên đó (cxPickSide only).
+  const only = w.free_side ? ` data-only="${_glEsc(w.free_side)}"` : "";
   const created = w.created_at ? new Date(w.created_at).toLocaleDateString("vi-VN") : "";
   return `
     <article class="mi-card">
@@ -117,14 +121,14 @@ function _glCardHTML(w) {
           ${url ? `
           <div class="mi-slug">
             <span class="mi-slug-text">/${_glEsc(w.slug)}</span>
-            <x-button variant="bare" icon-only class="mi-slug-copy" data-copy="${_glEsc(url)}"
+            <x-button variant="bare" icon-only class="mi-slug-copy" data-copy="${_glEsc(url)}"${only}
               title="Sao chép liên kết thiệp" aria-label="Sao chép liên kết thiệp">${_ico("copy", 16)}</x-button>
           </div>` : ""}
         </div>
       </div>
       <div class="mi-card-foot">
         ${url ? `
-        <x-button variant="bare" class="mi-btn mi-btn--soft" data-view="${_glEsc(url)}"
+        <x-button variant="bare" class="mi-btn mi-btn--soft" data-view="${_glEsc(url)}"${only}
           aria-haspopup="menu">${_ico("eye", 16)}Xem thiệp</x-button>` : ""}
         <a class="mi-btn mi-btn--primary inline-flex items-center justify-center rounded-full" href="${href}">
           ${_ico("users", 16)}Quản lý khách mời</a>
@@ -137,7 +141,7 @@ function _glCardHTML(w) {
 document.addEventListener("click", (e) => {
   const view = e.target.closest("[data-view]");
   if (view) {
-    cxPickSide(view, (side) => window.open(cxSideUrl(view.dataset.view, side), "_blank", "noopener"));
+    cxPickSide(view, (side) => window.open(cxSideUrl(view.dataset.view, side), "_blank", "noopener"), { only: view.dataset.only });
     return;
   }
   const btn = e.target.closest("[data-copy]");
@@ -148,7 +152,7 @@ document.addEventListener("click", (e) => {
       .writeText(cxSideUrl(btn.dataset.copy, side))
       .then(() => window.showToast?.(`Đã sao chép liên kết thiệp ${who}`, "success"))
       .catch(() => window.showToast?.("Không sao chép được liên kết", "error"));
-  });
+  }, { only: btn.dataset.only });
 });
 
 async function loadList() {

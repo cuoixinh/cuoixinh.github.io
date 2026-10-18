@@ -726,6 +726,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   CẢ HAI đường tạo hàng `weddings` phải hỏi qua đó — POST của `wedding-admin` và
   `upsert` của `payment-handler` — sót một chỗ là còn đường tạo thiệp không giới hạn.
   `CONFIG.maxWeddings` là bản sao để UI chặn sớm, đổi phải đổi cả hai.
+- **Gói Miễn phí** (khác dùng thử 3 ngày): thiệp chưa thanh toán mà khách đã chọn Miễn phí
+  ở trang thanh toán → `weddings.free_side` (bên được mở). Luật + con số ở `FREE_PLAN` của
+  `_shared/plans.ts`; cắt dữ liệu CHỈ ở đường công khai `?slug=` (`applyFreeLimits`) — đường
+  `?id=` của trình chỉnh sửa luôn đủ, cắt ở đó là lần lưu sau ghi đè mất dữ liệu. **Mỗi tài
+  khoản 1 thiệp Miễn phí** (`hasOtherFreeWedding`, 409 `FREE_LIMIT`). Xem
+  `docs/cleanup-retention.md`.
 - **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán, thiệp hết hạn gói 3/6
   tháng và nháp bỏ quên bị cron xoá vĩnh viễn; thiệp hết hạn dùng thử/hết hạn gói bị khoá
   với khách mời. Số ngày ở `CONFIG.retention` **và**

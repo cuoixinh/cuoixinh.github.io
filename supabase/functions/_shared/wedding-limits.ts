@@ -38,3 +38,28 @@ export async function checkWeddingLimit(
   const n = count ?? 0
   return { reached: n >= MAX_WEDDINGS_PER_USER, count: n, error: null }
 }
+
+export const FREE_LIMIT_MESSAGE =
+  'Mỗi tài khoản chỉ dùng được 1 thiệp gói Miễn phí. Hãy chọn gói 3 tháng hoặc Vĩnh viễn cho thiệp này.'
+
+/**
+ * Tài khoản đã có thiệp gói Miễn phí khác chưa (đã chọn Miễn phí, chưa thanh toán — kể
+ * cả đã hết hạn hay đang ẩn khỏi danh sách, tới khi bị xoá hẳn). Một tài khoản chỉ được 1.
+ * Lỗi truy vấn trả `error`, bên gọi phải DỪNG (fail-closed).
+ */
+export async function hasOtherFreeWedding(
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
+  userId: string,
+  excludeId: string,
+): Promise<{ exists: boolean; error: string | null }> {
+  const { count, error } = await supabase
+    .from('weddings')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .not('free_side', 'is', null)
+    .or('payment_status.is.null,payment_status.neq.completed')
+    .neq('id', excludeId)
+  if (error) return { exists: false, error: error.message }
+  return { exists: (count ?? 0) > 0, error: null }
+}

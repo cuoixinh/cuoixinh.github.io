@@ -13,9 +13,11 @@ import {
 } from '../_shared/wedding-images.ts'
 import { handleCleanup } from './cleanup.ts'
 import { findSlugHold, getUniqueSlug } from '../_shared/slug-holds.ts'
-import { currentPlan, isPlanExpired } from '../_shared/plans.ts'
+import { applyFreeLimits, currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired } from '../_shared/plans.ts'
 import {
   checkWeddingLimit,
+  FREE_LIMIT_MESSAGE,
+  hasOtherFreeWedding,
   MAX_WEDDINGS_PER_USER,
   WEDDING_LIMIT_MESSAGE,
 } from '../_shared/wedding-limits.ts'
@@ -108,6 +110,8 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
   'enable_family', 'enable_party', 'enable_photos', 'enable_timeline',
   'enable_love_story', 'enable_music', 'enable_gift', 'enable_footer',
   'enable_wishes',
+  // Gói Miễn phí: bên được mở (luật ở PATCH + _shared/plans.ts)
+  'free_side',
 ])
 
 // ── Bảo mật: chống tráo ảnh (đặc biệt QR mừng cưới) ─────────────────────────
@@ -931,7 +935,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Kiểm tra id tồn tại và lấy data hiện tại
     const { data: existing, error: fetchError } = await supabase
       .from('weddings')
-      .select(`${WEDDING_IMAGE_SELECT}, user_id, slug, theme, payment_status, payment_amount, is_published, expires_at`)
+      .select(`${WEDDING_IMAGE_SELECT}, user_id, slug, theme, payment_status, payment_amount, is_published, expires_at, free_side`)
       .eq('id', id)
       .single()
 
@@ -1206,6 +1210,45 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
 
 
+    // ── Chọn gói Miễn phí (bước thanh toán) ─────────────────────────────────
+    // Gửi free_side = groom | bride lần ĐẦU với thiệp chưa thanh toán = vào gói Miễn
+    // phí: xuất bản luôn, hạn = lúc chọn + FREE_PLAN.days. Đã chọn rồi thì CHỐT bên (đổi
+    // qua lại là dùng được cả hai thiệp, lại còn gia hạn mãi); đã thanh toán thì cột này
+    // không còn tác dụng. Mỗi tài khoản 1 thiệp Miễn phí — đọc hỏng là dừng.
+    if (fields.free_side !== undefined) {
+      const want = fields.free_side
+      delete fields.free_side
+      const valid = want === 'groom' || want === 'bride'
+      if (valid && !existing.free_side && existing.payment_status !== 'completed') {
+        if (!isAdmin) {
+          if (!ownerId) {
+            return new Response(JSON.stringify({ error: 'Vui lòng đăng nhập', code: 'AUTH_REQUIRED' }), {
+              status: 401, headers: corsHeaders
+            })
+          }
+          const other = await hasOtherFreeWedding(supabase, ownerId, id)
+          if (other.error) {
+            log.error('wedding.free_limit_check_failed', { id, message: other.error })
+            return new Response(JSON.stringify({ error: 'Không kiểm được gói của tài khoản, vui lòng thử lại', code: 'QUERY_FAILED' }), {
+              status: 500, headers: corsHeaders
+            })
+          }
+          if (other.exists) {
+            log.warn('wedding.free_limit', { id })
+            return new Response(JSON.stringify({ error: FREE_LIMIT_MESSAGE, code: 'FREE_LIMIT' }), {
+              status: 409, headers: corsHeaders
+            })
+          }
+        }
+        const until = new Date()
+        until.setDate(until.getDate() + FREE_PLAN.days)
+        fields.free_side = want
+        fields.is_published = true
+        fields.expires_at = until.toISOString()
+        log.info('wedding.free_plan_chosen', { id, side: want })
+      }
+    }
+
     // Xuất bản = lên DÙNG THỬ 3 ngày: đặt expires_at = now + 3 ngày. Thanh toán
     // thành công (payos-webhook) mới gán expires_at = null → mở vĩnh viễn. Các guard:
     //   + thiệp đã thanh toán rồi thì KHÔNG reset về dùng thử khi publish/lưu lại;
@@ -1223,7 +1266,8 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       fields.is_published === true &&
       existing.is_published !== true &&
       existing.payment_status !== 'completed' &&
-      !existing.expires_at
+      !existing.expires_at &&
+      !fields.expires_at
     ) {
       if (slugHold) {
         fields.expires_at = slugHold.expires_at
@@ -1465,7 +1509,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       // hai cột này là mọi thiệp cùng mẫu trông giống hệt nhau.
       const { data, error } = await supabase
         .from('weddings')
-        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at, payment_status, plan, plan_expires_at, cover_image_url, gallery_images')
+        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at, payment_status, plan, plan_expires_at, cover_image_url, gallery_images, free_side')
         .eq('user_id', userId)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
@@ -1477,9 +1521,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
 
       // Gói của chính chủ thiệp là TRẠNG THÁI để vẽ nhãn hạn; payment_status chỉ lấy
       // để suy ra gói (thiệp mua trước khi có gói = vĩnh viễn) rồi bỏ.
-      const rows = (data ?? []).map(({ payment_status, plan, plan_expires_at, ...w }: Record<string, unknown>) => {
+      const rows = (data ?? []).map(({ payment_status, plan, plan_expires_at, free_side, ...w }: Record<string, unknown>) => {
         const cur = currentPlan({ payment_status: payment_status as string, plan: plan as string })
-        return { ...w, plan: cur, plan_expires_at: cur ? plan_expires_at : null }
+        const fs = freeSide({ payment_status: payment_status as string, free_side: free_side as string })
+        return { ...w, plan: cur, plan_expires_at: cur ? plan_expires_at : null, free_side: fs }
       })
 
       return new Response(JSON.stringify(rows), {
@@ -1629,6 +1674,9 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       const planLocked = data.is_published && isPlanExpired(data)
       const plan = currentPlan(data)
       const planExpiresAt = plan ? data.plan_expires_at : null
+      // Gói Miễn phí suy từ payment_status + free_side — tính TRƯỚC khi gỡ payment_status.
+      const isFree = isFreePlan(data)
+      data.free_side = freeSide(data)
       delete data.expires_at
       delete data.payment_status
       delete data.plan
@@ -1646,7 +1694,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       if (locked && slug) {
         log.info('wedding.trial_locked', { slug })
         return new Response(JSON.stringify({
-          error: 'Thiệp đã hết hạn dùng thử',
+          error: 'Thiệp đã hết hạn sử dụng',
           code: 'TRIAL_EXPIRED',
           groom_name: data.groom_name,
           bride_name: data.bride_name,
@@ -1664,6 +1712,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
           theme: data.theme,
         }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
+
+      // Gói Miễn phí: cắt ảnh + tắt các mục trả phí ở đường CÔNG KHAI. Đường id (trình
+      // chỉnh sửa) giữ nguyên, cắt ở đó là lần lưu sau ghi đè mất dữ liệu thật.
+      if (slug && isFree) applyFreeLimits(data)
 
       // Đường tra theo id (chủ thiệp đang mở trình chỉnh sửa): không chặn, nhưng
       // nói cho biết thiệp đang khoá với khách mời. Đây là TRẠNG THÁI, không phải
