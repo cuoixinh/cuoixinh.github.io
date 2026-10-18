@@ -89,9 +89,18 @@
                 : "basic-gold";
               const extraSearch = extra || "";
               const qSlug = encodeURIComponent(slug);
-              const themeSearch = extraSearch
+              let themeSearch = extraSearch
                 ? `${extraSearch}&slug=${qSlug}`
                 : `?slug=${qSlug}`;
+              // Chủ thiệp bật xem lớn (theme_setting.desktop_wide): báo luôn cho
+              // theme-boot.js để khỏi dựng khung máy rồi mới tải lại không khung.
+              let ts = data.theme_setting;
+              try {
+                if (typeof ts === "string") ts = JSON.parse(ts);
+              } catch (_) {
+                ts = null;
+              }
+              if (ts && ts.desktop_wide) themeSearch += "&desktopMode=true";
               window.location.replace(
                 `/public/themes/${theme}/${themeSearch}`,
               );

@@ -126,6 +126,102 @@ function _syncPaletteGrid() {
   if (label) label.textContent = name;
 }
 
+// ─── Desktop: thiệp thật mở trên máy tính ───────────────────────────────────
+// Ô "Cho phép xem lớn trên màn máy tính" = theme_setting.desktop_wide (mặc định
+// tắt — theme-boot.js + worker đọc cờ). Mở bảng này thì khung phía trên đổi sang
+// màn máy tính (#theme-desk-iframe, 1440×900 thu nhỏ) chạy y như khách mở link.
+const CX_DESK_W = 1440;
+const CX_DESK_H = 900;
+
+function _syncDesktopWide() {
+  const el = document.getElementById("theme-desktop-wide");
+  if (el) el.checked = !!_themeSetting.desktop_wide;
+}
+
+function onDesktopWideToggle(on) {
+  if (on) _themeSetting.desktop_wide = true;
+  else delete _themeSetting.desktop_wide;
+  _scheduleAutoSave("theme");
+  _loadDeskFrame();
+}
+window.onDesktopWideToggle = onDesktopWideToggle;
+
+function resetDesktopWide() {
+  delete _themeSetting.desktop_wide;
+  _syncDesktopWide();
+  _scheduleAutoSave("theme");
+  _loadDeskFrame();
+  showToast("Đã trả chế độ máy tính về mặc định", "success");
+}
+window.resetDesktopWide = resetDesktopWide;
+
+function openDesktopPanel() {
+  _clearCtrlPanels();
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-desktop-panel")?.classList.remove("hidden");
+  _syncDesktopWide();
+  _resetCtrlScroll();
+}
+window.openDesktopPanel = openDesktopPanel;
+
+// Tắt cờ thì thiệp trong khung máy (desktopFrame=1 bắt theme-boot dựng khung dù
+// đang trong iframe); bật thì desktopMode=true — đúng hai đường của thiệp thật.
+function _loadDeskFrame() {
+  const stage = document.getElementById("theme-preview-stage");
+  const frame = document.getElementById("theme-desk-iframe");
+  if (!frame || !stage?.classList.contains("cx-desk-on")) return;
+  _savePreviewData();
+  const url = document.getElementById("cx-desk-url");
+  if (url)
+    url.textContent =
+      location.host + (WEDDING_SLUG ? "/" + WEDDING_SLUG : "");
+  _cxFrameLoad(
+    frame,
+    _previewIframeSrc(_themeSetting.desktop_wide ? "&desktopMode=true" : "&desktopFrame=1"),
+  );
+}
+
+// Gọi từ _syncCtrlHead mỗi lần đổi bảng: vào bảng Desktop thì đổi khung + nạp,
+// rời bảng thì trả khung điện thoại và dỡ iframe (thôi chạy nhạc, ảnh).
+function _syncDeskStage(on) {
+  const stage = document.getElementById("theme-preview-stage");
+  if (!stage || stage.classList.contains("cx-desk-on") === on) return;
+  stage.classList.toggle("cx-desk-on", on);
+  if (on) {
+    cxDeskFit();
+    _loadDeskFrame();
+  } else {
+    const frame = document.getElementById("theme-desk-iframe");
+    if (frame?.src) _cxFrameLoad(frame, "about:blank");
+    window.cxThemeFit?.();
+  }
+}
+
+// Thu màn 1440×900 cho vừa ô nội dung của stage (trừ padding và thanh địa chỉ
+// giả) — gọi lại từ cxThemeFit mỗi lần stage đổi khổ.
+function cxDeskFit() {
+  const stage = document.getElementById("theme-preview-stage");
+  if (!stage?.classList.contains("cx-desk-on")) return;
+  const desk = stage.querySelector(".cx-desk");
+  const view = stage.querySelector(".cx-desk-view");
+  const frame = document.getElementById("theme-desk-iframe");
+  const bar = stage.querySelector(".cx-desk-bar");
+  if (!desk || !view || !frame) return;
+  const cs = getComputedStyle(stage);
+  const bw = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const bh =
+    stage.clientHeight -
+    parseFloat(cs.paddingTop) -
+    parseFloat(cs.paddingBottom) -
+    (bar?.offsetHeight || 0);
+  if (bw <= 0 || bh <= 0) return;
+  const k = Math.min(bw / CX_DESK_W, bh / CX_DESK_H);
+  desk.style.width = CX_DESK_W * k + "px";
+  view.style.height = CX_DESK_H * k + "px";
+  frame.style.transform = `scale(${k})`;
+}
+window.cxDeskFit = cxDeskFit;
+
 // Bảng màu GỐC của mẫu, đọc qua iframe xem trước như cách _themeSwatches() làm.
 function _themeCardPalette() {
   const win = document.getElementById("theme-preview-iframe")?.contentWindow;
@@ -334,6 +430,7 @@ function _initThemePanel() {
 
   _renderPaletteGrid();
   _syncPaletteStrength();
+  _syncDesktopWide();
 
   // Mở tab Giao diện → dọn mọi bảng còn mở từ lần trước (closeLineEditor() thoát
   // sớm khi bảng chỉnh dòng đang đóng) rồi về màn mặc định theo khổ màn.
@@ -444,8 +541,8 @@ window.resetThemeSetting = resetThemeSetting;
 async function cxResetAllTheme() {
   const ok = await showConfirm(
     "Đặt lại toàn bộ thiệp?",
-    "Bộ màu, chữ đã chỉnh riêng, khối văn bản, thẻ nhạc, hộp mừng cưới và " +
-      "cách hiện lời chúc đều trở lại như mẫu gốc. Nội dung thiệp (tên, ngày, ảnh…) " +
+    "Bộ màu, chữ đã chỉnh riêng, khối văn bản, thẻ nhạc, hộp mừng cưới, " +
+      "cách hiện lời chúc và chế độ xem trên máy tính đều trở lại như mẫu gốc. Nội dung thiệp (tên, ngày, ảnh…) " +
       "không đổi.",
     { confirmText: "Đặt lại" },
   );
@@ -2384,6 +2481,15 @@ const CTRL_VIEWS = [
     reset: "resetWishMode",
   },
   {
+    key: "desktop",
+    panel: "theme-desktop-panel",
+    title: "Desktop",
+    icon: "monitor",
+    tip: "Thiệp hiện ra sao khi khách mở trên máy tính",
+    open: "openDesktopPanel",
+    reset: "resetDesktopWide",
+  },
+  {
     key: "elements",
     panel: "theme-elements-panel",
     title: "Thẻ nhạc",
@@ -2426,7 +2532,7 @@ const CTRL_TAB_PANELS = CTRL_VIEWS.filter((v) => v.open).map((v) => v.panel);
 
 // Thứ tự nút ở dải tab dưới (màn con `element`/`line` không có tab: chỉ mở được
 // bằng cú bấm vào thiệp). Nhãn + lời mách lấy từ CTRL_VIEWS nên chỉ khai MỘT chỗ.
-const CTRL_TABS = ["main", "addtext", "elements", "gift", "wishes"];
+const CTRL_TABS = ["main", "addtext", "elements", "gift", "wishes", "desktop"];
 
 // Màn cấp 2 vào được từ nhiều đường: bấm thẳng vào thiệp, hoặc vừa thả một thứ
 // từ bảng cấp 1 ra (thả mẫu văn bản xong là nhảy luôn sang Chỉnh chữ). Ghi lại
@@ -2513,6 +2619,7 @@ function _syncCtrlHead() {
   if (_lastCtrlHead !== null && _lastCtrlHead !== view.key) _ctrlSheetShow();
   _lastCtrlHead = view.key;
   _ctrlView = view;
+  _syncDeskStage(view.key === "desktop");
 
   const title = document.getElementById("cx-ch-title");
   if (title) title.textContent = _ctrlTitle(view);
@@ -2551,7 +2658,19 @@ function _syncCtrlHead() {
     btn.tabIndex = on || (view.key === "none" && i === 0) ? 0 : -1;
     btn.classList.toggle("is-on", on);
   });
+  _ctrlTabToView();
   if (window.lucide) lucide.createIcons();
+}
+
+// Dải tab vuốt ngang (mobile): tab đang mở khuất ngoài mép thì kéo về giữa dải.
+// Tự đặt scrollLeft — scrollIntoView cuộn lây cả khung cha.
+function _ctrlTabToView() {
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  const on = track?.querySelector(".cx-ctab.is-on");
+  if (!on || track.scrollWidth <= track.clientWidth) return;
+  const l = on.offsetLeft;
+  if (l >= track.scrollLeft && l + on.offsetWidth <= track.scrollLeft + track.clientWidth) return;
+  track.scrollLeft = l - (track.clientWidth - on.offsetWidth) / 2;
 }
 
 // Bàn phím theo mẫu tablist: chỉ tab đang mở nằm trong vòng Tab (tabindex do

@@ -1327,6 +1327,9 @@ function _cxElEnsureStyle() {
     // đúng nấc thanh nhạc sẵn có của theme vẫn dùng.
     ".cx-el-pin-layer{position:fixed;inset:0;overflow:hidden;overflow:clip;" +
     "pointer-events:none;z-index:60}" +
+    // Màn rộng: x là % của cột #main-card (--cx-card-max; trang Thiết lập đặt trên khung 390px).
+    "@media (min-width:768px){.cx-el-pin-layer{left:max(0px,calc(50% - var(--cx-card-max,640px) / 2));" +
+    "right:max(0px,calc(50% - var(--cx-card-max,640px) / 2))}}" +
     ".cx-el{position:absolute;transform:translate(-50%,-50%);pointer-events:auto}" +
     // Widget TỰ CAO LÊN khi dùng (thanh nhạc vuốt xuống mở khối tóm tắt) phải neo
     // CẠNH TRÊN: neo tâm thì mỗi lần mở là nửa phần cao thêm đội ngược lên trên,

@@ -319,6 +319,7 @@ function cxPreviewFit() {
 // thu/mở thanh không đổi khổ; ResizeObserver trên stage lo xoay máy/đổi khổ.
 function cxThemeFit() {
   _cxPhoneFit(document.getElementById("theme-preview-stage"), true);
+  window.cxDeskFit?.();
 }
 
 function _cxLiveMeasure() {

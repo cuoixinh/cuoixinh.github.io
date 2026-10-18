@@ -349,6 +349,15 @@
   font-size: 8px;
 }
 
+/* Màn rộng: #main-card là cột --cx-card-max giữa màn (cách đỉnh 20px — md:py-5) → nút neo
+   theo góc của cột chứ không theo góc màn. */
+@media (min-width: 768px) {
+  .cx-mw-fixed {
+    top: 34px;
+    right: max(14px, calc(50% - var(--cx-card-max) / 2 + 14px));
+  }
+}
+
 .cx-mw-mini-btn {
   position: relative;
   display: block;
