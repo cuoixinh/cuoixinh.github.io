@@ -17,6 +17,15 @@ async function loadWeddingData(weddingSlug, renderCallback) {
         }
         return;
       }
+      // Gói Miễn phí chỉ mở một bên (free_side, server tính): link bên kia chuyển về
+      // bên đã chọn, giữ nguyên các tham số khác (tên khách mời…). Trang tải lại vì
+      // mẫu thiệp đọc isGroomSide() ngay lúc nạp index.js.
+      if (wedding.free_side && (wedding.free_side === "groom") !== isGroomSide()) {
+        const u = new URL(window.location.href);
+        u.searchParams.set("isGroom", String(wedding.free_side === "groom"));
+        window.location.replace(u.toString());
+        return;
+      }
     } else {
       if (typeof cxPreviewWedding !== "function") return;
       wedding = await cxPreviewWedding();
@@ -119,7 +128,7 @@ function showLockedInvitation(info) {
     (info && info.code === "PLAN_EXPIRED"
       ? "Thiệp đã hết thời hạn hiển thị nên tạm thời chưa mở cho khách mời. " +
         "Chủ thiệp cần nâng gói để mở lại."
-      : "Thiệp đã hết hạn dùng thử nên tạm thời chưa mở cho khách mời. " +
+      : "Thiệp đã hết hạn sử dụng nên tạm thời chưa mở cho khách mời. " +
         "Chủ thiệp cần kích hoạt để mở lại.") +
     "</p>" +
     // Lối ra duy nhất của màn phủ kín: không có nút này khách mời chỉ còn cách

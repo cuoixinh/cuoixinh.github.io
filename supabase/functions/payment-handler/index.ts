@@ -5,6 +5,7 @@ import {
   checkWeddingLimit,
   MAX_WEDDINGS_PER_USER,
   WEDDING_LIMIT_MESSAGE,
+  hasOtherFreeWedding,
 } from "../_shared/wedding-limits.ts";
 import { getUniqueSlug } from "../_shared/slug-holds.ts";
 import {
@@ -212,12 +213,16 @@ async function handleQuote(req: Request, supabaseClient: any, log: Logger) {
   let theme: string = body.theme || "template1";
   let from: PlanId | null = null;
   let curExpires: string | null = null;
+  // Thẻ "Miễn phí" ở màn thanh toán: chỉ với thiệp của chính người gọi, chưa thanh
+  // toán. used = tài khoản đã có thiệp Miễn phí khác (thẻ hiện nhưng khoá), current =
+  // thiệp này đang ở gói Miễn phí. Kiểm hỏng thì khoá thẻ (fail-closed).
+  let free: { available: boolean; reason?: "used" | "current" } | null = null;
 
   const buyerId = body.manage_id ? await resolveAuthUserId(req, supabaseClient) : null;
   if (body.manage_id && buyerId) {
     const { data: row, error } = await supabaseClient
       .from("weddings")
-      .select("user_id, theme, payment_status, plan, plan_expires_at")
+      .select("user_id, theme, payment_status, plan, plan_expires_at, free_side")
       .eq("id", body.manage_id)
       .maybeSingle();
     if (error) {
@@ -229,6 +234,16 @@ async function handleQuote(req: Request, supabaseClient: any, log: Logger) {
       if (from) {
         theme = row.theme || theme;
         curExpires = row.plan_expires_at;
+      } else if (row.free_side) {
+        free = { available: false, reason: "current" };
+      } else {
+        const other = await hasOtherFreeWedding(supabaseClient, buyerId, body.manage_id);
+        if (other.error) {
+          log.error("payment.quote_free_check_failed", { manage_id: body.manage_id, message: other.error });
+          free = { available: false, reason: "used" };
+        } else {
+          free = other.exists ? { available: false, reason: "used" } : { available: true };
+        }
       }
     }
   }
@@ -247,6 +262,7 @@ async function handleQuote(req: Request, supabaseClient: any, log: Logger) {
     current_plan: from,
     plan_expires_at: from ? curExpires : null,
     plans: quotePlans(pricing.price, pricing.original_price, from, curExpires),
+    free,
   }), { status: 200, headers: JSON_HEADERS });
 }
 
@@ -418,13 +434,16 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       pricingData.original_price,
       upgrade?.from ?? null,
       upgrade?.planExpiresAt,
-    ).find((q) => q.id === plan)!;
-    if (!quote.available) {
-      log.warn("payment.plan_unavailable", { manage_id, plan, from: upgrade?.from, reason: quote.reason });
+    ).find((q) => q.id === plan);
+    // Không có trong báo giá = gói đã thôi bán (6 tháng) với thiệp không giữ gói đó.
+    if (!quote || !quote.available) {
+      log.warn("payment.plan_unavailable", { manage_id, plan, from: upgrade?.from, reason: quote?.reason ?? "retired" });
       return new Response(JSON.stringify({
-        error: quote.reason === "too_late"
-          ? "Gói này đã quá hạn để nâng, vui lòng chọn gói Vĩnh viễn"
-          : "Thiệp đang ở gói này hoặc gói cao hơn",
+        error: !quote
+          ? "Gói này không còn bán, vui lòng chọn gói 3 tháng hoặc Vĩnh viễn"
+          : quote.reason === "too_late"
+            ? "Gói này đã quá hạn để nâng, vui lòng chọn gói Vĩnh viễn"
+            : "Thiệp đang ở gói này hoặc gói cao hơn",
         code: "PLAN_UNAVAILABLE",
       }), { status: 409, headers: JSON_HEADERS });
     }

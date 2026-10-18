@@ -73,13 +73,15 @@ function _initAutoSave() {
 
 // ============= DRAFT PAYMENT =============
 
-function openPaymentForDraft() {
+// plan: gói chọn sẵn ở màn thanh toán ("3m" | "lifetime"), bỏ trống = mặc định.
+function openPaymentForDraft(plan) {
   const templateName =
     sessionStorage.getItem("draft_template_name") || "Thiệp Cưới";
   window.location.href = cxCheckoutUrl({
     id: WEDDING_ID,
     theme: WEDDING_THEME,
     name: templateName,
+    plan,
   });
 }
 

@@ -222,7 +222,7 @@ Luồng: `invitation-setup/guests/` → `ai-invitation` (`mode=guests`, chỉ Đ
 - [x] **Đã kiểm, đúng:** `ai-invitation mode=guests` bắt buộc JWT (401 trước mọi thứ khác);
       validate chữ ≤ 8.000, ≤ 5 tệp, mỗi tệp ≤ 4MB, tổng ≤ 8MB, MIME allowlist, base64 hợp lệ
       — tất cả TRƯỚC khi trừ lượt; output ép schema + cắt độ dài + ≤ 200 khách; tệp không lưu
-      Storage, log chỉ có số lượng (không tên khách); ghi khách vẫn qua `denyIfNotOwner` của
+      Storage, log chỉ có số lượng (không tên khách); ghi khách vẫn qua `authorize` của
       `guest-handler`; mọi dữ liệu AI/người dùng chèn vào popup qua `escapeHtml`/`textContent`;
       mammoth.js nạp lười từ cdnjs có SRI.
 - [ ] **A28. Rủi ro thấp, chấp nhận tạm:** (1) `xlsx-js-style@1.2.0` bọc SheetJS 0.18.x —
@@ -271,8 +271,12 @@ Rà bằng cách đọc mã ngày **2026-09-15**, trừ dòng ghi rõ nguồn kh
 - [x] Allowlist field khách được sửa — `CUSTOMER_EDITABLE_FIELDS`.
 - [x] GET công khai không trả field thanh toán (`expires_at`/`payment_status` lấy để XÉT rồi
       `delete` khỏi response).
-- [x] Quản lý khách mời: JWT + kiểm chủ thiệp ở mọi nhánh — `denyIfNotOwner` /
-      `denyIfNotOwnerOfGuests`.
+- [x] Quản lý khách mời: JWT + kiểm quyền ở mọi nhánh — `authorize` /
+      `denyIfNotAllowedGuests` của `guest-handler`. Được vào: chủ thiệp, hoặc THÀNH VIÊN
+      (`wedding_members`, RC02/schema/dqvinh_006) khớp email ĐÃ XÁC MINH (`email_confirmed_at`
+      — khớp email chưa xác minh là ai đăng ký trước bằng email cô dâu cũng vào được), không
+      áp cho gói Miễn phí, và chỉ trong `side` được giao (`denySide`, kể cả thao tác theo id
+      khách). Mời/gỡ/xem thành viên chỉ chủ thiệp. Đọc quyền hỏng là 500, không đoán.
 - [x] `deleted_images` chỉ xoá được ảnh THUỘC thiệp đó, đối chiếu qua
       `_shared/wedding-images.ts`.
 - [x] Admin token so bằng `timingSafeEqual`, chỉ đọc từ header (không còn `?token=`) — cả ba

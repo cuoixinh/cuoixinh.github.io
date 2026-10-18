@@ -370,6 +370,8 @@ function _cardFromWedding(w) {
     // Gói đã thanh toán (null = chưa thanh toán). plan_expires_at null = vĩnh viễn.
     plan: w.plan || null,
     planExpiresAt: w.plan_expires_at || null,
+    // Gói Miễn phí: bên được mở (server trả null khi đã thanh toán / đang dùng thử).
+    freeSide: w.free_side || null,
     createdAt: w.created_at,
     local: false,
     cover: _coverUrl(w),
@@ -467,25 +469,13 @@ function newInvitation() {
   cxStartDefaultDraft();
 }
 
-// Nút "Tải lại": danh sách vốn đã luôn lấy tươi, nút này chỉ để hỏi lại ngay
-// mà không phải tải lại trang.
-async function refreshCards() {
-  const btn = document.getElementById("btn-refresh");
-  btn?.classList.add("animate-spin");
-  try {
-    await loadCards();
-  } finally {
-    btn?.classList.remove("animate-spin");
-  }
-}
-
 // ===== TRẠNG THÁI THẺ =====
 
 const DAY_MS = 86400000;
 
 /**
- * draft · trial · expired · active (vĩnh viễn) · plan (gói 3/6 tháng còn hạn) ·
- * planExpired (hết hạn gói) · published (không rõ hạn).
+ * draft · trial · expired · free / freeExpired (gói Miễn phí) · active (vĩnh viễn) ·
+ * plan (gói 3/6 tháng còn hạn) · planExpired (hết hạn gói) · published (không rõ hạn).
  */
 function cardState(c) {
   if (!c.published) return "draft";
@@ -493,6 +483,7 @@ function cardState(c) {
   if (c.planExpiresAt)
     return new Date(c.planExpiresAt) > Date.now() ? "plan" : "planExpired";
   if (!c.expiresAt) return "active";
+  if (c.freeSide) return daysLeft(c) > 0 ? "free" : "freeExpired";
   return daysLeft(c) > 0 ? "trial" : "expired";
 }
 
@@ -510,13 +501,13 @@ function planDaysLeft(c) {
   return Math.max(0, Math.ceil((new Date(c.planExpiresAt) - Date.now()) / DAY_MS));
 }
 
-// Số ngày còn lại, LÀM TRÒN LÊN (còn vài giờ vẫn là "còn 1 ngày"). Kẹp trên bằng
-// CONFIG.trialDays: đồng hồ máy khách chạy chậm hơn máy chủ là hiệu số vượt quá
-// hạn dùng thử, hiện "còn 4 ngày" trong khi hạn chỉ có 3.
+// Số ngày còn lại, LÀM TRÒN LÊN (còn vài giờ vẫn là "còn 1 ngày"). Kẹp trên bằng số
+// ngày của dùng thử / gói Miễn phí: đồng hồ máy khách chạy chậm hơn máy chủ là hiệu
+// số vượt quá hạn, hiện "còn 4 ngày" trong khi hạn chỉ có 3.
 function daysLeft(c) {
   if (!c.expiresAt) return 0;
   const d = Math.ceil((new Date(c.expiresAt) - Date.now()) / DAY_MS);
-  return Math.max(0, Math.min(CONFIG.trialDays, d));
+  return Math.max(0, Math.min(c.freeSide ? CONFIG.freePlanDays : CONFIG.trialDays, d));
 }
 
 function matchTab(c, tab) {
@@ -768,7 +759,7 @@ function cardHTML(c, i) {
 
 // Câu nhắc hạn dọn dẹp tự động — số ngày lấy ở CONFIG.retention, không viết cứng.
 // Dùng cho tooltip lẫn dải ghim ở đầu trang, nên chỉ là TEXT thuần.
-const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau ${CONFIG.retention.unpaidDays} ngày kể từ khi hết hạn dùng thử.`;
+const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau ${CONFIG.retention.unpaidDays} ngày kể từ khi hết hạn dùng thử hoặc hết hạn gói Miễn phí.`;
 const PLAN_KEEP_TEXT = `Hết hạn gói thì khách mời không mở được thiệp; sau ${CONFIG.retention.planExpiredDays} ngày thiệp sẽ tự động xoá. Nâng lên gói Vĩnh viễn để giữ thiệp mãi mãi.`;
 
 // Nháp trên máy (chưa có bản ghi DB) và nháp đã lưu trên hệ thống có hạn riêng.
@@ -787,6 +778,8 @@ function tagHTML(c, state) {
     draft: ["draft", "pen-line", "Nháp", draftKeepText(c)],
     trial: ["trial", "clock", `Dùng thử · còn ${days} ngày`, UNPAID_KEEP_TEXT],
     expired: ["due", "clock-alert", "Hết hạn dùng thử", UNPAID_KEEP_TEXT],
+    free: ["trial", "gift", `Miễn phí · còn ${days} ngày`, UNPAID_KEEP_TEXT],
+    freeExpired: ["due", "clock-alert", "Hết hạn gói Miễn phí", UNPAID_KEEP_TEXT],
     published: ["due", "credit-card", "Chưa kích hoạt", UNPAID_KEEP_TEXT],
     active: ["live", "badge-check", "Đã thanh toán · Vĩnh viễn", ""],
     // Nói thẳng ĐÃ THANH TOÁN + gói; ngày hết hạn ở dòng gợi ý ngay dưới (hintHTML)
@@ -807,6 +800,8 @@ function hintHTML(c, state) {
       : ["", "send", "Xuất bản để gửi tới khách mời"],
     trial: ["", "info", "Kích hoạt để thiệp mở vĩnh viễn"],
     expired: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
+    free: ["", "info", `Chỉ mở thiệp ${c.freeSide === "groom" ? "nhà trai" : "nhà gái"} — nâng gói để mở đủ`],
+    freeExpired: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
     published: ["warn", "triangle-alert", "Kích hoạt để mở thiệp cho khách mời"],
     plan:
       planDaysLeft(c) <= PLAN_WARN_DAYS
@@ -846,10 +841,12 @@ function _cardActions(c, i, state) {
 
   if (state === "trial" || state === "expired" || state === "published")
     return [activate, live && view, edit, live && share].filter(Boolean);
-  if (state === "planExpired") return [upgrade, edit, live && view].filter(Boolean);
+  // Gói Miễn phí đi y như gói trả phí: còn hạn thì Chia sẻ là nút chính, Nâng gói lùi
+  // về cuối; hết hạn thì Nâng gói lên đầu như hết hạn gói.
+  if (state === "planExpired" || state === "freeExpired") return [upgrade, edit, live && view].filter(Boolean);
   if (state === "plan" && planDaysLeft(c) <= PLAN_WARN_DAYS)
     return [upgrade, live && view, edit, live && share].filter(Boolean);
-  if (state === "plan" && live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit, upgrade];
+  if ((state === "plan" || state === "free") && live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit, upgrade];
   if (live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit];
   return [edit, c.slug && slug].filter(Boolean);
 }
@@ -956,13 +953,13 @@ function openEditor(i) {
 function viewCard(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
-  cxPickSide(btn, (side) => window.open(cxSideUrl(publicUrl(c), side), "_blank"));
+  cxPickSide(btn, (side) => window.open(cxSideUrl(publicUrl(c), side), "_blank"), { only: c.freeSide });
 }
 
 function shareCard(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
-  cxPickSide(btn, (side) => _shareSide(c, side));
+  cxPickSide(btn, (side) => _shareSide(c, side), { only: c.freeSide });
 }
 
 // Bấm mục trong popover vẫn là thao tác của người dùng nên navigator.share chạy được.
@@ -984,7 +981,7 @@ async function _shareSide(c, side) {
 function copyLink(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
-  cxPickSide(btn, (side) => _copySideLink(c, side, btn));
+  cxPickSide(btn, (side) => _copySideLink(c, side, btn), { only: c.freeSide });
 }
 
 async function _copySideLink(c, side, btn) {
@@ -1121,16 +1118,6 @@ async function _saveSlug(c, raw) {
   } finally {
     showLoading(false);
   }
-}
-
-function showHelp() {
-  showAlert(
-    "Quản lý thiệp cưới",
-    "Mỗi thẻ là một tấm thiệp. Bấm vào ảnh hoặc tên để mở trình chỉnh sửa.\n" +
-      `Thiệp xuất bản được dùng thử ${CONFIG.trialDays} ngày; kích hoạt (thanh toán) để khách mời xem vĩnh viễn.\n` +
-      "Nút ⋯ ở chân mỗi thẻ chứa nút Xoá thiệp và những nút không đủ chỗ hiện trên thẻ.",
-    "info",
-  );
 }
 
 // ===== TIỆN ÍCH =====

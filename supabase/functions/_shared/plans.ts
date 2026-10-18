@@ -13,6 +13,61 @@ export const PLANS: Record<PlanId, { months: number | null; factor: number; rank
 
 export const PLAN_IDS = Object.keys(PLANS) as PlanId[]
 
+// Gói 6 tháng đã thôi bán: chỉ còn trong báo giá cho thiệp ĐANG giữ gói đó (để nó
+// hiện là gói hiện tại và nâng lên vĩnh viễn được). Giữ trong PLANS vì có thiệp đã mua.
+const RETIRED_PLANS: PlanId[] = ['6m']
+
+// Gói Miễn phí: thiệp chưa thanh toán mà khách đã CHỌN Miễn phí ở bước thanh toán
+// (weddings.free_side = bên được mở). Khác dùng thử (chưa thanh toán, chưa chọn gói —
+// đủ tính năng trong 3 ngày). Giới hạn chỉ áp ở đường CÔNG KHAI (?slug=) và ở
+// guest-handler — trình chỉnh sửa (?id=) luôn nhận đủ dữ liệu, cắt ở đó là lần lưu sau
+// ghi đè mất ảnh thật.
+export const FREE_PLAN = {
+  days: 30, // hạn tính từ lúc chọn gói Miễn phí; bản sao ở CONFIG.freePlanDays
+  galleryImages: 5,
+  loveStoryImages: 5,
+  guests: 20, // chỉ ở bên đã chọn (free_side)
+}
+
+type FreeRow = { payment_status?: string | null; free_side?: string | null }
+
+const isSide = (v: unknown): v is 'groom' | 'bride' => v === 'groom' || v === 'bride'
+
+export const isFreePlan = (row: FreeRow) => row.payment_status !== 'completed' && isSide(row.free_side)
+
+/** Bên được mở của thiệp gói Miễn phí; null = cả hai (đã thanh toán hoặc đang dùng thử). */
+export function freeSide(row: FreeRow): 'groom' | 'bride' | null {
+  return isFreePlan(row) ? (row.free_side as 'groom' | 'bride') : null
+}
+
+/**
+ * Cắt dữ liệu thiệp Miễn phí trước khi trả cho trang công khai: 5 ảnh album đầu, ảnh
+ * chuyện tình từ mốc thứ 6 trở đi bỏ trống, tắt xác nhận tham dự / lời chúc / hộp mừng
+ * cưới và GỠ hẳn thông tin ngân hàng (giấu bằng giao diện thì xem nguồn vẫn lấy được).
+ */
+export function applyFreeLimits(data: Record<string, unknown>) {
+  if (Array.isArray(data.gallery_images)) {
+    data.gallery_images = data.gallery_images.slice(0, FREE_PLAN.galleryImages)
+  }
+  let story = data.love_story
+  if (typeof story === 'string') {
+    try { story = JSON.parse(story) } catch { story = null }
+  }
+  if (Array.isArray(story)) {
+    let kept = 0
+    data.love_story = story.map((it) => {
+      if (!it || typeof it !== 'object' || !(it as Record<string, unknown>).image_url) return it
+      return ++kept <= FREE_PLAN.loveStoryImages ? it : { ...(it as Record<string, unknown>), image_url: null }
+    })
+  }
+  data.rsvp_enabled = false
+  data.enable_wishes = false
+  data.enable_gift = false
+  for (const side of ['groom', 'bride']) {
+    for (const k of ['bank_name', 'bank_number', 'bank_owner', 'qr_url']) data[`${side}_${k}`] = null
+  }
+}
+
 export function isPlanId(v: unknown): v is PlanId {
   return typeof v === 'string' && v in PLANS
 }
@@ -72,7 +127,7 @@ export type PlanQuote = {
 }
 
 /**
- * Báo giá cả ba gói cho một thiệp. `from` = gói đang giữ (null = mua mới). Chỉ được
+ * Báo giá các gói đang bán cho một thiệp. `from` = gói đang giữ (null = mua mới). Chỉ được
  * NÂNG lên gói cao hơn; nâng lên gói có hạn mà hạn mới vẫn ở quá khứ thì chặn
  * (trả tiền xong thiệp vẫn khoá) — khi đó chỉ còn gói vĩnh viễn.
  */
@@ -83,7 +138,7 @@ export function quotePlans(
   curExpires: string | null | undefined,
   now = new Date(),
 ): PlanQuote[] {
-  return PLAN_IDS.map((id) => {
+  return PLAN_IDS.filter((id) => !RETIRED_PLANS.includes(id) || id === from).map((id) => {
     const p = PLANS[id]
     const price = planPrice(base, id)
     const original_price = original && original > base ? planPrice(original, id) : null

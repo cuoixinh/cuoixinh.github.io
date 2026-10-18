@@ -656,6 +656,7 @@ function _fillForm(data) {
   IS_TRIAL_LOCKED = !!data.trial_locked;
   IS_PLAN_LOCKED = !!data.plan_locked;
   IS_THEME_LOCKED = !!data.theme_locked;
+  FREE_SIDE = data.free_side || null;
   window._syncThemeLock?.();
   _syncAdvancedSection();
 

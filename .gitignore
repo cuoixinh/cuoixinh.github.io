@@ -20,3 +20,6 @@ changelogs/*.final.sql
 
 # Cấu hình Claude Code riêng từng máy — chứa SUPABASE_ACCESS_TOKEN, không commit
 .claude/settings.local.json
+
+# Token MCP Supabase (scripts/mcp-supabase.sh đọc)
+.mcp.env

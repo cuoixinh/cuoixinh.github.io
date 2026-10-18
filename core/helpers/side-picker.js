@@ -7,8 +7,10 @@ function cxSideUrl(url, side) {
 }
 
 // onPick nhận "groom" | "bride". opts: placement (mặc định bottom), active (bên
-// đang chọn → có dấu ✓). Bấm lại đúng nút đang mở thì đóng.
+// đang chọn → có dấu ✓), only (gói Miễn phí chỉ mở một bên → không hỏi, đi thẳng bên
+// đó). Bấm lại đúng nút đang mở thì đóng.
 function cxPickSide(anchor, onPick, opts = {}) {
+  if (opts.only === "groom" || opts.only === "bride") return onPick(opts.only);
   let pop = document.getElementById("cx-side-pop");
   if (!pop) {
     pop = document.createElement("x-popover");

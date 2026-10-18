@@ -40,29 +40,6 @@
           <p class="tg-sub">Tạo, chỉnh sửa và chia sẻ thiệp cưới của bạn.</p>
         </div>
         <div class="mi-tools">
-          <x-button
-            variant="bare"
-            icon-only
-            onclick="showHelp()"
-            title="Trợ giúp"
-            aria-label="Trợ giúp"
-            class="mi-tool"
-          >
-            <i data-lucide="circle-help" style="width:18px;height:18px"></i>
-          </x-button>
-          <!-- Danh sách luôn lấy tươi (listMyWeddings không cache) — nút này
-               chỉ để hỏi lại ngay mà không phải tải lại cả trang. -->
-          <x-button
-            id="btn-refresh"
-            variant="bare"
-            icon-only
-            onclick="refreshCards()"
-            title="Tải lại danh sách"
-            aria-label="Tải lại danh sách"
-            class="mi-tool"
-          >
-            <i data-lucide="refresh-cw" style="width:18px;height:18px"></i>
-          </x-button>
           <!-- Khung xương của nút: nút thật chỉ có kiểu sau khi x-button.js chạy.
                Nút thật ẩn khi đang tải và khi danh sách rỗng (khối "state-empty"
                đã có nút riêng) — setState bật/tắt cả hai. -->

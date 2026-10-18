@@ -7,7 +7,7 @@ class GuestDAL {
 
   /**
    * Header cho mọi request: đính JWT của user đang đăng nhập — guest-handler yêu
-   * cầu người gọi là CHỦ THIỆP mới được đọc/sửa danh sách khách mời.
+   * cầu người gọi là chủ thiệp (hoặc thành viên được mời) mới đọc/sửa được khách mời.
    */
   async _authHeaders() {
     const token = (await window.CXAuth?.accessToken()) ?? null;
@@ -69,6 +69,26 @@ class GuestDAL {
 
   async getWedding(weddingId) {
     return this._get('wedding', { wedding_id: weddingId });
+  }
+
+  /** Thiệp người khác mời mình cùng quản lý khách (hàng cùng dạng listMyWeddings + member_side). */
+  async listSharedWeddings() {
+    return this._get('shared');
+  }
+
+  // ── Thành viên (chỉ chủ thiệp; tối đa 1 người) ───────────────────────────
+
+  async getMember(weddingId) {
+    return (await this._get('members', { wedding_id: weddingId })).member;
+  }
+
+  /** side: "groom" | "bride" | null (cả hai bên). */
+  async addMember(weddingId, email, side) {
+    return (await this._post('member-add', { wedding_id: weddingId, email, side })).member;
+  }
+
+  async removeMember(weddingId) {
+    return this._post('member-remove', { wedding_id: weddingId });
   }
 
   // ── Xác nhận tham dự (CÔNG KHAI) ─────────────────────────────────────────

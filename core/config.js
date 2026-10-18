@@ -13,7 +13,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.10.18-2";
+const CX_VERSION = "2026.10.18-5";
  
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -184,6 +184,9 @@ const CONFIG = {
   // Số ngày DÙNG THỬ khi xuất bản. Edge Function wedding-admin giữ bản sao con số
   // này (đặt expires_at = now + 3 ngày) — đổi ở đây phải đổi cả bên đó.
   trialDays: 3,
+  // Số ngày của gói Miễn phí, tính từ lúc chọn ở bước thanh toán. Bản gốc là
+  // FREE_PLAN.days ở supabase/functions/_shared/plans.ts — đổi phải đổi cả hai.
+  freePlanDays: 30,
 
   retention: {
     unpaidDays: 30, // đã xuất bản nhưng chưa thanh toán
