@@ -1414,10 +1414,10 @@
     { label: "Khách mời có tên", free: "20", paid: String(CONFIG.guestImport.maxPerSide * 2) },
     { label: "Ảnh album, chuyện tình", free: "5 ảnh", paid: "Đầy đủ" },
     { label: "Bản đồ chỉ đường", free: true, paid: true },
-    { label: "Xác nhận tham dự", free: false, paid: true },
-    { label: "Lời chúc của khách", free: false, paid: true },
-    { label: "Hộp mừng cưới (QR)", free: false, paid: true },
     { label: "Quản lý khách mời", free: true, paid: true },
+    { label: "Xác nhận tham dự", free: true, paid: true },
+    { label: "Lời chúc của khách", free: true, paid: true },
+    { label: "Hộp mừng cưới (QR)", free: false, paid: true },
   ];
 
   // Chỉ có khi MUA gói (bảng nâng gói đã nói rõ phần chênh). Bấm tiêu đề cột = chọn gói,

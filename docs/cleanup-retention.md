@@ -50,7 +50,8 @@ lúc chọn + FREE_PLAN.days` — dùng thử hết hạn rồi chọn vẫn đ�
 chốt bên. Giới hạn ở `FREE_PLAN` của `_shared/plans.ts`: chỉ mở một bên (`weddings.free_side`;
 link bên kia tự chuyển về bên đã chọn ở `loadWeddingData`), 20 khách ở bên đó
 (`guest-handler`), và `applyFreeLimits` cắt dữ liệu ĐƯỜNG CÔNG KHAI `?slug=` (5 ảnh album, 5
-ảnh chuyện tình, tắt xác nhận tham dự / lời chúc / hộp mừng cưới, gỡ thông tin ngân hàng).
+ảnh chuyện tình, tắt hộp mừng cưới, gỡ thông tin ngân hàng — xác nhận tham dự và lời chúc
+vẫn mở).
 Đường `?id=` của trình chỉnh sửa KHÔNG bị cắt — cắt ở đó là lần lưu sau ghi đè mất dữ liệu
 thật. Dùng thử (`free_side` null) vẫn đủ tính năng như trước. Mỗi tài khoản chỉ 1 thiệp Miễn
 phí (`hasOtherFreeWedding` ở `_shared/wedding-limits.ts`, đếm cả thiệp đã hết hạn/đang ẩn tới
