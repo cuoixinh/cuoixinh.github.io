@@ -372,8 +372,8 @@ function _cardFromWedding(w) {
     planExpiresAt: w.plan_expires_at || null,
     // Gói Free: bên được mở (server trả null khi đã thanh toán / đang dùng thử).
     freeSide: w.free_side || null,
-    // Lượt mở link công khai; viewLimit = trần của gói Free, null = không giới hạn.
-    views: w.view_count || 0,
+    // Lượt mở link công khai — chỉ gói Free có (viewLimit = trần); null = không có số.
+    views: w.view_count ?? null,
     viewLimit: w.view_limit ?? null,
     createdAt: w.created_at,
     local: false,
@@ -489,7 +489,7 @@ function cardState(c) {
   if (!c.expiresAt) return "active";
   if (c.freeSide) {
     if (daysLeft(c) <= 0) return "freeExpired";
-    return c.viewLimit && c.views >= c.viewLimit ? "freeViews" : "free";
+    return c.viewLimit && c.views != null && c.views >= c.viewLimit ? "freeViews" : "free";
   }
   return daysLeft(c) > 0 ? "trial" : "expired";
 }
@@ -499,7 +499,7 @@ const PLAN_WARN_DAYS = 14;
 // Gói Free dùng tới tỉ lệ lượt xem này thì cảnh báo + mời nâng gói.
 const VIEW_WARN_RATIO = 0.8;
 
-const viewsWarn = (c) => !!c.viewLimit && c.views >= c.viewLimit * VIEW_WARN_RATIO;
+const viewsWarn = (c) => !!c.viewLimit && c.views != null && c.views >= c.viewLimit * VIEW_WARN_RATIO;
 
 // Ngày hết hạn gói, dd/mm/yyyy đủ hai chữ số ("16/1/2027" trông như ghi vội).
 function planEndText(c) {
@@ -830,11 +830,10 @@ function hintHTML(c, state) {
   return `<p class="mi-hint${H[0] ? ` mi-hint--${H[0]}` : ""}">${_ico(H[1])}<span>${H[2]}</span></p>`;
 }
 
-// Số lượt mở link công khai — chỉ thiệp đã có trên hệ thống và đã xuất bản.
+// Lượt xem / trần của thiệp gói Free (thiệp khác không đếm).
 function viewsHTML(c) {
-  if (c.local || !c.published) return "";
-  const n = c.views.toLocaleString("vi-VN");
-  const text = c.viewLimit ? `${n}/${c.viewLimit.toLocaleString("vi-VN")} lượt xem` : `${n} lượt xem`;
+  if (c.local || !c.published || !c.viewLimit || c.views == null) return "";
+  const text = `${c.views.toLocaleString("vi-VN")}/${c.viewLimit.toLocaleString("vi-VN")} lượt xem`;
   return `<p class="mi-meta">${_ico("eye")}<span>${text}</span></p>`;
 }
 

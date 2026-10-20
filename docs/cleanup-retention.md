@@ -183,13 +183,16 @@ cũng lấy được dữ liệu.
   sang khối cảnh báo cam, vì xuất bản lại KHÔNG mở khoá.
 - **Xem trước không bị ảnh hưởng**: preview chạy `?preview=true` không có slug → không gọi API.
 
-**Hết lượt xem (gói Free).** Lượt xem đếm ở bảng `wedding_stats` (bảng riêng: ghi vào
-`weddings` là kích trigger `updated_at`), tăng qua hàm `cx_wedding_view` — trần nằm trong câu
-upsert nên hai lượt cùng lúc không vượt trần.
+**Hết lượt xem (gói Free).** CHỈ thiệp gói Free có lượt xem — thiệp khác không đọc, không ghi
+bảng này (khỏi tốn request). Lượt đếm ở bảng `wedding_stats` (bảng riêng: ghi vào `weddings`
+là kích trigger `updated_at`), tăng qua hàm `cx_wedding_view` — trần nằm trong câu upsert nên
+hai lượt cùng lúc không vượt trần.
 - Trang thiệp gọi `POST wedding-admin?resource=view` mỗi lượt mở `?slug=` (`WeddingBL.countView`,
   gộp lượt cùng máy trong 30 phút). Đi THẲNG Edge Function vì GET `?slug=` bị worker cache 5
-  phút. Bot (User-Agent) và bản xem trước không được tính; thiệp đã khoá vì lý do khác không đếm.
-- Mọi gói đều đếm (chủ thiệp xem số ở thẻ thiệp của "Quản lý thiệp cưới"); chỉ gói Free có trần.
+  phút. Ai mở link cũng tính, kể cả chủ thiệp; bot (User-Agent) và bản xem trước của trang
+  Thiết lập thì không; thiệp đã khoá vì lý do khác không đếm.
+- Chủ thiệp xem số `x/300` ở thẻ thiệp của "Quản lý thiệp cưới"; đọc số hỏng thì thẻ chỉ ẩn
+  con số, còn link công khai thì DỪNG (500) vì trần là phép kiểm.
 - Đủ `FREE_PLAN.views` → GET `?slug=` trả 403 `VIEW_LIMIT` (cùng màn khoá). Bản GET còn trong
   cache không biết điều đó, nên lệnh đếm trả `locked: true` để trang khoá ngay.
 - Nâng gói là mở lại: đã thanh toán thì không còn là gói Free, mà phản hồi 403 không bị cache.

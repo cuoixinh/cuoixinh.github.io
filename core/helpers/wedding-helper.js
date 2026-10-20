@@ -26,11 +26,13 @@ async function loadWeddingData(weddingSlug, renderCallback) {
         window.location.replace(u.toString());
         return;
       }
-      // Đếm lượt xem song song với lúc dựng; gói Free hết lượt thì khoá ngay — bản GET
-      // đang cache ở worker có thể còn chưa biết.
-      weddingBL.countView(weddingSlug).then((locked) => {
-        if (locked) showLockedInvitation({ ...wedding, code: "VIEW_LIMIT" });
-      });
+      // Chỉ gói Free có lượt xem: đếm song song với lúc dựng, hết lượt thì khoá ngay —
+      // bản GET đang cache ở worker có thể còn chưa biết.
+      if (wedding.free_side) {
+        weddingBL.countView(weddingSlug).then((locked) => {
+          if (locked) showLockedInvitation({ ...wedding, code: "VIEW_LIMIT" });
+        });
+      }
     } else {
       if (typeof cxPreviewWedding !== "function") return;
       wedding = await cxPreviewWedding();

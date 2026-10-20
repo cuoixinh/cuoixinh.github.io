@@ -1,5 +1,5 @@
 -- ============================================================
--- Số lượt xem thiệp — gói Free khoá ở FREE_PLAN.views, gói trả phí chỉ để thống kê
+-- Số lượt xem thiệp gói Free — đủ FREE_PLAN.views thì khoá (thiệp khác không đếm)
 -- Ngày: 2026-10-20
 -- ------------------------------------------------------------
 -- Bảng riêng chứ không phải cột của `weddings`: mỗi lượt xem là một lần UPDATE, ghi vào

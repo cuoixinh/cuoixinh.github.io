@@ -54,12 +54,6 @@ function buildCorsHeaders(origin: string | null) {
 // Trình thu thập có chạy JS (Googlebot, công cụ chụp link…) không tính là lượt xem thiệp.
 const BOT_UA_RE = /bot|crawl|spider|slurp|facebookexternalhit|headless|lighthouse/i
 
-// Số lượt xem từ cột nhúng wedding_stats(view_count) — chưa có hàng nghĩa là 0.
-function viewCountOf(row: Record<string, unknown>): number {
-  const s = row.wedding_stats as { view_count?: number } | { view_count?: number }[] | null | undefined
-  const o = Array.isArray(s) ? s[0] : s
-  return o?.view_count ?? 0
-}
 
 // So sánh chuỗi không phụ thuộc thời gian, tránh rò rỉ token qua timing attack.
 // Trả false ngay khi độ dài khác nhau (độ dài không phải bí mật cần bảo vệ).
@@ -792,10 +786,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
   }
 
   // ============= LƯỢT XEM (public) =============
-  // Trang thiệp gọi MỘT lần mỗi lượt mở link ?slug= (đi thẳng Edge Function, không qua
-  // worker cache — GET ?slug= bị cache 5 phút nên không đếm ở đó được). Chỉ đếm thiệp
-  // đang mở với khách; gói Free chặn ở FREE_PLAN.views → trả locked để trang tự khoá
-  // ngay, khỏi chờ bản cache của GET hết hạn. Bot và bản xem trước không gọi tới đây.
+  // Chỉ thiệp gói Free có lượt xem: trang thiệp gọi MỘT lần mỗi lượt mở link ?slug= (đi
+  // thẳng Edge Function — GET ?slug= bị worker cache 5 phút nên không đếm ở đó được).
+  // Đủ FREE_PLAN.views → trả locked để trang tự khoá ngay, khỏi chờ bản cache hết hạn.
+  // Bot và bản xem trước không gọi tới đây; thiệp khác gọi nhầm thì bỏ qua.
   if (resource === 'view') {
     if (method !== 'POST') {
       return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: corsHeaders })
@@ -818,17 +812,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       return new Response(JSON.stringify({ error: 'Không ghi được lượt xem' }), { status: 500, headers: jsonHeaders })
     }
     const trialOver = !!w?.expires_at && new Date(w.expires_at).getTime() < Date.now()
-    const closed = !w || !w.is_published || w.is_active === false || isPlanExpired(w) ||
-      (trialOver && w.payment_status !== 'completed')
+    const closed = !w || !isFreePlan(w) || !w.is_published || w.is_active === false || trialOver
     if (closed) return new Response(JSON.stringify({ counted: false }), { headers: jsonHeaders })
 
-    const limit = isFreePlan(w) ? FREE_PLAN.views : null
-    const { data: r, error: rpcError } = await supabase.rpc('cx_wedding_view', { p_wedding_id: w.id, p_limit: limit })
+    const { data: r, error: rpcError } = await supabase.rpc('cx_wedding_view', { p_wedding_id: w.id, p_limit: FREE_PLAN.views })
     if (rpcError) {
       log.error('wedding.view_count_failed', { slug, code: rpcError.code, message: rpcError.message })
       return new Response(JSON.stringify({ error: 'Không ghi được lượt xem' }), { status: 500, headers: jsonHeaders })
     }
-    const locked = limit != null && !r?.counted
+    const locked = !r?.counted
     if (locked) log.info('wedding.view_limit_reached', { slug, view_count: r?.view_count })
     return new Response(JSON.stringify({ counted: !!r?.counted, locked }), { headers: jsonHeaders })
   }
@@ -1570,7 +1562,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       // hai cột này là mọi thiệp cùng mẫu trông giống hệt nhau.
       const { data, error } = await supabase
         .from('weddings')
-        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at, payment_status, plan, plan_expires_at, cover_image_url, gallery_images, free_side, wedding_stats(view_count)')
+        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at, payment_status, plan, plan_expires_at, cover_image_url, gallery_images, free_side')
         .eq('user_id', userId)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
@@ -1582,15 +1574,30 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
 
       // Gói của chính chủ thiệp là TRẠNG THÁI để vẽ nhãn hạn; payment_status chỉ lấy
       // để suy ra gói (thiệp mua trước khi có gói = vĩnh viễn) rồi bỏ.
-      // view_limit: trần lượt xem của gói Free, null = không giới hạn.
-      const rows = (data ?? []).map(({ payment_status, plan, plan_expires_at, free_side, wedding_stats, ...w }: Record<string, unknown>) => {
+      const rows = (data ?? []).map(({ payment_status, plan, plan_expires_at, free_side, ...w }: Record<string, unknown>) => {
         const cur = currentPlan({ payment_status: payment_status as string, plan: plan as string })
         const fs = freeSide({ payment_status: payment_status as string, free_side: free_side as string })
-        return {
-          ...w, plan: cur, plan_expires_at: cur ? plan_expires_at : null, free_side: fs,
-          view_count: viewCountOf({ wedding_stats }), view_limit: fs ? FREE_PLAN.views : null,
-        }
+        return { ...w, plan: cur, plan_expires_at: cur ? plan_expires_at : null, free_side: fs }
       })
+
+      // Lượt xem chỉ thiệp gói Free có (view_limit = trần); thiệp khác không đọc bảng này.
+      // Đọc hỏng thì thẻ chỉ thiếu con số (view_count null), danh sách vẫn trả.
+      const freeIds = rows.filter((w) => w.free_side).map((w) => w.id as string)
+      let views = new Map<string, number>()
+      let viewsFailed = false
+      if (freeIds.length) {
+        const { data: st, error: stErr } = await supabase
+          .from('wedding_stats').select('wedding_id, view_count').in('wedding_id', freeIds)
+        if (stErr) {
+          viewsFailed = true
+          log.error('wedding.my_views_failed', { user_id: userId, code: stErr.code, message: stErr.message })
+        } else views = new Map((st ?? []).map((x) => [x.wedding_id, x.view_count]))
+      }
+      for (const w of rows as Record<string, unknown>[]) {
+        const free = !!w.free_side
+        w.view_count = free && !viewsFailed ? views.get(w.id as string) ?? 0 : null
+        w.view_limit = free ? FREE_PLAN.views : null
+      }
 
       return new Response(JSON.stringify(rows), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -1663,7 +1670,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // response trước khi trả về — không để dữ liệu thanh toán rời khỏi DB.
     let query = supabase
       .from('weddings')
-      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status, plan, plan_expires_at, user_id, storage_key, wedding_stats(view_count)`)
+      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status, plan, plan_expires_at, user_id, storage_key`)
 
     if (slug) {
       query = query.eq('slug', slug)
@@ -1742,10 +1749,23 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       // Gói Free suy từ payment_status + free_side — tính TRƯỚC khi gỡ payment_status.
       const isFree = isFreePlan(data)
       data.free_side = freeSide(data)
-      // Gói Free đủ FREE_PLAN.views lượt xem = khoá với khách mời, như hết hạn.
-      const viewCount = viewCountOf(data)
-      const viewLocked = isFree && viewCount >= FREE_PLAN.views
-      delete data.wedding_stats
+      // Gói Free đủ FREE_PLAN.views lượt xem = khoá với khách mời, như hết hạn. Chỉ thiệp
+      // Free mới đọc bảng wedding_stats. Đọc hỏng: link công khai DỪNG (trần là phép kiểm),
+      // trình chỉnh sửa (id) chỉ thiếu con số.
+      let viewCount: number | null = null
+      if (isFree) {
+        const { data: st, error: stErr } = await supabase
+          .from('wedding_stats').select('view_count').eq('wedding_id', data.id).maybeSingle()
+        if (stErr) {
+          log.error('wedding.view_read_failed', { id: data.id, slug, code: stErr.code, message: stErr.message })
+          if (slug) {
+            return new Response(JSON.stringify({ error: 'Không tải được thiệp', code: 'QUERY_FAILED' }), {
+              status: 500, headers: corsHeaders
+            })
+          }
+        } else viewCount = st?.view_count ?? 0
+      }
+      const viewLocked = isFree && viewCount != null && viewCount >= FREE_PLAN.views
       delete data.expires_at
       delete data.payment_status
       delete data.plan
