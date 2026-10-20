@@ -734,7 +734,7 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   xem là khoá (403 `VIEW_LIMIT`): lượt đếm ở bảng `wedding_stats`, trang thiệp ghi qua
   `POST wedding-admin?resource=view` — đi thẳng Edge Function vì GET `?slug=` bị worker cache.
   Xem `docs/cleanup-retention.md`.
-- **Thành viên thiệp:** chủ thiệp mời 1 người (bảng `wedding_members`, theo email) cùng
+- **Thành viên thiệp** (tên hiện cho khách: "Chia sẻ quyền quản lý"): chủ thiệp mời 1 người (bảng `wedding_members`, theo email) cùng
   quản lý KHÁCH MỜI, giới hạn theo bên — không sửa thiệp, không thanh toán, không có ở gói
   Miễn phí. Quyền chỉ kiểm ở `authorize` của `guest-handler`; thêm thao tác khách mời mới
   phải đi qua đó (và `denySide`). Mời/gỡ ở thẻ thiệp của `/guest-list/`

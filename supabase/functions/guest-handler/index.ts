@@ -407,7 +407,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     // Thành viên của thiệp — chỉ chủ thiệp xem.
     if (action === 'members') {
-      if (access.role === 'member') return fail('Chỉ chủ thiệp quản lý thành viên', 403)
+      if (access.role === 'member') return fail('Chỉ chủ thiệp chia sẻ được quyền quản lý', 403)
       const { data, error } = await supabase
         .from('wedding_members')
         .select('email, side, user_id, created_at')
@@ -690,7 +690,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const access = await authorize(wedding_id)
     if (access instanceof Response) return access
-    if (access.role === 'member') return fail('Chỉ chủ thiệp quản lý thành viên', 403)
+    if (access.role === 'member') return fail('Chỉ chủ thiệp chia sẻ được quyền quản lý', 403)
 
     if (action === 'member-remove') {
       const { error } = await supabase.from('wedding_members').delete().eq('wedding_id', wedding_id)
@@ -699,7 +699,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     }
 
     if (access.wedding && isFreePlan(access.wedding)) {
-      return fail('Gói Free không thêm được thành viên. Nâng gói để mời người cùng quản lý khách mời.', 403)
+      return fail('Gói Free không chia sẻ được quyền quản lý. Nâng gói để mời người cùng quản lý khách mời.', 403)
     }
     const email = String(body.email ?? '').trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return fail('Email không hợp lệ')
@@ -712,7 +712,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       .insert({ wedding_id, email, side, invited_by: me?.id ?? null })
       .select('email, side, user_id, created_at')
       .single()
-    if (error?.code === '23505') return fail('Thiệp đã có thành viên. Gỡ người hiện tại trước khi mời người khác.', 409)
+    if (error?.code === '23505') return fail('Thiệp đã chia sẻ quyền quản lý cho một người. Gỡ người đó trước khi mời người khác.', 409)
     if (error) return fail(error.message, 500)
     log.info('guest.member_added', { wedding_id, side })
     return ok({ member: { email: data.email, side: data.side, joined: !!data.user_id, created_at: data.created_at } }, 201)

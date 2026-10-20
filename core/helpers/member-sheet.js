@@ -1,4 +1,4 @@
-// Popup "Người cùng quản lý": chủ thiệp mời 1 người (vd người bạn đời) cùng quản lý khách
+// Popup "Chia sẻ quyền quản lý": chủ thiệp mời 1 người (vd người bạn đời) cùng quản lý khách
 // mời bằng email, xem trạng thái, gỡ. Dưới sm dính đáy màn, từ sm là hộp 480px giữa màn
 // (.cx-mem* ở styles/_common.css). Quyền + giới hạn bên do guest-handler giữ. Dùng ở
 // /guest-list/; cần nạp trước: core/utils.js (escapeHtml), core/helpers/alert.js
@@ -65,7 +65,7 @@ async function cxOpenMemberSheet(weddingId, opts = {}) {
       <header class="cx-mem-head">
         <span class="cx-mem-badge">${_cxMemIco("user-plus", 22)}</span>
         <div class="min-w-0 flex-1">
-          <h2 id="cx-mem-title" class="cx-mem-title">Người cùng quản lý</h2>
+          <h2 id="cx-mem-title" class="cx-mem-title">Chia sẻ quyền quản lý</h2>
           ${names ? `<p class="cx-mem-sub">Thiệp ${escapeHtml(names)}</p>` : ""}
         </div>
         <button type="button" class="cx-mem-x" data-mem-close aria-label="Đóng">${_cxMemIco("x")}</button>
@@ -106,7 +106,7 @@ async function cxOpenMemberSheet(weddingId, opts = {}) {
     _cxMemRender(ctx, await guestDAL.getMember(weddingId));
   } catch (e) {
     _cxMemResize(ctx.box, () => {
-      ctx.body.innerHTML = `<p class="cx-mem-loading cx-mem-loading--err">${escapeHtml(e.message || "Không tải được thành viên")}</p>`;
+      ctx.body.innerHTML = `<p class="cx-mem-loading cx-mem-loading--err">${escapeHtml(e.message || "Không tải được thông tin chia sẻ")}</p>`;
     });
   }
 }
@@ -214,10 +214,10 @@ function _cxMemRenderForm(ctx) {
     err.classList.add("hidden");
     try {
       const m = await guestDAL.addMember(ctx.weddingId, input.value.trim(), side || null);
-      showToast("Đã mời thành viên", "success");
+      showToast("Đã chia sẻ quyền quản lý", "success");
       _cxMemRender(ctx, m);
     } catch (ex) {
-      err.textContent = ex.message || "Không mời được thành viên";
+      err.textContent = ex.message || "Không chia sẻ được quyền quản lý";
       err.classList.remove("hidden");
       cta.disabled = false;
     }
@@ -277,11 +277,11 @@ function _cxMemRenderMember(ctx, member) {
     e.currentTarget.disabled = true;
     try {
       await guestDAL.removeMember(ctx.weddingId);
-      showToast("Đã gỡ thành viên", "success");
+      showToast("Đã gỡ quyền quản lý", "success");
       _cxMemRender(ctx, null);
     } catch (ex) {
       e.currentTarget.disabled = false;
-      showToast(ex.message || "Không gỡ được thành viên", "error");
+      showToast(ex.message || "Không gỡ được quyền quản lý", "error");
     }
   });
   ctx.body.querySelector("[data-mem-copy]")?.addEventListener("click", () => {

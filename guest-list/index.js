@@ -137,7 +137,7 @@ function _glCardHTML(w) {
           aria-haspopup="menu" aria-label="Xem thiệp" title="Xem thiệp">${_ico("eye", 16)}<span${canInvite ? ' class="gl-btn-txt"' : ""}>Xem thiệp</span></x-button>` : ""}
         ${canInvite ? `
         <x-button variant="bare" class="mi-btn mi-btn--soft" data-members="${_glEsc(w.id)}" data-names="${_glEsc([w.groom_name, w.bride_name].filter(Boolean).join(" & "))}"
-          aria-label="Thêm thành viên" title="Thêm thành viên">${_ico("user-plus", 16)}<span class="gl-btn-txt">Thêm thành viên</span></x-button>` : ""}
+          aria-label="Chia sẻ quyền quản lý" title="Chia sẻ quyền quản lý">${_ico("user-plus", 16)}<span class="gl-btn-txt">Chia sẻ quyền</span></x-button>` : ""}
         <a class="mi-btn mi-btn--primary inline-flex items-center justify-center rounded-full" href="${href}">
           ${_ico("users", 16)}Quản lý khách mời</a>
       </div>

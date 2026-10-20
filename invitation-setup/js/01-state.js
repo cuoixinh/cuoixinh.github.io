@@ -51,6 +51,11 @@ let IS_TRIAL_LOCKED = false;
 let IS_PLAN_LOCKED = false;
 // Gói Miễn phí: bên được mở ("groom" | "bride"), null = cả hai. Server tính (free_side).
 let FREE_SIDE = null;
+// Lượt xem của thiệp gói Free / trần FREE_PLAN.views (server gửi kèm); null = không đếm.
+let VIEW_COUNT = null;
+let VIEW_LIMIT = null;
+// Từ tỉ lệ lượt xem này trở lên thì cảnh báo sắp hết lượt (cùng mốc với my-invitations).
+const VIEW_WARN_RATIO = 0.8;
 
 // Thiệp đã thanh toán → mẫu bị CHỐT, PATCH của wedding-admin từ chối mọi lượt đổi
 // (code THEME_LOCKED). Cờ do server tính và gửi kèm dữ liệu thiệp. Đây là cờ DỮ

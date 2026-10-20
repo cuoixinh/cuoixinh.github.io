@@ -191,7 +191,8 @@ hai lượt cùng lúc không vượt trần.
   gộp lượt cùng máy trong 30 phút). Đi THẲNG Edge Function vì GET `?slug=` bị worker cache 5
   phút. Ai mở link cũng tính, kể cả chủ thiệp; bot (User-Agent) và bản xem trước của trang
   Thiết lập thì không; thiệp đã khoá vì lý do khác không đếm.
-- Chủ thiệp xem số `x/300` ở thẻ thiệp của "Quản lý thiệp cưới"; đọc số hỏng thì thẻ chỉ ẩn
+- Chủ thiệp xem số `x/300` ở thẻ thiệp của "Quản lý thiệp cưới"; từ 80% (240 lượt) có cảnh
+  báo ở thẻ đó, ở toast lúc mở trình chỉnh sửa và ở popup xuất bản. Không gửi email. Đọc số hỏng thì thẻ chỉ ẩn
   con số, còn link công khai thì DỪNG (500) vì trần là phép kiểm.
 - Đủ `FREE_PLAN.views` → GET `?slug=` trả 403 `VIEW_LIMIT` (cùng màn khoá). Bản GET còn trong
   cache không biết điều đó, nên lệnh đếm trả `locked: true` để trang khoá ngay.
