@@ -55,7 +55,7 @@
           fetch(`${API_BASE}?slug=${encodeURIComponent(slug)}`, {
             headers: { Authorization: `Bearer ${ANON_KEY}` },
           })
-            // Đọc body cả khi lỗi: 403 TRIAL_EXPIRED cũng kèm theme, cần nó
+            // Đọc body cả khi lỗi: 403 khoá thiệp (TRIAL_EXPIRED…) cũng kèm theme, cần nó
             // để biết đưa sang trang thiệp nào.
             .then((r) =>
               r
@@ -67,7 +67,8 @@
               // Hết hạn dùng thử KHÔNG phải lỗi: vẫn đưa sang trang thiệp, ở đó
               // wedding-helper hiện màn khoá. Đá về trang chủ thì khách mời (và
               // cả chủ thiệp) không hiểu vì sao link chết.
-              const expired = !ok && data && data.code === "TRIAL_EXPIRED";
+              const expired =
+                !ok && data && ["TRIAL_EXPIRED", "PLAN_EXPIRED", "VIEW_LIMIT"].includes(data.code);
               if (!data || (!ok && !expired)) {
                 window.location.replace("/");
                 return;

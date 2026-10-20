@@ -62,13 +62,13 @@ function _glTag(w) {
     return `<span class="mi-tag mi-tag--live">${_ico("users-round")}Được chia sẻ · ${side}</span>`;
   }
   const state = _glStateOf(w);
-  const planName = { "3m": "3 tháng", "6m": "6 tháng" }[w.plan] || "";
+  const planName = { "3m": "3 tháng", "6m": "Premium" }[w.plan] || "";
   const soon = state === "plan" && _glDays(w.plan_expires_at) <= _GL_PLAN_WARN_DAYS;
   const T = {
     trial: ["trial", "clock", `Dùng thử · còn ${Math.min(_glDays(w.expires_at || 0), CONFIG.trialDays)} ngày`],
-    expired: ["due", "clock-alert", w.free_side ? "Hết hạn gói Miễn phí" : "Hết hạn dùng thử"],
-    free: ["trial", "gift", `Miễn phí · còn ${Math.min(_glDays(w.expires_at || 0), CONFIG.freePlanDays)} ngày`],
-    active: ["live", "badge-check", "Đã thanh toán · Vĩnh viễn"],
+    expired: ["due", "clock-alert", w.free_side ? "Hết hạn gói Free" : "Hết hạn dùng thử"],
+    free: ["trial", "gift", `Free · còn ${Math.min(_glDays(w.expires_at || 0), CONFIG.freePlanDays)} ngày`],
+    active: ["live", "badge-check", "Đã thanh toán · Forever"],
     plan: [soon ? "trial" : "live", "badge-check", `Đã thanh toán · ${planName}`],
     planExpired: ["due", "clock-alert", `Hết hạn gói ${planName}`],
   }[state];

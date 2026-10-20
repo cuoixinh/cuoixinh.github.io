@@ -81,6 +81,23 @@ class WeddingDAL {
     return data;
   }
 
+  // Ghi một lượt xem link công khai. Đi THẲNG Edge Function: worker cache chỉ phục vụ
+  // GET. Trả {counted, locked}; locked = gói Free đã đủ lượt xem.
+  async countView(slug) {
+    const response = await fetch(`${this.edgeUrl}?resource=view`, {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json",
+        apikey: this.anonKey,
+        Authorization: `Bearer ${this.anonKey}`,
+      },
+      body: JSON.stringify({ slug }),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  }
+
   // PHẢI gửi token người dùng: từ RC1.15 server chỉ trả thiệp theo id cho chính
   // chủ thiệp (xem wedding-admin). Gửi anon key trần là ăn 403.
   async getWeddingById(id) {

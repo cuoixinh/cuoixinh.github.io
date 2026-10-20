@@ -370,8 +370,11 @@ function _cardFromWedding(w) {
     // Gói đã thanh toán (null = chưa thanh toán). plan_expires_at null = vĩnh viễn.
     plan: w.plan || null,
     planExpiresAt: w.plan_expires_at || null,
-    // Gói Miễn phí: bên được mở (server trả null khi đã thanh toán / đang dùng thử).
+    // Gói Free: bên được mở (server trả null khi đã thanh toán / đang dùng thử).
     freeSide: w.free_side || null,
+    // Lượt mở link công khai; viewLimit = trần của gói Free, null = không giới hạn.
+    views: w.view_count || 0,
+    viewLimit: w.view_limit ?? null,
     createdAt: w.created_at,
     local: false,
     cover: _coverUrl(w),
@@ -474,8 +477,9 @@ function newInvitation() {
 const DAY_MS = 86400000;
 
 /**
- * draft · trial · expired · free / freeExpired (gói Miễn phí) · active (vĩnh viễn) ·
- * plan (gói 3/6 tháng còn hạn) · planExpired (hết hạn gói) · published (không rõ hạn).
+ * draft · trial · expired · free / freeViews / freeExpired (gói Free: còn hạn / hết lượt
+ * xem / hết hạn) · active (vĩnh viễn) · plan (gói có hạn còn hạn) · planExpired (hết hạn
+ * gói) · published (không rõ hạn).
  */
 function cardState(c) {
   if (!c.published) return "draft";
@@ -483,12 +487,19 @@ function cardState(c) {
   if (c.planExpiresAt)
     return new Date(c.planExpiresAt) > Date.now() ? "plan" : "planExpired";
   if (!c.expiresAt) return "active";
-  if (c.freeSide) return daysLeft(c) > 0 ? "free" : "freeExpired";
+  if (c.freeSide) {
+    if (daysLeft(c) <= 0) return "freeExpired";
+    return c.viewLimit && c.views >= c.viewLimit ? "freeViews" : "free";
+  }
   return daysLeft(c) > 0 ? "trial" : "expired";
 }
 
 // Còn dưới chừng này ngày thì nhãn gói chuyển tông cảnh báo + mời nâng gói.
 const PLAN_WARN_DAYS = 14;
+// Gói Free dùng tới tỉ lệ lượt xem này thì cảnh báo + mời nâng gói.
+const VIEW_WARN_RATIO = 0.8;
+
+const viewsWarn = (c) => !!c.viewLimit && c.views >= c.viewLimit * VIEW_WARN_RATIO;
 
 // Ngày hết hạn gói, dd/mm/yyyy đủ hai chữ số ("16/1/2027" trông như ghi vội).
 function planEndText(c) {
@@ -748,6 +759,7 @@ function cardHTML(c, i) {
             <span aria-hidden="true">·</span>
             <span class="shrink-0">${formatDate(c.createdAt)}</span>
           </p>
+          ${viewsHTML(c)}
           ${hintHTML(c, state)}
           <div class="mi-gap"></div>
           ${c.slug ? slugRowHTML(c, i) : ""}
@@ -759,8 +771,9 @@ function cardHTML(c, i) {
 
 // Câu nhắc hạn dọn dẹp tự động — số ngày lấy ở CONFIG.retention, không viết cứng.
 // Dùng cho tooltip lẫn dải ghim ở đầu trang, nên chỉ là TEXT thuần.
-const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau ${CONFIG.retention.unpaidDays} ngày kể từ khi hết hạn dùng thử hoặc hết hạn gói Miễn phí.`;
-const PLAN_KEEP_TEXT = `Hết hạn gói thì khách mời không mở được thiệp; sau ${CONFIG.retention.planExpiredDays} ngày thiệp sẽ tự động xoá. Nâng lên gói Vĩnh viễn để giữ thiệp mãi mãi.`;
+const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau ${CONFIG.retention.unpaidDays} ngày kể từ khi hết hạn dùng thử hoặc hết hạn gói Free.`;
+const PLAN_KEEP_TEXT = `Hết hạn gói thì khách mời không mở được thiệp; sau ${CONFIG.retention.planExpiredDays} ngày thiệp sẽ tự động xoá. Nâng lên gói Forever để giữ thiệp mãi mãi.`;
+const VIEWS_TEXT = `Gói Free mở được ${CONFIG.freePlanViews} lượt xem thiệp. Hết lượt thì khách mời không mở được thiệp cho tới khi nâng gói.`;
 
 // Nháp trên máy (chưa có bản ghi DB) và nháp đã lưu trên hệ thống có hạn riêng.
 function draftKeepText(c) {
@@ -772,16 +785,17 @@ function draftKeepText(c) {
 // MỘT nhãn trạng thái mỗi thẻ: tông màu + icon + chữ, chi tiết hạn nằm ở title.
 function tagHTML(c, state) {
   const days = daysLeft(c);
-  const planName = { "3m": "3 tháng", "6m": "6 tháng" }[c.plan] || "";
+  const planName = { "3m": "3 tháng", "6m": "Premium" }[c.plan] || "";
   const soon = state === "plan" && planDaysLeft(c) <= PLAN_WARN_DAYS;
   const T = {
     draft: ["draft", "pen-line", "Nháp", draftKeepText(c)],
     trial: ["trial", "clock", `Dùng thử · còn ${days} ngày`, UNPAID_KEEP_TEXT],
     expired: ["due", "clock-alert", "Hết hạn dùng thử", UNPAID_KEEP_TEXT],
-    free: ["trial", "gift", `Miễn phí · còn ${days} ngày`, UNPAID_KEEP_TEXT],
-    freeExpired: ["due", "clock-alert", "Hết hạn gói Miễn phí", UNPAID_KEEP_TEXT],
+    free: ["trial", "gift", `Free · còn ${days} ngày`, UNPAID_KEEP_TEXT],
+    freeViews: ["due", "eye-off", "Hết lượt xem gói Free", VIEWS_TEXT],
+    freeExpired: ["due", "clock-alert", "Hết hạn gói Free", UNPAID_KEEP_TEXT],
     published: ["due", "credit-card", "Chưa kích hoạt", UNPAID_KEEP_TEXT],
-    active: ["live", "badge-check", "Đã thanh toán · Vĩnh viễn", ""],
+    active: ["live", "badge-check", "Đã thanh toán · Forever", ""],
     // Nói thẳng ĐÃ THANH TOÁN + gói; ngày hết hạn ở dòng gợi ý ngay dưới (hintHTML)
     // để nhãn không dài quá ở khổ điện thoại.
     plan: [soon ? "trial" : "live", "badge-check", `Đã thanh toán · ${planName}`, PLAN_KEEP_TEXT],
@@ -800,7 +814,10 @@ function hintHTML(c, state) {
       : ["", "send", "Xuất bản để gửi tới khách mời"],
     trial: ["", "info", "Kích hoạt để thiệp mở vĩnh viễn"],
     expired: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
-    free: ["", "info", `Chỉ mở thiệp ${c.freeSide === "groom" ? "nhà trai" : "nhà gái"} — nâng gói để mở đủ`],
+    free: viewsWarn(c)
+      ? ["warn", "triangle-alert", `Sắp hết lượt xem (${c.views}/${c.viewLimit}) — nâng gói để không bị khoá`]
+      : ["", "info", `Chỉ mở thiệp ${c.freeSide === "groom" ? "nhà trai" : "nhà gái"} — nâng gói để mở đủ`],
+    freeViews: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
     freeExpired: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
     published: ["warn", "triangle-alert", "Kích hoạt để mở thiệp cho khách mời"],
     plan:
@@ -811,6 +828,14 @@ function hintHTML(c, state) {
   }[state];
   if (!H) return "";
   return `<p class="mi-hint${H[0] ? ` mi-hint--${H[0]}` : ""}">${_ico(H[1])}<span>${H[2]}</span></p>`;
+}
+
+// Số lượt mở link công khai — chỉ thiệp đã có trên hệ thống và đã xuất bản.
+function viewsHTML(c) {
+  if (c.local || !c.published) return "";
+  const n = c.views.toLocaleString("vi-VN");
+  const text = c.viewLimit ? `${n}/${c.viewLimit.toLocaleString("vi-VN")} lượt xem` : `${n} lượt xem`;
+  return `<p class="mi-meta">${_ico("eye")}<span>${text}</span></p>`;
 }
 
 // Sao chép link là việc chính của thiệp nên nằm ngay trên thẻ ở mọi khổ màn.
@@ -841,9 +866,11 @@ function _cardActions(c, i, state) {
 
   if (state === "trial" || state === "expired" || state === "published")
     return [activate, live && view, edit, live && share].filter(Boolean);
-  // Gói Miễn phí đi y như gói trả phí: còn hạn thì Chia sẻ là nút chính, Nâng gói lùi
-  // về cuối; hết hạn thì Nâng gói lên đầu như hết hạn gói.
-  if (state === "planExpired" || state === "freeExpired") return [upgrade, edit, live && view].filter(Boolean);
+  // Gói Free đi y như gói trả phí: còn hạn thì Chia sẻ là nút chính, Nâng gói lùi
+  // về cuối; hết hạn / hết lượt xem (hay sắp hết) thì Nâng gói lên đầu như hết hạn gói.
+  if (state === "planExpired" || state === "freeExpired" || state === "freeViews")
+    return [upgrade, edit, live && view].filter(Boolean);
+  if (state === "free" && viewsWarn(c)) return [upgrade, live && view, edit, live && share].filter(Boolean);
   if (state === "plan" && planDaysLeft(c) <= PLAN_WARN_DAYS)
     return [upgrade, live && view, edit, live && share].filter(Boolean);
   if ((state === "plan" || state === "free") && live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit, upgrade];

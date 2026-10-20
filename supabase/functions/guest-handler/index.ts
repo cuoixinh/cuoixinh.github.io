@@ -59,8 +59,8 @@ function capMessage(row: CapRow, side: string, cap: number): string {
   if (row.payment_status === 'completed') return `Đã đạt giới hạn ${cap} khách mời mỗi bên`
   const open = freeSide(row)
   if (open && side !== open)
-    return `Gói Miễn phí chỉ mở thiệp ${open === 'groom' ? 'nhà trai' : 'nhà gái'}. Nâng gói để mời khách bên này.`
-  if (open) return `Gói Miễn phí mời được tối đa ${cap} khách. Nâng gói để mời tới ${MAX_PER_SIDE} khách mỗi bên.`
+    return `Gói Free chỉ mở thiệp ${open === 'groom' ? 'nhà trai' : 'nhà gái'}. Nâng gói để mời khách bên này.`
+  if (open) return `Gói Free mời được tối đa ${cap} khách. Nâng gói để mời tới ${MAX_PER_SIDE} khách mỗi bên.`
   return `Thiệp chưa thanh toán chỉ thêm được ${cap} khách mời mỗi bên. Thanh toán để mở tới ${MAX_PER_SIDE} khách.`
 }
 const MAX_WISHES_PER_GUEST = 3
@@ -699,7 +699,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     }
 
     if (access.wedding && isFreePlan(access.wedding)) {
-      return fail('Gói Miễn phí không thêm được thành viên. Nâng gói để mời người cùng quản lý khách mời.', 403)
+      return fail('Gói Free không thêm được thành viên. Nâng gói để mời người cùng quản lý khách mời.', 403)
     }
     const email = String(body.email ?? '').trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return fail('Email không hợp lệ')

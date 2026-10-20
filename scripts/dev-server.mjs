@@ -185,7 +185,7 @@ async function slugPage(slug) {
     headers: { Authorization: `Bearer ${anonKey}` },
   });
   const w = await r.json().catch(() => null);
-  if (!w || (!r.ok && w.code !== "TRIAL_EXPIRED" && w.code !== "PLAN_EXPIRED") || w.is_published === false) return null;
+  if (!w || (!r.ok && !["TRIAL_EXPIRED", "PLAN_EXPIRED", "VIEW_LIMIT"].includes(w.code)) || w.is_published === false) return null;
   const theme = String(w.theme || DEFAULT_THEME);
   if (!THEME_NAME.test(theme)) return null;
   const dir = themeDir(theme);

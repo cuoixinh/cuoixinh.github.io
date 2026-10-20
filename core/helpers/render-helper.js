@@ -150,6 +150,25 @@ function renderQRCodes(wedding) {
   setText("bride-bank-owner", wedding.bride_bank_owner, "--------------------");
   setAttr("bride-qr-img", "src", getImageUrl(wedding.bride_qr_url));
   applyFocalPoint("bride-qr-img", wedding.image_focal_points?.bride_qr_url);
+
+  // Gói Free chỉ có QR của bên được mở (server gỡ thông tin bên kia) → ẩn hẳn thẻ bên kia.
+  if (wedding.free_side) _cxHideGiftSide(wedding.free_side === "groom" ? "bride" : "groom");
+}
+
+// Thẻ QR của một bên = tổ tiên cao nhất của ảnh QR bên đó mà KHÔNG chứa ảnh QR bên kia
+// (đúng với mọi mẫu, không phụ thuộc markup). Thẻ còn lại được canh giữa, giữ khổ cũ.
+function _cxHideGiftSide(side) {
+  const img = document.getElementById(`${side}-qr-img`);
+  const other = document.getElementById(`${side === "groom" ? "bride" : "groom"}-qr-img`);
+  if (!img || !other) return;
+  let card = img;
+  while (card.parentElement && !card.parentElement.contains(other)) card = card.parentElement;
+  const row = card.parentElement;
+  card.style.display = "none";
+  if (!row) return;
+  const display = getComputedStyle(row).display;
+  if (display.includes("grid")) row.style.gridTemplateColumns = "minmax(0, calc(50% - 8px))";
+  if (display.includes("grid") || display.includes("flex")) row.style.justifyContent = "center";
 }
 
 function renderMap(mapEmbedUrl, locationName) {

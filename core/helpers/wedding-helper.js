@@ -26,6 +26,11 @@ async function loadWeddingData(weddingSlug, renderCallback) {
         window.location.replace(u.toString());
         return;
       }
+      // Đếm lượt xem song song với lúc dựng; gói Free hết lượt thì khoá ngay — bản GET
+      // đang cache ở worker có thể còn chưa biết.
+      weddingBL.countView(weddingSlug).then((locked) => {
+        if (locked) showLockedInvitation({ ...wedding, code: "VIEW_LIMIT" });
+      });
     } else {
       if (typeof cxPreviewWedding !== "function") return;
       wedding = await cxPreviewWedding();
@@ -74,8 +79,9 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     // Hết hạn dùng thử: edge function trả 403 TRIAL_EXPIRED. Đây KHÔNG phải lỗi —
     // hiện màn khoá thay vì đá về trang chủ, nếu không khách mời (và cả chủ thiệp)
     // không hiểu vì sao link chết.
-    // Hết hạn gói 3/6 tháng (PLAN_EXPIRED) cũng khoá y vậy, chỉ khác câu chữ.
-    if (error && (error.code === "TRIAL_EXPIRED" || error.code === "PLAN_EXPIRED")) {
+    // Hết hạn gói (PLAN_EXPIRED) và gói Free hết lượt xem (VIEW_LIMIT) cũng khoá y vậy,
+    // chỉ khác câu chữ.
+    if (error && ["TRIAL_EXPIRED", "PLAN_EXPIRED", "VIEW_LIMIT"].includes(error.code)) {
       showLockedInvitation(error.info);
       return;
     }
@@ -128,8 +134,11 @@ function showLockedInvitation(info) {
     (info && info.code === "PLAN_EXPIRED"
       ? "Thiệp đã hết thời hạn hiển thị nên tạm thời chưa mở cho khách mời. " +
         "Chủ thiệp cần nâng gói để mở lại."
-      : "Thiệp đã hết hạn sử dụng nên tạm thời chưa mở cho khách mời. " +
-        "Chủ thiệp cần kích hoạt để mở lại.") +
+      : info && info.code === "VIEW_LIMIT"
+        ? "Thiệp đã hết lượt xem của gói Free nên tạm thời chưa mở cho khách mời. " +
+          "Chủ thiệp cần nâng gói để mở lại."
+        : "Thiệp đã hết hạn sử dụng nên tạm thời chưa mở cho khách mời. " +
+          "Chủ thiệp cần kích hoạt để mở lại.") +
     "</p>" +
     // Lối ra duy nhất của màn phủ kín: không có nút này khách mời chỉ còn cách
     // đóng tab (nút Back đưa về chính link thiệp → lại màn khoá).

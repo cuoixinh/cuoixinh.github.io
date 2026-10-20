@@ -40,7 +40,7 @@ export async function checkWeddingLimit(
 }
 
 export const FREE_LIMIT_MESSAGE =
-  'Mỗi tài khoản chỉ dùng được 1 thiệp gói Miễn phí. Hãy chọn gói 3 tháng hoặc Vĩnh viễn cho thiệp này.'
+  'Mỗi tài khoản chỉ dùng được 1 thiệp gói Free. Hãy chọn gói Premium hoặc Forever cho thiệp này.'
 
 /**
  * Tài khoản đã có thiệp gói Miễn phí khác chưa (đã chọn Miễn phí, chưa thanh toán — kể

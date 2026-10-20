@@ -252,6 +252,12 @@ Luồng: `invitation-setup/guests/` → `ai-invitation` (`mode=guests`, chỉ Đ
       mã giảm tính trong `cx_promo_reserve` trên giá gốc lấy từ DB, mã kém hơn ưu đãi ra mắt
       bị từ chối + nhả lượt (`no_benefit`); webhook lặp không cộng hạn hai lần (update khoá
       theo `payment_order_id` + `pending_plan`); đơn nâng gói không hạ `payment_status`.
+- [ ] **A32. Bộ đếm lượt xem công khai đốt được lượt của thiệp Free (2026-10-20, còn hở).**
+      `wedding-admin?resource=view` (POST, anon) không cần quyền: ai có link thiệp gói Free
+      gọi lặp 300 lần là thiệp bị khoá `VIEW_LIMIT`. Gộp lượt 30 phút chỉ ở trình duyệt
+      (`WeddingBL.countView`), server chỉ lọc User-Agent bot. Hệ quả giới hạn ở thiệp Free
+      (gói trả phí không có trần) và chỉ là khoá chứ không lộ dữ liệu. Cần thì thêm hạn mức
+      theo IP + slug ở Edge Function.
 
 ---
 

@@ -128,6 +128,8 @@ async function notFoundPage(env, request, res) {
 
 /* ─────────────────────────────── dữ liệu ─────────────────────────────── */
 
+const LOCK_CODES = ["TRIAL_EXPIRED", "PLAN_EXPIRED", "VIEW_LIMIT"];
+
 async function fetchWedding(env, slug) {
   try {
     const r = await fetch(`${env.EDGE_URL}?slug=${encodeURIComponent(slug)}`, {
@@ -135,9 +137,9 @@ async function fetchWedding(env, slug) {
     });
     const data = await r.json().catch(() => null);
     if (!data) return null;
-    // Hết hạn dùng thử / hết hạn gói vẫn trả kèm tên cô dâu chú rể — đủ dựng thẻ,
-    // và link vẫn mở được (màn khoá nằm trong trang thiệp).
-    if (!r.ok && data.code !== "TRIAL_EXPIRED" && data.code !== "PLAN_EXPIRED") return null;
+    // Hết hạn dùng thử / hết hạn gói / hết lượt xem vẫn trả kèm tên cô dâu chú rể — đủ
+    // dựng thẻ, và link vẫn mở được (màn khoá nằm trong trang thiệp).
+    if (!r.ok && !LOCK_CODES.includes(data.code)) return null;
     if (data.is_published === false) return null;
     return data;
   } catch (_) {

@@ -435,14 +435,14 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       upgrade?.from ?? null,
       upgrade?.planExpiresAt,
     ).find((q) => q.id === plan);
-    // Không có trong báo giá = gói đã thôi bán (6 tháng) với thiệp không giữ gói đó.
+    // Không có trong báo giá = gói đã thôi bán (3 tháng) với thiệp không giữ gói đó.
     if (!quote || !quote.available) {
       log.warn("payment.plan_unavailable", { manage_id, plan, from: upgrade?.from, reason: quote?.reason ?? "retired" });
       return new Response(JSON.stringify({
         error: !quote
-          ? "Gói này không còn bán, vui lòng chọn gói 3 tháng hoặc Vĩnh viễn"
+          ? "Gói này không còn bán, vui lòng chọn gói Premium hoặc Forever"
           : quote.reason === "too_late"
-            ? "Gói này đã quá hạn để nâng, vui lòng chọn gói Vĩnh viễn"
+            ? "Gói này đã quá hạn để nâng, vui lòng chọn gói Forever"
             : "Thiệp đang ở gói này hoặc gói cao hơn",
         code: "PLAN_UNAVAILABLE",
       }), { status: 409, headers: JSON_HEADERS });

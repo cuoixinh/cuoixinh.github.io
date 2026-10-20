@@ -4,6 +4,9 @@
 // chỗ trong mức này, không thì validateSlug cắt mất hậu tố lúc lưu.
 const SLUG_MAX_LENGTH = 50;
 
+// Khoảng gộp lượt xem cùng một máy (countView).
+const VIEW_DEDUPE_MS = 30 * 60 * 1000;
+
 class WeddingBL {
   constructor(weddingDAL, storageDAL) {
     this.dal = weddingDAL;
@@ -22,6 +25,27 @@ class WeddingBL {
     }
 
     return this.processWeddingData(data);
+  }
+
+  // Một máy mở lại cùng thiệp trong VIEW_DEDUPE_MS chỉ tính một lượt (tải lại trang,
+  // chuyển qua lại giữa các app). Trả true khi gói Free đã hết lượt xem → khoá thiệp.
+  async countView(slug) {
+    const key = `cx_view:${slug}`;
+    try {
+      const last = Number(localStorage.getItem(key)) || 0;
+      if (Date.now() - last < VIEW_DEDUPE_MS) return false;
+      localStorage.setItem(key, String(Date.now()));
+    } catch (e) {
+      /* chặn bộ nhớ (ẩn danh) → vẫn đếm */
+    }
+    try {
+      const r = await this.dal.countView(slug);
+      return !!(r && r.locked);
+    } catch (e) {
+      // Không ghi được lượt xem thì thôi — khách mời vẫn xem thiệp bình thường.
+      console.warn("Không ghi được lượt xem:", e);
+      return false;
+    }
   }
 
   async getWeddingById(id) {
