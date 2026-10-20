@@ -1420,8 +1420,8 @@
     { label: "Thiệp nhà trai, nhà gái", free: "1 trong 2", paid: "Cả 2" },
     // Gói trả phí: tổng cả hai thiệp (mỗi bên maxPerSide khách).
     { label: "Khách mời có tên", free: "20", paid: String(CONFIG.guestImport.maxPerSide * 2) },
-    { label: "Ảnh album", free: "10 ảnh", paid: "10 ảnh" },
-    { label: "Ảnh chuyện tình", free: "10 ảnh", paid: "10 ảnh" },
+    // Tổng trần của trình chỉnh sửa: 10 ảnh album + 10 mốc chuyện tình (mỗi mốc 1 ảnh).
+    { label: "Ảnh album, chuyện tình", free: "20 ảnh", paid: "20 ảnh" },
     { label: "Thêm người quản lý", free: false, paid: true },
     { label: "Xác nhận tham dự", free: true, paid: true },
     { label: "Lời chúc của khách", free: true, paid: true },
