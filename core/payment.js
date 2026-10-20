@@ -1422,7 +1422,7 @@
     { label: "Khách mời có tên", free: "20", paid: String(CONFIG.guestImport.maxPerSide * 2) },
     // Tổng trần của trình chỉnh sửa: 10 ảnh album + 10 mốc chuyện tình (mỗi mốc 1 ảnh).
     { label: "Ảnh album, chuyện tình", free: "20 ảnh", paid: "20 ảnh" },
-    { label: "Thêm người quản lý", free: false, paid: true },
+    { label: "Chia sẻ quyền quản lý", free: false, paid: true },
     { label: "Xác nhận tham dự", free: true, paid: true },
     { label: "Lời chúc của khách", free: true, paid: true },
     { label: "Hộp mừng cưới (QR)", free: true, paid: true },
