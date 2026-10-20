@@ -1511,6 +1511,21 @@ x-button {
   display: flex;
 }
 
+/* Popover chỉ chứa đoạn giải thích (không phải menu): dòng đậm đầu là tiêu đề. */
+.x-pop-note {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(var(--text-secondary-rgb));
+}
+.x-pop-note b {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+
 /* Mũi tên: ô vuông xoay 45° chỉ để lại hai cạnh viền quay ra ngoài. JS ghi
    --x-pop-tail (px tính từ mép trái thẻ) để nó chỉ đúng tâm nút mở. */
 .x-pop.has-arrow::after {
@@ -5093,6 +5108,24 @@ button.cx-ok-close:hover {
 .cx-ord-cmp-no {
   display: inline-block;
   color: rgb(var(--divider-rgb));
+}
+.cx-ord-cmp-nw {
+  white-space: nowrap;
+}
+/* Nút "i" sau nhãn hàng có lời giải thích (cxCmpInfo), ô bấm 24px. */
+.cx-ord-cmp-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px 0 -4px 2px;
+  vertical-align: middle;
+  color: rgb(var(--text-secondary-rgb));
+}
+.cx-ord-cmp-info:hover,
+.cx-ord-cmp-info[aria-expanded="true"] {
+  color: rgb(var(--action-primary-deep-rgb));
 }
 .cx-ord-cmp-lim {
   font-weight: 700;

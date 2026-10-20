@@ -1413,6 +1413,7 @@
 
   // Bảng so sánh: hàng = quyền lợi, cột = gói trong báo giá (+ Free khi thẻ đó có).
   // `free` là giá trị của gói Free, `paid` của mọi gói trả tiền; true/false vẽ ✓/✗.
+  // `info` = lời giải thích, nhãn hàng có thêm nút "i" mở popover (cxCmpInfo).
   // Con số phải khớp FREE_PLAN (_shared/plans.ts) và trần khách của guest-handler.
   const _CMP_ROWS = [
     { label: "Thời hạn", free: _freeTerm(), paid: (p) => (p.months ? `${p.months} tháng` : "Trọn đời") },
@@ -1422,7 +1423,15 @@
     { label: "Khách mời có tên", free: "20", paid: String(CONFIG.guestImport.maxPerSide * 2) },
     // Tổng trần của trình chỉnh sửa: 10 ảnh album + 10 mốc chuyện tình (mỗi mốc 1 ảnh).
     { label: "Ảnh album, chuyện tình", free: "20 ảnh", paid: "20 ảnh" },
-    { label: "Chia sẻ quyền quản lý", free: false, paid: true },
+    {
+      label: "Chia sẻ quyền quản lý",
+      free: false,
+      paid: true,
+      info:
+        "Mời thêm 1 người (người bạn đời, bố mẹ…) bằng email để cùng quản lý khách mời: " +
+        "thêm khách, gửi link mời, theo dõi xác nhận tham dự. Có thể chỉ giao khách nhà trai " +
+        "hoặc nhà gái. Người được mời không sửa được nội dung thiệp.",
+    },
     { label: "Xác nhận tham dự", free: true, paid: true },
     { label: "Lời chúc của khách", free: true, paid: true },
     { label: "Hộp mừng cưới (QR)", free: true, paid: true },
@@ -1457,7 +1466,7 @@
         : v === false
           ? '<i data-lucide="x" class="cx-ord-cmp-no" style="width:14px;height:14px"></i><span class="sr-only">Không</span>'
           : `<span${isFree ? ' class="cx-ord-cmp-lim"' : ""}>${v}</span>`;
-    const body = _CMP_ROWS.map((r) => {
+    const body = _CMP_ROWS.map((r, i) => {
       const tds = cols
         .map((p) => {
           const free = p.id === "free";
@@ -1465,7 +1474,17 @@
           return `<td class="${p.id === window._paymentPlan ? "is-on" : ""}">${cell(v, free)}</td>`;
         })
         .join("");
-      return `<tr><th scope="row">${r.label}</th>${tds}</tr>`;
+      const info = r.info
+        ? `<x-button variant="bare" icon-only class="cx-ord-cmp-info" onclick="cxCmpInfo(this, ${i})"` +
+          ` aria-label="Giải thích: ${r.label}" title="${r.label} là gì?">` +
+          '<i data-lucide="info" style="width:14px;height:14px"></i></x-button>'
+        : "";
+      // Nút "i" dính vào chữ cuối của nhãn, không rớt xuống dòng một mình.
+      const cut = r.label.lastIndexOf(" ");
+      const label = info
+        ? `${r.label.slice(0, cut + 1)}<span class="cx-ord-cmp-nw">${r.label.slice(cut + 1)}${info}</span>`
+        : r.label;
+      return `<tr><th scope="row">${label}</th>${tds}</tr>`;
     }).join("");
     box.innerHTML =
       `<p class="cx-ord-eyebrow">So sánh các gói</p>` +
@@ -1475,6 +1494,28 @@
     window.lucide?.createIcons({ root: box });
   }
 
+
+  // Popover giải thích một hàng của bảng so sánh; bấm lại đúng nút "i" đang mở thì đóng.
+  window.cxCmpInfo = function (btn, i) {
+    const row = _CMP_ROWS[i];
+    if (!row?.info) return;
+    let pop = document.getElementById("cx-cmp-info-pop");
+    if (!pop) {
+      pop = document.createElement("x-popover");
+      pop.id = "cx-cmp-info-pop";
+      pop.setAttribute("arrow", "");
+      pop.setAttribute("placement", "top");
+      pop.setAttribute("width", "280");
+      pop.setAttribute("role", "dialog");
+      document.body.appendChild(pop);
+    }
+    if (pop.isOpen && pop._anchorEl === btn) return pop.close();
+    pop.innerHTML = '<p class="x-pop-note"><b></b><span></span></p>';
+    pop.querySelector("b").textContent = row.label;
+    pop.querySelector("span").textContent = row.info;
+    pop.setAttribute("aria-label", row.label);
+    pop.open(btn);
+  };
 
   // Ba thẻ gói. Gói đang dùng / thấp hơn / quá hạn để nâng vẫn hiện (khách cần
   // thấy mình đang ở đâu) nhưng khoá lại. Huy hiệu "Khuyên dùng" chỉ khi mua mới.
