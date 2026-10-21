@@ -62,7 +62,7 @@ bị xoá hẳn): đã có thì PATCH trả 409 `FREE_LIMIT`.
 
 **Gói thời hạn** (Premium 6 tháng · Forever vĩnh viễn): số tháng, hệ số giá, nhãn và luật
 nâng gói chỉ nằm ở `supabase/functions/_shared/plans.ts`. Giá gói = `template_pricing.price`
-× hệ số (Premium ×1.3, Forever ×1.5). Nâng gói trả phần chênh, hạn mới tính từ ngày bắt đầu gói cũ;
+× hệ số (Premium ×1 — đúng giá gốc, Forever ×1.5). Nâng gói trả phần chênh, hạn mới tính từ ngày bắt đầu gói cũ;
 đơn nâng KHÔNG hạ `payment_status` (hạ xuống là thiệp hết gói thoát khoá). Đơn đang chờ nằm ở
 `pending_plan` + `pending_amount`, `payos-webhook` áp xong thì xoá về null — còn treo
 `pending_plan` nghĩa là chưa trả, kể cả khi thiệp đã `completed`.
