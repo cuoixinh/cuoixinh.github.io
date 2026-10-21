@@ -745,7 +745,6 @@
             <div class="px-6 pb-5">
               <p id="payment-plans-title" class="cx-ord-eyebrow">Chọn gói</p>
               <div id="payment-plans" class="cx-ord-plans" role="radiogroup" aria-labelledby="payment-plans-title"></div>
-              <p id="payment-plan-note" class="cx-ord-plan-note" style="display:none;"></p>
               <!-- Gói Miễn phí: chọn bên được mở (_syncFree). Giới hạn của gói nằm ở bảng
                    so sánh. Chỉ có với thiệp đã lưu mà chưa thanh toán (_freeOk). -->
               <fieldset id="payment-free-box" class="cx-ord-free" style="display:none;">
@@ -880,7 +879,7 @@
                 <span class="cx-ord-pay-in">
                   <span class="cx-ord-pay-ico"><i data-lucide="qr-code" style="width:18px;height:18px"></i></span>
                   <span class="cx-ord-pay-txt">
-                    <span class="cx-ord-pay-label">Thanh toán ngay</span>
+                    <span class="cx-ord-pay-label">Quét QR để thanh toán</span>
                     <span id="payment-submit-sub" class="cx-ord-pay-sub">Kích hoạt tức thì</span>
                   </span>
                   <span id="payment-total-price" class="cx-ord-pay-total">…</span>
@@ -1321,7 +1320,7 @@
           : "Thiệp cưới online";
     }
     _renderPlans();
-    _syncPlanNote(p);
+    _syncSubmitSub(p);
     _syncFree();
     if (window._promoCandidate) _syncPromo();
     else _renderPrices();
@@ -1348,7 +1347,7 @@
     const line = document.getElementById("payment-plan-line");
     if (line) line.textContent = `Thiệp cưới online · miễn phí ${_freeTerm()}, có giới hạn`;
     _renderPlans();
-    _syncPlanNote(null);
+    _syncSubmitSub(null);
     _syncFree();
     _renderPrices();
   }
@@ -1381,7 +1380,7 @@
       }
     });
     const lbl = document.querySelector("#payment-submit .cx-ord-pay-label");
-    if (lbl) lbl.textContent = on ? "Dùng miễn phí" : "Thanh toán ngay";
+    if (lbl) lbl.textContent = on ? "Dùng miễn phí" : "Quét QR để thanh toán";
     const sub = document.getElementById("payment-submit-sub");
     if (sub && on) sub.textContent = `Gói Free · ${_freeTerm()}`;
   }
@@ -1414,7 +1413,12 @@
   // Bảng so sánh: hàng = quyền lợi, cột = gói trong báo giá (+ Free khi thẻ đó có).
   // `free` là giá trị của gói Free, `paid` của mọi gói trả tiền; true/false vẽ ✓/✗.
   // `info` = lời giải thích, nhãn hàng có thêm nút "i" mở popover (cxCmpInfo).
+  // `group` = nhóm hàng (_CMP_GROUPS), không khai là nhóm đầu.
   // Con số phải khớp FREE_PLAN (_shared/plans.ts) và trần khách của guest-handler.
+  const _CMP_GROUPS = [
+    { id: "basic", label: "Cơ bản" },
+    { id: "adv", label: "Nâng cao" },
+  ];
   const _CMP_ROWS = [
     { label: "Thời hạn", free: _freeTerm(), paid: (p) => (p.months ? `${p.months} tháng` : "Trọn đời") },
     { label: "Lượt xem thiệp", free: `${CONFIG.freePlanViews} lượt`, paid: "Không giới hạn" },
@@ -1425,6 +1429,7 @@
     { label: "Ảnh album, chuyện tình", free: "20 ảnh", paid: "20 ảnh" },
     {
       label: "Chia sẻ quyền quản lý",
+      group: "adv",
       free: false,
       paid: true,
       info:
@@ -1439,7 +1444,7 @@
   ];
 
   // Chỉ có khi MUA gói (bảng nâng gói đã nói rõ phần chênh). Bấm tiêu đề cột = chọn gói,
-  // cùng đường với thẻ gói nên hai nơi luôn khớp nhau.
+  // cùng đường với thẻ gói. Cố ý KHÔNG tô cột gói đang chọn — thẻ gói phía trên đã cho thấy.
   function _renderCompare() {
     const wrap = document.getElementById("payment-compare-wrap");
     const box = document.getElementById("payment-compare");
@@ -1451,28 +1456,26 @@
     }
     const cols = (_freeShown() ? [{ id: "free", label: "Free", available: _freeOk() }] : []).concat(q.plans);
     const head = cols
-      .map((p) => {
-        const on = p.id === window._paymentPlan ? " is-on" : "";
-        return (
-          `<th scope="col" class="cx-ord-cmp-h${on}"><button type="button" class="cx-ord-cmp-pick"` +
+      .map(
+        (p) =>
+          `<th scope="col"><button type="button" class="cx-ord-cmp-pick"` +
           (p.available ? ` onclick="cxPickPlan('${p.id}')"` : " disabled") +
-          ` aria-pressed="${!!on}">${p.label}</button></th>`
-        );
-      })
+          `>${p.label}</button></th>`,
+      )
       .join("");
     // `lim` = ô Free tô đậm kiểu giới hạn — chỉ khi nó thật sự kém gói trả tiền.
     const cell = (v, lim) =>
       v === true
-        ? '<i data-lucide="check" class="cx-ord-cmp-yes" style="width:16px;height:16px"></i><span class="sr-only">Có</span>'
+        ? '<span class="cx-ord-cmp-yes"><i data-lucide="check" style="width:12px;height:12px"></i></span><span class="sr-only">Có</span>'
         : v === false
-          ? '<i data-lucide="x" class="cx-ord-cmp-no" style="width:14px;height:14px"></i><span class="sr-only">Không</span>'
+          ? '<span class="cx-ord-cmp-no"><i data-lucide="x" style="width:10px;height:10px"></i></span><span class="sr-only">Không</span>'
           : `<span${lim ? ' class="cx-ord-cmp-lim"' : ""}>${v}</span>`;
-    const body = _CMP_ROWS.map((r, i) => {
+    const row = (r, i) => {
       const tds = cols
         .map((p) => {
           const free = p.id === "free";
           const v = free ? r.free : typeof r.paid === "function" ? r.paid(p) : r.paid;
-          return `<td class="${p.id === window._paymentPlan ? "is-on" : ""}">${cell(v, free && v !== r.paid)}</td>`;
+          return `<td>${cell(v, free && v !== r.paid)}</td>`;
         })
         .join("");
       const info = r.info
@@ -1486,6 +1489,13 @@
         ? `${r.label.slice(0, cut + 1)}<span class="cx-ord-cmp-nw">${r.label.slice(cut + 1)}${info}</span>`
         : r.label;
       return `<tr><th scope="row">${label}</th>${tds}</tr>`;
+    };
+    // Mỗi nhóm mở bằng một hàng tiêu đề.
+    const groupHead = (g) =>
+      `<tr class="cx-ord-cmp-grp"><th scope="colgroup">${g.label}</th>` + "<td></td>".repeat(cols.length) + "</tr>";
+    const body = _CMP_GROUPS.map((g) => {
+      const rows = _CMP_ROWS.map((r, i) => ((r.group || _CMP_GROUPS[0].id) === g.id ? row(r, i) : "")).join("");
+      return rows ? groupHead(g) + rows : "";
     }).join("");
     box.innerHTML =
       `<p class="cx-ord-eyebrow">So sánh các gói</p>` +
@@ -1579,25 +1589,13 @@
     window.lucide?.createIcons({ root: box });
   }
 
-  // Dòng ngay dưới các thẻ: gói đang chọn mở thiệp tới NGÀY NÀO (server tính, kể cả
-  // khi nâng gói — hạn mới tính từ ngày mua gói đầu, không phải từ hôm nay). Cùng
-  // lúc đổi dòng phụ trên nút thanh toán.
-  function _syncPlanNote(p) {
-    const note = document.getElementById("payment-plan-note");
+  // Dòng phụ trên nút thanh toán: tên gói đang chọn.
+  function _syncSubmitSub(p) {
     const sub = document.getElementById("payment-submit-sub");
     if (sub)
       sub.textContent = p
         ? `${window._planQuote?.current_plan ? "Nâng lên" : "Gói"} ${p.label}`
         : "Kích hoạt tức thì";
-    if (!note) return;
-    // Gói vĩnh viễn không có ngày để báo → ẩn dòng này.
-    if (!p || !p.expires_at) {
-      note.style.display = "none";
-      return;
-    }
-    note.innerHTML = `<i data-lucide="calendar-check" style="width:14px;height:14px"></i><span>Khách mời xem được thiệp đến hết ngày <b>${_fmtDate(p.expires_at)}</b></span>`;
-    note.style.display = "flex";
-    window.lucide?.createIcons({ root: note });
   }
 
   // Nút thanh toán cần CẢ HAI: có người mua (không có danh tính thì không dựng
