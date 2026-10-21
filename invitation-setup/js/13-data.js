@@ -657,6 +657,9 @@ function _fillForm(data) {
   IS_PLAN_LOCKED = !!data.plan_locked;
   IS_THEME_LOCKED = !!data.theme_locked;
   FREE_SIDE = data.free_side || null;
+  VIEW_COUNT = data.view_count ?? null;
+  VIEW_LIMIT = data.view_limit ?? null;
+  _warnFreeViews();
   window._syncThemeLock?.();
   _syncAdvancedSection();
 
@@ -664,6 +667,19 @@ function _fillForm(data) {
 
   // Sync clear-button state on all x-input components after programmatic fill
   document.querySelectorAll("x-input").forEach((el) => el.syncClearBtn?.());
+}
+
+// Gói Free sắp hết / đã hết lượt xem: nhắc một lần mỗi phiên mở thiệp (popup xuất bản
+// nhắc lại ở _freeViewsHtml).
+function _warnFreeViews() {
+  const level = weddingBL.viewsLevel(VIEW_COUNT, VIEW_LIMIT);
+  if (level !== "warn" && level !== "out") return;
+  showToast(
+    level === "out"
+      ? `Thiệp đã hết ${VIEW_LIMIT} lượt xem của gói Free — khách mời đang thấy màn tạm khoá. Nâng gói để mở lại.`
+      : `Thiệp đã dùng ${VIEW_COUNT}/${VIEW_LIMIT} lượt xem của gói Free. Nâng gói để không bị khoá.`,
+    "warning",
+  );
 }
 
 // Ngày sự kiện KHÔNG bị chặn theo hôm nay — cho nhập/lưu cả ngày trong quá khứ.

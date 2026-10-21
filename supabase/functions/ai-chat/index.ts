@@ -42,6 +42,7 @@ import {
   type GeminiUsage,
 } from '../_shared/ai-provider.ts'
 import { enforceRateLimit, sanitizeDevice } from '../_shared/ai-rate-limit.ts'
+import { PLAN_IDS, PLANS, planPrice } from '../_shared/plans.ts'
 import {
   FIELD_KEYS,
   FIELD_KEYS_TEXT,
@@ -318,9 +319,15 @@ let _catalog = { at: 0, text: '' }
 
 function catalogText(items: CatalogItem[]): string {
   const lines = items.map((it) => {
-    const price = it.price ? `${Number(it.price).toLocaleString('vi-VN')}đ` : 'liên hệ'
-    const original = it.originalPrice && it.originalPrice > (it.price ?? 0)
-      ? ` (giá gốc ${Number(it.originalPrice).toLocaleString('vi-VN')}đ)`
+    // `price` là giá gốc chưa nhân hệ số — báo theo từng gói, không thì XuXi nói một
+    // giá mà màn thanh toán đòi giá khác.
+    const vnd = (n: number) => `${n.toLocaleString('vi-VN')}đ`
+    const base = Number(it.price)
+    const price = it.price && Number.isFinite(base)
+      ? PLAN_IDS.map((id) => `${PLANS[id].label} ${vnd(planPrice(base, id))}`).join(', ')
+      : 'liên hệ'
+    const original = it.originalPrice && it.originalPrice > base
+      ? ` (giá gốc ${PLAN_IDS.map((id) => vnd(planPrice(Number(it.originalPrice), id))).join(' / ')})`
       : ''
     const desc = it.description ? ` — ${it.description.slice(0, 120)}` : ''
     return `- ${it.name}: ${price}${original}${desc}`

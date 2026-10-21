@@ -14,6 +14,7 @@
 
 import {
   DEFAULT_THEME,
+  LOCK_CODES,
   REWRITE_ATTRS,
   THEME_NAME,
   rewriteAttr,
@@ -135,9 +136,9 @@ async function fetchWedding(env, slug) {
     });
     const data = await r.json().catch(() => null);
     if (!data) return null;
-    // Hết hạn dùng thử / hết hạn gói vẫn trả kèm tên cô dâu chú rể — đủ dựng thẻ,
-    // và link vẫn mở được (màn khoá nằm trong trang thiệp).
-    if (!r.ok && data.code !== "TRIAL_EXPIRED" && data.code !== "PLAN_EXPIRED") return null;
+    // Hết hạn dùng thử / hết hạn gói / hết lượt xem vẫn trả kèm tên cô dâu chú rể — đủ
+    // dựng thẻ, và link vẫn mở được (màn khoá nằm trong trang thiệp).
+    if (!r.ok && !LOCK_CODES.includes(data.code)) return null;
     if (data.is_published === false) return null;
     return data;
   } catch (_) {

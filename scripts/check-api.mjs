@@ -174,8 +174,10 @@ async function newPromo(fields) {
   batches.add(r.json.batch_id);
   return r.json;
 }
-// plan 3m = đúng giá template_pricing.price (PRICE) — các phép so số tiền bên dưới dựa vào đó.
-const payBody = (manage_id, extra = {}) => ({ manage_id, customer_name: "QA Tester", customer_email: "qa@example.com", template_name: THEME, theme: THEME, plan: "3m", ...extra });
+// Mua gói Premium (6m); PRICE/ORIGINAL là giá gói đó, xin từ payment-handler/quote lúc khởi
+// động (không chép hệ số của _shared/plans.ts) — các phép so số tiền bên dưới dựa vào đó.
+const TEST_PLAN = "6m";
+const payBody = (manage_id, extra = {}) => ({ manage_id, customer_name: "QA Tester", customer_email: "qa@example.com", template_name: THEME, theme: THEME, plan: TEST_PLAN, ...extra });
 const orderStatus = async (order_id) => (await PAY("/check-payment-status", { query: { order_id } })).json;
 
 // Chữ ký webhook theo tài liệu PayOS: sắp khoá a→z, null → rỗng, HMAC-SHA256 hex.
@@ -1096,8 +1098,15 @@ if (tpl.status !== 200) {
 }
 const priced = tpl.json.filter((t) => t.price != null);
 THEME = priced[0]?.theme;
-PRICE = priced[0]?.price;
-ORIGINAL = priced[0]?.originalPrice ?? null;
+if (THEME) {
+  const q = await PAY("/quote", { method: "POST", body: { theme: THEME } });
+  const plan = q.json?.plans?.find((p) => p.id === TEST_PLAN);
+  if (q.status !== 200 || !plan) {
+    console.error(`✗ Không báo giá được gói ${TEST_PLAN} cho ${THEME} (${q.status}) — nhóm PAY/WH sẽ hỏng.`);
+  }
+  PRICE = plan?.price;
+  ORIGINAL = plan?.original_price ?? null;
+}
 THEME_ALT = tpl.json.find((t) => t.theme !== THEME)?.theme;
 if (!THEME) {
   console.error("✗ Không có mẫu nào có giá trên staging — nhóm PAY/WH sẽ hỏng.");

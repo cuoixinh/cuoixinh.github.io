@@ -149,6 +149,10 @@ class TemplatesDAL {
       thumbnailUrl: t.thumbnailUrl ?? t.thumbnail ?? null,
       price: Number.isFinite(t.price) ? t.price : null,
       originalPrice: Number.isFinite(t.originalPrice) ? t.originalPrice : null,
+      // Giá ĐEM RA HIỆN (gói rẻ nhất, server tính). `price` chỉ là giá gốc chưa nhân
+      // hệ số, dùng để biết mẫu có bán không — đừng đem ra hiện.
+      fromPrice: Number.isFinite(t.fromPrice) ? t.fromPrice : null,
+      fromOriginalPrice: Number.isFinite(t.fromOriginalPrice) ? t.fromOriginalPrice : null,
     }));
   }
 }

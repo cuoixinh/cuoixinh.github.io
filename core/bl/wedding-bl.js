@@ -4,6 +4,11 @@
 // chỗ trong mức này, không thì validateSlug cắt mất hậu tố lúc lưu.
 const SLUG_MAX_LENGTH = 50;
 
+// Khoảng gộp lượt xem cùng một máy (countView).
+const VIEW_DEDUPE_MS = 30 * 60 * 1000;
+// Gói Free dùng tới tỉ lệ lượt xem này thì cảnh báo sắp hết (viewsLevel).
+const VIEW_WARN_RATIO = 0.8;
+
 class WeddingBL {
   constructor(weddingDAL, storageDAL) {
     this.dal = weddingDAL;
@@ -22,6 +27,27 @@ class WeddingBL {
     }
 
     return this.processWeddingData(data);
+  }
+
+  // Một máy mở lại cùng thiệp trong VIEW_DEDUPE_MS chỉ tính một lượt (tải lại trang,
+  // chuyển qua lại giữa các app). Trả true khi gói Free đã hết lượt xem → khoá thiệp.
+  async countView(slug) {
+    const key = `cx_view:${slug}`;
+    try {
+      const last = Number(localStorage.getItem(key)) || 0;
+      if (Date.now() - last < VIEW_DEDUPE_MS) return false;
+      localStorage.setItem(key, String(Date.now()));
+    } catch (e) {
+      /* chặn bộ nhớ (ẩn danh) → vẫn đếm */
+    }
+    try {
+      const r = await this.dal.countView(slug);
+      return !!(r && r.locked);
+    } catch (e) {
+      // Không ghi được lượt xem thì thôi — khách mời vẫn xem thiệp bình thường.
+      console.warn("Không ghi được lượt xem:", e);
+      return false;
+    }
   }
 
   async getWeddingById(id) {
@@ -149,6 +175,14 @@ class WeddingBL {
     }
 
     return normalized;
+  }
+
+  // Mức lượt xem của thiệp gói Free — luật DUY NHẤT cho mọi chỗ cảnh báo (thẻ thiệp,
+  // toast + popup xuất bản ở trang Thiết lập). null = không đếm (không phải gói Free).
+  viewsLevel(count, limit) {
+    if (!limit || count == null) return null;
+    if (count >= limit) return "out";
+    return count >= limit * VIEW_WARN_RATIO ? "warn" : "ok";
   }
 
   isActive(wedding) {

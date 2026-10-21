@@ -77,8 +77,8 @@ async function openThemePicker() {
                 <p class="text-sm font-medium ${isCurrent ? "text-rose-600" : "text-gray-800"}">${t.name}</p>
                 ${t.description ? `<p class="text-xs text-gray-400 mt-0.5 line-clamp-2">${t.description}</p>` : ""}
                 <div class="flex items-center gap-1.5 mt-1">
-                  <span class="text-xs font-semibold text-rose-500">${t.price.toLocaleString("vi-VN")}đ</span>
-                  ${t.originalPrice > t.price ? `<span class="text-[11px] text-gray-400 line-through">${t.originalPrice.toLocaleString("vi-VN")}đ</span>` : ""}
+                  <span class="text-xs font-semibold text-rose-500">${Number.isFinite(t.fromPrice) ? `Từ ${t.fromPrice.toLocaleString("vi-VN")}đ` : "Liên hệ"}</span>
+                  ${t.fromOriginalPrice > t.fromPrice ? `<span class="text-[11px] text-gray-400 line-through">${t.fromOriginalPrice.toLocaleString("vi-VN")}đ</span>` : ""}
                 </div>
               </div>
               ${

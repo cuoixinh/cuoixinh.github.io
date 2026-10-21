@@ -8,6 +8,11 @@
 // Tên thư mục mẫu do khách sửa được qua API → chỉ nhận dạng slug thư mục.
 export const THEME_NAME = /^[a-z0-9][a-z0-9-]*$/;
 
+// Mã lỗi khoá thiệp của wedding-admin (403 kèm theme + tên): vẫn dựng trang thiệp để
+// nó hiện màn khoá, không đá về trang chủ. Trình duyệt đọc bản sao CONFIG.lockCodes
+// (router.html, wedding-helper.js) — LINT-32 gác hai danh sách khớp nhau.
+export const LOCK_CODES = ["TRIAL_EXPIRED", "PLAN_EXPIRED", "VIEW_LIMIT"];
+
 // Path có route riêng trong router.html — không phải slug thiệp.
 export const ROUTE_PATHS = new Set(["manage", "account", "customer"]);
 

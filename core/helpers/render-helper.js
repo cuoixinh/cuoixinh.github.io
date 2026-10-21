@@ -150,6 +150,59 @@ function renderQRCodes(wedding) {
   setText("bride-bank-owner", wedding.bride_bank_owner, "--------------------");
   setAttr("bride-qr-img", "src", getImageUrl(wedding.bride_qr_url));
   applyFocalPoint("bride-qr-img", wedding.image_focal_points?.bride_qr_url);
+
+  // Gói Free chỉ có QR của bên được mở (server gỡ thông tin bên kia) → ẩn hẳn thẻ bên kia.
+  if (wedding.free_side) _cxHideGiftSide(wedding.free_side === "groom" ? "bride" : "groom");
+}
+
+// Thẻ QR của một bên = tổ tiên cao nhất của ảnh QR bên đó mà KHÔNG chứa ảnh QR bên kia
+// (đúng với mọi mẫu, không phụ thuộc markup). Thẻ còn lại được canh giữa, giữ khổ một
+// cột theo gap + số cột THẬT của mẫu — chạy lúc #main-card có thể còn display:none nên
+// không đo px được, chỉ đọc khai báo CSS.
+function _cxHideGiftSide(side) {
+  const img = document.getElementById(`${side}-qr-img`);
+  const other = document.getElementById(`${side === "groom" ? "bride" : "groom"}-qr-img`);
+  if (!img || !other) return;
+  let card = img;
+  while (card.parentElement && !card.parentElement.contains(other)) card = card.parentElement;
+  let keep = other;
+  while (keep.parentElement && keep.parentElement !== card.parentElement) keep = keep.parentElement;
+  const row = card.parentElement;
+  card.style.display = "none";
+  if (!row || keep.parentElement !== row) return;
+  const cs = getComputedStyle(row);
+  const gap = parseFloat(cs.columnGap) || 0;
+  const oneCol = (n) => `calc((100% - ${gap * (n - 1)}px) / ${n})`;
+  if (cs.display.includes("grid")) {
+    const n = _cxGridCols(cs.gridTemplateColumns);
+    if (n < 2) return; // xếp dọc (vd mobile) — bỏ một thẻ là xong
+    keep.style.gridColumn = "1 / -1";
+    keep.style.justifySelf = "center";
+    keep.style.width = oneCol(n);
+  } else if (cs.display.includes("flex") && !cs.flexDirection.startsWith("column")) {
+    row.style.justifyContent = "center";
+    keep.style.maxWidth = oneCol(2);
+  }
+}
+
+// Số cột của một giá trị grid-template-columns (dạng đã đo "120px 120px" hoặc dạng khai
+// "repeat(2, minmax(0, 1fr))") — đếm token cấp cao nhất, repeat(N, …) tính N lần.
+function _cxGridCols(tpl) {
+  if (!tpl || tpl === "none") return 1;
+  let n = 0, depth = 0, tok = "";
+  const flush = () => {
+    const m = tok.match(/^repeat\(\s*(\d+)/);
+    if (tok) n += m ? Number(m[1]) : tok.startsWith("[") ? 0 : 1;
+    tok = "";
+  };
+  for (const ch of tpl) {
+    if (ch === "(" || ch === "[") depth++;
+    if (ch === ")" || ch === "]") depth--;
+    if (ch === " " && depth === 0) flush();
+    else tok += ch;
+  }
+  flush();
+  return n;
 }
 
 function renderMap(mapEmbedUrl, locationName) {

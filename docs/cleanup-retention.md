@@ -37,29 +37,32 @@ stateDiagram-v2
 | ---------- | -------------------------------------------------------------------- | ------------------- |
 | Nháp       | `is_published = false`                                               | không — 403 `NOT_PUBLISHED` |
 | Dùng thử   | `is_published`, `expires_at > now()`, `free_side` null               | có                  |
-| Gói Miễn phí | chưa thanh toán, `free_side` có giá trị, `expires_at > now()`      | có — bị cắt theo `FREE_PLAN` (xem dưới) |
+| Gói Free   | chưa thanh toán, `free_side` có giá trị, `expires_at > now()`, chưa đủ `FREE_PLAN.views` lượt xem | có — bị cắt theo `FREE_PLAN` (xem dưới) |
+| Hết lượt xem | gói Free, `wedding_stats.view_count >= FREE_PLAN.views`            | **không** — 403 `VIEW_LIMIT` |
 | Hết hạn    | `is_published`, `expires_at < now()`, `payment_status <> 'completed'` | **không** — 403     |
 | Kích hoạt  | `payment_status = 'completed'`, `plan_expires_at` null (gói vĩnh viễn hoặc mua trước khi có gói) | có, vĩnh viễn |
 | Gói còn hạn | `payment_status = 'completed'`, `plan_expires_at > now()`           | có                  |
 | Hết hạn gói | `payment_status = 'completed'`, `plan_expires_at < now()`           | **không** — 403 `PLAN_EXPIRED` |
 
-**Gói Miễn phí** = thiệp chưa thanh toán mà khách đã CHỌN Miễn phí ở trang thanh toán (thẻ
-"Miễn phí" ở `core/payment.js`, chỉ có với thiệp đã có hàng DB và chưa thanh toán). Không qua
-PayOS: client PATCH `free_side` lên `wedding-admin`, server xuất bản luôn và đặt `expires_at =
-lúc chọn + FREE_PLAN.days` — dùng thử hết hạn rồi chọn vẫn được đủ số ngày đó. Chọn một lần,
-chốt bên. Giới hạn ở `FREE_PLAN` của `_shared/plans.ts`: chỉ mở một bên (`weddings.free_side`;
-link bên kia tự chuyển về bên đã chọn ở `loadWeddingData`), 20 khách ở bên đó
-(`guest-handler`), và `applyFreeLimits` cắt dữ liệu ĐƯỜNG CÔNG KHAI `?slug=` (5 ảnh album, 5
-ảnh chuyện tình, tắt hộp mừng cưới, gỡ thông tin ngân hàng — xác nhận tham dự và lời chúc
-vẫn mở).
+**Gói Free** = thiệp chưa thanh toán mà khách đã CHỌN Free ở trang thanh toán (thẻ "Free" ở
+`core/payment.js`, chỉ có với thiệp đã có hàng DB và chưa thanh toán). Không qua PayOS: client
+PATCH `free_side` lên `wedding-admin`, server xuất bản luôn và đặt `expires_at = lúc chọn +
+FREE_PLAN.days` (90 ngày) — dùng thử 3 ngày là chuyện riêng, hết hạn rồi chọn vẫn được đủ số
+ngày đó (gói trả phí cũng tính hạn từ lúc mua). Chọn một lần, chốt bên. Giới hạn ở `FREE_PLAN`
+của `_shared/plans.ts`: chỉ mở một bên (`weddings.free_side`; link bên kia tự chuyển về bên đã
+chọn ở `loadWeddingData`), 20 khách ở bên đó (`guest-handler`), `FREE_PLAN.views` (300) lượt xem
+(xem mục 7), không có thành viên cùng quản lý, và `applyFreeLimits` gỡ thông tin ngân hàng của
+bên KIA ở đường công khai `?slug=` — hộp mừng cưới chỉ còn QR của bên được mở
+(`renderQRCodes` ẩn thẻ bên kia). Ảnh (10 album + 10 chuyện tình, trần chung của trình chỉnh
+sửa), xác nhận tham dự và lời chúc như gói trả phí.
 Đường `?id=` của trình chỉnh sửa KHÔNG bị cắt — cắt ở đó là lần lưu sau ghi đè mất dữ liệu
-thật. Dùng thử (`free_side` null) vẫn đủ tính năng như trước. Mỗi tài khoản chỉ 1 thiệp Miễn
-phí (`hasOtherFreeWedding` ở `_shared/wedding-limits.ts`, đếm cả thiệp đã hết hạn/đang ẩn tới
-khi bị xoá hẳn): đã có thì PATCH trả 409 `FREE_LIMIT`.
+thật. Dùng thử (`free_side` null) vẫn đủ tính năng như trước. Mỗi tài khoản chỉ 1 thiệp Free
+(`hasOtherFreeWedding` ở `_shared/wedding-limits.ts`, đếm cả thiệp đã hết hạn/đang ẩn tới khi
+bị xoá hẳn): đã có thì PATCH trả 409 `FREE_LIMIT`.
 
-**Gói thời hạn** (3 tháng · vĩnh viễn; 6 tháng đã thôi bán, chỉ còn cho thiệp đang giữ): số tháng, hệ số giá và luật nâng gói chỉ nằm
-ở `supabase/functions/_shared/plans.ts`. Giá gói = `template_pricing.price` × hệ số (3 tháng ×1,
-6 tháng ×1.3, vĩnh viễn ×1.5). Nâng gói trả phần chênh, hạn mới tính từ ngày bắt đầu gói cũ;
+**Gói thời hạn** (Premium 6 tháng · Forever vĩnh viễn): số tháng, hệ số giá, nhãn và luật
+nâng gói chỉ nằm ở `supabase/functions/_shared/plans.ts`. Giá gói = `template_pricing.price`
+× hệ số (Premium ×1.3, Forever ×1.5). Nâng gói trả phần chênh, hạn mới tính từ ngày bắt đầu gói cũ;
 đơn nâng KHÔNG hạ `payment_status` (hạ xuống là thiệp hết gói thoát khoá). Đơn đang chờ nằm ở
 `pending_plan` + `pending_amount`, `payos-webhook` áp xong thì xoá về null — còn treo
 `pending_plan` nghĩa là chưa trả, kể cả khi thiệp đã `completed`.
@@ -178,6 +181,21 @@ cũng lấy được dữ liệu.
 - Trình chỉnh sửa: cờ `IS_TRIAL_LOCKED` (`01-state.js`) đổi popup "Chúc mừng" sau khi xuất bản
   sang khối cảnh báo cam, vì xuất bản lại KHÔNG mở khoá.
 - **Xem trước không bị ảnh hưởng**: preview chạy `?preview=true` không có slug → không gọi API.
+
+**Hết lượt xem (gói Free).** CHỈ thiệp gói Free có lượt xem — thiệp khác không đọc, không ghi
+bảng này (khỏi tốn request). Lượt đếm ở bảng `wedding_stats` (bảng riêng: ghi vào `weddings`
+là kích trigger `updated_at`), tăng qua hàm `cx_wedding_view` — trần nằm trong câu upsert nên
+hai lượt cùng lúc không vượt trần.
+- Trang thiệp gọi `POST wedding-admin?resource=view` mỗi lượt mở `?slug=` (`WeddingBL.countView`,
+  gộp lượt cùng máy trong 30 phút). Đi THẲNG Edge Function vì GET `?slug=` bị worker cache 5
+  phút. Ai mở link cũng tính, kể cả chủ thiệp; bot (User-Agent) và bản xem trước của trang
+  Thiết lập thì không; thiệp đã khoá vì lý do khác không đếm.
+- Chủ thiệp xem số `x/300` ở thẻ thiệp của "Quản lý thiệp cưới"; từ 80% (240 lượt) có cảnh
+  báo ở thẻ đó, ở toast lúc mở trình chỉnh sửa và ở popup xuất bản. Không gửi email. Đọc số hỏng thì thẻ chỉ ẩn
+  con số, còn link công khai thì DỪNG (500) vì trần là phép kiểm.
+- Đủ `FREE_PLAN.views` → GET `?slug=` trả 403 `VIEW_LIMIT` (cùng màn khoá). Bản GET còn trong
+  cache không biết điều đó, nên lệnh đếm trả `locked: true` để trang khoá ngay.
+- Nâng gói là mở lại: đã thanh toán thì không còn là gói Free, mà phản hồi 403 không bị cache.
 
 ## 8. Client: dọn nháp trong localStorage
 

@@ -573,7 +573,7 @@
     // Gói vĩnh viễn không có ngày → bỏ đoạn "· hiển thị đến …".
     if (expRow) expRow.style.display = plan?.expires_at ? "inline" : "none";
     const until = plan
-      ? plan.expires_at ? `hết ngày ${_fmtDate(plan.expires_at)}` : "Vĩnh viễn"
+      ? plan.expires_at ? `hết ngày ${_fmtDate(plan.expires_at)}` : "Trọn đời"
       : "";
     if (plan) {
       document.getElementById("success-plan").textContent = plan.label;
@@ -613,17 +613,21 @@
     window.lucide?.createIcons({ root: step3 });
   }
 
-  // Màn hoàn tất của gói Miễn phí: cùng màn bước 3 với gói trả phí, đổi chữ + nút chính
+  // Thời hạn gói Free để hiện cho khách: "3 tháng" khi tròn tháng, không thì số ngày.
+  const _freeTerm = () =>
+    CONFIG.freePlanDays % 30 ? `${CONFIG.freePlanDays} ngày` : `${CONFIG.freePlanDays / 30} tháng`;
+
+  // Màn hoàn tất của gói Free: cùng màn bước 3 với gói trả phí, đổi chữ + nút chính
   // thành Chia sẻ thiệp (link đi thẳng bên đã chọn). Hạn = hôm nay + freePlanDays, đúng
   // cách server tính lúc nhận free_side.
   function _renderFreeSuccess(manage_id, slug, side) {
     _renderSuccess(manage_id);
     const who = side === "bride" ? "nhà gái" : "nhà trai";
     const until = new Date(Date.now() + CONFIG.freePlanDays * 86400000).toISOString();
-    document.getElementById("success-title").textContent = "Đã kích hoạt gói Miễn phí!";
+    document.getElementById("success-title").textContent = "Đã kích hoạt gói Free!";
     document.getElementById("success-sub").textContent =
       `Thiệp ${who} đã mở cho khách mời — gửi link ngay nhé.`;
-    document.getElementById("success-plan").textContent = `Miễn phí · thiệp ${who}`;
+    document.getElementById("success-plan").textContent = `Free · thiệp ${who}`;
     document.getElementById("success-expiry").textContent = `hết ngày ${_fmtDate(until)}`;
     document.getElementById("success-plan-row").style.display = "flex";
     document.getElementById("success-expiry-row").style.display = "inline";
@@ -1236,7 +1240,7 @@
 
   /**
    * Giá CHỐT chỉ có MỘT nguồn: payment-handler/quote báo giá ba gói từ hàng
-   * `template_pricing` (giá gói 3 tháng) × hệ số gói ở server — đúng phép tính lúc
+   * `template_pricing` (giá gốc, hệ số 1) × hệ số gói ở server — đúng phép tính lúc
    * tạo đơn. Thiệp đã thanh toán thì server trả bảng NÂNG gói (giá = phần chênh).
    * Client không giữ hệ số nào: viết cứng là khách nhìn một giá, quét QR trả giá khác.
    */
@@ -1275,11 +1279,14 @@
     const plans = quote?.plans || [];
     const pick =
       plans.find((p) => p.id === window._paymentPlan && p.available) ||
-      // Mua mới mặc định gói "Khuyên dùng" (3 tháng); nâng gói thì gói rẻ nhất còn nâng được.
-      (!quote?.current_plan && plans.find((p) => p.id === "3m" && p.available)) ||
+      // Mua mới mặc định gói "Khuyên dùng" (Premium); nâng gói thì gói rẻ nhất còn nâng được.
+      (!quote?.current_plan && plans.find((p) => p.id === RECOMMENDED_PLAN && p.available)) ||
       plans.find((p) => p.available);
     _selectPlan(pick ? pick.id : null);
   }
+
+  // Gói mang huy hiệu "Khuyên dùng" và được chọn sẵn khi mua mới.
+  const RECOMMENDED_PLAN = "6m";
 
   const _fmtVnd = (v) => `${v.toLocaleString("vi-VN")}đ`;
   const _fmtDate = (iso) => new Date(iso).toLocaleDateString("vi-VN");
@@ -1337,9 +1344,9 @@
     window._paymentPlan = "free";
     window._paymentPricing = { price: 0, originalPrice: null };
     const label = document.getElementById("payment-base-label");
-    if (label) label.textContent = "Gói Miễn phí";
+    if (label) label.textContent = "Gói Free";
     const line = document.getElementById("payment-plan-line");
-    if (line) line.textContent = `Thiệp cưới online · miễn phí ${CONFIG.freePlanDays} ngày, có giới hạn`;
+    if (line) line.textContent = `Thiệp cưới online · miễn phí ${_freeTerm()}, có giới hạn`;
     _renderPlans();
     _syncPlanNote(null);
     _syncFree();
@@ -1376,7 +1383,7 @@
     const lbl = document.querySelector("#payment-submit .cx-ord-pay-label");
     if (lbl) lbl.textContent = on ? "Dùng miễn phí" : "Thanh toán ngay";
     const sub = document.getElementById("payment-submit-sub");
-    if (sub && on) sub.textContent = `Gói Miễn phí · ${CONFIG.freePlanDays} ngày`;
+    if (sub && on) sub.textContent = `Gói Free · ${_freeTerm()}`;
   }
 
   async function _chooseFree() {
@@ -1391,12 +1398,12 @@
       _renderFreeSuccess(id, slug, window._freeSide);
     } catch (e) {
       if (e.code === "FREE_LIMIT") {
-        // Tài khoản đã có thiệp Miễn phí khác (báo giá cũ chưa biết): khoá thẻ, về gói 3 tháng.
+        // Tài khoản đã có thiệp Free khác (báo giá cũ chưa biết): khoá thẻ, về gói khuyên dùng.
         window._freeBlocked = true;
-        _selectPlan("3m");
+        _selectPlan(RECOMMENDED_PLAN);
       }
       if (apiErr) {
-        apiErr.textContent = e.message || "Không chuyển được sang gói Miễn phí, vui lòng thử lại.";
+        apiErr.textContent = e.message || "Không chuyển được sang gói Free, vui lòng thử lại.";
         apiErr.style.display = "block";
       }
     } finally {
@@ -1404,20 +1411,31 @@
     }
   }
 
-  // Bảng so sánh: hàng = quyền lợi, cột = gói trong báo giá (+ Miễn phí khi thẻ đó có).
-  // `free` là giá trị của gói Miễn phí, `paid` của mọi gói trả tiền; true/false vẽ ✓/✗.
+  // Bảng so sánh: hàng = quyền lợi, cột = gói trong báo giá (+ Free khi thẻ đó có).
+  // `free` là giá trị của gói Free, `paid` của mọi gói trả tiền; true/false vẽ ✓/✗.
+  // `info` = lời giải thích, nhãn hàng có thêm nút "i" mở popover (cxCmpInfo).
   // Con số phải khớp FREE_PLAN (_shared/plans.ts) và trần khách của guest-handler.
   const _CMP_ROWS = [
-    { label: "Thời hạn", free: `${CONFIG.freePlanDays} ngày`, paid: (p) => (p.months ? `${p.months} tháng` : "Trọn đời") },
+    { label: "Thời hạn", free: _freeTerm(), paid: (p) => (p.months ? `${p.months} tháng` : "Trọn đời") },
+    { label: "Lượt xem thiệp", free: `${CONFIG.freePlanViews} lượt`, paid: "Không giới hạn" },
     { label: "Thiệp nhà trai, nhà gái", free: "1 trong 2", paid: "Cả 2" },
     // Gói trả phí: tổng cả hai thiệp (mỗi bên maxPerSide khách).
     { label: "Khách mời có tên", free: "20", paid: String(CONFIG.guestImport.maxPerSide * 2) },
-    { label: "Ảnh album, chuyện tình", free: "5 ảnh", paid: "Đầy đủ" },
-    { label: "Bản đồ chỉ đường", free: true, paid: true },
-    { label: "Quản lý khách mời", free: true, paid: true },
+    // Tổng trần của trình chỉnh sửa: 10 ảnh album + 10 mốc chuyện tình (mỗi mốc 1 ảnh).
+    { label: "Ảnh album, chuyện tình", free: "20 ảnh", paid: "20 ảnh" },
+    {
+      label: "Chia sẻ quyền quản lý",
+      free: false,
+      paid: true,
+      info:
+        "Mời thêm 1 người (người bạn đời, bố mẹ…) bằng email để cùng quản lý khách mời: " +
+        "thêm khách, gửi link mời, theo dõi xác nhận tham dự. Có thể chỉ giao khách nhà trai " +
+        "hoặc nhà gái. Người được mời không sửa được nội dung thiệp.",
+    },
     { label: "Xác nhận tham dự", free: true, paid: true },
     { label: "Lời chúc của khách", free: true, paid: true },
-    { label: "Hộp mừng cưới (QR)", free: false, paid: true },
+    { label: "Hộp mừng cưới (QR)", free: true, paid: true },
+    { label: "Nhạc nền, bản đồ", free: true, paid: true },
   ];
 
   // Chỉ có khi MUA gói (bảng nâng gói đã nói rõ phần chênh). Bấm tiêu đề cột = chọn gói,
@@ -1431,7 +1449,7 @@
       wrap.style.display = "none";
       return;
     }
-    const cols = (_freeShown() ? [{ id: "free", label: "Miễn phí", available: _freeOk() }] : []).concat(q.plans);
+    const cols = (_freeShown() ? [{ id: "free", label: "Free", available: _freeOk() }] : []).concat(q.plans);
     const head = cols
       .map((p) => {
         const on = p.id === window._paymentPlan ? " is-on" : "";
@@ -1442,21 +1460,32 @@
         );
       })
       .join("");
-    const cell = (v, isFree) =>
+    // `lim` = ô Free tô đậm kiểu giới hạn — chỉ khi nó thật sự kém gói trả tiền.
+    const cell = (v, lim) =>
       v === true
         ? '<i data-lucide="check" class="cx-ord-cmp-yes" style="width:16px;height:16px"></i><span class="sr-only">Có</span>'
         : v === false
           ? '<i data-lucide="x" class="cx-ord-cmp-no" style="width:14px;height:14px"></i><span class="sr-only">Không</span>'
-          : `<span${isFree ? ' class="cx-ord-cmp-lim"' : ""}>${v}</span>`;
-    const body = _CMP_ROWS.map((r) => {
+          : `<span${lim ? ' class="cx-ord-cmp-lim"' : ""}>${v}</span>`;
+    const body = _CMP_ROWS.map((r, i) => {
       const tds = cols
         .map((p) => {
           const free = p.id === "free";
           const v = free ? r.free : typeof r.paid === "function" ? r.paid(p) : r.paid;
-          return `<td class="${p.id === window._paymentPlan ? "is-on" : ""}">${cell(v, free)}</td>`;
+          return `<td class="${p.id === window._paymentPlan ? "is-on" : ""}">${cell(v, free && v !== r.paid)}</td>`;
         })
         .join("");
-      return `<tr><th scope="row">${r.label}</th>${tds}</tr>`;
+      const info = r.info
+        ? `<x-button variant="bare" icon-only class="cx-ord-cmp-info" onclick="cxCmpInfo(this, ${i})"` +
+          ` aria-label="Giải thích: ${r.label}" title="${r.label} là gì?">` +
+          '<i data-lucide="info" style="width:14px;height:14px"></i></x-button>'
+        : "";
+      // Nút "i" dính vào chữ cuối của nhãn, không rớt xuống dòng một mình.
+      const cut = r.label.lastIndexOf(" ");
+      const label = info
+        ? `${r.label.slice(0, cut + 1)}<span class="cx-ord-cmp-nw">${r.label.slice(cut + 1)}${info}</span>`
+        : r.label;
+      return `<tr><th scope="row">${label}</th>${tds}</tr>`;
     }).join("");
     box.innerHTML =
       `<p class="cx-ord-eyebrow">So sánh các gói</p>` +
@@ -1466,6 +1495,28 @@
     window.lucide?.createIcons({ root: box });
   }
 
+
+  // Popover giải thích một hàng của bảng so sánh; bấm lại đúng nút "i" đang mở thì đóng.
+  window.cxCmpInfo = function (btn, i) {
+    const row = _CMP_ROWS[i];
+    if (!row?.info) return;
+    let pop = document.getElementById("cx-cmp-info-pop");
+    if (!pop) {
+      pop = document.createElement("x-popover");
+      pop.id = "cx-cmp-info-pop";
+      pop.setAttribute("arrow", "");
+      pop.setAttribute("placement", "top");
+      pop.setAttribute("width", "280");
+      pop.setAttribute("role", "dialog");
+      document.body.appendChild(pop);
+    }
+    if (pop.isOpen && pop._anchorEl === btn) return pop.close();
+    pop.innerHTML = '<p class="x-pop-note"><b></b><span></span></p>';
+    pop.querySelector("b").textContent = row.label;
+    pop.querySelector("span").textContent = row.info;
+    pop.setAttribute("aria-label", row.label);
+    pop.open(btn);
+  };
 
   // Ba thẻ gói. Gói đang dùng / thấp hơn / quá hạn để nâng vẫn hiện (khách cần
   // thấy mình đang ở đâu) nhưng khoá lại. Huy hiệu "Khuyên dùng" chỉ khi mua mới.
@@ -1490,17 +1541,17 @@
     const freeSub = _freeOk() ? "" : q.free?.reason === "current" ? "Đang dùng" : "Đã dùng";
     const freeCard = _freeShown()
       ? `<button type="button" role="radio" aria-checked="${freeOn}" class="cx-ord-plan${freeOn ? " is-on" : ""}"` +
-        (_freeOk() ? ` onclick="cxPickPlan('free')"` : ` disabled title="Mỗi tài khoản chỉ dùng được 1 thiệp gói Miễn phí"`) +
+        (_freeOk() ? ` onclick="cxPickPlan('free')"` : ` disabled title="Mỗi tài khoản chỉ dùng được 1 thiệp gói Free"`) +
         `><span class="cx-ord-plan-dot" aria-hidden="true"></span>` +
         `<i data-lucide="gift" class="cx-ord-plan-gift" style="width:18px;height:18px"></i>` +
-        `<span class="cx-ord-plan-name">Miễn phí</span>` +
+        `<span class="cx-ord-plan-name">Free</span>` +
         (freeSub ? subEl(freeSub) : '<span class="cx-ord-plan-tag">1 lần / tài khoản</span>') +
         `</button>`
       : "";
     box.innerHTML = freeCard + q.plans
       .map((p) => {
         const on = p.id === window._paymentPlan;
-        const badge = !q.current_plan && p.id === "3m" ? '<span class="cx-ord-plan-badge">Khuyên dùng</span>' : "";
+        const badge = !q.current_plan && p.id === RECOMMENDED_PLAN ? '<span class="cx-ord-plan-badge">Khuyên dùng</span>' : "";
         // Đang có mã mà mã áp được cho gói này → thẻ hiện đúng số phải trả sau
         // mã (mã thay ưu đãi ra mắt nên bỏ giá gạch), khớp với tổng trên nút.
         const v = p.available && window._promoCandidate
@@ -1650,7 +1701,7 @@
       _setPromoRow(null, 0);
 
       // Giá tuỳ gói, mà gói chỉ biết sau khi có báo giá → bảng tiền để dấu chờ
-      // tới lúc _resolvePricing (cuối hàm) xong; giá nơi gọi đưa sang (gói 3 tháng)
+      // tới lúc _resolvePricing (cuối hàm) xong; giá nơi gọi đưa sang (giá gốc)
       // không dùng làm bản nháp, hiện ra rồi nhảy số là khách hoang mang.
       window._paymentPricing = { price: null, originalPrice: null };
       // Gói chọn sẵn từ màn chọn gói lúc xuất bản (?plan=); _resolvePricing chỉ nhận

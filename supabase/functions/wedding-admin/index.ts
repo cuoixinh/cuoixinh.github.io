@@ -13,7 +13,7 @@ import {
 } from '../_shared/wedding-images.ts'
 import { handleCleanup } from './cleanup.ts'
 import { findSlugHold, getUniqueSlug } from '../_shared/slug-holds.ts'
-import { applyFreeLimits, currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired } from '../_shared/plans.ts'
+import { applyFreeLimits, currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired, startingPrice } from '../_shared/plans.ts'
 import {
   checkWeddingLimit,
   FREE_LIMIT_MESSAGE,
@@ -50,6 +50,10 @@ function buildCorsHeaders(origin: string | null) {
     'Vary': 'Origin',
   }
 }
+
+// Trình thu thập có chạy JS (Googlebot, công cụ chụp link…) không tính là lượt xem thiệp.
+const BOT_UA_RE = /bot|crawl|spider|slurp|facebookexternalhit|headless|lighthouse/i
+
 
 // So sánh chuỗi không phụ thuộc thời gian, tránh rò rỉ token qua timing attack.
 // Trả false ngay khi độ dài khác nhau (độ dài không phải bí mật cần bảo vệ).
@@ -781,6 +785,46 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
   }
 
+  // ============= LƯỢT XEM (public) =============
+  // Chỉ thiệp gói Free có lượt xem: trang thiệp gọi MỘT lần mỗi lượt mở link ?slug= (đi
+  // thẳng Edge Function — GET ?slug= bị worker cache 5 phút nên không đếm ở đó được).
+  // Đủ FREE_PLAN.views → trả locked để trang tự khoá ngay, khỏi chờ bản cache hết hạn.
+  // Bot và bản xem trước không gọi tới đây; thiệp khác gọi nhầm thì bỏ qua.
+  if (resource === 'view') {
+    if (method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: corsHeaders })
+    }
+    const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
+    const body = await req.json().catch(() => ({}))
+    const slug = typeof body?.slug === 'string' ? body.slug.trim() : ''
+    if (!slug) return new Response(JSON.stringify({ error: 'Missing slug' }), { status: 400, headers: jsonHeaders })
+    if (BOT_UA_RE.test(req.headers.get('User-Agent') || '')) {
+      return new Response(JSON.stringify({ counted: false }), { headers: jsonHeaders })
+    }
+
+    const { data: w, error } = await supabase
+      .from('weddings')
+      .select('id, is_published, is_active, expires_at, payment_status, plan, plan_expires_at, free_side')
+      .eq('slug', slug)
+      .maybeSingle()
+    if (error) {
+      log.error('wedding.view_lookup_failed', { slug, code: error.code, message: error.message })
+      return new Response(JSON.stringify({ error: 'Không ghi được lượt xem' }), { status: 500, headers: jsonHeaders })
+    }
+    const trialOver = !!w?.expires_at && new Date(w.expires_at).getTime() < Date.now()
+    const closed = !w || !isFreePlan(w) || !w.is_published || w.is_active === false || trialOver
+    if (closed) return new Response(JSON.stringify({ counted: false }), { headers: jsonHeaders })
+
+    const { data: r, error: rpcError } = await supabase.rpc('cx_wedding_view', { p_wedding_id: w.id, p_limit: FREE_PLAN.views })
+    if (rpcError) {
+      log.error('wedding.view_count_failed', { slug, code: rpcError.code, message: rpcError.message })
+      return new Response(JSON.stringify({ error: 'Không ghi được lượt xem' }), { status: 500, headers: jsonHeaders })
+    }
+    const locked = !r?.counted
+    if (locked) log.info('wedding.view_limit_reached', { slug, view_count: r?.view_count })
+    return new Response(JSON.stringify({ counted: !!r?.counted, locked }), { headers: jsonHeaders })
+  }
+
   // ============= WEDDINGS MANAGEMENT =============
 
   // POST → Tạo bản ghi mới (public - KH tự tạo sau khi thanh toán hoặc tạo draft)
@@ -1354,6 +1398,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         // khách mua theo giá không có trong DB.
         price: pricingMap[t.template_name]?.price ?? null,
         originalPrice: pricingMap[t.template_name]?.original_price ?? null,
+        // Giá "từ" (gói rẻ nhất) — số mà thẻ/bộ chọn mẫu hiện cho khách; `price` là
+        // giá gốc chưa nhân hệ số nên không đem ra hiện.
+        fromPrice: startingPrice(pricingMap[t.template_name]?.price),
+        fromOriginalPrice: startingPrice(pricingMap[t.template_name]?.original_price),
       }))
 
       // Có mẫu mà KHÔNG mẫu nào có giá: hoặc bảng giá trống, hoặc `template_name`
@@ -1536,6 +1584,25 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         return { ...w, plan: cur, plan_expires_at: cur ? plan_expires_at : null, free_side: fs }
       })
 
+      // Lượt xem chỉ thiệp gói Free có (view_limit = trần); thiệp khác không đọc bảng này.
+      // Đọc hỏng thì thẻ chỉ thiếu con số (view_count null), danh sách vẫn trả.
+      const freeIds = rows.filter((w) => w.free_side).map((w) => w.id as string)
+      let views = new Map<string, number>()
+      let viewsFailed = false
+      if (freeIds.length) {
+        const { data: st, error: stErr } = await supabase
+          .from('wedding_stats').select('wedding_id, view_count').in('wedding_id', freeIds)
+        if (stErr) {
+          viewsFailed = true
+          log.error('wedding.my_views_failed', { user_id: userId, code: stErr.code, message: stErr.message })
+        } else views = new Map((st ?? []).map((x) => [x.wedding_id, x.view_count]))
+      }
+      for (const w of rows as Record<string, unknown>[]) {
+        const free = !!w.free_side
+        w.view_count = free && !viewsFailed ? views.get(w.id as string) ?? 0 : null
+        w.view_limit = free ? FREE_PLAN.views : null
+      }
+
       return new Response(JSON.stringify(rows), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -1605,9 +1672,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
 
     // expires_at + payment_status chỉ lấy để XÉT khoá ngay dưới đây, bị gỡ khỏi
     // response trước khi trả về — không để dữ liệu thanh toán rời khỏi DB.
+    // wedding_stats nhúng cùng lượt (khoá trần lượt xem gói Free), khỏi một vòng DB nữa.
     let query = supabase
       .from('weddings')
-      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status, plan, plan_expires_at, user_id, storage_key`)
+      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status, plan, plan_expires_at, user_id, storage_key, wedding_stats(view_count)`)
 
     if (slug) {
       query = query.eq('slug', slug)
@@ -1678,14 +1746,21 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       const trialOver = !!data.expires_at && new Date(data.expires_at).getTime() < Date.now()
       const locked = data.is_published && trialOver && data.payment_status !== 'completed'
       const themeLocked = data.payment_status === 'completed'
-      // Hết hạn gói 3/6 tháng đã thanh toán: khoá y như hết dùng thử, mã riêng để
+      // Hết hạn gói có thời hạn đã thanh toán: khoá y như hết dùng thử, mã riêng để
       // màn khoá nói đúng lý do (khách mời cần chủ thiệp NÂNG gói, không phải kích hoạt).
       const planLocked = data.is_published && isPlanExpired(data)
       const plan = currentPlan(data)
       const planExpiresAt = plan ? data.plan_expires_at : null
-      // Gói Miễn phí suy từ payment_status + free_side — tính TRƯỚC khi gỡ payment_status.
+      // Gói Free suy từ payment_status + free_side — tính TRƯỚC khi gỡ payment_status.
       const isFree = isFreePlan(data)
       data.free_side = freeSide(data)
+      // Gói Free đủ FREE_PLAN.views lượt xem = khoá với khách mời, như hết hạn. Lượt xem
+      // nhúng sẵn trong truy vấn trên (quan hệ 1-1 → object, chưa có hàng → null = 0 lượt);
+      // truy vấn đó hỏng thì đã dừng ở 500 phía trên (fail-closed).
+      const st = Array.isArray(data.wedding_stats) ? data.wedding_stats[0] : data.wedding_stats
+      delete data.wedding_stats
+      const viewCount: number | null = isFree ? (st?.view_count ?? 0) : null
+      const viewLocked = isFree && viewCount != null && viewCount >= FREE_PLAN.views
       delete data.expires_at
       delete data.payment_status
       delete data.plan
@@ -1722,9 +1797,20 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
-      // Gói Miễn phí: cắt ảnh + tắt các mục trả phí ở đường CÔNG KHAI. Đường id (trình
-      // chỉnh sửa) giữ nguyên, cắt ở đó là lần lưu sau ghi đè mất dữ liệu thật.
-      if (slug && isFree) applyFreeLimits(data)
+      if (viewLocked && slug && !locked && !planLocked) {
+        log.info('wedding.view_locked', { slug })
+        return new Response(JSON.stringify({
+          error: 'Thiệp đã hết lượt xem',
+          code: 'VIEW_LIMIT',
+          groom_name: data.groom_name,
+          bride_name: data.bride_name,
+          theme: data.theme,
+        }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      // Gói Free: gỡ phần trả phí ở đường CÔNG KHAI. Đường id (trình chỉnh sửa) giữ
+      // nguyên, cắt ở đó là lần lưu sau ghi đè mất dữ liệu thật.
+      if (slug && isFree) applyFreeLimits(data, data.free_side)
 
       // Đường tra theo id (chủ thiệp đang mở trình chỉnh sửa): không chặn, nhưng
       // nói cho biết thiệp đang khoá với khách mời. Đây là TRẠNG THÁI, không phải
@@ -1742,6 +1828,9 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         data.plan = plan
         data.plan_expires_at = planExpiresAt
         data.plan_locked = planLocked
+        data.view_count = viewCount
+        data.view_limit = isFree ? FREE_PLAN.views : null
+        data.view_locked = viewLocked
       }
     }
 

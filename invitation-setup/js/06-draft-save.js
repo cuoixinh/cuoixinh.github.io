@@ -73,7 +73,8 @@ function _initAutoSave() {
 
 // ============= DRAFT PAYMENT =============
 
-// plan: gói chọn sẵn ở màn thanh toán ("3m" | "lifetime"), bỏ trống = mặc định.
+// plan: id gói chọn sẵn ở màn thanh toán ("6m" | "lifetime" — xem PLANS ở _shared/plans.ts),
+// bỏ trống = mặc định.
 function openPaymentForDraft(plan) {
   const templateName =
     sessionStorage.getItem("draft_template_name") || "Thiệp Cưới";
