@@ -287,7 +287,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     const { manage_id, customer_name, customer_phone, customer_email, template_name, theme, promo_code, plan } = body;
 
     // Client cũ (chưa có bước chọn gói) không gửi plan: đừng đoán thay khách — đoán
-    // 3 tháng là khách tưởng mua trọn đời, đoán vĩnh viễn là QR khác số đang hiện.
+    // sai gói là QR khác số đang hiện.
     if (!isPlanId(plan)) {
       log.warn("payment.plan_missing", { plan });
       return new Response(JSON.stringify({
@@ -435,14 +435,13 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       upgrade?.from ?? null,
       upgrade?.planExpiresAt,
     ).find((q) => q.id === plan);
-    // Không có trong báo giá = gói đã thôi bán (6 tháng) với thiệp không giữ gói đó.
     if (!quote || !quote.available) {
-      log.warn("payment.plan_unavailable", { manage_id, plan, from: upgrade?.from, reason: quote?.reason ?? "retired" });
+      log.warn("payment.plan_unavailable", { manage_id, plan, from: upgrade?.from, reason: quote?.reason });
       return new Response(JSON.stringify({
         error: !quote
-          ? "Gói này không còn bán, vui lòng chọn gói 3 tháng hoặc Vĩnh viễn"
+          ? "Gói không hợp lệ, vui lòng chọn gói Premium hoặc Forever"
           : quote.reason === "too_late"
-            ? "Gói này đã quá hạn để nâng, vui lòng chọn gói Vĩnh viễn"
+            ? "Gói này đã quá hạn để nâng, vui lòng chọn gói Forever"
             : "Thiệp đang ở gói này hoặc gói cao hơn",
         code: "PLAN_UNAVAILABLE",
       }), { status: 409, headers: JSON_HEADERS });

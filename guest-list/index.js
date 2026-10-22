@@ -62,13 +62,13 @@ function _glTag(w) {
     return `<span class="mi-tag mi-tag--live">${_ico("users-round")}Được chia sẻ · ${side}</span>`;
   }
   const state = _glStateOf(w);
-  const planName = { "3m": "3 tháng", "6m": "6 tháng" }[w.plan] || "";
+  const planName = { "6m": "Premium" }[w.plan] || "";
   const soon = state === "plan" && _glDays(w.plan_expires_at) <= _GL_PLAN_WARN_DAYS;
   const T = {
     trial: ["trial", "clock", `Dùng thử · còn ${Math.min(_glDays(w.expires_at || 0), CONFIG.trialDays)} ngày`],
-    expired: ["due", "clock-alert", w.free_side ? "Hết hạn gói Miễn phí" : "Hết hạn dùng thử"],
-    free: ["trial", "gift", `Miễn phí · còn ${Math.min(_glDays(w.expires_at || 0), CONFIG.freePlanDays)} ngày`],
-    active: ["live", "badge-check", "Đã thanh toán · Vĩnh viễn"],
+    expired: ["due", "clock-alert", w.free_side ? "Hết hạn gói Free" : "Hết hạn dùng thử"],
+    free: ["trial", "gift", `Free · còn ${Math.min(_glDays(w.expires_at || 0), CONFIG.freePlanDays)} ngày`],
+    active: ["live", "badge-check", "Đã thanh toán · Forever"],
     plan: [soon ? "trial" : "live", "badge-check", `Đã thanh toán · ${planName}`],
     planExpired: ["due", "clock-alert", `Hết hạn gói ${planName}`],
   }[state];
@@ -137,7 +137,7 @@ function _glCardHTML(w) {
           aria-haspopup="menu" aria-label="Xem thiệp" title="Xem thiệp">${_ico("eye", 16)}<span${canInvite ? ' class="gl-btn-txt"' : ""}>Xem thiệp</span></x-button>` : ""}
         ${canInvite ? `
         <x-button variant="bare" class="mi-btn mi-btn--soft" data-members="${_glEsc(w.id)}" data-names="${_glEsc([w.groom_name, w.bride_name].filter(Boolean).join(" & "))}"
-          aria-label="Thêm thành viên" title="Thêm thành viên">${_ico("user-plus", 16)}<span class="gl-btn-txt">Thêm thành viên</span></x-button>` : ""}
+          aria-label="Chia sẻ quyền quản lý" title="Chia sẻ quyền quản lý">${_ico("user-plus", 16)}<span class="gl-btn-txt">Chia sẻ quyền</span></x-button>` : ""}
         <a class="mi-btn mi-btn--primary inline-flex items-center justify-center rounded-full" href="${href}">
           ${_ico("users", 16)}Quản lý khách mời</a>
       </div>

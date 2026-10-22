@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Tình Thâm Nghĩa Trọng</title>
+    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
+         địa chỉ, số điện thoại và QR tài khoản của khách. Bản MẪU (không có slug)
+         thì vẫn cho lập chỉ mục vì đó là hàng đang bán. Phải xét lúc chạy: hai bản
+         dùng CHUNG một URL, khác nhau đúng tham số này — đặt meta tĩnh vào file là
+         chặn nhầm cả bản mẫu. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Noto+Serif:wght@400;700&family=Cormorant+Garamond:wght@300;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+    <script src="../../../core/helpers/no-inspect.js"></script>
+  </head>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       TÌNH THÂM NGHĨA TRỌNG — thiệp nền trắng sáng, chữ đen + đỏ son: các .tt-page cao
+       theo nội dung, nối liền nhau, cuộn liên tục. Kích thước đo bằng --u (= 1/10 khổ
+       thiệp, thu theo chiều cao màn thấp) nên bố cục giữ đúng tỉ lệ ở mọi máy. Phần tử
+       .tt-a chạy hiệu ứng MỘT LẦN khi trang cuộn tới (ttSlides ở index.js, bật qua
+       CX_THEME.onOpen).
+       Ràng buộc chung của mẫu: xem đầu file public/themes/base-theme/index.html.
+       ══════════════════════════════════════════════════════════════════════ -->
+
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <!-- Trình phát nhạc — dạng khai ở CX_THEME.music. Phải là con ĐẦU TIÊN của <body>. -->
+    <div id="cx-music-mount"></div>
+
+    <!-- ═══ MỤC: Màn bìa — TÔ ĐỂ MỞ ═══════════════════════════════════════════
+         Ảnh bìa nằm trong lòng một chiếc nhẫn cưới, phủ lớp lụa đỏ (canvas, vẽ ở
+         ttScratch trong index.js). Tô đủ thì lớp phủ tan, kim cương loé sáng và thiệp tự
+         mở; nút chữ nhỏ bên dưới là đường lùi cho ai không tô. -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
+      <div class="tt-cover tt-paper relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
+        <!-- Nền màn bìa: ảnh album đầu tiên phủ kín màn, mờ (ttFillShots đổ ảnh vào). -->
+        <div class="tt-cv-bg" data-tt-shot="0" aria-hidden="true"></div>
+        <div class="tt-head">
+          <span class="cx-h cx-a tt-cap tt-a tt-fl" style="--d: 0.3s">Wedding</span>
+          <span class="cx-h cx-a tt-cap tt-head-mid tt-a tt-fd" style="--d: 0.3s">To love, to cherish<br />to hold forever</span>
+          <span class="cx-h cx-a tt-cap tt-a tt-fr" style="--d: 0.3s">Day</span>
+        </div>
+
+        <div class="tt-cv-guest tt-a tt-fd" style="--d: 0.4s">
+          <div data-cx-invite class="cx-t tt-cv-line">Trân trọng kính mời</div>
+          <div class="cx-t tt-cv-guestname" id="cover-guest-name">----------</div>
+          <div data-cx-invite-to class="cx-t tt-cv-line">đến dự lễ cưới của</div>
+        </div>
+
+        <div class="cx-t tt-names tt-cv-names">
+          <span id="cover-groom-name" class="tt-a tt-fl" style="--d: 0.6s">----------</span>
+          <span class="cx-a tt-amp tt-a tt-zi" style="--d: 0.6s">&amp;</span>
+          <span id="cover-bride-name" class="tt-a tt-fr" style="--d: 0.6s">----------</span>
+        </div>
+
+        <!-- Nhẫn cưới bạc nhìn thẳng: ảnh render sẵn (assets/images/decor/tt-ring-silver.webp, 1200×1440,
+             nền trong suốt) đè lên ảnh bìa; lòng nhẫn cắt theo mặt nạ tt-ring-hole.webp render
+             cùng góc máy, nên ảnh + lớp lụa đỏ để tô nằm khớp trong lỗ nhẫn. -->
+        <div class="tt-rings tt-a tt-zi" style="--d: 0.8s" id="tt-rings">
+          <div class="tt-ring">
+            <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
+            <canvas class="tt-scratch-cv" aria-label="Tô lên nhẫn để mở thiệp"></canvas>
+          </div>
+          <img class="tt-ring-art" src="../../../assets/images/decor/tt-ring-silver.webp" alt="" />
+          <span class="tt-spark" aria-hidden="true"></span>
+          <span class="tt-spark is-2" aria-hidden="true"></span>
+          <span class="tt-brush" aria-hidden="true"><i data-lucide="paintbrush" class="cx-ic"></i></span>
+        </div>
+
+        <div class="cx-t cx-a tt-scratch-tip tt-a tt-fade" style="--d: 1.2s">
+          <i data-lucide="sparkles" class="cx-ic"></i> Tô lên nhẫn cưới để mở thiệp
+        </div>
+
+        <div class="cx-a tt-md tt-a tt-fu" style="--d: 1.2s" id="tt-cover-md">--<i>/</i>--</div>
+
+        <x-button
+          variant="bare"
+          onclick="openInvitation()"
+          class="open-btn cx-t tt-cv-skip tt-a tt-fade touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          style="--d: 1.8s"
+        >
+          hoặc chạm vào đây để mở
+        </x-button>
+
+        <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+      </div>
+    </div>
+
+    <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
+         #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục. Mỗi trang đóng bằng
+         dòng chân "Simple, sincere, endless" như bản gốc. -->
+    <div
+      id="main-card"
+      class="tt-paper relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      style="display: none"
+    >
+      <div class="tt-flow flex flex-col">
+        <!-- ═══ Trang — Gia đình: hai ảnh chân dung, tên, Groom / Bride (enable_family) ═══ -->
+        <section id="section-family" class="tt-page tt-family">
+          <div class="tt-head">
+            <span class="cx-h cx-a tt-cap tt-a tt-fl" style="--d: 1s">Wedding</span>
+            <span class="cx-h cx-a tt-cap tt-head-mid tt-a tt-fd" style="--d: 1s">To love, to cherish<br />to hold forever</span>
+            <span class="cx-h cx-a tt-cap tt-a tt-fr" style="--d: 1s">Day</span>
+          </div>
+          <div class="tt-pair">
+            <div class="tt-photo tt-person-photo tt-a tt-fr"><img id="groom-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Chú Rể" class="w-full h-full object-cover" /></div>
+            <div class="tt-photo tt-person-photo tt-a tt-fl"><img id="bride-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cô Dâu" class="w-full h-full object-cover" /></div>
+          </div>
+          <div class="tt-pair-names tt-a tt-zi" style="--d: 1s">
+            <span class="cx-t tt-person-name" id="groom-name-label">----------</span>
+            <span class="cx-t tt-person-name" id="bride-name-label">----------</span>
+          </div>
+          <div class="cx-h cx-a tt-em tt-a tt-zi" style="--d: 0.5s">Groom / Bride</div>
+          <div class="tt-parents-grid tt-a tt-fade" style="--d: 1.2s">
+            <div class="cx-t tt-parents">
+              <span class="cx-h cx-a tt-cap">Nhà trai</span>
+              <span id="groom-father">--------------------</span>
+              <span id="groom-mother">--------------------</span>
+              <span class="tt-address" id="groom-address">----------------------------------------</span>
+            </div>
+            <div class="cx-t tt-parents is-right">
+              <span class="cx-h cx-a tt-cap">Nhà gái</span>
+              <span id="bride-father">--------------------</span>
+              <span id="bride-mother">--------------------</span>
+              <span class="tt-address" id="bride-address">----------------------------------------</span>
+            </div>
+          </div>
+          <div class="cx-t tt-poem tt-a tt-fade" style="--d: 1.5s">
+            Hai gia đình chúng tôi trân trọng báo tin<br />
+            lễ thành hôn của hai con<br />
+            và kính mời quý khách đến chung vui<br />
+            cùng gia đình chúng tôi
+          </div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang — Mở đầu: Small Blessings, ảnh dọc + chữ đứng, câu slogan ═══ -->
+        <section id="section-hero" class="tt-page tt-hero">
+          <div class="cx-t tt-hero-top tt-a tt-zi">Thuận vợ thuận chồng, tát biển Đông cũng cạn</div>
+          <div class="cx-h cx-a tt-em tt-right tt-hero-sb tt-a tt-fr" style="--d: 0.2s">Small Blessings</div>
+          <div class="tt-hero-row">
+            <div class="tt-photo tt-hero-photo tt-a tt-fade" style="--dur: 2.5s" data-tt-shot="0"></div>
+            <div class="tt-hero-side">
+              <span class="cx-h cx-a tt-cap tt-vert tt-a tt-fade" style="--d: 1.5s">Sweet wedding</span>
+              <span class="cx-h cx-a tt-cap tt-vert tt-a tt-fade" style="--d: 1.5s">Sweet day</span>
+            </div>
+          </div>
+          <div class="cx-h cx-a tt-em tt-right tt-hero-em tt-a tt-zi" style="--d: 0.5s">Full Hearts<br />Love in Perfect Timing</div>
+          <div id="story-quote" class="cx-t tt-quote tt-a tt-zi" style="--d: 0.5s">Từ hai người xa lạ, chúng mình chọn nắm tay nhau đi hết quãng đường còn lại.</div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang… — Chuyện tình yêu (enable_love_story) ════════════════
+             Mỗi mốc là MỘT trang — dựng ở ttRenderLoveStory (index.js). -->
+        <section id="love-story" class="tt-stack" style="display: none">
+          <div id="love-story-list" class="tt-stack"></div>
+        </section>
+
+        <!-- ═══ Trang — Đếm ngược: ảnh lớn gần tràn trang, chữ ký + đồng hồ đè ảnh ═══
+             Không có ngày lễ thì index.js ẩn cả trang. -->
+        <section id="section-countdown" class="tt-page tt-count">
+          <div class="tt-photo tt-count-photo tt-a tt-fade">
+            <div class="tt-fill" data-tt-shot="1"></div>
+            <div class="cx-on-image tt-script tt-count-script tt-a tt-fade" style="--d: 1s">Forever begins<br />with this moment</div>
+            <div class="tt-cd tt-a tt-zi" style="--d: 1s">
+              <div><span class="cx-on-image" id="cd-days">00</span><small class="cx-on-image">Day</small></div>
+              <div><span class="cx-on-image" id="cd-hours">00</span><small class="cx-on-image">Hour</small></div>
+              <div><span class="cx-on-image" id="cd-minutes">00</span><small class="cx-on-image">Min</small></div>
+              <div><span class="cx-on-image" id="cd-seconds">00</span><small class="cx-on-image">Sec</small></div>
+            </div>
+          </div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang — Thư mời: tên lễ, ngày giờ, ảnh + lịch tháng ══════
+             Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức. -->
+        <section id="section-ceremony" class="tt-page tt-time">
+          <div class="cx-t cx-a tt-label tt-a tt-fd"><span id="ceremony-event-name">Lễ Thành Hôn</span></div>
+          <div class="tt-date-row tt-a tt-zi">
+            <span class="cx-h cx-a tt-cap">Wedding</span>
+            <div class="cx-t tt-date-lines">
+              <div>Vào lúc <span id="invite-time">--:--</span></div>
+              <div><span id="invite-weekday">------</span>, ngày <span id="invite-day">--</span> <span id="invite-month-year">Tháng -- · ----</span></div>
+              <div class="tt-sub"><span id="invite-lunar">--------------------</span></div>
+            </div>
+            <span class="cx-h cx-a tt-cap">Day</span>
+          </div>
+          <div class="tt-photo tt-cal-photo tt-a tt-zb">
+            <div class="tt-fill" data-tt-shot="2"></div>
+            <div class="cx-on-image tt-cal-md" id="tt-cal-md">--<i>/</i>--</div>
+            <div class="tt-cal-heads" id="tt-cal-heads"></div>
+          </div>
+          <div id="tt-calendar" class="cx-t tt-cal-grid tt-a tt-fade" style="--d: 1s"></div>
+          <div id="ceremony-location-wrap" class="hidden cx-t tt-sub tt-a tt-fade" style="--d: 1s">
+            <span id="ceremony-location-text"></span>
+          </div>
+          <div class="cx-h cx-a tt-em tt-a tt-fu" style="--d: 1s">We said "I do" on a perfect day.</div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang — Tiệc cưới (enable_party) ════════════════════════════ -->
+        <section id="section-party" class="tt-page tt-party">
+          <div class="tt-head">
+            <span class="cx-h cx-a tt-cap tt-a tt-fl" style="--d: 0.8s">Wedding</span>
+            <span class="cx-h cx-a tt-cap tt-head-mid tt-a tt-fd" style="--d: 0.8s">A toast to love<br />and to forever</span>
+            <span class="cx-h cx-a tt-cap tt-a tt-fr" style="--d: 0.8s">Day</span>
+          </div>
+          <div class="cx-t cx-a tt-label tt-a tt-zi" style="--d: 0.4s"><span id="party-section-label">Tiệc Mừng Lễ Thành Hôn</span></div>
+          <div class="tt-photo tt-land tt-a tt-fd" data-tt-shot="3"></div>
+          <div class="cx-a tt-big tt-a tt-fu" style="--d: 0.6s" id="party-datetime">--:-- - --.--.----</div>
+          <div class="cx-t tt-sub tt-a tt-fu" style="--d: 0.8s" id="party-lunar">(Ngày âm lịch)</div>
+          <div class="cx-t tt-venue tt-a tt-zi" style="--d: 1s" id="party-location">------------------------</div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang — Bản đồ: địa điểm tổ chức ═══════════════════════════
+             #map-location-name + #map-link phải đứng CUỐI mục (renderVenueMaps). -->
+        <section id="section-map" class="tt-page tt-map">
+          <div class="tt-head">
+            <span class="cx-h cx-a tt-cap tt-a tt-fl" style="--d: 0.8s">Wedding</span>
+            <span class="cx-h cx-a tt-cap tt-head-mid tt-a tt-fd" style="--d: 0.8s">To love, to cherish<br />to hold forever</span>
+            <span class="cx-h cx-a tt-cap tt-a tt-fr" style="--d: 0.8s">Day</span>
+          </div>
+          <div class="cx-t cx-a tt-label tt-a tt-zi" style="--d: 1s" data-cx-map-dual="Hai địa điểm tổ chức">Địa điểm tổ chức</div>
+          <div class="tt-photo tt-land tt-map-photo tt-a tt-fd" data-tt-shot="4"></div>
+          <div class="cx-t tt-venue tt-a tt-zi" style="--d: 0.6s" id="map-location-name">------------------------</div>
+          <a id="map-link" href="#" target="_blank" class="tt-map-card tt-a tt-fu">
+            <div class="tt-map-box">
+              <iframe id="map-thumbnail-iframe" src="" width="100%" height="100%" class="border-0 pointer-events-none" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
+                <i data-lucide="map-pinned" class="cx-ic cx-a"></i>
+                <span class="cx-t tt-small">Chưa có bản đồ</span>
+              </div>
+            </div>
+            <!-- Nằm TRONG #map-link để renderVenueMaps nhân cả nút khi lễ và tiệc ở hai nơi.
+                 Bấm nút là mở chế độ dẫn đường (ttBindDirections ở index.js). -->
+            <span class="tt-map-go" data-tt-dir aria-label="Chỉ đường"><i data-lucide="navigation" class="cx-ic"></i></span>
+          </a>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang — Lịch trình ngày cưới (enable_timeline) ══════════════
+             Dựng ở ttRenderTimeline (index.js). -->
+        <section id="section-timeline" class="hidden tt-page tt-plan">
+          <div class="tt-head">
+            <span class="cx-h cx-a tt-cap tt-a tt-fl" style="--d: 0.5s">Wedding</span>
+            <span class="cx-h cx-a tt-cap tt-head-mid tt-a tt-fd" style="--d: 0.5s">Every moment<br />of our big day</span>
+            <span class="cx-h cx-a tt-cap tt-a tt-fr" style="--d: 0.5s">Day</span>
+          </div>
+          <div class="cx-t cx-a tt-label tt-a tt-zi" style="--d: 0.3s">Lịch trình ngày vui</div>
+          <div id="timeline-list-render" class="tt-plan-list tt-a tt-fu" style="--d: 0.6s"></div>
+          <div class="cx-h cx-a tt-em tt-a tt-fu" style="--d: 1s">Hand in hand, all day long.</div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang — Album ảnh (enable_photos) ═══════════════════════════
+             Băng ảnh vuốt ngang trong một trang — dựng ở renderGallery (index.js). -->
+        <section id="section-photos" class="tt-page tt-album">
+          <div class="cx-t cx-a tt-label tt-a tt-fd">Khoảnh khắc của chúng mình</div>
+          <div class="cx-h cx-a tt-em tt-right tt-a tt-fr" style="--d: 0.3s">Little moments, big love</div>
+          <div id="gallery-grid" data-cx-drag class="tt-reel tt-a tt-fade" style="--d: 0.5s"></div>
+          <div class="cx-h cx-a tt-cap tt-reel-count tt-a tt-fade" style="--d: 1s"><span id="tt-reel-i">1</span> / <span id="tt-reel-n">1</span></div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang — Xác nhận tham dự (rsvp_enabled) ════════════════════════ -->
+        <section id="rsvp-section" class="tt-page tt-rsvp" style="display: none">
+          <div class="tt-head">
+            <span class="cx-h cx-a tt-cap tt-a tt-fl" style="--d: 0.5s">Wedding</span>
+            <span class="cx-t cx-a tt-label tt-head-mid tt-a tt-fd" style="--d: 0.5s">Xác nhận tham dự</span>
+            <span class="cx-h cx-a tt-cap tt-a tt-fr" style="--d: 0.5s">Day</span>
+          </div>
+          <div class="tt-photo tt-rsvp-photo tt-a tt-zi">
+            <div class="tt-fill" data-tt-shot="5"></div>
+            <div class="tt-over tt-rsvp-over">
+              <span class="cx-on-image tt-script tt-rsvp-script tt-a tt-fade" style="--d: 1s">Welcome</span>
+              <span class="cx-h cx-on-image tt-rsvp-mono tt-a tt-zi" style="--d: 1s" id="tt-mono">- &amp; -</span>
+            </div>
+          </div>
+          <div id="rsvp-custom-message" class="hidden cx-t tt-sub tt-a tt-fd" style="--d: 1s"></div>
+          <div class="tt-rsvp-btns tt-a tt-fd" style="--d: 1s">
+            <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="tt-btn tt-btn-wide active:scale-95 transition-all">
+              <span>Xác nhận tham dự</span>
+            </x-button>
+            <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="tt-btn tt-btn-line tt-btn-wide active:scale-95 transition-all">
+              <span>Rất tiếc, không thể đến</span>
+            </x-button>
+          </div>
+          <div id="attend-msg" class="cx-a cx-t tt-sub hidden"></div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang — Hộp mừng cưới (enable_gift) ═════════════════════════
+             Hộp do gift-box-helper.js vẽ theo CX_THEME.giftBox — mẫu KHÔNG tự vẽ hộp. -->
+        <section id="section-gift" class="tt-page tt-gift">
+          <div class="tt-head">
+            <span class="cx-h cx-a tt-cap tt-a tt-fl" style="--d: 0.5s">Wedding</span>
+            <span class="cx-h cx-a tt-cap tt-head-mid tt-a tt-fd" style="--d: 0.5s">With love<br />and gratitude</span>
+            <span class="cx-h cx-a tt-cap tt-a tt-fr" style="--d: 0.5s">Day</span>
+          </div>
+          <div class="cx-t cx-a tt-label tt-a tt-zi" style="--d: 0.3s">Hộp mừng cưới</div>
+          <div class="cx-t tt-sub tt-a tt-fade" style="--d: 0.6s">Chút lộc mừng gửi đến đôi uyên ương</div>
+          <div data-cx-gift="qr" class="tt-gift-grid tt-a tt-fu" style="--d: 0.8s">
+            <div class="tt-gift-col">
+              <div class="cx-t tt-small">Chú Rể · <span id="groom-bank-label">----------</span></div>
+              <div class="cx-bg-qr tt-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="QR Chú Rể" class="w-full aspect-square object-cover" /></div>
+              <div class="cx-t tt-small" id="groom-bank-name">----------------</div>
+              <div class="cx-t tt-bank-no" id="groom-bank-number">------------</div>
+              <div class="cx-t tt-small" id="groom-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="tt-btn tt-btn-line tt-btn-sm"><i data-lucide="download" class="cx-ic"></i> Lưu QR</x-button>
+            </div>
+            <div class="tt-gift-col">
+              <div class="cx-t tt-small">Cô Dâu · <span id="bride-bank-label">----------</span></div>
+              <div class="cx-bg-qr tt-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="QR Cô Dâu" class="w-full aspect-square object-cover" /></div>
+              <div class="cx-t tt-small" id="bride-bank-name">----------------</div>
+              <div class="cx-t tt-bank-no" id="bride-bank-number">------------</div>
+              <div class="cx-t tt-small" id="bride-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="tt-btn tt-btn-line tt-btn-sm"><i data-lucide="download" class="cx-ic"></i> Lưu QR</x-button>
+            </div>
+          </div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+
+        <!-- ═══ Trang cuối — Lời cảm ơn (enable_footer) ════════════════════════ -->
+        <section id="section-footer" class="tt-page tt-end">
+          <div class="tt-head">
+            <span class="cx-h cx-a tt-cap tt-a tt-fl" style="--d: 0.3s">Wedding</span>
+            <span class="cx-h cx-a tt-cap tt-head-mid tt-a tt-fd" style="--d: 0.3s">To love, to cherish<br />to hold forever</span>
+            <span class="cx-h cx-a tt-cap tt-a tt-fr" style="--d: 0.3s">Day</span>
+          </div>
+          <div class="cx-t tt-names">
+            <span id="couple-names-groom" class="tt-a tt-fl" style="--d: 0.5s">----------</span>
+            <span class="cx-a tt-amp tt-a tt-zi" style="--d: 0.5s">&amp;</span>
+            <span id="couple-names-bride" class="tt-a tt-fr" style="--d: 0.5s">----------</span>
+          </div>
+          <div class="tt-photo tt-end-photo tt-a tt-fade" style="--dur: 3s">
+            <div class="tt-fill" data-tt-shot="last"></div>
+            <div class="tt-over tt-cv-over">
+              <span class="cx-h cx-on-image tt-cap tt-over-cap tt-a tt-zi" style="--d: 0.7s">With all our love</span>
+              <span class="cx-on-image tt-script tt-cv-script tt-a tt-zb" style="--d: 1s">Thank you</span>
+            </div>
+          </div>
+          <div id="footer-text" class="cx-t tt-poem tt-a tt-fu" style="--d: 1.5s">Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng mình</div>
+          <div class="cx-a tt-md tt-a tt-fu" style="--d: 1.5s" id="tt-end-md">--<i>/</i>--</div>
+          <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
+      </x-button>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
+      <div class="w-full h-full flex items-center justify-center px-[8px]">
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
+      </div>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — GIỮ NGUYÊN khi chép sang mẫu mới ═══════════ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- DAL → BL → khởi tạo instance -->
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <!-- Helper dùng chung -->
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper
+         (runtime thành phần ở đó đọc window.CX_ELEMENTS) -->
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <!-- Bản khai của mẫu + renderWedding -->
+    <script src="index.js"></script>
+    <!-- Chrome giả lập điện thoại của khung xem thử trên máy tính. -->
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <!-- Khởi động. Phải nạp SAU index.js. -->
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>

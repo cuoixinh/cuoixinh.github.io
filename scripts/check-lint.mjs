@@ -80,14 +80,17 @@ rule("LINT-02", "CONFIG.retention (unpaid/serverDraft) = mặc định RETENTION
   const s = m && Number(m[1]);
   return { pass: u === s && d === s, got: `unpaidDays ${u} · serverDraftDays ${d} · RETENTION_DAYS mặc định ${s} (biến môi trường thật phải soi ở Dashboard)` };
 });
-rule("LINT-03", "CONFIG.trialDays = số ngày dùng thử server cộng vào expires_at; CONFIG.freePlanDays = FREE_PLAN.days", () => {
+rule("LINT-03", "CONFIG.trialDays = số ngày dùng thử server cộng vào expires_at; CONFIG.freePlanDays/freePlanViews = FREE_PLAN.days/views", () => {
   const a = num(CFG, "trialDays");
   const m = read(WA).match(/expiresAt\.setDate\(expiresAt\.getDate\(\)\s*\+\s*(\d+)\)/);
   const f = num(CFG, "freePlanDays");
-  const fm = read("supabase/functions/_shared/plans.ts").match(/FREE_PLAN\s*=\s*\{[^}]*?\bdays:\s*(\d+)/);
+  const v = num(CFG, "freePlanViews");
+  const plans = read("supabase/functions/_shared/plans.ts");
+  const fm = plans.match(/FREE_PLAN\s*=\s*\{[^}]*?\bdays:\s*(\d+)/);
+  const vm = plans.match(/FREE_PLAN\s*=\s*\{[^}]*?\bviews:\s*(\d+)/);
   return {
-    pass: !!m && Number(m[1]) === a && !!fm && Number(fm[1]) === f,
-    got: `dùng thử: client ${a} · server ${m?.[1]} · Miễn phí: client ${f} · server ${fm?.[1]}`,
+    pass: !!m && Number(m[1]) === a && !!fm && Number(fm[1]) === f && !!vm && Number(vm[1]) === v,
+    got: `dùng thử: client ${a} · server ${m?.[1]} · Miễn phí: client ${f} ngày/${v} lượt · server ${fm?.[1]} ngày/${vm?.[1]} lượt`,
   };
 });
 rule("LINT-04", "Trần khách mời / lời chúc khớp client ↔ guest-handler", () => {
@@ -435,6 +438,17 @@ rule("LINT-29", "Không .ilike( với tham số người dùng", () => {
   // .or('…ilike…') đã qua escapePostgrestPattern ở danh sách admin — tách riêng để khỏi báo nhầm.
   return bad(out, "không có");
 }, { known: "NV-10" });
+rule("LINT-32", "CONFIG.lockCodes khớp LOCK_CODES (worker/route-html.mjs) và đều là mã wedding-admin trả", () => {
+  const src = strArray("worker/route-html.mjs", "LOCK_CODES");
+  const m = read(CFG).match(/\blockCodes:\s*\[([^\]]*)\]/);
+  const cfg = m ? [...m[1].matchAll(/["'`]([^"'`]+)["'`]/g)].map((x) => x[1]) : [];
+  const wa = read(WA);
+  const missing = src.filter((c) => !wa.includes(`'${c}'`));
+  return {
+    pass: !!m && src.join() === cfg.join() && !missing.length,
+    got: `route-html ${src.join(",")} · config ${cfg.join(",") || "(không thấy)"}${missing.length ? ` · wedding-admin thiếu ${missing.join(",")}` : ""}`,
+  };
+});
 rule("LINT-30", "Bộ màu mẫu + mã màu cứng", () => ok("xem npm run check:palette (AUTO-EX-02) và UNIT-20 của check:units"));
 
 // ---------------- In kết quả ----------------

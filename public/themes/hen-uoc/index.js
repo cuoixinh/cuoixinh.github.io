@@ -1,6 +1,6 @@
 // Mẫu HẸN ƯỚC — thiệp cuộn liền mạch nền kem, khối đỏ rượu lệch sau ảnh. Chỉ KHAI BÁO:
 // window.CX_THEME + renderWedding + phần đặc thù (ảnh xen, lịch tháng đè ảnh, mỗi mốc
-// chuyện tình một trang, băng ảnh vuốt ngang, đếm ngược, chấm chỉ trang + gợi ý cuộn).
+// chuyện tình một trang, băng ảnh vuốt ngang, đếm ngược, chấm chỉ trang).
 // Phần "chạy" nằm ở core/helpers/theme-boot.js. Bọc IIFE: `const` cấp cao nhất là biến toàn cục.
 
 (function () {
@@ -398,7 +398,7 @@
   // ============= LẬT TRANG =============
   // Trang = .hu-page (+ mục lời chúc do wishes-helper chèn). Trang chiếm >= 55%
   // khung nhìn là trang đang mở: nó nhận .is-active (hiệu ứng .hu-a chạy MỘT lần, vuốt
-  // qua rồi vẫn giữ cờ nên không ẩn lại), chấm chỉ trang đổi theo, tới trang cuối thì giấu mũi tên vuốt.
+  // qua rồi vẫn giữ cờ nên không ẩn lại), chấm chỉ trang đổi theo.
   // Chỉ bật khi thiệp đã mở (onOpen) — chưa bật thì mọi thứ hiện sẵn, không mất chữ.
 
   let _huIO = null;
@@ -416,7 +416,6 @@
     page.classList.add("is-active");
     const i = _huPages.indexOf(page);
     document.querySelectorAll("#hu-dots button").forEach((b, k) => b.classList.toggle("is-on", k === i));
-    document.getElementById("hu-hint")?.classList.toggle("is-end", i === _huPages.length - 1);
   }
 
   function huScan() {

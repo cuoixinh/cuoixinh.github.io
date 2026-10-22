@@ -3400,7 +3400,19 @@ function showPublishSuccessPopup() {
     : IS_TRIAL_LOCKED
       ? `<p class="ps-keep ps-warn">Thiệp đã <b>hết hạn dùng thử</b>: khách mời mở link chỉ thấy màn tạm khoá.
          Thanh toán để mở lại — để quá ${CONFIG.retention.unpaidDays} ngày thiệp sẽ tự động xoá.</p>`
-      : `<p class="ps-keep">Thanh toán để giữ thiệp lâu dài — thiệp chưa thanh toán <b>tự động xoá sau ${CONFIG.retention.unpaidDays} ngày</b> kể từ khi hết hạn dùng thử.</p>`;
+      : _freeViewsHtml() ||
+        `<p class="ps-keep">Thanh toán để giữ thiệp lâu dài — thiệp chưa thanh toán <b>tự động xoá sau ${CONFIG.retention.unpaidDays} ngày</b> kể từ khi hết hạn dùng thử.</p>`;
+
+  // Gói Free: số lượt xem đã dùng; tông cảnh báo theo weddingBL.viewsLevel, hết lượt thì nói thẳng.
+  function _freeViewsHtml() {
+    const level = weddingBL.viewsLevel(VIEW_COUNT, VIEW_LIMIT);
+    if (!level) return "";
+    if (level === "out")
+      return `<p class="ps-keep ps-warn">Thiệp đã <b>hết ${VIEW_LIMIT} lượt xem</b> của gói Free: khách mời mở link
+         chỉ thấy màn tạm khoá. Nâng gói để mở lại.</p>`;
+    return `<p class="ps-keep${level === "warn" ? " ps-warn" : ""}">Gói Free đã dùng <b>${VIEW_COUNT}/${VIEW_LIMIT} lượt xem</b>
+       — hết lượt thì khách mời không mở được thiệp. Nâng gói để không giới hạn lượt xem.</p>`;
+  }
 
   const guestsBtn = `<x-button variant="bare" type="button" class="${paid ? "ps-primary" : "ps-guests"}" data-ps-guests><i data-lucide="users"></i>Quản lý khách mời</x-button>`;
   const footHtml = paid

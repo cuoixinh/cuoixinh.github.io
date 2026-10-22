@@ -607,8 +607,8 @@
           img.loading = "lazy";
           img.alt = t.name;
           img.src = t.thumbnailUrl || `/assets/images/templates/${t.theme}.jpg`;
-          const price = Number.isFinite(t.price)
-            ? Number(t.price).toLocaleString("vi-VN") + "đ"
+          const price = Number.isFinite(t.fromPrice)
+            ? "Từ " + t.fromPrice.toLocaleString("vi-VN") + "đ"
             : "Liên hệ";
           b.append(img, el("span", "aichat-theme-name", t.name), el("span", "aichat-theme-price", price));
           b.addEventListener("click", () => {

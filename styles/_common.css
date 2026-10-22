@@ -1294,7 +1294,7 @@ svg.cx-ic {
   }
 }
 
-/* Link chung (khách vãn lai): "Cảm ơn bạn đã ghé xem thiệp · <tên đôi>", không mời.
+/* Link chung (khách vãn lai): "Chúng mình sắp cưới rồi!" (CX_VISITOR_LINE), không mời.
    Cờ + chữ do setupPersonalizedGreeting (wedding-helper) đặt. */
 .cx-guest-generic #cover-guest-name,
 .cx-guest-generic [data-cx-invite-to] {
@@ -1509,6 +1509,21 @@ x-button {
 
 .x-pop.is-open {
   display: flex;
+}
+
+/* Popover chỉ chứa đoạn giải thích (không phải menu): dòng đậm đầu là tiêu đề. */
+.x-pop-note {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(var(--text-secondary-rgb));
+}
+.x-pop-note b {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
 }
 
 /* Mũi tên: ô vuông xoay 45° chỉ để lại hai cạnh viền quay ra ngoài. JS ghi
@@ -2105,7 +2120,8 @@ x-button {
 
 .cx-pside-name {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  /* Serif có sẵn trong máy và đủ dấu tiếng Việt (Georgia thiếu dấu trên Windows). */
+  font-family: Cambria, "Times New Roman", "Noto Serif", serif;
   font-size: 40px;
   font-weight: 500;
   line-height: 1.1;
@@ -5013,8 +5029,8 @@ button.cx-ok-close:hover {
     opacity: 0;
   }
 }
-/* Bảng so sánh gói (core/payment.js → _renderCompare): khối riêng dưới thẻ gói, cột
-   gói đang chọn thêm .is-on. */
+/* Bảng so sánh gói (core/payment.js → _renderCompare): khối riêng dưới thẻ gói, không
+   tô cột gói đang chọn. */
 .cx-ord-cmp-card {
   padding: 16px 12px 8px;
   border: 1px solid rgb(var(--border-subtle-rgb));
@@ -5056,14 +5072,18 @@ button.cx-ok-close:hover {
   font-weight: 400;
   color: rgb(var(--text-secondary-rgb));
 }
-.cx-ord-cmp .is-on {
-  background: rgb(var(--surface-blossom-rgb) / 0.5);
+/* Hàng tiêu đề nhóm (Cơ bản / Nâng cao): không kẻ, chữ nhỏ in đậm. */
+.cx-ord-cmp .cx-ord-cmp-grp th,
+.cx-ord-cmp .cx-ord-cmp-grp td {
+  padding: 16px 4px 4px;
+  border-top: 0;
 }
-.cx-ord-cmp thead .is-on {
-  border-radius: 12px 12px 0 0;
-}
-.cx-ord-cmp tbody tr:last-child .is-on {
-  border-radius: 0 0 12px 12px;
+.cx-ord-cmp .cx-ord-cmp-grp th {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(var(--text-heading-rgb));
 }
 .cx-ord-cmp-pick {
   display: block;
@@ -5075,9 +5095,6 @@ button.cx-ok-close:hover {
   font-weight: 600;
   color: rgb(var(--text-heading-rgb));
 }
-.cx-ord-cmp .is-on .cx-ord-cmp-pick {
-  color: rgb(var(--action-primary-deep-rgb));
-}
 .cx-ord-cmp-pick[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
@@ -5086,13 +5103,49 @@ button.cx-ok-close:hover {
   outline: 2px solid rgb(var(--focus-ring-rgb));
   outline-offset: -2px;
 }
+/* Dấu có/không: chấm tròn 20px, icon lucide nằm giữa (cỡ icon đặt inline ở payment.js). */
+.cx-ord-cmp-yes,
+.cx-ord-cmp-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  vertical-align: middle;
+}
 .cx-ord-cmp-yes {
-  display: inline-block;
+  background: rgb(var(--state-success-bg-rgb));
   color: rgb(var(--state-success-text-rgb));
+  box-shadow: inset 0 0 0 1px rgb(var(--state-success-accent-rgb) / 0.25);
+}
+.cx-ord-cmp-yes svg {
+  stroke-width: 3.5;
 }
 .cx-ord-cmp-no {
-  display: inline-block;
-  color: rgb(var(--divider-rgb));
+  background: rgb(var(--surface-control-rgb));
+  color: rgb(var(--text-tertiary-rgb) / 0.7);
+}
+.cx-ord-cmp-no svg {
+  stroke-width: 3;
+}
+.cx-ord-cmp-nw {
+  white-space: nowrap;
+}
+/* Nút "i" sau nhãn hàng có lời giải thích (cxCmpInfo), ô bấm 24px. */
+.cx-ord-cmp-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px 0 -4px 2px;
+  vertical-align: middle;
+  color: rgb(var(--text-secondary-rgb));
+}
+.cx-ord-cmp-info:hover,
+.cx-ord-cmp-info[aria-expanded="true"] {
+  color: rgb(var(--action-primary-deep-rgb));
 }
 .cx-ord-cmp-lim {
   font-weight: 700;
@@ -5258,23 +5311,6 @@ button.cx-ok-close:hover {
     letter-spacing: 0;
   }
 }
-/* Dòng "xem được đến ngày …" dưới các thẻ — hiện bằng style.display = flex. */
-.cx-ord-plan-note {
-  align-items: center;
-  gap: 8px;
-  margin: 12px 0 0;
-  padding: 8px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  line-height: 1.4;
-  color: rgb(var(--text-heading-rgb));
-  background: rgb(var(--surface-brand-subtle-rgb));
-}
-.cx-ord-plan-note svg {
-  flex-shrink: 0;
-  color: rgb(var(--brand-accent-rgb));
-}
-
 /* Hộp gói Miễn phí dưới các thẻ (payment.js → _syncFree): chọn bên + giới hạn. */
 .cx-ord-free {
   min-width: 0;
@@ -5327,7 +5363,7 @@ button.cx-ok-close:hover {
   accent-color: rgb(var(--action-primary-rgb));
 }
 
-/* Nút "Thanh toán ngay" hai tầng chữ. `button.` để thắng h-12/px-7 của size lg
+/* Nút "Quét QR để thanh toán" hai tầng chữ. `button.` để thắng h-12/px-7 của size lg
    (cùng độ đặc hiệu thì utility nằm sau trong build.css). */
 button.cx-ord-pay {
   height: auto;

@@ -344,37 +344,6 @@ body {
   height: 20px;
   background: rgb(var(--cx-accent-rgb));
 }
-.hu-hint {
-  position: fixed;
-  left: 50%;
-  bottom: 8px;
-  z-index: 40;
-  display: none;
-  font-size: 22px;
-  color: rgb(var(--cx-accent-rgb) / 0.85);
-  filter: drop-shadow(0 0 4px rgb(var(--cx-card-bg-rgb)));
-  transform: translateX(-50%);
-  transition: opacity 0.4s ease;
-  animation: cx-hu-nudge 1.8s ease-in-out infinite;
-  pointer-events: none;
-}
-.hu-on .hu-hint {
-  display: block;
-}
-.hu-hint.is-end {
-  opacity: 0;
-}
-@keyframes cx-hu-nudge {
-  0%,
-  100% {
-    translate: 0 0;
-    opacity: 0.5;
-  }
-  50% {
-    translate: 0 -8px;
-    opacity: 1;
-  }
-}
 @media (min-width: 768px) {
   .hu-dots {
     right: max(6px, calc(50% - var(--cx-card-max) / 2 + 12px));
@@ -388,122 +357,140 @@ body {
     clip-path: none;
     transition: none;
   }
-  .hu-hint {
-    animation: none;
-  }
 }
 
-/* ── Dòng tiêu đề "INVITATION · huy hiệu · WEDDING" (bìa + trang mở đầu) ── */
-.hu-head {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  width: 100%;
-  padding: calc(var(--hu-screen) * 0.024 + 12px) 20px 0;
-}
-.hu-head .hu-cap {
-  flex: 1;
-  padding-bottom: 12px;
-}
-.hu-head .hu-cap:last-child {
-  text-align: right;
-}
-.hu-head .hu-emblem {
-  margin: 0 8px;
-}
-
-/* ── Màn bìa kiểu tạp chí: ảnh viền đỏ rượu nghiêng trên khối đỏ rượu lệch ──────── */
+/* ── Màn bìa: ảnh nghiêng cắm vào dải đỏ rượu cắt chéo ở đáy ──────────── */
+/* Ba tầng dọc: đầu bìa (giãn, chia chỗ thừa) · ảnh · dải chữ. Ảnh tràn xuống dải một
+   đoạn --hu-cv-sink, dải bù lại bằng padding-top nên chữ không bị ảnh đè. */
 #cover-screen .hu-cover {
+  --hu-cv-sink: min(72px, calc(var(--hu-screen) * 0.085));
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .hu-cover-head {
-  flex: none;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 0;
+  padding: 16px 20px 12px;
   animation: cx-hu-cv-fade 0.9s ease both;
+}
+.hu-cover-head .hu-emblem {
+  width: min(56px, calc(var(--hu-screen) * 0.066));
+  height: min(56px, calc(var(--hu-screen) * 0.066));
+}
+.hu-cv-cap {
+  font-size: 13px;
+  letter-spacing: 6px;
+  padding-left: 6px;
 }
 .hu-cv-stage {
   position: relative;
+  z-index: 2;
   flex: none;
-  width: min(64%, calc(var(--hu-screen) * 0.3));
+  width: min(72%, calc(var(--hu-screen) * 0.36));
   aspect-ratio: 3 / 4;
-  margin: auto 0 min(72px, calc(var(--hu-screen) * 0.08));
-}
-.hu-cv-block {
-  position: absolute;
-  inset: 0;
-  background: rgb(var(--cx-band-rgb));
-  rotate: 5deg;
-  translate: 14% 8%;
-  transform-origin: 0 100%;
-  animation: cx-hu-cv-block 1s 0.2s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+  margin-bottom: calc(var(--hu-cv-sink) * -1);
 }
 .hu-cv-photo {
   position: absolute;
   inset: 0;
   rotate: -4deg;
-  box-shadow: 0 24px 40px -20px rgb(var(--cx-shadow-rgb) / 0.5);
-  animation: cx-hu-cv-drop 1.1s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+  border-width: 6px;
+  box-shadow: 0 28px 40px -18px rgb(var(--cx-shadow-rgb) / 0.55);
+  animation: cx-hu-cv-drop 1.1s 0.15s var(--hu-ease) both;
 }
 .hu-cv-photo img {
   animation: cx-hu-cv-drift 9s ease-out both;
 }
 .hu-cv-pendant {
   position: absolute;
-  top: -6%;
-  left: -24%;
-  width: 34px;
-  height: 102px;
+  top: -4%;
+  left: -17%;
+  width: 30px;
+  height: 90px;
   transform-origin: 50% 0;
-  animation: cx-hu-cv-swing 1.8s 0.6s cubic-bezier(0.3, 1.6, 0.4, 1) both;
+  animation: cx-hu-cv-swing 1.8s 0.7s cubic-bezier(0.3, 1.6, 0.4, 1) both;
 }
+/* Mép trên dải chéo cùng chiều nghiêng của ảnh (−4° ≈ 28px trên khổ 390). */
 .hu-cover-text {
   position: relative;
+  z-index: 1;
+  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: min(8px, calc(var(--hu-screen) * 0.01));
-  margin-bottom: min(32px, calc(var(--hu-screen) * 0.04));
-  padding: 0 28px min(32px, calc(var(--hu-screen) * 0.04));
+  gap: min(6px, calc(var(--hu-screen) * 0.008));
+  width: 100%;
+  padding: calc(var(--hu-cv-sink) + min(28px, calc(var(--hu-screen) * 0.034))) 28px min(40px, calc(var(--hu-screen) * 0.048));
+  background: rgb(var(--cx-band-rgb));
+  clip-path: polygon(0 28px, 100% 0, 100% 100%, 0 100%);
   text-align: center;
-  animation: cx-hu-cv-fade 1s 0.9s ease both;
+  animation: cx-hu-cv-rise 1s 0.35s var(--hu-ease) both;
+}
+.hu-cover-text > * {
+  animation: cx-hu-cv-fade 0.9s 1s ease both;
+}
+.hu-cover-text .cx-t,
+.hu-cover-text .cx-h {
+  color: rgb(var(--cx-on-accent-rgb));
 }
 .hu-cv-date {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: min(6px, calc(var(--hu-screen) * 0.008));
+  margin-bottom: min(8px, calc(var(--hu-screen) * 0.01));
   font-family: "Cinzel", serif;
-  font-size: 17px;
+  font-size: 15px;
   letter-spacing: 4px;
 }
 .hu-cv-date::before,
 .hu-cv-date::after {
   content: "";
-  width: 32px;
+  width: 28px;
   height: 1px;
-  background: rgb(var(--cx-accent-rgb) / 0.6);
+  background: rgb(var(--cx-on-accent-rgb) / 0.5);
 }
 .hu-cover-invite {
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
+  opacity: 0.8;
 }
 .hu-cover-guest {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1.3;
-  color: rgb(var(--cx-heading-rgb));
 }
 .hu-cover-names {
-  margin-bottom: min(10px, calc(var(--hu-screen) * 0.012));
-  font-size: 22px;
-  color: rgb(var(--cx-heading-rgb));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 10px;
+  margin-bottom: min(14px, calc(var(--hu-screen) * 0.016));
+  font-size: 28px;
+  line-height: 1.25;
+  text-wrap: balance;
 }
+.hu-cv-amp {
+  font-family: "FaugllinBalseyn", "Dancing Script", cursive;
+  font-size: 1.5em;
+  line-height: 0.8;
+  color: rgb(var(--cx-accent-soft-rgb));
+}
+/* Nút kem trên dải đỏ rượu, viền kép như mép thiệp in. */
 #cover-screen .hu-btn {
-  padding-left: 40px;
-  padding-right: 40px;
+  padding: 11px 36px;
+  border-color: rgb(var(--cx-on-accent-rgb));
+  border-radius: 2px;
+  background: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cx-accent-rgb));
+  outline: 1px solid rgb(var(--cx-on-accent-rgb) / 0.45);
+  outline-offset: 4px;
 }
 @keyframes cx-hu-cv-drop {
   from {
@@ -511,10 +498,9 @@ body {
     transform: translateY(-36px) rotate(-6deg);
   }
 }
-@keyframes cx-hu-cv-block {
+@keyframes cx-hu-cv-rise {
   from {
-    opacity: 0;
-    transform: scaleY(0);
+    transform: translateY(60%);
   }
 }
 @keyframes cx-hu-cv-drift {
@@ -534,50 +520,69 @@ body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  #cover-screen .hu-cover *,
-  .hu-cover-text {
+  #cover-screen .hu-cover * {
     animation: none !important;
   }
 }
 
-/* ── Trang mở đầu: ảnh lớn mờ hai đầu, chữ viết tay đè chân ảnh ─────── */
+/* ── Trang mở đầu: ảnh tràn màn, dải lụa treo ngày cưới, tên đôi ở đáy ── */
 .hu-hero {
   justify-content: flex-start;
   padding: 0;
 }
-.hu-hero-sub {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: 4px 28px 0;
-  font-size: 13px;
-  color: rgb(var(--cx-heading-rgb));
-}
+/* Ảnh tràn mờ dần bằng MASK (về trong suốt), đừng phủ lớp màu nền lên: mép ảnh dưới lớp
+   phủ lộ thành vệt kẻ mảnh cắt ngang chữ bên dưới. */
 .hu-hero-photo {
   position: absolute;
+  top: 0;
   left: 0;
   right: 0;
-  top: calc(var(--hu-screen) * 0.13);
-  bottom: calc(var(--hu-screen) * 0.08);
+  bottom: calc(var(--hu-screen) * 0.16);
   overflow: hidden;
   background: rgb(var(--cx-surface-rgb));
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 58%, rgb(0 0 0 / 0.2) 84%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 58%, rgb(0 0 0 / 0.2) 84%, transparent 100%);
 }
-/* Ảnh tràn mờ dần bằng MASK (về trong suốt), đừng phủ lớp màu nền lên: mép ảnh dưới lớp
-   phủ lộ thành vệt kẻ mảnh — ở đây nó cắt ngang dòng "Welcome to our wedding". */
-.hu-hero-photo {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 60%, rgb(0 0 0 / 0.15) 84%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 60%, rgb(0 0 0 / 0.15) 84%, transparent 100%);
+/* Dải lụa thả từ mép trên, đuôi cắt chữ V; ngày viết dọc. */
+.hu-ribbon {
+  position: absolute;
+  top: 0;
+  left: 24px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 44px;
+  padding: calc(var(--hu-screen) * 0.03 + 8px) 0 32px;
+  background: rgb(var(--cx-band-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 14px), 0 100%);
+  box-shadow: 0 8px 16px -8px rgb(var(--cx-shadow-rgb) / 0.5);
+}
+.hu-ribbon-ic {
+  width: 20px;
+  height: 18px;
+  flex: none;
+}
+.hu-ribbon .hu-ribbon-date {
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+  letter-spacing: 4px;
+  writing-mode: vertical-rl;
+  color: rgb(var(--cx-on-accent-rgb));
+}
+.hu-on .hu-drop {
+  transform: translateY(-100%);
 }
 .hu-hero-script {
   position: absolute;
   left: 7%;
-  bottom: calc(var(--hu-screen) * 0.15);
+  bottom: calc(var(--hu-screen) * 0.2 + 24px);
   z-index: 2;
   display: flex;
   flex-direction: column;
-  font-size: 36px;
+  font-size: 34px;
   line-height: 1.2;
 }
 .hu-hero-script span:last-child {
@@ -586,16 +591,38 @@ body {
 .hu-hero-heart {
   position: absolute;
   right: 8%;
-  bottom: calc(var(--hu-screen) * 0.24);
+  bottom: calc(var(--hu-screen) * 0.3 + 24px);
   z-index: 2;
+}
+.hu-hero .hu-hero-names {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: calc(var(--hu-screen) * 0.06 + 40px);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 12px;
+  font-size: 30px;
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
+  color: rgb(var(--cx-heading-rgb));
+}
+.hu-hero-amp {
+  font-family: "FaugllinBalseyn", "Dancing Script", cursive;
+  font-size: 1.4em;
+  line-height: 0.8;
 }
 .hu-hero .hu-welcome {
   position: absolute;
-  bottom: calc(var(--hu-screen) * 0.035 + 24px);
+  bottom: calc(var(--hu-screen) * 0.06 + 8px);
   left: 0;
   right: 0;
-  font-size: 14px;
-  letter-spacing: 2px;
+  font-size: 12px;
+  letter-spacing: 4px;
   text-align: center;
 }
 

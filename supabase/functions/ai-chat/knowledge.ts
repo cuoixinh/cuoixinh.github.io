@@ -34,23 +34,25 @@ Tạo thiệp không bắt buộc đăng nhập, nháp lưu trong trình duyệt
 "Quản lý thiệp cưới" (/my-invitations/). Nháp bỏ quên 30 ngày sẽ bị xoá tự động.
 
 # Giá & thanh toán
-Ở bước thanh toán khách chọn một trong ba gói: Miễn phí, 3 tháng, Vĩnh viễn. Gói 3 tháng và
-Vĩnh viễn đầy đủ tính năng như nhau, chỉ khác thời hạn; mỗi mẫu một giá (giá gói 3 tháng),
-gói Vĩnh viễn cao hơn. Thanh toán MỘT LẦN, không phí duy trì.
+Ở bước thanh toán khách chọn một trong ba gói: Free (miễn phí 3 tháng), Premium (6 tháng),
+Forever (trọn đời). Premium và Forever đầy đủ tính năng như nhau, chỉ khác thời hạn; mỗi mẫu
+một giá, Forever cao hơn Premium. Thanh toán MỘT LẦN, không phí duy trì.
 Trả bằng QR chuyển khoản ngân hàng (PayOS), xác nhận tự động trong ít phút; có ô nhập mã
 giảm giá. Dựng thiệp và xem thử luôn miễn phí.
 
-# Dùng thử & gói Miễn phí
-Xuất bản xong được 3 ngày dùng thử đủ tính năng. Sau đó (hoặc bất cứ lúc nào) chọn gói ở
-bước thanh toán. Mỗi tài khoản chỉ dùng được 1 thiệp gói Miễn phí: được 30 ngày tính từ lúc
-chọn, có giới hạn: chỉ MỘT thiệp (nhà trai hoặc nhà gái, chọn ở bước thanh toán — link bên
-kia mở ra thiệp bên đã chọn), tối đa 20 khách mời, hiện 5 ảnh
-album đầu tiên, vẫn có xác nhận tham dự và lời chúc của khách nhưng không có hộp mừng cưới (QR). Hết dùng thử hay hết 30 ngày Miễn phí
-mà chưa nâng gói thì khách mời mở link sẽ thấy màn "Thiệp đang tạm khoá"; nâng gói là mở lại ngay,
-nội dung còn nguyên. Để quá 30 ngày nữa thì thiệp bị xoá vĩnh viễn. Gói trả phí mở cả hai
-thiệp, 100 khách mời mỗi thiệp; sửa nội dung, ảnh, bảng màu và font lúc nào cũng được. RIÊNG MẪU THIỆP thì chốt: giá tính theo mẫu đã
-chọn lúc thanh toán nên sau khi trả tiền không đổi sang mẫu khác được nữa — muốn đổi mẫu
-thì phải đổi TRƯỚC khi thanh toán.
+# Dùng thử & gói Free
+Xuất bản xong được 3 ngày dùng thử đủ tính năng — tách riêng với các gói: chọn gói lúc nào
+thì thời hạn gói tính từ lúc đó. Mỗi tài khoản chỉ dùng được 1 thiệp gói Free: được 3 tháng
+tính từ lúc chọn, có giới hạn: chỉ MỘT thiệp (nhà trai hoặc nhà gái, chọn ở bước thanh toán
+— link bên kia mở ra thiệp bên đã chọn), tối đa 20 khách mời, tối đa 300 lượt xem thiệp
+(mỗi lần mở link tính một lượt), hộp mừng cưới chỉ có QR của bên đã chọn, không mời được
+người cùng quản lý khách mời. Ảnh, xác nhận tham dự và lời chúc của khách như gói trả phí.
+Hết dùng thử, hết 3 tháng Free hay hết 300 lượt xem mà chưa nâng gói thì khách mời mở link
+sẽ thấy màn "Thiệp đang tạm khoá"; nâng gói là mở lại ngay, nội dung còn nguyên. Hết hạn
+quá 30 ngày nữa thì thiệp bị xoá vĩnh viễn. Gói trả phí mở cả hai thiệp, 100 khách mời mỗi
+thiệp, không giới hạn lượt xem; sửa nội dung, ảnh, bảng màu và font lúc nào cũng được.
+RIÊNG MẪU THIỆP thì chốt: giá tính theo mẫu đã chọn lúc thanh toán nên sau khi trả tiền
+không đổi sang mẫu khác được nữa — muốn đổi mẫu thì phải đổi TRƯỚC khi thanh toán.
 
 # Có gì trong một tấm thiệp
 Màn bìa hiện đúng tên và cách xưng hô của khách mời; hai link riêng NHÀ TRAI và NHÀ GÁI (mỗi

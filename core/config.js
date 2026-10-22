@@ -13,7 +13,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.10.18-7";
+const CX_VERSION = "2026.10.20-2";
  
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -184,15 +184,20 @@ const CONFIG = {
   // Số ngày DÙNG THỬ khi xuất bản. Edge Function wedding-admin giữ bản sao con số
   // này (đặt expires_at = now + 3 ngày) — đổi ở đây phải đổi cả bên đó.
   trialDays: 3,
-  // Số ngày của gói Miễn phí, tính từ lúc chọn ở bước thanh toán. Bản gốc là
-  // FREE_PLAN.days ở supabase/functions/_shared/plans.ts — đổi phải đổi cả hai.
-  freePlanDays: 30,
+  // Số ngày và trần lượt xem của gói Free, ngày tính từ lúc chọn ở bước thanh toán.
+  // Bản gốc là FREE_PLAN.days / FREE_PLAN.views ở supabase/functions/_shared/plans.ts
+  // — đổi phải đổi cả hai.
+  freePlanDays: 90,
+  freePlanViews: 300,
+  // Mã lỗi khoá thiệp (403 của wedding-admin) → vẫn mở trang thiệp để hiện màn khoá.
+  // Bản gốc LOCK_CODES ở worker/route-html.mjs, LINT-32 gác hai nơi khớp nhau.
+  lockCodes: ["TRIAL_EXPIRED", "PLAN_EXPIRED", "VIEW_LIMIT"],
 
   retention: {
     unpaidDays: 30, // đã xuất bản nhưng chưa thanh toán
     serverDraftDays: 30, // nháp đã lưu trên hệ thống (đã đăng nhập)
     localDraftDays: 30, // nháp chỉ nằm trong trình duyệt của máy này
-    planExpiredDays: 30, // đã thanh toán gói 3/6 tháng, tính từ lúc hết hạn gói
+    planExpiredDays: 30, // đã thanh toán gói có hạn, tính từ lúc hết hạn gói
   },
 
   // Trần số thiệp một tài khoản được giữ trên hệ thống — nháp đã lưu lẫn thiệp đã

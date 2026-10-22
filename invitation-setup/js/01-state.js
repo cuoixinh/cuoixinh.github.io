@@ -47,10 +47,14 @@ let IS_PUBLISHED = false;
 // gửi kèm dữ liệu thiệp; chủ thiệp vẫn sửa và xuất bản bình thường, nên đây chỉ
 // dùng để NÓI CHO BIẾT, không khoá chức năng nào.
 let IS_TRIAL_LOCKED = false;
-// Đã thanh toán gói 3/6 tháng nhưng hết hạn gói: link công khai bị khoá (PLAN_EXPIRED).
+// Đã thanh toán gói có thời hạn nhưng hết hạn gói: link công khai bị khoá (PLAN_EXPIRED).
 let IS_PLAN_LOCKED = false;
 // Gói Miễn phí: bên được mở ("groom" | "bride"), null = cả hai. Server tính (free_side).
 let FREE_SIDE = null;
+// Lượt xem của thiệp gói Free / trần FREE_PLAN.views (server gửi kèm); null = không đếm.
+// Mức cảnh báo hỏi weddingBL.viewsLevel — cùng luật với my-invitations.
+let VIEW_COUNT = null;
+let VIEW_LIMIT = null;
 
 // Thiệp đã thanh toán → mẫu bị CHỐT, PATCH của wedding-admin từ chối mọi lượt đổi
 // (code THEME_LOCKED). Cờ do server tính và gửi kèm dữ liệu thiệp. Đây là cờ DỮ

@@ -2200,7 +2200,7 @@ html.cx-pshell-host.rb-stack body {
 }
 
 /* Link chung (cờ .cx-guest-generic do wedding-helper đặt): helper bật khối này
-   với dòng "Cảm ơn bạn đã ghé xem thiệp" — mẫu này bỏ hẳn, chỉ hiện với khách. */
+   với dòng báo tin CX_VISITOR_LINE — mẫu này bỏ hẳn, chỉ hiện với khách. */
 .cx-guest-generic .rb-cover-guest {
   display: none;
 }

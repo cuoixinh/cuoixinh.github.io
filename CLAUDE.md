@@ -608,7 +608,7 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   (số nút) và `--i` (nút đang chọn), nút đang chọn thêm `.is-on` — JS chỉ đặt bấy nhiêu.
   Dùng cho vùng miền ở popup AI và các tab Nhà trai/Nhà gái.
 - **Giá thiệp chỉ có MỘT nguồn: bảng `template_pricing`** (`templatesDAL` trả kèm theo
-  `theme`) — `price` là giá gói 3 tháng; gói 6 tháng/vĩnh viễn = giá đó × hệ số khai DUY
+  `theme`) — `price` là giá gốc (chưa nhân hệ số, không đem ra hiện); Premium 6 tháng/Forever = giá đó × hệ số khai DUY
   NHẤT ở `supabase/functions/_shared/plans.ts`. Màn thanh toán xin báo giá ba gói qua
   `payment-handler/quote` (`_resolvePricing` ở `core/payment.js`) — client không giữ hệ số
   nào; tham số `price`/`original` trên URL `/checkout/` không còn dùng làm giá. **Đừng viết giá dự phòng ở client**:
@@ -726,19 +726,21 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   CẢ HAI đường tạo hàng `weddings` phải hỏi qua đó — POST của `wedding-admin` và
   `upsert` của `payment-handler` — sót một chỗ là còn đường tạo thiệp không giới hạn.
   `CONFIG.maxWeddings` là bản sao để UI chặn sớm, đổi phải đổi cả hai.
-- **Gói Miễn phí** (khác dùng thử 3 ngày): thiệp chưa thanh toán mà khách đã chọn Miễn phí
+- **Gói Free** (khác dùng thử 3 ngày): thiệp chưa thanh toán mà khách đã chọn Free
   ở trang thanh toán → `weddings.free_side` (bên được mở). Luật + con số ở `FREE_PLAN` của
   `_shared/plans.ts`; cắt dữ liệu CHỈ ở đường công khai `?slug=` (`applyFreeLimits`) — đường
   `?id=` của trình chỉnh sửa luôn đủ, cắt ở đó là lần lưu sau ghi đè mất dữ liệu. **Mỗi tài
-  khoản 1 thiệp Miễn phí** (`hasOtherFreeWedding`, 409 `FREE_LIMIT`). Xem
-  `docs/cleanup-retention.md`.
-- **Thành viên thiệp:** chủ thiệp mời 1 người (bảng `wedding_members`, theo email) cùng
+  khoản 1 thiệp Free** (`hasOtherFreeWedding`, 409 `FREE_LIMIT`). Hết `FREE_PLAN.views` lượt
+  xem là khoá (403 `VIEW_LIMIT`): lượt đếm ở bảng `wedding_stats`, trang thiệp ghi qua
+  `POST wedding-admin?resource=view` — đi thẳng Edge Function vì GET `?slug=` bị worker cache.
+  Xem `docs/cleanup-retention.md`.
+- **Thành viên thiệp** (tên hiện cho khách: "Chia sẻ quyền quản lý"): chủ thiệp mời 1 người (bảng `wedding_members`, theo email) cùng
   quản lý KHÁCH MỜI, giới hạn theo bên — không sửa thiệp, không thanh toán, không có ở gói
   Miễn phí. Quyền chỉ kiểm ở `authorize` của `guest-handler`; thêm thao tác khách mời mới
   phải đi qua đó (và `denySide`). Mời/gỡ ở thẻ thiệp của `/guest-list/`
   (`core/helpers/member-sheet.js`); thiệp được mời cũng hiện ở đó (`action=shared`).
-- **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán, thiệp hết hạn gói 3/6
-  tháng và nháp bỏ quên bị cron xoá vĩnh viễn; thiệp hết hạn dùng thử/hết hạn gói bị khoá
+- **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán, thiệp hết hạn gói
+  Premium và nháp bỏ quên bị cron xoá vĩnh viễn; thiệp hết hạn dùng thử/hết hạn gói bị khoá
   với khách mời. Số ngày ở `CONFIG.retention` **và**
   biến `RETENTION_DAYS` của Edge Function — hai nơi, đổi phải đổi cả hai. Đụng tới `expires_at`,
   hạn giữ dữ liệu hay màn khoá thì đọc `docs/cleanup-retention.md` trước.

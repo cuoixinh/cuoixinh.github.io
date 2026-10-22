@@ -49,7 +49,7 @@ export async function findExpiredWeddings(
     .order('updated_at', { ascending: true })
     .limit(opts.limit)
 
-  // (3) Đã thanh toán gói 3/6 tháng, hết hạn gói thêm `days` ngày. plan_expires_at
+  // (3) Đã thanh toán gói có thời hạn, hết hạn gói thêm `days` ngày. plan_expires_at
   // null = vĩnh viễn (kể cả mọi thiệp mua trước khi có gói) nên không bao giờ dính.
   let planQ = supabase
     .from('weddings')
