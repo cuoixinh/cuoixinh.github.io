@@ -122,16 +122,14 @@
          Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="hu-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
-        <!-- Màn bìa kiểu TẠP CHÍ: ảnh viền đỏ rượu đặt nghiêng chồng lên khối đỏ rượu lệch,
-             dây treo bên mép. -->
-        <div class="hu-head hu-cover-head">
-          <span class="cx-h cx-a hu-cap">Invitation</span>
+        <!-- Ảnh viền đỏ rượu đặt nghiêng, chân ảnh cắm vào dải đỏ rượu cắt chéo ở đáy
+             (dải chứa lời mời + tên + nút), dây treo bên mép ảnh. -->
+        <div class="hu-cover-head">
           <svg class="hu-emblem cx-a" aria-hidden="true"><use href="#hu-emblem" /></svg>
-          <span class="cx-h cx-a hu-cap">Wedding</span>
+          <span class="cx-h cx-a hu-cap hu-cv-cap">Wedding Invitation</span>
         </div>
 
         <div class="hu-cv-stage">
-          <div class="hu-cv-block" aria-hidden="true"></div>
           <div class="hu-framed hu-cv-photo">
             <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
           </div>
@@ -145,7 +143,7 @@
           <div data-cx-invite-to class="cx-t hu-cover-invite">đến buổi hẹn lãng mạn của</div>
           <div class="cx-t hu-cover-names">
             <span id="cover-groom-name">----------</span>
-            <span class="hu-amp cx-a">&amp;</span>
+            <span class="hu-cv-amp">&amp;</span>
             <span id="cover-bride-name">----------</span>
           </div>
           <x-button
@@ -174,26 +172,27 @@
         <!-- Khối đỏ rượu đặt LỆCH sau ảnh (.hu-block) và khung ảnh viền đỏ rượu dày (.hu-framed)
              là hai nét chính; ảnh trong trang đo theo chiều cao màn (--hu-screen). -->
 
-        <!-- ═══ Trang 1 — Mở đầu: dòng tiêu đề + ảnh lớn + chữ viết tay ═════ -->
+        <!-- ═══ Trang 1 — Mở đầu: ảnh tràn màn, dải lụa đỏ rượu treo ngày cưới,
+             chữ viết tay đè chân ảnh, tên đôi lớn ở đáy ═══════════════════════ -->
         <section id="section-hero" class="hu-page hu-hero">
-          <div class="hu-head hu-a hu-fade">
-            <span class="cx-h cx-a hu-cap">Invitation</span>
-            <svg class="hu-emblem cx-a" aria-hidden="true"><use href="#hu-emblem" /></svg>
-            <span class="cx-h cx-a hu-cap">Wedding</span>
-          </div>
-          <div class="hu-hero-sub hu-a hu-fade" style="--d: 1">
-            <span class="cx-t"><span id="couple-names-groom">----------</span> &amp; <span id="couple-names-bride">----------</span></span>
-            <span class="cx-t" id="hu-hero-date">--.--.----</span>
-          </div>
           <div class="hu-hero-photo hu-a hu-zoom">
             <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" />
+          </div>
+          <div class="hu-ribbon hu-a hu-drop" style="--d: 1">
+            <svg class="hu-ribbon-ic" aria-hidden="true"><use href="#hu-heart-o" /></svg>
+            <span class="cx-h hu-ribbon-date" id="hu-hero-date">--.--.----</span>
           </div>
           <div class="hu-script hu-hero-script hu-a hu-write" style="--d: 3">
             <span class="cx-h cx-a">“Cùng nhau đi</span>
             <span class="cx-h cx-a">một buổi hẹn lãng mạn”</span>
           </div>
           <svg class="hu-heart cx-a hu-hero-heart hu-a hu-pop" style="--d: 5" aria-hidden="true"><use href="#hu-heart" /></svg>
-          <div class="cx-h cx-a hu-cap hu-welcome hu-a hu-up" style="--d: 4">Welcome to our wedding</div>
+          <div class="cx-t hu-hero-names hu-a hu-up" style="--d: 4">
+            <span id="couple-names-groom">----------</span>
+            <span class="hu-hero-amp cx-a">&amp;</span>
+            <span id="couple-names-bride">----------</span>
+          </div>
+          <div class="cx-h cx-a hu-cap hu-welcome hu-a hu-up" style="--d: 5">Welcome to our wedding</div>
         </section>
 
         <!-- ═══ Trang 2 — Lời ngỏ: thơ, tháp ly, ảnh trên khối đỏ rượu, dây treo hai bên ═ -->
@@ -443,9 +442,8 @@
       </div>
     </div>
 
-    <!-- Chấm chỉ trang + gợi ý vuốt — chỉ hiện khi thiệp đã mở (huSlides ở index.js). -->
+    <!-- Chấm chỉ trang — chỉ hiện khi thiệp đã mở (huSlides ở index.js). -->
     <nav id="hu-dots" class="hu-dots" aria-hidden="true"></nav>
-    <div id="hu-hint" class="hu-hint" aria-hidden="true"><i data-lucide="chevrons-up" class="cx-ic"></i></div>
 
 
     <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
