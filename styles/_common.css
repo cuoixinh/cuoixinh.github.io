@@ -2120,7 +2120,8 @@ x-button {
 
 .cx-pside-name {
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  /* Serif có sẵn trong máy và đủ dấu tiếng Việt (Georgia thiếu dấu trên Windows). */
+  font-family: Cambria, "Times New Roman", "Noto Serif", serif;
   font-size: 40px;
   font-weight: 500;
   line-height: 1.1;

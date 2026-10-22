@@ -1,4 +1,4 @@
-// Red Carpet — đám cưới dựng như buổi công chiếu: nền xanh đêm thành phố, dải phim, vé mời có cuống.
+// Red Carpet — đám cưới dựng như buổi công chiếu: nền xám studio, nhấn xanh bạch đàn, vé mời có cuống.
 // Chỉ khai báo CX_THEME + renderWedding; phần chạy nằm ở core/helpers/theme-boot.js.
 
 (function () {
@@ -13,41 +13,47 @@
     // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
     // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
     palette: {
-      heading: "#f4eee6",
-      body: "#c9cce0",
-      accent: "#f0b872",
-      accent_soft: "#e8a0b4",
-      on_accent: "#161d38",
-      on_image: "#fffaf4",
+      heading: "#1f2124",
+      body: "#5b5f66",
+      accent: "#4a6b5d",
+      accent_soft: "#d9a3a8",
+      on_accent: "#fafaf7",
+      on_image: "#ffffff",
       on_lightbox: "#ffffff",
-      card_bg: "#161d38",
-      page_bg: "#0e1326",
-      surface: "#1e2748",
-      band: "#121830",
-      panel: "#222c50",
-      panel_warm: "#2a3054",
-      cover: "#0e1326",
-      cover_mid: "#161d38",
-      cover_veil: "#0e1326",
-      lightbox_bg: "#000000",
-      line: "#3a4670",
-      shadow: "#000000",
-      scrim: "#060914",
-      deco: "#f0b872",
-      deco_soft: "#f8deb4",
-      deco_2: "#080a14",
-      deco_2_soft: "#1e2238",
-      shine_from: "#f0b872",
-      shine_mid: "#fce2b4",
-      shine_to: "#e8a0b4",
+      card_bg: "#f6f6f7",
+      page_bg: "#e8e9ec",
+      surface: "#eeeff1",
+      band: "#ffffff",
+      panel: "#eff1f0",
+      panel_warm: "#f4f2ee",
+      cover: "#f6f6f7",
+      cover_mid: "#eeeff1",
+      cover_veil: "#f6f6f7",
+      lightbox_bg: "#0e0f11",
+      line: "#dcdfe2",
+      shadow: "#1e2226",
+      scrim: "#141619",
+      deco: "#e8c547",
+      deco_soft: "#8faa9c",
+      deco_2: "#232527",
+      deco_2_soft: "#d6dbd8",
+      shine_from: "#8faa9c",
+      shine_mid: "#e8dcaa",
+      shine_to: "#4a6b5d",
     },
 
-    swatches: ["#f0b872", "#f8deb4", "#f4eee6", "#c9cce0", "#e8a0b4", "#3a4670", "#161d38", "#0e1326", "#080a14"],
+    swatches: ["#4a6b5d", "#8faa9c", "#e8c547", "#d9a3a8", "#1f2124", "#5b5f66", "#dcdfe2", "#eeeff1", "#f6f6f7"],
 
-    wishes: { bubble: "#1e2748", text: "#c9cce0", accent: "#f0b872", btn: "#f0b872" },
+    wishes: { bubble: "#ffffff", text: "#5b5f66", accent: "#4a6b5d", btn: "#4a6b5d" },
 
     reveal: ["#main-card section"],
-    revealItems: ["#gallery-grid .rc-fr", "#love-story-list .rc-ch", "#section-ceremony .rc-tk"],
+    revealItems: [
+      "#gallery-grid .rc-fr",
+      "#gallery-grid .rc-strip-cell",
+      "#love-story-list .rc-ch",
+      "#section-couple .rc-role-ph",
+      "#section-ceremony .rc-tk",
+    ],
 
     loveStory: "short",
     onOpen: null,
@@ -70,6 +76,7 @@
     cxToggle("story-quote", !!w.story_quote);
     const cd = _date(w.ceremony_date);
     setText("rc-hero-dm", cd ? `${pad(cd.getDate())}/${pad(cd.getMonth() + 1)}` : "", "--/--");
+    setText("rc-cover-no", cd ? `No. ${pad(cd.getDate())}${pad(cd.getMonth() + 1)}` : "", "No. ----");
 
     setupMusic(w.music_url, w.enable_music);
 
@@ -78,6 +85,7 @@
     const ceremonyName = isVuQuy ? "Lễ Vu Quy" : w.ceremony_name || "Lễ Thành Hôn";
     const ceremonyTime = isVuQuy ? w.vu_quy_time : w.ceremony_time;
     const ceremonyLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
+    setText("rc-cover-time", ceremonyTime, "--:--");
 
     // --- Gia đình + hai vai chính ---
     renderCoupleInfo(w);
@@ -218,8 +226,8 @@
   }
 
   // ============= ALBUM =============
-  // Ảnh đầu lớn kèm cuộn phim dọc (4 ảnh kế tiếp) đè mép phải; phần còn lại là hai cuộn
-  // phim dọc so le. Thứ tự lightbox = thứ tự gốc.
+  // Ảnh đầu lớn kèm dải ảnh nhỏ dọc (4 ảnh kế tiếp) đè mép phải; phần còn lại xếp lưới
+  // hai cột, số ảnh lẻ thì ảnh cuối trải ngang. Thứ tự lightbox = thứ tự gốc.
 
   function renderGallery(images, focalPoints) {
     const grid = document.getElementById("gallery-grid");
@@ -239,16 +247,18 @@
         style="object-position:${cxFocal(fp)}">`;
     };
     const reel = urls.slice(1, 5);
+    // Dải nhỏ chạy vòng như cuộn phim: nhân đôi dãy ảnh để trượt -50% là nối liền.
+    const strip = reel.map((_, k) => `<div class="rc-strip-cell">${img(k + 1)}</div>`).join("");
     const lead = `<div class="rc-gal-lead rc-fr">${img(0)}
-      ${reel.length ? `<div class="rc-strip">${reel.map((_, k) => `<div class="rc-strip-cell">${img(k + 1)}</div>`).join("")}</div>` : ""}
+      ${reel.length ? `<div class="rc-strip"><div class="rc-strip-track">${strip}${strip.replace(/class="rc-strip-cell"/g, 'class="rc-strip-cell" aria-hidden="true"')}</div></div>` : ""}
     </div>`;
-    // Hai cuộn phim dọc: ảnh chẵn/lẻ chia hai cột, số khung đếm theo thứ tự gốc.
-    const cell = (i) => `<div class="rc-fr rc-gal-cell" data-fr="${pad(i - 4)}A">${img(i)}</div>`;
-    const cols = [[], []];
-    for (let i = 5; i < urls.length; i++) cols[(i - 5) % 2].push(cell(i));
-    const rest = cols[0].length
-      ? `<div class="rc-gal-grid">${cols.map((c) => `<div class="rc-roll">${c.join("")}</div>`).join("")}</div>`
-      : "";
+    const n = urls.length - 5;
+    const cell = (i) =>
+      `<div class="rc-fr rc-gal-cell${n % 2 && i === urls.length - 1 ? " is-wide" : ""}" data-fr="${pad(i - 4)}A"><span class="rc-gal-ph">${img(i)}</span></div>`;
+    const rest =
+      n > 0
+        ? `<div class="rc-gal-grid">${Array.from({ length: n }, (_, k) => cell(k + 5)).join("")}</div>`
+        : "";
     grid.innerHTML = lead + rest;
     grid.onclick = (e) => {
       const t = e.target.closest("img[data-i]");
