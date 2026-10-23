@@ -116,6 +116,7 @@
     const isVuQuy = !_isGroom && cxEnabled(w.vu_quy_enabled);
     const ceremonyName = isVuQuy ? "Lễ Vu Quy" : w.ceremony_name || "Lễ Thành Hôn";
     const ceremonyTime = isVuQuy ? w.vu_quy_time : w.ceremony_time;
+    ttEngrave(w, ceremonyTime);
     const ceremonyLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
 
     setText("ceremony-event-name", ceremonyName);
@@ -196,6 +197,43 @@
   function ttInitial(name) {
     const word = String(name || "").trim().split(/\s+/).pop() || "";
     return word.charAt(0).toUpperCase() || "-";
+  }
+
+  // Chữ khắc quanh vành nhẫn ở bìa: giờ lễ cung trái, ngày âm cung phải, ngày dương ở đáy.
+  // time = giờ lễ phía đang xem (Vu Quy nếu nhà gái bật) — khớp trang Thư mời. Dài quá
+  // cung thì textLength ép lại cho khỏi tràn sang cung kia.
+  function ttEngrave(w, time) {
+    const d = w.ceremony_date ? new Date(w.ceremony_date + "T00:00:00") : null;
+    const date = d && !isNaN(d) ? `✦  ${_pad(d.getDate())} · ${_pad(d.getMonth() + 1)} · ${d.getFullYear()}  ✦` : "";
+    [
+      ["tt-eng-left", ttTimeOfDay(time)],
+      ["tt-eng-right", ttLunar(w.ceremony_lunar)],
+      ["tt-eng-date", date],
+    ].forEach(([id, text]) => {
+      const tp = document.getElementById(id);
+      if (!tp) return;
+      tp.removeAttribute("textLength");
+      tp.textContent = text;
+      const room = document.querySelector(tp.getAttribute("href"))?.getTotalLength?.() * 0.94;
+      if (text && room && tp.getComputedTextLength?.() > room) tp.setAttribute("textLength", String(room));
+    });
+  }
+
+  // "10:30" → "10:30 sáng" (buổi theo giờ: <11 sáng · <13 trưa · <18 chiều · còn lại tối).
+  function ttTimeOfDay(t) {
+    const m = String(t || "").match(/^(\d{1,2}):(\d{2})/);
+    if (!m) return "";
+    const h = Number(m[1]);
+    const part = h < 11 ? "sáng" : h < 13 ? "trưa" : h < 18 ? "chiều" : "tối";
+    return `${_pad(h)}:${m[2]} ${part}`;
+  }
+
+  // "Tức ngày 3 tháng 12 năm Bính Ngọ" → "03 · 12 âm lịch"; không đọc được ngày/tháng thì
+  // giữ nguyên chuỗi khách nhập (bỏ chữ "Tức").
+  function ttLunar(s) {
+    const str = String(s || "").trim();
+    const m = str.match(/ngày\s+(\d{1,2})\s+tháng\s+(\d{1,2})/i);
+    return m ? `${_pad(Number(m[1]))} · ${_pad(Number(m[2]))} âm lịch` : str.replace(/^tức\s+/i, "");
   }
 
   function ttDayMonth(dateStr) {
@@ -388,6 +426,7 @@
     reel.querySelectorAll("[data-lb]").forEach((el) =>
       el.addEventListener("click", () => openLightbox(Number(el.dataset.lb))),
     );
+    ttReelAutoplay(reel);
     if (reel._ttScroll) return;
     reel._ttScroll = true;
     reel.addEventListener(
@@ -395,11 +434,121 @@
       () => {
         const cell = reel.firstElementChild;
         if (!cell) return;
-        const i = Math.round(reel.scrollLeft / (cell.offsetWidth + 12));
-        setText("tt-reel-i", String(Math.min(reel.children.length, i + 1)));
+        // Đếm theo số ảnh THẬT — lúc tự trôi băng có thêm một lượt ảnh nhân bản ở đuôi.
+        const n = reel.querySelectorAll(".tt-reel-cell:not([data-tt-clone])").length;
+        ttReelIndex(Math.round(reel.scrollLeft / (cell.offsetWidth + 12)) % n);
       },
       { passive: true },
     );
+  }
+
+  // Số "i / n" dưới băng — chỉ ghi khi đổi, tránh đụng DOM mỗi khung hình.
+  let _ttReelI = -1;
+  function ttReelIndex(i) {
+    if (i === _ttReelI) return;
+    _ttReelI = i;
+    setText("tt-reel-i", String(i + 1));
+  }
+
+  // Băng ảnh tự TRÔI liên tục TT_REEL_SPEED px/giây. Trôi bằng TRANSFORM (biến --tt-x trên
+  // băng, .is-auto ở theme.css) chứ không bằng scrollLeft: scrollLeft làm tròn về pixel nên
+  // bước < 1px/khung thành nhích-dừng (giật), lại phát scroll + tính lại bố cục mỗi khung.
+  // Quay vòng liền mạch: đuôi băng có thêm một lượt ảnh nhân bản (data-tt-clone), trôi hết
+  // lượt thật thì lùi đúng một lượt. Bề ngang một lượt đo một lần (đo lại khi băng đổi khổ).
+  // Khách vuốt/lăn NGANG hoặc bấm mở một ảnh là DỪNG HẲN: quy vị trí về scrollLeft thật, gỡ
+  // bản nhân, trả snap. Chỉ xét chiều ngang: cuộn trang dọc lướt qua băng cũng phát
+  // touchstart/wheel trên nó.
+  const TT_REEL_SPEED = 36;
+  function ttReelAutoplay(reel) {
+    if (reel._ttAuto) {
+      // renderGallery vẽ lại băng (bản xem trực tiếp): bản nhân cũ mất theo innerHTML.
+      reel._ttAuto.reclone();
+      return;
+    }
+    let visible = false;
+    let stopped = false;
+    let t0 = null;
+    let pos = 0;
+    let last = 0;
+    let lapW = 0;
+    let n = 0;
+
+    const clones = () => reel.querySelectorAll("[data-tt-clone]");
+    // Bề ngang đúng một lượt ảnh thật = khoảng từ ảnh đầu tới bản nhân đầu tiên.
+    const measure = () => {
+      const k = reel.querySelector("[data-tt-clone]");
+      lapW = k ? k.offsetLeft - reel.firstElementChild.offsetLeft : 0;
+    };
+    const reclone = () => {
+      if (stopped) return;
+      clones().forEach((c) => c.remove());
+      const real = [...reel.children];
+      n = real.length;
+      if (n < 2) return;
+      real.forEach((c) => {
+        const k = c.cloneNode(true);
+        k.setAttribute("data-tt-clone", "");
+        k.setAttribute("aria-hidden", "true");
+        reel.appendChild(k);
+      });
+      measure();
+    };
+
+    const stop = () => {
+      if (stopped) return;
+      stopped = true;
+      io?.disconnect();
+      ro?.disconnect();
+      clones().forEach((c) => c.remove());
+      reel.classList.remove("is-auto");
+      reel.style.removeProperty("--tt-x");
+      reel.scrollLeft = lapW ? pos % lapW : 0;
+      reel.style.scrollSnapType = "";
+    };
+    reel._ttAuto = { reclone };
+
+    // Bấm ảnh nhân bản cũng mở đúng ảnh gốc (listener của renderGallery chỉ gắn ảnh thật).
+    reel.addEventListener("click", (e) => {
+      const k = e.target.closest("[data-tt-clone]");
+      stop();
+      if (k) openLightbox(Number(k.dataset.lb));
+    });
+    reel.addEventListener("keydown", stop);
+    reel.addEventListener("wheel", (e) => Math.abs(e.deltaX) > Math.abs(e.deltaY) && stop(), { passive: true });
+    reel.addEventListener("touchstart", (e) => (t0 = e.touches[0]), { passive: true });
+    reel.addEventListener(
+      "touchmove",
+      (e) => {
+        const t = e.touches[0];
+        if (!t0 || stopped) return;
+        const dx = Math.abs(t.clientX - t0.clientX);
+        if (dx > 8 && dx > Math.abs(t.clientY - t0.clientY)) stop();
+      },
+      { passive: true },
+    );
+    const io = window.IntersectionObserver
+      ? new IntersectionObserver(([e]) => (visible = e.isIntersecting), { threshold: 0.3 })
+      : null;
+    io?.observe(reel);
+    const ro = window.ResizeObserver ? new ResizeObserver(measure) : null;
+    ro?.observe(reel);
+
+    reel.style.scrollSnapType = "none";
+    reel.scrollLeft = 0;
+    reel.classList.add("is-auto");
+    reclone();
+    const frame = (now) => {
+      if (stopped) return;
+      requestAnimationFrame(frame);
+      const dt = last ? Math.min(now - last, 64) : 0;
+      last = now;
+      if (!visible || document.hidden || !lapW) return;
+      pos += (TT_REEL_SPEED * dt) / 1000;
+      if (pos >= lapW) pos -= lapW;
+      reel.style.setProperty("--tt-x", pos.toFixed(2));
+      ttReelIndex(Math.round(pos / (lapW / n)) % n);
+    };
+    requestAnimationFrame(frame);
   }
 
   // ============= BẢN ĐỒ: NÚT CHỈ ĐƯỜNG =============
@@ -428,6 +577,19 @@
 
   const TT_SCRATCH_DONE = 0.6; // tỉ lệ đã tô trên diện tích lòng nhẫn
   const TT_RING_HOLE = "/assets/images/decor/tt-ring-hole.webp";
+
+  // Lá rơi lả tả trên màn bìa: mỗi lá một vị trí, cỡ, nhịp rơi và độ đưa ngang ngẫu nhiên;
+  // độ trễ âm để vừa mở đã có lá giữa màn. Hình lá là icon lucide "leaf".
+  function ttLeaves() {
+    const box = document.querySelector("#cover-screen .tt-leaves");
+    if (!box || box.childElementCount) return;
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    box.innerHTML = Array.from({ length: 14 }, (_, i) => {
+      const t = rnd(9, 16);
+      return `<i data-lucide="leaf" class="${i % 3 ? "" : "is-soft"}" style="left:${rnd(-4, 96).toFixed(0)}%;--s:${rnd(0.32, 0.62).toFixed(2)};--t:${t.toFixed(1)}s;--dl:${(-rnd(0, t)).toFixed(1)}s;--sw:${rnd(-60, 60).toFixed(0)}px;--r0:${rnd(0, 360).toFixed(0)}deg"></i>`;
+    }).join("");
+    window.lucide?.createIcons({ root: box });
+  }
 
   function ttScratch() {
     const wrap = document.getElementById("tt-rings");
@@ -567,6 +729,7 @@
   }
 
   ttScratch();
+  ttLeaves();
 
   // ============= HIỆU ỨNG VÀO TRANG =============
   // Trang = .tt-page (+ mục lời chúc do wishes-helper chèn). Trang chiếm >= 50% khung

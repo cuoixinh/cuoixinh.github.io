@@ -260,7 +260,17 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  background: linear-gradient(to bottom, transparent 45%, rgb(var(--cx-scrim-rgb) / 0.28));
+  background: linear-gradient(to bottom, transparent 40%, rgb(var(--cx-scrim-rgb) / 0.45));
+}
+
+/* Nền tối mờ sau cụm chữ trắng đè ảnh sáng. Nới viền bằng box-shadow cùng màu chứ
+   không padding: .tt-cal-heads phải giữ đúng bề ngang để cột thẳng với lưới lịch dưới. */
+.tt-veil {
+  background: rgb(var(--cx-scrim-rgb) / 0.32);
+  box-shadow: 0 0 0 calc(var(--u) * 0.14) rgb(var(--cx-scrim-rgb) / 0.32);
+  border-radius: calc(var(--u) * 0.12);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
 }
 .tt-over-cap {
   font-size: calc(var(--u) * 0.2);
@@ -369,15 +379,64 @@ body {
 }
 
 /* ── Màn bìa ──────────────────────────────────────────────────────────── */
+/* Ba tầng: khối mời neo trên · .tt-cv-mid (nhẫn + tên) chiếm phần giữa · lối mở neo đáy. */
 #cover-screen .tt-cover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: calc(var(--u) * 0.2) 0;
+  padding: calc(var(--u) * 1.2) 0 calc(var(--u) * 0.8);
 }
-/* Ảnh nền phủ kín màn bìa, để mờ + lớp nền thiệp phủ nhạt dần để chữ vẫn đọc rõ.
-   Độ đặc hiệu cao hơn `.tt-cover > *` (luật đó đặt mọi con thành relative). */
+/* Lá rơi (ttLeaves): nằm trên ảnh nền, dưới chữ và nhẫn. Lá đỏ son, cứ ba lá có một lá
+   hồng nhạt; rơi chéo, đưa ngang theo --sw và xoay dần. */
+#cover-screen .tt-leaves {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.tt-leaves svg {
+  position: absolute;
+  top: calc(var(--u) * -1);
+  width: calc(var(--u) * var(--s, 0.5));
+  height: calc(var(--u) * var(--s, 0.5));
+  color: rgb(var(--cx-accent-rgb) / 0.75);
+  fill: rgb(var(--cx-accent-rgb) / 0.35);
+  stroke-width: 1.5;
+  animation: cx-tt-leaf var(--t, 12s) linear var(--dl, 0s) infinite;
+}
+.tt-leaves svg.is-soft {
+  color: rgb(var(--cx-accent-soft-rgb));
+  fill: rgb(var(--cx-accent-soft-rgb) / 0.6);
+}
+@keyframes cx-tt-leaf {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(var(--r0, 0deg));
+  }
+  8% { opacity: 1; }
+  50% { transform: translate(var(--sw, 30px), calc(var(--vh, 1vh) * 55)) rotate(calc(var(--r0, 0deg) + 180deg)); }
+  92% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--sw, 30px) * -0.4), calc(var(--vh, 1vh) * 110)) rotate(calc(var(--r0, 0deg) + 360deg));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #cover-screen .tt-leaves {
+    display: none;
+  }
+}
+.tt-cv-mid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+/* Nền màn bìa: ảnh album đầu tiên phủ kín dưới lớp giấy trắng (ảnh hiện chừng 15–40%).
+   Giấy dày ở đầu và đáy cho chữ mực đọc rõ, mỏng ở giữa quanh nhẫn. Độ đặc hiệu cao hơn
+   `.tt-cover > *`. */
 #cover-screen .tt-cv-bg {
   position: absolute;
   inset: 0;
@@ -387,7 +446,6 @@ body {
 #cover-screen .tt-cv-bg img {
   position: absolute;
   inset: 0;
-  opacity: 0.35;
 }
 #cover-screen .tt-cv-bg::after {
   content: "";
@@ -395,59 +453,197 @@ body {
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgb(var(--cx-card-bg-rgb) / 0.75),
-    rgb(var(--cx-card-bg-rgb) / 0.35) 45%,
-    rgb(var(--cx-card-bg-rgb) / 0.75)
+    rgb(var(--cx-card-bg-rgb) / 0.86),
+    rgb(var(--cx-card-bg-rgb) / 0.72) 28%,
+    rgb(var(--cx-card-bg-rgb) / 0.6) 50%,
+    rgb(var(--cx-card-bg-rgb) / 0.8) 70%,
+    rgb(var(--cx-card-bg-rgb) / 0.9)
   );
 }
+
+/* Khối mời: nhãn chữ hoa · tên khách nghiêng lớn · dòng nhỏ dẫn sang tên đôi. */
 .tt-cv-guest {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: calc(var(--u) * 0.5 * var(--tt-gap));
+  gap: calc(var(--u) * 0.06);
   text-align: center;
 }
 .tt-cv-line {
-  font-size: calc(var(--u) * 0.32);
-  line-height: 1.8;
-  letter-spacing: calc(var(--u) * 0.05);
-  color: rgb(var(--cx-heading-rgb));
+  white-space: normal;
 }
+/* Tên khách: Cormorant nghiêng — thanh, đọc rõ cả họ tên dài có dấu. */
 .tt-cv-guestname {
-  font-size: calc(var(--u) * 0.46);
-  font-weight: 700;
-  line-height: 1.5;
-  letter-spacing: calc(var(--u) * 0.04);
+  font-family: "Cormorant Garamond", serif;
+  font-size: calc(var(--u) * 0.78);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.25;
   color: rgb(var(--cx-heading-rgb));
 }
-.tt-cv-names {
-  margin-top: calc(var(--u) * 0.2 * var(--tt-gap));
-  font-size: calc(var(--u) * 0.46);
+/* Link chung không có tên khách: chỉ còn dòng lời chào, cho nó nhích xuống gần nhẫn. */
+.cx-guest-generic .tt-cv-guest {
+  margin-top: calc(var(--u) * 0.3);
 }
-.tt-cover .tt-md {
-  margin-top: calc(var(--u) * 0.25 * var(--tt-gap));
+.tt-cv-to {
+  font-size: calc(var(--u) * 0.28);
+  letter-spacing: calc(var(--u) * 0.03);
+  color: rgb(var(--cx-body-rgb) / 0.8);
+}
+/* Tên đôi so le: hai dòng lệch hai phía, trái tim đỏ chen giữa — chữ nghiêng lớn là điểm
+   tựa thứ hai của màn bìa, sau chiếc nhẫn. */
+/* Tên đôi: chữ viết tay MyEverything (tự host, đủ dấu tiếng Việt — đổi font thì thử lại
+   "Đ ạ ư ơ ễ"). Nét hoa vươn cao/thấp nên dòng phải thoáng. */
+.tt-cv-names {
+  display: grid;
+  width: calc(var(--u) * 7.6);
+  margin-top: calc(var(--u) * 0.2 * var(--tt-gap));
+  font-family: "MyEverything", cursive;
+  font-size: calc(var(--u) * 1.1);
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgb(var(--cx-heading-rgb));
+}
+.tt-cv-n {
+  justify-self: start;
+  white-space: nowrap;
+}
+.tt-cv-n2 {
+  justify-self: end;
+}
+/* Trái tim nối hai tên: tim đặc đỏ son, hai nét chỉ đỏ nhạt dần hai bên, đập nhẹ. */
+.tt-cv-heart {
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.18);
+  margin: calc(var(--u) * 0.06) 0;
+  font-size: calc(var(--u) * 0.46);
+  line-height: 1;
+}
+.tt-cv-heart::before,
+.tt-cv-heart::after {
+  content: "";
+  width: calc(var(--u) * 0.9);
+  height: 1px;
+  background: linear-gradient(to left, rgb(var(--cx-accent-rgb) / 0.7), transparent);
+}
+.tt-cv-heart::after {
+  background: linear-gradient(to right, rgb(var(--cx-accent-rgb) / 0.7), transparent);
+}
+.tt-cv-heart svg {
+  fill: rgb(var(--cx-accent-rgb));
+  stroke: rgb(var(--cx-accent-rgb));
+  filter: drop-shadow(0 2px 4px rgb(var(--cx-accent-rgb) / 0.35));
+  animation: cx-tt-heart 2.4s ease-in-out 2s infinite;
+}
+@keyframes cx-tt-heart {
+  0%,
+  55%,
+  100% { transform: scale(1); }
+  15%,
+  35% { transform: scale(1.18); }
 }
 .tt-cv-skip {
-  margin-top: calc(var(--u) * 0.25 * var(--tt-gap));
   padding: calc(var(--u) * 0.1) calc(var(--u) * 0.3);
   background: none;
+  box-shadow: none;
   font-size: calc(var(--u) * 0.28);
   font-style: italic;
   text-decoration: underline;
   text-underline-offset: 3px;
   color: rgb(var(--cx-body-rgb) / 0.75);
 }
-.tt-cover .tt-foot {
-  padding-top: calc(var(--u) * 0.3);
+
+/* Chữ khắc quanh vành nhẫn (giờ lễ · ngày âm hai bên, ngày dương ở đáy) — đơn vị theo viewBox 1200×1440. */
+.tt-engrave {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.tt-engrave {
+  filter: drop-shadow(0 0 3px rgb(var(--cx-card-bg-rgb)));
+}
+.tt-engrave text {
+  font-family: "Playfair Display", serif;
+  font-size: 46px;
+  font-weight: 700;
+  letter-spacing: 14px;
+  text-transform: uppercase;
+  fill: rgb(var(--cx-accent-rgb));
+}
+/* Lời nhắc canh đúng tâm lòng nhẫn, trên lớp lụa đỏ; cây cọ gợi ý (.tt-brush) quét ở dải
+   dưới chữ. Lòng nhẫn: top 26.39%, cao 60% khung (xem .tt-ring > img). */
+.tt-ring-tip {
+  position: absolute;
+  left: 14%;
+  top: 26.39%;
+  width: 72%;
+  height: 60%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 0.04);
+  text-align: center;
+  color: rgb(var(--cx-on-accent-rgb));
+  text-shadow: 0 1px 6px rgb(var(--cx-scrim-rgb) / 0.35);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+/* Hai dòng cùng Playfair chữ hoa: "Tô lên nhẫn" lớn, "để mở thiệp" nhỏ kẹp giữa hai nét chỉ
+   như dòng dưới của con dấu. Dòng trên "thở" nhẹ để mời tay chạm vào. */
+.tt-ring-tip-1 {
+  font-family: "Playfair Display", serif;
+  font-size: calc(var(--u) * 0.4);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: calc(var(--u) * 0.08);
+  text-transform: uppercase;
+  animation: cx-tt-tip 2.6s ease-in-out infinite;
+}
+.tt-ring-tip-2 {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.14);
+  margin-top: calc(var(--u) * 0.06);
+  font-family: "Playfair Display", serif;
+  font-size: calc(var(--u) * 0.19);
+  font-weight: 700;
+  letter-spacing: calc(var(--u) * 0.12);
+  text-transform: uppercase;
+  opacity: 0.88;
+}
+.tt-ring-tip-2::before,
+.tt-ring-tip-2::after {
+  content: "";
+  width: calc(var(--u) * 0.5);
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+@keyframes cx-tt-tip {
+  0%,
+  100% { opacity: 0.82; }
+  50% { opacity: 1; }
+}
+.tt-rings.is-scratching .tt-ring-tip,
+.tt-rings.is-done .tt-ring-tip {
+  opacity: 0;
+  transform: scale(0.92);
 }
 
 /* Nhẫn cưới bạc (nhìn thẳng) tô để mở: khung cùng tỉ lệ ảnh render 1200 × 1440. Lòng nhẫn (.tt-ring)
    phủ trọn khung, cắt theo mặt nạ tt-ring-hole.webp (render cùng góc máy với nhẫn). */
 .tt-rings {
   position: relative;
-  width: calc(var(--u) * 7);
+  width: calc(var(--u) * 7.6);
   aspect-ratio: 1200 / 1440;
-  margin-top: calc(var(--u) * 0.3 * var(--tt-gap));
+  margin-top: calc(var(--u) * -0.2 * var(--tt-gap));
 }
 .tt-ring {
   position: absolute;
@@ -457,9 +653,15 @@ body {
   -webkit-mask: url("../../../assets/images/decor/tt-ring-hole.webp") center / 100% 100% no-repeat;
   mask: url("../../../assets/images/decor/tt-ring-hole.webp") center / 100% 100% no-repeat;
 }
+/* Ảnh chỉ phủ đúng lòng nhẫn (đo từ tt-ring-hole.webp: ô vuông 850px tại 175,387 trên
+   1200×1440, nới ~1% chống hở mép) — phủ cả khung thì điểm nhìn căn theo khung, mặt
+   người rơi ra ngoài lòng nhẫn. Đổi ảnh mặt nạ phải đo lại. */
 .tt-ring > img {
   position: absolute;
-  inset: 0;
+  left: 14%;
+  top: 26.39%;
+  width: 72%;
+  height: 60%;
 }
 .tt-scratch-cv {
   position: absolute;
@@ -547,14 +749,6 @@ body {
 .tt-rings.is-done .tt-brush {
   display: none;
 }
-.tt-scratch-tip {
-  display: flex;
-  align-items: center;
-  gap: calc(var(--u) * 0.15);
-  margin-top: calc(var(--u) * 0.5 * var(--tt-gap));
-  font-size: calc(var(--u) * 0.3);
-  letter-spacing: calc(var(--u) * 0.03);
-}
 .tt-burst {
   position: absolute;
   z-index: 3;
@@ -571,12 +765,14 @@ body {
   100% { transform: translateX(100%); }
 }
 @keyframes cx-tt-brush {
-  0% { opacity: 0; transform: translate(calc(var(--u) * 1.8), calc(var(--u) * 3.4)) rotate(-20deg); }
+  0% { opacity: 0; transform: translate(calc(var(--u) * 2.3), calc(var(--u) * 6.1)) rotate(-20deg); }
   15% { opacity: 1; }
-  40% { transform: translate(calc(var(--u) * 4.2), calc(var(--u) * 4)) rotate(10deg); }
-  65% { transform: translate(calc(var(--u) * 2), calc(var(--u) * 5.1)) rotate(-15deg); }
-  85% { opacity: 1; transform: translate(calc(var(--u) * 4.3), calc(var(--u) * 5.6)) rotate(5deg); }
-  100% { opacity: 0; transform: translate(calc(var(--u) * 4.3), calc(var(--u) * 5.6)) rotate(5deg); }
+  40% { transform: translate(calc(var(--u) * 4.4), calc(var(--u) * 6.4)) rotate(10deg); }
+  65% { transform: translate(calc(var(--u) * 2.6), calc(var(--u) * 6.9)) rotate(-15deg); }
+  85% { opacity: 1; transform: translate(calc(var(--u) * 4.2), calc(var(--u) * 7.1)) rotate(5deg); }
+  100% { opacity: 0; transform: translate(calc(var(--u) * 4.2), calc(var(--u) * 7.1)) rotate(5deg); }
+}
+}
 }
 @keyframes cx-tt-beat {
   0%,
@@ -592,11 +788,13 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .tt-ring::after,
   .tt-brush,
-  .tt-spark {
+  .tt-spark,
+  .tt-cv-heart svg,
+  .tt-ring-tip-1 {
     animation: none;
   }
   .tt-brush {
-    transform: translate(calc(var(--u) * 3), calc(var(--u) * 4.4));
+    transform: translate(calc(var(--u) * 3.4), calc(var(--u) * 6.6));
   }
 }
 
@@ -715,6 +913,10 @@ body {
   top: calc(var(--u) * 0.7);
   left: 0;
   right: 0;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 0 calc(var(--u) * 0.3);
+  font-family: "KattyDiona", cursive;
   font-size: calc(var(--u) * 0.62);
   line-height: 1.45;
   text-align: center;
@@ -844,32 +1046,59 @@ body {
 .tt-map .tt-venue {
   margin-top: calc(var(--u) * 0.45 * var(--tt-gap));
 }
+/* Thẻ bản đồ: rộng bằng ảnh phía trên, khung giấy viền mảnh + thanh dưới "Xem bản đồ · Chỉ đường". */
 .tt-map-card {
-  position: relative;
   display: block;
-  width: calc(var(--u) * 5.6);
-  height: calc(var(--u) * 2.4);
+  width: calc(var(--u) * 8.67);
   margin-top: calc(var(--u) * 0.3 * var(--tt-gap));
+  padding: calc(var(--u) * 0.16);
+  border: 1px solid rgb(var(--cx-line-rgb));
+  background: rgb(var(--cx-card-bg-rgb));
+  box-shadow: 0 12px 28px -18px rgb(var(--cx-shadow-rgb) / 0.35);
 }
 .tt-map-box {
   position: relative;
-  width: 100%;
-  height: 100%;
+  height: calc(var(--u) * 4.2);
   overflow: hidden;
+  background: rgb(var(--cx-surface-rgb));
+}
+/* Kéo iframe cao hơn khung rồi đẩy lên: giấu dải "Phím tắt · Dữ liệu bản đồ" + nút điều khiển
+   của Google ở đáy mà ghim vẫn nằm giữa khung. */
+.tt-map-box iframe {
+  position: absolute;
+  left: 0;
+  top: -64px;
+  height: calc(100% + 128px);
+}
+.tt-map-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(var(--u) * 0.2) calc(var(--u) * 0.06) calc(var(--u) * 0.04);
+}
+.tt-map-see {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: calc(var(--u) * 0.28);
+  letter-spacing: calc(var(--u) * 0.03);
+}
+.tt-map-see .cx-ic {
+  color: rgb(var(--cx-accent-rgb));
 }
 .tt-map-go {
-  position: absolute;
-  right: calc(var(--u) * 0.2);
-  bottom: calc(var(--u) * 0.2);
-  display: grid;
-  place-items: center;
-  width: calc(var(--u) * 0.9);
-  height: calc(var(--u) * 0.9);
-  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: calc(var(--u) * 0.12) calc(var(--u) * 0.3);
+  border-radius: 999px;
   background: rgb(var(--cx-accent-rgb));
   color: rgb(var(--cx-on-accent-rgb));
-  font-size: calc(var(--u) * 0.4);
-  box-shadow: 0 4px 12px -4px rgb(var(--cx-shadow-rgb) / 0.4);
+  font-family: "Noto Serif", serif;
+  font-size: calc(var(--u) * 0.26);
+  letter-spacing: calc(var(--u) * 0.02);
+  white-space: nowrap;
 }
 /* Lễ và tiệc ở hai nơi: ảnh thấp lại để hai bản đồ vẫn lọt một trang. */
 .cx-map-dual .tt-map-photo {
@@ -957,7 +1186,9 @@ body {
 .tt-album .tt-em {
   margin-top: calc(var(--u) * 0.3 * var(--tt-gap));
 }
+/* relative: offsetLeft của ô tính theo chính băng — autoplay (ttReelAutoplay) cần vậy. */
 .tt-reel {
+  position: relative;
   display: flex;
   gap: 12px;
   width: 100%;
@@ -969,6 +1200,12 @@ body {
 }
 .tt-reel::-webkit-scrollbar {
   display: none;
+}
+/* Lúc tự trôi (ttReelAutoplay) cả băng dịch bằng transform theo --tt-x (px) — chạy trên
+   GPU, không làm tròn pixel như scrollLeft nên trôi mượt. */
+.tt-reel.is-auto > .tt-reel-cell {
+  transform: translate3d(calc(var(--tt-x, 0) * -1px), 0, 0);
+  will-change: transform;
 }
 .tt-reel-cell {
   position: relative;
