@@ -2,57 +2,45 @@
   "image_focal_points": {
     "gallery_images": {
       "gallery-01.webp": {
-        "x": 58,
-        "y": 47
+        "x": 51,
+        "y": 32
       },
       "gallery-02.webp": {
-        "x": 51,
-        "y": 56
+        "x": 95,
+        "y": 81
       },
       "gallery-03.webp": {
-        "x": 39,
-        "y": 24
+        "x": 90,
+        "y": 23
       },
       "gallery-04.webp": {
-        "x": 45,
-        "y": 46
+        "x": 44,
+        "y": 11
       },
       "gallery-05.webp": {
-        "x": 55,
-        "y": 66
+        "x": 58,
+        "y": 75
       },
       "gallery-06.webp": {
-        "x": 51,
-        "y": 25
+        "x": 79,
+        "y": 80
       },
       "gallery-07.webp": {
-        "x": 52,
-        "y": 44
-      },
-      "gallery-08.webp": {
-        "x": 54,
-        "y": 18
-      },
-      "gallery-09.webp": {
-        "x": 50,
-        "y": 50
-      },
-      "gallery-10.webp": {
-        "x": 60,
-        "y": 34
+        "x": 47,
+        "y": 37
       }
     },
     "cover_image_url": {
-      "x": 48,
-      "y": 11
+      "x": 74,
+      "y": 42
     },
     "groom_image_url": {
-      "x": 53,
-      "y": 0
+      "x": 17,
+      "y": 62
     },
     "bride_image_url": {
-      "x": 48,
-      "y": 0
+      "x": 28,
+      "y": 13
     }
   },
   "cover_image_url": "cover.webp",
@@ -67,84 +55,81 @@
     "gallery-04.webp",
     "gallery-05.webp",
     "gallery-06.webp",
-    "gallery-07.webp",
-    "gallery-08.webp",
-    "gallery-09.webp",
-    "gallery-10.webp"
+    "gallery-07.webp"
   ],
   "love_story": [
     {
-      "date": "2019",
-      "title": "Người cùng làng bên",
-      "content": "Hai nhà cách nhau một con đê, vậy mà mãi tới lễ hội làng năm ấy hai đứa mới nói chuyện lần đầu.",
+      "date": "2018",
+      "title": "Chuyến xe buýt số 34",
+      "content": "Ngày nào cũng chung một chuyến xe đi học, gần một năm sau anh mới dám hỏi tên em.",
       "image_url": "love-story-01.webp",
       "focal_point": {
-        "x": 55,
-        "y": 49
+        "x": 59,
+        "y": 29
       }
     },
     {
-      "date": "2021",
-      "title": "Những lá thư tay",
-      "content": "Anh đi làm xa, mỗi tháng một lá thư gửi về — em giữ đủ cả ba mươi hai lá.",
+      "date": "2022",
+      "title": "Bữa cơm đầu tiên",
+      "content": "Lần đầu anh về ra mắt, mẹ em gắp cho anh miếng cá kho ngon nhất nồi.",
       "image_url": "love-story-02.webp",
       "focal_point": {
         "x": 55,
-        "y": 50
+        "y": 66
       }
     },
     {
       "date": "2025",
-      "title": "Lễ chạm ngõ",
-      "content": "Hai gia đình gặp nhau bên ấm trà, mọi chuyện thành lời chỉ trong một buổi chiều.",
+      "title": "Lời hỏi cưới",
+      "content": "Một tối mưa ở hiên nhà, anh hỏi em có muốn sớm hôm cùng nhau đi hết đời này không.",
       "image_url": "love-story-03.webp",
       "focal_point": {
-        "x": 56,
-        "y": 23
+        "x": 52,
+        "y": 42
       }
     }
   ],
   "content": {
-    "groom_name": "Đức Anh",
-    "bride_name": "Phương Thảo",
-    "groom_father": "Trần Văn Quyết",
-    "groom_mother": "Bùi Thị Hoa",
-    "groom_address": "Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
-    "bride_father": "Đinh Công Sáu",
-    "bride_mother": "Lương Thị Thoa",
-    "bride_address": "Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
+    "groom_name": "Quang Huy",
+    "bride_name": "Thanh Tâm",
+    "groom_father": "Nguyễn Quang Lực",
+    "groom_mother": "Đỗ Thị Mến",
+    "groom_address": "Thôn Phù Lưu, Xã Tân Hồng, Tỉnh Bắc Ninh",
+    "bride_father": "Vũ Văn Toản",
+    "bride_mother": "Hoàng Thị Lý",
+    "bride_address": "Xóm Đình, Xã Đông Hội, Thành phố Hà Nội",
     "ceremony_name": "Lễ Thành Hôn",
-    "ceremony_date": "2026-12-06",
-    "ceremony_time": "10:00",
-    "ceremony_lunar": "Tức ngày 28 tháng 10 năm Bính Ngọ",
-    "ceremony_location": "Tư gia nhà trai — Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
-    "ceremony_map_embed_url": "https://maps.google.com/maps?q=20.5089,106.4712&output=embed&hl=vi",
+    "ceremony_date": "2026-12-20",
+    "ceremony_time": "09:30",
+    "ceremony_lunar": "Tức ngày 12 tháng 11 năm Bính Ngọ",
+    "ceremony_location": "Tư gia nhà trai — Thôn Phù Lưu, Xã Tân Hồng, Tỉnh Bắc Ninh",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=21.1146,105.9643&output=embed&hl=vi",
     "vu_quy_enabled": true,
-    "vu_quy_time": "07:30",
-    "vu_quy_location": "Tư gia nhà gái — Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
-    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=20.1176,106.1893&output=embed&hl=vi",
-    "groom_party_date": "2026-12-05",
-    "groom_party_time": "16:30",
-    "groom_party_lunar": "Tức ngày 27 tháng 10 năm Bính Ngọ",
+    "vu_quy_time": "07:00",
+    "vu_quy_location": "Tư gia nhà gái — Xóm Đình, Xã Đông Hội, Thành phố Hà Nội",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=21.0870,105.8865&output=embed&hl=vi",
+    "groom_party_date": "2026-12-19",
+    "groom_party_time": "17:00",
+    "groom_party_lunar": "Tức ngày 11 tháng 11 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Tư gia nhà trai — Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=20.5089,106.4712&output=embed&hl=vi",
-    "bride_party_date": "2026-12-05",
-    "bride_party_time": "17:00",
-    "bride_party_lunar": "Tức ngày 27 tháng 10 năm Bính Ngọ",
+    "groom_party_location": "Tư gia nhà trai — Thôn Phù Lưu, Xã Tân Hồng, Tỉnh Bắc Ninh",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=21.1146,105.9643&output=embed&hl=vi",
+    "bride_party_date": "2026-12-19",
+    "bride_party_time": "16:30",
+    "bride_party_lunar": "Tức ngày 11 tháng 11 năm Bính Ngọ",
     "bride_party_show_location": true,
-    "bride_party_location": "Tư gia nhà gái — Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
-    "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.1176,106.1893&output=embed&hl=vi",
-    "groom_bank_name": "Agribank",
-    "groom_bank_number": "3600205012345",
-    "groom_bank_owner": "TRAN DUC ANH",
-    "bride_bank_name": "VietinBank",
-    "bride_bank_number": "109002345678",
-    "bride_bank_owner": "DINH PHUONG THAO",
-    "story_quote": "Trăm năm tính cuộc vuông tròn, một lời hẹn ước sắt son trọn đời.",
+    "bride_party_location": "Tư gia nhà gái — Xóm Đình, Xã Đông Hội, Thành phố Hà Nội",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=21.0870,105.8865&output=embed&hl=vi",
+    "groom_bank_name": "Techcombank",
+    "groom_bank_number": "19036548217015",
+    "groom_bank_owner": "NGUYEN QUANG HUY",
+    "bride_bank_name": "MB Bank",
+    "bride_bank_number": "0981234567",
+    "bride_bank_owner": "VU THANH TAM",
+    "story_quote": "Thuyền về có nhớ bến chăng, bến thì một dạ khăng khăng đợi thuyền.",
     "rsvp_enabled": true,
-    "rsvp_message": "Kính mong quý vị dành chút thời gian xác nhận, để gia đình chúng tôi được đón tiếp chu đáo.",
-    "footer_text": "Sự hiện diện của quý vị là niềm vinh hạnh cho gia đình chúng tôi. Trân trọng cảm ơn.",
+    "rsvp_message": "Mời bạn xác nhận giúp chúng mình, để sớm hôm ấy có thêm một người thân quen ngồi chung mâm cơm vui.",
+    "footer_text": "Cảm ơn bạn đã ở bên chúng mình — từ những ngày còn bỡ ngỡ tới sớm hôm nay.",
     "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
@@ -208,5 +193,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-10T09:34:24.550Z"
+  "updated_at": "2026-10-23T16:25:47.097Z"
 }
