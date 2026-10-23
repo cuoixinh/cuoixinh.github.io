@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Noto+Serif:wght@400;700&family=Cormorant+Garamond:wght@300;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Noto+Serif:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../../../styles/themes.css" />
@@ -60,33 +60,38 @@
     <!-- ═══ MỤC: Màn bìa — TÔ ĐỂ MỞ ═══════════════════════════════════════════
          Ảnh bìa nằm trong lòng một chiếc nhẫn cưới, phủ lớp lụa đỏ (canvas, vẽ ở
          ttScratch trong index.js). Tô đủ thì lớp phủ tan, kim cương loé sáng và thiệp tự
-         mở; nút chữ nhỏ bên dưới là đường lùi cho ai không tô. -->
+         mở; nút chữ nhỏ bên dưới là đường lùi cho ai không tô. Bố cục ba tầng: khối mời neo
+         trên · nhẫn + tên đôi giữa · lối mở neo đáy. Nền là ảnh album đầu tiên (ttFillShots)
+         dưới một lớp giấy trắng mỏng. -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="tt-cover tt-paper relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
-        <!-- Nền màn bìa: ảnh album đầu tiên phủ kín màn, mờ (ttFillShots đổ ảnh vào). -->
         <div class="tt-cv-bg" data-tt-shot="0" aria-hidden="true"></div>
-        <div class="tt-head">
-          <span class="cx-h cx-a tt-cap tt-a tt-fl" style="--d: 0.3s">Wedding</span>
-          <span class="cx-h cx-a tt-cap tt-head-mid tt-a tt-fd" style="--d: 0.3s">To love, to cherish<br />to hold forever</span>
-          <span class="cx-h cx-a tt-cap tt-a tt-fr" style="--d: 0.3s">Day</span>
+        <!-- Lá rơi trên màn bìa (ttLeaves ở index.js đổ lá vào). -->
+        <div class="tt-leaves" aria-hidden="true"></div>
+        <div class="tt-cv-guest tt-a tt-fd" style="--d: 0.2s">
+          <div data-cx-invite class="cx-h cx-a tt-cap tt-cv-line">Trân trọng kính mời</div>
+          <div class="cx-h tt-cv-guestname" id="cover-guest-name">----------</div>
+          <div data-cx-invite-to class="cx-t tt-cv-to">đến dự lễ cưới của</div>
         </div>
 
-        <div class="tt-cv-guest tt-a tt-fd" style="--d: 0.4s">
-          <div data-cx-invite class="cx-t tt-cv-line">Trân trọng kính mời</div>
-          <div class="cx-t tt-cv-guestname" id="cover-guest-name">----------</div>
-          <div data-cx-invite-to class="cx-t tt-cv-line">đến dự lễ cưới của</div>
-        </div>
-
-        <div class="cx-t tt-names tt-cv-names">
-          <span id="cover-groom-name" class="tt-a tt-fl" style="--d: 0.6s">----------</span>
-          <span class="cx-a tt-amp tt-a tt-zi" style="--d: 0.6s">&amp;</span>
-          <span id="cover-bride-name" class="tt-a tt-fr" style="--d: 0.6s">----------</span>
-        </div>
-
+        <div class="tt-cv-mid">
         <!-- Nhẫn cưới bạc nhìn thẳng: ảnh render sẵn (assets/images/decor/tt-ring-silver.webp, 1200×1440,
              nền trong suốt) đè lên ảnh bìa; lòng nhẫn cắt theo mặt nạ tt-ring-hole.webp render
-             cùng góc máy, nên ảnh + lớp lụa đỏ để tô nằm khớp trong lỗ nhẫn. -->
-        <div class="tt-rings tt-a tt-zi" style="--d: 0.8s" id="tt-rings">
+             cùng góc máy, nên ảnh + lớp lụa đỏ để tô nằm khớp trong lỗ nhẫn.
+             .tt-engrave: chữ khắc quanh vành nhẫn — giờ lễ · ngày âm hai bên, ngày cưới ở đáy (ttEngrave),
+             cùng hệ toạ độ 1200×1440 với ảnh nhẫn — tâm vành (600, 813), vành ngoài r≈480. -->
+        <div class="tt-rings tt-a tt-zi" style="--d: 0.5s" id="tt-rings">
+          <svg class="tt-engrave" viewBox="0 0 1200 1440" aria-hidden="true">
+            <!-- Cung trái/phải chạy xuôi chiều kim đồng hồ (chữ quay ra ngoài), chừa đỉnh cho viên
+                 kim cương; cung đáy chạy ngược chiều, bán kính lớn hơn để chữ đứng thẳng mà
+                 không đè lên vành. -->
+            <path id="tt-eng-l" d="M 116.1 989.1 A 515 515 0 0 1 407.1 335.5" fill="none" />
+            <path id="tt-eng-r" d="M 792.9 335.5 A 515 515 0 0 1 1083.9 989.1" fill="none" />
+            <path id="tt-eng-b" d="M 141.3 1134.2 A 560 560 0 0 0 1058.7 1134.2" fill="none" />
+            <text><textPath href="#tt-eng-l" id="tt-eng-left" startOffset="50%" text-anchor="middle"></textPath></text>
+            <text><textPath href="#tt-eng-r" id="tt-eng-right" startOffset="50%" text-anchor="middle"></textPath></text>
+            <text><textPath href="#tt-eng-b" id="tt-eng-date" startOffset="50%" text-anchor="middle">✦ -- · -- · ---- ✦</textPath></text>
+          </svg>
           <div class="tt-ring">
             <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
             <canvas class="tt-scratch-cv" aria-label="Tô lên nhẫn để mở thiệp"></canvas>
@@ -94,14 +99,21 @@
           <img class="tt-ring-art" src="../../../assets/images/decor/tt-ring-silver.webp" alt="" />
           <span class="tt-spark" aria-hidden="true"></span>
           <span class="tt-spark is-2" aria-hidden="true"></span>
+          <!-- Lời nhắc nằm giữa lòng nhẫn, trên lớp lụa; tan đi khi khách bắt đầu tô. -->
+          <div class="tt-ring-tip" aria-hidden="true">
+            <span class="tt-ring-tip-1">Tô lên nhẫn</span>
+            <span class="tt-ring-tip-2">để mở thiệp</span>
+          </div>
           <span class="tt-brush" aria-hidden="true"><i data-lucide="paintbrush" class="cx-ic"></i></span>
         </div>
 
-        <div class="cx-t cx-a tt-scratch-tip tt-a tt-fade" style="--d: 1.2s">
-          <i data-lucide="sparkles" class="cx-ic"></i> Tô lên nhẫn cưới để mở thiệp
+        <!-- Tên đặt so le: chú rể lệch trái, cô dâu lệch phải, trái tim đỏ kẹp giữa hai nét chỉ. -->
+        <div class="cx-h tt-cv-names">
+          <span id="cover-groom-name" class="tt-cv-n tt-a tt-fl" style="--d: 0.9s">----------</span>
+          <span class="tt-cv-heart tt-a tt-zi" style="--d: 1.1s" aria-label="và"><i data-lucide="heart" class="cx-ic"></i></span>
+          <span id="cover-bride-name" class="tt-cv-n tt-cv-n2 tt-a tt-fr" style="--d: 0.9s">----------</span>
         </div>
-
-        <div class="cx-a tt-md tt-a tt-fu" style="--d: 1.2s" id="tt-cover-md">--<i>/</i>--</div>
+        </div>
 
         <x-button
           variant="bare"
@@ -111,8 +123,6 @@
         >
           hoặc chạm vào đây để mở
         </x-button>
-
-        <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
       </div>
     </div>
 
@@ -191,8 +201,8 @@
         <section id="section-countdown" class="tt-page tt-count">
           <div class="tt-photo tt-count-photo tt-a tt-fade">
             <div class="tt-fill" data-tt-shot="1"></div>
-            <div class="cx-on-image tt-script tt-count-script tt-a tt-fade" style="--d: 1s">Forever begins<br />with this moment</div>
-            <div class="tt-cd tt-a tt-zi" style="--d: 1s">
+            <div class="cx-on-image tt-veil tt-script tt-count-script tt-a tt-fade" style="--d: 1s">Forever begins with this moment</div>
+            <div class="tt-cd tt-veil tt-a tt-zi" style="--d: 1s">
               <div><span class="cx-on-image" id="cd-days">00</span><small class="cx-on-image">Day</small></div>
               <div><span class="cx-on-image" id="cd-hours">00</span><small class="cx-on-image">Hour</small></div>
               <div><span class="cx-on-image" id="cd-minutes">00</span><small class="cx-on-image">Min</small></div>
@@ -217,8 +227,8 @@
           </div>
           <div class="tt-photo tt-cal-photo tt-a tt-zb">
             <div class="tt-fill" data-tt-shot="2"></div>
-            <div class="cx-on-image tt-cal-md" id="tt-cal-md">--<i>/</i>--</div>
-            <div class="tt-cal-heads" id="tt-cal-heads"></div>
+            <div class="cx-on-image tt-veil tt-cal-md" id="tt-cal-md">--<i>/</i>--</div>
+            <div class="cx-on-image tt-veil tt-cal-heads" id="tt-cal-heads"></div>
           </div>
           <div id="tt-calendar" class="cx-t tt-cal-grid tt-a tt-fade" style="--d: 1s"></div>
           <div id="ceremony-location-wrap" class="hidden cx-t tt-sub tt-a tt-fade" style="--d: 1s">
@@ -262,9 +272,12 @@
                 <span class="cx-t tt-small">Chưa có bản đồ</span>
               </div>
             </div>
-            <!-- Nằm TRONG #map-link để renderVenueMaps nhân cả nút khi lễ và tiệc ở hai nơi.
-                 Bấm nút là mở chế độ dẫn đường (ttBindDirections ở index.js). -->
-            <span class="tt-map-go" data-tt-dir aria-label="Chỉ đường"><i data-lucide="navigation" class="cx-ic"></i></span>
+            <!-- Nằm TRONG #map-link để renderVenueMaps nhân cả thanh khi lễ và tiệc ở hai nơi.
+                 Bấm "Chỉ đường" là mở chế độ dẫn đường (ttBindDirections ở index.js). -->
+            <div class="tt-map-bar">
+              <span class="cx-t tt-map-see"><i data-lucide="map-pin" class="cx-ic"></i>Xem bản đồ</span>
+              <span class="tt-map-go" data-tt-dir><i data-lucide="navigation" class="cx-ic"></i>Chỉ đường</span>
+            </div>
           </a>
           <div class="cx-h cx-a tt-cap tt-foot tt-a tt-fade" style="--d: 2s">Simple, sincere, endless</div>
         </section>
