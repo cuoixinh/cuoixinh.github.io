@@ -881,14 +881,6 @@ body {
   aspect-ratio: 234 / 339;
 }
 
-.sh-side-script {
-  position: absolute;
-  right: 0;
-  bottom: 24px;
-  width: 64%;
-  text-align: left;
-}
-
 .sh-date-dot {
   font-size: 13px;
   letter-spacing: 3px;
@@ -963,9 +955,16 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgb(var(--cx-scrim-rgb) / 0.15), rgb(var(--cx-scrim-rgb) / 0.55));
+  background: linear-gradient(
+    rgb(var(--cx-scrim-rgb) / 0.1),
+    rgb(var(--cx-scrim-rgb) / 0.5) 30%,
+    rgb(var(--cx-scrim-rgb) / 0.72) 60%,
+    rgb(var(--cx-scrim-rgb) / 0.82)
+  );
 }
 
+/* Chữ trên ảnh: dòng nào mang .cx-t/.cx-h phải thêm .cx-on-image (markup), không thì
+   màu chữ thường của thiệp đè mất màu trắng khai ở đây. */
 .sh-calcard-in {
   position: relative;
   width: 100%;
@@ -975,6 +974,7 @@ body {
   gap: 8px;
   padding: 32px 24px;
   color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 1px 4px rgb(var(--cx-scrim-rgb) / 0.5);
 }
 
 .sh-cal-label {
@@ -1041,6 +1041,7 @@ body {
 }
 
 .sh-cal-d.is-on span {
+  text-shadow: none;
   background: rgb(var(--cx-on-image-rgb));
   color: rgb(var(--cx-heading-rgb));
   font-weight: 600;

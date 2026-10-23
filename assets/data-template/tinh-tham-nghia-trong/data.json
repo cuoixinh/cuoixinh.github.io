@@ -2,70 +2,60 @@
   "image_focal_points": {
     "gallery_images": {
       "gallery-01.jpg": {
-        "x": 55,
-        "y": 48
+        "x": 52,
+        "y": 16
+      },
+      "gallery-02.jpg": {
+        "x": 58,
+        "y": 17
       },
       "gallery-03.jpg": {
-        "x": 57,
-        "y": 41
-      },
-      "gallery-05.webp": {
-        "x": 0,
-        "y": 100
-      },
-      "gallery-06.jpg": {
-        "x": 44,
-        "y": 35
-      },
-      "gallery-07.jpg": {
-        "x": 43,
-        "y": 50
+        "x": 40,
+        "y": 14
       },
       "gallery-04.jpg": {
-        "x": 56,
-        "y": 41
+        "x": 45,
+        "y": 18
       },
-      "gallery-08.jpg": {
-        "x": 37,
-        "y": 42
+      "gallery-05.jpg": {
+        "x": 50,
+        "y": 18
       },
-      "gallery-09.jpg": {
-        "x": 51,
-        "y": 58
-      },
-      "gallery-10.webp": {
+      "gallery-06.jpg": {
         "x": 49,
-        "y": 33
+        "y": 9
+      },
+      "gallery-07.jpg": {
+        "x": 59,
+        "y": 22
       }
     },
     "cover_image_url": {
-      "x": 100,
-      "y": 38
+      "x": 67,
+      "y": 20
     },
     "groom_image_url": {
-      "x": 40,
-      "y": 89
+      "x": 66,
+      "y": 27
     },
     "bride_image_url": {
-      "x": 69,
-      "y": 41
+      "x": 49,
+      "y": 20
     }
   },
   "cover_image_url": "cover.jpg",
-  "groom_image_url": "groom.webp",
+  "groom_image_url": "groom.jpg",
   "bride_image_url": "bride.jpg",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
     "gallery-01.jpg",
+    "gallery-02.jpg",
     "gallery-03.jpg",
-    "gallery-05.webp",
-    "gallery-06.jpg",
-    "gallery-07.jpg",
     "gallery-04.jpg",
-    "gallery-08.jpg",
-    "gallery-09.jpg",
-    "gallery-10.webp"
+    "gallery-05.jpg",
+    "gallery-06.jpg",
+    "gallery-07.jpg"
   ],
   "content": {
     "groom_name": "Thành Đạt",
@@ -119,5 +109,5 @@
     "enable_footer": true,
     "demo_fill_love_story": false
   },
-  "updated_at": "2026-10-23T00:00:00.000Z"
+  "updated_at": "2026-10-23T16:59:02.666Z"
 }
