@@ -10,13 +10,20 @@ let _mapPickerOpts = null; // {onApply} khi bên gọi tự lưu kết quả (kh
 function _markerIcon() {
   return L.divIcon({
     className: "",
-    html: `<svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
-      <path d="M14 0C6.268 0 0 6.268 0 14c0 9.333 14 22 14 22S28 23.333 28 14C28 6.268 21.732 0 14 0z" fill="var(--primary,rgb(var(--action-primary-rgb)))"/>
-      <circle cx="14" cy="14" r="5.5" fill="white"/>
-    </svg>`,
-    iconSize: [28, 36],
-    iconAnchor: [14, 36],
+    html: '<span class="cx-mp-pin"><span class="cx-mp-pin-head"></span><span class="cx-mp-pin-shadow"></span></span>',
+    iconSize: [32, 40],
+    iconAnchor: [16, 36],
   });
+}
+
+// Chip nhắc trên bản đồ: "Chạm để ghim" ↔ "Đã ghim", và cho ghim rơi lại một nhịp.
+function _markPinned() {
+  document.getElementById("map-picker-hint")?.classList.add("is-set");
+  const pin = _leafletMarker?.getElement()?.querySelector(".cx-mp-pin");
+  if (!pin) return;
+  pin.classList.remove("is-drop");
+  void pin.offsetWidth;
+  pin.classList.add("is-drop");
 }
 
 function _placeMarker(lat, lon) {
@@ -28,20 +35,25 @@ function _placeMarker(lat, lon) {
     _leafletMarker.on("dragend", (e) => {
       const p = e.target.getLatLng();
       _reverseGeocode(p.lat, p.lng);
+      _markPinned();
     });
   }
+  _markPinned();
 }
 
 async function _reverseGeocode(lat, lon) {
-  _mapPickerSelected = { lat, lon, name: `${lat.toFixed(5)}, ${lon.toFixed(5)}` };
+  const picked = { lat, lon, name: `${lat.toFixed(5)}, ${lon.toFixed(5)}` };
+  _mapPickerSelected = picked;
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=vi`,
       { headers: { "Accept-Language": "vi" } }
     );
     const data = await res.json();
+    // Khách đã chọn chỗ khác (hoặc đóng sheet) trong lúc chờ → bỏ kết quả cũ.
+    if (_mapPickerSelected !== picked) return;
     if (data.display_name) {
-      _mapPickerSelected.name = data.display_name;
+      picked.name = data.display_name;
       const input = document.getElementById("map-picker-search");
       if (input) input.value = data.display_name;
       _syncDisplayName(data.display_name);
@@ -95,8 +107,9 @@ function openMapPicker(side, opts = {}) {
 
   const sheet = openBottomSheet({
     id: 'map-picker-modal',
-    title: `<svg class="w-4 h-4 text-color-secondary flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Chọn địa điểm — ${sideLabel}`,
+    title: `<span class="cx-mp-title-ic"><i data-lucide="map-pin" style="width:16px;height:16px"></i></span>Chọn địa điểm<span class="cx-mp-side">${escapeHtml(sideLabel)}</span>`,
     height: '80vh',
+    cardClass: 'sm:max-w-5xl',
     onClose: () => {
       document.removeEventListener("click", _onClickOutsideSuggestions);
       if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; _leafletMarker = null; }
@@ -109,52 +122,71 @@ function openMapPicker(side, opts = {}) {
   if (!sheet) return;
   window._closeMapPickerSheet = sheet.close;
 
+  // Bố cục ở .cx-mp (_common.css): mobile xếp dọc ô gõ · bản đồ · nút; từ sm là hai
+  // cột, bản đồ chiếm trọn cột phải. Hai ô gõ luôn đứng ĐẦU: ô nằm dưới mép bàn phím
+  // là iOS trượt cả khung nhìn lên (JS không chặn được), kéo theo UI phía sau.
+  // Gợi ý địa điểm là `absolute` trong ô tìm, không `fixed`: vuốt-để-đóng đặt
+  // transform lên thẻ sheet, thẻ `fixed` bên trong sẽ lệch khỏi ô.
   sheet.body.innerHTML = `
-    <div id="map-picker-search-wrap" class="px-4 py-3 border-b border-gray-100 flex gap-2 flex-shrink-0">
-      <div class="relative flex-1">
-        <input id="map-picker-search" type="text" value="${currentQuery.replace(/"/g, '&quot;')}"
-          placeholder="Tìm kiếm địa điểm..."
-          autocomplete="off"
-          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 outline-none focus:border-gray-400"
-        />
-        <div id="map-picker-suggestions" class="hidden fixed bg-white border border-gray-200 rounded-xl shadow-lg z-[99999] max-h-52 overflow-y-auto"></div>
-      </div>
-      <x-button variant="soft" onclick="searchMapPicker()" class="text-color-secondary flex-shrink-0">
-        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>Tìm
-      </x-button>
-    </div>
-    <div class="flex-1 min-h-0 relative">
-      <div id="map-picker-map" style="width:100%;height:100%;"></div>
-      <p class="absolute top-2 left-1/2 -translate-x-1/2 z-[999] bg-white/80 backdrop-blur-sm text-xs text-gray-500 px-3 py-1 rounded-full shadow-sm pointer-events-none whitespace-nowrap">Nhấp vào bản đồ hoặc kéo ghim để chọn vị trí</p>
-    </div>
-  `;
-  sheet.footer.innerHTML = `
-    <div class="px-4 pt-3 pb-2 border-t border-gray-100">
-      <div class="flex items-center justify-between mb-1.5">
-        <label class="text-sm font-medium text-gray-700">Tên hiển thị trên thiệp</label>
-        <div class="flex items-center gap-1.5">
-          <span class="text-xs text-gray-400">Sửa tên</span>
-          <x-switch key="map-name" label="Sửa tên" onclick="_toggleMapDisplayName()"></x-switch>
+    <div class="cx-mp">
+      <div class="cx-mp-ctrl">
+        <div id="map-picker-search-wrap" class="relative">
+          <i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" style="width:16px;height:16px"></i>
+          <input id="map-picker-search" type="text" enterkeyhint="search" value="${escapeHtml(currentQuery)}"
+            placeholder="Tìm nhà hàng, trung tâm tiệc, địa chỉ…"
+            autocomplete="off" aria-label="Tìm địa điểm"
+            class="cx-mp-search"
+          />
+          <x-button size="sm" variant="soft" onclick="searchMapPicker()" class="absolute right-1.5 top-1/2 -translate-y-1/2">Tìm</x-button>
+          <div id="map-picker-suggestions" class="cx-mp-sugs hidden" role="listbox"></div>
+        </div>
+
+        <div>
+          <div class="mb-2 flex items-center justify-between gap-3">
+            <label for="map-picker-display-name" class="text-sm font-semibold text-gray-800">Tên hiện trên thiệp</label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500">Sửa tên</span>
+              <x-switch key="map-name" label="Sửa tên" onclick="_toggleMapDisplayName()"></x-switch>
+            </div>
+          </div>
+          <input id="map-picker-display-name" type="text" disabled value="${escapeHtml(currentDisplayName)}"
+            placeholder="Ghim một vị trí để tự điền tên"
+            class="cx-mp-name"
+          />
+          <p id="map-picker-name-note" class="mt-1.5 text-xs text-gray-400">Tự lấy theo vị trí đã ghim.</p>
         </div>
       </div>
-      <input id="map-picker-display-name" type="text" disabled value="${currentDisplayName.replace(/"/g, '&quot;')}"
-        placeholder="Chọn vị trí trên bản đồ để điền tự động..."
-        class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 outline-none bg-gray-50 opacity-60 cursor-not-allowed transition-all"
-      />
-    </div>
-    <div class="px-4 pb-3 flex gap-2">
-      <x-button variant="outline" tone="neutral" onclick="closeMapPicker()" class="flex-1">Hủy</x-button>
-      <x-button onclick="applyMapPicker('${side}')" class="flex-1">
-        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Dùng vị trí này
-      </x-button>
+
+      <div class="cx-mp-map">
+        <div id="map-picker-map" class="h-full w-full"></div>
+        <p id="map-picker-hint" class="cx-mp-hint${hasCoords ? " is-set" : ""}">
+          <span class="cx-mp-hint-idle"><i data-lucide="pointer" style="width:14px;height:14px"></i>Chạm vào bản đồ để ghim</span>
+          <span class="cx-mp-hint-set"><i data-lucide="circle-check" style="width:14px;height:14px"></i>Đã ghim · kéo để chỉnh</span>
+        </p>
+      </div>
+
+      <div class="cx-mp-act">
+        <x-button variant="outline" tone="neutral" onclick="closeMapPicker()" class="flex-1">Hủy</x-button>
+        <x-button icon="check" onclick="applyMapPicker('${side}')" class="flex-1">Dùng vị trí này</x-button>
+      </div>
     </div>
   `;
+  window.lucide?.createIcons({ root: sheet.body.closest(".cx-sheet-card") });
 
   _syncMapNameSwitch(false);
 
   setTimeout(() => {
-    if (typeof L === "undefined") return;
-    _leafletMap = L.map("map-picker-map", { zoomControl: true }).setView([initLat, initLon], initZoom);
+    const mapEl = document.getElementById("map-picker-map");
+    // Sheet có thể đã đóng trong 80ms chờ này.
+    if (typeof L === "undefined" || !mapEl) return;
+    _leafletMap = L.map(mapEl, { zoomControl: true }).setView([initLat, initLon], initZoom);
+    // Khung bản đồ đổi khổ (khung nhìn co theo bàn phím ở webview Zalo/Facebook…)
+    // mà Leaflet không biết thì phần mới lộ ra là ô xám.
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => _leafletMap?.invalidateSize());
+      ro.observe(mapEl);
+      _leafletMap.on("unload", () => ro.disconnect());
+    }
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap",
       maxZoom: 19,
@@ -193,23 +225,9 @@ function _toggleMapDisplayName() {
   const willEnable = input.disabled;
   input.disabled = !willEnable;
   _syncMapNameSwitch(willEnable);
-  input.classList.toggle("opacity-60", !willEnable);
-  input.classList.toggle("cursor-not-allowed", !willEnable);
-  input.classList.toggle("bg-gray-50", !willEnable);
-  if (willEnable) {
-    input.classList.add("focus:border-gray-400");
-    input.focus();
-  }
-}
-
-function _positionMapSuggestions() {
-  const input = document.getElementById("map-picker-search");
-  const dropdown = document.getElementById("map-picker-suggestions");
-  if (!input || !dropdown) return;
-  const rect = input.getBoundingClientRect();
-  dropdown.style.top = `${rect.bottom + 4}px`;
-  dropdown.style.left = `${rect.left}px`;
-  dropdown.style.width = `${rect.width}px`;
+  const note = document.getElementById("map-picker-name-note");
+  if (note) note.textContent = willEnable ? "Khách sẽ thấy đúng dòng này trên thiệp." : "Tự lấy theo vị trí đã ghim.";
+  if (willEnable) input.focus();
 }
 
 function _setupMapPickerAutocomplete() {
@@ -242,25 +260,38 @@ async function _fetchMapSuggestions(q) {
       { headers: { "Accept-Language": "vi" } }
     );
     const data = await res.json();
+    // Ô tìm đã đổi trong lúc chờ → kết quả này không còn khớp.
+    if (document.getElementById("map-picker-search")?.value.trim() !== q) return;
     _mapSuggestions = data;
-    _renderMapSuggestions(data);
-  } catch (e) { _clearMapSuggestions(); }
+    _renderMapSuggestions(data, q);
+  } catch (e) {
+    _renderMapSuggestions(null, q);
+  }
 }
 
-function _renderMapSuggestions(results) {
+// `results` null = lỗi mạng; mảng rỗng = không có chỗ nào khớp.
+function _renderMapSuggestions(results, q) {
   const dropdown = document.getElementById("map-picker-suggestions");
   if (!dropdown) return;
-  if (!results.length) { dropdown.innerHTML = ""; dropdown.classList.add("hidden"); return; }
-  _positionMapSuggestions();
   dropdown.classList.remove("hidden");
-  dropdown.innerHTML = results.map((r, i) => `
-    <button type="button" onclick="_selectMapSuggestion(${i})"
-      class="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-rose-50 flex items-start gap-2 border-b border-gray-100 last:border-0 transition-colors">
-      <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-rose-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
-      </svg>
-      <span class="line-clamp-2">${escapeHtml(r.display_name)}</span>
-    </button>`).join("");
+  if (!results || !results.length) {
+    dropdown.innerHTML = `<p class="px-4 py-3 text-sm text-gray-500">${
+      results ? `Không thấy “${escapeHtml(q)}”. Thử thêm tên đường hoặc quận.` : "Không tải được gợi ý. Kiểm tra mạng rồi thử lại."
+    }</p>`;
+    return;
+  }
+  dropdown.innerHTML = results.map((r, i) => {
+    const [head, ...rest] = String(r.display_name).split(",");
+    return `
+    <button type="button" role="option" onclick="_selectMapSuggestion(${i})" class="cx-mp-sug">
+      <i data-lucide="map-pin" class="mt-0.5 flex-shrink-0 text-rose-400" style="width:16px;height:16px"></i>
+      <span class="min-w-0">
+        <span class="block truncate text-sm font-medium text-gray-800">${escapeHtml(head.trim())}</span>
+        ${rest.length ? `<span class="block truncate text-xs text-gray-500">${escapeHtml(rest.join(",").trim())}</span>` : ""}
+      </span>
+    </button>`;
+  }).join("");
+  window.lucide?.createIcons({ root: dropdown });
 }
 
 function _selectMapSuggestion(index) {

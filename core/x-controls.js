@@ -106,7 +106,14 @@ class XTime extends HTMLElement {
 class XSwitch extends HTMLElement {
   connectedCallback() {
     const key = this.getAttribute("key") || "";
-    const onclick = this.getAttribute("onclick") || "";
+    // Handler chuyển hẳn sang <button> con: để lại trên thẻ ngoài là một cú bấm chạy
+    // hai lần (nút con rồi nổi bọt lên đây) → bật xong tắt ngay. Giữ ở _onclick vì
+    // thẻ bị gắn lại thì callback này chạy lần nữa mà attribute đã gỡ.
+    if (this.hasAttribute("onclick")) {
+      this._onclick = this.getAttribute("onclick");
+      this.removeAttribute("onclick");
+    }
+    const onclick = this._onclick || "";
     const label = this.getAttribute("label") || "";
     // Mặc định hiển thị trạng thái bật; _updateVisUI/_initVisToggles sẽ đồng bộ ngay khi load.
     this.innerHTML = `

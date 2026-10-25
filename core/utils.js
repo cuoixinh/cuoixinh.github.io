@@ -575,46 +575,14 @@ function _setupBottomSheetSwipe(cardEl, closeFn) {
   };
 }
 
-// Bàn phím ĐÈ lên sheet, trừ khi ô đang gõ nằm dưới mép bàn phím: khi đó nâng
-// cả sheet lên đúng bằng bàn phím (padding-bottom của lớp nền — không dùng
-// transform vì trong sheet có thẻ `fixed`, như gợi ý địa điểm của bản đồ).
-function _liftSheetOverKeyboard(modal) {
-  const vv = window.visualViewport;
-  if (!vv) return () => {};
-  let pad = 0;
-  const set = (px) => {
-    if (px === pad) return;
-    pad = px;
-    modal.style.paddingBottom = px ? `${px}px` : "";
-  };
-  const update = () => {
-    const el = document.activeElement;
-    if (!el || !modal.contains(el) || !el.matches("input, textarea, [contenteditable]")) return set(0);
-    const kbTop = vv.offsetTop + vv.height;
-    const kb = Math.max(0, Math.round(window.innerHeight - kbTop));
-    // So vị trí của ô lúc CHƯA nâng, không thì vừa nâng xong đã thấy hết che → hạ xuống.
-    const bottom = el.getBoundingClientRect().bottom + pad;
-    set(kb && bottom > kbTop ? kb : 0);
-  };
-  const onBlur = () => setTimeout(update, 0);
-  modal.style.transition = "padding-bottom 150ms ease-out";
-  modal.addEventListener("focusin", update);
-  modal.addEventListener("focusout", onBlur);
-  vv.addEventListener("resize", update);
-  vv.addEventListener("scroll", update);
-  return () => {
-    vv.removeEventListener("resize", update);
-    vv.removeEventListener("scroll", update);
-  };
-}
-
 /**
  * Dựng khung bottom-sheet modal (overlay → handle → header → body → footer),
  * kèm khoá cuộn body, vuốt-để-đóng, nút X, z-index.
  * @returns {{body:HTMLElement, footer:HTMLElement, close:Function}|null}
  *   null nếu đã có modal trùng id.
  */
-function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
+// `cardClass`: class viết NGUYÊN VĂN ở nơi gọi (vd "sm:max-w-5xl") để Tailwind quét thấy.
+function openBottomSheet({ id, title, height = '80vh', onClose, cardClass = '' } = {}) {
   if (document.getElementById(id)) return null;
 
   const modal = document.createElement('div');
@@ -631,7 +599,7 @@ function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
   // bung là dvh co lại, cả sheet bị đẩy lên — bàn phím phải ĐÈ lên sheet.
   const mobileHeight = `calc(var(--vh, 1vh) * ${parseFloat(height) || 80})`;
   modal.innerHTML = `
-    <div id="${id}-card" style="--cx-sheet-h:${mobileHeight}" class="cx-sheet-card bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl">
+    <div id="${id}-card" style="--cx-sheet-h:${mobileHeight}" class="cx-sheet-card bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl ${cardClass}">
       <div class="flex justify-center items-center pt-2.5 pb-1 flex-shrink-0">
         <span class="w-10 h-1.5 rounded-full bg-gray-300"></span>
       </div>
@@ -657,14 +625,11 @@ function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
   const body  = document.getElementById(`${id}-body`);
   const footer = document.getElementById(`${id}-footer`);
 
-  const cleanupKb = _liftSheetOverKeyboard(modal);
-
   let closed = false;
   function close() {
     if (closed) return;
     closed = true;
     cleanupSwipe();
-    cleanupKb();
     if (typeof onClose === 'function') onClose();
     modal.remove();
     document.body.style.overflow = prevOverflow;

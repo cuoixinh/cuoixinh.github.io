@@ -131,21 +131,41 @@ window.cxNavMore = cxNavMore;
 // ===== GHIM TRANG Ở GỐC =====
 
 // `overflow: clip` trên <html> bị trình duyệt hiểu thành `hidden` (luật của khung
-// nhìn gốc) nên trang VẪN cuộn được bằng mã: focus một ô gần đáy (ô giờ, ô tìm
-// bản đồ…) là iOS đẩy cả trang lên mà khách không kéo lại được. Trang này không
-// bao giờ cuộn → thấy lệch là trả ngay về 0; bàn phím ĐÈ lên giao diện chứ
-// không đẩy nó (Android lo bằng `interactive-widget` ở thẻ viewport).
+// nhìn gốc) nên trang VẪN cuộn được bằng mã: focus một ô (ô giờ, ô địa điểm…) là
+// iOS đẩy cả trang lên mà khách không kéo lại được. Trang này không bao giờ cuộn
+// → thấy lệch là trả ngay về 0; bàn phím ĐÈ lên giao diện chứ không đẩy nó
+// (Android lo bằng `interactive-widget` ở thẻ viewport). Ba đường lệch phải gác:
+// cuộn của khung nhìn gốc, cuộn của các khung cha #setup-scroll (sự kiện không
+// nổi lên window → nghe ở pha capture), và độ dịch của visualViewport mà iOS hay
+// để kẹt sau khi bàn phím thu (lúc đó scrollY vẫn là 0).
 function _cxPinPage() {
+  const vv = window.visualViewport;
+  const typing = () => document.activeElement?.matches?.(CX_TYPING_SEL);
   const reset = () => {
-    if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
     const se = document.scrollingElement;
-    if (se && se.scrollTop) se.scrollTop = 0;
+    // Đang gõ thì để iOS giữ con trỏ trong tầm nhìn; thu bàn phím rồi mới kéo về.
+    const vvShifted = vv && (vv.offsetTop || vv.offsetLeft) && !typing();
+    if (window.scrollX || window.scrollY || se?.scrollTop || vvShifted) window.scrollTo(0, 0);
     if (document.body.scrollTop) document.body.scrollTop = 0;
   };
   window.addEventListener("scroll", reset, { passive: true });
-  // iOS cuộn bù SAU khi bàn phím thu lại → chờ một nhịp rồi mới trả.
-  document.addEventListener("focusout", () => setTimeout(reset, 60));
-  window.visualViewport?.addEventListener("resize", reset);
+  document.addEventListener(
+    "scroll",
+    (e) => {
+      const el = e.target;
+      if (el.nodeType === 1 && el.scrollTop && el.contains(document.getElementById("setup-scroll")) && el.id !== "setup-scroll") {
+        el.scrollTop = 0;
+      }
+    },
+    { capture: true, passive: true },
+  );
+  // iOS cuộn bù SAU khi bàn phím thu lại → chờ vài nhịp rồi mới trả.
+  document.addEventListener("focusout", () => {
+    setTimeout(reset, 60);
+    setTimeout(reset, 400);
+  });
+  vv?.addEventListener("resize", reset);
+  vv?.addEventListener("scroll", reset);
 }
 
 // ===== Ô ĐANG GÕ TRÁNH BÀN PHÍM =====
@@ -153,7 +173,7 @@ function _cxPinPage() {
 // Bàn phím đè lên vỏ trang (navbar, thanh bước đứng yên); riêng ô đang gõ trong
 // #setup-scroll mà nằm dưới mép bàn phím thì CUỘN KHUNG NỘI DUNG tới nó. Phần
 // khung bị che bù bằng padding đáy .cx-setup-body, không thì ô cuối form không
-// cuộn lên nổi. Popup đáy có cơ chế riêng (_liftSheetOverKeyboard ở core/utils.js).
+// cuộn lên nổi. Popup đáy (openBottomSheet) không có cơ chế này: ô gõ đặt ở đầu sheet.
 const CX_TYPING_SEL =
   "textarea, [contenteditable], input:not([readonly]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden])";
 
