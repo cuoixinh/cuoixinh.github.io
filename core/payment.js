@@ -977,10 +977,10 @@
     if (document.getElementById("paymentModal")) return; // Đã có rồi
     const el = document.createElement("div");
     el.innerHTML = `
-      <div id="paymentModal" class="modal hidden fixed inset-0 z-[100] items-center justify-center p-4" style="display:none;">
+      <div id="paymentModal" data-kb="lift" class="modal hidden fixed inset-0 z-[100] items-center justify-center p-4" style="display:none;">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="PaymentModal.close()"></div>
         <div class="relative bg-white rounded-3xl max-w-[480px] w-full max-h-[90vh] shadow-2xl z-10 overflow-hidden">
-          <div class="overflow-y-auto max-h-[90vh]">
+          <div data-kb-box class="overflow-y-auto max-h-[90vh]">
           <x-button variant="outline" size="sm" icon-only onclick="PaymentModal.close()" class="absolute top-4 right-4 z-20">
             <i data-lucide="x" class="text-gray-400 text-sm" style="width:16px;height:16px"></i>
           </x-button>

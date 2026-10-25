@@ -707,6 +707,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `theme-setting-helper.js`), thêm mẫu chỉ sửa file đó. Lưu trong `custom_blocks` dạng
   `{type:"preset", preset, parts}`, id thật của part là `<blockId>__<key>`. Cỡ chữ viết bằng
   `em` để phóng cả cụm cân đối.
+- **Bàn phím ảo che ô gõ — khai `data-kb` trên KHUNG chứa ô** (`core/helpers/kb-avoid.js`,
+  nạp ở loader Thiết lập và iframe `guests/`): `scroll` (khung cuộn), `lift` (lớp nền popup
+  `fixed inset-0`, hộp đánh dấu `data-kb-box`), `shift` (tấm neo đáy). Trang Thiết lập không
+  cuộn nên popup/khung mới có ô gõ mà không khai là ô nằm dưới bàn phím. Đừng thêm lại
+  `interactive-widget=overlays-content` vào thẻ viewport: Android sẽ không co visualViewport,
+  mọi phép đo bàn phím ra 0.
 - **Khối cao "một màn" — luôn qua `--vh`, đừng dùng `dvh`/`svh` trần.**
   `core/helpers/vh-lock.js` (tự chạy khi nạp) khoá chiều cao một màn thành px: Chrome di
   động ẩn thanh URL bằng cách RESIZE webview nên với trang web đó là đổi khổ cửa sổ thật,

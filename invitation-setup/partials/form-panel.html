@@ -6,7 +6,7 @@
        styles/_setup.css): chỉ thẻ này cuộn, nên nội dung không bao giờ chui
        xuống dưới navbar. Chiều cao do CSS tính từ --cx-top-h + --nav-h. -->
   <div id="setup-main" class="px-2 sm:px-4">
-    <div id="setup-scroll" class="max-w-4xl mx-auto my-4">
+    <div id="setup-scroll" data-kb="scroll" class="max-w-4xl mx-auto my-4">
       <!-- Dòng bước đang mở + vạch tiến độ, DÍNH mép trên khung cuộn. Chữ và độ
            dài vạch do _cxRenderHead() (js/20-steps.js) điền. Cả dòng là nút mở
            ngăn chip các bước bên dưới (cxStepBarToggle) — ngăn mặc định THU cho
@@ -88,7 +88,7 @@
         </div>
       </div>
 
-      <div class="cx-setup-body">
+      <div class="cx-setup-body" data-kb-pad>
         <!-- Form -->
         <form
           id="wedding-form"

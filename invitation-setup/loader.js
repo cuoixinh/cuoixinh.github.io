@@ -44,6 +44,8 @@
     "../core/x-button.js",
     "../core/x-logo.js",
     "../core/x-popover.js",
+    // Né bàn phím ảo cho ô đang gõ (khai bằng data-kb trên khung/popup).
+    "../core/helpers/kb-avoid.js",
     "../core/helpers/side-picker.js",
     "../core/cache-util.js",
     "../core/helpers/draft-retention.js",

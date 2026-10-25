@@ -74,6 +74,14 @@ body {
   text-align: center;
 }
 
+/* .sh-sec/.sh-blk/.sh-row tự khai display nên đè mất .hidden của themes.css (nạp
+   TRƯỚC, cùng độ đặc hiệu) → mục tắt và khối album hết ảnh vẫn hiện. Khai lại. */
+.sh-sec.hidden,
+.sh-blk.hidden,
+.sh-row.hidden {
+  display: none;
+}
+
 .sh-poem {
   font-size: 12px;
   line-height: 2.2;

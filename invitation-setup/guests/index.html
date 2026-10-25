@@ -20,6 +20,8 @@
     <!-- Khoá chiều cao một màn thành px (--vh) cho .gs-shell: 100vh bị thanh URL
          của trình duyệt di động che mất đáy. -->
     <script src="../../core/helpers/vh-lock.js"></script>
+    <!-- Né bàn phím cho ô trong popup (data-kb): trang chạy trong iframe nên đo bàn phím qua trang cha. -->
+    <script src="../../core/helpers/kb-avoid.js"></script>
   </head>
   <!-- Nền dùng chung với trang thiết lập (--surface-tint-rgb): khung này chạy
        trong iframe của tab "Khách mời" nên lệch màu là thấy ngay. -->
@@ -172,8 +174,8 @@
     <!-- Popup thêm/sửa 1 khách (JS: _gmOpen ở index.js). Dưới sm là bottom sheet.
          Chip #add-guest-side cho biết đang thêm vào nhà trai hay nhà gái. -->
     <div id="add-guest-modal"
-      class="cx-gm gs-modal hidden" role="dialog" aria-modal="true" aria-labelledby="add-guest-title">
-      <div class="gs-sheet sm:max-w-[400px]">
+      class="cx-gm gs-modal hidden" data-kb="lift" role="dialog" aria-modal="true" aria-labelledby="add-guest-title">
+      <div class="gs-sheet sm:max-w-[400px]" data-kb-box>
         <div class="gs-sheet-head">
           <span id="add-guest-ico" class="gs-sheet-ico"></span>
           <div class="flex-1 min-w-0">
@@ -253,8 +255,8 @@
 
     <!-- Popup ghép cột khi nhập Excel (JS: _openMappingModal). Cùng vỏ với popup
          thêm khách: dưới sm là bottom sheet. -->
-    <div id="import-mapping-modal" class="gs-modal hidden" role="dialog" aria-modal="true" aria-labelledby="map-title">
-      <div class="gs-sheet sm:max-w-[480px]">
+    <div id="import-mapping-modal" class="gs-modal hidden" data-kb="lift" role="dialog" aria-modal="true" aria-labelledby="map-title">
+      <div class="gs-sheet sm:max-w-[480px]" data-kb-box>
         <div class="gs-sheet-head">
           <span class="gs-sheet-ico gs-sheet-ico--ok"><i data-lucide="file-spreadsheet" style="width:20px;height:20px"></i></span>
           <div class="flex-1 min-w-0">
@@ -318,8 +320,8 @@
          #ai-paste (dán văn bản) → #ai-review (sửa từng khách, xem còn bao nhiêu chỗ).
          Chỉ nhập vào bên của tab đang mở; khách ghi dưới nhóm bên kia bị bỏ qua.
          Ghi vào DB vẫn qua guest-handler như nhập Excel. -->
-    <div id="ai-import-modal" class="gs-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ai-title">
-      <div class="gs-sheet gs-ai sm:max-w-[800px]">
+    <div id="ai-import-modal" class="gs-modal hidden" data-kb="lift" role="dialog" aria-modal="true" aria-labelledby="ai-title">
+      <div class="gs-sheet gs-ai sm:max-w-[800px]" data-kb-box>
         <div class="gs-sheet-head">
           <span class="gs-sheet-ico gs-sheet-ico--ai"><i data-icon="xuxi" data-size="26"></i></span>
           <div class="flex-1 min-w-0">
