@@ -1,7 +1,6 @@
 // TẠM — log dò lỗi "bỏ tick Trùng địa điểm mà ô tiệc vẫn khoá" trên điện thoại.
-// Chỉ chạy khi `CONFIG.debugLog` (staging bật ở config.staging.js); khung log nổi
-// đầu màn, nút Copy để gửi đi. Không dùng alert(): hộp alert cướp focus.
-// Dò xong thì xoá file này, dòng của nó trong SCRIPTS (loader.js) và cờ debugLog.
+// loader.js chỉ nạp file này khi `CONFIG.debugLog` bật; khung log nổi đầu màn,
+// nút Copy để gửi đi. Không dùng alert(): hộp alert cướp focus.
 (function () {
   if (typeof CONFIG === "undefined" || !CONFIG.debugLog) return;
 
