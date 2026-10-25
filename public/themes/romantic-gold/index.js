@@ -13,6 +13,10 @@
   window.CX_THEME = {
     id: "romantic-gold",
 
+    // Mẫu không vẽ mục Gia đình nên trang Thiết lập bỏ luôn bước đó (id trùng
+    // CX_STEPS ở invitation-setup/js/20-steps.js).
+    skipSteps: ["family"],
+
     // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
     wishesMode: "chat",
 
@@ -128,8 +132,8 @@
     // --- Đếm ngược ---
     startCountdown(w.ceremony_date, w.ceremony_time);
 
-    // Mẫu này KHÔNG có mục Gia đình (không có tên bố mẹ, địa chỉ hai nhà) nên
-    // công tắc enable_family bên Thiết lập không tác dụng gì ở đây. Vẫn gọi
+    // Mẫu này KHÔNG có mục Gia đình (không có tên bố mẹ, địa chỉ hai nhà) — bước
+    // đó đã bỏ qua skipSteps. Vẫn gọi
     // renderCoupleInfo vì hai ẢNH chú rể / cô dâu được dùng ở mục Thư mời; các
     // setText còn lại trong hàm đó không tìm thấy id nên tự bỏ qua.
     renderCoupleInfo(w);

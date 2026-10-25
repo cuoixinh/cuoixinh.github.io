@@ -124,6 +124,11 @@
 
     // Ảnh trang trí của mọi màn lấy từ album
     _fillPhotos(w);
+    // Mẫu không có màn album riêng: hai màn chỉ toàn ảnh (Khoảnh khắc, Kỷ niệm)
+    // đóng vai album nên tắt "Album ảnh" là ẩn chúng.
+    const photosOn = cxEnabled(w.enable_photos);
+    cxToggle("section-moment", photosOn);
+    cxToggle("section-frame", photosOn);
 
     // --- Màn Forever ---
     renderStoryQuote(w.story_quote);
@@ -151,7 +156,7 @@
       setText("ceremony-location-text", ceremonyLoc);
       cxToggle("ceremony-location-wrap", true);
     }
-    _renderCalendar(w.ceremony_date, partyDate);
+    _renderCalendar(w.ceremony_date, cxEnabled(w.enable_party) ? partyDate : null);
 
     renderMusicSummary(w, {
       ceremonyName,

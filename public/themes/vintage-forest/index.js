@@ -17,9 +17,9 @@
     id: "vintage-forest",
 
     // Bước mà trang Thiết lập KHÔNG hiện cho mẫu này (id trùng CX_STEPS ở
-    // invitation-setup/js/20-steps.js): mẫu không vẽ mục Lịch trình nên cũng
-    // đừng bắt khách nhập.
-    skipSteps: ["timeline"],
+    // invitation-setup/js/20-steps.js): mẫu không vẽ mục Gia đình lẫn Lịch trình
+    // nên cũng đừng bắt khách nhập.
+    skipSteps: ["family", "timeline"],
 
     // Độ dài mốc chuyện tình XuXi viết (xem base-theme). Các mốc nối thành đoạn văn xuôi liền mạch, cần chữ dày mới thành bài.
     loveStory: "long",
@@ -146,8 +146,8 @@
     const ceremonyTime = isVuQuy ? w.vu_quy_time : w.ceremony_time;
     const ceremonyLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
 
-    // Mẫu này KHÔNG có mục Gia đình (không có tên bố mẹ, địa chỉ hai nhà) nên
-    // công tắc enable_family bên Thiết lập không tác dụng gì ở đây. Vẫn gọi
+    // Mẫu này KHÔNG có mục Gia đình (không có tên bố mẹ, địa chỉ hai nhà) — bước
+    // đó đã bỏ qua skipSteps. Vẫn gọi
     // renderCoupleInfo vì hai ẢNH chú rể / cô dâu được dùng ở mục Thư mời; các
     // setText còn lại trong hàm đó không tìm thấy id nên tự bỏ qua.
     renderCoupleInfo(w);
@@ -228,7 +228,7 @@
     const _pick = (i) => album[i] || w.cover_image_url;
 
     _sectionPhoto("party-photo", _pick(album.length >> 1), focals, "vf-wide-photo");
-    _renderCalendar(w.ceremony_date, partyDate, _pick(album.length - 1), focals);
+    _renderCalendar(w.ceremony_date, cxEnabled(w.enable_party) ? partyDate : null, _pick(album.length - 1), focals);
 
     // --- Album ảnh ---
     if (cxEnabled(w.enable_photos)) {

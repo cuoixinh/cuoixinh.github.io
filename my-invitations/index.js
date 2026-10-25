@@ -449,26 +449,15 @@ function _showAccountCards(weddings) {
 
 // ===== TRẦN SỐ THIỆP MỖI TÀI KHOẢN =====
 
-// Chỉ đếm thẻ CÓ bản ghi DB: nháp còn nằm trên máy chưa tốn gì của hệ thống nên
-// không tính vào trần (khớp cách Edge Function đếm).
-function savedCount() {
-  return CARDS.filter((c) => !c.local).length;
+// Tổng số thiệp đang chiếm trần ở máy này — thiệp của tài khoản + nháp chỉ nằm trên
+// trình duyệt (listUsedWeddingIds). Gọi SAU khi render() đã ghi lại danh sách id DB.
+function usedCount() {
+  return listUsedWeddingIds(currentUser?.email || "").size;
 }
 
-// Bọc quanh cxStartDefaultDraft để chặn SỚM: hết chỗ mà vẫn cho đi tiếp thì khách
-// điền xong cả thiệp mới bị từ chối lúc lưu. Chốt thật nằm ở Edge Function
-// (_shared/wedding-limits.ts) — CONFIG.maxWeddings ở đây chỉ là bản sao để vẽ UI.
+// Chặn trần nằm trong cxStartDraft (core/helpers/draft-start.js) — mọi đường tạo
+// nháp đều qua đó. Chốt thật ở Edge Function (_shared/wedding-limits.ts).
 function newInvitation() {
-  const max = CONFIG.maxWeddings;
-  if (currentUser && savedCount() >= max) {
-    showAlert(
-      "Đã đủ số thiệp cho phép",
-      `Mỗi tài khoản chỉ giữ tối đa ${max} thiệp (tính cả nháp đã lưu). Hãy xoá ` +
-        `bớt thiệp cũ trong danh sách rồi tạo thiệp mới.`,
-      "warning",
-    );
-    return;
-  }
   cxStartDefaultDraft();
 }
 
@@ -546,10 +535,10 @@ function render() {
     btn.querySelector("[data-count]").textContent = counts[tab] || "";
   });
 
-  // Số thiệp đã giữ / trần — chỉ có nghĩa khi đã đăng nhập (khách vãng lai chỉ
-  // thấy nháp trên máy, vốn không tính vào trần). Rỗng thì .tg-count tự ẩn.
-  document.getElementById("count-note").textContent = currentUser
-    ? `${savedCount()}/${CONFIG.maxWeddings} thiệp`
+  // Tổng số thiệp / trần (tính cả nháp trên máy). Rỗng thì .tg-count tự ẩn.
+  const used = usedCount();
+  document.getElementById("count-note").textContent = used
+    ? `${used}/${CONFIG.maxWeddings} thiệp`
     : "";
 
   // Nháp chỉ nằm trên máy mà tài khoản này chưa nhận (đã bấm "Không", hoặc đang
