@@ -30,9 +30,20 @@ async function uploadAllPendingImages() {
   // ảnh chưa lên Storage nên dọn là mất hẳn (xem Step 6 của saveAll).
   if (!IS_LOGIN) return { uploadedFilenames, errors, skipped: true };
 
+  // Tiến độ trên màn chờ: ảnh tải lần lượt, không có số thì chậm trông y như treo.
+  const total =
+    Object.keys(pendingUploads.singleImages).length +
+    pendingUploads.galleryImages.length +
+    Object.keys(_loveStoryPendingImages).length;
+  let done = 0;
+  const tick = () => {
+    if (total > 1) showLoading(true, `Đang tải ảnh lên ${++done}/${total}...`);
+  };
+
   // Upload single images
   for (const [fieldName, file] of Object.entries(pendingUploads.singleImages)) {
     const previous = document.querySelector(`input[name="${fieldName}"]`)?.value;
+    tick();
     try {
       const filename = await uploadSingleImage(fieldName, file);
       if (filename !== previous) _queueReplacedImage(previous);
@@ -50,6 +61,7 @@ async function uploadAllPendingImages() {
       const result = await imageBL.uploadMultipleImages(
         WEDDING_STORAGE_KEY,
         pendingUploads.galleryImages,
+        tick,
       );
 
       if (result.filenames.length > 0) {
@@ -71,6 +83,7 @@ async function uploadAllPendingImages() {
   for (const [idxStr, file] of Object.entries(_loveStoryPendingImages)) {
     const idx = parseInt(idxStr);
     const previous = _loveStoryItems[idx]?.image_url;
+    tick();
     try {
       const filename = await uploadSingleImage(`love_story_image_${idx}`, file);
       if (filename !== previous) _queueReplacedImage(previous);

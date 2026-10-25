@@ -7,13 +7,30 @@ class StorageDAL {
     this.storageBaseUrl = config.cloudflare.imageProxy || config.supabase.storageUrl;
   }
 
+  // supabase-js không có hạn chờ: mạng rớt giữa chừng hoặc tab khác giữ khoá phiên
+  // (getSession chạy ngầm trước mỗi upload) là promise treo mãi, kéo theo màn chờ.
+  // Hết UPLOAD_TIMEOUT_MS thì coi là lỗi; nếu file vẫn lên muộn thì thành ảnh mồ côi,
+  // tab "Dọn dữ liệu" của admin gom được.
   async uploadFile(filename, file) {
-    const { data, error } = await this.supabase.storage
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(
+        () => reject(new Error("Quá thời gian chờ, kiểm tra kết nối mạng")),
+        StorageDAL.UPLOAD_TIMEOUT_MS,
+      );
+    });
+    const upload = this.supabase.storage
       .from(this.bucket)
       .upload(filename, file, {
         cacheControl: "3600",
         upsert: false,
       });
+    let data, error;
+    try {
+      ({ data, error } = await Promise.race([upload, timeout]));
+    } finally {
+      clearTimeout(timer);
+    }
 
     if (error) {
       throw new Error(`Upload failed: ${error.message}`);
@@ -50,6 +67,8 @@ class StorageDAL {
     return `${this.storageBaseUrl}/${v}`;
   }
 }
+
+StorageDAL.UPLOAD_TIMEOUT_MS = 90000;
 
 // Export for use in other files
 if (typeof window !== "undefined") {
