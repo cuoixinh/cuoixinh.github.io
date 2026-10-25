@@ -99,8 +99,10 @@ _onDomReady(function () {
   // Wire time pickers
   document.querySelectorAll("input[data-timepicker]").forEach((input) => {
     // Chỉ mở bảng chọn, không cần focus: focus ô gần đáy là iOS cuộn cả trang.
+    // Chặn focus thì ô đang gõ trước đó cũng không tự rời → blur tay cho bàn phím thu.
     input.addEventListener("mousedown", (e) => e.preventDefault());
     input.addEventListener("click", () => {
+      document.activeElement?.blur();
       openTimePicker(input, input.value, (val) => {
         input.value = val;
         input.dispatchEvent(new Event("change", { bubbles: true }));

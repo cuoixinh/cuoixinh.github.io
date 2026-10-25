@@ -148,10 +148,58 @@ function _cxPinPage() {
   window.visualViewport?.addEventListener("resize", reset);
 }
 
+// ===== Ô ĐANG GÕ TRÁNH BÀN PHÍM =====
+
+// Bàn phím đè lên vỏ trang (navbar, thanh bước đứng yên); riêng ô đang gõ trong
+// #setup-scroll mà nằm dưới mép bàn phím thì CUỘN KHUNG NỘI DUNG tới nó. Phần
+// khung bị che bù bằng padding đáy .cx-setup-body, không thì ô cuối form không
+// cuộn lên nổi. Popup đáy có cơ chế riêng (_liftSheetOverKeyboard ở core/utils.js).
+const CX_TYPING_SEL =
+  "textarea, [contenteditable], input:not([readonly]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden])";
+
+function _cxKeyboardAvoid() {
+  const vv = window.visualViewport;
+  const sc = document.getElementById("setup-scroll");
+  const body = sc?.querySelector(".cx-setup-body");
+  if (!vv || !sc || !body) return;
+
+  let pad = 0;
+  let lastEl = null;
+  let lastCovered = 0;
+  const setPad = (px) => {
+    if (px === pad) return;
+    pad = px;
+    body.style.paddingBottom = px ? `${px}px` : "";
+  };
+
+  const update = () => {
+    const el = document.activeElement;
+    if (!el || !sc.contains(el) || !el.matches(CX_TYPING_SEL)) {
+      lastEl = null;
+      lastCovered = 0;
+      return setPad(0);
+    }
+    const kbTop = vv.offsetTop + vv.height;
+    const covered = Math.max(0, Math.round(sc.getBoundingClientRect().bottom - kbTop));
+    setPad(covered);
+    // Chỉ cuộn khi đổi ô hoặc bàn phím cao thêm — khách tự cuộn lúc đang gõ thì để yên.
+    if (!covered || (el === lastEl && covered <= lastCovered)) return;
+    lastEl = el;
+    lastCovered = covered;
+    const over = el.getBoundingClientRect().bottom - (kbTop - 16);
+    if (over > 0) sc.scrollTop += over;
+  };
+
+  sc.addEventListener("focusin", update);
+  sc.addEventListener("focusout", () => setTimeout(update, 0));
+  vv.addEventListener("resize", update);
+}
+
 function _cxInitShell() {
   _cxInitTopHeight();
   _cxInitReflow();
   _cxPinPage();
+  _cxKeyboardAvoid();
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_cxInitShell);
