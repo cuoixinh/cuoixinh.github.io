@@ -136,7 +136,6 @@ class XCheck extends HTMLElement {
 
     const key = this.getAttribute("key") || "";
     const label = this.getAttribute("label") || "";
-    const onchange = this.getAttribute("onchange") || "";
     const checked = this.hasAttribute("checked");
     this.innerHTML = `
       <button type="button" id="${key}-btn" data-active="${checked}"
@@ -152,43 +151,16 @@ class XCheck extends HTMLElement {
         <span class="text-sm font-medium text-gray-700">${label}</span>
       </button>`;
     
-    // Chạy handler onchange thủ công cho ổn định (không phụ thuộc trình duyệt tự wire attribute
-    // content event-handler trên custom element). Gỡ attribute để tránh bị fire trùng.
-    const onchangeAttr = this.getAttribute("onchange") || "";
-    this.removeAttribute("onchange");
-    
-    // Parse onchange handler - hỗ trợ cả dạng "func(args)" và "window.func(args)"
-    let onchangeFn = null;
-    if (onchangeAttr) {
-      try {
-        // Tạo function wrapper an toàn hơn
-        onchangeFn = new Function("event", `
-          try {
-            ${onchangeAttr};
-          } catch (err) {
-            console.error("Error in x-check onchange:", err);
-          }
-        `);
-      } catch (err) {
-        console.error("Failed to parse x-check onchange attribute:", onchangeAttr, err);
-      }
-    }
-    
+    // `onchange` để NGUYÊN trên thẻ: trình duyệt tự chạy nó khi thẻ phát "change"
+    // (handler inline — CSP cho qua bằng 'unsafe-inline'). Đừng dựng lại bằng
+    // new Function/eval: CSP ở _headers không có 'unsafe-eval' nên trên web thật nó
+    // ném EvalError — tick vẫn lật mà handler không chạy, local thì vẫn đúng.
     const btn = this.querySelector("button");
     if (btn) {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
-        // Đảo ngược trạng thái
         this.checked = !this.checked;
-        
-        // Gọi onchange handler nếu có
-        if (onchangeFn) {
-          onchangeFn.call(this, e);
-        }
-        
-        // Dispatch event để các listener khác có thể bắt
         this.dispatchEvent(new Event("change", { bubbles: true }));
       });
     }

@@ -5,6 +5,7 @@
 //   npm run dev -- --env=production→ chạy trên dữ liệu production (thiệp thật)
 //   npm run dev -- --port=5500     → đổi cổng
 //   npm run dev -- --no-reload     → tắt tự tải lại khi sửa file
+//   npm run dev -- --no-csp        → tắt header bảo mật của `_headers` (xem dưới)
 //
 // Lý do tồn tại: local mặc định phải là staging, mà luật của repo là TRONG MÃ
 // không có chỗ nào rẽ nhánh theo môi trường. Nên chỗ rẽ nằm ở đây — server tự
@@ -16,7 +17,7 @@
 // → rơi về production. Cổng in ra lúc khởi động mới là cổng chạy staging.
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
-import { watch, statSync } from "node:fs";
+import { watch, statSync, readFileSync } from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
@@ -42,6 +43,7 @@ const flag = (name, fallback) => {
 const ENV = flag("env", "staging");
 const PORT = Number(flag("port", 5500));
 const RELOAD = !args.includes("--no-reload");
+const CSP = !args.includes("--no-csp");
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -118,6 +120,47 @@ function watchRepo() {
   } catch {
     console.log("  (không theo dõi được thư mục — tự tải lại tắt)");
   }
+}
+
+// ===== Header bảo mật như Cloudflare =====
+// Đọc khối `/*` của `_headers` — đúng thứ Cloudflare gắn vào mọi FILE TĨNH ở bản
+// build. Thiếu nó thì thứ vi phạm CSP (new Function/eval, font CDN, miền lạ…)
+// chạy ngon ở local mà chết im lặng trên web. Bỏ đúng hai thứ chỉ hợp với HTTPS:
+// HSTS và `upgrade-insecure-requests` (đẩy mọi request sang https://localhost →
+// trang trắng). Trang do worker tự dựng (link /<slug>, 404) KHÔNG nhận header này
+// trên production, nên ở đây cũng không. Đọc lại khi file đổi.
+let _hdrCache = { mtime: 0, headers: {} };
+function securityHeaders() {
+  if (!CSP) return {};
+  const file = path.join(ROOT, "_headers");
+  let mtime;
+  try {
+    mtime = statSync(file).mtimeMs;
+  } catch {
+    return {};
+  }
+  if (mtime === _hdrCache.mtime) return _hdrCache.headers;
+  const headers = {};
+  let inAll = false;
+  for (const raw of readFileSync(file, "utf8").split(/\r?\n/)) {
+    if (!raw.trim() || raw.trim().startsWith("#")) continue;
+    if (!/^\s/.test(raw)) {
+      inAll = raw.trim() === "/*";
+      continue;
+    }
+    const m = inAll && raw.trim().match(/^([\w-]+):\s*(.+)$/);
+    if (m) headers[m[1]] = m[2];
+  }
+  delete headers["Strict-Transport-Security"];
+  if (headers["Content-Security-Policy"]) {
+    headers["Content-Security-Policy"] = headers["Content-Security-Policy"]
+      .split(";")
+      .map((d) => d.trim())
+      .filter((d) => d && d !== "upgrade-insecure-requests")
+      .join("; ");
+  }
+  _hdrCache = { mtime, headers };
+  return headers;
 }
 
 // ===== Nội dung trả về =====
@@ -224,12 +267,14 @@ const server = createServer(async (req, res) => {
 
   // Mọi thứ no-store: cache của trình duyệt lúc dev chỉ tổ làm mình sửa xong
   // không thấy đổi rồi đi tìm nhầm chỗ.
-  const send = (code, type, body) =>
-    res.writeHead(code, { "Content-Type": type, "Cache-Control": "no-store" }).end(body);
+  const send = (code, type, body, extra) =>
+    res.writeHead(code, { ...extra, "Content-Type": type, "Cache-Control": "no-store" }).end(body);
+  // File tĩnh nhận header như trên Cloudflare; `admin/` không ra web nên để trống.
+  const assetHeaders = url.pathname.startsWith("/admin/") ? {} : securityHeaders();
 
   if (url.pathname === "/core/config.js") {
     try {
-      return send(200, MIME[".js"], await buildConfig(url.searchParams.has("raw")));
+      return send(200, MIME[".js"], await buildConfig(url.searchParams.has("raw")), assetHeaders);
     } catch (e) {
       return send(500, MIME[".txt"], String(e.message));
     }
@@ -259,15 +304,16 @@ const server = createServer(async (req, res) => {
   const ext = path.extname(hit.file).toLowerCase();
   const type = MIME[ext] || "application/octet-stream";
   if (ext === ".html" && RELOAD) {
-    return send(200, type, hit.body.toString("utf8") + RELOAD_SNIPPET);
+    return send(200, type, hit.body.toString("utf8") + RELOAD_SNIPPET, assetHeaders);
   }
-  send(200, type, hit.body);
+  send(200, type, hit.body, assetHeaders);
 });
 
 server.listen(PORT, () => {
   const env = ENV === "production" ? "PRODUCTION (dữ liệu thật)" : ENV.toUpperCase();
   console.log(`\n  Cưới Xinh — http://localhost:${PORT}`);
   console.log(`  Môi trường: ${env}`);
-  console.log(`  Tự tải lại: ${RELOAD ? "bật" : "tắt"}\n`);
+  console.log(`  Tự tải lại: ${RELOAD ? "bật" : "tắt"}`);
+  console.log(`  CSP như web: ${CSP ? "bật (--no-csp để tắt)" : "TẮT — lỗi CSP sẽ không hiện ở local"}\n`);
   if (RELOAD) watchRepo();
 });
