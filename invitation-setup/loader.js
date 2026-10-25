@@ -138,7 +138,7 @@
     "../js/ai-chat-media.js",
     "../js/ai-assistant.js",
     "tour-setup.js",
-    // TẠM — chỉ chạy khi URL có debug=party; dò xong thì gỡ.
+    // TẠM — chỉ chạy khi CONFIG.debugLog (staging); dò xong thì gỡ.
     "js/99-debug-party.js",
   ];
 

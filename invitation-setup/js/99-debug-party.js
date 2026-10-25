@@ -1,9 +1,9 @@
 // TẠM — log dò lỗi "bỏ tick Trùng địa điểm mà ô tiệc vẫn khoá" trên điện thoại.
-// Chỉ chạy khi URL có `debug=party`; khung log nổi góc dưới, nút Copy để gửi đi.
-// Không dùng alert(): hộp alert cướp focus, mà lỗi đang dò xoay quanh focus.
-// Dò xong thì xoá file này + dòng của nó trong SCRIPTS (loader.js).
+// Chỉ chạy khi `CONFIG.debugLog` (staging bật ở config.staging.js); khung log nổi
+// đầu màn, nút Copy để gửi đi. Không dùng alert(): hộp alert cướp focus.
+// Dò xong thì xoá file này, dòng của nó trong SCRIPTS (loader.js) và cờ debugLog.
 (function () {
-  if (!/[?&]debug=party\b/.test(location.search)) return;
+  if (typeof CONFIG === "undefined" || !CONFIG.debugLog) return;
 
   const t0 = performance.now();
   const lines = [];
@@ -59,7 +59,7 @@
       "color:#7CFC9A;font:10px/1.3 ui-monospace,monospace;border-radius:8px;padding:4px 6px;pointer-events:none;";
     wrap.innerHTML =
       '<div style="display:flex;gap:6px;margin-bottom:4px">' +
-      '<b style="flex:1;color:#fff">debug=party</b>' +
+      '<b style="flex:1;color:#fff">debug · ' + CONFIG.env + ' · v=' + (typeof CX_VERSION !== "undefined" ? CX_VERSION : "?") + '</b>' +
       '<button data-a="state" style="padding:4px 8px">State</button>' +
       '<button data-a="copy" style="padding:4px 8px">Copy</button>' +
       '<button data-a="clear" style="padding:4px 8px">Clear</button>' +
@@ -158,6 +158,20 @@
       if (ok || ++n > 100) clearInterval(iv);
     }, 200);
 
+    // Nghe ở cấp document: phần tử bị dựng lại sau lúc gắn hook vẫn ra log.
+    ["touchstart", "touchend", "click"].forEach((ev) =>
+      document.addEventListener(ev, (e) => {
+        if (e.target.closest?.("#cx-dbg")) return;
+        const c = e.target.closest?.("x-check");
+        const extra = c ? ` checked=${c.checked} key=${c.getAttribute("key")}` : "";
+        log(`DOC ${ev} ${desc(e.target)}${extra} active=${desc(document.activeElement)}`);
+      }, true),
+    );
+    // Hook theo phần tử chạy lại định kỳ — ô bị dựng lại thì gắn lại.
+    setInterval(() => {
+      ["groom", "bride"].forEach(hookSide);
+      if (!window.togglePartySameLoc?._cxDbg) { log("re-hook togglePartySameLoc"); hookToggle(); }
+    }, 1000);
     document.addEventListener("focusin", (e) => log("focusin " + desc(e.target)), true);
     document.addEventListener("focusout", (e) => log("focusout " + desc(e.target) + " → " + desc(e.relatedTarget)), true);
     window.visualViewport?.addEventListener("resize", () =>

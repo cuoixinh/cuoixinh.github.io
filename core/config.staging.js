@@ -19,6 +19,7 @@
 
   CONFIG.env = "staging";
   CONFIG.noInspect = false;
+  CONFIG.debugLog = true;
 
   CONFIG.supabase = {
     url: BASE,
