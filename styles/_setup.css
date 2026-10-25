@@ -2601,6 +2601,24 @@ html.cx-rail-off {
   transform-origin: 0 0;
 }
 
+/* Navbar + các panel toàn màn neo theo chiều cao màn ĐÃ KHOÁ (--vh), không theo
+   `bottom`: khung nhìn co lại khi bàn phím bung (Android, webview Zalo/Facebook)
+   là thứ neo đáy trượt lên theo — bàn phím phải ĐÈ lên chúng. Không dùng
+   `transform` để kéo navbar lên: #nav-more-pop là `fixed` bên trong, cha có
+   transform là popover lệch. */
+.cx-setup #bottom-nav-bar {
+  top: calc(var(--vh, 1vh) * 100 - var(--nav-h, 84px));
+  bottom: auto;
+}
+
+.cx-setup #preview-panel,
+.cx-setup #config-panel,
+.cx-setup #theme-panel,
+.cx-setup #guests-panel {
+  bottom: auto;
+  height: calc(var(--vh, 1vh) * 100 - var(--nav-h, 84px));
+}
+
 /* Phiên chỉnh tab Giao diện dưới md (cờ do js/27-theme-session.js đặt): giấu
    navbar cho thiệp thêm chỗ — lối ra là "Hoàn tất" ở đầu bảng hoặc nút Back. */
 @media (max-width: 767px) {
@@ -2608,8 +2626,8 @@ html.cx-rail-off {
     display: none;
   }
 
-  .cx-theme-mode #theme-panel {
-    bottom: 0;
+  .cx-setup.cx-theme-mode #theme-panel {
+    height: calc(var(--vh, 1vh) * 100);
   }
 }
 

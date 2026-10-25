@@ -128,9 +128,30 @@ function cxNavMore(open) {
 }
 window.cxNavMore = cxNavMore;
 
+// ===== GHIM TRANG Ở GỐC =====
+
+// `overflow: clip` trên <html> bị trình duyệt hiểu thành `hidden` (luật của khung
+// nhìn gốc) nên trang VẪN cuộn được bằng mã: focus một ô gần đáy (ô giờ, ô tìm
+// bản đồ…) là iOS đẩy cả trang lên mà khách không kéo lại được. Trang này không
+// bao giờ cuộn → thấy lệch là trả ngay về 0; bàn phím ĐÈ lên giao diện chứ
+// không đẩy nó (Android lo bằng `interactive-widget` ở thẻ viewport).
+function _cxPinPage() {
+  const reset = () => {
+    if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
+    const se = document.scrollingElement;
+    if (se && se.scrollTop) se.scrollTop = 0;
+    if (document.body.scrollTop) document.body.scrollTop = 0;
+  };
+  window.addEventListener("scroll", reset, { passive: true });
+  // iOS cuộn bù SAU khi bàn phím thu lại → chờ một nhịp rồi mới trả.
+  document.addEventListener("focusout", () => setTimeout(reset, 60));
+  window.visualViewport?.addEventListener("resize", reset);
+}
+
 function _cxInitShell() {
   _cxInitTopHeight();
   _cxInitReflow();
+  _cxPinPage();
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_cxInitShell);

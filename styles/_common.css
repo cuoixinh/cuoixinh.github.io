@@ -1415,7 +1415,11 @@ textarea::-webkit-scrollbar-thumb:hover {
    Tailwind purge mất, thẻ nở theo nội dung và tràn khỏi màn hình. */
 
 .cx-sheet-card {
-  height: var(--cx-sheet-h, 80dvh);
+  height: var(--cx-sheet-h, calc(var(--vh, 1vh) * 80));
+
+  /* Bị nâng qua bàn phím, hoặc khung nhìn co (webview Zalo/Facebook) thì thẻ co
+     lại cho vừa thay vì tràn khỏi mép trên — phần thân là flex-1 min-h-0 nên co. */
+  max-height: 100%;
 }
 
 @media (min-width: 640px) {

@@ -134,9 +134,7 @@ function openMapPicker(side, opts = {}) {
         <label class="text-sm font-medium text-gray-700">Tên hiển thị trên thiệp</label>
         <div class="flex items-center gap-1.5">
           <span class="text-xs text-gray-400">Sửa tên</span>
-          <x-button variant="ghost" tone="neutral" size="xs" type="button" id="map-display-name-toggle" onclick="_toggleMapDisplayName()" class="relative flex-shrink-0 w-9">
-            <span id="map-display-name-knob" class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-0.5"></span>
-          </x-button>
+          <x-switch key="map-name" label="Sửa tên" onclick="_toggleMapDisplayName()"></x-switch>
         </div>
       </div>
       <input id="map-picker-display-name" type="text" disabled value="${currentDisplayName.replace(/"/g, '&quot;')}"
@@ -151,6 +149,8 @@ function openMapPicker(side, opts = {}) {
       </x-button>
     </div>
   `;
+
+  _syncMapNameSwitch(false);
 
   setTimeout(() => {
     if (typeof L === "undefined") return;
@@ -175,23 +175,30 @@ function openMapPicker(side, opts = {}) {
   _setupMapPickerAutocomplete();
 }
 
+// Công tắc <x-switch key="map-name"> dựng sẵn ở trạng thái BẬT → đồng bộ lại theo ô tên.
+function _syncMapNameSwitch(on) {
+  const btn = document.getElementById("vis-btn-map-name");
+  const knob = document.getElementById("vis-knob-map-name");
+  if (!btn || !knob) return;
+  btn.setAttribute("aria-checked", String(on));
+  btn.classList.toggle("bg-rose-400", on);
+  btn.classList.toggle("bg-gray-300", !on);
+  knob.classList.toggle("translate-x-6", on);
+  knob.classList.toggle("translate-x-1", !on);
+}
+
 function _toggleMapDisplayName() {
   const input = document.getElementById("map-picker-display-name");
-  const btn = document.getElementById("map-display-name-toggle");
-  const knob = document.getElementById("map-display-name-knob");
-  if (!input || !btn || !knob) return;
+  if (!input) return;
   const willEnable = input.disabled;
   input.disabled = !willEnable;
+  _syncMapNameSwitch(willEnable);
+  input.classList.toggle("opacity-60", !willEnable);
+  input.classList.toggle("cursor-not-allowed", !willEnable);
+  input.classList.toggle("bg-gray-50", !willEnable);
   if (willEnable) {
-    btn.classList.replace("bg-gray-300", "bg-rose-400");
-    knob.classList.replace("translate-x-0.5", "translate-x-[18px]");
-    input.classList.remove("opacity-60", "cursor-not-allowed", "bg-gray-50");
     input.classList.add("focus:border-gray-400");
     input.focus();
-  } else {
-    btn.classList.replace("bg-rose-400", "bg-gray-300");
-    knob.classList.replace("translate-x-[18px]", "translate-x-0.5");
-    input.classList.add("opacity-60", "cursor-not-allowed", "bg-gray-50");
   }
 }
 

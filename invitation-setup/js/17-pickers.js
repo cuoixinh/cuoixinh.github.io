@@ -98,6 +98,8 @@ _onDomReady(function () {
 
   // Wire time pickers
   document.querySelectorAll("input[data-timepicker]").forEach((input) => {
+    // Chỉ mở bảng chọn, không cần focus: focus ô gần đáy là iOS cuộn cả trang.
+    input.addEventListener("mousedown", (e) => e.preventDefault());
     input.addEventListener("click", () => {
       openTimePicker(input, input.value, (val) => {
         input.value = val;
