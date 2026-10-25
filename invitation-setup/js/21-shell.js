@@ -128,9 +128,73 @@ function cxNavMore(open) {
 }
 window.cxNavMore = cxNavMore;
 
+// ===== BÀN PHÍM ẢO =====
+
+// iOS cuộn CẢ TRANG để ô được focus lọt khung (cả ô readonly như ô giờ) rồi không
+// kéo về — app shell không cuộn nên khách kẹt ở đó. Đây là chỗ duy nhất được đụng
+// cuộn của trang: trả nó về 0, không phải để đưa phần tử vào tầm nhìn.
+// Chỉ ô GÕ được mới bung bàn phím; ô readonly giữ focus không phải lý do để chờ.
+// Focus nằm trong iframe (tab Khách mời) thì không biết bên trong ra sao → coi như đang gõ.
+function _cxIsField(el) {
+  if (!el || el.readOnly || el.disabled) return false;
+  const tag = el.tagName;
+  return (
+    tag === "IFRAME" ||
+    tag === "INPUT" ||
+    tag === "TEXTAREA" ||
+    tag === "SELECT" ||
+    el.isContentEditable
+  );
+}
+
+// Bàn phím đang bung không. iOS không đổi innerHeight khi bung phím, chỉ khung nhìn
+// thấp đi → hở trên 80px là phím còn. Không cần ô đang focus: đóng bảng (bản đồ…)
+// lúc đang gõ là ô bị gỡ khỏi DOM mà không phát focusout.
+function _cxKeyboardOpen() {
+  if (!_cxIsField(document.activeElement)) return false;
+  const vv = window.visualViewport;
+  return !vv || window.innerHeight - vv.height > 80;
+}
+
+// Khung bọc ngoài các vùng cuộn: overflow:hidden vẫn bị iOS cuộn để lộ ô được focus.
+const CX_SHELL_SCROLLERS = ["setup-scroll", "config-scroll", "guests-scroll"];
+
+function _cxResetPageScroll() {
+  if (_cxKeyboardOpen()) return;
+  const doc = document.scrollingElement || document.documentElement;
+  const vv = window.visualViewport;
+  // Lệch có thể chỉ nằm ở khung nhìn (offsetTop) trong khi scrollY vẫn 0.
+  if (
+    window.scrollY ||
+    doc.scrollTop ||
+    document.body.scrollTop ||
+    (vv && vv.offsetTop > 0.5)
+  ) {
+    window.scrollTo(0, 0);
+    doc.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }
+  CX_SHELL_SCROLLERS.forEach((id) => {
+    let el = document.getElementById(id)?.parentElement;
+    for (; el && el !== document.body; el = el.parentElement)
+      if (el.scrollTop) el.scrollTop = 0;
+  });
+}
+
+function _cxInitKeyboardReset() {
+  // Chờ một nhịp: focus nhảy sang ô kế tiếp thì phím không cụp, đừng kéo trang.
+  document.addEventListener("focusout", () => setTimeout(_cxResetPageScroll, 120));
+  // Phím cụp (khung nhìn cao trở lại) hoặc khung nhìn bị trượt khi không có phím.
+  window.visualViewport?.addEventListener("resize", _cxResetPageScroll);
+  window.visualViewport?.addEventListener("scroll", _cxResetPageScroll);
+  // Trang trôi mà không có bàn phím (focus ô readonly…) thì kéo về ngay.
+  window.addEventListener("scroll", _cxResetPageScroll, { passive: true });
+}
+
 function _cxInitShell() {
   _cxInitTopHeight();
   _cxInitReflow();
+  _cxInitKeyboardReset();
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_cxInitShell);

@@ -56,6 +56,7 @@ function _renderTimelineRows(listEl, type, colorClass) {
         aria-label="Giờ"
         readonly
         class="w-24 flex-shrink-0 h-10 px-2 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none cursor-pointer text-center hover:border-gray-300 focus:border-gray-400"
+        onmousedown="event.preventDefault()"
         onclick="openTimePicker(this, this.value, v => { _timelineItems[${idx}].time=v; this.value=v; _syncTimelineHidden(); })"
       />
       <input

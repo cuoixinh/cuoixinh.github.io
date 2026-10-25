@@ -126,12 +126,18 @@
     return xControlsReq;
   }
 
-  // Cả bảng chọn: maps-helper.js + Leaflet + core/utils.js (openBottomSheet, escapeHtml).
+  // Cả bảng chọn: maps-helper.js + Leaflet + core/utils.js (openBottomSheet, escapeHtml)
+  // + x-controls.js (công tắc "Sửa tên" là <x-switch>).
   function ensureMapPicker() {
-    if (typeof window.openMapPicker === "function" && window.L && typeof openBottomSheet === "function")
+    if (
+      typeof window.openMapPicker === "function" &&
+      window.L &&
+      typeof openBottomSheet === "function" &&
+      customElements.get("x-switch")
+    )
       return Promise.resolve();
     if (pickerReq) return pickerReq;
-    const jobs = [ensureMapsHelper()];
+    const jobs = [ensureMapsHelper(), ensureXControls()];
     if (!window.L) {
       if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
         const css = document.createElement("link");

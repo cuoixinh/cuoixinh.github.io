@@ -113,12 +113,18 @@ echo ""
 git log --oneline --no-decorate "$PROD_BRANCH..$STAGING_BRANCH" | sed 's/^/  /'
 
 CHANGED=$(git diff --name-only "$PROD_BRANCH...$STAGING_BRANCH")
-sql=$(echo "$CHANGED" | grep -c '^changelogs/.*\.sql$' || true)
+sql_files=$(echo "$CHANGED" | grep '^changelogs/.*\.sql$' | sort || true)
+sql=$(echo -n "$sql_files" | grep -c . || true)
 fns=$(echo "$CHANGED" | grep '^supabase/functions/' | cut -d/ -f3 | sort -u || true)
 if [ "$sql" -gt 0 ] || [ -n "$fns" ]; then
   echo ""
   echo "  ⚠ Đợt này đụng tầng dưới — phải làm XONG trên production TRƯỚC khi web đổi:"
-  [ "$sql" -gt 0 ] && echo "     · $sql file changelog SQL → tự chạy trên Dashboard của project production"
+  if [ "$sql" -gt 0 ]; then
+    # Liệt kê theo thứ tự chạy (tên file sort chữ = thứ tự). Script không biết file nào đã
+    # chạy trên DB — đây là mọi file .sql nhánh production chưa có.
+    echo "     · $sql file changelog SQL → tự chạy trên Dashboard của project production (bỏ qua file đã chạy):"
+    echo "$sql_files" | sed 's/^/         - /'
+  fi
   [ -n "$fns" ] && echo "     · Edge Function: $(echo "$fns" | tr '\n' ' ')→ npm run deploy:functions:all"
 fi
 
