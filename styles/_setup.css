@@ -1774,6 +1774,362 @@ button.cx-add-tile-sm {
   display: flex;
 }
 
+/* Danh sách mốc Chuyện tình yêu: sợi chỉ thời gian dọc (vạch + nút số) nối các thẻ
+   mốc, chạy tiếp xuống vòng rỗng của .cx-ls-end. Vạch do ::before của từng mốc vẽ
+   nên mốc cách nhau bằng padding — đừng dùng gap/space-y, vạch sẽ đứt. */
+.cx-ls-item {
+  @apply relative grid gap-3 pb-4;
+
+  grid-template-columns: 28px minmax(0, 1fr);
+}
+
+.cx-ls-item::before,
+.cx-ls-end::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--ls-axis, 0px) + 13px);
+  width: 2px;
+  background: rgb(var(--brand-primary-rgb) / 0.7);
+}
+
+.cx-ls-item::before {
+  top: 40px;
+  bottom: 0;
+}
+
+.cx-ls-item:last-child {
+  padding-bottom: 0;
+}
+
+/* Đầu sợi chỉ: icon tròn đặc + tiêu đề, số mốc, nút XuXi. Vạch chạy qua khoảng
+   space-y-4 (16px) + mt-2 của nút số đầu tiên nên bottom âm 24px. */
+.cx-ls-head {
+  @apply relative grid items-center gap-x-3 gap-y-2;
+
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+}
+
+.cx-ls-head::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--ls-axis, 0px) + 13px);
+  top: 32px;
+  bottom: -24px;
+  width: 2px;
+  background: rgb(var(--brand-primary-rgb) / 0.7);
+}
+
+/* Khung XuXi chen giữa đầu sợi chỉ và danh sách → cắt vạch. */
+#section-love_story-body.is-ai-open .cx-ls-head::before {
+  display: none;
+}
+
+.cx-ls-head-ico {
+  @apply flex h-7 w-7 items-center justify-center rounded-full text-white;
+
+  background: rgb(var(--brand-accent-rgb));
+}
+
+.cx-ls-head-t {
+  @apply text-sm font-semibold;
+
+  color: rgb(var(--text-heading-rgb));
+}
+
+.cx-ls-head-d {
+  @apply text-xs text-gray-500;
+}
+
+/* Màn hẹp: nút XuXi xuống hàng riêng, thẳng cột chữ. */
+@media (max-width: 479px) {
+  .cx-ls-head > .btn-ai {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+}
+
+.cx-ls-node {
+  @apply mt-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-xs font-semibold;
+
+  color: rgb(var(--text-heading-rgb));
+  border: 2px solid rgb(var(--brand-accent-rgb));
+}
+
+.cx-ls-card {
+  @apply rounded-2xl p-3 sm:p-4;
+
+  background: rgb(var(--surface-brand-subtle-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+}
+
+.cx-ls-card-head {
+  @apply -mr-1 -mt-1 mb-2 flex items-center gap-2;
+}
+
+.cx-ls-name {
+  @apply min-w-0 flex-1 truncate text-sm font-semibold;
+
+  color: rgb(var(--text-heading-rgb));
+}
+
+.cx-ls-name.is-blank {
+  @apply font-normal text-gray-400;
+}
+
+/* Ô nhập bên trái, ô ảnh vuông: dưới sm nằm hàng riêng dưới lời kể, từ sm là cột phải. */
+.cx-ls-body {
+  @apply flex flex-col gap-3 sm:grid sm:gap-4;
+
+  grid-template-columns: minmax(0, 1fr) 96px;
+}
+
+.cx-ls-fields {
+  @apply flex min-w-0 flex-col gap-3;
+}
+
+.cx-ls-row {
+  @apply flex gap-2;
+}
+
+.cx-ls-date {
+  @apply w-32 shrink-0 sm:w-36;
+}
+
+.cx-ls-lbl {
+  @apply mb-1 block text-xs font-medium text-gray-600;
+}
+
+.cx-ls-input {
+  @apply h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-800 outline-none transition-all placeholder:text-gray-400/50 focus:border-gray-400;
+}
+
+.cx-ls-area {
+  @apply h-auto resize-none py-2;
+
+  min-height: 96px;
+}
+
+.cx-ls-photo {
+  @apply flex items-center gap-3 sm:flex-col sm:items-stretch sm:gap-1 sm:pt-5;
+}
+
+/* `button.` để thắng w-full của button.cx-add-tile. */
+.cx-ls-thumb,
+button.cx-ls-thumb {
+  @apply relative w-20 shrink-0 overflow-hidden rounded-xl sm:w-full;
+
+  aspect-ratio: 1;
+}
+
+.cx-ls-thumb {
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+}
+
+.cx-ls-photo-hint {
+  @apply text-xs text-gray-500 sm:text-center;
+}
+
+/* Đầu mút sợi chỉ: vạch nối từ mốc cuối xuống vòng rỗng ngang nút "Thêm mốc". */
+.cx-ls-end {
+  @apply relative;
+
+  padding-left: calc(var(--ls-axis, 0px) + 40px);
+}
+
+/* Vạch phủ cả khoảng space-y-4 (16px) phía trên. */
+.cx-ls-end::before {
+  top: -16px;
+  height: 29px;
+}
+
+.cx-ls-end::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--ls-axis, 0px) + 7px);
+  top: 13px;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  border: 2px dashed rgb(var(--brand-accent-rgb) / 0.6);
+  background: #fff;
+}
+
+/* Khung nội dung rộng (đo theo chính bước này, không theo màn: từ 820px dải xem
+   trực tiếp đã ăn bớt bề ngang) → dòng thời gian thật: ô Thời gian ra nằm bên trái
+   trục, ngang nút số. --ls-axis = bề rộng cột thời gian + khoảng hở, mọi vạch/vòng
+   của sợi chỉ dời theo nó. Ô Thời gian vẫn nằm trong thẻ ở markup — chỉ bị đặt
+   absolute theo .cx-ls-item (thẻ và hàng chứa nó không được có position). */
+#section-love_story-body {
+  container-type: inline-size;
+}
+
+@container (min-width: 640px) {
+  #love-story-list,
+  .cx-ls-head,
+  .cx-ls-end {
+    --ls-axis: 140px;
+  }
+
+  .cx-ls-head {
+    padding-left: var(--ls-axis);
+  }
+
+  .cx-ls-item {
+    grid-template-columns: 128px 28px minmax(0, 1fr);
+  }
+
+  .cx-ls-node {
+    grid-column: 2;
+  }
+
+  .cx-ls-date {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 128px;
+  }
+
+  .cx-ls-date .cx-ls-lbl {
+    @apply sr-only;
+  }
+
+  /* Trên trục: chữ đậm căn phải, viền chỉ hiện khi rê chuột / đang sửa. */
+  .cx-ls-date .cx-ls-input {
+    @apply px-2 text-right font-semibold;
+
+    color: rgb(var(--text-heading-rgb));
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .cx-ls-date .cx-ls-input:hover {
+    @apply border-gray-200;
+  }
+
+  .cx-ls-date .cx-ls-input:focus {
+    @apply border-gray-400 bg-white text-left font-normal;
+  }
+
+  .cx-ls-body {
+    grid-template-columns: minmax(0, 1fr) 112px;
+  }
+}
+
+/* Màn trống của Chuyện tình yêu — cùng dáng .aichat-gate (styles/_ai-chat.css):
+   tiêu đề nhỏ căn giữa + hai thẻ cạnh nhau; mỗi thẻ: vòng radio + tên, lời mô tả,
+   hình minh hoạ ăn hết chỗ thừa ở đáy. Vuông là mức TỐI THIỂU (min-height theo
+   bề ngang một thẻ) nên chữ dài thì thẻ cao thêm chứ không bị cắt. */
+.cx-ls-empty {
+  @apply items-stretch gap-0 p-0 text-left;
+
+  color: inherit;
+  border: 0;
+}
+
+.cx-ls-empty-hd {
+  @apply mb-2 text-center text-xs font-semibold;
+
+  color: rgb(var(--text-caption-rgb));
+}
+
+.cx-ls-opts {
+  @apply flex w-full items-stretch gap-2;
+
+  container-type: inline-size;
+}
+
+.cx-ls-opt {
+  @apply flex min-w-0 cursor-pointer flex-col items-start gap-1 overflow-hidden rounded-[16px] px-3 py-2.5 text-left;
+
+  flex: 1 1 0;
+  min-height: min(calc(50cqw - 4px), 184px);
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-accent-rgb) / 0.45);
+  box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.08);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cx-ls-opt:focus-visible {
+  outline: 2px solid rgb(var(--brand-accent-rgb) / 0.5);
+  outline-offset: 2px;
+}
+
+.cx-ls-opt-t {
+  @apply flex items-center gap-1.5 text-sm font-semibold leading-snug;
+
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.cx-ls-opt-s {
+  @apply text-xs leading-snug;
+
+  color: rgb(var(--text-body-rgb));
+}
+
+.cx-ls-opt-fig {
+  @apply mt-1.5 flex w-full items-center justify-center overflow-hidden;
+
+  flex: 1 1 auto;
+  min-height: 48px;
+}
+
+.cx-ls-opt-fig img {
+  @apply block h-full w-full object-contain;
+
+  max-height: 96px;
+}
+
+/* Vòng radio: chấm trong nở ra khi rê chuột. */
+.cx-ls-opt-r {
+  @apply relative shrink-0 rounded-full;
+
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(var(--brand-accent-rgb) / 0.45);
+  transition: border-color 0.2s ease;
+}
+
+.cx-ls-opt-r::after {
+  @apply absolute rounded-full;
+
+  content: "";
+  inset: 2px;
+  background: rgb(var(--brand-accent-rgb));
+  transform: scale(0);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .cx-ls-opt:hover {
+    background: rgb(var(--brand-accent-rgb) / 0.07);
+    border-color: rgb(var(--brand-accent-rgb));
+    box-shadow: 0 2px 8px rgb(var(--brand-accent-rgb) / 0.18);
+  }
+
+  .cx-ls-opt:hover .cx-ls-opt-r {
+    border-color: rgb(var(--brand-accent-rgb));
+  }
+
+  .cx-ls-opt:hover .cx-ls-opt-r::after {
+    transform: scale(0.45);
+  }
+}
+
+.cx-ls-opt:active {
+  background: rgb(var(--brand-accent-rgb) / 0.14);
+}
+
+/* Bước Chuyện tình yêu: lúc chưa có mốc, hai nút trong .cx-empty thay cho nút
+   đầu sợi chỉ (có nút XuXi) và "Thêm mốc" cuối sợi chỉ; khung XuXi mở thì ẩn cả khối. */
+#section-love_story-body:has(#love-story-list:empty) .cx-ls-head,
+#section-love_story-body:has(#love-story-list:empty) #love-add-btn,
+#section-love_story-body.is-ai-open .cx-empty {
+  display: none;
+}
+
 /* Tab Cấu hình (partials/config-panel.html): đầu mỗi mục = ô icon vuông + tiêu
    đề h2 + dòng mô tả; công tắc/nút (nếu có) đứng cuối hàng. */
 .cx-cfg-head {

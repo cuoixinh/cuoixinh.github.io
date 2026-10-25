@@ -203,13 +203,13 @@ const CONFIG = {
     planExpiredDays: 30, // đã thanh toán gói có hạn, tính từ lúc hết hạn gói
   },
 
-  // Trần số thiệp một tài khoản được giữ trên hệ thống — nháp đã lưu lẫn thiệp đã
-  // xuất bản đều tính. Nháp chỉ nằm trong trình duyệt KHÔNG tính: nó chưa tốn gì
-  // của hệ thống. Chốt THẬT nằm ở server
+  // Trần TỔNG số thiệp một tài khoản — nháp đã lưu, thiệp đã xuất bản và cả nháp
+  // chỉ nằm trong trình duyệt (listUsedWeddingIds ở core/cache-util.js) đều tính.
+  // Server không thấy nháp trên máy nên chỉ đếm hàng DB. Chốt THẬT nằm ở server
   // (supabase/functions/_shared/wedding-limits.ts) vì con số phía client ai cũng
-  // sửa được; số ở đây chỉ để UI chặn sớm và hiện "x/5" — đổi một bên phải đổi cả
+  // sửa được; số ở đây chỉ để UI chặn sớm và hiện "x/3" — đổi một bên phải đổi cả
   // bên kia.
-  maxWeddings: 5,
+  maxWeddings: 3,
 
   // Love Story
   maxLoveStoryItems: 10,

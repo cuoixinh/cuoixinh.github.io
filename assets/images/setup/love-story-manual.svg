@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 128" width="320" height="128">
+  <defs>
+    <path id="spk" d="M0-16C0-4-4 0-16 0-4 0 0 4 0 16 0 4 4 0 16 0 4 0 0-4 0-16Z"/>
+  </defs>
+  <!-- sợi chỉ thời gian -->
+  <rect x="85.5" y="26" width="5" height="76" rx="2.5" fill="#FFD6E4"/>
+  <circle cx="88" cy="26" r="9" fill="#FF6FA5"/>
+  <circle cx="88" cy="62" r="9" fill="#FF6FA5"/>
+  <circle cx="88" cy="100" r="9" fill="#FFFFFF" stroke="#F4477F" stroke-width="4"/>
+  <!-- hai mốc đã viết -->
+  <rect x="108" y="14" width="104" height="24" rx="8" fill="#FFD6E4"/>
+  <rect x="118" y="23" width="56" height="6" rx="3" fill="#FFFFFF"/>
+  <rect x="108" y="50" width="104" height="24" rx="8" fill="#FFD6E4"/>
+  <rect x="118" y="59" width="72" height="6" rx="3" fill="#FFFFFF"/>
+  <!-- mốc đang viết -->
+  <rect x="108" y="86" width="120" height="28" rx="9" fill="#FFFFFF" stroke="#F4477F" stroke-width="4"/>
+  <rect x="120" y="97" width="44" height="6" rx="3" fill="#FF6FA5"/>
+  <!-- bút -->
+  <g transform="rotate(38 206 84)">
+    <rect x="196" y="40" width="20" height="44" rx="5" fill="#F4477F"/>
+    <rect x="196" y="40" width="20" height="10" rx="5" fill="#FF6FA5"/>
+    <path d="M196 82 L216 82 L206 100 Z" fill="#FFD6E4"/>
+    <path d="M202.5 93.5 L209.5 93.5 L206 100 Z" fill="#F4477F"/>
+  </g>
+  <!-- lấp lánh -->
+  <use href="#spk" fill="#F4477F" transform="translate(262 32) scale(0.75)"/>
+  <use href="#spk" fill="#FFB3CD" transform="translate(286 60) scale(0.45)"/>
+</svg>

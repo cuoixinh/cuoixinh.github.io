@@ -727,11 +727,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   chỉ để làm khó người dùng phổ thông, KHÔNG phải bảo mật. `admin/` không nạp.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
 - **Trần số thiệp mỗi tài khoản:** một tài khoản chỉ giữ được `MAX_WEDDINGS_PER_USER`
-  thiệp còn hiện trong danh sách (nháp đã lưu + đã xuất bản; nháp chỉ nằm trong
-  trình duyệt không tính). Số + phép đếm ở `supabase/functions/_shared/wedding-limits.ts`,
+  thiệp TỔNG CỘNG (nháp đã lưu + đã xuất bản + nháp chỉ nằm trong trình duyệt). Server
+  chỉ thấy hàng DB: số + phép đếm ở `supabase/functions/_shared/wedding-limits.ts`,
   CẢ HAI đường tạo hàng `weddings` phải hỏi qua đó — POST của `wedding-admin` và
   `upsert` của `payment-handler` — sót một chỗ là còn đường tạo thiệp không giới hạn.
-  `CONFIG.maxWeddings` là bản sao để UI chặn sớm, đổi phải đổi cả hai.
+  `CONFIG.maxWeddings` là bản sao để UI chặn sớm, đổi phải đổi cả hai; phía client cộng
+  thêm nháp trên máy (`listUsedWeddingIds`) và chặn ở `_create` của `draft-start.js`.
 - **Gói Free** (khác dùng thử 3 ngày): thiệp chưa thanh toán mà khách đã chọn Free
   ở trang thanh toán → `weddings.free_side` (bên được mở). Luật + con số ở `FREE_PLAN` của
   `_shared/plans.ts`; cắt dữ liệu CHỈ ở đường công khai `?slug=` (`applyFreeLimits`) — đường

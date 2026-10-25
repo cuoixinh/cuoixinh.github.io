@@ -218,8 +218,31 @@ function toggleLoveAiPanel(force) {
   if (!panel) return;
   const show = force === undefined ? panel.classList.contains("hidden") : !!force;
   panel.classList.toggle("hidden", !show);
+  // Cờ cho CSS ẩn khối "Chưa có mốc nào" trong lúc khung đang mở.
+  panel.parentElement?.classList.toggle("is-ai-open", show);
   document.getElementById("love-ai-toggle")?.setAttribute("aria-expanded", String(show));
-  if (show) document.getElementById("love-ai-input")?.focus();
+  if (!show) return;
+  const ta = document.getElementById("love-ai-input");
+  if (!ta) return;
+  _prefillLoveAiInput(ta);
+  ta.focus();
+}
+
+// Đã có mốc → ghép các mốc thành đoạn kể sẵn trong ô để khách sửa rồi tách lại.
+// Chỉ ghi khi ô trống hoặc còn nguyên bản ghép lần trước, không đè chữ khách tự gõ.
+function _prefillLoveAiInput(ta) {
+  const text = _loveStoryItems
+    .map((it) => {
+      const head = [it.date, it.title].map((s) => (s || "").trim()).filter(Boolean).join(": ");
+      const body = (it.content || "").trim();
+      return [head, body].filter(Boolean).join(". ");
+    })
+    .filter(Boolean)
+    .join("\n");
+  if (!text || (ta.value.trim() && ta.value !== ta._lsPrefill)) return;
+  ta.value = ta._lsPrefill = text;
+  ta.dispatchEvent(new Event("input", { bubbles: true }));
+  ta.closest("x-textarea")?.syncClearBtn?.();
 }
 
 async function generateLoveStoryAi(btn) {

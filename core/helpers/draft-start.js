@@ -87,9 +87,32 @@
     window.location.href = "/invitation-setup/?" + q.toString();
   }
 
+  // Trần TỔNG số thiệp (CONFIG.maxWeddings, tính cả nháp trên máy): hết chỗ thì báo
+  // ngay thay vì để khách điền xong cả thiệp mới bị server từ chối lúc lưu.
+  function _limitReached(email) {
+    var max = typeof CONFIG !== "undefined" && CONFIG.maxWeddings;
+    if (!max || listUsedWeddingIds(email).size < max) return false;
+    showConfirm(
+      "Đã đủ số thiệp cho phép",
+      "Mỗi tài khoản chỉ giữ tối đa " + max + " thiệp (tính cả thiệp nháp trên " +
+        "thiết bị này). Hãy xoá bớt thiệp cũ rồi tạo thiệp mới.",
+      {
+        type: "warning",
+        icon: "layers",
+        confirmText: "Quản lý thiệp cưới",
+        cancelText: "Để sau",
+      },
+    ).then(function (r) {
+      if (r && location.pathname.indexOf("/my-invitations/") !== 0)
+        window.location.href = "/my-invitations/";
+    });
+    return true;
+  }
+
   function _create(theme, displayName, params, id, seed) {
-    id = id || _uuid();
     var u = window.CXAuth && window.CXAuth.getUserSync && window.CXAuth.getUserSync();
+    if (_limitReached((u && u.email) || "")) return;
+    id = id || _uuid();
     var draft = {
       theme: theme,
       is_published: false,

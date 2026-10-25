@@ -2,10 +2,10 @@
 // tạo hàng `weddings` (POST ở wedding-admin, upsert ở payment-handler) phải hỏi
 // qua đây — sót một chỗ là còn nguyên một đường tạo thiệp không giới hạn.
 // Mục đích: chặn một tài khoản dựng hàng loạt thiệp rác làm phình Storage.
-// Client giữ bản sao ở CONFIG.maxWeddings để chặn sớm và hiện "x/5" — đổi số ở
+// Client giữ bản sao ở CONFIG.maxWeddings để chặn sớm và hiện "x/3" — đổi số ở
 // đây phải đổi cả bên đó.
 
-export const MAX_WEDDINGS_PER_USER = 5
+export const MAX_WEDDINGS_PER_USER = 3
 
 export const WEDDING_LIMIT_MESSAGE =
   `Mỗi tài khoản chỉ giữ tối đa ${MAX_WEDDINGS_PER_USER} thiệp. ` +

@@ -18,13 +18,17 @@
     </div>
   </div>
   <div id="section-love_story-body" class="px-4 py-5 sm:p-6 space-y-4">
-    <div class="flex items-start justify-between gap-3">
-      <p class="text-xs text-gray-500">
-        Kể lại hành trình tình yêu của hai bạn. Ví dụ: lần đầu gặp, ngày
-        hẹn hò, ngày cầu hôn...
-      </p>
-      <!-- aria-expanded do toggleLoveAiPanel() đặt; .btn-ai[aria-expanded="true"]
-           tô đậm nút khi khung đang mở. -->
+    <!-- Đầu sợi chỉ thời gian (.cx-ls-head ở styles/_setup.css): chỉ hiện khi đã có
+         mốc — lúc rỗng khối .cx-empty dưới danh sách lo phần giới thiệu + hai nút.
+         #love-count do renderLoveStoryList() điền. aria-expanded do toggleLoveAiPanel() đặt. -->
+    <div class="cx-ls-head">
+      <span class="cx-ls-head-ico" aria-hidden="true">
+        <i data-lucide="book-heart" style="width: 14px; height: 14px"></i>
+      </span>
+      <div class="min-w-0">
+        <p class="cx-ls-head-t">Hành trình của hai bạn</p>
+        <p id="love-count" class="cx-ls-head-d"></p>
+      </div>
       <x-button
         id="love-ai-toggle"
         variant="bare"
@@ -32,9 +36,9 @@
         onclick="toggleLoveAiPanel()"
         aria-expanded="false"
         aria-controls="love-ai-panel"
-        class="btn-ai flex-shrink-0"
+        class="btn-ai"
       >
-        <i data-icon="xuxi" data-size="18"></i> Tạo bằng AI
+        <i data-icon="xuxi" data-size="18"></i> Viết lại bằng XuXi AI
       </x-button>
     </div>
 
@@ -71,10 +75,6 @@
           placeholder="Ví dụ: Tụi mình quen nhau mùa thu 2019 khi học chung lớp tiếng Anh. Năm sau thì chính thức yêu, cùng nhau đi phượt Đà Lạt. Đến Giáng sinh 2022 anh cầu hôn trong bất ngờ..."
           input-class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:border-gray-400 resize-none"
         ></x-textarea>
-        <div id="love-ai-hint" class="space-y-1 text-xs text-gray-500">
-          <p>Ghi rõ năm, mùa hay dịp thì XuXi chia mốc đúng hơn.</p>
-          <p>Nội dung do AI viết, bạn đọc lại và sửa từng mốc sau khi tạo.</p>
-        </div>
       </div>
 
       <div class="cx-ai-panel-foot">
@@ -85,31 +85,48 @@
         </p>
         <!-- Hai nhãn đổi nhau theo data-loading mà generateLoveStoryAi đặt lên nút. -->
         <x-button
-          variant="bare"
           type="button"
           onclick="generateLoveStoryAi(this)"
-          class="btn-ai ml-auto"
+          class="ml-auto"
         >
           <i data-icon="xuxi" data-size="18"></i>
-          <span class="cx-idle-lbl">Chia thành các mốc</span>
+          <span class="cx-idle-lbl">Tách mốc</span>
           <span class="cx-busy-lbl">XuXi đang viết…</span>
         </x-button>
       </div>
     </div>
 
-    <div id="love-story-list" class="space-y-3"></div>
+    <div id="love-story-list"></div>
     <!-- Gợi ý khi danh sách rỗng: CSS tự hiện khi #love-story-list không có con
-         (.cx-empty ở styles/_setup.css), nên phải đứng NGAY sau danh sách. -->
-    <div class="cx-empty">
-      <i data-lucide="book-heart" style="width: 24px; height: 24px"></i>
-      <p class="text-sm font-medium text-gray-700">Chưa có mốc nào</p>
-      <p class="max-w-xs text-xs text-gray-500">
-        Thêm từng mốc bằng nút bên dưới, hoặc bấm "Tạo bằng AI" để XuXi tách
-        câu chuyện của hai bạn thành các mốc.
-      </p>
+         (.cx-empty ở styles/_setup.css), nên phải đứng NGAY sau danh sách. Lúc
+         rỗng, hai nút trong khối này thay cho nút "Tạo bằng AI" đầu bước và nút
+         "Thêm mốc" cuối sợi chỉ (CSS giấu hai nút kia, ẩn khối khi khung XuXi mở). -->
+    <!-- Cùng dáng cửa chọn chế độ của chat XuXi (.aichat-gate): hai thẻ đứng cạnh
+         nhau, bấm là làm luôn. Thẻ viết <button> tay (ngoại lệ "thẻ tuỳ chọn"). -->
+    <div class="cx-empty cx-ls-empty">
+      <p class="cx-ls-empty-hd">Bạn muốn kể chuyện tình yêu thế nào?</p>
+      <div class="cx-ls-opts">
+        <button type="button" class="cx-ls-opt" onclick="toggleLoveAiPanel(true)" aria-controls="love-ai-panel">
+          <span class="cx-ls-opt-t"><span class="cx-ls-opt-r" aria-hidden="true"></span>Tạo bằng XuXi AI</span>
+          <span class="cx-ls-opt-s">Kể vài dòng về hai bạn, XuXi tách thành từng mốc và viết lời cho mỗi mốc.</span>
+          <span class="cx-ls-opt-fig" aria-hidden="true">
+            <img src="/assets/images/chat/mode-tao-thiep.svg" alt="" loading="lazy" />
+          </span>
+        </button>
+        <button type="button" class="cx-ls-opt" onclick="addLoveStoryItem()">
+          <span class="cx-ls-opt-t"><span class="cx-ls-opt-r" aria-hidden="true"></span>Tự thêm mốc</span>
+          <span class="cx-ls-opt-s">Thêm từng mốc rồi điền thời gian, tên mốc và lời kể, kèm ảnh nếu muốn.</span>
+          <span class="cx-ls-opt-fig" aria-hidden="true">
+            <img src="/assets/images/setup/love-story-manual.svg" alt="" loading="lazy" />
+          </span>
+        </button>
+      </div>
     </div>
-    <x-button type="button" variant="outline" onclick="addLoveStoryItem()" class="mt-2">
-      <i data-lucide="plus"></i> Thêm mốc
-    </x-button>
+    <!-- Đầu mút sợi chỉ thời gian: vòng rỗng + nút thêm mốc kế tiếp. -->
+    <div id="love-add-btn" class="cx-ls-end">
+      <x-button type="button" variant="dashed" full onclick="addLoveStoryItem()">
+        <i data-lucide="plus"></i> Thêm mốc
+      </x-button>
+    </div>
   </div>
 </div>

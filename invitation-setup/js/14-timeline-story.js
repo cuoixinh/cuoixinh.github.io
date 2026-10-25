@@ -204,60 +204,77 @@ function renderLoveStoryList() {
   const list = document.getElementById("love-story-list");
   if (!list) return;
   list.innerHTML = "";
+  const count = document.getElementById("love-count");
+  if (count) count.textContent = `${_loveStoryItems.length}/${MAX_LOVE_STORY_ITEMS} mốc, xếp từ cũ đến mới`;
   _loveStoryItems.forEach((item, idx) => {
     const preview = _loveStoryImagePreview(idx);
     const _lsFp = item.focal_point;
     const lsFpStyle = _lsFp
       ? ` style="object-position:${_lsFp.x}% ${_lsFp.y}%"`
       : "";
+    // Một mốc = nút số trên sợi chỉ thời gian + thẻ nhập (.cx-ls-* ở styles/_setup.css).
+    // Thứ tự ô Thời gian → Tên mốc phải giữ: addLoveStoryItem() focus theo vị trí.
     const div = document.createElement("div");
-    div.className =
-      "bg-rose-50 rounded-2xl p-3 border border-rose-100 space-y-2";
+    div.className = "cx-ls-item";
     div.innerHTML = `
-      <div class="flex items-center justify-between mb-1">
-        <span id="ls-label-${idx}" class="text-xs font-medium text-rose-400">${escapeHtml(item.title) || `Mốc ${idx + 1}`}</span>
-        <x-button variant="ghost" tone="danger" size="sm" type="button" onclick="removeLoveStoryItem(${idx})">
-          <i data-lucide="x" class="w-3.5 h-3.5"></i> Xóa
-        </x-button>
-      </div>
-      <div>
-        <label for="ls-date-${idx}" class="block mb-1 text-xs font-medium text-gray-600">Thời gian</label>
-        <input type="text" id="ls-date-${idx}" value="${escapeHtml(item.date || "")}" placeholder="Ví dụ: Mùa xuân năm 2020"
-          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:border-gray-400"
-          oninput="_loveStoryItems[${idx}].date=this.value;_syncLoveStoryHidden();" />
-      </div>
-      <div>
-        <label for="ls-title-${idx}" class="block mb-1 text-xs font-medium text-gray-600">Tên mốc</label>
-        <input type="text" id="ls-title-${idx}" value="${escapeHtml(item.title || "")}" placeholder="Ví dụ: Lần đầu gặp gỡ"
-          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:border-gray-400"
-          oninput="_loveStoryItems[${idx}].title=this.value;_syncLoveStoryHidden();const lb=document.getElementById('ls-label-${idx}');if(lb)lb.textContent=this.value||'Mốc ${idx + 1}';" />
-      </div>
-      <div>
-        <label for="ls-content-${idx}" class="block mb-1 text-xs font-medium text-gray-600">Kể lại khoảnh khắc</label>
-        <x-textarea bare id="ls-content-${idx}" data-ls-content="${idx}"
-          input-class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:border-gray-400 resize-none"
-          placeholder="Kể ngắn về khoảnh khắc này..."></x-textarea>
-      </div>
-      <div class="flex items-center flex-wrap gap-2">
-        <input type="file" id="ls-img-input-${idx}" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="hidden"
-          onchange="handleLoveStoryImage(${idx}, this)" />
-        ${
-          preview
-            ? `
-        <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-rose-200 flex-shrink-0">
-          <img src="${cxImgSrc(preview)}" class="w-full h-full object-cover"${lsFpStyle} />
-          <x-button variant="overlay" size="xs" icon-only type="button" onclick="adjustLoveStoryFocalPoint(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5">
-            <i data-lucide="focus" class="w-3 h-3"></i>
+      <span class="cx-ls-node" aria-hidden="true">${idx + 1}</span>
+      <div class="cx-ls-card">
+        <div class="cx-ls-card-head">
+          <p id="ls-label-${idx}" class="cx-ls-name${item.title ? "" : " is-blank"}">${escapeHtml(item.title) || "Chưa đặt tên mốc"}</p>
+          <x-button variant="ghost" tone="danger" size="sm" icon-only type="button" onclick="removeLoveStoryItem(${idx})"
+            aria-label="Xóa mốc ${idx + 1}" title="Xóa mốc">
+            <i data-lucide="trash-2" style="width: 16px; height: 16px"></i>
           </x-button>
-          <x-button variant="overlay" tone="danger" size="xs" icon-only type="button" onclick="removeLoveStoryImage(${idx})" class="absolute top-0.5 right-0.5">
-            <i data-lucide="x" class="w-3 h-3"></i>
-          </x-button>
-        </div>`
-            : `
-        <x-button variant="dashed" size="sm" type="button" onclick="document.getElementById('ls-img-input-${idx}').click()">
-          <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
-        </x-button>`
-        }
+        </div>
+        <div class="cx-ls-body">
+          <div class="cx-ls-fields">
+            <div class="cx-ls-row">
+              <div class="cx-ls-date">
+                <label for="ls-date-${idx}" class="cx-ls-lbl">Thời gian</label>
+                <input type="text" id="ls-date-${idx}" value="${escapeHtml(item.date || "")}" placeholder="Xuân 2020"
+                  class="cx-ls-input"
+                  oninput="_loveStoryItems[${idx}].date=this.value;_syncLoveStoryHidden();" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <label for="ls-title-${idx}" class="cx-ls-lbl">Tên mốc</label>
+                <input type="text" id="ls-title-${idx}" value="${escapeHtml(item.title || "")}" placeholder="Lần đầu gặp nhau"
+                  class="cx-ls-input"
+                  oninput="_loveStoryItems[${idx}].title=this.value;_syncLoveStoryHidden();const lb=document.getElementById('ls-label-${idx}');if(lb){lb.textContent=this.value||'Chưa đặt tên mốc';lb.classList.toggle('is-blank',!this.value);}" />
+              </div>
+            </div>
+            <div>
+              <label for="ls-content-${idx}" class="cx-ls-lbl">Kể lại khoảnh khắc</label>
+              <x-textarea bare id="ls-content-${idx}" data-ls-content="${idx}"
+                input-class="cx-ls-input cx-ls-area"
+                placeholder="Hôm đó thế nào, hai bạn đã ở đâu, ai nói gì..."></x-textarea>
+            </div>
+          </div>
+          <div class="cx-ls-photo">
+            <input type="file" id="ls-img-input-${idx}" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="hidden"
+              onchange="handleLoveStoryImage(${idx}, this)" />
+            ${
+              preview
+                ? `
+            <div class="cx-ls-thumb">
+              <img src="${cxImgSrc(preview)}" alt="Ảnh mốc ${idx + 1}" class="h-full w-full object-cover"${lsFpStyle} />
+              <x-button variant="overlay" size="xs" icon-only type="button" onclick="adjustLoveStoryFocalPoint(${idx})"
+                aria-label="Chỉnh điểm lấy nét" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
+                <i data-lucide="focus" class="w-3 h-3"></i>
+              </x-button>
+              <x-button variant="overlay" tone="danger" size="xs" icon-only type="button" onclick="removeLoveStoryImage(${idx})"
+                aria-label="Gỡ ảnh" title="Gỡ ảnh" class="absolute right-1 top-1">
+                <i data-lucide="x" class="w-3 h-3"></i>
+              </x-button>
+            </div>`
+                : `
+            <x-button variant="bare" class="cx-add-tile cx-ls-thumb" aria-label="Thêm ảnh cho mốc ${idx + 1}"
+              onclick="document.getElementById('ls-img-input-${idx}').click()">
+              <i data-lucide="image-plus"></i><span>Thêm ảnh</span>
+            </x-button>
+            <p class="cx-ls-photo-hint">Ảnh không bắt buộc</p>`
+            }
+          </div>
+        </div>
       </div>
     `;
     list.appendChild(div);

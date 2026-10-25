@@ -67,6 +67,33 @@ function listLocalDrafts() {
 }
 
 /**
+ * Id các thiệp đang chiếm trần CONFIG.maxWeddings ở máy này: thiệp của tài khoản
+ * (danh sách "Quản lý thiệp cưới" ghi lại + đơn đã xuất bản) cộng nháp chỉ nằm trên
+ * trình duyệt đã điền tên. Chỉ để UI chặn sớm — chốt thật ở _shared/wedding-limits.ts.
+ */
+function listUsedWeddingIds(email) {
+  const ids = new Set();
+  const declined = email ? getCache(buildCacheKey("declined_drafts", email), []) : [];
+  if (email) {
+    const orders = getCache(buildCacheKey("orders", email), []);
+    if (Array.isArray(orders))
+      orders.forEach((o) => o?.manage_id && o.status !== "draft" && ids.add(o.manage_id));
+    const db = getCache(buildCacheKey("cart_ids", email), []);
+    if (Array.isArray(db)) db.forEach((id) => id && ids.add(id));
+  }
+  const prefix = buildCacheKey("draft") + "_";
+  listCacheKeys((k) => k.startsWith(prefix)).forEach((k) => {
+    const id = k.slice(prefix.length);
+    const data = getCache(k);
+    if (!data?._localOnly || !(data.groom_name || data.bride_name)) return;
+    if (data._owner ? data._owner !== email : declined.includes(id)) return;
+    if (isDraftUploaded(id)) return; // đã lên DB → nằm trong cart_ids nếu còn
+    ids.add(id);
+  });
+  return ids;
+}
+
+/**
  * Dấu "nháp này đã lên DB" — cả ba đường đẩy nháp (Thiết lập, gộp ở my-invitations,
  * thanh toán) đều chạy trên CHÍNH trình duyệt giữ nháp nên dấu luôn nằm cạnh nó.
  * Nhờ vậy trang Thiết lập tin nháp `_localOnly` mà không phải hỏi DB, và tab cũ còn

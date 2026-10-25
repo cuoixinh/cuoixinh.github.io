@@ -97,7 +97,7 @@ function makeDevice(name) {
   } };
   vm.createContext(ctx);
   vm.runInContext(src("core/cache-util.js").replace("Object.keys(localStorage)", "localStorage.__keys()"), ctx);
-  vm.runInContext(`var CONFIG={retention:{localDraftDays:30,serverDraftDays:30},trialDays:3,maxWeddings:5};`, ctx);
+  vm.runInContext(`var CONFIG={retention:{localDraftDays:30,serverDraftDays:30},trialDays:3,maxWeddings:3};`, ctx);
   vm.runInContext(`var currentUser=null, CARDS=[], _loadSeq=0;
     var ANSWERS = [], ASKED = [], ALERTS = [];
     function showConfirm(t, m){ ASKED.push(m); return Promise.resolve(ANSWERS.length ? ANSWERS.shift() : null); }
