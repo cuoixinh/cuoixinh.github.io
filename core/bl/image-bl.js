@@ -56,11 +56,13 @@ class ImageBL {
     return await this.storage.uploadFile(filename, file);
   }
 
-  async uploadMultipleImages(storageKey, files) {
+  // onEach(i) gọi trước mỗi tấm — để nơi gọi hiện tiến độ.
+  async uploadMultipleImages(storageKey, files, onEach) {
     const filenames = [];
     const errors = [];
 
     for (let i = 0; i < files.length; i++) {
+      onEach?.(i);
       try {
         const filename = await this.uploadSingleImage(
           storageKey,

@@ -44,6 +44,16 @@
   // nên: nhớ màn cần quay lại vào sessionStorage, OAuth hạ cánh ở trang nào thì
   // listener dưới đây tự bật về đúng màn đó.
   const _OAUTH_RETURN_KEY = "cx_oauth_return";
+  // OAuth trả lỗi về qua URL (khách huỷ, provider từ chối…) — báo ra, không thì khách
+  // chỉ thấy mình vẫn chưa đăng nhập.
+  if (_oauthLanding) {
+    const p = new URLSearchParams(location.hash.slice(1) + "&" + location.search.slice(1));
+    const desc = p.get("error_description");
+    if (desc) {
+      try { sessionStorage.removeItem(_OAUTH_TOAST_KEY); } catch {}
+      setTimeout(() => _toast("Đăng nhập không thành công: " + desc, "error"), 0);
+    }
+  }
   // So khớp theo PATHNAME (bỏ origin/hash/query) để tránh lệch trailing-slash hay
   // query bị trang đích dọn (vd pendingPublish) gây bật đi bật lại.
   const _samePath = (a, b) => {
@@ -190,7 +200,14 @@
   // Gắn handler cho form vừa render trong `root`. opts: { onAuth, oauthRedirect }
   function _wire(root, opts) {
     opts = opts || {};
-    const oauthRedirect = opts.oauthRedirect || window.location.href;
+    // Bỏ #hash (trang Thiết lập ghi bước đang mở vào đó): luồng implicit trả token
+    // qua #access_token=…, URL đích đã có # thì token bị ghép sai, supabase-js không
+    // đọc được phiên — quay về vẫn chưa đăng nhập mà không có lỗi nào.
+    const oauthRedirect = (() => {
+      const u = new URL(opts.oauthRedirect || window.location.href, location.href);
+      u.hash = "";
+      return u.toString();
+    })();
 
     const stepEmail = root.querySelector('[data-auth-step="email"]');
     const stepCode = root.querySelector('[data-auth-step="code"]');

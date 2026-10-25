@@ -767,7 +767,7 @@ async function _saveAllOnce(overrides, label) {
     if (_isLocalDraft && loggedIn) await _createDraftRow();
 
     // Step 1: Upload pending images
-    showLoading(true, "Đang tải ảnh lên server...");
+    showLoading(true, "Đang tải ảnh lên...");
     const { uploadedFilenames, errors, skipped: uploadSkipped } =
       await uploadAllPendingImages();
     showLoading(true, label);
