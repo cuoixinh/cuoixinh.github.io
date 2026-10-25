@@ -581,7 +581,8 @@ function _setupBottomSheetSwipe(cardEl, closeFn) {
  * @returns {{body:HTMLElement, footer:HTMLElement, close:Function}|null}
  *   null nếu đã có modal trùng id.
  */
-function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
+// `cardClass`: class viết NGUYÊN VĂN ở nơi gọi (vd "sm:max-w-5xl") để Tailwind quét thấy.
+function openBottomSheet({ id, title, height = '80vh', onClose, cardClass = '' } = {}) {
   if (document.getElementById(id)) return null;
 
   const modal = document.createElement('div');
@@ -594,9 +595,11 @@ function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
   // Truyền qua biến --cx-sheet-h (kích thước ở .cx-sheet-card trong _common.css)
   // chứ KHÔNG ghép tên class `h-[...]` — class ghép từ chuỗi bị Tailwind purge,
   // thẻ mất chiều cao rồi nở theo nội dung và tràn khỏi màn hình.
-  const mobileHeight = height.replace('vh', 'dvh');
+  // Cao theo --vh (khoá px, core/helpers/vh-lock.js) chứ không theo dvh: bàn phím
+  // bung là dvh co lại, cả sheet bị đẩy lên — bàn phím phải ĐÈ lên sheet.
+  const mobileHeight = `calc(var(--vh, 1vh) * ${parseFloat(height) || 80})`;
   modal.innerHTML = `
-    <div id="${id}-card" style="--cx-sheet-h:${mobileHeight}" class="cx-sheet-card bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl">
+    <div id="${id}-card" style="--cx-sheet-h:${mobileHeight}" class="cx-sheet-card bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl ${cardClass}">
       <div class="flex justify-center items-center pt-2.5 pb-1 flex-shrink-0">
         <span class="w-10 h-1.5 rounded-full bg-gray-300"></span>
       </div>
@@ -1191,9 +1194,7 @@ function openTimePicker(anchorEl, currentValue, callback) {
   const rect = anchorEl.getBoundingClientRect();
   const popH = COL_H + 8 + 30 + 16;
   const spaceBelow = window.innerHeight - rect.bottom;
-  // Kẹp trong màn: thiếu chỗ cả trên lẫn dưới thì thà đè lên ô còn hơn thò ra ngoài.
-  const top = spaceBelow >= popH + 8 ? rect.bottom + 6 : rect.top - popH - 6;
-  popup.style.top = Math.max(8, Math.min(top, window.innerHeight - popH - 8)) + 'px';
+  popup.style.top = (spaceBelow >= popH + 8 ? rect.bottom + 6 : rect.top - popH - 6) + 'px';
   popup.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 168)) + 'px';
 
   const hEl = document.getElementById('tp-hours');

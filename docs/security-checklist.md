@@ -120,6 +120,13 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       ⚠️ `font-src` chỉ có `'self'` + Google Fonts: thêm thư viện CDN nào kéo FONT theo
       CSS (icon font kiểu Font Awesome) thì miền đó phải vào `font-src`, không chỉ
       `style-src` — thiếu là CSS nạp được mà icon rỗng. Icon dùng lucide (SVG) thì khỏi.
+      ⚠️ `script-src` KHÔNG có `'unsafe-eval'` → `new Function`/`eval`/`setTimeout("chuỗi")`
+      ném `EvalError` trên web (đã dính ở `<x-check>`: tick lật mà handler không chạy).
+      `npm run dev` gửi đúng khối `/*` của `_headers` (`scripts/dev-server.mjs`, bỏ HSTS +
+      `upgrade-insecure-requests`) nên local báo lỗi CSP y như web; `--no-csp` để tắt.
+      ⚠️ Trang do worker TỰ DỰNG (link `/<slug>`, 404 — `worker/index.js`) không nhận
+      header của `_headers` (nó chỉ áp cho file tĩnh) → thiệp khách mở bằng link `/<slug>`
+      hiện chạy KHÔNG có CSP/`X-Frame-Options`. Chưa vá.
 
 - [x] **A10. Rate limit AI bypass bằng header.**
       **Đã vá** `clientIp()` ở cả `ai-invitation` và `ai-chat`: ưu tiên `cf-connecting-ip`,

@@ -1415,12 +1415,274 @@ textarea::-webkit-scrollbar-thumb:hover {
    Tailwind purge mất, thẻ nở theo nội dung và tràn khỏi màn hình. */
 
 .cx-sheet-card {
-  height: var(--cx-sheet-h, 80dvh);
+  height: var(--cx-sheet-h, calc(var(--vh, 1vh) * 80));
+
+  /* Khung nhìn co (webview Zalo/Facebook khi bàn phím bung) thì thẻ co lại cho vừa
+     thay vì tràn khỏi mép trên — phần thân là flex-1 min-h-0 nên co. */
+  max-height: 100%;
 }
 
 @media (min-width: 640px) {
   .cx-sheet-card {
     height: 92vh;
+  }
+}
+
+/* ── Bảng chọn địa điểm (openMapPicker ở core/helpers/maps-helper.js) ────────
+   Mobile: ô gõ · bản đồ tràn hai mép · nút. Từ sm: hai cột, bản đồ chiếm trọn
+   cột phải. Hai ô gõ phải đứng ĐẦU ở mọi khổ (lý do ở maps-helper.js). */
+.cx-mp {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cx-mp-ctrl {
+  position: relative;
+  z-index: 10; /* danh sách gợi ý phải nổi trên các lớp của Leaflet */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 16px 16px;
+}
+
+.cx-mp-map {
+  position: relative;
+  isolation: isolate; /* nhốt z-index 400–1000 của Leaflet trong khung */
+  flex: 1;
+  min-height: 0;
+  background: rgb(var(--surface-hover-rgb));
+}
+
+.cx-mp-act {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(var(--border-subtle-rgb));
+}
+
+@media (min-width: 640px) {
+  .cx-mp {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  .cx-mp-ctrl {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 20px 20px 16px;
+  }
+
+  .cx-mp-map {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 0 16px 16px 0;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .cx-mp-act {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 16px 20px;
+    border-top: 0;
+  }
+}
+
+/* Tiêu đề sheet: icon trong ô tròn nhạt + chip tên mục đang chọn. */
+.cx-mp-title-ic {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgb(var(--action-primary-rgb) / 0.1);
+  color: rgb(var(--action-primary-rgb));
+}
+
+.cx-mp-side {
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgb(var(--surface-hover-rgb));
+  color: rgb(var(--text-muted-rgb));
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.cx-mp-search,
+.cx-mp-name {
+  width: 100%;
+  height: 44px;
+  border: 1px solid rgb(var(--border-field-rgb));
+  color: rgb(var(--text-title-rgb));
+  font-size: 16px; /* dưới 16px là iOS tự zoom khi focus */
+  outline: none;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+
+.cx-mp-search {
+  padding: 0 72px 0 40px;
+  border-radius: 9999px;
+  background: rgb(var(--surface-hover-rgb));
+}
+
+.cx-mp-name {
+  padding: 0 12px;
+  border-radius: 12px;
+  background: rgb(var(--white-rgb));
+}
+
+.cx-mp-search:focus,
+.cx-mp-name:focus {
+  border-color: rgb(var(--border-field-focus-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 0 0 4px rgb(var(--action-primary-rgb) / 0.12);
+}
+
+.cx-mp-name:disabled {
+  background: rgb(var(--surface-hover-rgb));
+  color: rgb(var(--text-body-rgb));
+  cursor: not-allowed;
+}
+
+.cx-mp-sugs {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  max-height: 288px;
+  overflow-y: auto;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 12px 32px rgb(var(--scrim-rgb) / 0.14);
+}
+
+.cx-mp-sug {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid rgb(var(--border-subtle-rgb));
+}
+
+.cx-mp-sug:last-child {
+  border-bottom: 0;
+}
+
+.cx-mp-sug:hover,
+.cx-mp-sug:focus-visible {
+  background: rgb(var(--action-primary-rgb) / 0.06);
+  outline: none;
+}
+
+/* Chip nhắc trên bản đồ — hai trạng thái, cờ .is-set do _markPinned() đặt. */
+.cx-mp-hint {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 1000;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: rgb(var(--white-rgb) / 0.92);
+  box-shadow: 0 2px 8px rgb(var(--scrim-rgb) / 0.12);
+  color: rgb(var(--text-body-rgb));
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.cx-mp-hint > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cx-mp-hint-set,
+.cx-mp-hint.is-set .cx-mp-hint-idle {
+  display: none !important;
+}
+
+.cx-mp-hint.is-set .cx-mp-hint-set {
+  display: inline-flex !important;
+  color: rgb(var(--action-primary-rgb));
+}
+
+/* Ghim: khối vuông bo ba góc xoay -45° → góc nhọn chĩa xuống đúng điểm neo
+   (iconAnchor 16,36 ở _markerIcon). Rơi xuống mỗi lần đặt (.is-drop). */
+.cx-mp-pin {
+  position: relative;
+  display: block;
+  width: 32px;
+  height: 40px;
+}
+
+.cx-mp-pin-head {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgb(var(--white-rgb));
+  border-radius: 50% 50% 50% 0;
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 4px 12px rgb(var(--action-primary-rgb) / 0.4);
+  transform: rotate(-45deg);
+}
+
+.cx-mp-pin-head::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgb(var(--white-rgb));
+}
+
+.cx-mp-pin-shadow {
+  position: absolute;
+  top: 32px;
+  left: 8px;
+  width: 16px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgb(var(--scrim-rgb) / 0.25);
+  filter: blur(1px);
+  z-index: -1;
+}
+
+.cx-mp-pin.is-drop .cx-mp-pin-head {
+  animation: cx-mp-drop 0.36s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cx-mp-pin.is-drop .cx-mp-pin-shadow {
+  animation: cx-mp-shadow 0.36s ease-out;
+}
+
+@keyframes cx-mp-drop {
+  0% { transform: translateY(-16px) rotate(-45deg); }
+  100% { transform: translateY(0) rotate(-45deg); }
+}
+
+@keyframes cx-mp-shadow {
+  0% { opacity: 0.2; transform: scale(0.4); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-mp-pin.is-drop .cx-mp-pin-head,
+  .cx-mp-pin.is-drop .cx-mp-pin-shadow {
+    animation: none;
   }
 }
 

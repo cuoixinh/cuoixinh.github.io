@@ -128,73 +128,98 @@ function cxNavMore(open) {
 }
 window.cxNavMore = cxNavMore;
 
-// ===== BÀN PHÍM ẢO =====
+// ===== GHIM TRANG Ở GỐC =====
 
-// iOS cuộn CẢ TRANG để ô được focus lọt khung (cả ô readonly như ô giờ) rồi không
-// kéo về — app shell không cuộn nên khách kẹt ở đó. Đây là chỗ duy nhất được đụng
-// cuộn của trang: trả nó về 0, không phải để đưa phần tử vào tầm nhìn.
-// Chỉ ô GÕ được mới bung bàn phím; ô readonly giữ focus không phải lý do để chờ.
-// Focus nằm trong iframe (tab Khách mời) thì không biết bên trong ra sao → coi như đang gõ.
-function _cxIsField(el) {
-  if (!el || el.readOnly || el.disabled) return false;
-  const tag = el.tagName;
-  return (
-    tag === "IFRAME" ||
-    tag === "INPUT" ||
-    tag === "TEXTAREA" ||
-    tag === "SELECT" ||
-    el.isContentEditable
+// `overflow: clip` trên <html> bị trình duyệt hiểu thành `hidden` (luật của khung
+// nhìn gốc) nên trang VẪN cuộn được bằng mã: focus một ô (ô giờ, ô địa điểm…) là
+// iOS đẩy cả trang lên mà khách không kéo lại được. Trang này không bao giờ cuộn
+// → thấy lệch là trả ngay về 0; bàn phím ĐÈ lên giao diện chứ không đẩy nó
+// (Android lo bằng `interactive-widget` ở thẻ viewport). Ba đường lệch phải gác:
+// cuộn của khung nhìn gốc, cuộn của các khung cha #setup-scroll (sự kiện không
+// nổi lên window → nghe ở pha capture), và độ dịch của visualViewport mà iOS hay
+// để kẹt sau khi bàn phím thu (lúc đó scrollY vẫn là 0).
+function _cxPinPage() {
+  const vv = window.visualViewport;
+  const typing = () => document.activeElement?.matches?.(CX_TYPING_SEL);
+  const reset = () => {
+    const se = document.scrollingElement;
+    // Đang gõ thì để iOS giữ con trỏ trong tầm nhìn; thu bàn phím rồi mới kéo về.
+    const vvShifted = vv && (vv.offsetTop || vv.offsetLeft) && !typing();
+    if (window.scrollX || window.scrollY || se?.scrollTop || vvShifted) window.scrollTo(0, 0);
+    if (document.body.scrollTop) document.body.scrollTop = 0;
+  };
+  window.addEventListener("scroll", reset, { passive: true });
+  document.addEventListener(
+    "scroll",
+    (e) => {
+      const el = e.target;
+      if (el.nodeType === 1 && el.scrollTop && el.contains(document.getElementById("setup-scroll")) && el.id !== "setup-scroll") {
+        el.scrollTop = 0;
+      }
+    },
+    { capture: true, passive: true },
   );
-}
-
-// Bàn phím đang bung không. iOS không đổi innerHeight khi bung phím, chỉ khung nhìn
-// thấp đi → hở trên 80px là phím còn. Không cần ô đang focus: đóng bảng (bản đồ…)
-// lúc đang gõ là ô bị gỡ khỏi DOM mà không phát focusout.
-function _cxKeyboardOpen() {
-  if (!_cxIsField(document.activeElement)) return false;
-  const vv = window.visualViewport;
-  return !vv || window.innerHeight - vv.height > 80;
-}
-
-// Khung bọc ngoài các vùng cuộn: overflow:hidden vẫn bị iOS cuộn để lộ ô được focus.
-const CX_SHELL_SCROLLERS = ["setup-scroll", "config-scroll", "guests-scroll"];
-
-function _cxResetPageScroll() {
-  if (_cxKeyboardOpen()) return;
-  const doc = document.scrollingElement || document.documentElement;
-  const vv = window.visualViewport;
-  // Lệch có thể chỉ nằm ở khung nhìn (offsetTop) trong khi scrollY vẫn 0.
-  if (
-    window.scrollY ||
-    doc.scrollTop ||
-    document.body.scrollTop ||
-    (vv && vv.offsetTop > 0.5)
-  ) {
-    window.scrollTo(0, 0);
-    doc.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }
-  CX_SHELL_SCROLLERS.forEach((id) => {
-    let el = document.getElementById(id)?.parentElement;
-    for (; el && el !== document.body; el = el.parentElement)
-      if (el.scrollTop) el.scrollTop = 0;
+  // iOS cuộn bù SAU khi bàn phím thu lại → chờ vài nhịp rồi mới trả.
+  document.addEventListener("focusout", () => {
+    setTimeout(reset, 60);
+    setTimeout(reset, 400);
   });
+  vv?.addEventListener("resize", reset);
+  vv?.addEventListener("scroll", reset);
 }
 
-function _cxInitKeyboardReset() {
-  // Chờ một nhịp: focus nhảy sang ô kế tiếp thì phím không cụp, đừng kéo trang.
-  document.addEventListener("focusout", () => setTimeout(_cxResetPageScroll, 120));
-  // Phím cụp (khung nhìn cao trở lại) hoặc khung nhìn bị trượt khi không có phím.
-  window.visualViewport?.addEventListener("resize", _cxResetPageScroll);
-  window.visualViewport?.addEventListener("scroll", _cxResetPageScroll);
-  // Trang trôi mà không có bàn phím (focus ô readonly…) thì kéo về ngay.
-  window.addEventListener("scroll", _cxResetPageScroll, { passive: true });
+// ===== Ô ĐANG GÕ TRÁNH BÀN PHÍM =====
+
+// Bàn phím đè lên vỏ trang (navbar, thanh bước đứng yên); riêng ô đang gõ trong
+// #setup-scroll mà nằm dưới mép bàn phím thì CUỘN KHUNG NỘI DUNG tới nó. Phần
+// khung bị che bù bằng padding đáy .cx-setup-body, không thì ô cuối form không
+// cuộn lên nổi. Popup đáy (openBottomSheet) không có cơ chế này: ô gõ đặt ở đầu sheet.
+const CX_TYPING_SEL =
+  "textarea, [contenteditable], input:not([readonly]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden])";
+
+function _cxKeyboardAvoid() {
+  const vv = window.visualViewport;
+  const sc = document.getElementById("setup-scroll");
+  const body = sc?.querySelector(".cx-setup-body");
+  if (!vv || !sc || !body) return;
+
+  let pad = 0;
+  let lastEl = null;
+  let lastCovered = 0;
+  const setPad = (px) => {
+    if (px === pad) return;
+    pad = px;
+    body.style.paddingBottom = px ? `${px}px` : "";
+  };
+
+  const update = () => {
+    const el = document.activeElement;
+    if (!el || !sc.contains(el) || !el.matches(CX_TYPING_SEL)) {
+      lastEl = null;
+      lastCovered = 0;
+      return setPad(0);
+    }
+    const kbTop = vv.offsetTop + vv.height;
+    const covered = Math.max(0, Math.round(sc.getBoundingClientRect().bottom - kbTop));
+    setPad(covered);
+    // Chỉ cuộn khi đổi ô hoặc bàn phím cao thêm — khách tự cuộn lúc đang gõ thì để yên.
+    if (!covered || (el === lastEl && covered <= lastCovered)) return;
+    lastEl = el;
+    lastCovered = covered;
+    const over = el.getBoundingClientRect().bottom - (kbTop - 16);
+    if (over > 0) sc.scrollTop += over;
+  };
+
+  sc.addEventListener("focusin", update);
+  sc.addEventListener("focusout", () => setTimeout(update, 0));
+  vv.addEventListener("resize", update);
 }
 
 function _cxInitShell() {
   _cxInitTopHeight();
   _cxInitReflow();
-  _cxInitKeyboardReset();
+  _cxPinPage();
+  _cxKeyboardAvoid();
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_cxInitShell);

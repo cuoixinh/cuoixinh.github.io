@@ -140,6 +140,10 @@
     "tour-setup.js",
   ];
 
+  // Khung log dò lỗi: chỉ NẠP khi bật CONFIG.debugLog (core/config.js) — tắt là
+  // trình duyệt không tải file này, nên đừng đưa nó vào SCRIPTS.
+  const DEBUG_SCRIPT = "js/99-debug-party.js";
+
   // Hàng đợi "chạy khi app đã sẵn sàng". Script nạp động nên nếu chỉ dựa vào
   // readyState thì mỗi file chạy ngay tại vị trí của nó — file nạp sớm không thấy
   // thứ do file nạp sau tạo ra (maps-helper.js chạy trước khi <x-input> upgrade →
@@ -228,6 +232,8 @@
     if (window.lucide) window.lucide.createIcons();
 
     await loadScripts(SCRIPTS.map(withVersion));
+    if (typeof CONFIG !== "undefined" && CONFIG.debugLog)
+      await loadScripts([withVersion(DEBUG_SCRIPT)]);
 
     ready = true;
     readyQueue.splice(0).forEach((fn) => {

@@ -31,6 +31,7 @@ function toggleVuQuy(event) {
   }
   if (fields) fields.classList.toggle("hidden", !newVal);
   // Nguồn "trùng địa điểm" của tiệc nhà gái đổi theo lễ vu quy.
+  _syncPartySameLabel();
   _syncPartyIfSame();
 }
 
@@ -46,6 +47,15 @@ function _syncPartyIfSame() {
 function _partySameSource(side) {
   const vuQuy = document.getElementById("vu_quy_enabled")?.value === "true";
   return side === "bride" && vuQuy ? "vu_quy" : "ceremony";
+}
+
+// Nhãn ô tick của nhà gái phải gọi đúng tên nguồn đang dùng (đổi theo công tắc vu quy).
+function _syncPartySameLabel() {
+  const label = document.querySelector('x-check[key="bride-party-same"] button > span:last-child');
+  if (!label) return;
+  label.textContent = _partySameSource("bride") === "vu_quy"
+    ? "Trùng địa điểm lễ vu quy"
+    : "Trùng địa điểm lễ thành hôn";
 }
 
 // Callback được maps-helper.js gọi sau applyMapPicker / clearMapAddress
@@ -102,10 +112,12 @@ function togglePartySameLoc(side, event, force) {
       locationInput.dispatchEvent(new Event("input", { bubbles: true }));
     }
     if (mapEmbedInput && srcMap) mapEmbedInput.value = srcMap.value || "";
-    if (mapDisplay && mapAddress && srcAddr?.textContent?.trim()) {
-      mapAddress.textContent = srcAddr.textContent;
-      mapDisplay.classList.remove("hidden");
-      mapDisplay.classList.add("flex");
+    // Nguồn không có bản đồ thì tiệc cũng không — để nguyên là tag cũ nằm lại.
+    const srcHasMap = !!(srcMap?.value && srcAddr?.textContent?.trim());
+    if (mapDisplay && mapAddress) {
+      mapAddress.textContent = srcHasMap ? srcAddr.textContent : "";
+      mapDisplay.classList.toggle("hidden", !srcHasMap);
+      mapDisplay.classList.toggle("flex", srcHasMap);
     }
     window._syncMapFrame?.(`${side}_party`);
     if (mapBtn) {
@@ -165,6 +177,7 @@ function initCeremonySection(data) {
     knob.classList.toggle("translate-x-1", !vuQuyEnabled);
   }
   if (fields) fields.classList.toggle("hidden", !vuQuyEnabled);
+  _syncPartySameLabel();
 
   // Ô "Trùng địa điểm" không có cột DB: suy lại từ dữ liệu — tiệc chưa có nơi riêng
   // hoặc nơi tiệc bằng đúng nơi nguồn thì coi là đang trùng.
