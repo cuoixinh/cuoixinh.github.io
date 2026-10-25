@@ -81,7 +81,7 @@
     _coverOpening = true;
     window.cxMusicOnOpen?.();
     const cover = document.getElementById("sh-cover");
-    if (!cover || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+    if (!cover) {
       window.openInvitation();
       return;
     }
@@ -406,6 +406,7 @@
   // thêm .is-in một lần. Ảnh trong .sh-par trôi chậm hơn trang (parallax) bằng `translate`
   // — tách khỏi `scale` của hiệu ứng vào nên hai thứ không đè nhau.
 
+  // Máy bật giảm chuyển động chỉ bỏ parallax (trôi theo từng nhịp cuộn); hiệu ứng vào vẫn chạy.
   const _reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   let _io = null;
   let _parBound = false;
@@ -500,7 +501,7 @@
     _fx(document.getElementById("map-link"), "rise");
 
     const items = card.querySelectorAll(".sh-fx");
-    if (_reduced || !("IntersectionObserver" in window)) {
+    if (!("IntersectionObserver" in window)) {
       items.forEach((el) => el.classList.add("is-in"));
       return;
     }
