@@ -130,7 +130,7 @@ function openMapPicker(side, opts = {}) {
   sheet.body.innerHTML = `
     <div class="cx-mp">
       <div class="cx-mp-ctrl">
-        <div id="map-picker-search-wrap" class="relative">
+        <div id="map-picker-search-wrap" class="relative z-10">
           <i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" style="width:16px;height:16px"></i>
           <input id="map-picker-search" type="text" enterkeyhint="search" value="${escapeHtml(currentQuery)}"
             placeholder="Tìm nhà hàng, trung tâm tiệc, địa chỉ…"

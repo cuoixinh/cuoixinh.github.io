@@ -138,6 +138,8 @@
     "../js/ai-chat-media.js",
     "../js/ai-assistant.js",
     "tour-setup.js",
+    // TẠM — chỉ chạy khi URL có debug=party; dò xong thì gỡ.
+    "js/99-debug-party.js",
   ];
 
   // Hàng đợi "chạy khi app đã sẵn sàng". Script nạp động nên nếu chỉ dựa vào
