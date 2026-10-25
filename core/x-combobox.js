@@ -234,7 +234,8 @@ class XCombobox extends HTMLElement {
       this._filter();
     }
     this._position();
-    this._q?.focus();
+    // Máy cảm ứng thì không tự focus ô lọc: bàn phím bung chỉ để chọn một mục, đè lên danh sách.
+    if (!window.matchMedia?.("(pointer: coarse)").matches) this._q?.focus();
 
     const active = this._list.querySelector('.x-cb-opt[data-active="1"]');
     if (active) active.scrollIntoView({ block: "nearest" });
@@ -258,6 +259,7 @@ class XCombobox extends HTMLElement {
       document.addEventListener("keydown", this._onKey);
       window.addEventListener("scroll", this._onReflow, true);
       window.addEventListener("resize", this._onReflow);
+      window.addEventListener("cx-kb", this._onReflow); // bàn phím bung/thu, popup được nâng (kb-avoid.js)
     }, 0);
   }
 
@@ -273,7 +275,8 @@ class XCombobox extends HTMLElement {
     list.style.width = r.width + "px";
     list.style.maxHeight = "none";
     const listH = list.scrollHeight;
-    const spaceBelow = window.innerHeight - r.bottom;
+    // Đáy chỗ trống là mép trên bàn phím chứ không phải đáy cửa sổ: bàn phím không làm innerHeight co.
+    const spaceBelow = (window.cxKb ? window.cxKb.visibleBottom() : window.innerHeight) - r.bottom;
     const spaceAbove = r.top;
     const up = spaceBelow < listH + gap + 8 && spaceAbove > spaceBelow;
     const avail = (up ? spaceAbove : spaceBelow) - gap - 8;
@@ -293,6 +296,7 @@ class XCombobox extends HTMLElement {
     document.removeEventListener("keydown", this._onKey);
     window.removeEventListener("scroll", this._onReflow, true);
     window.removeEventListener("resize", this._onReflow);
+    window.removeEventListener("cx-kb", this._onReflow);
   }
 }
 

@@ -221,8 +221,9 @@ function showToast(msg, type = "default", icon = null) {
 
   const backdrop = document.createElement("div");
   backdrop.id = "cx-alert-backdrop";
+  backdrop.dataset.kb = "lift"; // core/helpers/kb-avoid.js — trang không nạp thì không có tác dụng
   backdrop.innerHTML = `
-    <div id="cx-alert-box" role="dialog" aria-modal="true">
+    <div id="cx-alert-box" data-kb-box role="dialog" aria-modal="true">
       <div id="cx-alert-header">
         <div id="cx-alert-icon"></div>
         <div id="cx-alert-title"></div>

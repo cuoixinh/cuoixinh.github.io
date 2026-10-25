@@ -10,9 +10,9 @@ const CXProfile = (function () {
     if (m) return m;
     document.body.insertAdjacentHTML(
       "beforeend",
-      `<div id="${ID}" class="fixed inset-0 z-[500] hidden items-center justify-center p-4"
+      `<div id="${ID}" data-kb="lift" class="fixed inset-0 z-[500] hidden items-center justify-center p-4"
         style="background: rgb(var(--scrim-rgb) / 0.5)" role="dialog" aria-modal="true" aria-labelledby="profile-title">
-        <div class="w-full max-w-sm overflow-hidden rounded-xl bg-white shadow-xl">
+        <div data-kb-box class="w-full max-w-sm overflow-hidden rounded-xl bg-white shadow-xl">
           <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
             <h3 id="profile-title" class="text-sm font-semibold text-gray-900">Thông tin cá nhân</h3>
             <x-button variant="ghost" tone="neutral" size="sm" icon-only data-profile-close aria-label="Đóng">

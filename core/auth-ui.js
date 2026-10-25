@@ -368,10 +368,11 @@
     closeModal();
     const modal = document.createElement("div");
     modal.id = "auth-ui-modal";
+    modal.dataset.kb = "lift"; // core/helpers/kb-avoid.js
     modal.className =
       "fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/50";
     modal.innerHTML = `
-      <div class="relative bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+      <div data-kb-box class="relative bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
         <!-- Thanh gradient trên đỉnh -->
         <div class="h-1.5 bg-gradient-to-r from-[rgb(var(--brand-accent-rgb))] via-[rgb(var(--brand-accent-light-rgb))] to-[rgb(var(--brand-primary-rgb))]"></div>
 
