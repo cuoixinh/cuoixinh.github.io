@@ -134,9 +134,7 @@ function openMapPicker(side, opts = {}) {
         <label class="text-sm font-medium text-gray-700">Tên hiển thị trên thiệp</label>
         <div class="flex items-center gap-1.5">
           <span class="text-xs text-gray-400">Sửa tên</span>
-          <x-button variant="ghost" tone="neutral" size="xs" type="button" id="map-display-name-toggle" onclick="_toggleMapDisplayName()" class="relative flex-shrink-0 w-9">
-            <span id="map-display-name-knob" class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-0.5"></span>
-          </x-button>
+          <x-switch key="map-name" label="Sửa tên hiển thị" onclick="_toggleMapDisplayName(event)"></x-switch>
         </div>
       </div>
       <input id="map-picker-display-name" type="text" disabled value="${currentDisplayName.replace(/"/g, '&quot;')}"
@@ -151,6 +149,7 @@ function openMapPicker(side, opts = {}) {
       </x-button>
     </div>
   `;
+  _setMapNameSwitch(false); // <x-switch> dựng sẵn ở trạng thái bật
 
   setTimeout(() => {
     if (typeof L === "undefined") return;
@@ -175,24 +174,32 @@ function openMapPicker(side, opts = {}) {
   _setupMapPickerAutocomplete();
 }
 
-function _toggleMapDisplayName() {
+// Trạng thái của <x-switch key="map-name"> — cùng bộ lớp với _updateVisUI ở trang Thiết lập
+// (file này còn chạy ở trang chủ nên không gọi thẳng hàm đó được).
+function _setMapNameSwitch(on) {
+  const btn = document.getElementById("vis-btn-map-name");
+  const knob = document.getElementById("vis-knob-map-name");
+  if (!btn || !knob) return;
+  btn.setAttribute("aria-checked", String(on));
+  btn.classList.remove("bg-rose-500");
+  btn.classList.toggle("bg-rose-400", on);
+  btn.classList.toggle("bg-gray-300", !on);
+  knob.classList.toggle("translate-x-6", on);
+  knob.classList.toggle("translate-x-1", !on);
+}
+
+// onclick của <x-switch> gắn cả nút trong lẫn thẻ bọc → chặn lan kẻo đảo hai lần.
+function _toggleMapDisplayName(event) {
+  event?.stopPropagation();
   const input = document.getElementById("map-picker-display-name");
-  const btn = document.getElementById("map-display-name-toggle");
-  const knob = document.getElementById("map-display-name-knob");
-  if (!input || !btn || !knob) return;
+  if (!input) return;
   const willEnable = input.disabled;
   input.disabled = !willEnable;
-  if (willEnable) {
-    btn.classList.replace("bg-gray-300", "bg-rose-400");
-    knob.classList.replace("translate-x-0.5", "translate-x-[18px]");
-    input.classList.remove("opacity-60", "cursor-not-allowed", "bg-gray-50");
-    input.classList.add("focus:border-gray-400");
-    input.focus();
-  } else {
-    btn.classList.replace("bg-rose-400", "bg-gray-300");
-    knob.classList.replace("translate-x-[18px]", "translate-x-0.5");
-    input.classList.add("opacity-60", "cursor-not-allowed", "bg-gray-50");
-  }
+  _setMapNameSwitch(willEnable);
+  input.classList.toggle("opacity-60", !willEnable);
+  input.classList.toggle("cursor-not-allowed", !willEnable);
+  input.classList.toggle("bg-gray-50", !willEnable);
+  if (willEnable) input.focus();
 }
 
 function _positionMapSuggestions() {
