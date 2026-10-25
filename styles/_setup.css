@@ -3462,7 +3462,7 @@ html.cx-rail-off {
     box-shadow 0.2s ease;
 }
 .gs-field::placeholder {
-  color: rgb(var(--text-caption-rgb));
+  color: rgb(var(--text-placeholder-rgb));
 }
 .gs-field:focus {
   background: rgb(var(--white-rgb));

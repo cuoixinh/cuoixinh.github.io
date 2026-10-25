@@ -22,6 +22,22 @@ function _queueReplacedImage(oldValue) {
   if (oldValue) deletedImages.singleImages.push(oldValue);
 }
 
+// Số ảnh đẩy cùng lúc: chồng thời gian khứ hồi lên nhau; cao quá thì mạng di động
+// yếu chia băng thông mỏng ra, cả loạt cùng chạm hạn chờ của StorageDAL.
+const UPLOAD_CONCURRENCY = 4;
+
+// Chạy `jobs` (hàm trả Promise, tự bắt lỗi) với tối đa `limit` việc cùng lúc.
+async function _runPool(jobs, limit, onDone) {
+  let next = 0;
+  const worker = async () => {
+    while (next < jobs.length) {
+      await jobs[next++]();
+      onDone?.();
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, jobs.length) }, worker));
+}
+
 async function uploadAllPendingImages() {
   const uploadedFilenames = {};
   const errors = [];
@@ -30,69 +46,57 @@ async function uploadAllPendingImages() {
   // ảnh chưa lên Storage nên dọn là mất hẳn (xem Step 6 của saveAll).
   if (!IS_LOGIN) return { uploadedFilenames, errors, skipped: true };
 
-  // Tiến độ trên màn chờ: ảnh tải lần lượt, không có số thì chậm trông y như treo.
-  const total =
-    Object.keys(pendingUploads.singleImages).length +
-    pendingUploads.galleryImages.length +
-    Object.keys(_loveStoryPendingImages).length;
+  // Mỗi ảnh một việc, chạy chung một hàng đợi song song (_runPool). Album giữ mảng
+  // THƯA theo đúng vị trí trong pendingUploads.galleryImages — saveAll tra tên file
+  // theo indexOf của File, tấm hỏng để trống thì các tấm sau không lệch chỗ.
+  const gallery = new Array(pendingUploads.galleryImages.length);
+  const jobs = [
+    ...Object.entries(pendingUploads.singleImages).map(([fieldName, file]) => async () => {
+      const previous = document.querySelector(`input[name="${fieldName}"]`)?.value;
+      try {
+        const filename = await uploadSingleImage(fieldName, file);
+        if (filename !== previous) _queueReplacedImage(previous);
+        uploadedFilenames[fieldName] = filename;
+      } catch (error) {
+        console.error(`Error uploading ${fieldName}:`, error);
+        errors.push(`${fieldName}: ${error.message}`);
+      }
+    }),
+    ...pendingUploads.galleryImages.map((file, i) => async () => {
+      try {
+        gallery[i] = await uploadSingleImage(`gallery-${i}`, file);
+      } catch (error) {
+        console.error(`Error uploading gallery ${i}:`, error);
+        errors.push(`Gallery ${i + 1}: ${error.message}`);
+      }
+    }),
+    ...Object.entries(_loveStoryPendingImages).map(([idxStr, file]) => async () => {
+      const idx = parseInt(idxStr);
+      const previous = _loveStoryItems[idx]?.image_url;
+      try {
+        const filename = await uploadSingleImage(`love_story_image_${idx}`, file);
+        if (filename !== previous) _queueReplacedImage(previous);
+        _loveStoryItems[idx].image_url = filename;
+      } catch (error) {
+        console.error(`Error uploading love story image ${idx}:`, error);
+        errors.push(`Love story ảnh ${idx + 1}: ${error.message}`);
+      }
+    }),
+  ];
+
+  // Tiến độ trên màn chờ: không có số thì chậm trông y như treo.
   let done = 0;
   const tick = () => {
-    if (total > 1) showLoading(true, `Đang tải ảnh lên ${++done}/${total}...`);
+    if (jobs.length > 1) showLoading(true, `Đang tải ảnh lên ${done}/${jobs.length}...`);
   };
-
-  // Upload single images
-  for (const [fieldName, file] of Object.entries(pendingUploads.singleImages)) {
-    const previous = document.querySelector(`input[name="${fieldName}"]`)?.value;
+  tick();
+  await _runPool(jobs, UPLOAD_CONCURRENCY, () => {
+    done++;
     tick();
-    try {
-      const filename = await uploadSingleImage(fieldName, file);
-      if (filename !== previous) _queueReplacedImage(previous);
-      uploadedFilenames[fieldName] = filename;
-      console.log(`Uploaded ${fieldName}: ${filename}`);
-    } catch (error) {
-      console.error(`Error uploading ${fieldName}:`, error);
-      errors.push(`${fieldName}: ${error.message}`);
-    }
-  }
+  });
 
-  // Upload gallery images using BL layer
-  if (pendingUploads.galleryImages.length > 0) {
-    try {
-      const result = await imageBL.uploadMultipleImages(
-        WEDDING_STORAGE_KEY,
-        pendingUploads.galleryImages,
-        tick,
-      );
+  if (gallery.some(Boolean)) uploadedFilenames.gallery_images = gallery;
 
-      if (result.filenames.length > 0) {
-        uploadedFilenames.gallery_images = result.filenames;
-      }
-
-      if (result.errors.length > 0) {
-        result.errors.forEach((err) => {
-          errors.push(`Gallery ${err.index + 1}: ${err.error}`);
-        });
-      }
-    } catch (error) {
-      console.error("Error uploading gallery:", error);
-      errors.push(`Gallery: ${error.message}`);
-    }
-  }
-
-  // Upload love story images
-  for (const [idxStr, file] of Object.entries(_loveStoryPendingImages)) {
-    const idx = parseInt(idxStr);
-    const previous = _loveStoryItems[idx]?.image_url;
-    tick();
-    try {
-      const filename = await uploadSingleImage(`love_story_image_${idx}`, file);
-      if (filename !== previous) _queueReplacedImage(previous);
-      _loveStoryItems[idx].image_url = filename;
-    } catch (error) {
-      console.error(`Error uploading love story image ${idx}:`, error);
-      errors.push(`Love story ảnh ${idx + 1}: ${error.message}`);
-    }
-  }
   if (Object.keys(_loveStoryPendingImages).length > 0) {
     Object.keys(_loveStoryPendingImages).forEach(
       (k) => delete _loveStoryPendingImages[k],

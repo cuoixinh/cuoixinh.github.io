@@ -108,7 +108,6 @@ function openMapPicker(side, opts = {}) {
   const sheet = openBottomSheet({
     id: 'map-picker-modal',
     title: `<span class="cx-mp-title-ic"><i data-lucide="map-pin" style="width:16px;height:16px"></i></span>Chọn địa điểm<span class="cx-mp-side">${escapeHtml(sideLabel)}</span>`,
-    height: '80vh',
     cardClass: 'sm:max-w-5xl',
     onClose: () => {
       document.removeEventListener("click", _onClickOutsideSuggestions);
@@ -137,6 +136,7 @@ function openMapPicker(side, opts = {}) {
             autocomplete="off" aria-label="Tìm địa điểm"
             class="cx-mp-search"
           />
+          <button type="button" class="cx-mp-clear" aria-label="Xoá" onclick="_clearMapInput('map-picker-search')"><i data-lucide="x" style="width:14px;height:14px"></i></button>
           <x-button size="sm" variant="soft" onclick="searchMapPicker()" class="absolute right-1.5 top-1/2 -translate-y-1/2">Tìm</x-button>
           <div id="map-picker-suggestions" class="cx-mp-sugs hidden" role="listbox"></div>
         </div>
@@ -149,10 +149,13 @@ function openMapPicker(side, opts = {}) {
               <x-switch key="map-name" label="Sửa tên" onclick="_toggleMapDisplayName()"></x-switch>
             </div>
           </div>
-          <input id="map-picker-display-name" type="text" disabled value="${escapeHtml(currentDisplayName)}"
-            placeholder="Ghim một vị trí để tự điền tên"
-            class="cx-mp-name"
-          />
+          <div class="relative">
+            <input id="map-picker-display-name" type="text" disabled value="${escapeHtml(currentDisplayName)}"
+              placeholder="Ghim một vị trí để tự điền tên"
+              class="cx-mp-name"
+            />
+            <button type="button" class="cx-mp-clear" aria-label="Xoá" onclick="_clearMapInput('map-picker-display-name')"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+          </div>
           <p id="map-picker-name-note" class="mt-1.5 text-xs text-gray-400">Tự lấy theo vị trí đã ghim.</p>
         </div>
       </div>
@@ -228,6 +231,16 @@ function _toggleMapDisplayName() {
   const note = document.getElementById("map-picker-name-note");
   if (note) note.textContent = willEnable ? "Khách sẽ thấy đúng dòng này trên thiệp." : "Tự lấy theo vị trí đã ghim.";
   if (willEnable) input.focus();
+}
+
+// Nút "x" trong ô: bắn `input` để ô tìm dọn luôn gợi ý cũ. Ẩn/hiện do CSS
+// (.cx-mp-clear ở _common.css) theo :placeholder-shown / :disabled.
+function _clearMapInput(id) {
+  const input = document.getElementById(id);
+  if (!input || input.disabled) return;
+  input.value = "";
+  input.focus();
+  input.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 function _setupMapPickerAutocomplete() {
@@ -459,5 +472,6 @@ window.cxApplyMap = cxApplyMap;
 window.closeMapPicker = closeMapPicker;
 window._selectMapSuggestion = _selectMapSuggestion;
 window._toggleMapDisplayName = _toggleMapDisplayName;
+window._clearMapInput = _clearMapInput;
 window.clearMapAddress = clearMapAddress;
 window.initMapDisplays = initMapDisplays;
