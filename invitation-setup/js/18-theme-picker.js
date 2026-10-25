@@ -47,7 +47,6 @@ async function openThemePicker() {
   const sheet = openBottomSheet({
     id: "theme-picker-modal",
     title: "Chọn mẫu thiệp",
-    height: "80vh",
   });
   if (!sheet) return;
 

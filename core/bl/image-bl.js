@@ -56,32 +56,6 @@ class ImageBL {
     return await this.storage.uploadFile(filename, file);
   }
 
-  // onEach(i) gọi trước mỗi tấm — để nơi gọi hiện tiến độ.
-  async uploadMultipleImages(storageKey, files, onEach) {
-    const filenames = [];
-    const errors = [];
-
-    for (let i = 0; i < files.length; i++) {
-      onEach?.(i);
-      try {
-        const filename = await this.uploadSingleImage(
-          storageKey,
-          `gallery-${i}`,
-          files[i],
-        );
-        filenames.push(filename);
-      } catch (error) {
-        errors.push({
-          index: i,
-          filename: files[i].name,
-          error: error.message,
-        });
-      }
-    }
-
-    return { filenames, errors };
-  }
-
   generateUUID() {
     return cxUUID();
   }

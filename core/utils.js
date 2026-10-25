@@ -394,7 +394,6 @@ function openImageCropModal(file, callback, giftInfo) {
   const sheet = openBottomSheet({
     id: 'crop-modal',
     title: 'Căn chỉnh ảnh QR Code',
-    height: '80vh',
     onClose: () => {
       if (window._currentCropper) {
         window._currentCropper.destroy();
@@ -582,14 +581,14 @@ function _setupBottomSheetSwipe(cardEl, closeFn) {
  *   null nếu đã có modal trùng id.
  */
 // `cardClass`: class viết NGUYÊN VĂN ở nơi gọi (vd "sm:max-w-5xl") để Tailwind quét thấy.
-function openBottomSheet({ id, title, height = '80vh', onClose, cardClass = '' } = {}) {
+function openBottomSheet({ id, title, height = '90vh', onClose, cardClass = '' } = {}) {
   if (document.getElementById(id)) return null;
 
   const modal = document.createElement('div');
   modal.id = id;
   // Mobile: neo cố định ở cạnh đáy (bottom-sheet). Desktop (sm+): căn giữa màn hình.
   modal.className = 'fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-[9999]';
-  // Mobile: chiều cao theo tham số height (thường 80dvh, chừa khoảng hở phía trên).
+  // Mobile: chiều cao theo tham số height (mặc định 90, chừa khoảng hở phía trên).
   // sm+ (không còn dính đáy màn hình, tách hẳn thành popup nổi giữa): mở gần full
   // (92vh) để có đủ chỗ cho nội dung nhiều khối preview mà không cần co kéo layout.
   // Truyền qua biến --cx-sheet-h (kích thước ở .cx-sheet-card trong _common.css)
@@ -597,7 +596,7 @@ function openBottomSheet({ id, title, height = '80vh', onClose, cardClass = '' }
   // thẻ mất chiều cao rồi nở theo nội dung và tràn khỏi màn hình.
   // Cao theo --vh (khoá px, core/helpers/vh-lock.js) chứ không theo dvh: bàn phím
   // bung là dvh co lại, cả sheet bị đẩy lên — bàn phím phải ĐÈ lên sheet.
-  const mobileHeight = `calc(var(--vh, 1vh) * ${parseFloat(height) || 80})`;
+  const mobileHeight = `calc(var(--vh, 1vh) * ${parseFloat(height) || 90})`;
   modal.innerHTML = `
     <div id="${id}-card" style="--cx-sheet-h:${mobileHeight}" class="cx-sheet-card bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl ${cardClass}">
       <div class="flex justify-center items-center pt-2.5 pb-1 flex-shrink-0">
@@ -696,7 +695,6 @@ function openRatioCropSheet(blob, done) {
   const sheet = openBottomSheet({
     id: "ratio-crop-modal",
     title: "Cắt ảnh",
-    height: "85vh",
     onClose: () => {
       cropper?.destroy();
       URL.revokeObjectURL(url);
@@ -819,7 +817,6 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
   const sheet = openBottomSheet({
     id: 'focal-modal',
     title: 'Căn chỉnh khung hình',
-    height: '80vh',
     onClose: () => {
       window._focalPickerCallback = null;
       window._focalPickerReset = null;
@@ -908,7 +905,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, fra
 
   const hintText = giftInfo
     ? 'Chạm hoặc kéo điểm để chọn phần hiển thị của mã QR.'
-    : 'Chạm hoặc kéo điểm đến phần quan trọng nhất (VD: khuôn mặt) để ảnh đẹp ở mọi tỉ lệ.';
+    : 'Chạm hoặc kéo điểm vào khuôn mặt.';
 
   sheet.body.innerHTML = `
     <div class="flex flex-col flex-1 min-h-0 p-5 gap-4">

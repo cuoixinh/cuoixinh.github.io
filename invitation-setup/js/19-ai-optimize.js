@@ -110,6 +110,9 @@ const _AI_SPEECH_FIELDS = {
   },
 };
 
+// Tắt = ẩn nút "Tối ưu" ở mọi ô (attachUndoRedo chỉ vẽ nút khi `optimize` là hàm).
+const AI_OPTIMIZE_ON = false;
+
 // Gắn cụm điều khiển AI (Tối ưu + Mic + Undo/Redo) vào MỘT <textarea> con thật.
 // extra: tuỳ chọn thêm cho attachUndoRedo (vd { refresh } để có nút "Tạo câu khác").
 function _attachAiTextareaControls(target, inputType, extra) {
@@ -117,7 +120,7 @@ function _attachAiTextareaControls(target, inputType, extra) {
   window.attachUndoRedo(target, {
     ...extra,
     speech: _AI_SPEECH_FIELDS[inputType],
-    optimize: (t, btn) =>
+    optimize: AI_OPTIMIZE_ON && ((t, btn) =>
       _runAiOptimize(
         btn,
         inputType,
@@ -128,7 +131,7 @@ function _attachAiTextareaControls(target, inputType, extra) {
           t.dispatchEvent(new Event("input", { bubbles: true }));
         },
         t,
-      ),
+      )),
   });
 }
 
@@ -139,7 +142,7 @@ function _attachShareControls(target) {
   const tokensOf = (s) => new Set(String(s).match(/##[^#]+##/g) || []);
   window.attachUndoRedo(target, {
     speech: _AI_SPEECH_FIELDS.share,
-    optimize: (t, btn) => {
+    optimize: AI_OPTIMIZE_ON && ((t, btn) => {
       const before = tokensOf(t.value);
       _runAiOptimize(
         btn,
@@ -154,7 +157,7 @@ function _attachShareControls(target) {
         },
         t,
       );
-    },
+    }),
   });
 }
 

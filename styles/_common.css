@@ -1415,7 +1415,7 @@ textarea::-webkit-scrollbar-thumb:hover {
    Tailwind purge mất, thẻ nở theo nội dung và tràn khỏi màn hình. */
 
 .cx-sheet-card {
-  height: var(--cx-sheet-h, calc(var(--vh, 1vh) * 80));
+  height: var(--cx-sheet-h, calc(var(--vh, 1vh) * 90));
 
   /* Khung nhìn co (webview Zalo/Facebook khi bàn phím bung) thì thẻ co lại cho vừa
      thay vì tràn khỏi mép trên — phần thân là flex-1 min-h-0 nên co. */
@@ -1525,13 +1525,13 @@ textarea::-webkit-scrollbar-thumb:hover {
 }
 
 .cx-mp-search {
-  padding: 0 72px 0 40px;
+  padding: 0 96px 0 40px;
   border-radius: 9999px;
   background: rgb(var(--surface-hover-rgb));
 }
 
 .cx-mp-name {
-  padding: 0 12px;
+  padding: 0 36px 0 12px;
   border-radius: 12px;
   background: rgb(var(--white-rgb));
 }
@@ -1541,6 +1541,36 @@ textarea::-webkit-scrollbar-thumb:hover {
   border-color: rgb(var(--border-field-focus-rgb));
   background: rgb(var(--white-rgb));
   box-shadow: 0 0 0 4px rgb(var(--action-primary-rgb) / 0.12);
+}
+
+/* Nút xoá trong hai ô: ô tìm chừa chỗ cho nút "Tìm" bên phải nên lùi vào hơn. */
+.cx-mp-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  color: rgb(var(--text-muted-rgb));
+}
+
+.cx-mp-clear:hover {
+  background: rgb(var(--surface-hover-rgb));
+  color: rgb(var(--text-body-rgb));
+}
+
+.cx-mp-search ~ .cx-mp-clear {
+  right: 66px;
+}
+
+.cx-mp-search:placeholder-shown ~ .cx-mp-clear,
+.cx-mp-name:placeholder-shown ~ .cx-mp-clear,
+.cx-mp-name:disabled ~ .cx-mp-clear {
+  display: none;
 }
 
 .cx-mp-name:disabled {

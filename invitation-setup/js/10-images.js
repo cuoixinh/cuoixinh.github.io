@@ -629,12 +629,54 @@ function adjustGalleryFocalPoint(globalIndex, source) {
   if (!source) return;
   const key = resolveGalleryFocalKey(globalIndex);
   if (!key) return;
-  openFocalPointPicker(source, getGalleryFocalPoint(key), (focal) => {
-    setGalleryFocalPoint(key, focal);
-    if (key instanceof File) _idbUpdateGalleryFocal(key);
-    else _idbSaveGalleryFocal(key);
-    _imagesChanged();
-    showToast("Đã cập nhật điểm lấy nét", "success");
-  });
+  openFocalPointPicker(
+    source,
+    getGalleryFocalPoint(key),
+    async (focal, cropped) => {
+      if (cropped) {
+        _replaceGalleryItem(key, await prepareImage(cropped), focal);
+        showToast("Đã cắt ảnh (chưa lưu)", "success");
+        return;
+      }
+      setGalleryFocalPoint(key, focal);
+      if (key instanceof File) _idbUpdateGalleryFocal(key);
+      else _idbSaveGalleryFocal(key);
+      _imagesChanged();
+      showToast("Đã cập nhật điểm lấy nét", "success");
+    },
+    null,
+    null,
+    { crop: true },
+  );
+}
+
+// Ảnh album vừa cắt thay ĐÚNG chỗ ảnh cũ trong thứ tự kéo thả. Ảnh cũ đã lưu thì
+// vào deletedImages như khi xoá; ảnh mới thành ảnh chờ upload (RAM + IndexedDB).
+function _replaceGalleryItem(oldKey, file, focal) {
+  const order = galleryItems();
+  const pos = order.indexOf(oldKey);
+  if (pos < 0) return;
+
+  if (oldKey instanceof File) {
+    const i = pendingUploads.galleryImages.indexOf(oldKey);
+    pendingUploads.galleryImages.splice(i, 1, file);
+    _idbRemoveGallery(oldKey);
+  } else {
+    deletedImages.galleryImages.push(oldKey);
+    const textarea = document.querySelector('textarea[name="gallery_images_raw"]');
+    if (textarea)
+      textarea.value = _gallerySavedFilenames().filter((f) => f !== oldKey).join("\n");
+    _idbDelete(`${WEDDING_ID}_gf_${oldKey}`);
+    pendingUploads.galleryImages.push(file);
+  }
+  pendingFocalPoints.gallery_images.delete(oldKey);
+  pendingFocalPoints.gallery_images.set(file, focal); // trước _idbAddGallery
+  _idbAddGallery(file);
+
+  order[pos] = file;
+  _galleryOrder = order;
+  _idbSaveGalleryOrder();
+  renderGalleryGrid();
+  _imagesChanged();
 }
 
