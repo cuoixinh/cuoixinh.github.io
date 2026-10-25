@@ -1191,7 +1191,9 @@ function openTimePicker(anchorEl, currentValue, callback) {
   const rect = anchorEl.getBoundingClientRect();
   const popH = COL_H + 8 + 30 + 16;
   const spaceBelow = window.innerHeight - rect.bottom;
-  popup.style.top = (spaceBelow >= popH + 8 ? rect.bottom + 6 : rect.top - popH - 6) + 'px';
+  // Kẹp trong màn: thiếu chỗ cả trên lẫn dưới thì thà đè lên ô còn hơn thò ra ngoài.
+  const top = spaceBelow >= popH + 8 ? rect.bottom + 6 : rect.top - popH - 6;
+  popup.style.top = Math.max(8, Math.min(top, window.innerHeight - popH - 8)) + 'px';
   popup.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 168)) + 'px';
 
   const hEl = document.getElementById('tp-hours');
