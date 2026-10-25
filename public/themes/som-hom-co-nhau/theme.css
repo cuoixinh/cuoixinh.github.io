@@ -1403,9 +1403,13 @@ body {
   will-change: translate;
 }
 
-/* Giảm chuyển động (Windows tắt "Hiệu ứng hoạt ảnh" là máy báo cờ này): chỉ tắt nhịp
-   LẶP MÃI; hiệu ứng xuất hiện vẫn chạy như các mẫu khác. */
 @media (prefers-reduced-motion: reduce) {
+  .sh-fx,
+  .sh-fx img,
+  .sh-fx[data-fx="days"] > div {
+    transition: none;
+  }
+
   .sh-heart.is-in svg {
     animation: none;
   }
