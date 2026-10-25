@@ -128,7 +128,7 @@
     document.getElementById("section-party")?.classList.toggle("is-later", !partyFirst);
     cxToggle("section-party", partyOn);
 
-    _renderCalendar(w.ceremony_date || partyDate, [w.ceremony_date, partyDate]);
+    _renderCalendar(w.ceremony_date || partyDate, [w.ceremony_date, partyOn ? partyDate : null]);
 
     // --- Xác nhận tham dự ---
     const rsvp = document.getElementById("rsvp-section");

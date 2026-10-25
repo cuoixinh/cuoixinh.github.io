@@ -133,7 +133,7 @@
 
     // --- Lịch tháng đè ảnh + đếm ngược (theo ngày giờ lễ) ---
     const partyDate = w[`${side}_party_date`];
-    hdRenderCalendar(w.ceremony_date, partyDate);
+    hdRenderCalendar(w.ceremony_date, cxEnabled(w.enable_party) ? partyDate : null);
     hdCountdown(w.ceremony_date, ceremonyTime);
 
     // --- Tiệc cưới (mỗi nhà một ngày/giờ/nơi riêng) ---

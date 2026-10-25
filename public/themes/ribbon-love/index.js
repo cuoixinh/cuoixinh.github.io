@@ -149,7 +149,7 @@
     );
     cxToggle("section-party", cxEnabled(w.enable_party));
 
-    rlRenderCalendar(w.ceremony_date, partyDate);
+    rlRenderCalendar(w.ceremony_date, cxEnabled(w.enable_party) ? partyDate : null);
 
     // --- Xác nhận tham dự ---
     const rsvp = document.getElementById("rsvp-section");

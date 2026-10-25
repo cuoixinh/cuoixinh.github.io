@@ -252,8 +252,10 @@ function renderVenueMaps(w, side) {
   const same =
     cer.url === party.url || (norm(cer.loc) && norm(cer.loc) === norm(party.loc));
 
+  // Tắt mục Tiệc thì chỉ còn nơi làm lễ — khách không được mời tới tiệc.
   let spots = [party];
-  if (cer.url && same && !party.url) spots = [cer];
+  if (!cxEnabled(w.enable_party)) spots = [cer];
+  else if (cer.url && same && !party.url) spots = [cer];
   else if (cer.url && !same)
     spots = !party.url && !norm(party.loc) ? [cer]
       : party.at && cer.at && party.at < cer.at ? [party, cer] : [cer, party];
