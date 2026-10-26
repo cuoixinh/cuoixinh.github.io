@@ -1726,6 +1726,8 @@ window.initWishes = initWishes;
 // ── Chọn dạng hiện lời chúc ─────────────────────────────────────────────────
 
 function _cxWishModeOf(setting) {
+  // Mẫu khai CX_THEME.wishesFixed: dạng lời chúc là một phần của mẫu, bỏ qua lựa chọn đã lưu.
+  if (window.CX_THEME?.wishesFixed) return _cxWishModeDefault();
   if (typeof setting === "string") {
     try {
       setting = JSON.parse(setting);
@@ -1765,7 +1767,7 @@ if (window.top !== window) {
   window.addEventListener("message", (ev) => {
     if (ev.source !== window.parent) return;
     const d = ev.data;
-    if (!d || d.type !== "cx-wish-mode") return;
+    if (!d || d.type !== "cx-wish-mode" || window.CX_THEME?.wishesFixed) return;
     const next = CX_WISH_MODES[d.value] ? d.value : _cxWishModeDefault();
     if (next === _cxWishMode && document.getElementById("cx-wishes-list")) return;
     _cxWishMode = next;

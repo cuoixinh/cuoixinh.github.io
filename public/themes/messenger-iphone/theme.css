@@ -1,0 +1,1444 @@
+/* Bảng màu + CSS riêng của IPHONE MESSENGER — giao diện ứng dụng nhắn tin: nền tím khói,
+   bong bóng trắng, tin của khách đổ màu tím (accent → accent-soft), điểm hồng (deco) ở lịch
+   và quà, xanh "đang hoạt động" là deco-2. Nền tối của màn khoá là scrim phủ trên ảnh bìa.
+   CSS THUẦN, nạp bằng <link> sau styles/themes.css. */
+
+:root {
+  --cx-heading-rgb: 28 26 39;
+  --cx-body-rgb: 106 102 128;
+  --cx-accent-rgb: 108 76 245; /* tím: tin của khách, nút, viền chọn */
+  --cx-accent-soft-rgb: 168 85 247; /* đầu kia của dải đổ màu */
+  --cx-on-accent-rgb: 255 255 255;
+  --cx-on-image-rgb: 255 255 255;
+  --cx-on-lightbox-rgb: 255 255 255;
+
+  --cx-card-bg-rgb: 244 242 248;
+  --cx-page-bg-rgb: 233 230 240;
+  --cx-surface-rgb: 236 233 243;
+  --cx-band-rgb: 255 255 255;
+  --cx-panel-rgb: 255 255 255; /* bong bóng tin nhắn, thông báo */
+  --cx-panel-warm-rgb: 255 255 255;
+  --cx-cover-rgb: 28 26 39;
+  --cx-cover-mid-rgb: 42 36 64;
+  --cx-cover-veil-rgb: 24 18 48;
+  --cx-lightbox-bg-rgb: 14 12 22;
+
+  --cx-line-rgb: 230 226 240;
+  --cx-shadow-rgb: 28 26 39;
+  --cx-scrim-rgb: 24 18 48;
+
+  --cx-deco-rgb: 255 79 139; /* hồng: tờ lịch, thẻ quà, tim */
+  --cx-deco-soft-rgb: 255 214 229;
+  --cx-deco-2-rgb: 34 164 93; /* xanh "Đang hoạt động" */
+  --cx-deco-2-soft-rgb: 220 243 230;
+  --cx-shine-from-rgb: 108 76 245;
+  --cx-shine-mid-rgb: 168 85 247;
+  --cx-shine-to-rgb: 255 79 139;
+
+  /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
+     thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js). */
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-rgb);
+  --music-bubble-to-rgb: var(--cx-heading-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-rgb);
+  --music-art-to-rgb: var(--cx-heading-rgb);
+
+  --mi-grad: linear-gradient(135deg, rgb(var(--cx-accent-rgb)), rgb(var(--cx-accent-soft-rgb)));
+}
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+  font-family: "Plus Jakarta Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.cx-h,
+.cx-t {
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+/* ── Màn khoá ─────────────────────────────────────────────────────────────── */
+
+#cover-screen {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#cover-screen.closing {
+  animation: cx-mi-unlock 0.6s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+}
+
+@keyframes cx-mi-unlock {
+  to {
+    transform: translateY(-100%);
+    opacity: 0.4;
+  }
+}
+
+.mi-lock {
+  background: rgb(var(--cx-cover-rgb));
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+.mi-lock-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.1);
+  transition: transform 2.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.mi-live .mi-lock-bg {
+  transform: none;
+}
+
+.mi-lock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    rgb(var(--cx-scrim-rgb) / 0.5),
+    transparent 34%,
+    transparent 50%,
+    rgb(var(--cx-scrim-rgb) / 0.6)
+  );
+}
+
+.mi-clock {
+  position: absolute;
+  top: calc(56px + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  z-index: 2;
+  text-align: center;
+}
+
+.mi-clock p {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+.mi-clock b {
+  display: block;
+  font-size: 92px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.mi-guest {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: 16px;
+  background: rgb(var(--cx-scrim-rgb) / 0.24);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.mi-guest strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.mi-notes {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(92px + env(safe-area-inset-bottom));
+  z-index: 2;
+  display: grid;
+  gap: 8px;
+}
+
+.mi-n {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 16px;
+  border-radius: 24px;
+  background: rgb(var(--cx-panel-rgb) / 0.66);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  color: rgb(var(--cx-heading-rgb));
+  opacity: 0;
+  transform: translateY(48px) scale(0.95);
+  transition:
+    opacity 0.4s var(--d),
+    transform 0.8s cubic-bezier(0.2, 1.3, 0.4, 1) var(--d);
+}
+
+.mi-live .mi-n {
+  opacity: 1;
+  transform: none;
+}
+
+.mi-n > img,
+.mi-n-ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.mi-n-ic {
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--mi-grad);
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.mi-n b {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.mi-n b small {
+  font-weight: 500;
+  color: rgb(var(--cx-body-rgb));
+  font-size: 12px;
+}
+
+.mi-n p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.36;
+}
+
+.mi-swipe {
+  position: absolute;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  z-index: 2;
+  width: max-content;
+  margin: 0 auto;
+  flex-direction: column;
+  padding: 4px 16px;
+  color: rgb(var(--cx-on-image-rgb));
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.mi-swipe::after {
+  content: "";
+  display: block;
+  width: 136px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgb(var(--cx-on-image-rgb));
+  margin-top: 12px;
+}
+
+.mi-live .mi-swipe {
+  animation: cx-mi-nudge 1.6s ease-in-out 2.6s infinite;
+}
+
+@keyframes cx-mi-nudge {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ── Thân thiệp: khung trò chuyện ─────────────────────────────────────────
+   overflow: clip (không phải hidden) để thanh tiêu đề + ô nhập còn dính được:
+   hidden biến #main-card thành khung cuộn, sticky bám vào nó và đứng im. */
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+  color: rgb(var(--cx-heading-rgb));
+  overflow: clip;
+}
+
+/* cxToggle ẩn bằng .hidden — cùng độ đặc hiệu với lớp của mẫu (.mi-sec, .mi-b…) mà
+   theme.css nạp sau nên thua; nâng bằng #main-card cho chắc. */
+#main-card .hidden {
+  display: none;
+}
+
+.mi-chat {
+  min-height: calc(var(--vh, 1vh) * 100);
+  min-height: calc(var(--vh, 1svh) * 100);
+  gap: 6px;
+}
+
+.mi-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(12px + env(safe-area-inset-top)) 72px 12px 16px;
+  background: rgb(var(--cx-card-bg-rgb) / 0.84);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgb(var(--cx-heading-rgb) / 0.06);
+}
+
+.mi-av {
+  display: flex;
+  flex: none;
+}
+
+.mi-av img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgb(var(--cx-card-bg-rgb));
+}
+
+.mi-av img + img {
+  margin-left: -16px;
+}
+
+.mi-head-txt b {
+  display: block;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.mi-head-txt small {
+  font-size: 12px;
+  color: rgb(var(--cx-deco-2-rgb));
+  font-weight: 600;
+}
+
+.mi-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 16px;
+}
+
+#section-intro {
+  padding-top: 16px;
+}
+
+#section-footer {
+  padding-bottom: 28px;
+}
+
+
+.mi-day {
+  align-self: center;
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* ── Tin nhắn ── */
+
+.mi-msg {
+  position: relative;
+  max-width: 80%;
+  align-self: flex-start;
+  opacity: 0;
+  transform: scale(0.7) translateY(10px);
+  transform-origin: 0 100%;
+  transition:
+    opacity 0.25s,
+    transform 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.mi-msg.mi-me {
+  align-self: flex-end;
+  transform-origin: 100% 100%;
+}
+
+.mi-msg.typing,
+.mi-msg.in {
+  opacity: 1;
+  transform: none;
+}
+
+.mi-who {
+  display: block;
+  margin: 8px 0 4px 12px;
+  font-size: 11px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.mi-b {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 20px 20px 20px 6px;
+  background: rgb(var(--cx-panel-rgb));
+  font-size: 15px;
+  line-height: 1.4;
+  box-shadow: 0 1px 1px rgb(var(--cx-shadow-rgb) / 0.05);
+}
+
+.mi-me .mi-b {
+  background: var(--mi-grad);
+  color: rgb(var(--cx-on-accent-rgb));
+  border-radius: 20px 20px 6px 20px;
+}
+
+.mi-dots {
+  display: none;
+  gap: 4px;
+  width: max-content;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: rgb(var(--cx-panel-rgb));
+}
+
+.mi-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(var(--cx-body-rgb) / 0.5);
+  animation: cx-mi-dot 1s infinite;
+}
+
+.mi-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.mi-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes cx-mi-dot {
+  30% {
+    transform: translateY(-4px);
+    background: rgb(var(--cx-body-rgb));
+  }
+}
+
+.mi-msg.typing .mi-dots {
+  display: flex;
+}
+
+.mi-msg.typing > .mi-b,
+.mi-msg.typing > .mi-hearts {
+  display: none;
+}
+
+.mi-msg.in .mi-dots {
+  display: none;
+}
+
+.mi-msg.in > .mi-b {
+  display: block;
+}
+
+/* Ảnh đơn */
+.mi-b.mi-ph {
+  padding: 4px;
+  overflow: hidden;
+}
+
+.mi-b.mi-ph img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+/* Thẻ rộng cố định: album, sự kiện, vị trí, quà */
+.mi-b.mi-album,
+.mi-b.mi-ev,
+.mi-b.mi-loc,
+.mi-b.mi-pay {
+  width: 272px;
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+
+.mi-b.mi-album {
+  padding: 4px;
+}
+
+.mi-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--n, 3), 1fr);
+  gap: 3px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.mi-at {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.mi-at img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.mi-at:hover img {
+  transform: scale(1.05);
+}
+
+.mi-at:focus-visible {
+  outline: 3px solid rgb(var(--cx-accent-rgb));
+  outline-offset: -3px;
+}
+
+.mi-at em {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(var(--cx-heading-rgb) / 0.5);
+  color: rgb(var(--cx-on-image-rgb));
+  font-style: normal;
+  font-weight: 800;
+  font-size: 22px;
+}
+
+.mi-acap {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 8px 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mi-acap small {
+  font-weight: 500;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Thẻ sự kiện */
+.mi-evtop {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--mi-grad);
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.mi-cal {
+  flex: none;
+  width: 52px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgb(var(--cx-panel-rgb));
+  text-align: center;
+  box-shadow: 0 6px 12px -6px rgb(var(--cx-shadow-rgb) / 0.35);
+}
+
+.mi-cal small {
+  display: block;
+  padding: 3px 0;
+  background: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.mi-cal b {
+  display: block;
+  color: rgb(var(--cx-heading-rgb));
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.mi-evtop strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.mi-evtop em {
+  display: block;
+  font-style: normal;
+  font-size: 13px;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+.mi-evbody {
+  display: block;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.mi-evrow {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 8px;
+  padding: 5px 0;
+}
+
+.mi-evrow + .mi-evrow {
+  border-top: 1px solid rgb(var(--cx-line-rgb));
+}
+
+.mi-evrow i {
+  font-style: normal;
+}
+
+.mi-evrow small {
+  display: block;
+  color: rgb(var(--cx-body-rgb));
+  font-size: 12px;
+}
+
+.mi-evbtn {
+  display: block;
+  padding: 12px 16px;
+  border-top: 1px solid rgb(var(--cx-line-rgb));
+  color: rgb(var(--cx-accent-rgb));
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+/* Vị trí — renderVenueMaps có thể chèn nhãn + bản đồ thứ hai ngay trong bong bóng */
+.mi-loc-name {
+  display: block;
+  padding: 12px 16px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.mi-loc-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mi-loc-map {
+  position: relative;
+  display: block;
+  height: 152px;
+  overflow: hidden;
+  background: rgb(var(--cx-surface-rgb));
+}
+
+.mi-loc-ph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: rgb(var(--cx-accent-rgb));
+  font-size: 12px;
+}
+
+.mi-loc-ph.hidden {
+  display: none;
+}
+
+.mi-loc .cx-map-tag {
+  padding: 12px 16px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.mi-loc .cx-map-tag-next {
+  border-top: 1px solid rgb(var(--cx-line-rgb));
+}
+
+/* Trả lời nhanh (xác nhận tham dự) */
+.mi-quick {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.mi-chip {
+  padding: 10px 16px;
+  border: 1.5px solid rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-panel-rgb));
+  color: rgb(var(--cx-accent-rgb));
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Quà mừng */
+.mi-paytop {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 0;
+  background: linear-gradient(135deg, rgb(var(--cx-deco-rgb)), rgb(var(--cx-accent-soft-rgb)));
+  color: rgb(var(--cx-on-accent-rgb));
+  text-align: left;
+}
+
+.mi-pay-ic {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgb(var(--cx-on-accent-rgb) / 0.22);
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-size: 20px;
+}
+
+.mi-pay-txt b {
+  display: block;
+  font-size: 15px;
+}
+
+.mi-pay-txt small {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.mi-pay-chev {
+  margin-left: auto;
+  transition: transform 0.4s;
+}
+
+.mi-pay.is-open .mi-pay-chev {
+  transform: rotate(180deg);
+}
+
+.mi-payqr {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+.mi-pay.is-open .mi-payqr {
+  grid-template-rows: 1fr;
+}
+
+.mi-payqr > span {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.mi-qrs {
+  display: flex;
+  flex-direction: column;
+}
+
+.mi-qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 16px 14px;
+}
+
+.mi-qr-card + .mi-qr-card {
+  border-top: 1px solid rgb(var(--cx-line-rgb));
+}
+
+.mi-qr-who {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.mi-qr {
+  display: block;
+  width: 152px;
+  aspect-ratio: 1;
+  object-fit: contain;
+  margin: 12px 0 8px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgb(var(--cx-qr-bg-rgb));
+}
+
+.mi-bank {
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.mi-save {
+  margin-top: 8px;
+  padding: 6px 14px;
+  background: rgb(var(--cx-accent-rgb) / 0.1);
+  color: rgb(var(--cx-accent-rgb));
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Tin cuối: tim bay lên */
+.mi-hearts i {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  font-style: normal;
+  font-size: 18px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mi-last.in .mi-hearts i {
+  animation: cx-mi-heart 1.8s ease-out var(--d) forwards;
+}
+
+@keyframes cx-mi-heart {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), -120px) scale(1.2);
+  }
+}
+
+/* ── Thanh đáy: tóm tắt lời chúc + ô nhắn ───────────────────────────────────
+   Hai tầng như thanh trả lời của ứng dụng nhắn tin: trên là dòng "ai đã chúc" (chấm
+   chữ cái đầu tên xếp chồng), dưới là ô nhắn + nút gửi. Tầng nào không có dữ liệu thì
+   index.js ẩn, thanh co theo. */
+.mi-input {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(var(--cx-heading-rgb) / 0.06);
+  background: rgb(var(--cx-card-bg-rgb) / 0.9);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.mi-peek {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 4px 8px 4px 4px;
+  color: rgb(var(--cx-body-rgb));
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.mi-peek:focus-visible,
+.mi-input-btn:focus-visible {
+  outline: 2px solid rgb(var(--cx-accent-rgb));
+  outline-offset: 2px;
+}
+
+.mi-faces {
+  flex: none;
+  display: flex;
+}
+
+.mi-face {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgb(var(--cx-card-bg-rgb));
+  background: var(--mi-grad);
+  color: rgb(var(--cx-on-accent-rgb));
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* Người chúc gần nhất nằm trên cùng, các chấm sau lùi dần ra sau. */
+.mi-face:nth-child(1) {
+  z-index: 3;
+}
+
+.mi-face:nth-child(2) {
+  z-index: 2;
+  margin-left: -9px;
+  opacity: 0.85;
+}
+
+.mi-face:nth-child(3) {
+  z-index: 1;
+  margin-left: -9px;
+  opacity: 0.7;
+}
+
+.mi-face.is-new {
+  animation: cx-mi-bump 0.6s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes cx-mi-bump {
+  from {
+    transform: scale(0.3);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+.mi-peek-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mi-peek-go {
+  flex: none;
+  opacity: 0.5;
+}
+
+.mi-input-btn {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+}
+
+.mi-input-ph {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: 999px;
+  background: rgb(var(--cx-panel-rgb));
+  border: 1px solid rgb(var(--cx-line-rgb));
+  color: rgb(var(--cx-body-rgb));
+  font-size: 14px;
+  text-align: left;
+}
+
+.mi-input-go {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--mi-grad);
+  color: rgb(var(--cx-on-accent-rgb));
+  display: grid;
+  place-items: center;
+}
+
+/* Tên đôi trên thanh tiêu đề dài quá thì cắt "…" (chừa chỗ nút nhạc bên phải). */
+.mi-head-txt {
+  min-width: 0;
+}
+
+.mi-head-txt b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Cửa sổ lời chúc: Trung tâm thông báo kéo từ đỉnh màn xuống ──────────────
+   Nền là ảnh bìa nhoè + phủ tối; mỗi lời chúc thành một thẻ thông báo kính mờ.
+   Chữ trên nền tối đi qua on-image (chữ nằm trên ảnh). */
+
+.mi-wpanel {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  visibility: hidden;
+  transition: visibility 0s 0.5s;
+}
+
+.mi-wpanel.open {
+  visibility: visible;
+  transition: none;
+}
+
+.mi-wpanel-veil {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--cx-scrim-rgb) / 0.35);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+
+.mi-wpanel.open .mi-wpanel-veil {
+  opacity: 1;
+}
+
+/* Cao nửa màn qua --vh (vh-lock.js), cùng khổ cột thiệp. Mở: rơi xuống rồi nảy nhẹ. */
+.mi-wpanel-sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 430px;
+  height: calc(var(--vh, 1vh) * 50);
+  height: calc(var(--vh, 1svh) * 50);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 0 0 36px 36px;
+  background: rgb(var(--cx-cover-rgb));
+  color: rgb(var(--cx-on-image-rgb));
+  box-shadow: 0 24px 48px -16px rgb(var(--cx-shadow-rgb) / 0.55);
+  transform: translateY(-100%);
+  transition:
+    transform 0.55s cubic-bezier(0.2, 1.15, 0.35, 1),
+    height 0.45s cubic-bezier(0.2, 1, 0.3, 1),
+    border-radius 0.45s;
+}
+
+.mi-wpanel.open .mi-wpanel-sheet {
+  transform: none;
+}
+
+/* Kéo tay nắm xuống hết: trọn màn như Trung tâm thông báo. */
+.mi-wpanel-sheet.is-full {
+  height: 100%;
+  border-radius: 0;
+}
+
+@media (min-width: 768px) {
+  .mi-wpanel-sheet {
+    max-width: var(--cx-card-max);
+  }
+}
+
+.mi-wpanel-bg {
+  position: absolute;
+  top: -40px;
+  left: -40px;
+  width: calc(100% + 80px);
+  height: calc(100% + 80px);
+  object-fit: cover;
+  filter: blur(28px) saturate(1.5) brightness(0.55);
+  pointer-events: none;
+}
+
+.mi-wpanel-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgb(var(--cx-cover-veil-rgb) / 0.35), rgb(var(--cx-cover-veil-rgb) / 0.7));
+  pointer-events: none;
+}
+
+.mi-wpanel-bar,
+.mi-wpanel-body,
+.mi-wpanel-grip {
+  position: relative;
+}
+
+.mi-wpanel-bar {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: calc(16px + env(safe-area-inset-top)) 20px 8px;
+}
+
+.mi-wpanel-bar small {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.mi-wpanel-bar b {
+  display: block;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.mi-wpanel-x {
+  flex: none;
+  margin-left: auto;
+  margin-bottom: 4px;
+  width: 32px;
+  height: 32px;
+  background: rgb(var(--cx-on-image-rgb) / 0.16);
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+.mi-wpanel-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Vùng chạm cao hơn vạch nhìn thấy để ngón tay dễ bắt. */
+.mi-wpanel-grip {
+  flex: none;
+  height: 32px;
+  touch-action: none;
+  cursor: grab;
+}
+
+.mi-wpanel-grip::before {
+  content: "";
+  display: block;
+  width: 136px;
+  height: 5px;
+  margin: 6px auto 0;
+  border-radius: 3px;
+  background: rgb(var(--cx-on-image-rgb) / 0.55);
+}
+
+/* Ruột do wishes-helper dựng (#cx-wish-sec dạng chat): danh sách chiếm hết chỗ, ô gửi
+   dồn xuống đáy (order), tiêu đề của helper trùng thanh trên → bỏ. */
+.mi-wpanel .cx-wsec {
+  flex: 1;
+  min-height: 0;
+  max-width: none;
+  gap: 10px;
+  padding: 4px 12px 0;
+}
+
+.mi-wpanel .cx-wsec-head {
+  display: none;
+}
+
+.mi-wpanel .cx-wsec-list,
+.mi-wpanel .cx-wsec-chat .cx-wsec-list.is-live {
+  order: 1;
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  gap: 8px;
+  padding: 8px 4px;
+  margin: 0;
+  overflow-y: auto;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 40px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 40px);
+}
+
+.mi-wpanel .cx-wsec-chat .cx-wsec-list.is-live {
+  overflow: hidden;
+}
+
+.mi-wpanel .cx-wsec-empty {
+  margin: auto;
+  color: rgb(var(--cx-on-image-rgb) / 0.75);
+  font-size: 14px;
+}
+
+/* Mỗi lời chúc = một thẻ thông báo: biểu tượng ứng dụng (chữ đầu tên) · tên · lời. */
+.mi-wpanel .cx-wsec-list .cx-wchat-row,
+.mi-wpanel .cx-wsec-list .cx-wchat-row.is-r {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 22px;
+  background: rgb(var(--cx-on-image-rgb) / 0.16);
+  border: 1px solid rgb(var(--cx-on-image-rgb) / 0.12);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  animation: cx-mi-notif 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.mi-wpanel .cx-wsec-list .cx-wchat-row:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.mi-wpanel .cx-wsec-list .cx-wchat-row:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.mi-wpanel .cx-wsec-list .cx-wchat-row:nth-child(4) {
+  animation-delay: 0.18s;
+}
+
+.mi-wpanel .cx-wsec-list .cx-wchat-row:nth-child(5) {
+  animation-delay: 0.24s;
+}
+
+@keyframes cx-mi-notif {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mi-wpanel .cx-wish-av {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--mi-grad);
+  color: rgb(var(--cx-on-accent-rgb));
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.mi-wpanel .cx-wchat-bub,
+.mi-wpanel .cx-wsec-list .cx-wchat-row.is-r .cx-wchat-bub {
+  flex: 1;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: rgb(var(--cx-on-image-rgb));
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.mi-wpanel .cx-wchat-bub .cx-wish-name {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgb(var(--cx-on-image-rgb));
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.mi-wpanel .cx-wchat-bub .cx-wish-name::after {
+  content: "lời chúc";
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.6;
+}
+
+/* Ô gửi ở đáy: ô "Trả lời…" kính mờ, nút gửi tròn đổ màu. */
+.mi-wpanel .cx-wdock-card,
+.mi-wpanel .cx-wdock-card.is-open {
+  order: 2;
+  flex: none;
+  padding: 6px 6px 6px 16px;
+  border-radius: 28px;
+  border: 1px solid rgb(var(--cx-on-image-rgb) / 0.18);
+  background: rgb(var(--cx-on-image-rgb) / 0.14);
+  color: rgb(var(--cx-on-image-rgb));
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.mi-wpanel .cx-wdock-card.is-open {
+  border-color: rgb(var(--cx-on-image-rgb) / 0.4);
+}
+
+.mi-wpanel .cx-wdock-text {
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+.mi-wpanel .cx-wdock-text::placeholder {
+  color: rgb(var(--cx-on-image-rgb) / 0.6);
+}
+
+.mi-wpanel .cx-wdock-btn {
+  border-radius: 50%;
+  background: var(--mi-grad);
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.mi-wpanel .cx-wdock-hint,
+.mi-wpanel .cx-wdock-msg,
+.mi-wpanel .cx-wdock-count {
+  color: rgb(var(--cx-on-image-rgb) / 0.85);
+}
+
+/* ── Trình xem album ── */
+
+.mi-lb {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: rgb(var(--cx-lightbox-bg-rgb) / 0.97);
+  color: rgb(var(--cx-on-lightbox-rgb));
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.96);
+  transition:
+    opacity 0.3s,
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1),
+    visibility 0s 0.4s;
+}
+
+.mi-lb.open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.3s,
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.mi-lbbar {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  padding: calc(16px + env(safe-area-inset-top)) 16px 12px;
+  text-align: center;
+}
+
+.mi-lbbar b {
+  font-size: 15px;
+}
+
+.mi-lbbar small {
+  display: block;
+  font-size: 12px;
+  opacity: 0.65;
+  font-weight: 500;
+}
+
+.mi-lbbtn {
+  width: 36px;
+  height: 36px;
+  background: rgb(var(--cx-on-lightbox-rgb) / 0.12);
+  color: rgb(var(--cx-on-lightbox-rgb));
+}
+
+.mi-lbtrack {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  min-height: 0;
+}
+
+.mi-lbtrack::-webkit-scrollbar {
+  display: none;
+}
+
+.mi-lbtrack img {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  scroll-snap-align: center;
+}
+
+.mi-lbnav {
+  position: absolute;
+  top: 50%;
+  margin-top: -18px;
+}
+
+.mi-lbnav.is-prev {
+  left: 12px;
+}
+
+.mi-lbnav.is-next {
+  right: 12px;
+}
+
+.mi-lbthumbs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px calc(28px + env(safe-area-inset-bottom));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mi-lbthumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.mi-lbthumbs button {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  flex: 0 0 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  opacity: 0.45;
+  outline: 2px solid transparent;
+  transition: opacity 0.2s;
+}
+
+.mi-lbthumbs button.on {
+  opacity: 1;
+  outline-color: rgb(var(--cx-on-lightbox-rgb));
+}
+
+.mi-lbthumbs img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mi-lock-bg,
+  .mi-n,
+  .mi-msg,
+  .mi-payqr,
+  .mi-wpanel-sheet,
+  .mi-wpanel-veil {
+    transition: none;
+  }
+
+  .mi-live .mi-swipe,
+  .mi-last.in .mi-hearts i,
+  .mi-dots i,
+  .mi-face.is-new,
+  .mi-wpanel .cx-wsec-list .cx-wchat-row {
+    animation: none;
+  }
+}

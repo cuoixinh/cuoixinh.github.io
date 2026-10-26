@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Đồng Hành Trăm Năm</title>
+    <!-- Thiệp THẬT (?slug=) không được lên kết quả tìm kiếm; bản MẪU thì có. Hai bản
+         chung một URL nên phải xét lúc chạy. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Chakra+Petch:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+    <script src="../../../core/helpers/no-inspect.js"></script>
+  </head>
+
+  <!-- Đồng Hành Trăm Năm — đám cưới là một chuyến tàu: bảng giờ tàu lật số, vé giấy có
+       lỗ bấm, lịch trình là các ga dừng. Không có màn bìa: mục mở đầu là màn đầu tiên. -->
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <!-- Con ĐẦU TIÊN của <body>: nút nhạc là position:fixed. -->
+    <div id="cx-music-mount"></div>
+
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+    >
+      <div class="t3-body flex flex-col">
+        <!-- ═══ MỤC: Mở đầu — bảng giờ tàu + vé ═══ -->
+        <section id="section-hero" class="t3-cover">
+          <div class="t3-board">
+            <div class="t3-row"><span>Khởi hành</span><span class="t3-flaps" id="t3-flap-date" data-flap="--.--.--"></span></div>
+            <div class="t3-row"><span>Giờ</span><span class="t3-flaps" id="t3-flap-time" data-flap="--:--"></span></div>
+            <div class="t3-row"><span>Đến ga</span><span class="t3-dest">Trăm Năm</span></div>
+          </div>
+
+          <div class="t3-ticket">
+            <p class="t3-route">
+              <span id="t3-route-from">Ga Gặp Gỡ</span>
+              <svg width="34" height="10" viewBox="0 0 34 10" aria-hidden="true"><path d="M0 5h30M26 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+              <span>Ga Trăm Năm</span>
+            </p>
+            <h2 class="t3-names">
+              <span id="t3-name-1">----------</span><br />&amp; <span id="t3-name-2">----------</span>
+            </h2>
+            <dl>
+              <div><dt>Toa</dt><dd>01</dd></div>
+              <div><dt>Ghế</dt><dd>Ghế đôi</dd></div>
+              <div><dt>Hạng vé</dt><dd>Trọn đời</dd></div>
+            </dl>
+            <div class="t3-barcode" aria-hidden="true"></div>
+            <i class="t3-punch" aria-hidden="true"></i><i class="t3-chad" aria-hidden="true"></i>
+          </div>
+
+          <!-- Tên khách: chỉ hiện với link riêng (CX_GUEST) hoặc bản xem thử ?guest= -->
+          <p id="cover-guest-wrap" class="hidden t3-guest">
+            <span data-cx-invite>Hành khách</span>: <b id="cover-guest-name"></b>
+          </p>
+          <p id="story-quote" class="t3-intro">Mời bạn lên tàu cùng tụi mình, chuyến này không có ga về.</p>
+        </section>
+
+        <!-- ═══ MỤC: Các ga đã qua (enable_love_story) ═══ -->
+        <section id="love-story" class="t3-sec" style="display: none">
+          <h3 class="t3-h">Các ga đã qua</h3>
+          <ul id="love-story-list" class="t3-past"></ul>
+        </section>
+
+        <!-- ═══ MỤC: Lịch trình chuyến đi — tiệc, vu quy, lễ (+ mốc lịch trình nếu bật) ═══ -->
+        <section id="section-ceremony" class="t3-sec">
+          <h3 class="t3-h">Lịch trình chuyến đi</h3>
+          <ol id="t3-line" class="t3-line"></ol>
+        </section>
+
+        <!-- ═══ MỤC: Sơ đồ tuyến. #map-location-name + #map-link phải đứng CUỐI mục. ═══ -->
+        <section id="section-map" class="t3-sec">
+          <h3 class="t3-h">Sơ đồ tuyến</h3>
+          <div class="t3-mapbox">
+            <div class="t3-mapbar"><span>Tuyến 1: Nhà bạn → Ga Trăm Năm</span><span id="t3-map-time"></span></div>
+            <div id="t3-map"></div>
+          </div>
+          <p id="t3-map-when" class="t3-addr t3-when"></p>
+          <p id="map-location-name" class="t3-addr">------------------------</p>
+          <a id="map-link" href="#" target="_blank" rel="noopener" class="t3-btn">Mở chỉ đường</a>
+        </section>
+
+        <!-- ═══ MỤC: Vé quà mừng (enable_gift). Cuống vé che mã QR, chạm là xé rơi. ═══ -->
+        <section id="section-gift" class="t3-sec t3-gift">
+          <h3 class="t3-h">Vé quà mừng</h3>
+          <div data-cx-gift="qr" class="t3-gifts">
+            <div class="t3-gt">
+              <div class="t3-gmain">
+                <b>Quà mừng</b>
+                <em>Một chiều, không cần đổi trả</em>
+                <span class="t3-bank">
+                  <span id="groom-bank-name">----------------</span><br />
+                  <span id="groom-bank-number">------------</span><br />
+                  <span id="groom-bank-owner">--------------------</span>
+                </span>
+                <span class="t3-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="Mã QR chuyển khoản" loading="lazy" /></span>
+              </div>
+              <x-button variant="bare" class="t3-stub" aria-expanded="false" aria-label="Xé cuống vé để xem mã QR">
+                Xé tại đây<small>Số 0001</small>
+              </x-button>
+            </div>
+
+            <div class="t3-gt">
+              <div class="t3-gmain">
+                <b>Quà mừng</b>
+                <em>Một chiều, không cần đổi trả</em>
+                <span class="t3-bank">
+                  <span id="bride-bank-name">----------------</span><br />
+                  <span id="bride-bank-number">------------</span><br />
+                  <span id="bride-bank-owner">--------------------</span>
+                </span>
+                <span class="t3-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="Mã QR chuyển khoản" loading="lazy" /></span>
+              </div>
+              <x-button variant="bare" class="t3-stub" aria-expanded="false" aria-label="Xé cuống vé để xem mã QR">
+                Xé tại đây<small>Số 0002</small>
+              </x-button>
+            </div>
+          </div>
+          <p class="t3-hint">Chạm vào cuống vé để xé</p>
+        </section>
+
+        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═══ -->
+        <section id="section-footer" class="t3-sec t3-end">
+          <h3 class="t3-h">Hẹn gặp trên tàu</h3>
+          <p class="t3-end-names"><span id="t3-end-1">----------</span> &amp; <span id="t3-end-2">----------</span></p>
+          <p id="footer-text" class="t3-end-note hidden"></p>
+        </section>
+      </div>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — giữ như base-theme ═══ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <script src="index.js"></script>
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>

@@ -1,0 +1,197 @@
+{
+  "image_focal_points": {
+    "gallery_images": {
+      "gallery-01.webp": {
+        "x": 51,
+        "y": 10
+      },
+      "gallery-02.webp": {
+        "x": 55,
+        "y": 26
+      },
+      "gallery-03.webp": {
+        "x": 69,
+        "y": 16
+      },
+      "gallery-04.webp": {
+        "x": 76,
+        "y": 19
+      },
+      "gallery-05.webp": {
+        "x": 68,
+        "y": 17
+      },
+      "gallery-06.webp": {
+        "x": 75,
+        "y": 30
+      },
+      "gallery-07.webp": {
+        "x": 67,
+        "y": 21
+      },
+      "gallery-08.webp": {
+        "x": 53,
+        "y": 23
+      },
+      "gallery-09.webp": {
+        "x": 62,
+        "y": 16
+      }
+    },
+    "cover_image_url": {
+      "x": 49,
+      "y": 11
+    },
+    "groom_image_url": {
+      "x": 44,
+      "y": 19
+    },
+    "bride_image_url": {
+      "x": 51,
+      "y": 7
+    }
+  },
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp",
+    "gallery-08.webp",
+    "gallery-09.webp"
+  ],
+  "love_story": [
+    {
+      "date": "2019",
+      "title": "Tin nhắn đầu tiên",
+      "content": "Một câu hỏi bài tập trong nhóm chat lớp tiếng Anh, rồi anh nhắn riêng hỏi thêm cả buổi tối.",
+      "image_url": "love-story-01.webp",
+      "focal_point": {
+        "x": 51,
+        "y": 26
+      }
+    },
+    {
+      "date": "2022",
+      "title": "Yêu xa",
+      "content": "Hai năm Sài Gòn – Cần Thơ, ngày nào cũng gọi video tới lúc một đứa ngủ quên.",
+      "image_url": "love-story-02.webp",
+      "focal_point": {
+        "x": 58,
+        "y": 23
+      }
+    },
+    {
+      "date": "2026",
+      "title": "Đã xem, đã đồng ý",
+      "content": "Anh cầu hôn bằng một tin nhắn thoại dài đúng ba phút, em trả lời bằng một chữ: Có.",
+      "image_url": "love-story-03.webp",
+      "focal_point": {
+        "x": 56,
+        "y": 25
+      }
+    }
+  ],
+  "content": {
+    "groom_name": "Quốc Bảo",
+    "bride_name": "Minh Thư",
+    "groom_father": "Trần Văn Lộc",
+    "groom_mother": "Lê Thị Hồng",
+    "groom_address": "Số 24 Lê Văn Sỹ, Phường Phú Nhuận, TP. Hồ Chí Minh",
+    "bride_father": "Võ Minh Tâm",
+    "bride_mother": "Huỳnh Thị Ngọc",
+    "bride_address": "Số 15 Hai Bà Trưng, Phường Ninh Kiều, TP. Cần Thơ",
+    "ceremony_name": "Lễ Thành Hôn",
+    "ceremony_date": "2027-02-20",
+    "ceremony_time": "09:30",
+    "ceremony_lunar": "Tức ngày 15 tháng Giêng năm Đinh Mùi",
+    "ceremony_location": "Tư gia nhà trai — Số 24 Lê Văn Sỹ, Phường Phú Nhuận, TP. Hồ Chí Minh",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=10.7990,106.6800&output=embed&hl=vi",
+    "vu_quy_enabled": true,
+    "vu_quy_time": "07:00",
+    "vu_quy_location": "Tư gia nhà gái — Số 15 Hai Bà Trưng, Phường Ninh Kiều, TP. Cần Thơ",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=10.0340,105.7880&output=embed&hl=vi",
+    "groom_party_date": "2027-02-20",
+    "groom_party_time": "18:00",
+    "groom_party_lunar": "Tức ngày 15 tháng Giêng năm Đinh Mùi",
+    "groom_party_show_location": true,
+    "groom_party_location": "Nhà hàng tiệc cưới Hoa Sen Trắng — Số 112 Hoàng Văn Thụ, Phường Tân Sơn Hòa, TP. Hồ Chí Minh",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=10.8000,106.6650&output=embed&hl=vi",
+    "bride_party_date": "2027-02-19",
+    "bride_party_time": "11:00",
+    "bride_party_lunar": "Tức ngày 14 tháng Giêng năm Đinh Mùi",
+    "bride_party_show_location": true,
+    "bride_party_location": "Nhà hàng Ninh Kiều Riverside — Số 2 Hai Bà Trưng, Phường Ninh Kiều, TP. Cần Thơ",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=10.0330,105.7870&output=embed&hl=vi",
+    "groom_bank_name": "Techcombank",
+    "groom_bank_number": "19037755120034",
+    "groom_bank_owner": "TRAN QUOC BAO",
+    "bride_bank_name": "MB Bank",
+    "bride_bank_number": "0901234567888",
+    "bride_bank_owner": "VO MINH THU",
+    "story_quote": "Tụi mình quen nhau trong nhóm chat lớp tiếng Anh năm 2019, nhắn tin mãi rồi thành người một nhà 🥹",
+    "rsvp_enabled": true,
+    "rsvp_message": "Bạn sắp xếp tới chung vui với tụi mình được không? Bạn báo tụi mình một tiếng để nhà hàng chừa chỗ nha.",
+    "footer_text": "Tụi mình thương bạn nhiều, hẹn gặp bạn ở đám cưới nhé ❤️",
+    "enable_music": true,
+    "music_url": "https://www.youtube.com/watch?v=o_lN37OAJ9U&t=32",
+    "enable_family": false,
+    "enable_party": true,
+    "enable_photos": true,
+    "enable_timeline": false,
+    "enable_love_story": false,
+    "enable_gift": true,
+    "enable_footer": true,
+    "demo_fill_love_story": false,
+    "timeline": [
+      {
+        "time": "10:30",
+        "title": "Đón khách tại nhà hàng Ninh Kiều Riverside",
+        "type": "bride-party"
+      },
+      {
+        "time": "11:00",
+        "title": "Khai tiệc mừng nhà gái",
+        "type": "bride-party"
+      },
+      {
+        "time": "07:00",
+        "title": "Lễ Vu Quy tại tư gia nhà gái",
+        "type": "ceremony"
+      },
+      {
+        "time": "08:00",
+        "title": "Nhà trai đón dâu",
+        "type": "ceremony"
+      },
+      {
+        "time": "09:30",
+        "title": "Lễ Thành Hôn tại tư gia nhà trai",
+        "type": "ceremony"
+      },
+      {
+        "time": "17:30",
+        "title": "Đón khách tại nhà hàng Hoa Sen Trắng",
+        "type": "party"
+      },
+      {
+        "time": "18:00",
+        "title": "Khai tiệc mừng nhà trai",
+        "type": "party"
+      },
+      {
+        "time": "20:30",
+        "title": "Cảm ơn và tiễn khách",
+        "type": "party"
+      }
+    ]
+  },
+  "updated_at": "2026-10-26T16:14:26.412Z"
+}

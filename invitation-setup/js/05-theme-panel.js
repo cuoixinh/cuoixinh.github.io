@@ -1576,8 +1576,19 @@ function pickWishMode(id) {
 }
 window.pickWishMode = pickWishMode;
 
-// Bản khai mẫu về muộn (hoặc vừa đổi mẫu) → ô đang chọn có thể đổi theo mặc định mới.
-document.addEventListener("cx-theme-decl", _syncWishTiles);
+// Bản khai mẫu về muộn (hoặc vừa đổi mẫu) → ô đang chọn có thể đổi theo mặc định mới,
+// và tab Lời chúc có thể phải ẩn/hiện lại (wishesFixed) — đang mở mà bị ẩn thì đóng.
+document.addEventListener("cx-theme-decl", () => {
+  _syncWishTiles();
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  if (!track?.children.length) return;
+  const fixed = !!window.cxThemeDecl?.().wishesFixed;
+  // Chỉ dựng lại dải tab khi trạng thái thật sự đổi — mẫu thường không đụng gì.
+  if (fixed !== !track.querySelector('[data-ctab="wishes"]')) {
+    if (fixed && _curCtrlView().key === "wishes") cxCtrlTab("main");
+    _renderCtrlTabs();
+  }
+});
 
 // Nạp lại khung xem trước rồi cuộn tới mục vừa đổi. Đợi thêm một nhịp vẽ: lúc
 // 'load' bắn, thiệp vẫn đang dựng nội dung nên chưa có gì để cuộn tới.
@@ -2575,9 +2586,11 @@ function _renderCtrlTabs() {
   const track = document.getElementById("cx-ctrl-tabs-track");
   if (!track) return;
   track.textContent = "";
+  // Mẫu khai CX_THEME.wishesFixed thì dạng lời chúc là một phần của mẫu → không có tab chọn.
+  const wishFixed = !!window.cxThemeDecl?.().wishesFixed;
   CTRL_TABS.forEach((key) => {
     const view = CTRL_VIEWS.find((v) => v.key === key);
-    if (!view) return;
+    if (!view || (key === "wishes" && wishFixed)) return;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "cx-ctab";

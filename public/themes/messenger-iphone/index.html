@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — iPhone Messenger</title>
+    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
+         địa chỉ, số điện thoại và QR tài khoản của khách. Bản MẪU (không có slug)
+         thì vẫn cho lập chỉ mục vì đó là hàng đang bán. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+    <script src="../../../core/helpers/no-inspect.js"></script>
+  </head>
+
+  <!-- IPHONE MESSENGER — bìa là màn khoá điện thoại có ba thông báo (vuốt lên hoặc chạm
+       để mở), thân thiệp là một cuộc trò chuyện: mỗi mục là một cụm tin nhắn (.mi-msg),
+       tin hiện lần lượt khi cuộn tới (index.js). Thanh tiêu đề + ô nhập dính đầu/đáy là
+       con đầu/cuối của .mi-chat. Ràng buộc chung: xem đầu public/themes/base-theme/index.html. -->
+
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <!-- Trình phát nhạc — dạng khai ở CX_THEME.music. Phải là con ĐẦU TIÊN của <body>. -->
+    <div id="cx-music-mount"></div>
+
+    <!-- ═══ Màn bìa: màn khoá ═══ -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
+      <div class="mi-lock relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
+        <img id="cover-bg-img" class="mi-lock-bg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" fetchpriority="high" />
+
+        <div class="mi-clock">
+          <p id="mi-lock-date">-------</p>
+          <b id="mi-lock-time">--:--</b>
+          <div class="mi-guest">
+            <span data-cx-invite>Trân trọng kính mời</span>
+            <strong id="cover-guest-name">----------</strong>
+          </div>
+        </div>
+
+        <div class="mi-notes">
+          <div class="mi-n" style="--d: 0.7s">
+            <img data-mi-img="bride" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            <div>
+              <b><span id="cover-bride-name">----------</span> <small>bây giờ</small></b>
+              <p data-cx-say="{Ta} sắp cưới rồi {ne} 💍">Tụi mình sắp cưới rồi nè 💍</p>
+            </div>
+          </div>
+          <div class="mi-n" style="--d: 1.3s">
+            <img data-mi-img="groom" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            <div>
+              <b><span id="cover-groom-name">----------</span> <small>bây giờ</small></b>
+              <p data-cx-say="{Ta} rất mong được đón {goi} tới dự đám cưới {nha}!">Tụi mình rất mong được đón bạn tới dự đám cưới nha!</p>
+            </div>
+          </div>
+          <div class="mi-n" style="--d: 1.9s">
+            <i class="mi-n-ic"><i data-lucide="calendar-days" style="width: 18px; height: 18px"></i></i>
+            <div>
+              <b>Lịch <small>sự kiện</small></b>
+              <p id="mi-n3-text">--------------------</p>
+            </div>
+          </div>
+        </div>
+
+        <x-button variant="bare" class="mi-swipe" aria-label="Mở thiệp">Vuốt lên để mở</x-button>
+      </div>
+    </div>
+
+    <!-- ═══ THÂN THIỆP: cuộc trò chuyện ═══
+         #main-card + ĐÚNG MỘT thẻ con flex-column (.mi-chat) bọc mọi mục. -->
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl"
+      style="display: none"
+    >
+      <div class="mi-chat flex flex-col">
+        <!-- Thanh tiêu đề (dính đầu) -->
+        <header id="section-hero" class="mi-head">
+          <span class="mi-av">
+            <img id="bride-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            <img id="groom-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+          </span>
+          <span class="mi-head-txt">
+            <b><span id="couple-names-bride">----------</span> &amp; <span id="couple-names-groom">----------</span></b>
+            <small>Đang hoạt động</small>
+          </span>
+        </header>
+
+        <!-- Tin vui -->
+        <section id="section-intro" class="mi-sec">
+          <p class="mi-day">Hôm nay</p>
+          <div class="mi-msg" data-typing>
+            <span class="mi-who" id="mi-who-b1">----------</span>
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b" data-cx-say="{Chao} ơi, {ta} có tin vui muốn kể với {goi} {ne} 👋">Bạn ơi, tụi mình có tin vui muốn kể với bạn nè 👋</span>
+          </div>
+          <div class="mi-msg">
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b mi-ph"><img data-mi-g="0" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" /></span>
+          </div>
+          <div class="mi-msg" data-typing>
+            <span class="mi-who" id="mi-who-g1">----------</span>
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b" id="story-quote" data-cx-say="{Ta} quen nhau từ năm 2018, giờ đã quyết định về chung một nhà rồi 🥹">Tụi mình quen nhau từ năm 2018, giờ đã quyết định về chung một nhà rồi 🥹</span>
+          </div>
+          <div class="mi-msg mi-me"><span class="mi-b" data-cx-say="Trời ơi, {toi} chúc mừng {hai} nhiều nha!">Trời ơi, mình chúc mừng hai bạn nhiều nha!</span></div>
+        </section>
+
+        <!-- Album ảnh -->
+        <section id="section-photos" class="mi-sec">
+          <div class="mi-msg mi-me"><span class="mi-b" data-cx-say="{Hai} cho {toi} xem ảnh cưới với được không?">Hai bạn cho mình xem ảnh cưới với được không?</span></div>
+          <div class="mi-msg" data-typing>
+            <span class="mi-who" id="mi-who-g2">----------</span>
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b" data-cx-say="{Duoc}, {ta} gửi {goi} trọn album luôn {ne} 📸">Được chứ, tụi mình gửi bạn trọn album luôn nè 📸</span>
+          </div>
+          <div class="mi-msg">
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b mi-album">
+              <span id="gallery-grid" class="mi-grid"></span>
+              <span class="mi-acap">Album cưới<small id="mi-album-count">0 ảnh</small></span>
+            </span>
+          </div>
+        </section>
+
+        <!-- Lễ + tiệc: thẻ sự kiện -->
+        <section id="section-ceremony" class="mi-sec">
+          <div class="mi-msg mi-me"><span class="mi-b" data-cx-say="Ảnh đẹp quá 😍 {Hai} cưới vào ngày nào vậy?">Ảnh đẹp quá 😍 Hai bạn cưới vào ngày nào vậy?</span></div>
+          <div class="mi-msg" data-typing>
+            <span class="mi-who" id="mi-who-b2">----------</span>
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b" data-cx-say="{Ta} làm lễ vào ngày này, {goi} lưu lại lịch giúp {ta} {nhe} 🗓️">Tụi mình làm lễ vào ngày này, bạn lưu lại lịch giúp tụi mình nhé 🗓️</span>
+          </div>
+          <div class="mi-msg">
+            <span class="mi-b mi-ev">
+              <span class="mi-evtop">
+                <span class="mi-cal"><small id="mi-cal-m">THG --</small><b id="mi-cal-d">--</b></span>
+                <span><strong id="ceremony-event-name">Lễ Thành Hôn</strong><em id="mi-ev-date">--.--.----</em></span>
+              </span>
+              <span class="mi-evbody">
+                <span class="mi-evrow"><i>💍</i><span><span id="mi-ev-cer">--:--</span><small id="mi-ev-cer-sub"></small></span></span>
+                <span id="section-party" class="mi-evrow"><i>🥂</i><span><span id="mi-ev-party">--:--</span><small id="mi-ev-party-sub"></small></span></span>
+              </span>
+              <a class="mi-evbtn" id="mi-ev-add" href="#" target="_blank" rel="noopener">Thêm vào lịch</a>
+            </span>
+          </div>
+        </section>
+
+        <!-- Địa điểm: tin nhắn chia sẻ vị trí. #map-location-name + #map-link đứng CUỐI. -->
+        <section id="section-map" class="mi-sec">
+          <div class="mi-msg mi-me"><span class="mi-b" data-cx-say="Đám cưới của {hai} được tổ chức ở đâu thế?">Đám cưới của hai bạn được tổ chức ở đâu thế?</span></div>
+          <div class="mi-msg" data-typing>
+            <span class="mi-who" id="mi-who-g3">----------</span>
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b" data-cx-say="{Ta} gửi {goi} vị trí {ne}, bấm vào là có chỉ đường luôn 📍">Tụi mình gửi bạn vị trí nè, bấm vào là có chỉ đường luôn 📍</span>
+          </div>
+          <div class="mi-msg">
+            <span class="mi-b mi-loc">
+              <span class="mi-loc-name" id="map-location-name">------------------------</span>
+              <a id="map-link" href="#" target="_blank" class="mi-loc-link">
+                <span class="mi-loc-map">
+                  <iframe id="map-thumbnail-iframe" src="" width="100%" height="100%" class="border-0 pointer-events-none" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                  <span id="map-placeholder" class="hidden mi-loc-ph">
+                    <i data-lucide="map-pinned" style="width: 24px; height: 24px"></i>
+                    <span>Chưa có bản đồ</span>
+                  </span>
+                </span>
+                <span class="mi-evbtn" data-mi-dir>Mở chỉ đường</span>
+              </a>
+            </span>
+          </div>
+        </section>
+
+        <!-- Xác nhận tham dự: câu hỏi + hai câu trả lời nhanh -->
+        <section id="rsvp-section" class="mi-sec" style="display: none">
+          <div class="mi-msg" data-typing>
+            <span class="mi-who" id="mi-who-b3">----------</span>
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b" id="rsvp-custom-message" data-cx-say="{Goi} sắp xếp tới chung vui với {ta} được không{a}?">Bạn sắp xếp tới chung vui với tụi mình được không?</span>
+          </div>
+          <div class="mi-msg mi-me mi-quick">
+            <x-button variant="bare" id="btn-attend" onclick="confirmAttend(true)" class="mi-chip" data-cx-say="{Toi} sẽ tới chung vui 🙌">Mình sẽ tới chung vui 🙌</x-button>
+            <x-button variant="bare" id="btn-decline" onclick="confirmAttend(false)" class="mi-chip" data-cx-say="Tiếc quá, hôm đó {toi} bận mất rồi">Tiếc quá, hôm đó mình bận mất rồi</x-button>
+          </div>
+          <div class="mi-msg"><span id="attend-msg" class="mi-b hidden"></span></div>
+        </section>
+
+        <!-- Quà mừng: tin nhắn quà tặng, chạm để mở rộng ra mã QR -->
+        <section id="section-gift" class="mi-sec">
+          <div class="mi-msg mi-me"><span class="mi-b" data-cx-say="{Toi} muốn gửi chút quà mừng tới {hai}">Mình muốn gửi chút quà mừng tới hai bạn</span></div>
+          <div class="mi-msg" data-typing>
+            <span class="mi-who" id="mi-who-b4">----------</span>
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b" data-cx-say="{Goi} có lòng quá, {ta} cảm ơn {goi} nhiều {nha} 🥰 Mã QR của {ta} đây{a}">Bạn có lòng quá, tụi mình cảm ơn bạn nhiều nha 🥰 Mã QR của tụi mình đây</span>
+          </div>
+          <div class="mi-msg">
+            <span class="mi-b mi-pay" id="mi-pay">
+              <x-button variant="bare" class="mi-paytop" data-mi-pay aria-expanded="false">
+                <i class="mi-pay-ic">🎁</i>
+                <span class="mi-pay-txt"><b>Quà mừng cưới</b><small>Chạm để xem mã QR</small></span>
+                <i data-lucide="chevron-down" class="mi-pay-chev" style="width: 18px; height: 18px"></i>
+              </x-button>
+              <span class="mi-payqr">
+                <span>
+                  <span data-cx-gift="qr" class="mi-qrs">
+                    <span class="mi-qr-card">
+                      <span class="mi-qr-who">Chú rể · <span id="groom-bank-label">----------</span></span>
+                      <img id="groom-qr-img" class="mi-qr" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR Chú Rể" />
+                      <span class="mi-bank"><span id="groom-bank-name">----------</span> <span id="groom-bank-number">------------</span><br /><span id="groom-bank-owner">--------------------</span></span>
+                      <x-button variant="bare" class="mi-save" onclick="saveQR('groom-qr-img')">Lưu mã QR</x-button>
+                    </span>
+                    <span class="mi-qr-card">
+                      <span class="mi-qr-who">Cô dâu · <span id="bride-bank-label">----------</span></span>
+                      <img id="bride-qr-img" class="mi-qr" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="QR Cô Dâu" />
+                      <span class="mi-bank"><span id="bride-bank-name">----------</span> <span id="bride-bank-number">------------</span><br /><span id="bride-bank-owner">--------------------</span></span>
+                      <x-button variant="bare" class="mi-save" onclick="saveQR('bride-qr-img')">Lưu mã QR</x-button>
+                    </span>
+                  </span>
+                </span>
+              </span>
+            </span>
+          </div>
+        </section>
+
+        <!-- Lời cảm ơn: tin cuối, có tim bay lên -->
+        <section id="section-footer" class="mi-sec">
+          <div class="mi-msg mi-last" data-typing>
+            <span class="mi-who" id="mi-who-b5">----------</span>
+            <span class="mi-dots"><i></i><i></i><i></i></span>
+            <span class="mi-b" id="footer-text" data-cx-say="{Ta} thương {goi} nhiều, hẹn gặp {goi} ở đám cưới {nha} ❤️">Tụi mình thương bạn nhiều, hẹn gặp bạn ở đám cưới nha ❤️</span>
+            <span class="mi-hearts" aria-hidden="true"><i style="--d: 0.1s; --x: -20px">❤️</i><i style="--d: 0.4s; --x: 10px">💜</i><i style="--d: 0.7s; --x: -6px">❤️</i><i style="--d: 1s; --x: 16px">💗</i></span>
+          </div>
+        </section>
+
+        <!-- Ô nhập (dính đáy): chạm là tới ô gửi lời chúc -->
+        <!-- Thanh đáy (dính): tầng trên tóm tắt ai đã chúc → mở cửa sổ lời chúc; tầng dưới là
+             ô nhắn → mở cửa sổ và đặt con trỏ vào ô gõ. index.js bật từng tầng theo dữ liệu. -->
+        <div id="mi-input" class="mi-input hidden">
+          <x-button variant="bare" id="mi-wish-peek" class="mi-peek hidden" data-mi-wishopen aria-label="Xem lời chúc">
+            <span id="mi-wish-faces" class="mi-faces" aria-hidden="true"></span>
+            <span id="mi-wish-peek-text" class="mi-peek-text"></span>
+            <i data-lucide="chevron-right" class="mi-peek-go" style="width: 16px; height: 16px"></i>
+          </x-button>
+          <x-button variant="bare" id="mi-wish-write" class="mi-input-btn hidden" data-mi-wishopen data-mi-wishwrite>
+            <span class="mi-input-ph" data-cx-say="Nhắn lời chúc tới {hai}…">Nhắn lời chúc tới hai bạn…</span>
+            <i class="mi-input-go"><i data-lucide="arrow-up" style="width: 18px; height: 18px"></i></i>
+          </x-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Lời chúc: cửa sổ kéo từ trên xuống (nửa màn), mở từ nút "Xem lời chúc" / ô nhập.
+         Ruột là #cx-wish-sec của wishes-helper (index.js chuyển vào #mi-wish-slot). ═══ -->
+    <div id="mi-wishes" class="mi-wpanel" aria-hidden="true">
+      <div class="mi-wpanel-veil" data-mi-wishclose></div>
+      <div class="mi-wpanel-sheet" role="dialog" aria-label="Lời chúc">
+        <img class="mi-wpanel-bg" data-mi-img="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" loading="lazy" />
+        <div class="mi-wpanel-bar">
+          <span>
+            <small id="mi-wpanel-date">Hôm nay</small>
+            <b>Lời chúc</b>
+          </span>
+          <x-button variant="bare" class="mi-wpanel-x" data-mi-wishclose aria-label="Đóng"><i data-lucide="x" style="width: 16px; height: 16px"></i></x-button>
+        </div>
+        <div id="mi-wish-slot" class="mi-wpanel-body"></div>
+        <div class="mi-wpanel-grip" data-mi-wishgrip aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- ═══ Trình xem album: vuốt ngang, bộ đếm + dải ảnh nhỏ đi theo ảnh đang xem ═══ -->
+    <div id="mi-lb" class="mi-lb" role="dialog" aria-label="Album ảnh cưới" aria-hidden="true">
+      <div class="mi-lbbar">
+        <x-button variant="bare" class="mi-lbbtn" data-mi-lbclose aria-label="Đóng"><i data-lucide="x" style="width: 16px; height: 16px"></i></x-button>
+        <span><b>Album cưới</b><small id="mi-lbn">1 / 1</small></span>
+        <span></span>
+      </div>
+      <div class="mi-lbtrack" id="mi-lbtrack"></div>
+      <x-button variant="bare" class="mi-lbbtn mi-lbnav is-prev" data-mi-lbstep="-1" aria-label="Ảnh trước"><i data-lucide="chevron-left" style="width: 16px; height: 16px"></i></x-button>
+      <x-button variant="bare" class="mi-lbbtn mi-lbnav is-next" data-mi-lbstep="1" aria-label="Ảnh sau"><i data-lucide="chevron-right" style="width: 16px; height: 16px"></i></x-button>
+      <div class="mi-lbthumbs" id="mi-lbthumbs"></div>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — GIỮ NGUYÊN khi chép sang mẫu mới ═══════════ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- DAL → BL → khởi tạo instance -->
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+    <!-- Xưng hô đối lại theo danh xưng khách (câu chat [data-cx-say]) -->
+    <script src="../../../core/helpers/xung-ho-helper.js"></script>
+
+    <!-- Helper dùng chung -->
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper
+         (runtime thành phần ở đó đọc window.CX_ELEMENTS) -->
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <!-- Bản khai của mẫu + renderWedding -->
+    <script src="index.js"></script>
+    <!-- Chrome giả lập điện thoại của khung xem thử trên máy tính. -->
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <!-- Khởi động. Phải nạp SAU index.js. -->
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>
