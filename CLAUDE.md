@@ -443,7 +443,8 @@ tên thư mục là `weddings.theme` + khoá của `template_pricing`, đổi l�
   mặc định `#section-footer`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không
   vẽ mục đó — id trùng `CX_STEPS`), `revealItems` (selector ảnh bay vào RIÊNG từng tấm khi cuộn
   tới — không khai thì chỉ cả mục hiện dần), `wishesMode` (dạng lời chúc khi
-  `theme_setting.wishes_mode` trống),
+  `theme_setting.wishes_mode` trống), `wishesFixed` (`true` = dạng đó là một phần của mẫu:
+  helper bỏ qua `wishes_mode` đã lưu, trang Thiết lập ẩn tab Lời chúc),
   `music` (`{variant, chrome}` của `CXMusicPlayer.build`, `theme-boot.js` dựng vào
   `#cx-music-mount`; `art` = ảnh trên nút khi khách chưa chọn, mọi mẫu đang để
   `"couple"` = ảnh bìa thiệp), `loveStory` (`short`/`medium`/`long` — độ dài mốc chuyện tình XuXi
@@ -703,6 +704,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   client KHÔNG chứng minh gì** — đừng dời phép kiểm tra đó lên trang. Danh sách lời chúc ai
   mở link cũng đọc được (`action=wishes-list`); khách gửi rồi không sửa/xoá, chỉ chủ thiệp
   xoá ở tab Khách mời.
+- **Xưng hô đối lại theo khách:** `core/helpers/xung-ho-helper.js` (`CXXungHo`) tra danh xưng
+  của link mời (Cô ↔ cháu, Anh ↔ em…) rồi điền câu khuôn `[data-cx-say="{Chao} ơi, {ta}…"]`.
+  Mẫu nào dùng thì tự nạp + gọi `CXXungHo.apply()` trong `renderWedding`; thêm danh xưng
+  mới vào `GUEST_RELATIONS` thì thêm một hàng ở `TABLE` của helper, không thì nó xưng như "Bạn".
 - **Mẫu văn bản (preset):** danh mục + CSS ở `core/helpers/text-preset-helper.js` (nạp TRƯỚC
   `theme-setting-helper.js`), thêm mẫu chỉ sửa file đó. Lưu trong `custom_blocks` dạng
   `{type:"preset", preset, parts}`, id thật của part là `<blockId>__<key>`. Cỡ chữ viết bằng

@@ -1,0 +1,798 @@
+/* Đồng Hành Trăm Năm — giấy vé kem, xanh đường ray, chữ xanh than, nhấn đỏ tem vé.
+   CSS THUẦN, nạp sau styles/themes.css. Mọi màu đi qua --cx-*-rgb. */
+
+:root {
+  --cx-heading-rgb: 36 54 94;
+  --cx-body-rgb: 90 101 130;
+  --cx-accent-rgb: 194 65 45;
+  --cx-accent-soft-rgb: 243 179 61;
+  --cx-on-accent-rgb: 255 255 255;
+  --cx-on-image-rgb: 255 255 255;
+  --cx-on-lightbox-rgb: 255 255 255;
+  --cx-card-bg-rgb: 239 231 207;
+  --cx-page-bg-rgb: 226 216 187;
+  --cx-surface-rgb: 255 248 230; /* nền vé, thẻ */
+  --cx-band-rgb: 246 239 218;
+  --cx-panel-rgb: 255 248 230;
+  --cx-panel-warm-rgb: 243 236 216; /* nền bản đồ */
+  --cx-cover-rgb: 47 93 80; /* nền màn mở đầu (xanh ga tàu) */
+  --cx-cover-mid-rgb: 38 73 63; /* tà vẹt */
+  --cx-cover-veil-rgb: 47 93 80;
+  --cx-lightbox-bg-rgb: 0 0 0;
+  --cx-line-rgb: 220 207 170; /* đường phố trên bản đồ */
+  --cx-shadow-rgb: 0 0 0;
+  --cx-scrim-rgb: 0 0 0;
+  --cx-deco-rgb: 243 179 61; /* số trên bảng giờ tàu */
+  --cx-deco-soft-rgb: 230 224 204; /* chữ trên nền xanh */
+  --cx-deco-2-rgb: 34 38 43; /* bảng giờ tàu */
+  --cx-deco-2-soft-rgb: 169 176 184; /* nhãn bảng giờ, đường ray */
+  --cx-shine-from-rgb: 243 179 61;
+  --cx-shine-mid-rgb: 210 195 153; /* đường lớn trên bản đồ */
+  --cx-shine-to-rgb: 194 65 45;
+
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-rgb);
+  --music-bubble-to-rgb: var(--cx-heading-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-rgb);
+  --music-art-to-rgb: var(--cx-heading-rgb);
+}
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+  color: rgb(var(--cx-heading-rgb));
+  font-family: "Chakra Petch", sans-serif;
+}
+
+.cx-h {
+  font-family: "Big Shoulders Display", sans-serif;
+}
+
+.cx-t {
+  font-family: "Chakra Petch", sans-serif;
+}
+
+/* ── Mở đầu: nền xanh, đường ray dưới đáy ── */
+.t3-cover {
+  position: relative;
+  min-height: calc(var(--vh, 1vh) * 95);
+  min-height: calc(var(--vh, 1svh) * 95);
+  background: rgb(var(--cx-cover-rgb));
+  padding: 64px 22px 120px;
+  overflow: hidden;
+}
+
+.t3-cover::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 92px;
+  background:
+    linear-gradient(
+      transparent 30px,
+      rgb(var(--cx-deco-2-soft-rgb)) 30px 34px,
+      transparent 34px 62px,
+      rgb(var(--cx-deco-2-soft-rgb)) 62px 66px,
+      transparent 66px
+    ),
+    repeating-linear-gradient(90deg, rgb(var(--cx-cover-mid-rgb)) 0 12px, transparent 12px 36px);
+}
+
+.t3-board {
+  background: rgb(var(--cx-deco-2-rgb));
+  border-radius: 10px;
+  padding: 10px 16px;
+  box-shadow:
+    inset 0 0 0 2px rgb(var(--cx-on-image-rgb) / 0.08),
+    0 14px 24px -14px rgb(var(--cx-shadow-rgb));
+}
+
+.t3-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid rgb(var(--cx-on-image-rgb) / 0.08);
+  color: rgb(var(--cx-deco-2-soft-rgb));
+  font-size: 13px;
+}
+
+.t3-row:first-child {
+  border-top: 0;
+}
+
+.t3-flaps {
+  display: flex;
+  gap: 3px;
+  perspective: 200px;
+}
+
+.t3-fl {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 30px;
+  background:
+    linear-gradient(rgb(var(--cx-on-image-rgb) / 0.07) 50%, rgb(var(--cx-on-image-rgb) / 0.03) 50%),
+    rgb(var(--cx-deco-2-rgb));
+  color: rgb(var(--cx-deco-rgb));
+  font: 700 22px "Big Shoulders Display", sans-serif;
+  border-radius: 3px;
+  position: relative;
+}
+
+.t3-fl::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgb(var(--cx-shadow-rgb) / 0.5);
+}
+
+.t3-fl.is-sep {
+  background: none;
+  width: 8px;
+}
+
+.t3-fl.is-sep::after {
+  display: none;
+}
+
+.t3-fl.is-flip {
+  animation: cx-t3-flip 0.07s linear;
+}
+
+@keyframes cx-t3-flip {
+  from {
+    transform: rotateX(75deg);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.t3-dest {
+  font: 700 22px "Big Shoulders Display", sans-serif;
+  color: rgb(var(--cx-deco-rgb));
+  letter-spacing: 0.03em;
+}
+
+/* Vé: khoét hai nửa vòng hai bên, trượt vào rồi bị bấm lỗ */
+.t3-ticket {
+  position: relative;
+  margin-top: 30px;
+  background: rgb(var(--cx-card-bg-rgb));
+  color: rgb(var(--cx-heading-rgb));
+  border-radius: 6px;
+  padding: 22px 22px 18px 34px;
+  opacity: 0;
+  transform: translateY(70px) rotate(-10deg);
+  transition:
+    transform 1s cubic-bezier(0.2, 0.9, 0.25, 1.15) 0.9s,
+    opacity 0.4s 0.9s;
+  -webkit-mask:
+    radial-gradient(circle at 0 50%, transparent 12px, #000 12.5px) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, transparent 12px, #000 12.5px) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle at 0 50%, transparent 12px, #000 12.5px) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, transparent 12px, #000 12.5px) right / 51% 100% no-repeat;
+}
+
+.t3-live .t3-ticket {
+  opacity: 1;
+  transform: rotate(-3deg);
+}
+
+.t3-ticket::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 14px;
+  bottom: 14px;
+  border-left: 2px dashed rgb(var(--cx-heading-rgb) / 0.3);
+}
+
+.t3-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.t3-names {
+  font: 900 46px/0.95 "Big Shoulders Display", sans-serif;
+  text-transform: uppercase;
+  margin: 14px 0 16px;
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+}
+
+.t3-ticket dl {
+  display: flex;
+  gap: 22px;
+  margin: 0 0 16px;
+}
+
+.t3-ticket dt {
+  font-size: 11px;
+  color: rgb(var(--cx-body-rgb) / 0.9);
+}
+
+.t3-ticket dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.t3-barcode {
+  height: 38px;
+  width: 220px;
+  max-width: 100%;
+}
+
+.t3-punch,
+.t3-chad {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.t3-punch {
+  background: rgb(var(--cx-cover-rgb));
+  box-shadow: inset 1px 2px 3px rgb(var(--cx-shadow-rgb) / 0.45);
+  transform: scale(0);
+}
+
+.t3-live .t3-punch {
+  animation: cx-t3-pop 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) 2.6s forwards;
+}
+
+@keyframes cx-t3-pop {
+  to {
+    transform: none;
+  }
+}
+
+.t3-chad {
+  background: rgb(var(--cx-card-bg-rgb));
+  opacity: 0;
+}
+
+.t3-live .t3-chad {
+  animation: cx-t3-chad 1.2s ease-in 2.62s forwards;
+}
+
+@keyframes cx-t3-chad {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(40px, 420px) rotate(240deg) scaleX(0.4);
+  }
+}
+
+.t3-guest {
+  color: rgb(var(--cx-deco-soft-rgb));
+  font-size: 14px;
+  text-align: center;
+  margin-top: 36px;
+}
+
+/* Bản xem thử ?guest= gắn .flex lên dòng này → chữ, dấu ":" và tên thành ô flex riêng,
+   mất dấu cách. Giữ nó là đoạn văn thường. */
+#cover-guest-wrap.flex {
+  display: block;
+}
+
+.t3-guest b {
+  color: rgb(var(--cx-deco-rgb));
+  font-weight: 600;
+}
+
+.t3-intro {
+  color: rgb(var(--cx-deco-soft-rgb));
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: center;
+  margin: 40px auto 0;
+  max-width: 290px;
+}
+
+/* ── Các mục ── */
+.t3-sec {
+  position: relative;
+  padding: 56px 28px;
+}
+
+.t3-h {
+  font: 900 34px/1 "Big Shoulders Display", sans-serif;
+  margin-bottom: 24px;
+}
+
+/* Các ga đã qua */
+.t3-past {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.t3-past li {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 8px;
+  background: rgb(var(--cx-surface-rgb));
+  border: 2px solid rgb(var(--cx-heading-rgb));
+  border-radius: 8px;
+}
+
+.t3-past li.no-ph {
+  grid-template-columns: 1fr;
+  padding: 12px 14px;
+}
+
+.t3-past img {
+  width: 84px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.t3-past time {
+  font-weight: 600;
+  font-size: 13px;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.t3-past b {
+  display: block;
+  font: 700 22px "Big Shoulders Display", sans-serif;
+}
+
+.t3-past span {
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Lịch trình: đường ray dài ra, các ga bật lên lần lượt */
+.t3-line {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 34px;
+  position: relative;
+}
+
+.t3-line::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  bottom: 30px;
+  width: 4px;
+  background: rgb(var(--cx-heading-rgb));
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 1.4s ease;
+}
+
+.visible .t3-line::before {
+  transform: none;
+}
+
+.t3-line li {
+  position: relative;
+  padding: 0 0 26px;
+}
+
+.t3-line li::before {
+  content: "";
+  position: absolute;
+  left: -32px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: rgb(var(--cx-card-bg-rgb));
+  border: 4px solid rgb(var(--cx-heading-rgb));
+  transform: scale(0);
+  transition: transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) calc(var(--d) * 0.35s + 0.2s);
+}
+
+.t3-line li:last-child::before {
+  background: rgb(var(--cx-accent-rgb));
+  border-color: rgb(var(--cx-accent-rgb));
+}
+
+.visible .t3-line li::before {
+  transform: none;
+}
+
+.t3-line time {
+  font-weight: 600;
+  font-size: 14px;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.t3-line b {
+  display: block;
+  font: 700 24px "Big Shoulders Display", sans-serif;
+}
+
+.t3-line span {
+  display: block;
+  font-size: 13px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Sơ đồ tuyến */
+.t3-mapbox {
+  border: 3px solid rgb(var(--cx-heading-rgb));
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 6px 0 16px;
+  transform: scale(0.96);
+  transition: transform 0.8s;
+}
+
+.visible .t3-mapbox {
+  transform: none;
+}
+
+.t3-mapbar {
+  background: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-card-bg-rgb));
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.t3-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.t3-svg .m-bg {
+  fill: rgb(var(--cx-panel-warm-rgb));
+}
+
+.t3-svg .m-water {
+  fill: rgb(var(--cx-heading-rgb) / 0.3);
+}
+
+.t3-svg .m-park {
+  fill: rgb(var(--cx-cover-rgb) / 0.28);
+}
+
+.t3-svg .m-roads path,
+.t3-svg .m-major path,
+.t3-svg .m-route {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.t3-svg .m-roads path {
+  stroke: rgb(var(--cx-line-rgb));
+  stroke-width: 4;
+}
+
+.t3-svg .m-major path {
+  stroke: rgb(var(--cx-shine-mid-rgb));
+  stroke-width: 7;
+}
+
+.t3-svg .m-route {
+  stroke: rgb(var(--cx-heading-rgb));
+  stroke-width: 4;
+  stroke-dasharray: 0.025 0.012;
+}
+
+.t3-svg .m-train rect,
+.t3-svg .m-drop,
+.t3-svg .m-halo {
+  fill: rgb(var(--cx-accent-rgb));
+}
+
+.t3-svg .m-train circle {
+  fill: rgb(var(--cx-heading-rgb));
+}
+
+.t3-svg .m-dot {
+  fill: rgb(var(--cx-card-bg-rgb));
+}
+
+.t3-svg .m-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cx-t3-pin 2.4s ease-out infinite;
+}
+
+@keyframes cx-t3-pin {
+  from {
+    transform: scale(0.4);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.t3-svg .m-label {
+  font: 600 11px "Chakra Petch", sans-serif;
+  fill: rgb(var(--cx-heading-rgb));
+}
+
+.t3-addr {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.t3-when {
+  margin-bottom: 0;
+}
+
+#map-location-name,
+#map-location-name-2 {
+  margin-bottom: 16px;
+}
+
+.cx-map-dual .t3-when {
+  display: none;
+}
+
+.t3-btn {
+  display: inline-flex;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  font: 600 14px "Chakra Petch", sans-serif;
+  text-decoration: none;
+}
+
+#section-map .cx-map-tag {
+  font: 700 20px "Big Shoulders Display", sans-serif;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+#section-map .cx-map-tag-next {
+  margin-top: 28px;
+}
+
+/* Xác nhận lên tàu: JS đặt display:flex inline nên chỉ khai hướng cột ở đây */
+.t3-rsvp {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.t3-rsvp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* Khách trả lời xong helper gắn .hidden lên hàng — display:grid ở trên đè mất nếu thiếu dòng này. */
+.t3-rsvp-row.hidden {
+  display: none;
+}
+
+.t3-pick {
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 12px;
+  border-radius: 12px;
+  border: 1.5px dashed rgb(var(--cx-line-rgb));
+  background: rgb(var(--cx-surface-rgb));
+  color: rgb(var(--cx-heading-rgb));
+  transition: transform 0.15s ease;
+}
+
+.t3-pick:active {
+  transform: scale(0.96);
+}
+
+.t3-pick b {
+  font: 700 20px/1 "Big Shoulders Display", sans-serif;
+}
+
+.t3-pick small {
+  font-size: 12px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+#btn-attend b {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.t3-attend {
+  margin-top: 16px;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* Vé quà mừng: cuống đỏ che QR, chạm là xé rơi */
+.t3-gift {
+  text-align: center;
+}
+
+.t3-gifts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.t3-gt {
+  position: relative;
+  width: 100%;
+  max-width: 330px;
+  height: 176px;
+  margin-top: 10px;
+}
+
+.t3-gmain {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--cx-surface-rgb));
+  border: 2px solid rgb(var(--cx-heading-rgb));
+  border-radius: 8px;
+  padding: 16px;
+  text-align: left;
+}
+
+.t3-gmain b {
+  display: block;
+  font: 900 30px/1 "Big Shoulders Display", sans-serif;
+}
+
+.t3-gmain em {
+  display: block;
+  font-style: normal;
+  font-size: 12px;
+  color: rgb(var(--cx-body-rgb));
+  margin: 4px 0 14px;
+}
+
+.t3-bank {
+  display: block;
+  width: 160px;
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.t3-qr {
+  position: absolute;
+  right: 16px;
+  top: 24px;
+  width: 118px;
+  aspect-ratio: 1;
+  padding: 4px;
+  background: rgb(var(--cx-qr-bg-rgb));
+  border-radius: 4px;
+}
+
+.t3-qr img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.t3-stub {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 146px;
+  background: rgb(var(--cx-accent-rgb));
+  border-radius: 0 8px 8px 0;
+  border-left: 3px dashed rgb(var(--cx-card-bg-rgb));
+  color: rgb(var(--cx-on-accent-rgb) / 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font: 600 15px "Chakra Petch", sans-serif;
+  cursor: pointer;
+  transform-origin: 0 100%;
+  transition:
+    transform 0.6s,
+    opacity 0.4s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.t3-stub small {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.t3-gt.is-open .t3-stub {
+  transform: translate(30px, 170px) rotate(26deg);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.8s cubic-bezier(0.5, 0, 0.6, 1),
+    opacity 0.4s 0.5s;
+}
+
+.t3-hint {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-top: 14px;
+}
+
+/* Lời cảm ơn */
+.t3-end {
+  background: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-card-bg-rgb));
+  text-align: center;
+  padding: 52px 28px 64px;
+}
+
+.t3-end .t3-h {
+  margin-bottom: 8px;
+}
+
+.t3-end-note {
+  margin: 14px auto 0;
+  max-width: 300px;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t3-ticket,
+  .t3-line::before,
+  .t3-line li::before,
+  .t3-mapbox,
+  .t3-stub {
+    transition: none;
+  }
+
+  .t3-live .t3-punch {
+    animation: none;
+    transform: none;
+  }
+
+  .t3-live .t3-chad {
+    animation: none;
+  }
+}

@@ -290,7 +290,7 @@ function decryptData(encryptedText) {
 
 // Khách giả lập của nút "Xem với tư cách khách mời" ở bản xem thử mẫu (menu
 // khung máy ở theme-boot.js + bảng gợi ý cuối thiệp).
-const CX_DEMO_GUEST = { name: "Nguyễn Văn An", rel: "Anh" };
+const CX_DEMO_GUEST = { name: "Ngọc Ánh", rel: "Em" };
 
 function isPreviewMode() {
   return window.location.search.includes("preview=true");
