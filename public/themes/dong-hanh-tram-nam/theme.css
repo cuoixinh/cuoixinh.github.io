@@ -301,6 +301,12 @@ body {
   margin-top: 36px;
 }
 
+/* Bản xem thử ?guest= gắn .flex lên dòng này → chữ, dấu ":" và tên thành ô flex riêng,
+   mất dấu cách. Giữ nó là đoạn văn thường. */
+#cover-guest-wrap.flex {
+  display: block;
+}
+
 .t3-guest b {
   color: rgb(var(--cx-deco-rgb));
   font-weight: 600;
@@ -584,6 +590,59 @@ body {
 
 #section-map .cx-map-tag-next {
   margin-top: 28px;
+}
+
+/* Xác nhận lên tàu: JS đặt display:flex inline nên chỉ khai hướng cột ở đây */
+.t3-rsvp {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.t3-rsvp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* Khách trả lời xong helper gắn .hidden lên hàng — display:grid ở trên đè mất nếu thiếu dòng này. */
+.t3-rsvp-row.hidden {
+  display: none;
+}
+
+.t3-pick {
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 12px;
+  border-radius: 12px;
+  border: 1.5px dashed rgb(var(--cx-line-rgb));
+  background: rgb(var(--cx-surface-rgb));
+  color: rgb(var(--cx-heading-rgb));
+  transition: transform 0.15s ease;
+}
+
+.t3-pick:active {
+  transform: scale(0.96);
+}
+
+.t3-pick b {
+  font: 700 20px/1 "Big Shoulders Display", sans-serif;
+}
+
+.t3-pick small {
+  font-size: 12px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+#btn-attend b {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.t3-attend {
+  margin-top: 16px;
+  color: rgb(var(--cx-accent-rgb));
 }
 
 /* Vé quà mừng: cuống đỏ che QR, chạm là xé rơi */

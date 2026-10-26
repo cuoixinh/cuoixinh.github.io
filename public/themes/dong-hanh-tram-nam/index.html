@@ -107,6 +107,22 @@
           <a id="map-link" href="#" target="_blank" rel="noopener" class="t3-btn">Mở chỉ đường</a>
         </section>
 
+        <!-- ═══ MỤC: Xác nhận lên tàu (rsvp_enabled) — confirmAttend() của wedding-helper
+             lo phần ghi + nút "Đổi ý"; mẫu chỉ cần #btn-attend/#btn-decline/#attend-msg. ═══ -->
+        <section id="rsvp-section" class="t3-sec t3-rsvp" style="display: none">
+          <h3 class="t3-h">Xác nhận lên tàu</h3>
+          <p id="rsvp-custom-message" class="t3-addr hidden"></p>
+          <div class="t3-rsvp-row">
+            <x-button variant="bare" id="btn-attend" onclick="confirmAttend(true)" class="t3-pick">
+              <b>Có mặt</b><small>Giữ ghế cho mình</small>
+            </x-button>
+            <x-button variant="bare" id="btn-decline" onclick="confirmAttend(false)" class="t3-pick">
+              <b>Lỡ chuyến</b><small>Lần này mình bận</small>
+            </x-button>
+          </div>
+          <p id="attend-msg" class="t3-addr t3-attend hidden"></p>
+        </section>
+
         <!-- ═══ MỤC: Vé quà mừng (enable_gift). Cuống vé che mã QR, chạm là xé rơi. ═══ -->
         <section id="section-gift" class="t3-sec t3-gift">
           <h3 class="t3-h">Vé quà mừng</h3>

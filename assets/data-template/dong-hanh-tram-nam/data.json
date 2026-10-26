@@ -100,7 +100,7 @@
     }
   ],
   "content": {
-    "groom_name": "Đăng Khoa",
+    "groom_name": "Thanh Hưng",
     "bride_name": "Thu Trang",
     "groom_father": "Trần Văn Thịnh",
     "groom_mother": "Đỗ Thị Hạnh",
@@ -132,12 +132,12 @@
     "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.8440,106.7100&output=embed&hl=vi",
     "groom_bank_name": "BIDV",
     "groom_bank_number": "21510003456789",
-    "groom_bank_owner": "TRAN DANG KHOA",
+    "groom_bank_owner": "TRAN THANH HUNG",
     "bride_bank_name": "MB Bank",
     "bride_bank_number": "0987654321888",
     "bride_bank_owner": "NGUYEN THU TRANG",
     "story_quote": "Mời bạn lên tàu cùng tụi mình, chuyến này không có ga về.",
-    "rsvp_enabled": false,
+    "rsvp_enabled": true,
     "rsvp_message": "Tàu sắp lăn bánh, ghế của bạn đã chừa sẵn. Xác nhận giúp tụi mình để nhà hàng chuẩn bị chu đáo nhé.",
     "footer_text": "Cảm ơn bạn đã cùng tụi mình đi hết chặng đường này.",
     "enable_music": true,

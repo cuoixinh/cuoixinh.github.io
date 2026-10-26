@@ -70,6 +70,15 @@
     // Ảnh màn đầu nhận src TRƯỚC setupMusic (YouTube API đi sau).
     renderCover(w);
     _fillPhotos(w);
+    // Câu khen ảnh đầu mục Lễ cưới chỉ hợp khi vừa gửi album — đổi câu khuôn trước khi
+    // CXXungHo điền (không thêm/bớt tin để khỏi lệch :nth-child của text_overrides).
+    if (!cxEnabled(w.enable_photos)) {
+      const ask = document.getElementById("mi-ask-date");
+      if (ask) {
+        ask.dataset.cxSay = "{Hai} cưới vào ngày nào vậy?";
+        ask.textContent = "Hai bạn cưới vào ngày nào vậy?";
+      }
+    }
     // Câu chat [data-cx-say] xưng hô theo khách (Cô ↔ cháu…). Chạy trước các setText bên
     // dưới: lời chủ thiệp tự nhập (rsvp_message…) vẫn đè lên câu khuôn, rồi qua _say().
     _roles = window.CXXungHo?.apply(document.getElementById("main-card")) || null;
@@ -206,7 +215,8 @@
       el.src = getImageUrl(w[`${k}_image_url`]);
       el.style.objectPosition = cxFocal(fps[`${k}_image_url`]);
     });
-    const gal = w.gallery_images || [];
+    // Tắt Album thì ảnh trong tin nhắn lấy ảnh bìa, không lộ ảnh album.
+    const gal = (cxEnabled(w.enable_photos) && w.gallery_images) || [];
     document.querySelectorAll("img[data-mi-g]").forEach((el) => {
       const file = gal.length ? gal[+el.dataset.miG % gal.length] : w.cover_image_url;
       el.src = getImageUrl(file);
@@ -270,6 +280,11 @@
       m._miQ = true;
       io.unobserve(m);
       queue = queue.then(() => {
+        // Tin trong mục đang ẩn (tắt album, RSVP ở link chung…) không được giữ nhịp chờ.
+        if (!m.getClientRects().length) {
+          m.classList.add("in");
+          return;
+        }
         if (!m.hasAttribute("data-typing")) {
           m.classList.add("in");
           return wait(280);
@@ -581,7 +596,7 @@
   }
 
   function _date(s) {
-    const d = s ? new Date(s) : null;
+    const d = s ? new Date(s + "T00:00:00") : null;
     return d && !isNaN(d.getTime()) ? d : null;
   }
 

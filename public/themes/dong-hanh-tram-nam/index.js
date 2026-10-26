@@ -48,11 +48,11 @@
 
     wishes: { bubble: "#fff8e6", text: "#24365e", accent: "#c2412d", btn: "#c2412d" },
 
-    reveal: ["#love-story", "#section-ceremony", "#section-map", "#section-gift", "#section-footer"],
+    reveal: ["#love-story", "#section-ceremony", "#section-map", "#rsvp-section", "#section-gift", "#section-footer"],
     revealItems: ["#love-story-list li"],
 
-    // Mẫu không vẽ gia đình, album, xác nhận tham dự.
-    skipSteps: ["family", "photos", "rsvp"],
+    // Mẫu không vẽ gia đình, album.
+    skipSteps: ["family", "photos"],
     focus: {
       couple: ["#section-hero"],
       party: ["#section-ceremony", "#section-map"],
@@ -109,6 +109,14 @@
     setText("t3-map-time", when[1] ? `Khởi hành ${when[1]}` : "");
     _drawMap();
     renderVenueMaps(w, side);
+
+    // --- Xác nhận lên tàu ---
+    const rsvp = document.getElementById("rsvp-section");
+    if (rsvp) rsvp.style.display = cxEnabled(w.rsvp_enabled) ? "flex" : "none";
+    if (w.rsvp_message) {
+      setText("rsvp-custom-message", w.rsvp_message);
+      cxToggle("rsvp-custom-message", true);
+    }
 
     // --- Vé quà mừng ---
     renderQRCodes(w);
@@ -228,20 +236,25 @@
         sub: w[`${side}_party_location`],
       });
     }
-    if (cxEnabled(w.vu_quy_enabled) && w.vu_quy_time) {
+    // Nhà gái bật Vu Quy thì lễ vu quy THAY lễ chính, như base-theme.
+    if (side === "bride" && cxEnabled(w.vu_quy_enabled)) {
       stops.push({ date: w.ceremony_date, time: w.vu_quy_time, title: "Lễ vu quy", sub: w.vu_quy_location });
+    } else {
+      stops.push({
+        date: w.ceremony_date,
+        time: w.ceremony_time,
+        title: w.ceremony_name || "Lễ thành hôn",
+        sub: w.ceremony_location,
+      });
     }
-    stops.push({
-      date: w.ceremony_date,
-      time: w.ceremony_time,
-      title: w.ceremony_name || "Lễ thành hôn",
-      sub: w.ceremony_location,
-    });
 
     if (cxEnabled(w.enable_timeline) && Array.isArray(w.timeline)) {
       const dateOf = { ceremony: w.ceremony_date, party: w.groom_party_date, "bride-party": w.bride_party_date };
+      const partyOn = cxEnabled(w.enable_party);
       w.timeline.forEach((it) => {
         const t = it.type || "ceremony";
+        // Tắt Tiệc = khách không được mời tiệc → bỏ luôn mốc tiệc.
+        if (t !== "ceremony" && !partyOn) return;
         if (t === "party" && side !== "groom") return;
         if (t === "bride-party" && side !== "bride") return;
         const date = dateOf[t];
