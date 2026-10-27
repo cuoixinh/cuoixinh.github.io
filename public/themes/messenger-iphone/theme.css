@@ -692,13 +692,18 @@ body {
   margin-top: 4px;
 }
 
-.mi-chip {
+.mi-chip,
+#btn-rsvp-change {
   padding: 10px 16px;
   border: 1.5px solid rgb(var(--cx-accent-rgb));
   background: rgb(var(--cx-panel-rgb));
   color: rgb(var(--cx-accent-rgb));
   font-size: 14px;
   font-weight: 700;
+}
+
+#btn-rsvp-change {
+  gap: 8px;
 }
 
 /* Quà mừng */

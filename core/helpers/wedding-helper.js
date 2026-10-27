@@ -309,9 +309,12 @@ async function confirmAttend(attending, message) {
     msg.textContent = "Cảm ơn bạn đã phản hồi. Chúc bạn nhiều sức khỏe!";
   }
 
-  _rsvpShow(msg, true);
-
-  if (await _saveRsvp(attending, message, msg)) _hideRsvpButtons();
+  // Lời cảm ơn hiện CÙNG lúc giấu hai nút (sau khi gửi xong) — hiện trước là mục
+  // đổi khổ hai lần, nội dung giật lên giật xuống.
+  if (await _saveRsvp(attending, message, msg)) {
+    _rsvpShow(msg, true);
+    _hideRsvpButtons();
+  }
 }
 
 // Ẩn/hiện phần tử của mục xác nhận. Phải kèm inline display: theme.css nạp SAU
@@ -340,13 +343,17 @@ function _hideRsvpButtons() {
 }
 
 // Nút "Đổi ý" ngay dưới #attend-msg (helper tự chèn, mẫu không phải khai markup).
+// Mẫu muốn đặt chỗ khác thì khai một ô [data-cx-rsvp-change]: nút vào ô đó, KHÔNG
+// mang style inline (mẫu tự tạo kiểu #btn-rsvp-change), ô ẩn/hiện theo nút.
 // Trả lời lại thì server ghi đè lần trước nên chỉ cần mở lại hai nút.
 function _showRsvpChange() {
   const msg = document.getElementById("attend-msg");
   if (!msg) return;
+  const slot = document.querySelector("[data-cx-rsvp-change]");
   const old = document.getElementById("btn-rsvp-change");
   if (old) {
     _rsvpShow(old, true);
+    _rsvpShow(slot, true);
     return;
   }
   const b = document.createElement("x-button");
@@ -355,7 +362,7 @@ function _showRsvpChange() {
   b.setAttribute("class", "cx-t");
   b.setAttribute("onclick", "changeRsvp()");
   // Inline + token --cx-*: ăn theo bộ màu của mẫu mà không phải build CSS.
-  b.setAttribute(
+  if (!slot) b.setAttribute(
     "style",
     // Cao 44px = vùng chạm tối thiểu trên điện thoại; nhẹ hơn hai nút chính
     // (viền mảnh, nền trong) vì đây là hành động phụ.
@@ -369,7 +376,10 @@ function _showRsvpChange() {
   b.innerHTML =
     '<i data-lucide="rotate-ccw" aria-hidden="true" style="width:14px;height:14px"></i>' +
     "<span>Đổi ý</span>";
-  msg.after(b);
+  if (slot) {
+    slot.appendChild(b);
+    _rsvpShow(slot, true);
+  } else msg.after(b);
   const btn = document.getElementById("btn-rsvp-change");
   if (btn) window.lucide?.createIcons({ root: btn });
 }
@@ -387,6 +397,7 @@ function changeRsvp() {
   if (a.parentElement === d.parentElement) _rsvpShow(a.parentElement, true);
   _rsvpShow(document.getElementById("attend-msg"), false);
   _rsvpShow(document.getElementById("btn-rsvp-change"), false);
+  _rsvpShow(document.querySelector("[data-cx-rsvp-change]"), false);
 }
 
 // Ghi "Đã xem" cho khách của link; khách đã xác nhận từ trước thì giấu luôn hai
