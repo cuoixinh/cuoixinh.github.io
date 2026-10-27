@@ -309,23 +309,32 @@ async function confirmAttend(attending, message) {
     msg.textContent = "Cảm ơn bạn đã phản hồi. Chúc bạn nhiều sức khỏe!";
   }
 
-  msg.classList.remove("hidden");
+  _rsvpShow(msg, true);
 
   if (await _saveRsvp(attending, message, msg)) _hideRsvpButtons();
 }
 
-// Đã trả lời thì giấu cặp nút, chỉ để lại #attend-msg. Hàng bọc chỉ chứa hai nút
-// thì giấu cả hàng cho khỏi hở một khoảng trống.
+// Ẩn/hiện phần tử của mục xác nhận. Phải kèm inline display: theme.css nạp SAU
+// themes.css nên `.xx-btn { display: inline-flex }` của mẫu đè mất `.hidden`.
+function _rsvpShow(el, on) {
+  if (!el) return;
+  el.classList.toggle("hidden", !on);
+  if (on) el.style.removeProperty("display");
+  else el.style.display = "none";
+}
+
+// Đã trả lời thì giấu cặp nút, chỉ để lại #attend-msg + nút "Đổi ý". Hàng bọc chỉ
+// chứa hai nút thì giấu cả hàng cho khỏi hở một khoảng trống.
 function _hideRsvpButtons() {
   const a = document.getElementById("btn-attend");
   const d = document.getElementById("btn-decline");
   if (!a || !d) return;
   const row = a.parentElement;
   if (row && row === d.parentElement && row.children.length === 2) {
-    row.classList.add("hidden");
+    _rsvpShow(row, false);
   } else {
-    a.classList.add("hidden");
-    d.classList.add("hidden");
+    _rsvpShow(a, false);
+    _rsvpShow(d, false);
   }
   _showRsvpChange();
 }
@@ -337,7 +346,7 @@ function _showRsvpChange() {
   if (!msg) return;
   const old = document.getElementById("btn-rsvp-change");
   if (old) {
-    old.classList.remove("hidden");
+    _rsvpShow(old, true);
     return;
   }
   const b = document.createElement("x-button");
@@ -369,13 +378,15 @@ function changeRsvp() {
   const a = document.getElementById("btn-attend");
   const d = document.getElementById("btn-decline");
   if (!a || !d) return;
-  a.classList.remove("hidden", "btn-selected");
-  d.classList.remove("hidden", "btn-selected");
+  a.classList.remove("btn-selected");
+  d.classList.remove("btn-selected");
   a.style.cssText = "";
   d.style.cssText = "";
-  if (a.parentElement === d.parentElement) a.parentElement.classList.remove("hidden");
-  document.getElementById("attend-msg")?.classList.add("hidden");
-  document.getElementById("btn-rsvp-change")?.classList.add("hidden");
+  _rsvpShow(a, true);
+  _rsvpShow(d, true);
+  if (a.parentElement === d.parentElement) _rsvpShow(a.parentElement, true);
+  _rsvpShow(document.getElementById("attend-msg"), false);
+  _rsvpShow(document.getElementById("btn-rsvp-change"), false);
 }
 
 // Ghi "Đã xem" cho khách của link; khách đã xác nhận từ trước thì giấu luôn hai
@@ -391,7 +402,7 @@ async function _markViewed(g) {
         res.confirmed === "Có tham dự"
           ? "Bạn đã xác nhận tham dự. Hẹn gặp bạn nhé 🌸"
           : "Bạn đã phản hồi không tham dự. Cảm ơn bạn!";
-      msg.classList.remove("hidden");
+      _rsvpShow(msg, true);
     }
     _hideRsvpButtons();
   } catch (error) {
@@ -425,7 +436,7 @@ async function _saveRsvp(attending, message, msgEl) {
     if (msgEl) {
       msgEl.textContent =
         "Chưa gửi được xác nhận, bạn thử lại giúp nhé (kiểm tra kết nối mạng).";
-      msgEl.classList.remove("hidden");
+      _rsvpShow(msgEl, true);
     }
     return false;
   }
