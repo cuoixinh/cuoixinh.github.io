@@ -96,13 +96,14 @@
     }
 
     // Khách đang xem: link mời riêng (CX_GUEST, wedding-helper.js đặt) → bản xem thử
-    // ?guest=&rel= → khách vãn lai (Bạn, không tên).
+    // ?name=&rel= (hoặc ?guest=) → khách vãn lai (Bạn, không tên).
     static guest() {
       const g = window.CX_GUEST;
       if (g?.relationship) return { relationship: g.relationship, name: g.name || "" };
       const q = new URLSearchParams(location.search);
-      if (window.isPreviewMode?.() && q.get("guest"))
-        return { relationship: q.get("rel") || "Bạn", name: q.get("guest") };
+      const demo = q.get("name") || q.get("guest");
+      if (window.isPreviewMode?.() && demo)
+        return { relationship: q.get("rel") || "Bạn", name: demo };
       return { relationship: "Bạn", name: "" };
     }
 
