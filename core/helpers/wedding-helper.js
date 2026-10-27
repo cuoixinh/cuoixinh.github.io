@@ -193,9 +193,10 @@ function setupPersonalizedGreeting(
     document.querySelector("#cover-screen #cover-guest-wrap")?.classList.remove("hidden");
   };
 
-  // Bản xem thử giả lập màn khách mời bằng ?guest=<tên>&rel=<xưng hô> (chữ thường,
-  // không mã hoá) — chỉ đổ chữ, không đặt CX_GUEST nên không ghi gì lên DB.
-  const demoGuest = isPreviewMode() && urlParams.get("guest");
+  // Bản xem thử giả lập màn khách mời bằng ?name=<tên>&rel=<xưng hô> (hoặc ?guest=;
+  // chữ thường, không mã hoá) — chỉ đổ chữ, không đặt CX_GUEST nên không ghi gì lên DB.
+  // Thiệp thật (không preview) vẫn chỉ nhận name/relationship đã mã hoá ở dưới.
+  const demoGuest = isPreviewMode() && (urlParams.get("name") || urlParams.get("guest"));
   if (demoGuest) {
     if (coverGuestName) coverGuestName.textContent = demoGuest;
     const rel = urlParams.get("rel") || "";
@@ -281,10 +282,9 @@ function openInvitation(callback) {
 // Xác nhận tham dự — DÙNG CHUNG cho mọi mẫu thiệp: theme chỉ cần có
 // #btn-attend / #btn-decline / #attend-msg rồi gọi confirmAttend(true|false).
 // Kết quả ghi vào bảng khách mời (cột confirmed) khi khách vào bằng link cá nhân
-// hoá; link chung không ứng với khách nào nên chỉ hiện lời cảm ơn.
+// hoá; link chung không ứng với khách nào nên chỉ hiện lời cảm ơn. Bản xem thử
+// chạy đủ luồng giao diện nhưng _saveRsvp không gọi API.
 async function confirmAttend(attending, message) {
-  if (showPreviewAlert()) return;
-
   const btnAttend = document.getElementById("btn-attend");
   const btnDecline = document.getElementById("btn-decline");
   const msg = document.getElementById("attend-msg");
@@ -402,6 +402,12 @@ async function _markViewed(g) {
 // Gửi xác nhận lên server. Lỗi mạng thì báo ngay dưới hai nút — im lặng là chủ
 // thiệp mất một lượt phản hồi mà không ai biết.
 async function _saveRsvp(attending, message, msgEl) {
+  // Bản xem thử: giả như đã gửi xong (trễ một nhịp cho giống mạng thật), không ghi DB.
+  if (isPreviewMode()) {
+    await new Promise((r) => setTimeout(r, 400));
+    return true;
+  }
+
   const g = window.CX_GUEST;
   if (!g || !g.slug || !g.name || !window.guestDAL) return false;
 
