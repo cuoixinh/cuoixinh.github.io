@@ -210,6 +210,8 @@
             <x-button variant="bare" id="btn-decline" onclick="confirmAttend(false)" class="mi-chip" data-cx-say="Tiếc quá, hôm đó {toi} bận mất rồi">Tiếc quá, hôm đó mình bận mất rồi</x-button>
           </div>
           <div class="mi-msg"><span id="attend-msg" class="mi-b hidden"></span></div>
+          <!-- Nút "Đổi ý" (helper chèn vào) đứng bên phải như một lựa chọn trả lời nhanh -->
+          <div class="mi-msg mi-me mi-quick in hidden" data-cx-rsvp-change></div>
         </section>
 
         <!-- Quà mừng: tin nhắn quà tặng, chạm để mở rộng ra mã QR -->
