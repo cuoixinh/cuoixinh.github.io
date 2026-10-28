@@ -750,6 +750,7 @@ function openAddTextPanel() {
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
+  document.getElementById("theme-desktop-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -1026,6 +1027,7 @@ function openElementsPanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
+  document.getElementById("theme-desktop-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -1269,6 +1271,7 @@ function openGiftPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  document.getElementById("theme-desktop-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -1447,6 +1450,7 @@ function openWishPanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-desktop-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -1641,6 +1645,7 @@ function openElementEditor(msg) {
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-desktop-panel")?.classList.add("hidden");
   document.getElementById("theme-element-editor")?.classList.remove("hidden");
   _resetCtrlScroll();
 
@@ -1845,6 +1850,7 @@ function _openLineEditor(msg) {
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
+  document.getElementById("theme-desktop-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
   _resetCtrlScroll();
