@@ -84,6 +84,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://cuoixinh.com/public/themes/anh-sang-doi-ta/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://cuoixinh.com/public/themes/tinh-tham-nghia-trong/</loc>
     <lastmod>2026-10-19</lastmod>
     <priority>0.8</priority>
@@ -111,6 +116,11 @@
   <url>
     <loc>https://cuoixinh.com/public/themes/messenger-iphone/</loc>
     <lastmod>2026-10-26</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/chung-mot-giai-dieu/</loc>
+    <lastmod>2026-10-28</lastmod>
     <priority>0.8</priority>
   </url>
 </urlset>

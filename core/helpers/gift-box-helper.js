@@ -9,6 +9,10 @@
   // đây, đặt cạnh các mẫu cùng `group` — id là khoá lưu trong theme_setting nên
   // ĐỪNG đổi id đã phát hành. `hint` (tuỳ chọn) là lời mời chạm dưới hộp. Gỡ một mẫu
   // đã phát hành thì đặt `hidden: true` thay vì xoá, thiệp đang dùng nó mới không mất hộp.
+  // `kind: "row"` = hàng chạm dựng bằng markup (màu theo token của thiệp) thay cho ảnh
+  // hộp: hàng ĐỨNG YÊN, chạm là mở/đóng phần QR bên dưới (không một chiều như hộp ảnh).
+  // `src` khi đó chỉ là ảnh minh hoạ ở bảng chọn, `art: "couple"` lấy ảnh bìa thiệp
+  // làm ô ảnh nhỏ đầu hàng.
   const BOXES = [
     {
       id: "lixi_do_hy",
@@ -180,6 +184,17 @@
       desc: "Hộp hình trái tim đỏ, nơ hồng",
       src: "/assets/gifts/hop_trai_tim.webp",
     },
+    {
+      id: "the_qua_mung",
+      group: "the",
+      kind: "row",
+      art: "couple",
+      name: "Hàng gửi quà",
+      desc: "Một hàng gọn kèm ảnh cưới, chạm để mở mã QR",
+      src: "/assets/gifts/the_qua_mung.svg",
+      title: "Gửi quà mừng",
+      hint: "Chạm để xem mã QR",
+    },
   ];
 
   // Nhóm của bảng chọn, theo đúng thứ tự hiện; mỗi mẫu khai `group` là một id ở đây.
@@ -187,6 +202,7 @@
     { id: "lixi", name: "Lì xì" },
     { id: "phongbi", name: "Phong bì" },
     { id: "hop", name: "Hộp quà" },
+    { id: "the", name: "Thẻ chạm" },
   ];
 
   const HINT = "Chạm để mở";
@@ -247,6 +263,12 @@
   function clear(sec) {
     sec.querySelectorAll('[data-cx-gift="shared"]').forEach((n) => n.remove());
     sec.querySelectorAll("[data-cx-gb-veil]").forEach(unveil);
+    sec.classList.remove("cx-gb-flow");
+    Array.from(sec.children).forEach((k) => {
+      if (!k.dataset.cxGbOrd) return;
+      k.style.order = k.dataset.cxGbOrd === "-" ? "" : k.dataset.cxGbOrd;
+      delete k.dataset.cxGbOrd;
+    });
   }
 
   function reduced() {
@@ -270,7 +292,96 @@
     );
   }
 
+  // Ảnh nhỏ đầu hàng chạm: ảnh bìa thiệp đã nhận src (renderWedding chạy trước), còn
+  // ảnh giữ chỗ 1x1 thì dùng icon hộp quà.
+  const GIFT_ICON =
+    '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>';
+
+  function coupleArt() {
+    for (const sel of ["#main-photo", "#cover-bg-img"]) {
+      const img = document.querySelector(sel);
+      const src = img?.currentSrc || img?.getAttribute("src") || "";
+      if (src && !src.startsWith("data:image/gif")) return { src, pos: img.style.objectPosition || "" };
+    }
+    return null;
+  }
+
+  // Hàng chạm phải đứng NGAY TRÊN phần QR, nhưng chèn vào giữa DOM là lệch :nth-child
+  // của chữ khách đã sửa trong mục (applyTextOverrides chạy TRƯỚC helper này). Nên hàng
+  // vẫn ở cuối mục và được đẩy lên bằng `order`: các con đứng trước phần QR (tiêu đề…)
+  // nhận -2, hàng -1, còn lại giữ 0. Mục không phải flex/grid thì gắn .cx-gb-flow
+  // (flex cột) để `order` có tác dụng.
+  function placeRow(sec, wrap, parts) {
+    const kids = Array.from(sec.children);
+    const top = (el) => {
+      while (el && el.parentElement !== sec) el = el.parentElement;
+      return el;
+    };
+    const idx = parts.map((p) => kids.indexOf(top(p))).filter((i) => i >= 0);
+    if (!idx.length) return;
+    const first = Math.min(...idx);
+    if (!/flex|grid/.test(getComputedStyle(sec).display)) sec.classList.add("cx-gb-flow");
+    kids.slice(0, first).forEach((k) => {
+      k.dataset.cxGbOrd = k.style.order || "-";
+      k.style.order = "-2";
+    });
+    wrap.style.order = "-1";
+  }
+
+  // Mở/đóng phần QR dưới hàng chạm; hàng giữ nguyên để khách còn thu lại được.
+  function toggleRow(wrap, btn, parts) {
+    const on = !wrap.classList.contains("is-on");
+    wrap.classList.toggle("is-on", on);
+    btn?.setAttribute("aria-expanded", String(on));
+    parts.forEach((el) => {
+      if (on) {
+        unveil(el);
+        el.classList.remove("cx-gb-in");
+        void el.offsetWidth; // gắn lại để hiệu ứng hiện chạy lại mỗi lần mở
+        el.classList.add("cx-gb-in");
+      } else {
+        el.classList.remove("cx-gb-in");
+        veil(el);
+      }
+    });
+  }
+
+  // Hàng chạm: [ảnh/icon] Gửi quà mừng · lời mời chạm [mũi tên]. Lớp vẽ nằm ở thẻ
+  // <span> bên trong vì <x-button> mang sẵn utility pill (bo tròn hết) thắng CSS thường.
+  function mountRow(sec, item, parts) {
+    const wrap = document.createElement("div");
+    wrap.className = "cx-gb cx-gb-is-row cx-no-edit";
+    wrap.setAttribute("data-cx-gift", "shared");
+    wrap.innerHTML =
+      '<x-button variant="bare" class="cx-gb-rowbtn" aria-expanded="false">' +
+      '<span class="cx-gb-row"><span class="cx-gb-art"></span>' +
+      '<span class="cx-gb-txt"><b></b><small></small></span>' +
+      '<svg class="cx-gb-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>' +
+      "</span></x-button>";
+    sec.appendChild(wrap);
+
+    const btn = wrap.querySelector("button");
+    const art = wrap.querySelector(".cx-gb-art");
+    const pic = item.art === "couple" ? coupleArt() : null;
+    if (pic) {
+      const img = document.createElement("img");
+      img.src = pic.src;
+      img.alt = "";
+      if (pic.pos) img.style.objectPosition = pic.pos;
+      art.appendChild(img);
+    } else {
+      art.classList.add("is-icon");
+      art.innerHTML = GIFT_ICON;
+    }
+    wrap.querySelector(".cx-gb-txt b").textContent = item.title || item.name;
+    wrap.querySelector(".cx-gb-txt small").textContent = item.hint || HINT;
+    btn?.setAttribute("aria-label", (item.title || item.name) + ": mở hoặc thu mã QR");
+    btn?.addEventListener("click", () => toggleRow(wrap, btn, parts));
+    placeRow(sec, wrap, parts);
+  }
+
   function mount(sec, item, parts) {
+    if (item.kind === "row") return mountRow(sec, item, parts);
     const wrap = document.createElement("div");
     wrap.className = "cx-gb cx-no-edit";
     wrap.setAttribute("data-cx-gift", "shared");

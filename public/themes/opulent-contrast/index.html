@@ -86,6 +86,7 @@
             <div class="btn-shimmer pointer-events-none"></div>
           </x-button>
         </div>
+        <div class="oc-snow" aria-hidden="true"></div>
       </div>
     </div>
 
@@ -166,7 +167,6 @@
 
           <div class="flex flex-col items-center gap-4 px-5">
             <div id="story-quote" class="oc-quote">Một hành trình mới bắt đầu từ hôm nay</div>
-            <div id="oc-quote-sign" class="oc-script text-[32px]">----------</div>
           </div>
 
           <div class="flex flex-col gap-4 px-5 pt-8 text-left">
@@ -403,6 +403,9 @@
         <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
       </x-button>
     </div>
+
+    <!-- Tuyết rơi trên thân thiệp: lớp cố định theo khổ #main-card, bông do ocSnow (index.js) rải. -->
+    <div class="oc-snow oc-snow-page" aria-hidden="true"></div>
 
     <!-- ═══ Thứ tự nạp script — giữ nguyên như base-theme ═══ -->
     <script src="../preview-data.js"></script>

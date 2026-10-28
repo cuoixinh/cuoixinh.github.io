@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- Ảnh minh hoạ ô "Hàng gửi quà" ở bảng chọn Hộp mừng cưới (gift-box-helper.js). -->
+  <rect x="6" y="36" width="108" height="48" rx="12" fill="#2a2124"/>
+  <rect x="14" y="44" width="32" height="32" rx="6" fill="#c98a9a"/>
+  <path d="M24 60h12M30 54v14" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>
+  <rect x="54" y="50" width="38" height="7" rx="3.5" fill="#ffffff"/>
+  <rect x="54" y="63" width="26" height="5" rx="2.5" fill="#ffffff" fill-opacity=".55"/>
+  <path d="m98 57 5 5 5-5" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

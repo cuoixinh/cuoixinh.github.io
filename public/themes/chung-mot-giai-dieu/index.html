@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Chung Một Giai Điệu</title>
+    <!-- Thiệp THẬT (?slug=) không được lên kết quả tìm kiếm; bản MẪU thì có. Hai bản
+         chung một URL nên phải xét lúc chạy. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+    <script src="../../../core/helpers/no-inspect.js"></script>
+  </head>
+
+  <!-- Chung Một Giai Điệu — thiệp là màn "đang phát" của ứng dụng nghe nhạc: ảnh cưới làm
+       bìa album, nền nhoè từ ảnh, thanh tiến trình là quãng từ ngày quen tới ngày cưới,
+       chuyện tình chạy thành lời bài hát. Không có màn bìa: mục mở đầu là màn đầu tiên. -->
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <!-- Con ĐẦU TIÊN của <body>: nút nhạc là position:fixed. -->
+    <div id="cx-music-mount"></div>
+
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+    >
+      <!-- Nền nhoè lấy từ ảnh bìa (index.js đặt background-image) -->
+      <div class="cm-bg" aria-hidden="true"></div>
+      <div class="cm-fade" aria-hidden="true"></div>
+
+      <div class="cm-body flex flex-col">
+        <!-- ═══ MỤC: Mở đầu — màn "đang phát" ═══ -->
+        <section id="section-hero" class="cm-cover">
+          <div class="cm-top">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            <span>
+              <b id="cm-album">Đám cưới</b>
+              <!-- Tên khách: chỉ hiện với link riêng (CX_GUEST) hoặc bản xem thử ?guest= -->
+              <small id="cover-guest-wrap" class="hidden cm-guest">Dành tặng <span data-cx-invite></span> <b id="cover-guest-name"></b></small>
+            </span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg>
+          </div>
+
+          <div class="cm-art">
+            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" fetchpriority="high" />
+          </div>
+
+          <div class="cm-meta">
+            <div>
+              <h2 id="cm-title">Đám cưới của ---- &amp; ----</h2>
+              <p><span id="cm-name-1">----------</span>, <span id="cm-name-2">----------</span></p>
+            </div>
+            <x-button variant="bare" class="cm-like" aria-label="Thả tim" aria-pressed="false">
+              <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21S2 14.5 2 8.5A5 5 0 0 1 12 6a5 5 0 0 1 10 2.5C22 14.5 12 21 12 21Z" /></svg>
+            </x-button>
+          </div>
+
+          <div class="cm-prog">
+            <div class="cm-bar"><i></i></div>
+            <div class="cm-times"><span id="cm-since">-- năm</span><span id="cm-until">-- ngày</span></div>
+          </div>
+
+          <div class="cm-ctl">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" /></svg>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z" /></svg>
+            <x-button variant="bare" class="cm-play" aria-label="Phát/tạm dừng">
+              <svg class="cm-pa" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+              <svg class="cm-pl" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z" /></svg>
+            </x-button>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z" /></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3" /></svg>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Lời bài hát = chuyện tình (enable_love_story) + câu slogan ở dòng cuối ═══ -->
+        <section id="love-story" class="cm-sec" style="display: none">
+          <div class="cm-ly">
+            <h3>Lời bài hát</h3>
+            <div class="cm-lines"><div id="love-story-list"></div></div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Sự kiện sắp tới — lễ + tiệc như lịch lưu diễn, mỗi sự kiện tự có nút
+             chỉ đường nên KHÔNG dùng #map-link/renderVenueMaps (nó nhân thêm cặp lễ/tiệc ở đáy). ═══ -->
+        <section id="section-map" class="cm-sec">
+          <div class="cm-panel">
+            <h3>Sự kiện sắp tới</h3>
+            <div id="cm-map" class="cm-mapw"></div>
+            <div id="cm-events" class="cm-events"></div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Danh sách phát hôm ấy (enable_timeline) ═══ -->
+        <section id="section-timeline" class="cm-sec hidden">
+          <div class="cm-panel">
+            <h3>Danh sách phát ngày cưới</h3>
+            <ol id="cm-tracks" class="cm-tracks"></ol>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Album ảnh (enable_photos) — dải bìa vuông vuốt ngang ═══ -->
+        <section id="section-photos" class="cm-sec">
+          <h3 class="cm-h">Khoảnh khắc trong album</h3>
+          <div id="gallery-grid" class="cm-shelf"></div>
+        </section>
+
+        <!-- ═══ MỤC: Thực hiện — credit album: đôi uyên ương, bố mẹ, ngày phát hành ═══ -->
+        <section id="section-family" class="cm-sec">
+          <div class="cm-panel">
+            <h3>Thực hiện</h3>
+            <div class="cm-credit">
+              <p><small>Trình bày</small><span id="cm-credit-names">----------</span></p>
+              <p id="cm-credit-groom-wrap"><small id="cm-credit-groom-label">Sản xuất</small><span id="cm-credit-groom">----------</span></p>
+              <p id="cm-credit-bride-wrap"><small id="cm-credit-bride-label">Đồng sản xuất</small><span id="cm-credit-bride">----------</span></p>
+              <p><small>Phát hành</small><span id="cm-release">----------</span></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) — confirmAttend() của wedding-helper
+             lo phần ghi + nút "Đổi ý"; mẫu chỉ cần #btn-attend/#btn-decline/#attend-msg. ═══ -->
+        <section id="rsvp-section" class="cm-sec" style="display: none">
+          <div class="cm-panel">
+            <h3>Xác nhận tham dự</h3>
+            <p id="rsvp-custom-message" class="cm-addr hidden"></p>
+            <div class="cm-rsvp">
+              <x-button variant="bare" id="btn-attend" onclick="confirmAttend(true)" class="cm-pick">Sẽ có mặt</x-button>
+              <x-button variant="bare" id="btn-decline" onclick="confirmAttend(false)" class="cm-pick is-ghost">Hẹn dịp khác</x-button>
+            </div>
+            <p id="attend-msg" class="cm-addr cm-attend hidden"></p>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Gửi quà mừng (enable_gift) — hàng chạm che QR là hộp "the_qua_mung" của
+             gift-box-helper (CX_THEME.giftBox), mẫu chỉ vẽ tấm thẻ QR. ═══ -->
+        <section id="section-gift" class="cm-sec">
+          <div data-cx-gift="qr" class="cm-qrs">
+            <div class="cm-qr">
+              <small>Chú rể</small>
+              <span class="cm-qrbox"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="Mã QR chuyển khoản chú rể" loading="lazy" /></span>
+              <span class="cm-bank">
+                <span id="groom-bank-name">----------------</span><br />
+                <span id="groom-bank-number">------------</span><br />
+                <span id="groom-bank-owner">--------------------</span>
+              </span>
+            </div>
+            <div class="cm-qr">
+              <small>Cô dâu</small>
+              <span class="cm-qrbox"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="Mã QR chuyển khoản cô dâu" loading="lazy" /></span>
+              <span class="cm-bank">
+                <span id="bride-bank-name">----------------</span><br />
+                <span id="bride-bank-number">------------</span><br />
+                <span id="bride-bank-owner">--------------------</span>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═══ -->
+        <section id="section-footer" class="cm-sec cm-end">
+          <p id="footer-text" class="cm-end-note hidden"></p>
+          <p>Bạn đang nghe: <span id="cm-end-title">Đám cưới của ---- &amp; ----</span></p>
+        </section>
+      </div>
+    </div>
+
+    <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ═══ -->
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
+      </x-button>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
+      <div class="w-full h-full flex items-center justify-center px-[8px]">
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
+      </div>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — giữ như base-theme ═══ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <script src="index.js"></script>
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>

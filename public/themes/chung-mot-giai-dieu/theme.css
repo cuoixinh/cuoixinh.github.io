@@ -1,0 +1,799 @@
+/* Chung Một Giai Điệu — màn "đang phát" tông tối: nền nhoè từ ảnh bìa, thẻ lời bài hát
+   màu mận, các thẻ kính mờ. CSS THUẦN, nạp sau styles/themes.css. Mọi màu đi qua
+   --cx-*-rgb; phần tử "trắng" (nút phát, ô ngày, tấm thẻ QR) tô bằng heading. */
+
+:root {
+  --cx-heading-rgb: 255 255 255;
+  --cx-body-rgb: 179 168 171; /* chữ phụ */
+  --cx-accent-rgb: 142 75 92; /* nền thẻ lời bài hát, chấm bản đồ */
+  --cx-accent-soft-rgb: 201 138 154; /* tim đã thả */
+  --cx-on-accent-rgb: 255 255 255; /* dòng lời đang hát */
+  --cx-on-image-rgb: 255 255 255;
+  --cx-on-lightbox-rgb: 255 255 255;
+  --cx-card-bg-rgb: 26 20 22;
+  --cx-page-bg-rgb: 18 14 15;
+  --cx-surface-rgb: 42 33 36; /* nền bản đồ */
+  --cx-band-rgb: 58 46 55; /* sông trên bản đồ */
+  --cx-panel-rgb: 42 33 36;
+  --cx-panel-warm-rgb: 51 48 42; /* công viên trên bản đồ */
+  --cx-cover-rgb: 26 20 22;
+  --cx-cover-mid-rgb: 42 33 36;
+  --cx-cover-veil-rgb: 0 0 0; /* màn phủ làm tối nền nhoè */
+  --cx-lightbox-bg-rgb: 0 0 0;
+  --cx-line-rgb: 70 58 62; /* đường nhỏ trên bản đồ */
+  --cx-shadow-rgb: 0 0 0;
+  --cx-scrim-rgb: 0 0 0; /* dòng lời chưa tới */
+  --cx-deco-rgb: 110 92 98; /* đường lớn trên bản đồ */
+  --cx-deco-soft-rgb: 201 138 154;
+  --cx-deco-2-rgb: 142 75 92;
+  --cx-deco-2-soft-rgb: 201 138 154;
+  --cx-shine-from-rgb: 201 138 154;
+  --cx-shine-mid-rgb: 232 196 205;
+  --cx-shine-to-rgb: 142 75 92;
+
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-rgb);
+  --music-bubble-to-rgb: var(--cx-heading-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-rgb);
+  --music-art-to-rgb: var(--cx-heading-rgb);
+}
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+  color: rgb(var(--cx-heading-rgb));
+  font-family: "Be Vietnam Pro", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.cx-h,
+.cx-t {
+  font-family: "Be Vietnam Pro", sans-serif;
+}
+
+#main-card h2,
+#main-card h3,
+#main-card p {
+  margin: 0;
+}
+
+/* ── Nền nhoè từ ảnh bìa + dải chuyển về màu thân thiệp ── */
+.cm-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(var(--vh, 1vh) * 125);
+  background-size: cover;
+  background-position: center;
+  filter: blur(50px) saturate(1.5);
+  transform: scale(1.4);
+}
+
+.cm-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--cx-cover-veil-rgb) / 0.45);
+}
+
+.cm-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--vh, 1vh) * 75);
+  height: calc(var(--vh, 1vh) * 52);
+  background: linear-gradient(transparent, rgb(var(--cx-card-bg-rgb)));
+}
+
+.cm-body {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Mở đầu: màn đang phát ── */
+.cm-cover {
+  position: relative;
+  min-height: calc(var(--vh, 1vh) * 100);
+  min-height: calc(var(--vh, 1svh) * 100);
+  padding: max(28px, env(safe-area-inset-top)) 26px 40px;
+}
+
+.cm-top {
+  display: grid;
+  grid-template-columns: 24px 1fr 24px;
+  align-items: center;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.cm-top b {
+  display: block;
+  font-size: 13px;
+}
+
+.cm-guest {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cm-guest b {
+  display: inline;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cm-art {
+  width: 100%;
+  aspect-ratio: 1;
+  margin-top: 30px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -20px rgb(var(--cx-shadow-rgb) / 0.75);
+  transform: scale(0.84);
+  transition: transform 0.9s cubic-bezier(0.2, 1.2, 0.4, 1) 0.3s;
+}
+
+.cm-live .cm-art {
+  transform: none;
+}
+
+.cm-live.cm-paused .cm-art {
+  transform: scale(0.86);
+  transition-delay: 0s;
+}
+
+.cm-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cm-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+/* min-width: 0 để khối chữ chịu co trong hàng flex — thiếu là dòng nowrap đẩy tràn nút tim. */
+.cm-meta > div {
+  min-width: 0;
+}
+
+/* Tên album luôn MỘT dòng: cỡ 18px vừa "Đám cưới của Ngọc & Nam" ở khổ 390px; tên dài
+   hơn nữa thì cắt bằng dấu "…" chứ không xuống dòng. */
+.cm-meta h2 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cm-meta p {
+  font-size: 15px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cm-like {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  color: rgb(var(--cx-heading-rgb));
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cm-like svg {
+  fill: currentColor;
+  transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.cm-like.is-on {
+  color: rgb(var(--cx-accent-soft-rgb));
+}
+
+.cm-like.is-on svg {
+  transform: scale(1.18);
+}
+
+.cm-prog {
+  margin-top: 22px;
+}
+
+.cm-bar {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(var(--cx-heading-rgb) / 0.25);
+}
+
+.cm-bar i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-radius: 2px;
+  background: rgb(var(--cx-heading-rgb));
+  transition: width 2.4s cubic-bezier(0.3, 0.8, 0.3, 1) 0.8s;
+}
+
+.cm-bar i::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgb(var(--cx-heading-rgb));
+}
+
+.cm-live .cm-bar i {
+  width: var(--cm-p, 0%);
+}
+
+.cm-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgb(var(--cx-body-rgb));
+  margin-top: 8px;
+}
+
+.cm-ctl {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.cm-ctl svg {
+  display: block;
+}
+
+.cm-play {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-card-bg-rgb));
+  display: grid;
+  place-items: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.2s;
+}
+
+.cm-play:active {
+  transform: scale(0.94);
+}
+
+.cm-play:focus-visible {
+  outline: 2px solid rgb(var(--cx-heading-rgb));
+  outline-offset: 4px;
+}
+
+.cm-play .cm-pl {
+  display: none;
+}
+
+.cm-paused .cm-play .cm-pl {
+  display: block;
+}
+
+.cm-paused .cm-play .cm-pa {
+  display: none;
+}
+
+/* Hiệu ứng cuộn tới (theme-boot xoay vòng dưới/trái/phải): mẫu này chỉ cho hiện từ dưới
+   lên — trượt ngang cạnh dải phim đang trôi trông như mục bị xô lệch. */
+.reveal.from-left,
+.reveal.from-right {
+  transform: translateY(24px);
+}
+
+/* Khai lại SAU rule trên: cùng độ đặc hiệu nên thiếu dòng này là mục kẹt lệch mãi. */
+.reveal.visible {
+  transform: none;
+}
+
+/* ── Mục trong thân thiệp ── */
+.cm-sec {
+  padding: 20px 16px;
+}
+
+.cm-sec h3,
+.cm-h {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.cm-panel {
+  border-radius: 14px;
+  background: rgb(var(--cx-heading-rgb) / 0.08);
+  padding: 18px;
+}
+
+/* Lời bài hát: đoạn đang hát tô dần từ trái sang (cm-sweep), đoạn đã qua mờ vừa, đoạn
+   chưa tới chìm; hai mép khung mờ dần nên dải lời như trôi qua một ô cửa. */
+.cm-ly {
+  border-radius: 14px;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  padding: 18px 18px 6px;
+}
+
+.cm-ly h3 {
+  margin-bottom: 6px;
+}
+
+.cm-lines {
+  height: 264px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 64px), transparent);
+  mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 64px), transparent);
+}
+
+#love-story-list {
+  padding: 28px 0 64px;
+  transition: transform 0.9s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+
+.cm-v {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  color: rgb(var(--cx-on-accent-rgb) / 0.42);
+  transition: color 0.5s;
+}
+
+.cm-v.is-past {
+  color: rgb(var(--cx-on-accent-rgb) / 0.68);
+}
+
+.cm-v time {
+  padding-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.cm-v b {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+
+.cm-v p {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.cm-v.is-refrain p {
+  font-weight: 700;
+}
+
+.cm-v.is-on,
+.cm-v.is-on time {
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+/* Tô chữ: nền hai nửa (sáng | mờ) cắt theo nét chữ, trượt từ phải về trái. Nền inline
+   trải liền qua các dòng nên chữ sáng dần theo đúng thứ tự đọc. */
+.cm-v.is-on p span {
+  color: transparent;
+  background: linear-gradient(90deg, rgb(var(--cx-on-accent-rgb)) 50%, rgb(var(--cx-on-accent-rgb) / 0.42) 50%) 100% 0 / 200% 100% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: cx-cm-sweep var(--cm-dur, 3000ms) linear forwards;
+}
+
+.cm-paused .cm-v.is-on span {
+  animation-play-state: paused;
+}
+
+@keyframes cx-cm-sweep {
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* Giảm chuyển động: hiện trọn mọi đoạn, chữ rõ, không khung trôi. */
+.cm-ly.is-static .cm-lines {
+  height: auto;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.cm-ly.is-static #love-story-list {
+  padding: 4px 0 12px;
+}
+
+.cm-ly.is-static .cm-v {
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+/* Sự kiện sắp tới */
+.cm-mapw {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Thẻ địa chỉ nổi trên bản đồ, neo góc trên trái — chừa ghim ở giữa phải. Tên lễ cắt
+   một dòng, địa chỉ cắt ở 2 dòng (clamp đặt trên chính dòng chữ, đặt trên khối cha có
+   con block thì không ăn). */
+.cm-mapcard {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  max-width: 62%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgb(var(--cx-card-bg-rgb) / 0.82);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: rgb(var(--cx-body-rgb));
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.cm-mapcard b {
+  display: block;
+  color: rgb(var(--cx-heading-rgb));
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cm-mapcard span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.cm-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.cm-svg .m-bg {
+  fill: rgb(var(--cx-surface-rgb));
+}
+
+.cm-svg .m-water {
+  fill: rgb(var(--cx-band-rgb));
+}
+
+.cm-svg .m-park {
+  fill: rgb(var(--cx-panel-warm-rgb));
+}
+
+.cm-svg .m-roads path,
+.cm-svg .m-major path,
+.cm-svg .m-route {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cm-svg .m-roads path {
+  stroke: rgb(var(--cx-line-rgb));
+  stroke-width: 3;
+}
+
+.cm-svg .m-major path {
+  stroke: rgb(var(--cx-deco-rgb));
+  stroke-width: 5;
+}
+
+.cm-svg .m-route {
+  stroke: rgb(var(--cx-heading-rgb));
+  stroke-width: 3;
+  stroke-dasharray: 0.025 0.015;
+}
+
+.cm-svg .m-drop,
+.cm-svg .m-halo {
+  fill: rgb(var(--cx-heading-rgb));
+}
+
+.cm-svg .m-dot {
+  fill: rgb(var(--cx-accent-rgb));
+}
+
+.cm-svg .m-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cx-cm-pulse 2.4s ease-out infinite;
+}
+
+@keyframes cx-cm-pulse {
+  from {
+    transform: scale(0.4);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.cm-ev {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 14px;
+  align-items: start;
+  margin: 14px 0;
+}
+
+.cm-ev > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  border-radius: 10px;
+  background: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-card-bg-rgb));
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.cm-ev > span small {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+.cm-ev b {
+  display: block;
+  font-size: 16px;
+}
+
+.cm-ev p,
+.cm-addr {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Nút chỉ đường nằm trong từng khối sự kiện */
+.cm-btn {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-card-bg-rgb));
+  font: 700 13px "Be Vietnam Pro", sans-serif;
+  text-decoration: none;
+}
+
+.cm-btn:focus-visible {
+  outline: 2px solid rgb(var(--cx-heading-rgb));
+  outline-offset: 3px;
+}
+
+/* Danh sách phát (lịch trình) */
+.cm-tracks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.cm-tracks li {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.cm-tracks i {
+  font-style: normal;
+  font-size: 14px;
+  color: rgb(var(--cx-body-rgb));
+  text-align: center;
+}
+
+.cm-tracks b {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cm-tracks small,
+.cm-tracks time {
+  font-size: 12px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Album: dải phim trôi ngang — KHÔNG thêm scroll-snap, nó kéo dải về mốc ô mỗi khung hình */
+.cm-shelf {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px 4px;
+  scrollbar-width: none;
+}
+
+.cm-shelf::-webkit-scrollbar {
+  display: none;
+}
+
+.cm-tile {
+  flex: 0 0 148px;
+  cursor: pointer;
+}
+
+.cm-tile img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 12px 20px -14px rgb(var(--cx-shadow-rgb) / 0.8);
+}
+
+.cm-tile span {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Thực hiện (credit album) */
+.cm-credit {
+  display: grid;
+  gap: 14px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.cm-credit span {
+  white-space: pre-line;
+}
+
+.cm-credit small {
+  display: block;
+  font-size: 12px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Xác nhận tham dự — nút viền: wedding-helper tô nền/viền nút đã chọn bằng inline style */
+.cm-rsvp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.cm-pick {
+  padding: 12px 10px;
+  border: 1.5px solid rgb(var(--cx-heading-rgb) / 0.4);
+  color: rgb(var(--cx-heading-rgb));
+  font: 700 14px "Be Vietnam Pro", sans-serif;
+}
+
+.cm-pick.is-ghost {
+  font-weight: 500;
+}
+
+.cm-attend {
+  margin-top: 12px;
+}
+
+/* Gửi quà mừng: hàng chạm che QR là hộp "the_qua_mung" (styles/_common.css, .cx-gb-row);
+   mẫu chỉ chỉnh nền hàng cho khớp các thẻ kính mờ khác và vẽ tấm thẻ QR. */
+#section-gift .cx-gb-row {
+  background: rgb(var(--cx-heading-rgb) / 0.08);
+}
+
+.cm-qrs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 18px 14px;
+  border-radius: 14px;
+  background: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-card-bg-rgb));
+}
+
+.cm-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.cm-qr > small {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cm-qrbox {
+  display: block;
+  width: 100%;
+  max-width: 132px;
+  aspect-ratio: 1;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgb(var(--cx-qr-bg-rgb));
+}
+
+.cm-qrbox img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cm-bank {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* Lời cảm ơn */
+.cm-end {
+  padding: 30px 16px 90px;
+  text-align: center;
+  font-size: 13px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cm-end-note {
+  margin-bottom: 14px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-art,
+  .cm-bar i,
+  #love-story-list {
+    transition: none;
+  }
+
+  .cm-svg .m-halo {
+    animation: none;
+  }
+}

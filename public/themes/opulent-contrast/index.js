@@ -80,6 +80,19 @@
   const _musicCard = document.getElementById("oc-music-card");
   if (_musicCard) window.setupMusicPlayer?.(_musicCard);
 
+  // Tuyết rơi thưa ở bìa và thân thiệp. Độ trễ âm để vừa vào đã có bông giữa màn.
+  function ocSnow() {
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    document.querySelectorAll(".oc-snow").forEach((box) => {
+      if (box.childElementCount) return;
+      box.innerHTML = Array.from({ length: 22 }, () => {
+        const t = rnd(9, 16);
+        return `<i style="left:${rnd(0, 100).toFixed(0)}%;--s:${rnd(4, 9).toFixed(0)}px;--t:${t.toFixed(1)}s;--dl:${(-rnd(0, t)).toFixed(1)}s;--sw:${rnd(-36, 36).toFixed(0)}px;--o:${rnd(0.55, 0.95).toFixed(2)}"></i>`;
+      }).join("");
+    });
+  }
+  ocSnow();
+
   function renderWedding(w) {
     if (!w || !w.is_active) return;
 
@@ -93,11 +106,6 @@
     setText("oc-hero-date", _fmtDMY(w.ceremony_date), "--.--.----");
     // Dấu ngoặc kép do CSS vẽ (.oc-quote) nên đổ nguyên câu, không qua renderStoryQuote.
     if (w.story_quote) setText("story-quote", w.story_quote);
-    setText(
-      "oc-quote-sign",
-      [w.groom_name, w.bride_name].filter(Boolean).join(" & "),
-      "----------",
-    );
 
     // Nền mờ của bìa: ảnh đầu album cho khác ảnh polaroid, không có album thì ảnh bìa.
     const g0 = w.gallery_images?.[0];
