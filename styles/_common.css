@@ -3129,6 +3129,105 @@ button.cx-pchrome-btn:hover {
   opacity: 0.75;
 }
 
+/* Hàng chạm (`kind: "row"`): lớp vẽ ở .cx-gb-row bên trong vì nút <x-button> mang sẵn
+   utility bo tròn hết. Màu theo token của thiệp; mẫu muốn khác thì ghi đè .cx-gb-row. */
+
+.cx-gb.cx-gb-is-row {
+  align-items: stretch;
+}
+
+/* Mục chứa hàng chạm mà vốn là block: thành flex cột để `order` (placeRow) đẩy được hàng
+   lên trên phần QR mà không phải dời nó trong DOM. */
+.cx-gb-flow {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Đang mở: hàng vẫn đứng đó (khác .is-open của hộp ảnh là bay đi), chừa khoảng tới QR. */
+.cx-gb.cx-gb-is-row.is-on {
+  margin-bottom: 12px;
+}
+
+.cx-gb-rowbtn {
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: rgb(var(--cx-heading-rgb));
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cx-gb-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgb(var(--cx-heading-rgb) / 0.07);
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.cx-gb-rowbtn:hover .cx-gb-row,
+.cx-gb-rowbtn:focus-visible .cx-gb-row {
+  background: rgb(var(--cx-heading-rgb) / 0.12);
+}
+
+.cx-gb-rowbtn:focus-visible {
+  outline: 2px solid rgb(var(--cx-accent-rgb));
+  outline-offset: 3px;
+}
+
+.cx-gb-art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cx-gb-art.is-icon {
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.cx-gb-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cx-gb-txt {
+  flex: 1;
+  min-width: 0;
+}
+
+.cx-gb-txt b {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cx-gb-txt small {
+  display: block;
+  font-size: 13px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-gb-chev {
+  flex: none;
+  transition: transform 0.4s;
+}
+
+.cx-gb.is-on .cx-gb-chev {
+  transform: rotate(180deg);
+}
+
 /* Mở hộp: bay lên rồi biến mất — helper hẹn giờ đúng bằng thời lượng animation
    này rồi mới thả phần QR ra, đổi một chỗ phải đổi cả hai. */
 

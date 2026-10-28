@@ -1,0 +1,182 @@
+{
+  "image_focal_points": {
+    "gallery_images": {
+      "gallery-01.webp": {
+        "x": 51,
+        "y": 10
+      },
+      "gallery-02.webp": {
+        "x": 55,
+        "y": 26
+      },
+      "gallery-03.webp": {
+        "x": 69,
+        "y": 16
+      },
+      "gallery-04.webp": {
+        "x": 76,
+        "y": 19
+      },
+      "gallery-05.webp": {
+        "x": 68,
+        "y": 17
+      },
+      "gallery-06.webp": {
+        "x": 75,
+        "y": 30
+      },
+      "gallery-07.webp": {
+        "x": 67,
+        "y": 21
+      },
+      "gallery-08.webp": {
+        "x": 53,
+        "y": 23
+      },
+      "gallery-09.webp": {
+        "x": 62,
+        "y": 16
+      }
+    },
+    "cover_image_url": {
+      "x": 67,
+      "y": 21
+    },
+    "groom_image_url": {
+      "x": 44,
+      "y": 19
+    },
+    "bride_image_url": {
+      "x": 51,
+      "y": 7
+    }
+  },
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp",
+    "gallery-08.webp",
+    "gallery-09.webp"
+  ],
+  "love_story": [
+    {
+      "date": "03/2020",
+      "title": "Lần đầu gặp",
+      "content": "Chiều mưa ở một quán cà phê ven sông Hàn, hai người ngồi chung bàn vì hết chỗ.",
+      "image_url": "love-story-01.webp",
+      "focal_point": {
+        "x": 51,
+        "y": 26
+      }
+    },
+    {
+      "date": "09/2023",
+      "title": "Chuyến đi đầu tiên",
+      "content": "Cùng nhau chạy xe lên Bà Nà lúc năm giờ sáng chỉ để kịp nhìn mặt trời mọc.",
+      "image_url": "love-story-02.webp",
+      "focal_point": {
+        "x": 58,
+        "y": 23
+      }
+    },
+    {
+      "date": "12/2026",
+      "title": "Lời hứa",
+      "content": "Anh ngỏ lời trên bờ biển Mỹ Khê, em gật đầu trước khi anh kịp nói hết câu.",
+      "image_url": "love-story-03.webp",
+      "focal_point": {
+        "x": 56,
+        "y": 25
+      }
+    }
+  ],
+  "content": {
+    "groom_name": "Công Thanh",
+    "bride_name": "Khánh An",
+    "groom_father": "Phan Văn Lộc",
+    "groom_mother": "Trương Thị Hoa",
+    "groom_address": "Số 48 Hoàng Diệu, Phường Hải Châu, TP. Đà Nẵng",
+    "bride_father": "Hồ Văn Sơn",
+    "bride_mother": "Lê Thị Thu",
+    "bride_address": "Số 7 Nguyễn Duy Hiệu, Phường Hội An, TP. Đà Nẵng",
+    "ceremony_name": "Lễ Thành Hôn",
+    "ceremony_date": "2027-03-20",
+    "ceremony_time": "10:00",
+    "ceremony_lunar": "Ngày 13 tháng 2 năm Đinh Mùi",
+    "ceremony_location": "Tư gia nhà trai, số 48 Hoàng Diệu, Phường Hải Châu, TP. Đà Nẵng",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=16.0678,108.2242&output=embed&hl=vi",
+    "vu_quy_enabled": true,
+    "vu_quy_time": "07:30",
+    "vu_quy_location": "Tư gia nhà gái, số 7 Nguyễn Duy Hiệu, Phường Hội An, TP. Đà Nẵng",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=15.8790,108.3330&output=embed&hl=vi",
+    "groom_party_date": "2027-03-19",
+    "groom_party_time": "17:30",
+    "groom_party_lunar": "Ngày 12 tháng 2 năm Đinh Mùi",
+    "groom_party_show_location": true,
+    "groom_party_location": "Diamond Bay, số 2 Võ Văn Kiệt, Phường An Hải, TP. Đà Nẵng",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=16.0620,108.2330&output=embed&hl=vi",
+    "bride_party_date": "2027-03-19",
+    "bride_party_time": "11:00",
+    "bride_party_lunar": "Ngày 12 tháng 2 năm Đinh Mùi",
+    "bride_party_show_location": true,
+    "bride_party_location": "Nhà hàng Mộc Lan, số 15 Phan Châu Trinh, Phường Hội An",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=15.8775,108.3290&output=embed&hl=vi",
+    "groom_bank_name": "HDBank",
+    "groom_bank_number": "07023318246",
+    "groom_bank_owner": "PHAN CONG THANH",
+    "bride_bank_name": "SHB",
+    "bride_bank_number": "86120597314",
+    "bride_bank_owner": "HO KHANH AN",
+    "story_quote": "Tụi mình gặp nhau ở một quán cà phê ven sông Hàn, bảy năm sau thì quyết định về chung một nhà. Mong bạn đến chung vui cùng tụi mình.",
+    "rsvp_enabled": true,
+    "rsvp_message": "Bạn báo trước giúp tụi mình nhé, để nhà hàng giữ chỗ cho bạn.",
+    "footer_text": "Cảm ơn bạn đã dành một ngày cuối tuần cho tụi mình.",
+    "enable_music": true,
+    "music_url": "https://www.youtube.com/watch?v=o_lN37OAJ9U&t=32",
+    "enable_family": false,
+    "enable_party": true,
+    "enable_photos": true,
+    "enable_timeline": false,
+    "enable_love_story": false,
+    "enable_gift": true,
+    "enable_footer": true,
+    "demo_fill_love_story": false,
+    "timeline": [
+      {
+        "time": "07:30",
+        "title": "Lễ vu quy tại nhà gái",
+        "type": "ceremony"
+      },
+      {
+        "time": "10:00",
+        "title": "Lễ thành hôn tại nhà trai",
+        "type": "ceremony"
+      },
+      {
+        "time": "17:30",
+        "title": "Đón khách tại Diamond Bay",
+        "type": "party"
+      },
+      {
+        "time": "18:30",
+        "title": "Khai tiệc",
+        "type": "party"
+      },
+      {
+        "time": "11:00",
+        "title": "Tiệc mừng nhà gái",
+        "type": "bride-party"
+      }
+    ]
+  },
+  "updated_at": "2026-10-28T16:41:23.146Z"
+}

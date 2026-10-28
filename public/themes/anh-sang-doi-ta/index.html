@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Ánh Sáng Đôi Ta</title>
+    <!-- Thiệp THẬT (?slug=) không được lên kết quả tìm kiếm; bản MẪU thì có. Hai bản
+         chung một URL nên phải xét lúc chạy. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+    <script src="../../../core/helpers/no-inspect.js"></script>
+  </head>
+
+  <!-- Ánh Sáng Đôi Ta — nền cực quang loang màu trôi chậm, mọi nội dung nằm trên các tấm
+       kính mờ. Không có màn bìa: mục mở đầu là màn đầu tiên. -->
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <!-- Con ĐẦU TIÊN của <body>: nút nhạc là position:fixed. -->
+    <div id="cx-music-mount"></div>
+
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+    >
+      <!-- Các đốm cực quang: toạ độ px tính từ đỉnh thiệp, màu qua token --cx-*. -->
+      <div class="t4-aur" aria-hidden="true">
+        <i style="--x: -120px; --y: -60px; --s: 340px; --c: var(--cx-deco-rgb); --t: 9s; --mx: 80px; --my: 60px"></i>
+        <i style="--x: 180px; --y: 120px; --s: 300px; --c: var(--cx-deco-soft-rgb); --t: 11s; --mx: -90px; --my: 40px"></i>
+        <i style="--x: -60px; --y: 520px; --s: 320px; --c: var(--cx-deco-2-rgb); --t: 10s; --mx: 120px; --my: -60px"></i>
+        <i style="--x: 200px; --y: 900px; --s: 300px; --c: var(--cx-deco-2-soft-rgb); --t: 12s; --mx: -100px; --my: 50px"></i>
+        <i style="--x: -100px; --y: 1300px; --s: 340px; --c: var(--cx-cover-mid-rgb); --t: 9s; --mx: 90px; --my: 70px"></i>
+        <i style="--x: 160px; --y: 1750px; --s: 320px; --c: var(--cx-deco-soft-rgb); --t: 11s; --mx: -80px; --my: -50px"></i>
+        <i style="--x: -80px; --y: 2200px; --s: 320px; --c: var(--cx-deco-2-rgb); --t: 10s; --mx: 100px; --my: 40px"></i>
+        <i style="--x: 190px; --y: 2650px; --s: 300px; --c: var(--cx-deco-2-soft-rgb); --t: 12s; --mx: -90px; --my: 50px"></i>
+        <i style="--x: -110px; --y: 3100px; --s: 340px; --c: var(--cx-deco-rgb); --t: 9s; --mx: 80px; --my: 60px"></i>
+        <i style="--x: 170px; --y: 3550px; --s: 320px; --c: var(--cx-deco-soft-rgb); --t: 11s; --mx: -80px; --my: -50px"></i>
+      </div>
+
+      <div class="t4-body flex flex-col">
+        <!-- ═══ MỤC: Mở đầu — ảnh trong khung kính, tên, đồng hồ đếm ngược ═══ -->
+        <section id="section-hero" class="t4-cover">
+          <!-- Tên khách: chỉ hiện với link riêng (CX_GUEST) hoặc bản xem thử ?guest= -->
+          <div id="cover-guest-wrap" class="hidden t4-guest">
+            <span data-cx-invite class="t4-guest-say cx-t">Trân trọng mời</span>
+            <b id="cover-guest-name" class="t4-guest-name cx-h"></b>
+          </div>
+          <div class="t4-photo t4-gl">
+            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" fetchpriority="high" />
+          </div>
+          <h2 class="t4-names cx-h">
+            <span id="t4-name-1">----------</span>
+            <span><em>&amp;</em><span id="t4-name-2">----------</span></span>
+          </h2>
+          <div class="t4-cd t4-gl" aria-label="Đếm ngược tới ngày cưới">
+            <span><b id="t4-cd-d">0</b><small>ngày</small></span>
+            <span><b id="t4-cd-h">00</b><small>giờ</small></span>
+            <span><b id="t4-cd-m">00</b><small>phút</small></span>
+            <span><b id="t4-cd-s">00</b><small>giây</small></span>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Lời mời ═══ -->
+        <section id="section-invite" class="t4-sec">
+          <div class="t4-gl t4-box">
+            <h3 class="t4-h cx-h">Lời mời</h3>
+            <p id="story-quote" class="t4-lead cx-t">Quen nhau từ năm 2018, qua ba năm yêu xa, giờ tụi mình đã sẵn sàng về chung một nhà. Rất mong có bạn ở đó.</p>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Giờ lễ — ô kính cho từng lễ + ngày dương, âm ═══ -->
+        <section id="section-ceremony" class="t4-sec">
+          <div id="t4-two" class="t4-two"></div>
+          <p id="t4-date-line" class="t4-lead t4-date cx-t"><span id="t4-date">------------</span><br id="t4-lunar-br" /><span id="t4-lunar"></span></p>
+        </section>
+
+        <!-- ═══ MỤC: Album ảnh (enable_photos) — lưới tối đa 6 ô (ô cuối ghi +N), chạm mở trình xem ═══ -->
+        <section id="section-photos" class="t4-sec">
+          <div class="t4-gl t4-box">
+            <h3 class="t4-h cx-h">Khoảnh khắc</h3>
+            <div class="t4-album">
+              <div id="gallery-grid" class="t4-grid"></div>
+              <p class="t4-acap cx-t">Album cưới<small id="t4-album-count">0 ảnh</small></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Địa điểm. #map-location-name + #map-link phải đứng CUỐI khối chứa. ═══ -->
+        <section id="section-map" class="t4-sec">
+          <div class="t4-gl t4-box">
+            <h3 class="t4-h cx-h">Địa điểm</h3>
+            <div id="t4-map" class="t4-mapw"></div>
+            <p id="t4-map-when" class="t4-lead t4-when cx-t"></p>
+            <p id="map-location-name" class="t4-lead cx-t">------------------------</p>
+            <a id="map-link" href="#" target="_blank" rel="noopener" class="t4-btn">Mở chỉ đường</a>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) — confirmAttend() của wedding-helper
+             lo phần ghi + nút "Đổi ý"; mẫu chỉ cần #btn-attend/#btn-decline/#attend-msg. ═══ -->
+        <section id="rsvp-section" class="t4-sec" style="display: none">
+          <div class="t4-gl t4-box t4-center">
+            <h3 class="t4-h cx-h">Xác nhận tham dự</h3>
+            <p id="rsvp-custom-message" class="t4-lead cx-t hidden"></p>
+            <div class="t4-rsvp-row">
+              <x-button variant="bare" id="btn-attend" onclick="confirmAttend(true)" class="t4-btn">Mình sẽ đến</x-button>
+              <x-button variant="bare" id="btn-decline" onclick="confirmAttend(false)" class="t4-btn t4-btn-ghost">Tiếc quá, bận rồi</x-button>
+            </div>
+            <p id="attend-msg" class="t4-lead t4-attend cx-t hidden"></p>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Mừng cưới (enable_gift). Mã QR nằm sau lớp kính mờ, chạm là kính tan. ═══ -->
+        <section id="section-gift" class="t4-sec">
+          <div class="t4-gl t4-box t4-center">
+            <h3 class="t4-h cx-h">Mừng cưới</h3>
+            <p class="t4-lead cx-t">Chạm vào ô kính để xem mã QR.</p>
+            <div data-cx-gift="qr" class="t4-gifts">
+              <div class="t4-gift">
+                <x-button variant="bare" class="t4-gw" aria-expanded="false" aria-label="Xem mã QR mừng cưới">
+                  <span class="t4-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="Mã QR chuyển khoản" loading="lazy" /></span>
+                  <span class="t4-frost"><span>Chạm để xem</span></span>
+                </x-button>
+                <p class="t4-bank">
+                  <span id="groom-bank-name">----------------</span> <span id="groom-bank-number">------------</span>,
+                  <span id="groom-bank-owner">--------------------</span>
+                </p>
+              </div>
+              <div class="t4-gift">
+                <x-button variant="bare" class="t4-gw" aria-expanded="false" aria-label="Xem mã QR mừng cưới">
+                  <span class="t4-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="Mã QR chuyển khoản" loading="lazy" /></span>
+                  <span class="t4-frost"><span>Chạm để xem</span></span>
+                </x-button>
+                <p class="t4-bank">
+                  <span id="bride-bank-name">----------------</span> <span id="bride-bank-number">------------</span>,
+                  <span id="bride-bank-owner">--------------------</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═══ -->
+        <section id="section-footer" class="t4-sec t4-end">
+          <b id="t4-end-title" class="cx-h">Hẹn gặp bạn nhé</b>
+          <p id="footer-text" class="t4-end-note cx-t hidden"></p>
+        </section>
+      </div>
+    </div>
+
+    <!-- ═══ Trình xem album: vuốt ngang, bộ đếm + dải ảnh nhỏ đi theo ảnh đang xem ═══ -->
+    <div id="t4-lb" class="t4-lb" role="dialog" aria-label="Album ảnh cưới" aria-hidden="true">
+      <div class="t4-lbbar">
+        <x-button variant="bare" class="t4-lbbtn" data-t4-lbclose aria-label="Đóng"><i data-lucide="x" style="width: 16px; height: 16px"></i></x-button>
+        <span><b>Album cưới</b><small id="t4-lbn">1 / 1</small></span>
+        <span></span>
+      </div>
+      <div class="t4-lbtrack" id="t4-lbtrack"></div>
+      <x-button variant="bare" class="t4-lbbtn t4-lbnav is-prev" data-t4-lbstep="-1" aria-label="Ảnh trước"><i data-lucide="chevron-left" style="width: 16px; height: 16px"></i></x-button>
+      <x-button variant="bare" class="t4-lbbtn t4-lbnav is-next" data-t4-lbstep="1" aria-label="Ảnh sau"><i data-lucide="chevron-right" style="width: 16px; height: 16px"></i></x-button>
+      <div class="t4-lbthumbs" id="t4-lbthumbs"></div>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — giữ như base-theme ═══ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <script src="index.js"></script>
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>

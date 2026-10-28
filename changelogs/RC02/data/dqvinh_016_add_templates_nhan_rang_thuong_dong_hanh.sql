@@ -1,5 +1,7 @@
 -- ============================================================
--- Thêm 2 mẫu thiệp: messenger-iphone (iPhone Messenger) · dong-hanh-tram-nam (Đồng Hành Trăm Năm)
+-- Thêm 4 mẫu thiệp: messenger-iphone (iPhone Messenger) · dong-hanh-tram-nam (Đồng Hành Trăm Năm)
+--                   · chung-mot-giai-dieu (Chung Một Giai Điệu, thêm 2026-10-28)
+--                   · anh-sang-doi-ta (Ánh Sáng Đôi Ta, thêm 2026-10-28)
 -- Ngày: 2026-10-26
 -- ------------------------------------------------------------
 -- Cùng khuôn với file tab "Templates" của admin sinh ra. Mẫu thiệp là dữ liệu
@@ -15,7 +17,9 @@
 insert into public.templates (template_id, template_name, display_name, description, thumbnail_url, preview_url, category, status, sort_order, is_active)
 values
   ('messenger-iphone', 'messenger-iphone', 'iPhone Messenger', 'Thiệp mở ra như màn khoá điện thoại có thông báo từ cô dâu chú rể, cuộn xuống là một cuộc trò chuyện: ảnh, thẻ sự kiện, vị trí, quà mừng đều là tin nhắn hiện lần lượt.', null, '/public/themes/messenger-iphone/?preview=true', 'modern', 'active', 190, true),
-  ('dong-hanh-tram-nam', 'dong-hanh-tram-nam', 'Đồng Hành Trăm Năm', 'Đám cưới là một chuyến tàu: bảng giờ tàu lật số tới ngày cưới, vé giấy có lỗ bấm, lịch trình là các ga dừng và vé quà mừng xé cuống lộ mã QR.', null, '/public/themes/dong-hanh-tram-nam/?preview=true', 'modern', 'active', 200, true)
+  ('dong-hanh-tram-nam', 'dong-hanh-tram-nam', 'Đồng Hành Trăm Năm', 'Đám cưới là một chuyến tàu: bảng giờ tàu lật số tới ngày cưới, vé giấy có lỗ bấm, lịch trình là các ga dừng và vé quà mừng xé cuống lộ mã QR.', null, '/public/themes/dong-hanh-tram-nam/?preview=true', 'modern', 'active', 200, true),
+  ('chung-mot-giai-dieu', 'chung-mot-giai-dieu', 'Chung Một Giai Điệu', 'Thiệp là màn đang phát của ứng dụng nghe nhạc: ảnh cưới làm bìa album, thanh tiến trình chạy từ ngày quen tới ngày cưới, chuyện tình hiện thành lời bài hát chạy theo nhạc.', null, '/public/themes/chung-mot-giai-dieu/?preview=true', 'modern', 'active', 210, true),
+  ('anh-sang-doi-ta', 'anh-sang-doi-ta', 'Ánh Sáng Đôi Ta', 'Nền cực quang tím, hồng, xanh, vàng trôi chậm, mọi nội dung nằm trên các tấm kính mờ: ảnh cưới từ nhoè chuyển sang nét, đồng hồ đếm ngược từng giây, chạm ô kính là hiện mã QR mừng cưới.', null, '/public/themes/anh-sang-doi-ta/?preview=true', 'modern', 'active', 220, true)
 on conflict (template_id) do update
    set
        template_name = excluded.template_name,
@@ -33,7 +37,9 @@ on conflict (template_id) do update
 insert into public.template_pricing (template_name, price, original_price, description, is_active)
 values
   ('messenger-iphone', 109000, 139000, 'iPhone Messenger — 109.000đ', true),
-  ('dong-hanh-tram-nam', 109000, 139000, 'Đồng Hành Trăm Năm — 109.000đ', true)
+  ('dong-hanh-tram-nam', 109000, 139000, 'Đồng Hành Trăm Năm — 109.000đ', true),
+  ('chung-mot-giai-dieu', 109000, 139000, 'Chung Một Giai Điệu — 109.000đ', true),
+  ('anh-sang-doi-ta', 109000, 139000, 'Ánh Sáng Đôi Ta — 109.000đ', true)
 on conflict (template_name) do update
    set
        price          = excluded.price,

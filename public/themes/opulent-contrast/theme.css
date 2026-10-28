@@ -810,3 +810,65 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* ── Tuyết rơi (ocSnow) ──────────────────────────────────────────────────── */
+
+/* Lõi trắng + quầng xanh sương: thân thiệp nền trắng nên bông trắng trơn sẽ chìm. */
+.oc-snow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Lớp của thân thiệp: cố định theo khung nhìn, cùng khổ #main-card; dưới nút nhạc (60),
+   dải lời chúc và màn bìa (50). */
+.oc-snow-page {
+  position: fixed;
+  left: 50%;
+  width: 100%;
+  max-width: 430px;
+  transform: translateX(-50%);
+  z-index: 30;
+}
+
+@media (min-width: 768px) {
+  .oc-snow-page {
+    max-width: 768px;
+  }
+}
+
+.oc-snow i {
+  position: absolute;
+  top: -16px;
+  width: var(--s, 6px);
+  height: var(--s, 6px);
+  border-radius: 50%;
+  opacity: var(--o, 0.8);
+  background: radial-gradient(
+    circle,
+    rgb(var(--cx-cover-veil-rgb)) 35%,
+    rgb(var(--cx-accent-soft-rgb) / 0.7) 70%,
+    rgb(var(--cx-accent-soft-rgb) / 0) 100%
+  );
+  animation: cx-oc-snow var(--t, 12s) linear var(--dl, 0s) infinite;
+}
+
+/* Rơi thẳng, đưa nhẹ sang ngang. */
+@keyframes cx-oc-snow {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(var(--sw, 24px), calc(var(--vh, 1vh) * 55));
+  }
+  100% {
+    transform: translate(calc(var(--sw, 24px) * -0.5), calc(var(--vh, 1vh) * 110));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oc-snow {
+    display: none;
+  }
+}

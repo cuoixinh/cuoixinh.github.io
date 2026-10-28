@@ -1,0 +1,202 @@
+{
+  "image_focal_points": {
+    "gallery_images": {
+      "gallery-01.webp": {
+        "x": 51,
+        "y": 10
+      },
+      "gallery-02.webp": {
+        "x": 55,
+        "y": 26
+      },
+      "gallery-03.webp": {
+        "x": 69,
+        "y": 16
+      },
+      "gallery-04.webp": {
+        "x": 76,
+        "y": 19
+      },
+      "gallery-05.webp": {
+        "x": 68,
+        "y": 17
+      },
+      "gallery-06.webp": {
+        "x": 75,
+        "y": 30
+      },
+      "gallery-07.webp": {
+        "x": 67,
+        "y": 21
+      },
+      "gallery-08.webp": {
+        "x": 53,
+        "y": 23
+      },
+      "gallery-09.webp": {
+        "x": 62,
+        "y": 16
+      }
+    },
+    "cover_image_url": {
+      "x": 49,
+      "y": 11
+    },
+    "groom_image_url": {
+      "x": 44,
+      "y": 19
+    },
+    "bride_image_url": {
+      "x": 51,
+      "y": 7
+    }
+  },
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp",
+    "gallery-08.webp",
+    "gallery-09.webp"
+  ],
+  "love_story": [
+    {
+      "date": "Mùa hè 2017",
+      "title": "Lần đầu gặp",
+      "content": "Hai đứa cùng đăng ký lớp guitar buổi tối, ngồi chung một bàn vì cùng đến muộn.",
+      "image_url": "love-story-01.webp",
+      "focal_point": {
+        "x": 51,
+        "y": 26
+      }
+    },
+    {
+      "date": "Tháng 9/2020",
+      "title": "Bài hát đầu tiên",
+      "content": "Anh viết tặng em một bài hát còn vụng, em vẫn thuộc lời tới tận bây giờ.",
+      "image_url": "love-story-02.webp",
+      "focal_point": {
+        "x": 58,
+        "y": 23
+      }
+    },
+    {
+      "date": "2026",
+      "title": "Lời hứa",
+      "content": "Anh ngỏ lời giữa đêm nhạc nhỏ ở sân nhà, cả xóm cùng hát đệm.",
+      "image_url": "love-story-03.webp",
+      "focal_point": {
+        "x": 56,
+        "y": 25
+      }
+    }
+  ],
+  "content": {
+    "groom_name": "Minh Khang",
+    "bride_name": "Thảo Vy",
+    "groom_father": "Trần Văn Đức",
+    "groom_mother": "Phan Thị Hoa",
+    "groom_address": "Số 42 Lê Đình Dương, Phường Hải Châu, TP. Đà Nẵng",
+    "bride_father": "Nguyễn Hữu Thành",
+    "bride_mother": "Lê Thị Mai",
+    "bride_address": "Số 15 Kim Long, Phường Kim Long, TP. Huế",
+    "ceremony_name": "Lễ Thành Hôn",
+    "ceremony_date": "2027-03-21",
+    "ceremony_time": "09:30",
+    "ceremony_lunar": "Tức ngày 14 tháng 2 năm Đinh Mùi",
+    "ceremony_location": "Tư gia nhà trai — Số 42 Lê Đình Dương, Phường Hải Châu, TP. Đà Nẵng",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=16.061,108.221&output=embed&hl=vi",
+    "vu_quy_enabled": true,
+    "vu_quy_time": "07:30",
+    "vu_quy_location": "Tư gia nhà gái — Số 15 Kim Long, Phường Kim Long, TP. Huế",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=16.463,107.564&output=embed&hl=vi",
+    "groom_party_date": "2027-03-20",
+    "groom_party_time": "18:00",
+    "groom_party_lunar": "Tức ngày 13 tháng 2 năm Đinh Mùi",
+    "groom_party_show_location": true,
+    "groom_party_location": "Trung tâm tiệc cưới Sông Hàn — Số 2 Bạch Đằng, TP. Đà Nẵng",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=16.071,108.224&output=embed&hl=vi",
+    "bride_party_date": "2027-03-20",
+    "bride_party_time": "11:00",
+    "bride_party_lunar": "Tức ngày 13 tháng 2 năm Đinh Mùi",
+    "bride_party_show_location": true,
+    "bride_party_location": "Nhà hàng Bên Sông — Số 9 Lê Lợi, TP. Huế",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=16.466,107.588&output=embed&hl=vi",
+    "groom_bank_name": "MB Bank",
+    "groom_bank_number": "0912345678888",
+    "groom_bank_owner": "TRAN MINH KHANG",
+    "bride_bank_name": "VPBank",
+    "bride_bank_number": "246813579",
+    "bride_bank_owner": "NGUYEN THAO VY",
+    "story_quote": "Tụi mình đã tìm được người hát cùng một bài, đúng nhịp nhau cho cả quãng đời còn lại.",
+    "rsvp_enabled": true,
+    "rsvp_message": "Báo giúp tụi mình bạn có đến được không nhé, để nhà hàng chuẩn bị đủ chỗ.",
+    "footer_text": "Hẹn gặp bạn ở ngày vui của tụi mình, cùng hát chung một bài thật lớn.",
+    "enable_music": true,
+    "music_url": "https://www.youtube.com/watch?v=o_lN37OAJ9U&t=32",
+    "enable_family": true,
+    "enable_party": true,
+    "enable_photos": true,
+    "enable_timeline": true,
+    "enable_love_story": true,
+    "enable_gift": true,
+    "enable_footer": true,
+    "demo_fill_love_story": false,
+    "timeline": [
+      {
+        "time": "10:30",
+        "title": "Đón khách ở Nhà hàng Bên Sông",
+        "type": "bride-party"
+      },
+      {
+        "time": "11:00",
+        "title": "Khai tiệc mừng nhà gái",
+        "type": "bride-party"
+      },
+      {
+        "time": "13:00",
+        "title": "Hát cùng cô dâu và tiễn khách",
+        "type": "bride-party"
+      },
+      {
+        "time": "07:30",
+        "title": "Lễ Vu Quy ở tư gia nhà gái",
+        "type": "ceremony"
+      },
+      {
+        "time": "08:00",
+        "title": "Nhà trai đón dâu",
+        "type": "ceremony"
+      },
+      {
+        "time": "09:30",
+        "title": "Lễ Thành Hôn ở tư gia nhà trai",
+        "type": "ceremony"
+      },
+      {
+        "time": "17:30",
+        "title": "Đón khách ở Trung tâm tiệc cưới Sông Hàn",
+        "type": "party"
+      },
+      {
+        "time": "18:00",
+        "title": "Khai tiệc mừng nhà trai",
+        "type": "party"
+      },
+      {
+        "time": "20:30",
+        "title": "Chú rể hát tặng cô dâu, tiễn khách",
+        "type": "party"
+      }
+    ]
+  },
+  "updated_at": "2026-10-28T00:00:00.000Z"
+}
