@@ -768,13 +768,21 @@ async function _saveAllOnce(overrides, label) {
 
     // Step 1: Upload pending images
     showLoading(true, "Đang tải ảnh lên...");
-    const { uploadedFilenames, errors, skipped: uploadSkipped } =
+    const { uploadedFilenames, errors, skipped: uploadSkipped, keep, lost } =
       await uploadAllPendingImages();
     showLoading(true, label);
 
+    // Hiện ở CUỐI hàm (toast chỉ có một ô, câu "Đã lưu" sau sẽ đè mất).
+    const kept = keep.singles.length + keep.gallery.length + Object.keys(_loveStoryPendingImages).length;
+    let imageWarn = "";
     if (errors.length > 0) {
       console.error("Upload errors:", errors);
-      showToast(`${errors.length} ảnh lỗi khi upload`, "warning");
+      imageWarn = [
+        lost ? `${lost} ảnh không còn đọc được, bạn chọn lại giúp mình nhé` : "",
+        !uploadSkipped && kept ? `${kept} ảnh chưa tải lên được, bấm Lưu lần nữa để thử lại` : "",
+      ]
+        .filter(Boolean)
+        .join(". ");
     }
 
     // Step 2: Prepare form data
@@ -933,13 +941,21 @@ async function _saveAllOnce(overrides, label) {
     // "Lưu nháp" một lần là mất sạch ảnh vừa chọn. Giữ lại để lần lưu đầu SAU khi
     // đăng nhập đẩy lên (xem _idbRestoreAll ở js/02-idb.js). `deletedImages` cũng
     // giữ: chưa có lượt ghi DB nào nhận danh sách đó.
+    // Ảnh upload lỗi mạng (`keep`) ở lại hàng chờ và được ghi lại vào IndexedDB sau khi
+    // dọn, để lần lưu sau đẩy tiếp; ảnh chuyện tình lỗi đã tự nằm lại _loveStoryPendingImages.
     if (!uploadSkipped) {
-      pendingUploads.singleImages = {};
-      pendingUploads.galleryImages = [];
+      const keptSingles = Object.fromEntries(
+        keep.singles.map((f) => [f, pendingUploads.singleImages[f]]),
+      );
+      pendingUploads.singleImages = keptSingles;
+      pendingUploads.galleryImages = keep.gallery;
       deletedImages.singleImages = [];
       deletedImages.galleryImages = [];
       _galleryIdbKeys.clear();
-      _idbClearWedding();
+      await _idbClearWedding();
+      Object.entries(keptSingles).forEach(([f, file]) => _idbSaveSingle(f, file));
+      keep.gallery.forEach((file) => _idbAddGallery(file));
+      if (Object.keys(_loveStoryPendingImages).length) _idbSaveLoveStoryImages();
     }
 
     // Step 7: Re-render UI to reflect saved state
@@ -972,7 +988,10 @@ async function _saveAllOnce(overrides, label) {
     } else {
       showToast("Đã lưu thành công!", "success");
     }
+    if (imageWarn) showToast(imageWarn, "warning");
     _setDirty(false);
+    // Còn ảnh chờ thử lại thì vẫn tính là chưa lưu xong — rời trang sẽ được hỏi lại.
+    if (!uploadSkipped && kept > 0) _setDirty(true);
     return true;
   } catch (e) {
     console.error("Save error:", e);

@@ -38,18 +38,30 @@ async function _runPool(jobs, limit, onDone) {
   await Promise.all(Array.from({ length: Math.min(limit, jobs.length) }, worker));
 }
 
+// Trả thêm `keep` (ảnh lỗi mạng/máy chủ — giữ lại cho lần lưu sau thử tiếp) và `lost`
+// (số ảnh hỏng hẳn, code UNREADABLE của StorageDAL — bỏ khỏi hàng chờ, khách phải chọn lại).
 async function uploadAllPendingImages() {
   const uploadedFilenames = {};
   const errors = [];
+  const keep = { singles: [], gallery: [] };
+  let lost = 0;
+  // Ảnh hỏng hẳn thì đếm vào `lost`, còn lại `onRetry` ghi ảnh vào `keep`.
+  const fail = (label, error, onRetry) => {
+    console.error(`Error uploading ${label}:`, error);
+    errors.push(`${label}: ${error.message}`);
+    if (error.code === "UNREADABLE") lost++;
+    else onRetry();
+  };
 
   // `skipped` để nơi gọi biết KHÔNG được dọn pendingUploads/IndexedDB sau đó:
   // ảnh chưa lên Storage nên dọn là mất hẳn (xem Step 6 của saveAll).
-  if (!IS_LOGIN) return { uploadedFilenames, errors, skipped: true };
+  if (!IS_LOGIN) return { uploadedFilenames, errors, skipped: true, keep, lost };
 
   // Mỗi ảnh một việc, chạy chung một hàng đợi song song (_runPool). Album giữ mảng
   // THƯA theo đúng vị trí trong pendingUploads.galleryImages — saveAll tra tên file
   // theo indexOf của File, tấm hỏng để trống thì các tấm sau không lệch chỗ.
   const gallery = new Array(pendingUploads.galleryImages.length);
+  const hadLoveStory = Object.keys(_loveStoryPendingImages).length > 0;
   const jobs = [
     ...Object.entries(pendingUploads.singleImages).map(([fieldName, file]) => async () => {
       const previous = document.querySelector(`input[name="${fieldName}"]`)?.value;
@@ -58,16 +70,14 @@ async function uploadAllPendingImages() {
         if (filename !== previous) _queueReplacedImage(previous);
         uploadedFilenames[fieldName] = filename;
       } catch (error) {
-        console.error(`Error uploading ${fieldName}:`, error);
-        errors.push(`${fieldName}: ${error.message}`);
+        fail(fieldName, error, () => keep.singles.push(fieldName));
       }
     }),
     ...pendingUploads.galleryImages.map((file, i) => async () => {
       try {
         gallery[i] = await uploadSingleImage(`gallery-${i}`, file);
       } catch (error) {
-        console.error(`Error uploading gallery ${i}:`, error);
-        errors.push(`Gallery ${i + 1}: ${error.message}`);
+        fail(`Gallery ${i + 1}`, error, () => keep.gallery.push(file));
       }
     }),
     ...Object.entries(_loveStoryPendingImages).map(([idxStr, file]) => async () => {
@@ -77,9 +87,10 @@ async function uploadAllPendingImages() {
         const filename = await uploadSingleImage(`love_story_image_${idx}`, file);
         if (filename !== previous) _queueReplacedImage(previous);
         _loveStoryItems[idx].image_url = filename;
+        delete _loveStoryPendingImages[idxStr];
       } catch (error) {
-        console.error(`Error uploading love story image ${idx}:`, error);
-        errors.push(`Love story ảnh ${idx + 1}: ${error.message}`);
+        fail(`Love story ảnh ${idx + 1}`, error, () => {});
+        if (error.code === "UNREADABLE") delete _loveStoryPendingImages[idxStr];
       }
     }),
   ];
@@ -97,14 +108,11 @@ async function uploadAllPendingImages() {
 
   if (gallery.some(Boolean)) uploadedFilenames.gallery_images = gallery;
 
-  if (Object.keys(_loveStoryPendingImages).length > 0) {
-    Object.keys(_loveStoryPendingImages).forEach(
-      (k) => delete _loveStoryPendingImages[k],
-    );
-    _syncLoveStoryHidden();
-  }
+  // Ảnh chuyện tình đã lên (hoặc hỏng hẳn) bị gỡ ngay trong vòng trên; tấm lỗi mạng còn
+  // nằm lại _loveStoryPendingImages cho lần lưu sau.
+  if (hadLoveStory) _syncLoveStoryHidden();
 
-  return { uploadedFilenames, errors, skipped: false };
+  return { uploadedFilenames, errors, skipped: false, keep, lost };
 }
 
 // ============= REMOVE FUNCTIONS =============

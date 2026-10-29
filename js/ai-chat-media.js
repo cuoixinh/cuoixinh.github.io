@@ -207,9 +207,14 @@
   }
 
   const _urls = new Map(); // khoá IDB → objectURL (thu hồi khi ảnh bị thay)
-  function fileUrl(key, file) {
-    if (!_urls.has(key)) _urls.set(key, URL.createObjectURL(file));
-    return _urls.get(key);
+  // Bản ghi → objectURL; "" khi ảnh không còn đọc được (CXImagePick.fromStored).
+  async function recUrl(r) {
+    if (!_urls.has(r.key)) {
+      const file = await CXImagePick.fromStored(r);
+      if (!file) return "";
+      _urls.set(r.key, URL.createObjectURL(file));
+    }
+    return _urls.get(r.key);
   }
   function dropUrl(key) {
     const u = _urls.get(key);
@@ -308,17 +313,23 @@
       const recs = id ? await idbAll(id) : [];
       const single = (f) => {
         const r = recs.find((x) => x.type === "single" && x.fieldName === f);
-        return r ? fileUrl(r.key, r.file) : "";
+        return r ? recUrl(r) : "";
       };
-      const gallery = recs
-        .filter((r) => r.type === "gallery")
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
-        .map((r) => ({ url: fileUrl(r.key, r.file), key: r.key }));
+      const gallery = (
+        await Promise.all(
+          recs
+            .filter((r) => r.type === "gallery")
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map(async (r) => ({ url: await recUrl(r), key: r.key })),
+        )
+      ).filter((g) => g.url);
       const st = homeStore();
       const f = ctx.known()?.fields || {};
       const places = homePlaces();
       const images = Object.fromEntries(
-        [...PHOTO_SLOTS, ...QR_SLOTS].map(([field]) => [field, single(field)]),
+        await Promise.all(
+          [...PHOTO_SLOTS, ...QR_SLOTS].map(async ([field]) => [field, await single(field)]),
+        ),
       );
       // Ảnh đã lên thiệp: chỉ bù vào ô còn TRỐNG — bản ghi chờ trong IndexedDB là ảnh
       // khách vừa chọn, luôn mới hơn.
@@ -354,6 +365,14 @@
         giftInfo: giftInfo(field),
       });
       if (!picked) return;
+      let data;
+      try {
+        data = await CXImagePick.toStored(picked.file);
+      } catch (e) {
+        console.error("setImage:", e);
+        window.showToast?.("Không đọc được ảnh này, bạn chọn lại giúp mình nhé", "error");
+        return;
+      }
       dropUrl(key);
       await idbWrite((s) => {
         s.put({
@@ -361,7 +380,7 @@
           type: "single",
           fieldName: field,
           weddingId: id,
-          file: picked.file,
+          data,
           focalPoint: picked.focal || cur?.focalPoint || { x: 50, y: 50 },
         });
         s.delete(`${id}_sf_${field}`); // bản ghi chỉ-lấy-nét của ảnh cũ
@@ -382,14 +401,16 @@
       await CXImagePick.gallery(
         files,
         GALLERY_MAX - have,
-        (file, focal) => {
+        // Lỗi đọc ảnh ném ra ngoài: CXImagePick.gallery gom vào câu báo "N ảnh lỗi".
+        async (file, focal) => {
+          const data = await CXImagePick.toStored(file);
           const now = Date.now();
           return idbWrite((s) =>
             s.put({
               key: `${id}_g_${now}_${Math.random().toString(36).slice(2, 7)}`,
               type: "gallery",
               weddingId: id,
-              file,
+              data,
               focalPoint: focal,
               order: now,
             }),

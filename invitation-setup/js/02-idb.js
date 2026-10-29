@@ -5,8 +5,8 @@
 // DB/khoá/shape bản ghi bên dưới — đổi ở đây thì đổi cả bên đó.
 
 // ============= INDEXED DB — PENDING IMAGES =============
-// Lưu File objects (ảnh chưa upload) vào IndexedDB để sống qua reload/đóng tab.
-// localStorage không chứa được File/Blob nên cần IDB.
+// Lưu ảnh chưa upload vào IndexedDB để sống qua reload/đóng tab. Ảnh cất dạng byte ở
+// khoá `data` (CXImagePick.toStored); bản ghi kiểu cũ mang File ở khoá `file` vẫn đọc được.
 const _IDB_NAME = "cuoixinh_pending";
 const _IDB_VER = 1;
 const _IDB_STORE = "uploads";
@@ -98,13 +98,25 @@ async function _idbClearWedding() {
 // File → IDB key — cần để biết key nào cần xoá khi user bỏ ảnh gallery pending
 const _galleryIdbKeys = new Map();
 
+// Đọc không được thì không ghi: ảnh vẫn còn trong RAM của trang, chỉ không sống qua F5.
+async function _idbPack(file) {
+  try {
+    return await CXImagePick.toStored(file);
+  } catch (e) {
+    console.error("_idbPack:", e);
+    return null;
+  }
+}
+
 async function _idbSaveSingle(fieldName, file) {
+  const data = await _idbPack(file);
+  if (!data) return;
   await _idbPut({
     key: `${WEDDING_ID}_s_${fieldName}`,
     type: "single",
     fieldName,
     weddingId: WEDDING_ID,
-    file,
+    data,
     focalPoint: pendingFocalPoints[fieldName] || null,
   });
 }
@@ -120,9 +132,14 @@ async function _idbSaveFocal(fieldName) {
 }
 
 async function _idbSaveLoveStoryImages() {
-  const entries = Object.entries(_loveStoryPendingImages).map(
-    ([idx, file]) => ({ idx: parseInt(idx), file }),
-  );
+  const entries = (
+    await Promise.all(
+      Object.entries(_loveStoryPendingImages).map(async ([idx, file]) => {
+        const data = await _idbPack(file);
+        return data && { idx: parseInt(idx), data };
+      }),
+    )
+  ).filter(Boolean);
   if (!entries.length) {
     await _idbDelete(`${WEDDING_ID}_lsImg`);
     return;
@@ -138,11 +155,13 @@ async function _idbSaveLoveStoryImages() {
 async function _idbAddGallery(file) {
   const key = `${WEDDING_ID}_g_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   _galleryIdbKeys.set(file, key);
+  const data = await _idbPack(file);
+  if (!data) return;
   await _idbPut({
     key,
     type: "gallery",
     weddingId: WEDDING_ID,
-    file,
+    data,
     focalPoint: pendingFocalPoints.gallery_images.get(file) || null,
     order: Date.now(),
   });
@@ -202,15 +221,28 @@ async function _idbUpdateGalleryFocal(file) {
 }
 
 // true khi có khôi phục thứ gì đó — bản xem thử dựng trước đó cần tải lại.
+// Ảnh nào không còn đọc được (trình duyệt mất dữ liệu) thì bỏ hẳn bản ghi và báo khách
+// chọn lại, chứ để vào hàng chờ là lúc lưu gửi lên một file rỗng.
 async function _idbRestoreAll() {
   try {
     const all = await _idbGetAll();
     const mine = all.filter((r) => r.weddingId === WEDDING_ID);
     if (!mine.length) return false;
+    let lost = 0;
+    const read = async (r) => {
+      const file = await CXImagePick.fromStored(r);
+      if (!file) lost++;
+      return file;
+    };
 
     // Restore single images
     for (const r of mine.filter((r) => r.type === "single")) {
-      pendingUploads.singleImages[r.fieldName] = r.file;
+      const file = await read(r);
+      if (!file) {
+        _idbDelete(r.key);
+        continue;
+      }
+      pendingUploads.singleImages[r.fieldName] = file;
       if (r.focalPoint) pendingFocalPoints[r.fieldName] = r.focalPoint;
     }
 
@@ -224,10 +256,15 @@ async function _idbRestoreAll() {
       .filter((r) => r.type === "gallery")
       .sort((a, b) => (a.order || 0) - (b.order || 0));
     for (const r of gallery) {
-      pendingUploads.galleryImages.push(r.file);
+      const file = await read(r);
+      if (!file) {
+        _idbDelete(r.key);
+        continue;
+      }
+      pendingUploads.galleryImages.push(file);
       if (r.focalPoint)
-        pendingFocalPoints.gallery_images.set(r.file, r.focalPoint);
-      _galleryIdbKeys.set(r.file, r.key);
+        pendingFocalPoints.gallery_images.set(file, r.focalPoint);
+      _galleryIdbKeys.set(file, r.key);
     }
 
     const orderRec = mine.find((r) => r.type === "gallery_order");
@@ -247,9 +284,19 @@ async function _idbRestoreAll() {
     // Restore love story pending images
     const lsRec = mine.find((r) => r.type === "love_story_images");
     if (lsRec?.images?.length) {
-      lsRec.images.forEach(({ idx, file }) => {
-        _loveStoryPendingImages[idx] = file;
-      });
+      const before = lost;
+      for (const img of lsRec.images) {
+        const file = await read(img);
+        if (file) _loveStoryPendingImages[img.idx] = file;
+      }
+      if (lost > before) _idbSaveLoveStoryImages(); // ghi lại bản ghi không còn tấm hỏng
+    }
+
+    if (lost) {
+      showToast(
+        `${lost} ảnh chưa lưu không còn đọc được trên máy này, bạn chọn lại giúp mình nhé`,
+        "warning",
+      );
     }
 
     // Re-render image UIs với dữ liệu vừa restore

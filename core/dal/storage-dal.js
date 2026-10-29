@@ -12,6 +12,22 @@ class StorageDAL {
   // Hết UPLOAD_TIMEOUT_MS thì coi là lỗi; nếu file vẫn lên muộn thì thành ảnh mồ côi,
   // tab "Dọn dữ liệu" của admin gom được.
   async uploadFile(filename, file) {
+    // Gửi BẢN ĐỌC ĐƯỢC của ảnh, không gửi thẳng File: trình duyệt mất dữ liệu ảnh thì
+    // supabase-js vẫn gửi một request rỗng (400 "No content provided") mà không ai biết.
+    // code UNREADABLE = ảnh hỏng hẳn, nơi gọi bỏ khỏi hàng chờ thay vì thử lại.
+    let body = null;
+    try {
+      const buf = await file.arrayBuffer();
+      if (buf.byteLength) body = new File([buf], file.name || "image", { type: file.type });
+    } catch (e) {
+      console.warn("Không đọc được ảnh trước khi upload:", e);
+    }
+    if (!body) {
+      const err = new Error("Ảnh không còn đọc được, bạn chọn lại ảnh này");
+      err.code = "UNREADABLE";
+      throw err;
+    }
+
     let timer;
     const timeout = new Promise((_, reject) => {
       timer = setTimeout(
@@ -21,7 +37,7 @@ class StorageDAL {
     });
     const upload = this.supabase.storage
       .from(this.bucket)
-      .upload(filename, file, {
+      .upload(filename, body, {
         cacheControl: "3600",
         upsert: false,
       });

@@ -248,5 +248,34 @@
     return added;
   }
 
-  window.CXImagePick = { single, gallery, focal, focalCrop, crop, fromCrop, checkType, prepare };
+  // Ảnh chờ upload cất vào IndexedDB dạng BYTE (ArrayBuffer) nằm ngay trong bản ghi, không
+  // cất File/Blob: WebKit trên một số iPhone trả Blob lấy lại ở lần tải trang khác thành
+  // rỗng (upload 0 byte). Hai nơi ghi chung kho: invitation-setup/js/02-idb.js, js/ai-chat-media.js.
+  async function toStored(file) {
+    const buf = await file.arrayBuffer();
+    if (!buf.byteLength) throw new Error("Ảnh rỗng");
+    return { buf, name: file.name, type: file.type, lastModified: file.lastModified };
+  }
+
+  // Bản ghi (`data` của toStored, hoặc `file` của bản ghi kiểu cũ) → File trong bộ nhớ;
+  // null khi không còn đọc được dữ liệu.
+  async function fromStored(rec) {
+    try {
+      const d = rec?.data;
+      if (d?.buf?.byteLength) {
+        return new File([d.buf], d.name || "image", { type: d.type || "", lastModified: d.lastModified || Date.now() });
+      }
+      if (rec?.file) {
+        const buf = await rec.file.arrayBuffer();
+        if (buf.byteLength) {
+          return new File([buf], rec.file.name || "image", { type: rec.file.type, lastModified: rec.file.lastModified });
+        }
+      }
+    } catch (e) {
+      console.warn("Ảnh trong IndexedDB không đọc được:", e);
+    }
+    return null;
+  }
+
+  window.CXImagePick = { single, gallery, focal, focalCrop, crop, fromCrop, checkType, prepare, toStored, fromStored };
 })();
