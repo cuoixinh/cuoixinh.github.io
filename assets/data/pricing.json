@@ -1,0 +1,7 @@
+{
+  "recommended": "6m",
+  "plans": [
+    { "id": "6m", "label": "Premium", "months": 6, "price": 109000, "original_price": 139000 },
+    { "id": "lifetime", "label": "Forever", "months": null, "price": 164000, "original_price": 209000 }
+  ]
+}

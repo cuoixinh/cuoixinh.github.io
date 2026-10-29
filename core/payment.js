@@ -1455,11 +1455,19 @@
       return;
     }
     const cols = (_freeShown() ? [{ id: "free", label: "Free", available: _freeOk() }] : []).concat(q.plans);
+    box.innerHTML = _compareHTML(cols, "cxPickPlan");
+    wrap.style.display = "";
+    window.lucide?.createIcons({ root: box });
+  }
+
+  // Markup bảng so sánh, dùng chung với bảng giá trang chủ (js/section-pricing.js).
+  // `cols` = [{id, label, months, available}], `pick` = tên hàm toàn cục nhận id gói.
+  function _compareHTML(cols, pick) {
     const head = cols
       .map(
         (p) =>
           `<th scope="col"><button type="button" class="cx-ord-cmp-pick"` +
-          (p.available ? ` onclick="cxPickPlan('${p.id}')"` : " disabled") +
+          (p.available ? ` onclick="${pick}('${p.id}')"` : " disabled") +
           `>${p.label}</button></th>`,
       )
       .join("");
@@ -1497,13 +1505,13 @@
       const rows = _CMP_ROWS.map((r, i) => ((r.group || _CMP_GROUPS[0].id) === g.id ? row(r, i) : "")).join("");
       return rows ? groupHead(g) + rows : "";
     }).join("");
-    box.innerHTML =
+    return (
       `<p class="cx-ord-eyebrow">So sánh các gói</p>` +
       `<table class="cx-ord-cmp"><colgroup><col class="cx-ord-cmp-lbl" /></colgroup>` +
-      `<thead><tr><td></td>${head}</tr></thead><tbody>${body}</tbody></table>`;
-    wrap.style.display = "";
-    window.lucide?.createIcons({ root: box });
+      `<thead><tr><td></td>${head}</tr></thead><tbody>${body}</tbody></table>`
+    );
   }
+  window.cxPlanCompareHTML = _compareHTML;
 
 
   // Popover giải thích một hàng của bảng so sánh; bấm lại đúng nút "i" đang mở thì đóng.
