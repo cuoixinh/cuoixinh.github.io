@@ -2720,8 +2720,9 @@ html.cx-landing {
     margin: 0 0 0 auto;
   }
 }
-/* Minh hoạ cột chữ (chỉ từ lg): mẫu sau nghiêng trái, mẫu trước nghiêng phải đè lên,
-   hai nhãn trắng nổi ở mép. Ảnh dọc 391:722 nên khung đặt theo bề rộng ảnh. */
+/* Minh hoạ cột chữ (chỉ từ lg): vòm hoa nhạt phía sau, máy 216px ở giữa vòm, thẻ QR
+   đè mép phải máy, nhãn "Thiệp đã mở" đè mép trái. Ô màn theo đúng inset của
+   .cx-phone-screen (styles/_setup.css) vì cùng ảnh iphone_mockup.svg. */
 .prc-art {
   display: none;
 }
@@ -2729,73 +2730,141 @@ html.cx-landing {
   .prc-art {
     position: relative;
     display: block;
-    height: 400px;
+    width: 440px;
+    height: 480px;
     margin-top: 40px;
   }
-  .prc-art img {
+  .prc-art-arch {
     position: absolute;
-    top: 0;
-    width: 200px;
-    height: auto;
-    border-radius: 24px;
-    border: 4px solid rgb(var(--white-rgb));
-    box-shadow: 0 24px 48px -24px rgb(var(--shadow-brand-rgb) / 0.6);
-  }
-  .prc-art-back {
-    left: 24px;
-    transform: rotate(-6deg);
-  }
-  .prc-art-front {
-    left: 176px;
+    left: 72px;
     top: 24px;
-    transform: rotate(5deg);
+    width: 296px;
+    height: 456px;
+    border-radius: 148px 148px 32px 32px;
+    border: 1.5px solid rgb(var(--brand-primary-rgb) / 0.7);
+    background: linear-gradient(
+      180deg,
+      rgb(var(--brand-primary-rgb) / 0.45),
+      rgb(var(--surface-blossom-rgb) / 0.4) 70%,
+      rgb(var(--surface-blossom-rgb) / 0)
+    );
   }
-  .prc-art-chip {
+  /* Viền vòm thứ hai lùi vào 12px — nét cổng hoa đám cưới. */
+  .prc-art-arch::after {
+    content: "";
     position: absolute;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px 8px 8px;
-    border-radius: 999px;
+    inset: 12px;
+    border-radius: 136px 136px 24px 24px;
+    border: 1px solid rgb(var(--white-rgb) / 0.9);
+  }
+  .prc-art-phone {
+    position: absolute;
+    left: 112px;
+    top: 0;
+    width: 216px;
+    height: 443px;
+    filter: drop-shadow(0 24px 32px rgb(var(--shadow-brand-rgb) / 0.35));
+  }
+  .prc-art-screen {
+    position: absolute;
+    top: 1.53%;
+    left: 3.92%;
+    width: 92.17%;
+    height: 96.94%;
+    overflow: hidden;
+    border-radius: 14.73% / 6.83%;
     background: rgb(var(--white-rgb));
-    font-size: 13px;
-    font-weight: 600;
+  }
+  .prc-art-screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+  .prc-art-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .prc-art-qr,
+  .prc-art-ok {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgb(var(--white-rgb));
+    box-shadow:
+      0 0 0 1px rgb(var(--brand-primary-rgb) / 0.3),
+      0 16px 32px -16px rgb(var(--shadow-brand-rgb) / 0.6);
     white-space: nowrap;
+  }
+  .prc-art-qr {
+    right: -24px;
+    top: 200px;
+    padding: 12px 20px 12px 12px;
+    border-radius: 20px;
+    transform: rotate(3deg);
+  }
+  .prc-art-qr-code {
+    display: inline-flex;
+    width: 56px;
+    height: 56px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
     color: rgb(var(--text-heading-rgb));
-    box-shadow: 0 12px 24px -12px rgb(var(--shadow-brand-rgb) / 0.6);
+    background: rgb(var(--surface-brand-subtle-rgb));
   }
-  .prc-art-chip b {
-    display: block;
-    font-size: 13px;
-    line-height: 1.2;
+  .prc-art-qr-code svg {
+    stroke-width: 1.6;
   }
-  .prc-art-chip-paid span:last-child {
+  .prc-art-qr-txt,
+  .prc-art-ok-txt {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     font-size: 12px;
-    font-weight: 500;
     line-height: 1.3;
     color: rgb(var(--text-caption-rgb));
   }
-  .prc-art-chip-ico {
+  .prc-art-qr-txt b {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: rgb(var(--action-primary-deep-rgb));
+  }
+  .prc-art-ok {
+    left: 0;
+    bottom: 56px;
+    padding: 8px 20px 8px 8px;
+    border-radius: 999px;
+    transform: rotate(-3deg);
+  }
+  .prc-art-ok-ico {
     display: inline-flex;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     border-radius: 999px;
     color: rgb(var(--white-rgb));
     background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--action-primary-rgb)));
   }
-  .prc-art-chip-paid {
-    top: 56px;
-    left: 304px;
+  .prc-art-ok-ico svg {
+    stroke-width: 3;
   }
-  .prc-art-chip-sent {
-    bottom: 32px;
-    left: 0;
-    padding: 8px 16px;
+  .prc-art-ok-txt b {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgb(var(--text-heading-rgb));
   }
-  .prc-art-chip-sent svg {
-    color: rgb(var(--brand-accent-rgb));
+}
+/* 1024–1279px cột chữ chỉ còn ~380px: thu cả cụm minh hoạ (số đo bên trong giữ nguyên). */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .prc-art {
+    zoom: 0.84;
   }
 }
 /* Khung xương lúc chờ pricing.json: cùng khổ thẻ gói thật nên thẻ không nhảy cao. */

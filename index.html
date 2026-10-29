@@ -544,18 +544,31 @@
             <li><i data-lucide="qr-code" style="width:18px;height:18px"></i>Quét QR chuyển khoản, thiệp mở trong ít phút</li>
             <li><i data-lucide="arrow-up-circle" style="width:18px;height:18px"></i>Lên Forever sau chỉ trả phần chênh lệch</li>
           </ul>
-          <!-- Minh hoạ (chỉ từ lg, cột chữ cạnh thẻ gói cao): hai mẫu thiệp xếp nghiêng +
-               nhãn kích hoạt. Ảnh chụp mẫu 782×1444 dùng chung với tường ảnh ở #hero. -->
+          <!-- Minh hoạ (chỉ từ lg, cột chữ cạnh thẻ gói cao): thiệp trong khung máy đứng
+               dưới vòm hoa, thẻ QR (giá = gói khuyên dùng, js/section-pricing.js) và nhãn
+               thiệp đã mở. Ảnh chụp mẫu 782×1444 dùng chung với tường ảnh ở #hero. -->
           <div class="prc-art" aria-hidden="true">
-            <img class="prc-art-back" src="assets/images/templates/vintage-forest.jpg" width="782" height="1444" alt="" loading="lazy" />
-            <img class="prc-art-front" src="assets/images/templates/romantic-blush.jpg" width="782" height="1444" alt="" loading="lazy" />
-            <span class="prc-art-chip prc-art-chip-paid">
-              <span class="prc-art-chip-ico"><i data-lucide="check" style="width:14px;height:14px"></i></span>
-              <span><b>Đã kích hoạt</b>Gói Premium</span>
-            </span>
-            <span class="prc-art-chip prc-art-chip-sent">
-              <i data-lucide="send" style="width:14px;height:14px"></i>Gửi tới 200 khách mời
-            </span>
+            <span class="prc-art-arch"></span>
+            <div class="prc-art-phone">
+              <span class="prc-art-screen">
+                <img src="assets/images/templates/romantic-blush.jpg" width="782" height="1444" alt="" loading="lazy" />
+              </span>
+              <img class="prc-art-frame" src="assets/images/iphone_mockup.svg" width="383" height="785" alt="" loading="lazy" />
+            </div>
+            <div class="prc-art-qr">
+              <span class="prc-art-qr-code"><i data-lucide="qr-code" style="width:40px;height:40px"></i></span>
+              <span class="prc-art-qr-txt">
+                <span>Quét QR thanh toán</span>
+                <b id="pricingArtAmount">109.000đ</b>
+              </span>
+            </div>
+            <div class="prc-art-ok">
+              <span class="prc-art-ok-ico"><i data-lucide="check" style="width:16px;height:16px"></i></span>
+              <span class="prc-art-ok-txt">
+                <b>Thiệp đã mở</b>
+                <span>Khách mời xem được ngay</span>
+              </span>
+            </div>
           </div>
         </div>
 

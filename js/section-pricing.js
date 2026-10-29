@@ -27,6 +27,9 @@ async function initPricing() {
     return;
   }
   _prcPick = _prcData.recommended || _prcData.plans[0].id;
+  const rec = _prcData.plans.find((p) => p.id === _prcPick);
+  const art = document.getElementById("pricingArtAmount");
+  if (art && rec) art.textContent = _prcVnd(rec.price);
   const cmp = document.getElementById("pricingCompare");
   if (cmp && window.cxPlanCompareHTML) {
     const cols = [{ id: "free", label: "Free", available: true }].concat(
