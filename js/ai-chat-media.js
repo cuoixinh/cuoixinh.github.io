@@ -209,6 +209,7 @@
   const _urls = new Map(); // khoá IDB → objectURL (thu hồi khi ảnh bị thay)
   // Bản ghi → objectURL. Ảnh không còn đọc được (CXImagePick.fromStored) thì xoá luôn bản
   // ghi — để lại là nó vẫn bị đếm vào trần album — và trả "" để state() báo khách.
+  // Bản ghi kiểu cũ (File) đọc được thì ghi lại sang dạng byte, như _idbRestoreAll.
   async function recUrl(r) {
     if (!_urls.has(r.key)) {
       const file = await CXImagePick.fromStored(r);
@@ -216,7 +217,15 @@
         await idbWrite((s) => s.delete(r.key)).catch(() => {});
         return "";
       }
-      _urls.set(r.key, URL.createObjectURL(file));
+      const url = URL.createObjectURL(file);
+      _urls.set(r.key, url);
+      if (!r.data) {
+        const { file: _old, ...rest } = r;
+        CXImagePick.toStored(file)
+          // Ảnh đã bị bỏ/thay (dropUrl) trong lúc đọc thì thôi, kẻo đè lên bản ghi mới.
+          .then((data) => _urls.get(r.key) === url && idbWrite((s) => s.put({ ...rest, data })))
+          .catch((e) => console.warn("recUrl:", e));
+      }
     }
     return _urls.get(r.key);
   }

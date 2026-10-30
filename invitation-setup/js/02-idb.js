@@ -234,9 +234,22 @@ async function _idbRestoreAll() {
     const mine = all.filter((r) => r.weddingId === WEDDING_ID);
     if (!mine.length) return false;
     let lost = 0;
+    // Bản ghi kiểu cũ (File) đọc được thì ghi lại sang dạng byte luôn: để nguyên là lần mở
+    // sau trên iPhone vẫn có thể đọc ra rỗng.
     const read = async (r) => {
       const file = await CXImagePick.fromStored(r);
       if (!file) lost++;
+      else if (!r.data && r.key) {
+        const { file: _old, ...rest } = r;
+        _idbPack(file).then((data) => {
+          // Khách đã bỏ/thay ảnh trong lúc đọc thì thôi, kẻo ghi sống lại bản ghi vừa xoá.
+          const still =
+            r.type === "gallery"
+              ? _galleryIdbKeys.get(file) === r.key
+              : pendingUploads.singleImages[r.fieldName] === file;
+          if (data && still) _idbPut({ ...rest, data });
+        });
+      }
       return file;
     };
 
@@ -294,7 +307,8 @@ async function _idbRestoreAll() {
         const file = await read(img);
         if (file) _loveStoryPendingImages[img.idx] = file;
       }
-      if (lost > before) _idbSaveLoveStoryImages(); // ghi lại bản ghi không còn tấm hỏng
+      // Ghi lại khi có tấm hỏng (bỏ nó ra) hoặc còn tấm kiểu cũ (đổi sang dạng byte).
+      if (lost > before || lsRec.images.some((i) => !i.data)) _idbSaveLoveStoryImages();
     }
 
     if (lost) {

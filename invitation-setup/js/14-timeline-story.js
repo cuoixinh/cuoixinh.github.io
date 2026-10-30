@@ -300,7 +300,7 @@ async function handleLoveStoryImage(idx, input) {
     _syncLoveStoryHidden();
     _idbSaveLoveStoryImages();
   } catch (e) {
-    showToast("Lỗi xử lý ảnh", "error");
+    showToast(e?.message ? `Lỗi xử lý ảnh: ${e.message}` : "Lỗi xử lý ảnh", "error");
   } finally {
     showLoading(false);
   }

@@ -767,6 +767,7 @@ async function _saveAllOnce(overrides, label) {
     if (_isLocalDraft && loggedIn) await _createDraftRow();
 
     // Step 1: Upload pending images
+    const hadLoveStoryImages = Object.keys(_loveStoryPendingImages).length > 0;
     showLoading(true, "Đang tải ảnh lên...");
     const { uploadedFilenames, errors, skipped: uploadSkipped, keep, lost } =
       await uploadAllPendingImages();
@@ -965,6 +966,8 @@ async function _saveAllOnce(overrides, label) {
     renderSingleImageUpload("groom_qr_url");
     renderSingleImageUpload("bride_qr_url");
     renderGalleryGrid();
+    // Ảnh chuyện tình hỏng hẳn vừa bị bỏ khỏi hàng chờ — vẽ lại để khỏi còn hiện như đã lưu.
+    if (hadLoveStoryImages) renderLoveStoryList();
 
     // Đồng bộ câu mẫu chia sẻ sang iframe khách mời (nếu đã nạp) — tránh phải F5 mới có câu mới
     document
