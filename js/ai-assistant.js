@@ -2666,6 +2666,14 @@
       root.classList.remove("aichat-kb");
       return;
     }
+    // Chỉ co bảng theo bàn phím khi khách gõ ở Ô NHẬP CHÍNH. Ô gõ trong đoạn chat (tìm
+    // nhạc, địa chỉ…) thì bảng đứng yên: co lại là đẩy phần thông tin phía trên khuất.
+    if (document.activeElement !== els.input) {
+      root.style.removeProperty("--aichat-vh");
+      root.style.removeProperty("--aichat-vb");
+      root.classList.remove("aichat-kb");
+      return;
+    }
     const layout = root.clientHeight;
     const gap = Math.max(0, Math.round(layout - vv.height - vv.offsetTop));
     root.style.setProperty("--aichat-vh", Math.round(vv.height) + "px");
@@ -2857,6 +2865,10 @@
       window.visualViewport.addEventListener("resize", syncViewport);
       window.visualViewport.addEventListener("scroll", syncViewport);
     }
+    // Chuyển con trỏ giữa ô nhập chính và ô trong đoạn chat thì bàn phím vẫn mở,
+    // không có resize nào — tự đo lại.
+    els.input.addEventListener("focus", syncViewport);
+    els.input.addEventListener("blur", syncViewport);
     // Bảng vừa co lại vì bàn phím → tin nhắn cuối bị đẩy khuất, kéo về cuối.
     els.input.addEventListener("focus", () => {
       setTimeout(() => {
