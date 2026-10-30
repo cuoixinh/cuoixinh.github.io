@@ -393,7 +393,9 @@ RLS nên khách mời không đăng nhập vẫn xem được.
   khi xoá. Thêm policy cho `anon` là mở lại đường liệt kê toàn bộ kho.
 - Kéo theo: **chưa đăng nhập thì KHÔNG upload** (`invitation-setup/js/12-uploads.js` chặn
   sẵn). Nháp của khách chưa đăng nhập — kể cả ảnh — nằm trong IndexedDB, đẩy lên ở lần lưu
-  đầu tiên sau khi đăng nhập.
+  đầu tiên sau khi đăng nhập. Ảnh trong IndexedDB cất dạng BYTE (`CXImagePick.toStored`/
+  `fromStored`), **đừng cất File/Blob**: WebKit trên một số iPhone trả Blob đọc lại ở trang
+  khác thành rỗng → ảnh chọn ở khung chat trang chủ lên tới trang Thiết lập thì upload 0 byte.
 - **Tra thiệp theo `?id=` phải là chủ thiệp** (`getWeddingById` gửi token người dùng). `id`
   là ĐỊNH DANH, không phải quyền; đường công khai duy nhất là `?slug=`.
 

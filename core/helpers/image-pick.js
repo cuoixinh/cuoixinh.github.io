@@ -28,16 +28,26 @@
 
   // Nén MỘT LẦN lúc chọn; lúc lưu (12-uploads.js) không nén lại. compressIfNeeded có
   // nhiều đường trả NGUYÊN BẢN im lặng → bắt cờ `compressed` để còn cảnh báo.
+  // Bản gốc không nén được thì chép vào bộ nhớ NGAY: File từ ô chọn ảnh chỉ trỏ tới file
+  // tạm của máy, tới lúc bấm Lưu có thể đã đọc ra rỗng. Đọc không được thì ném lỗi luôn.
   async function prepare(file) {
     const { file: processed, compressed } = await ImageHelper.prepareImage(file);
-    if (!compressed && processed.size > HEAVY_UNCOMPRESSED_BYTES) {
+    if (compressed) return processed;
+    if (processed.size > HEAVY_UNCOMPRESSED_BYTES) {
       const mb = (processed.size / 1024 / 1024).toFixed(1);
       toast(
         `Ảnh ${mb}MB không nén được — khách mời sẽ tải rất chậm. Nên đổi sang JPG rồi tải lại.`,
         "warning",
       );
     }
-    return processed;
+    let buf = null;
+    try {
+      buf = await processed.arrayBuffer();
+    } catch (e) {
+      console.warn("Không đọc được ảnh vừa chọn:", e);
+    }
+    if (!buf?.byteLength) throw new Error("Không đọc được ảnh này, bạn chọn lại nhé");
+    return new File([buf], processed.name, { type: processed.type, lastModified: processed.lastModified });
   }
 
   function loadScript(src, integrity) {

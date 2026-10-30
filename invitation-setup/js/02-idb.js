@@ -108,9 +108,11 @@ async function _idbPack(file) {
   }
 }
 
+// Sau mỗi lần chờ đọc byte phải hỏi lại ảnh còn đang chờ không: khách xoá/thay ảnh trong
+// lúc đó mà vẫn ghi là bản ghi ra sau lệnh xoá, F5 ảnh cũ sống lại.
 async function _idbSaveSingle(fieldName, file) {
   const data = await _idbPack(file);
-  if (!data) return;
+  if (!data || pendingUploads.singleImages[fieldName] !== file) return;
   await _idbPut({
     key: `${WEDDING_ID}_s_${fieldName}`,
     type: "single",
@@ -131,7 +133,9 @@ async function _idbSaveFocal(fieldName) {
   });
 }
 
+let _lsSaveSeq = 0;
 async function _idbSaveLoveStoryImages() {
+  const seq = ++_lsSaveSeq; // lượt sau thắng: lượt cũ đọc byte xong muộn thì bỏ
   const entries = (
     await Promise.all(
       Object.entries(_loveStoryPendingImages).map(async ([idx, file]) => {
@@ -140,6 +144,7 @@ async function _idbSaveLoveStoryImages() {
       }),
     )
   ).filter(Boolean);
+  if (seq !== _lsSaveSeq) return;
   if (!entries.length) {
     await _idbDelete(`${WEDDING_ID}_lsImg`);
     return;
@@ -156,7 +161,7 @@ async function _idbAddGallery(file) {
   const key = `${WEDDING_ID}_g_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   _galleryIdbKeys.set(file, key);
   const data = await _idbPack(file);
-  if (!data) return;
+  if (!data || _galleryIdbKeys.get(file) !== key) return; // đã bị bỏ trong lúc đọc
   await _idbPut({
     key,
     type: "gallery",
