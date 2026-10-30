@@ -1077,6 +1077,8 @@
     // Trang chủ: phần không phải ảnh đi kèm thiệp sang trang Thiết lập (ảnh đã nằm
     // sẵn trong IndexedDB). Trang Thiết lập đã đổ thẳng vào form nên trả null.
     partySame,
+    // Chọn mẫu từ ngoài khung chat (nút "Tạo với AI" trên thẻ mẫu).
+    setTheme: (theme, name) => sink().setTheme(theme, name),
     handoff() {
       if (window.cxAiMediaSink) return null;
       const st = homeStore();

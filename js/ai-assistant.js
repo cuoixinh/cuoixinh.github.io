@@ -127,6 +127,8 @@
   // "" = chưa chọn (màn chào hiện hai lựa chọn) · "qa" · "create". Xem setMode.
   let mode = "";
   let busy = false;
+  // Khách vào từ nút "Tạo với AI" trên thẻ mẫu: mẫu đã chọn sẵn → bỏ bước chọn mẫu.
+  let presetTheme = false;
   let abort = null; // AbortController của lượt đang chạy (nút Làm mới huỷ nó)
   let els = null;
 
@@ -153,10 +155,10 @@
           <p class="aichat-head-sub">Tạo thiệp cưới hoặc hỏi mình bất cứ điều gì</p>
         </div>
         <div class="aichat-nav" id="aichatNav"></div>
-        <x-button variant="bare" icon-only id="aichatReset" type="button"
-                  aria-label="Bắt đầu cuộc trò chuyện mới" title="Trò chuyện mới"
-                  class="aichat-head-btn">
-          <i data-lucide="rotate-ccw" style="width:16px;height:16px"></i>
+        <x-button variant="bare" id="aichatReset" type="button"
+                  aria-label="Xoá đoạn chat này, bắt đầu cuộc trò chuyện mới"
+                  title="Xoá đoạn chat, bắt đầu lại" class="aichat-newchat">
+          <i data-lucide="square-pen" style="width:15px;height:15px"></i><span>Chat mới</span>
         </x-button>
         <x-button variant="bare" icon-only id="aichatExpand" type="button"
                   aria-label="Mở rộng toàn màn hình" title="Mở rộng"
@@ -1954,7 +1956,9 @@
   // Các lượt `pre` không gửi lên server: mẫu đi theo `media`.
   function ensureIntro() {
     if (mode !== "create" || history.length || busy || els.panel.hidden) return;
-    if (!window.CXChatMedia?.isKind("theme")) return void playIntro();
+    const preset = presetTheme;
+    presetTheme = false;
+    if (preset || !window.CXChatMedia?.isKind("theme")) return void playIntro();
     history.push({
       role: "assistant",
       content: "(Mời chọn mẫu thiệp)",
@@ -2245,7 +2249,23 @@
     typer?.resolve?.();
   }
 
-  // Nút Làm mới: xoá sạch đoạn chat, về lại màn chào. Huỷ luôn lượt đang chạy —
+  // Nút "Chat mới": cuộc chat đã có lượt khách tự gõ thì hỏi lại trước khi xoá (mất
+  // cả thiệp đang soạn dở); mới chỉ có lượt mở màn thì xoá luôn. Không có
+  // showConfirm (core/helpers/alert.js) thì cũng xoá luôn.
+  async function confirmClear() {
+    const said = history.some((m) => m.role === "user" && !m.seed);
+    if (said && typeof showConfirm === "function") {
+      const ok = await showConfirm(
+        "Bắt đầu chat mới?",
+        "Đoạn chat hiện tại sẽ bị xoá, kể cả thông tin thiệp XuXi đang soạn dở. Thiệp đã lưu nháp không bị ảnh hưởng.",
+        { confirmText: "Xoá và bắt đầu lại", cancelText: "Giữ lại" },
+      );
+      if (!ok) return;
+    }
+    clearChat();
+  }
+
+  // Xoá sạch đoạn chat, về lại màn chào. Huỷ luôn lượt đang chạy —
   // để nó chạy tiếp thì câu trả lời của cuộc cũ sẽ rơi vào cuộc mới.
   function clearChat() {
     abort?.abort();
@@ -2780,7 +2800,7 @@
     // <button> thật, nên bắt sự kiện ở panel thay vì gắn vào thẻ đã biến mất.
     els.panel.addEventListener("click", (e) => {
       if (e.target.closest("#aichatClose")) close();
-      else if (e.target.closest("#aichatReset")) clearChat();
+      else if (e.target.closest("#aichatReset")) confirmClear();
       else if (e.target.closest("#aichatExpand"))
         setExpanded(!els.panel.classList.contains("is-expanded"));
       else if (e.target.closest("#aichatAttach")) toggleKitbar();
@@ -2850,7 +2870,14 @@
   // `mic` = bật luôn micro, thay cho luồng "nói cho AI nghe" trước đây.
   // `ask` = câu hỏi gửi luôn khi vừa mở (khách đã gõ ở ô ngoài, đừng bắt gõ lại).
   // `mode` = "create" khi câu đó là việc tạo thiệp (chip ở màn mở đầu trang chủ).
+  // `theme` = {theme, name} chọn sẵn mẫu (thẻ mẫu thiệp) cho một thiệp MỚI: cuộc đang
+  // dở bị xoá trước (không hỏi lại), rồi mới đặt mẫu — clearChat dọn cả mẫu cũ.
   window.cxOpenAiChat = function (opt) {
+    if (opt?.theme?.theme && window.CXChatMedia?.setTheme) {
+      if (history.length || mode) clearChat();
+      window.CXChatMedia.setTheme(opt.theme.theme, opt.theme.name);
+      presetTheme = true;
+    }
     // Có sẵn câu hỏi thì khách đã biết mình muốn gì — đừng dội lời mở đầu lên trước.
     open({ noIntro: !!(opt && opt.ask) });
     // `pick`: cửa chọn chế độ còn đang hiện thì để khách thấy hai thẻ rồi tự bấm hộ

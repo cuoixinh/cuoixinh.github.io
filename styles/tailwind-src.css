@@ -2120,6 +2120,86 @@ html.cx-landing {
   fill: currentColor;
 }
 
+/* Nút "Tạo với AI" — viên thuốc trắng đè góc dưới phải ảnh (góc trên đã có
+   hàng nhãn/sao). Logo XuXi trong ô tròn hồng nhạt; rê chuột thì cả viên đổ
+   hồng đặc như nút "Dùng ngay". Thẻ hẹp (lưới 2 cột điện thoại) chỉ còn logo. */
+.tt-media {
+  container-type: inline-size;
+}
+.tt-ai {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 3px 12px 3px 3px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--white-rgb) / 0.94);
+  box-shadow:
+    0 0 0 1px rgb(var(--brand-primary-rgb) / 0.5),
+    0 6px 16px -6px rgb(var(--scrim-rgb) / 0.35);
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.16s ease;
+}
+.tt-ai-ico {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgb(var(--action-primary-rgb) / 0.12);
+  transition: transform 0.24s ease;
+}
+.tt-ai-ico svg.lucide {
+  width: 16px;
+  height: 16px;
+}
+.tt-ai:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 8px 20px -6px rgb(var(--action-primary-rgb) / 0.6);
+}
+.tt-ai:hover .tt-ai-ico {
+  background: rgb(var(--white-rgb));
+  transform: rotate(-12deg) scale(1.08);
+}
+.tt-ai:active {
+  transform: scale(0.94);
+}
+.tt-ai:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+@container (max-width: 196px) {
+  .tt-ai {
+    padding-right: 3px;
+  }
+  .tt-ai-t {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-ai,
+  .tt-ai-ico {
+    transition: none;
+  }
+  .tt-ai:hover .tt-ai-ico {
+    transform: none;
+  }
+}
+
 /* Phần chữ + nút dưới ảnh: lề của riêng nó, vì vỏ thẻ không còn padding.
    Viền trên là ranh giới ảnh ↔ phần chữ: ảnh mẫu nào cũng sáng màu nên không có
    nó thì đáy ảnh loang thẳng vào nền trắng của thân thẻ. */
@@ -2157,7 +2237,8 @@ html.cx-landing {
   height: 11px;
   flex: none;
 }
-.tt-media img {
+/* `>`: chỉ ảnh mẫu, không trúng logo trong nút .tt-ai. */
+.tt-media > img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2166,7 +2247,7 @@ html.cx-landing {
   object-position: top;
   transition: transform 0.45s ease;
 }
-.tt-card:hover .tt-media img {
+.tt-card:hover .tt-media > img {
   transform: scale(1.045);
 }
 

@@ -1,7 +1,7 @@
 // Thẻ MỘT mẫu thiệp (.tt-card) — dùng ở dải "Mẫu thiệp" của trang chủ
 // (js/section-templates.js) và lưới của /theme-template. Style ở
 // styles/tailwind-src.css (mục "THẺ MẪU THIỆP"). Thẻ chỉ có ảnh, tên và cặp nút
-// — không hiện giá/mô tả.
+// — không hiện giá/mô tả. Nút "Tạo với AI" (opts.ai) đè góc dưới ảnh.
 // Hành vi KHÔNG viết vào onclick: trang gọi CXItemTemplate.bind(khung, {…}) một
 // lần rồi mọi thẻ chèn về sau tự chạy (uỷ quyền sự kiện).
 (function () {
@@ -11,6 +11,10 @@
   const ICON_USE = `<i data-lucide="play"></i>`;
   const ICON_TAG = `<i data-lucide="tag"></i>`;
   const ICON_STAR = `<i data-lucide="star"></i>`;
+  // Logo XuXi là nhãn hình của mọi chức năng AI (core/helpers/icon.js) — trang
+  // chưa nạp file đó thì lùi về lucide.
+  const iconAi = () =>
+    window.cxIcon ? window.cxIcon("xuxi", 20) : `<i data-lucide="sparkles"></i>`;
 
   function esc(s) {
     return String(s ?? "").replace(
@@ -32,6 +36,7 @@
    * opts.tagLabel   nhãn danh mục — không truyền thì thẻ không có hàng nhãn.
    * opts.fav        true/false = hiện sao yêu thích và trạng thái của nó;
    *                 bỏ qua (undefined) = trang không có chức năng này.
+   * opts.ai         true = hiện nút "Tạo với AI" (handler onAi).
    */
   function cardHTML(t, opts = {}) {
     const name = esc(t.name);
@@ -47,6 +52,11 @@
     // trên); rỗng thì bỏ hẳn, không để một hàng trong suốt ăn cú bấm xem trước.
     const tagrow =
       tag || fav ? `<div class="tt-tagrow">${tag}${fav}</div>` : "";
+    const ai = opts.ai
+      ? `<button type="button" class="tt-ai" data-tpl-act="ai" aria-label="Tạo thiệp với AI bằng mẫu ${name}">
+           <span class="tt-ai-ico">${iconAi()}</span><span class="tt-ai-t">Tạo với AI</span>
+         </button>`
+      : "";
 
     return `
     <article class="tt-card${opts.cardClass ? " " + opts.cardClass : ""}" data-id="${esc(t.id)}" data-theme="${esc(t.theme)}">
@@ -54,6 +64,7 @@
         <img src="/assets/images/templates/${esc(t.theme)}.jpg" alt="${name}" loading="lazy" />
         <div class="tt-hover"></div>
         ${tagrow}
+        ${ai}
       </div>
 
       <div class="tt-cardbody">
@@ -69,7 +80,7 @@
   /**
    * Gắn hành vi cho MỌI thẻ trong `root` (kể cả thẻ chèn sau) — gọi một lần cho
    * mỗi khung chứa. Mỗi handler nhận (id, theme, article).
-   * handlers: { onPreview, onUse, onFav }
+   * handlers: { onPreview, onUse, onFav, onAi }
    */
   function bind(root, handlers = {}) {
     if (!root || root.dataset.tplBound) return;
@@ -79,7 +90,7 @@
       const card = el.closest(".tt-card");
       if (!card) return;
       const act = el.dataset.tplAct;
-      const fn = { preview: "onPreview", use: "onUse", fav: "onFav" }[act];
+      const fn = { preview: "onPreview", use: "onUse", fav: "onFav", ai: "onAi" }[act];
       if (!handlers[fn]) return;
       // Sao yêu thích và cặp nút nằm trong .tt-media / thân thẻ → chặn để cú bấm
       // không chạy tiếp thành "xem trước".
@@ -92,11 +103,12 @@
       if (el) run(ev, el);
     });
 
-    // Ảnh là vùng bấm (role="button") nên phải nhận cả Enter/Space.
+    // Ảnh là vùng bấm (role="button") nên phải nhận cả Enter/Space. Chỉ khi chính
+    // ảnh đang focus — nút con (sao, Tạo với AI) là <button> thật, tự có phím.
     root.addEventListener("keydown", (ev) => {
       if (ev.key !== "Enter" && ev.key !== " ") return;
-      const el = ev.target.closest?.('.tt-media[data-tpl-act="preview"]');
-      if (!el) return;
+      const el = ev.target;
+      if (!el.matches?.('.tt-media[data-tpl-act="preview"]')) return;
       ev.preventDefault();
       run(ev, el);
     });
