@@ -13,8 +13,8 @@ Hệ quả thiết kế — giữ cho phân hệ này **chạy trọn ở trình
   tốn chi phí theo số người dùng, không có dữ liệu cá nhân của khách nằm trên server.
 - Không đụng tới luồng thiệp: không lấy ảnh từ thiệp, không gắn vào thiệp, không thanh toán,
   không đọc `CXAuth` (đăng nhập hay chưa đều dùng như nhau).
-- Giá trị thu về là **lượt truy cập + nhận diện thương hiệu**: trang dễ lên Google, video
-  khách đăng lên mạng mang tên Cưới Xinh, và sau khi xuất xong có lời mời sang làm thiệp.
+- Giá trị thu về là **lượt truy cập**: trang dễ lên Google, và sau khi xuất xong có lời mời
+  sang làm thiệp. Video xuất ra **sạch** — không màn kết, không logo (đã chốt).
 
 ---
 
@@ -55,7 +55,7 @@ flowchart LR
   G --> H[Xem trước]
   H --> I[Xuất MP4 / WebM]
   I --> J[Tải về · Chia sẻ]
-  J --> K[Lời mời: làm thiệp cưới online]
+  J --> K[Lời mời: xem mẫu thiệp]
 ```
 
 1. **Chọn ảnh** — từ máy (nhiều ảnh, kéo thả). Gợi ý 15–40 ảnh. Ảnh **không rời máy khách**
@@ -148,9 +148,8 @@ Không có bản trên server, nên không có "mở trên máy khác" — chấ
 
 ### 3.6 Kéo khách về Cưới Xinh
 
-- **Màn kết video** 2 giây: "Làm bằng Cưới Xinh · cuoixinh.com" — video khách đăng lên mạng
-  chính là quảng cáo. Đề xuất bật sẵn, khách tắt được (bắt buộc giữ thì khách khó chịu, dễ bỏ
-  dùng); **không** đóng dấu logo đè lên ảnh.
+- **Video không có màn kết, không logo** (đã chốt) — công cụ phải dễ chịu thì khách mới
+  quay lại và giới thiệu cho nhau.
 - **Sau khi xuất xong** hiện khối mời: "Làm luôn thiệp cưới online — xem mẫu" → `/theme-template/`.
 - **SEO**: tiêu đề/mô tả nhắm "làm video slide ảnh cưới miễn phí", thêm vào `sitemap.xml` khi
   ra mắt, thẻ og:* để link gửi Zalo/Facebook có ảnh.
@@ -173,8 +172,8 @@ Không có bản trên server, nên không có "mở trên máy khác" — chấ
 - Engine Canvas 2D + 3 mẫu slide (một nhẹ nhàng, một điện ảnh, một vui tươi).
 - Trình tạo 5 bước ngay trên `/slide-cuoi/`, nháp IndexedDB.
 - Nhạc: 10–15 bài tự host + tải mp3 từ máy.
-- Xuất **MP4 1080p 9:16 + 16:9 + 1:1**, dự phòng WebM/MediaRecorder; nút chia sẻ; màn kết +
-  khối mời làm thiệp.
+- Xuất **MP4 1080p 9:16 + 16:9 + 1:1**, dự phòng WebM/MediaRecorder; nút chia sẻ; khối mời xem
+  mẫu thiệp.
 - Kiểm thử: iPhone (iOS 16.4/17/18), Android tầm trung, Chrome/Safari/Edge/Firefox desktop.
 - Thêm vào `sitemap.xml`, bỏ nhãn "Sắp ra mắt".
 
@@ -200,8 +199,11 @@ Không có bản trên server, nên không có "mở trên máy khác" — chấ
 
 ## 6. Câu hỏi cần chốt trước P1
 
-1. **Màn kết "Làm bằng Cưới Xinh"**: bật sẵn + cho tắt (đề xuất), hay bắt buộc giữ?
-2. **Nguồn nhạc**: chọn bộ nhạc miễn phí bản quyền nào (Pixabay Music, YouTube Audio Library,
-   Free Music Archive…) — phải là nguồn cho phép tự host + phân phối lại.
-3. **Tên đường dẫn**: giữ `/slide-cuoi/` hay đổi (`/video-cuoi/`…) — đổi sau khi đã lên Google
-   là mất thứ hạng, nên chốt sớm.
+Đã chốt: **không màn kết/logo** · **giữ đường dẫn `/slide-cuoi/`** · nhạc chọn từ **YouTube**.
+
+Còn mở — cách đưa nhạc YouTube vào video: trình duyệt KHÔNG lấy được luồng tiếng của
+YouTube (iframe khác miền, và điều khoản YouTube cấm tải/tách tiếng), nên chỉ PHÁT được khi
+xem trước chứ không GHI được vào file. Đề xuất: chọn bài YouTube để nghe lúc xem trước (dùng
+lại ô tìm YouTube của trang Thiết lập), video xuất ra không tiếng — khách gắn nhạc trên
+TikTok/Facebook/CapCut (thư viện nhạc có bản quyền của nền tảng, không bị tắt tiếng) — cộng
+tuỳ chọn tải mp3 từ máy để video có sẵn tiếng.
