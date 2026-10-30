@@ -8,7 +8,7 @@
 // /theme-template. Dải trang chủ bỏ hai thứ gắn riêng với trang kia: sao yêu
 // thích (kéo theo bộ đếm ở navbar) và nhãn danh mục.
 function templateCard(t) {
-  return CXItemTemplate.cardHTML(t, { cardClass: "cx-tplcard" });
+  return CXItemTemplate.cardHTML(t, { cardClass: "cx-tplcard", ai: true });
 }
 
 // Một cú bấm = đúng 2 thẻ.
@@ -123,6 +123,8 @@ function renderTemplateCards() {
   CXItemTemplate.bind(row, {
     onPreview: (id) => openPreview(id),
     onUse: (id) => createDraft(id),
+    onAi: (id, theme, card) =>
+      cxCreateAiWithTheme(theme, card.querySelector(".tt-name")?.textContent),
   });
   // lucide KHÔNG tự quét lại markup chèn động — thiếu dòng này là mất icon.
   window.lucide?.createIcons({ root: row });

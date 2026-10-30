@@ -299,6 +299,22 @@
   }
 }
 
+/* Nút "Chat mới": viên thuốc CÓ CHỮ cùng đĩa màu với .aichat-head-btn — icon
+   trần (mũi tên xoay) bị đọc thành "tải lại", khách không biết đó là chỗ xoá. */
+.aichat-newchat {
+  @apply flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3
+         text-xs font-semibold transition;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.22);
+}
+
+@media (hover: hover) {
+  .aichat-newchat:hover {
+    background: rgb(var(--brand-primary-rgb) / 0.42);
+  }
+}
+
 .aichat-head-btn:disabled {
   @apply pointer-events-none opacity-40;
 }

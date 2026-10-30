@@ -21,6 +21,13 @@ function cxHeroCreateAi() {
   window.cxOpenAiChat({ pick: "create" });
 }
 
+// Nút "Tạo với AI" trên thẻ mẫu: như nút ở màn mở đầu nhưng chọn sẵn mẫu đó, khách
+// vào thẳng phần kể thông tin.
+function cxCreateAiWithTheme(theme, name) {
+  if (typeof window.cxOpenAiChat !== "function" || !theme) return;
+  window.cxOpenAiChat({ pick: "create", theme: { theme, name: name || theme } });
+}
+
 function setupSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener("click", function (e) {

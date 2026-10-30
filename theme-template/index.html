@@ -645,6 +645,8 @@
       });
     </script>
 
+    <!-- Logo XuXi trên nút "Tạo với AI" của thẻ mẫu. -->
+    <script src="../core/helpers/icon.js"></script>
     <script src="../core/components/item-template.js"></script>
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
@@ -853,6 +855,7 @@
         return CXItemTemplate.cardHTML(t, {
           tagLabel: t.category ? catLabel(t.category) : "",
           fav: favSet.has(t.theme),
+          ai: true,
         });
       }
 
@@ -920,6 +923,12 @@
           onPreview: (id) => openPreview(byId(id).previewUrl),
           onUse: (id) => startDraft(byId(id).theme, byId(id).name),
           onFav: (id, theme, card) => toggleFav(theme, card),
+          // Mở XuXi tại chỗ, chọn sẵn mẫu này (khung chat nạp ở cuối <body>).
+          onAi: (id) => {
+            const t = byId(id);
+            if (!t.theme) return;
+            window.cxOpenAiChat?.({ pick: "create", theme: { theme: t.theme, name: t.name } });
+          },
         });
       }
 
@@ -1003,5 +1012,15 @@
     </script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="../core/helpers/nav-cart-count.js"></script>
+
+    <!-- Trợ lý XuXi — cùng bộ với trang chủ (nút "Tạo với AI" trên thẻ mẫu mở nó tại
+         chỗ). Phải nạp SAU config/auth; ai-chat-media đứng TRƯỚC ai-assistant. -->
+    <script src="../core/helpers/device-id.js"></script>
+    <script src="../core/dal/ai-chat-dal.js"></script>
+    <script src="../core/helpers/image-helper.js"></script>
+    <script src="../core/helpers/image-pick.js"></script>
+    <script src="../core/helpers/theme-decl.js"></script>
+    <script src="../js/ai-chat-media.js"></script>
+    <script src="../js/ai-assistant.js"></script>
   </body>
 </html>
