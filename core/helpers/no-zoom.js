@@ -17,7 +17,9 @@
   document.documentElement.style.touchAction = "manipulation";
 
   // iOS Safari: bàn phím ảo đóng lại mà khung nhìn còn kẹt ở mức zoom → trả về.
-  document.addEventListener("focusout", function () {
+  // Chỉ ô gõ mới bật bàn phím: cuộn lại sau MỌI focusout là cắt ngang cú cuộn mượt khi bấm link.
+  document.addEventListener("focusout", function (e) {
+    if (!e.target.matches || !e.target.matches("input, textarea, select, [contenteditable]")) return;
     window.setTimeout(function () {
       window.scrollTo(window.pageXOffset, window.pageYOffset);
     }, 100);

@@ -12,6 +12,22 @@ class StorageDAL {
   // Hết UPLOAD_TIMEOUT_MS thì coi là lỗi; nếu file vẫn lên muộn thì thành ảnh mồ côi,
   // tab "Dọn dữ liệu" của admin gom được.
   async uploadFile(filename, file) {
+    // Đọc thử byte đầu trước khi gửi: trình duyệt mất dữ liệu ảnh thì supabase-js vẫn gửi
+    // một request rỗng (400 "No content provided") mà không ai biết. Ảnh đã được chép vào
+    // bộ nhớ từ lúc chọn/khôi phục (CXImagePick) nên đọc thử là đủ, khỏi nhân bản cả file.
+    // code UNREADABLE = ảnh hỏng hẳn, nơi gọi bỏ khỏi hàng chờ thay vì thử lại.
+    let readable = false;
+    try {
+      readable = file.size > 0 && (await file.slice(0, 1).arrayBuffer()).byteLength > 0;
+    } catch (e) {
+      console.warn("Không đọc được ảnh trước khi upload:", e);
+    }
+    if (!readable) {
+      const err = new Error("Ảnh không còn đọc được, bạn chọn lại ảnh này");
+      err.code = "UNREADABLE";
+      throw err;
+    }
+
     let timer;
     const timeout = new Promise((_, reject) => {
       timer = setTimeout(

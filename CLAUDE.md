@@ -393,7 +393,9 @@ RLS nên khách mời không đăng nhập vẫn xem được.
   khi xoá. Thêm policy cho `anon` là mở lại đường liệt kê toàn bộ kho.
 - Kéo theo: **chưa đăng nhập thì KHÔNG upload** (`invitation-setup/js/12-uploads.js` chặn
   sẵn). Nháp của khách chưa đăng nhập — kể cả ảnh — nằm trong IndexedDB, đẩy lên ở lần lưu
-  đầu tiên sau khi đăng nhập.
+  đầu tiên sau khi đăng nhập. Ảnh trong IndexedDB cất dạng BYTE (`CXImagePick.toStored`/
+  `fromStored`), **đừng cất File/Blob**: WebKit trên một số iPhone trả Blob đọc lại ở trang
+  khác thành rỗng → ảnh chọn ở khung chat trang chủ lên tới trang Thiết lập thì upload 0 byte.
 - **Tra thiệp theo `?id=` phải là chủ thiệp** (`getWeddingById` gửi token người dùng). `id`
   là ĐỊNH DANH, không phải quyền; đường công khai duy nhất là `?slug=`.
 
@@ -615,6 +617,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   nào; tham số `price`/`original` trên URL `/checkout/` không còn dùng làm giá. **Đừng viết giá dự phòng ở client**:
   mẫu thiếu hàng giá thì hiện "Liên hệ" và khoá nút, chứ hiện một con số là khách nhìn
   một giá còn quét QR trả một giá khác.
+  Ngoại lệ DUY NHẤT: mục Bảng giá trang chủ (`#pricing`) hiện giá đồng giá từ
+  `assets/data/pricing.json` — đổi giá/hệ số ở DB thì sửa luôn file đó.
 - **Thẻ mẫu thiệp:** markup ở `core/components/item-template.js`
   (`CXItemTemplate.cardHTML/bind`), style `.tt-*` ở `styles/tailwind-src.css` — dùng CHUNG
   cho dải "Mẫu thiệp" ở trang chủ và lưới `/theme-template`, sửa hình thức thẻ là sửa một

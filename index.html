@@ -525,6 +525,77 @@
       </div>
     </section>
 
+    <!-- ===== BẢNG GIÁ ===== -->
+    <!-- Lời dẫn (trái) · thẻ chọn gói dựng như màn thanh toán (phải), dưới lg xếp dọc.
+         Thẻ gói + bảng so sánh do js/section-pricing.js đổ vào, .prc-* ở
+         styles/tailwind-src.css. -->
+    <section id="pricing" class="pt-16 md:pt-24">
+      <div class="prc max-w-6xl mx-auto px-5">
+        <div class="prc-copy reveal">
+          <h2 class="font-playfair text-3xl md:text-4xl font-semibold leading-tight text-[rgb(var(--text-heading-rgb))]">
+            Bảng giá
+          </h2>
+          <p class="mt-4 max-w-md text-sm md:text-base leading-relaxed text-[rgb(var(--text-caption-rgb))]">
+            Mọi mẫu thiệp cùng một giá. Dựng thiệp và xem thử không mất phí, ưng rồi
+            mới chọn gói.
+          </p>
+          <ul class="prc-points">
+            <li><i data-lucide="calendar-check" style="width:18px;height:18px"></i>Xuất bản xong được dùng thử 3 ngày</li>
+            <li><i data-lucide="qr-code" style="width:18px;height:18px"></i>Quét QR chuyển khoản, thiệp mở trong ít phút</li>
+            <li><i data-lucide="arrow-up-circle" style="width:18px;height:18px"></i>Lên Forever sau chỉ trả phần chênh lệch</li>
+          </ul>
+          <!-- Minh hoạ (chỉ từ lg, cột chữ cạnh thẻ gói cao): thiệp trong khung máy đứng
+               dưới vòm hoa, thẻ QR (giá = gói khuyên dùng, js/section-pricing.js) và nhãn
+               thiệp đã mở. Ảnh chụp mẫu 782×1444 dùng chung với tường ảnh ở #hero. -->
+          <div class="prc-art" aria-hidden="true">
+            <span class="prc-art-arch"></span>
+            <div class="prc-art-phone">
+              <span class="prc-art-screen">
+                <img src="assets/images/templates/romantic-blush.jpg" width="782" height="1444" alt="" loading="lazy" />
+              </span>
+              <img class="prc-art-frame" src="assets/images/iphone_mockup.svg" width="383" height="785" alt="" loading="lazy" />
+            </div>
+            <div class="prc-art-qr">
+              <span class="prc-art-qr-code"><i data-lucide="qr-code" style="width:40px;height:40px"></i></span>
+              <span class="prc-art-qr-txt">
+                <span>Quét QR thanh toán</span>
+                <b id="pricingArtAmount">109.000đ</b>
+              </span>
+            </div>
+            <div class="prc-art-ok">
+              <span class="prc-art-ok-ico"><i data-lucide="check" style="width:16px;height:16px"></i></span>
+              <span class="prc-art-ok-txt">
+                <b>Thiệp đã mở</b>
+                <span>Khách mời xem được ngay</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="prc-sheet reveal reveal-delay-2">
+          <p id="pricingPlansTitle" class="cx-ord-eyebrow">Chọn gói</p>
+          <div id="pricingPlans" class="cx-ord-plans" role="radiogroup" aria-labelledby="pricingPlansTitle">
+            <div class="cx-ord-plan animate-pulse" aria-hidden="true"></div>
+            <div class="cx-ord-plan animate-pulse" aria-hidden="true"></div>
+            <div class="cx-ord-plan animate-pulse" aria-hidden="true"></div>
+          </div>
+          <div id="pricingCompare" class="cx-ord-cmp-card mt-5 hidden"></div>
+          <x-button size="lg" full onclick="goCreateDraft(event)" class="cx-ord-pay mt-5"
+            style="background:linear-gradient(135deg,rgb(var(--brand-accent-rgb)),rgb(var(--action-primary-rgb)));box-shadow:0 12px 24px -12px rgb(var(--action-primary-rgb) / 0.6);">
+            <span class="cx-ord-pay-in">
+              <span class="cx-ord-pay-ico"><i data-lucide="sparkles" style="width:18px;height:18px"></i></span>
+              <span class="cx-ord-pay-txt">
+                <span class="cx-ord-pay-label">Tạo thiệp ngay</span>
+                <span id="pricingSub" class="cx-ord-pay-sub">Chọn gói khi thanh toán</span>
+              </span>
+              <span id="pricingTotal" class="cx-ord-pay-total">…</span>
+            </span>
+          </x-button>
+          <p class="prc-note">Thanh toán một lần, không phí duy trì. Gói chọn ở bước thanh toán, sau khi thiệp đã xong.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- ===== CTA ===== -->
     <!-- Thẻ sáng hai cột: lời mời + nút (trái) · ba bước tạo thiệp (phải). .cta-* ở
          styles/tailwind-src.css. -->
@@ -672,6 +743,7 @@
     <script src="js/section-testimonials.js"></script>
     <script src="js/scroll-reveal.js"></script>
     <script src="core/payment.js"></script>
+    <script src="js/section-pricing.js"></script>
 
     <!-- Navbar dùng chung: khai mảng mục một lần, component dựng cả thanh trên
          (desktop) lẫn thanh tab dưới (mobile). -->
@@ -692,6 +764,7 @@
             icon: "layers",
             href: "/theme-template/",
           },
+          { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
           {
             id: "cart",
             label: "Đã chọn",

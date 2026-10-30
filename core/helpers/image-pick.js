@@ -28,16 +28,26 @@
 
   // Nén MỘT LẦN lúc chọn; lúc lưu (12-uploads.js) không nén lại. compressIfNeeded có
   // nhiều đường trả NGUYÊN BẢN im lặng → bắt cờ `compressed` để còn cảnh báo.
+  // Bản gốc không nén được thì chép vào bộ nhớ NGAY: File từ ô chọn ảnh chỉ trỏ tới file
+  // tạm của máy, tới lúc bấm Lưu có thể đã đọc ra rỗng. Đọc không được thì ném lỗi luôn.
   async function prepare(file) {
     const { file: processed, compressed } = await ImageHelper.prepareImage(file);
-    if (!compressed && processed.size > HEAVY_UNCOMPRESSED_BYTES) {
+    if (compressed) return processed;
+    if (processed.size > HEAVY_UNCOMPRESSED_BYTES) {
       const mb = (processed.size / 1024 / 1024).toFixed(1);
       toast(
         `Ảnh ${mb}MB không nén được — khách mời sẽ tải rất chậm. Nên đổi sang JPG rồi tải lại.`,
         "warning",
       );
     }
-    return processed;
+    let buf = null;
+    try {
+      buf = await processed.arrayBuffer();
+    } catch (e) {
+      console.warn("Không đọc được ảnh vừa chọn:", e);
+    }
+    if (!buf?.byteLength) throw new Error("Không đọc được ảnh này, bạn chọn lại nhé");
+    return new File([buf], processed.name, { type: processed.type, lastModified: processed.lastModified });
   }
 
   function loadScript(src, integrity) {
@@ -248,5 +258,34 @@
     return added;
   }
 
-  window.CXImagePick = { single, gallery, focal, focalCrop, crop, fromCrop, checkType, prepare };
+  // Ảnh chờ upload cất vào IndexedDB dạng BYTE (ArrayBuffer) nằm ngay trong bản ghi, không
+  // cất File/Blob: WebKit trên một số iPhone trả Blob lấy lại ở lần tải trang khác thành
+  // rỗng (upload 0 byte). Hai nơi ghi chung kho: invitation-setup/js/02-idb.js, js/ai-chat-media.js.
+  async function toStored(file) {
+    const buf = await file.arrayBuffer();
+    if (!buf.byteLength) throw new Error("Ảnh rỗng");
+    return { buf, name: file.name, type: file.type, lastModified: file.lastModified };
+  }
+
+  // Bản ghi (`data` của toStored, hoặc `file` của bản ghi kiểu cũ) → File trong bộ nhớ;
+  // null khi không còn đọc được dữ liệu.
+  async function fromStored(rec) {
+    try {
+      const d = rec?.data;
+      if (d?.buf?.byteLength) {
+        return new File([d.buf], d.name || "image", { type: d.type || "", lastModified: d.lastModified || Date.now() });
+      }
+      if (rec?.file) {
+        const buf = await rec.file.arrayBuffer();
+        if (buf.byteLength) {
+          return new File([buf], rec.file.name || "image", { type: rec.file.type, lastModified: rec.file.lastModified });
+        }
+      }
+    } catch (e) {
+      console.warn("Ảnh trong IndexedDB không đọc được:", e);
+    }
+    return null;
+  }
+
+  window.CXImagePick = { single, gallery, focal, focalCrop, crop, fromCrop, checkType, prepare, toStored, fromStored };
 })();
