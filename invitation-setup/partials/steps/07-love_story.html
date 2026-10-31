@@ -29,6 +29,17 @@
         <p class="cx-ls-head-t">Hành trình của hai bạn</p>
         <p id="love-count" class="cx-ls-head-d"></p>
       </div>
+      <!-- Chỉ hiện khi có từ 2 mốc (renderLoveStoryList gạt .hidden). -->
+      <x-button
+        id="love-sort-btn"
+        variant="bare"
+        type="button"
+        onclick="openLoveStorySort(this)"
+        aria-haspopup="dialog"
+        class="cx-ls-sort hidden"
+      >
+        <i data-lucide="arrow-down-up" style="width: 14px; height: 14px"></i> Sắp xếp
+      </x-button>
       <x-button
         id="love-ai-toggle"
         variant="bare"

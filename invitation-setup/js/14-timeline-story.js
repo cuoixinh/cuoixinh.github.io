@@ -206,6 +206,7 @@ function renderLoveStoryList() {
   list.innerHTML = "";
   const count = document.getElementById("love-count");
   if (count) count.textContent = `${_loveStoryItems.length}/${MAX_LOVE_STORY_ITEMS} mốc, xếp từ cũ đến mới`;
+  document.getElementById("love-sort-btn")?.classList.toggle("hidden", _loveStoryItems.length < 2);
   _loveStoryItems.forEach((item, idx) => {
     const preview = _loveStoryImagePreview(idx);
     const _lsFp = item.focal_point;
@@ -231,8 +232,9 @@ function renderLoveStoryList() {
             <div class="cx-ls-row">
               <div class="cx-ls-date">
                 <label for="ls-date-${idx}" class="cx-ls-lbl">Thời gian</label>
+                <i data-lucide="calendar-heart" class="cx-ls-date-ico" aria-hidden="true" style="width: 14px; height: 14px"></i>
                 <input type="text" id="ls-date-${idx}" value="${escapeHtml(item.date || "")}" placeholder="Xuân 2020"
-                  class="cx-ls-input"
+                  title="Thời gian của mốc" class="cx-ls-input"
                   oninput="_loveStoryItems[${idx}].date=this.value;_syncLoveStoryHidden();" />
               </div>
               <div class="min-w-0 flex-1">
@@ -430,3 +432,249 @@ function removeLoveStoryItem(idx) {
   renderLoveStoryList();
 }
 
+
+// Xếp lại mốc theo `order` (order[vị trí mới] = vị trí cũ). Ảnh chờ upload bám
+// theo vị trí nên phải đánh lại khoá cùng lúc, giống removeLoveStoryItem().
+function _reorderLoveStory(order) {
+  const items = order.map((from) => _loveStoryItems[from]);
+  const pending = {};
+  order.forEach((from, to) => {
+    if (_loveStoryPendingImages[from]) pending[to] = _loveStoryPendingImages[from];
+  });
+  _loveStoryItems.splice(0, _loveStoryItems.length, ...items);
+  Object.keys(_loveStoryPendingImages).forEach(
+    (k) => delete _loveStoryPendingImages[k],
+  );
+  Object.assign(_loveStoryPendingImages, pending);
+  _syncLoveStoryHidden();
+  _idbSaveLoveStoryImages();
+  renderLoveStoryList();
+  if (Object.keys(pending).length) _imagesChanged();
+}
+
+// Popup "Sắp xếp các mốc": mỗi mốc chỉ còn một dòng Thời gian + Tên mốc trên sợi chỉ,
+// kéo tay nắm hoặc bấm mũi tên để đổi chỗ; chỉ "Lưu thứ tự" mới ghi vào danh sách.
+// Số trên sợi chỉ là VỊ TRÍ (đánh lại sau mỗi lần đổi), không đi theo mốc. Style .cx-lsort-*.
+function openLoveStorySort(trigger) {
+  if (_loveStoryItems.length < 2 || document.getElementById("cx-lsort")) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ico = (name, size = 16) =>
+    `<i data-lucide="${name}" style="width:${size}px;height:${size}px"></i>`;
+  const rows = _loveStoryItems
+    .map((it, i) => {
+      const date = String(it.date || "").trim();
+      const title = String(it.title || "").trim();
+      return `
+      <li class="cx-lsort-row" data-from="${i}">
+        <span class="cx-lsort-node" aria-hidden="true">${i + 1}</span>
+        <div class="cx-lsort-card">
+          <div class="cx-lsort-txt">
+            <p class="cx-lsort-date${date ? "" : " is-blank"}">${escapeHtml(date) || "Chưa có thời gian"}</p>
+            <p class="cx-lsort-name${title ? "" : " is-blank"}">${escapeHtml(title) || "Chưa đặt tên mốc"}</p>
+          </div>
+          <div class="cx-lsort-step">
+            <x-button variant="bare" data-act="up" aria-label="Đưa lên" title="Đưa lên">${ico("chevron-up")}</x-button>
+            <x-button variant="bare" data-act="down" aria-label="Đưa xuống" title="Đưa xuống">${ico("chevron-down")}</x-button>
+          </div>
+          <x-button variant="bare" class="cx-lsort-grip" data-act="grip"
+            aria-label="Kéo để đổi chỗ — hoặc dùng phím mũi tên lên/xuống">${ico("grip-vertical", 18)}</x-button>
+        </div>
+      </li>`;
+    })
+    .join("");
+
+  const root = document.createElement("div");
+  root.id = "cx-lsort";
+  root.className = "cx-lsort";
+  root.innerHTML = `
+    <section class="cx-lsort-box" role="dialog" aria-modal="true" aria-labelledby="cx-lsort-title">
+      <span class="cx-lsort-grab" aria-hidden="true"></span>
+      <header class="cx-lsort-head">
+        <div class="min-w-0 flex-1">
+          <h2 id="cx-lsort-title" class="cx-lsort-title">Sắp xếp các mốc</h2>
+          <p class="cx-lsort-sub">Kéo ${ico("grip-vertical", 13)} hoặc bấm mũi tên để đổi chỗ</p>
+        </div>
+        <x-button variant="ghost" tone="neutral" icon-only data-act="close" aria-label="Đóng" title="Đóng">${ico("x", 18)}</x-button>
+      </header>
+      <div class="cx-lsort-body">
+        <ol class="cx-lsort-list">${rows}</ol>
+      </div>
+      <footer class="cx-lsort-foot">
+        <x-button variant="ghost" tone="neutral" data-act="close">Huỷ</x-button>
+        <x-button data-act="save">${ico("check")} Lưu thứ tự</x-button>
+      </footer>
+      <p class="sr-only" role="status" aria-live="polite"></p>
+    </section>`;
+  document.body.appendChild(root);
+  window.lucide?.createIcons({ root });
+
+  const body = root.querySelector(".cx-lsort-body");
+  const list = root.querySelector(".cx-lsort-list");
+  const live = root.querySelector("[role=status]");
+  const order = () => [...list.children].map((r) => Number(r.dataset.from));
+  const nameOf = (row) => row.querySelector(".cx-lsort-name").textContent;
+
+  // Số vị trí + mũi tên đầu/cuối; số nào đổi thì nảy nhẹ (.is-tick).
+  const renumber = () => {
+    const all = [...list.children];
+    all.forEach((row, k) => {
+      const node = row.querySelector(".cx-lsort-node");
+      if (node.textContent !== String(k + 1)) {
+        node.textContent = k + 1;
+        node.classList.remove("is-tick");
+        void node.offsetWidth;
+        node.classList.add("is-tick");
+      }
+      row.classList.toggle("is-moved", Number(row.dataset.from) !== k);
+      row.querySelector("[data-act=up]").disabled = k === 0;
+      row.querySelector("[data-act=down]").disabled = k === all.length - 1;
+    });
+  };
+
+  // FLIP: đổi DOM xong cho các dòng khác trượt từ chỗ cũ về chỗ mới. offsetTop không
+  // tính transform nên đo được cả lúc dòng còn đang trượt dở.
+  const move = (mutate, skip) => {
+    const all = [...list.children];
+    const before = new Map(all.map((r) => [r, r.offsetTop]));
+    mutate();
+    renumber();
+    if (reduce) return;
+    all.forEach((r) => {
+      const d = before.get(r) - r.offsetTop;
+      if (r === skip || !d) return;
+      r.style.transition = "none";
+      r.style.transform = `translateY(${d}px)`;
+      void r.offsetHeight;
+      r.style.transition = "";
+      r.style.transform = "";
+    });
+  };
+
+  const announce = (row) => {
+    live.textContent = `${nameOf(row)}: vị trí ${[...list.children].indexOf(row) + 1}`;
+  };
+
+  const step = (row, dir) => {
+    const target = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+    if (!target) return;
+    move(() => list.insertBefore(row, dir < 0 ? target : target.nextElementSibling));
+    announce(row);
+  };
+
+  // ── Kéo thả bằng pointer (chuột + cảm ứng). Cảm ứng chỉ bắt ở tay nắm để vuốt
+  // trong danh sách vẫn cuộn được; chuột thì nắm cả thẻ.
+  let drag = null;
+  // Tâm đo theo THẺ chứ không theo dòng: dòng cuối không có đệm đáy nên hai cách đo
+  // lệch nhau. Quyết định chỗ thả theo vị trí ngón tay thật (raw), chỉ hình thẻ mới bị
+  // kẹp trong danh sách — kẹp cả phép so thì tâm thẻ không bao giờ vượt được tâm
+  // dòng đầu/cuối, kéo lên đầu hay xuống cuối bị mắc.
+  const cardH = (r) => r.querySelector(".cx-lsort-card").offsetHeight;
+  const place = () => {
+    const { row } = drag;
+    const h = cardH(row);
+    const raw = drag.y - list.getBoundingClientRect().top - drag.grab;
+    const top = Math.max(0, Math.min(list.offsetHeight - h, raw));
+    const mid = raw + h / 2;
+    let before = null;
+    for (const r of list.children) {
+      if (r !== row && r.offsetTop + cardH(r) / 2 > mid) {
+        before = r;
+        break;
+      }
+    }
+    if (before !== row.nextElementSibling && before !== row)
+      move(() => list.insertBefore(row, before), row);
+    row.style.transform = `translateY(${top - row.offsetTop}px)`;
+  };
+  // Gần mép trên/dưới khung cuộn thì tự cuộn theo (10 mốc có thể dài hơn màn).
+  const tick = () => {
+    if (!drag) return;
+    const b = body.getBoundingClientRect();
+    const edge = 56;
+    if (drag.y < b.top + edge) body.scrollTop -= Math.ceil((b.top + edge - drag.y) / 6);
+    else if (drag.y > b.bottom - edge) body.scrollTop += Math.ceil((drag.y - b.bottom + edge) / 6);
+    place();
+    drag.raf = requestAnimationFrame(tick);
+  };
+  const endDrag = () => {
+    if (!drag) return;
+    const { row, raf } = drag;
+    cancelAnimationFrame(raf);
+    drag = null;
+    row.classList.remove("is-drag");
+    root.classList.remove("is-dragging");
+    row.style.transform = "";
+    announce(row);
+  };
+  list.addEventListener("pointerdown", (e) => {
+    const row = e.target.closest(".cx-lsort-row");
+    if (!row || drag || e.button > 0) return;
+    const onGrip = !!e.target.closest("[data-act=grip]");
+    if (!onGrip && (e.pointerType !== "mouse" || e.target.closest("button"))) return;
+    e.preventDefault();
+    drag = {
+      row,
+      y: e.clientY,
+      grab: e.clientY - list.getBoundingClientRect().top - row.offsetTop,
+    };
+    list.setPointerCapture(e.pointerId);
+    row.classList.add("is-drag");
+    root.classList.add("is-dragging");
+    drag.raf = requestAnimationFrame(tick);
+  });
+  list.addEventListener("pointermove", (e) => {
+    if (drag) drag.y = e.clientY;
+  });
+  list.addEventListener("pointerup", endDrag);
+  list.addEventListener("pointercancel", endDrag);
+  list.addEventListener("lostpointercapture", endDrag);
+
+  const close = () => {
+    endDrag();
+    document.removeEventListener("keydown", onKey, true);
+    root.classList.add("is-out");
+    setTimeout(() => root.remove(), reduce ? 0 : 180);
+    trigger?.focus?.();
+  };
+  const save = () => {
+    const o = order();
+    const changed = o.some((from, to) => from !== to);
+    close();
+    if (!changed) return;
+    _reorderLoveStory(o);
+    showToast("Đã lưu thứ tự mốc", "success");
+  };
+  const onKey = (e) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      close();
+      return;
+    }
+    const grip = e.target.closest?.("[data-act=grip]");
+    if (grip && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+      e.preventDefault();
+      step(grip.closest(".cx-lsort-row"), e.key === "ArrowUp" ? -1 : 1);
+      grip.focus();
+      grip.scrollIntoView({ block: "nearest" });
+    }
+  };
+  document.addEventListener("keydown", onKey, true);
+
+  root.addEventListener("click", (e) => {
+    if (e.target === root) return close();
+    const btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    const act = btn.dataset.act;
+    if (act === "close") close();
+    else if (act === "save") save();
+    else if (act === "up" || act === "down") {
+      const row = btn.closest(".cx-lsort-row");
+      step(row, act === "up" ? -1 : 1);
+      // Mũi tên vừa bấm bị khoá (đã lên đầu/xuống cuối) thì chuyển focus sang mũi tên kia.
+      (btn.disabled ? row.querySelector(`[data-act=${act === "up" ? "down" : "up"}]`) : btn).focus();
+    }
+  });
+
+  renumber();
+  list.querySelector("[data-act=grip]")?.focus({ preventScroll: true });
+}
