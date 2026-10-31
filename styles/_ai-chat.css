@@ -1854,9 +1854,10 @@
 }
 
 .aichat-theme {
-  @apply flex shrink-0 cursor-pointer flex-col gap-1 rounded-xl p-1 text-left;
+  @apply flex shrink-0 cursor-pointer flex-col gap-1 overflow-hidden rounded-xl p-1 text-left;
 
   width: 96px;
+  min-width: 0;
   border: 2px solid transparent;
 }
 
@@ -1865,6 +1866,14 @@
 
   aspect-ratio: 391 / 722;
   background: rgb(var(--surface-control-rgb));
+}
+
+/* Safari iOS không kéo span trong <button> flex về đúng bề ngang thẻ → `truncate` vô tác
+   dụng, tên tràn đè sang thẻ bên; khoá cứng width cho hai dòng chữ. */
+
+.aichat-theme-name,
+.aichat-theme-price {
+  @apply block w-full min-w-0 max-w-full;
 }
 
 .aichat-theme-name {
