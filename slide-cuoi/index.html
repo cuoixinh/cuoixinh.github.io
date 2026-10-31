@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Slide cưới - Cưới Xinh</title>
+    <meta
+      name="description"
+      content="Làm video slide ảnh cưới có nhạc miễn phí, không cần đăng nhập. Xuất MP4 để đăng Facebook, TikTok, Zalo hay chiếu màn LED ở tiệc cưới."
+    />
+    <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Tailwind build local (npm run build:css) — xem tailwind.config.js. -->
+    <link rel="stylesheet" href="../styles/build.css" />
+    <script src="../core/helpers/no-zoom.js"></script>
+    <script src="../core/helpers/no-inspect.js"></script>
+  </head>
+  <body
+    class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
+  >
+    <!-- "Slide cưới" — công cụ miễn phí, độc lập với thiệp (không đăng nhập, chạy trọn
+         ở trình duyệt). Hiện mới là trang "Sắp ra mắt"; kế hoạch ở
+         docs/PLAN-slide-cuoi.md. Khung dùng lại .tg-* / .gl-* của trang "Khách mời". -->
+    <main class="gl-page mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+      <header class="mi-head">
+        <div class="min-w-0">
+          <div class="tg-head-row">
+            <h1 class="tg-title">Slide cưới</h1>
+            <span class="tg-count">Sắp ra mắt</span>
+          </div>
+          <p class="tg-sub">
+            Ghép ảnh cưới thành video có nhạc và lời chúc, xuất MP4 để đăng Facebook,
+            TikTok, gửi Zalo hay chiếu màn LED ở tiệc cưới. Miễn phí, không cần đăng
+            nhập — ảnh không rời khỏi máy bạn.
+          </p>
+        </div>
+      </header>
+
+      <ol class="gl-steps" aria-label="Cách tạo slide cưới">
+        <li class="gl-step">
+          <span class="gl-step-ico"><i data-lucide="images"></i></span>
+          <span>
+            <span class="gl-step-title">1. Chọn ảnh</span>
+            <span class="gl-step-desc">Kéo thả ảnh cưới từ máy, sắp xếp thứ tự và chỉnh khung từng tấm.</span>
+          </span>
+        </li>
+        <li class="gl-step">
+          <span class="gl-step-ico"><i data-lucide="music"></i></span>
+          <span>
+            <span class="gl-step-title">2. Chọn mẫu và nhạc</span>
+            <span class="gl-step-desc">Hiệu ứng chuyển cảnh, tên hai bạn, ngày cưới và bài hát yêu thích.</span>
+          </span>
+        </li>
+        <li class="gl-step">
+          <span class="gl-step-ico"><i data-lucide="download"></i></span>
+          <span>
+            <span class="gl-step-title">3. Xuất video</span>
+            <span class="gl-step-desc">MP4 khổ dọc 9:16, ngang 16:9 hoặc vuông 1:1 — tải về hoặc chia sẻ ngay.</span>
+          </span>
+        </li>
+      </ol>
+
+      <div class="tg-empty">
+        <span class="tg-empty-ico"><i data-lucide="film"></i></span>
+        <p class="tg-empty-title">Chúng mình đang hoàn thiện tính năng này</p>
+        <p class="tg-empty-desc max-w-sm">
+          Trong lúc chờ, ghé xem các mẫu thiệp cưới online của Cưới Xinh nhé.
+        </p>
+        <x-button
+          variant="bare"
+          icon="layers"
+          onclick="location.href = '/theme-template/'"
+          class="mi-btn mi-btn--primary mt-5"
+        >
+          Xem mẫu thiệp
+        </x-button>
+      </div>
+    </main>
+
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../core/x-button.js"></script>
+    <script src="../core/x-logo.js"></script>
+    <script src="../core/x-popover.js"></script>
+    <script src="../core/helpers/account-menu.js"></script>
+    <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
+    <script src="../core/auth.js"></script>
+    <script src="../core/components/navbar.js"></script>
+    <script>
+      CXNavbar.mount({
+        active: "slides",
+        items: [
+          { id: "home", label: "Trang chủ", icon: "home", href: "/" },
+          {
+            id: "templates",
+            label: "Mẫu thiệp",
+            icon: "layers",
+            href: "/theme-template/",
+          },
+          { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
+          { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/" },
+          {
+            id: "cart",
+            label: "Đã chọn",
+            loginLabel: "Thiệp của tôi",
+            icon: "cart",
+            href: "/my-invitations/",
+            count: true,
+          },
+          { id: "guests", label: "Khách mời", icon: "users", href: "/guest-list/", login: true },
+          {
+            id: "account",
+            label: "Tài khoản",
+            icon: "user",
+            onClick: "CXAccount.open(this)",
+            pin: true,
+          },
+        ],
+      });
+      CXAccount.mountChip();
+    </script>
+    <script src="../core/cache-util.js"></script>
+    <script src="../core/config.js"></script>
+    <script src="../core/helpers/alert.js"></script>
+    <script src="../core/auth-ui.js"></script>
+    <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
+    <script src="../core/helpers/nav-cart-count.js"></script>
+  </body>
+</html>

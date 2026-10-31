@@ -37,8 +37,8 @@ function cxHeroMenu(btn) {
     const n = countEl && !countEl.classList.contains("hidden") ? countEl.textContent : "";
     const go = (href) => () => (location.href = href);
     const loggedIn = !!window.CXAuth?.isLoggedIn?.();
-    // 4 trang thì lưới 2×2, 5 trang thì 3 + 2 — không để ô lẻ trơ một mình.
-    pop.style.setProperty("--hm-cols", loggedIn ? "3" : "2");
+    // 5 trang thì 3 + 2, 6 trang thì 3 + 3 — không để ô lẻ trơ một mình.
+    pop.style.setProperty("--hm-cols", "3");
     pop.setItems([
       { icon: _cxHeroMenuIcon("home"), label: "Trang chủ", active: true, onClick: go("/") },
       { icon: _cxHeroMenuIcon("layers"), label: "Mẫu thiệp", onClick: go("/theme-template/") },
@@ -47,6 +47,7 @@ function cxHeroMenu(btn) {
         window.flushLazyRender?.();
         document.getElementById("pricing")?.scrollIntoView();
       } },
+      { icon: _cxHeroMenuIcon("film"), label: "Slide cưới", onClick: go("/slide-cuoi/") },
       { icon: _cxHeroMenuIcon("cart"), label: `${loggedIn ? "Thiệp của tôi" : "Đã chọn"}${n ? ` (${n})` : ""}`, onClick: go("/my-invitations/") },
       // Khách mời chỉ có nghĩa khi đã đăng nhập — cùng luật mục `login: true` ở navbar.
       ...(loggedIn
