@@ -3,6 +3,7 @@
 // đăng nhập mã OTP / mật khẩu cùng email đó không được coi là nhân viên.
 
 // Email Google viết THƯỜNG. Thêm/bớt người là sửa ở đây rồi deploy wedding-admin cả hai project.
+// Mỗi tài khoản ở đây đặt lại được mật khẩu MỌI khách → bắt buộc bật xác minh 2 bước của Google.
 export const SUPPORT_EMAILS: string[] = [
   'vectovinh@gmail.com', 'vectovinh14@gmail.com'
 ]
@@ -22,8 +23,14 @@ function sessionMethods(jwt: string): string[] {
 // deno-lint-ignore no-explicit-any
 export function supportStaffEmail(user: any, jwt: string): string | null {
   if (!user || !sessionMethods(jwt).includes('oauth')) return null
+  // amr chỉ nói "OAuth" chứ không nói nhà cung cấp nào. Supabase tự gộp danh tính cùng email
+  // đã xác minh, nên user có thêm OAuth khác (Facebook…) thì không chắc phiên này là Google →
+  // từ chối. `email` (OTP) không bao giờ ra amr oauth nên được phép đi kèm.
+  const identities = user.identities ?? []
   // deno-lint-ignore no-explicit-any
-  const google = (user.identities ?? []).find((i: any) => i?.provider === 'google')
+  if (identities.some((i: any) => i?.provider !== 'google' && i?.provider !== 'email')) return null
+  // deno-lint-ignore no-explicit-any
+  const google = identities.find((i: any) => i?.provider === 'google')
   const email = String(google?.identity_data?.email ?? '').toLowerCase()
   if (!email || google?.identity_data?.email_verified === false) return null
   return SUPPORT_EMAILS.includes(email) ? email : null

@@ -102,7 +102,8 @@ function accShowResult({ username, password }) {
     `Tài khoản Cưới Xinh của bạn:\n` +
     `• Vào ${ACC_SITE} → Đăng nhập → "Đăng nhập bằng tài khoản Cưới Xinh"\n` +
     `• Tên đăng nhập: ${username}\n` +
-    `• Mật khẩu: ${password}`;
+    `• Mật khẩu: ${password}\n` +
+    `Đăng nhập xong, bạn nên đổi mật khẩu ở mục "Thông tin cá nhân".`;
   document.getElementById("acc-result-text").textContent = accLastResult;
   document.getElementById("acc-result").classList.remove("hidden");
 }

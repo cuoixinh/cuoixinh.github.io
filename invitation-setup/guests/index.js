@@ -666,17 +666,11 @@ async function confirmImport() {
 const AI_GUEST_MAX_CHARS = CONFIG.guestImport.aiMaxChars;
 
 // side: bên của tab lúc bấm nút — cả lượt nhập chỉ ghi vào bên này. files: các tệp
-// đang đính kèm (≤ aiMaxFiles): ảnh/PDF {kind, mime, data base64, name, size, url} gửi
-// thẳng cho AI; Word/Excel/.txt {kind:"doc", fmt, text, name, size, lines} đã đọc ra chữ,
+// đang đính kèm (đọc bằng CXAiFiles, ≤ CONFIG.aiFiles.maxFiles): ảnh/PDF {kind, mime, data
+// base64, name, size, url} gửi thẳng cho AI; Word/Excel/.txt {kind:"doc", fmt, text, name, size, lines} đã đọc ra chữ,
 // gửi ngầm (KHÔNG đổ vào ô dán). Chữ trong ô là khách bổ sung / lời dặn, không bắt buộc. fromFile: kết quả đang xem đọc từ tệp (nhắc kiểm tra kỹ tên, dấu).
 // abort: AbortController của lượt phân tích đang chạy (null = không chạy).
 const _ai = { rows: [], side: "groom", busy: false, plan: null, files: [], fromFile: false, abort: null, filter: "" };
-
-// mammoth.js (đọc chữ trong .docx) chỉ nạp khi người dùng chọn file Word.
-const AI_MAMMOTH = {
-  src: "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js",
-  sri: "sha512-wuWo/cLB9W5BsZeyTYLuiTwr+FDlvjQC7C6atr+To7Jk92XHWI7WsImJZiruw7C9bnc8Zg7N0ncQI2Q/B4PQYw==",
-};
 
 // Trạng thái từng hàng ở bước xem lại: biểu tượng ở ô đầu hàng + nhãn ở dải đếm phía
 // trên (thứ tự khai = thứ tự chip). Thẻ "other" có thêm nút nhập vào bên đang mở.
@@ -722,9 +716,9 @@ function openAiImport() {
   _aiShowStage("paste");
   _aiSyncCount();
   _aiRenderCap(_aiEl("ai-cap-now"), null);
-  const { aiMaxFiles, aiFileMaxMB, aiFilesMaxMB } = CONFIG.guestImport;
-  _aiEl("ai-formats-max").textContent = `Tối đa ${aiMaxFiles} tệp mỗi lượt`;
-  _aiEl("ai-formats-size").textContent = `Ảnh/PDF tối đa ${aiFileMaxMB}MB/tệp, tổng ${aiFilesMaxMB}MB`;
+  const { maxFiles, fileMaxMB, filesMaxMB } = CONFIG.aiFiles;
+  _aiEl("ai-formats-max").textContent = `Tối đa ${maxFiles} tệp mỗi lượt`;
+  _aiEl("ai-formats-size").textContent = `Ảnh/PDF tối đa ${fileMaxMB}MB/tệp, tổng ${filesMaxMB}MB`;
   _modalShow(_aiEl("ai-import-modal"), _aiEl("ai-text"));
 }
 
@@ -845,9 +839,6 @@ function toggleAiAttachMenu() {
   pop.toggle(_aiEl("ai-plus"));
 }
 
-const _aiExt = (name) => (String(name).toLowerCase().match(/\.([a-z0-9]+)$/) || [])[1] || "";
-const _aiSize = (b) => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`);
-
 // Nhiều tệp một lúc (chọn nhiều, kéo thả, dán): xử lý lần lượt, dừng ở lỗi đầu tiên.
 async function _aiHandleFiles(list) {
   if (_ai.busy) return;
@@ -857,45 +848,12 @@ async function _aiHandleFiles(list) {
   }
 }
 
-// Một tệp bất kỳ → tệp đính kèm: ảnh/PDF gửi AI đọc, Word/Excel/.txt đọc ra chữ. Trả false khi lỗi.
+// Một tệp bất kỳ → tệp đính kèm (CXAiFiles: ảnh/PDF gửi AI đọc, Word/Excel/.txt đọc ra chữ). Trả false khi lỗi.
 async function _aiHandleFile(file) {
   if (!file || _ai.busy) return false;
-  const ext = _aiExt(file.name);
-  const type = file.type || "";
   try {
-    const src = CONFIG.guestImport.aiSourceMaxMB;
-    if (file.size > src * 1048576) throw new Error(`Tệp “${file.name}” lớn hơn ${src}MB, hãy chọn tệp nhỏ hơn.`);
-    if (type.startsWith("image/") || ["jpg", "jpeg", "png", "webp", "heic", "heif"].includes(ext)) {
-      _aiCheckRoom(0);
-      const img = await _aiImageToJpeg(file);
-      // Kích thước thật chỉ biết sau khi nén — kiểm lại cả trần từng tệp lẫn tổng.
-      try {
-        _aiCheckFile(img.size, file.name);
-        _aiCheckRoom(img.size);
-      } catch (e) {
-        URL.revokeObjectURL(img.url);
-        throw e;
-      }
-      _aiAttach(img, file.name);
-    } else if (type === "application/pdf" || ext === "pdf") {
-      _aiCheckFile(file.size, file.name);
-      _aiCheckRoom(file.size);
-      const pages = await _aiPdfPages(file);
-      _aiAttach({ kind: "pdf", mime: "application/pdf", data: await _aiBase64(file), size: file.size, pages }, file.name);
-    } else if (ext === "docx") {
-      await _aiLoadMammoth();
-      const { value } = await window.mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
-      _aiAddDoc(value, "Word", file);
-    } else if (ext === "doc") {
-      throw new Error("File Word đời cũ (.doc) chưa đọc được. Hãy lưu lại dạng .docx hoặc PDF rồi chọn lại.");
-    } else if (ext === "xlsx" || ext === "xls") {
-      const wb = _XLSX.read(await file.arrayBuffer(), { type: "array" });
-      _aiAddDoc(_aiSheetsToText(wb), "Excel", file);
-    } else if (type.startsWith("text/") || ext === "txt" || ext === "csv") {
-      _aiAddDoc(await file.text(), ext === "csv" ? "CSV" : ".txt", file);
-    } else {
-      throw new Error("Chưa đọc được loại tệp này. Hãy chọn ảnh, PDF, Word (.docx), Excel hoặc .txt.");
-    }
+    _ai.files.push(await CXAiFiles.read(file, _ai.files));
+    _aiRenderFiles();
     return true;
   } catch (err) {
     _aiError(err.message || "Không đọc được tệp, hãy thử tệp khác.");
@@ -903,151 +861,11 @@ async function _aiHandleFile(file) {
   }
 }
 
-// Kiểm PDF trước khi đính kèm (cùng luật với ai-invitation): đúng chữ ký "%PDF-",
-// tổng số trang ≤ aiPdfMaxPages; không đếm được trang (PDF nén) thì chỉ nhận file nhỏ.
-// Bảng tính → chữ cho XuXi: mỗi hàng một dòng, ô ngăn bằng " | " (dấu phẩy hay lẫn
-// với dấu phẩy trong tên/ghi chú). Bỏ hàng trống và cột trống hẳn; nhiều sheet thì ghi
-// tên sheet làm tiêu đề nhóm (sheet hay đặt tên "Nhà trai"/"Nhà gái").
-function _aiSheetsToText(wb) {
-  const parts = [];
-  wb.SheetNames.forEach((name) => {
-    const rows = _XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: false, defval: "", blankrows: false })
-      .map((r) => r.map((c) => String(c).replace(/\s+/g, " ").trim()))
-      .filter((r) => r.some(Boolean));
-    if (!rows.length) return;
-    const width = Math.max(...rows.map((r) => r.length));
-    const keep = [...Array(width).keys()].filter((i) => rows.some((r) => r[i]));
-    const lines = rows.map((r) => keep.map((i) => r[i] || "").join(" | ").replace(/( \| )+$/, ""));
-    parts.push((wb.SheetNames.length > 1 ? `${name}:\n` : "") + lines.join("\n"));
-  });
-  return parts.join("\n\n");
-}
-
-async function _aiPdfPages(file) {
-  const { aiPdfMaxPages, aiPdfUnknownMaxMB } = CONFIG.guestImport;
-  const bin = new TextDecoder("latin1").decode(await file.arrayBuffer());
-  if (!bin.startsWith("%PDF-")) throw new Error(`Tệp “${file.name}” không phải PDF hợp lệ.`);
-  const n = (bin.match(/\/Type\s*\/Page(?![A-Za-z])/g) || []).length;
-  if (!n && file.size > aiPdfUnknownMaxMB * 1048576) {
-    throw new Error(`Không đếm được số trang của “${file.name}”. Hãy xuất lại PDF hoặc chụp ảnh danh sách.`);
-  }
-  const used = _ai.files.reduce((s, f) => s + (f.pages || 0), 0);
-  if (used + (n || 1) > aiPdfMaxPages) {
-    throw new Error(`PDF tối đa ${aiPdfMaxPages} trang mỗi lượt. Hãy tách bớt trang hoặc nhập ở lượt sau.`);
-  }
-  return n || 1;
-}
-
-// Trần từng tệp gửi AI (sau nén) — khớp MAX_GUEST_FILE_B64 của ai-invitation.
-function _aiCheckFile(size, name) {
-  const max = CONFIG.guestImport.aiFileMaxMB;
-  if (size > max * 1048576) throw new Error(`Tệp “${name}” lớn hơn ${max}MB. Với PDF, hãy tách bớt trang rồi thử lại.`);
-}
-
-// Còn chỗ cho thêm một tệp nặng `size` byte không (số tệp + tổng dung lượng)?
-// Cùng luật với ai-invitation (MAX_GUEST_FILES, MAX_GUEST_FILES_B64) — server vẫn kiểm lại.
-function _aiCheckRoom(size) {
-  const { aiMaxFiles, aiFilesMaxMB } = CONFIG.guestImport;
-  if (_ai.files.length >= aiMaxFiles) throw new Error(`Mỗi lượt tối đa ${aiMaxFiles} tệp. Bỏ bớt tệp hoặc nhập phần còn lại ở lượt sau.`);
-  const used = _aiBinSize();
-  if (used + size > aiFilesMaxMB * 1048576) throw new Error(`Tổng dung lượng tệp vượt ${aiFilesMaxMB}MB. Bỏ bớt tệp rồi thử lại.`);
-}
-
-const _aiBinSize = () => _ai.files.reduce((n, f) => n + (f.kind === "doc" ? 0 : f.size), 0);
-const _aiDocChars = () => _ai.files.reduce((n, f) => n + (f.kind === "doc" ? f.text.length : 0), 0);
-
-// Chữ đọc từ Word/Excel/.txt → một tệp đính kèm (gửi ngầm, ghi rõ tên tệp cho AI).
-function _aiAddDoc(text, fmt, file) {
-  const t = String(text || "").replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
-  if (!t) throw new Error(`Không thấy chữ nào trong “${file.name}”.`);
-  _aiCheckRoom(0);
-  const max = CONFIG.guestImport.aiDocsMaxChars;
-  if (_aiDocChars() + t.length > max) {
-    throw new Error(`Nội dung các tệp Word/Excel/.txt dài quá ${max.toLocaleString("vi-VN")} ký tự. Hãy chia làm nhiều lượt.`);
-  }
-  _aiAttach({ kind: "doc", fmt, text: t, size: file.size, lines: t.split("\n").filter((l) => l.trim()).length }, file.name);
-}
-
-function _aiBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(String(r.result).split(",")[1] || "");
-    r.onerror = () => reject(new Error("Không đọc được tệp"));
-    r.readAsDataURL(blob);
-  });
-}
-
-// Ảnh → JPEG cạnh dài ≤ aiImageMaxSide: ảnh điện thoại 3–8MB còn vài trăm KB.
-async function _aiImageToJpeg(file) {
-  let bmp;
-  try {
-    bmp = await createImageBitmap(file);
-  } catch {
-    throw new Error("Không mở được ảnh này (ảnh HEIC?). Hãy chụp lại hoặc lưu dạng JPG rồi thử lại.");
-  }
-  const side = CONFIG.guestImport.aiImageMaxSide;
-  const k = Math.min(1, side / Math.max(bmp.width, bmp.height));
-  const cv = document.createElement("canvas");
-  cv.width = Math.round(bmp.width * k);
-  cv.height = Math.round(bmp.height * k);
-  const g = cv.getContext("2d");
-  g.fillStyle = "#fff"; // ảnh PNG nền trong suốt → nền trắng cho chữ dễ đọc
-  g.fillRect(0, 0, cv.width, cv.height);
-  g.drawImage(bmp, 0, 0, cv.width, cv.height);
-  bmp.close?.();
-  const blob = await new Promise((res) => cv.toBlob(res, "image/jpeg", 0.85));
-  if (!blob) throw new Error("Không nén được ảnh, hãy thử ảnh khác.");
-  return { kind: "image", mime: "image/jpeg", data: await _aiBase64(blob), size: blob.size, url: URL.createObjectURL(blob) };
-}
-
-let _aiMammothP = null;
-function _aiLoadMammoth() {
-  if (window.mammoth) return Promise.resolve();
-  _aiMammothP ??= new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = AI_MAMMOTH.src;
-    s.integrity = AI_MAMMOTH.sri;
-    s.crossOrigin = "anonymous";
-    s.onload = resolve;
-    s.onerror = () => { _aiMammothP = null; reject(new Error("Chưa tải được bộ đọc file Word, kiểm tra mạng rồi thử lại.")); };
-    document.head.appendChild(s);
-  });
-  return _aiMammothP;
-}
-
-// Đính kèm ảnh/PDF (tối đa aiMaxFiles): mỗi tệp một hàng dưới ô dán, ô vẫn gõ được
-// để thêm khách hoặc dặn XuXi cách đọc.
-function _aiAttach(att, name) {
-  _ai.files.push({ ...att, name });
-  _aiRenderFiles();
-}
-
-const _aiKindLabel = (f) => (f.kind === "doc" ? f.fmt : f.kind === "image" ? "Ảnh" : "PDF");
-
+// Mỗi tệp một thẻ dưới ô dán, ô vẫn gõ được để thêm khách hoặc dặn XuXi cách đọc.
 function _aiRenderFiles() {
   const box = _aiEl("ai-file-card");
   if (!box) return;
-  const chips = _ai.files.map((f, i) => {
-    const kind = _aiKindLabel(f);
-    const thumb = f.kind === "image"
-      ? `<img class="gs-ai-file-thumb" src="${f.url}" alt="" />`
-      : `<span class="gs-ai-file-thumb gs-ai-file-thumb--${f.kind === "doc" ? (f.fmt === "Excel" ? "xls" : "doc") : "pdf"}">${
-        _ico(f.fmt === "Excel" ? "file-spreadsheet" : "file-text", 20)}</span>`;
-    const name = escapeHtml(f.name || (f.kind === "image" ? "Ảnh chụp" : `Tệp ${kind}`));
-    const meta = f.kind === "doc" ? `${kind} · ${f.lines} dòng` : `${kind} · ${_aiSize(f.size)}`;
-    return `
-      <div class="gs-ai-file" title="${name}">
-        ${thumb}
-        <span class="gs-ai-file-txt">
-          <span class="gs-ai-file-name">${name}</span>
-          <span class="gs-ai-file-meta">${meta}</span>
-        </span>
-        <x-button variant="bare" type="button" class="gs-ai-file-x" onclick="aiRemoveFile(${i})"
-          title="Bỏ tệp" aria-label="Bỏ tệp ${name}">${_ico("x", 12)}</x-button>
-      </div>`;
-  }).join("");
-  box.innerHTML = _ai.files.length ? `<div class="gs-ai-strip">${chips}</div>` : "";
-  lucide.createIcons({ root: box });
+  CXAiFiles.renderStrip(box, _ai.files, aiRemoveFile);
   _aiSyncAttachUi();
 }
 
@@ -1061,7 +879,7 @@ function aiRemoveFile(i) {
 }
 
 function _aiDetach() {
-  _ai.files.forEach((f) => f.url && URL.revokeObjectURL(f.url));
+  CXAiFiles.release(_ai.files);
   _ai.files = [];
   _aiRenderFiles();
 }
@@ -1081,8 +899,7 @@ function _aiSyncAttachUi() {
 
 async function runAiParse() {
   if (_ai.busy) return;
-  const files = _ai.files.filter((f) => f.kind !== "doc");
-  const docs = _ai.files.filter((f) => f.kind === "doc");
+  const { files, docs } = CXAiFiles.payload(_ai.files);
   const text = _aiEl("ai-text").value.trim();
   if (!_ai.files.length && !text) {
     _aiError("Dán danh sách, chọn tệp hoặc chụp ảnh danh sách khách mời trước đã.");
@@ -1090,11 +907,10 @@ async function runAiParse() {
     return;
   }
   if (text.length > AI_GUEST_MAX_CHARS) { _aiSyncCount(); return; }
-  // Kiểm lại trước khi gửi (phòng trạng thái lệch) — cùng luật với server.
-  const { aiMaxFiles, aiFilesMaxMB } = CONFIG.guestImport;
-  if (_ai.files.length > aiMaxFiles) { _aiError(`Mỗi lượt tối đa ${aiMaxFiles} tệp.`); return; }
-  if (_aiBinSize() > aiFilesMaxMB * 1048576) {
-    _aiError(`Tổng dung lượng tệp vượt ${aiFilesMaxMB}MB. Bỏ bớt tệp rồi thử lại.`);
+  try {
+    CXAiFiles.checkSend(_ai.files);
+  } catch (e) {
+    _aiError(e.message);
     return;
   }
   // Bên đã đủ khách: dừng trước khi tốn một lượt AI.
@@ -1112,11 +928,7 @@ async function runAiParse() {
   _aiEl("ai-save").disabled = true;
   _aiRenderLoading();
   try {
-    const { guests, truncated } = await aiDAL.parseGuests({
-      text,
-      files: files.map((f) => ({ mime: f.mime, data: f.data, name: f.name })),
-      docs: docs.map((f) => ({ name: f.name, type: f.fmt, text: f.text })),
-    }, ctrl.signal);
+    const { guests, truncated } = await aiDAL.parseGuests({ text, files, docs }, ctrl.signal);
     // Đã huỷ (Huỷ / đóng popup) thì bỏ kết quả về muộn.
     if (ctrl.signal.aborted) return;
     _ai.abort = null;
@@ -1142,7 +954,7 @@ async function runAiParse() {
 function _aiRenderLoading() {
   const row = `<div class="gs-ai-row gs-ai-row--sk"><span class="gs-sk h-8 w-20"></span><span class="gs-sk h-8 flex-1"></span></div>`;
   const n = _ai.files.length;
-  const what = n ? `XuXi đang đọc ${n > 1 ? `${n} tệp` : _ai.files[0].kind === "image" ? "ảnh" : `tệp ${_aiKindLabel(_ai.files[0])}`} và tách tên, xưng hô.` : "XuXi đang tách tên và xưng hô.";
+  const what = n ? `XuXi đang đọc ${n > 1 ? `${n} tệp` : _ai.files[0].kind === "image" ? "ảnh" : `tệp ${CXAiFiles.label(_ai.files[0])}`} và tách tên, xưng hô.` : "XuXi đang tách tên và xưng hô.";
   _aiEl("ai-review").innerHTML = `
     <div class="gs-ai-wait" role="status">
       <span class="gs-ai-wait-ico"><i data-icon="xuxi" data-size="22"></i></span>

@@ -111,7 +111,8 @@ export async function handleAccounts(
 
     // Trùng tên: hàng giữ chỗ do người ngoài tự đăng ký (không cờ, chưa xác nhận) thì gỡ
     // rồi tạo lại; tài khoản thật đã có thì báo trùng, không đụng vào.
-    if (error && (error.code === 'email_exists' || error.status === 422)) {
+    // Xét theo code, không theo status: weak_password cũng là 422.
+    if (error && (error.code === 'email_exists' || error.code === 'user_already_exists')) {
       let existing: Record<string, any> | undefined
       try {
         existing = (await listAccountUsers(db)).find(u => u.email === attrs.email)

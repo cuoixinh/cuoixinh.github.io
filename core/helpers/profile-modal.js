@@ -29,6 +29,11 @@ const CXProfile = (function () {
             <div class="mb-5">
               <x-input id="profile-phone" type="tel" label="Số điện thoại" placeholder="Nhập số điện thoại"></x-input>
             </div>
+            <!-- Chỉ tài khoản Cưới Xinh (tên + mật khẩu): mật khẩu ban đầu do nhân viên đặt và
+                 gửi qua tin nhắn, khách tự đổi để Cưới Xinh không còn biết. -->
+            <div id="profile-pass-wrap" class="mb-5 hidden">
+              <x-input id="profile-password" type="password" label="Mật khẩu mới" placeholder="Để trống nếu không đổi" autocomplete="new-password"></x-input>
+            </div>
             <x-button type="submit" full>Lưu thông tin</x-button>
           </form>
         </div>
@@ -69,6 +74,8 @@ const CXProfile = (function () {
     _set("profile-name", meta.full_name || meta.name || "");
     _set("profile-email-input", user.email || "");
     _set("profile-phone", meta.phone || "");
+    _set("profile-password", "");
+    m.querySelector("#profile-pass-wrap").classList.toggle("hidden", !window.CXAuth?.isAccount?.(user));
     m.classList.remove("hidden");
     m.classList.add("flex");
   }
@@ -88,22 +95,37 @@ const CXProfile = (function () {
   async function _submit(e) {
     e.preventDefault();
     const sb = window.CXAuth?.client?.();
-    if (!sb || !(await window.CXAuth.getUser())) {
+    const user = sb && (await window.CXAuth.getUser());
+    if (!user) {
       _toast("Vui lòng đăng nhập", "error");
       return;
     }
-    const { error } = await sb.auth.updateUser({
+    const attrs = {
       data: {
         full_name: document.getElementById("profile-name").value,
         phone: document.getElementById("profile-phone").value,
       },
-    });
+    };
+    const pass = window.CXAuth.isAccount(user)
+      ? (document.getElementById("profile-password")?.value || "").trim()
+      : "";
+    if (pass && pass.length < 8) {
+      _toast("Mật khẩu mới cần ít nhất 8 ký tự", "error");
+      return;
+    }
+    if (pass) attrs.password = pass;
+    const { error } = await sb.auth.updateUser(attrs);
     if (error) {
-      _toast("Lỗi cập nhật: " + error.message, "error");
+      const PASS_ERR = {
+        same_password: "Mật khẩu mới trùng mật khẩu cũ",
+        weak_password: "Mật khẩu mới chưa đủ mạnh",
+        reauthentication_needed: "Vui lòng đăng xuất, đăng nhập lại rồi đổi mật khẩu",
+      };
+      _toast(PASS_ERR[error.code] || "Lỗi cập nhật: " + error.message, "error");
       return;
     }
     close();
-    _toast("Đã lưu thông tin cá nhân", "success");
+    _toast(pass ? "Đã lưu thông tin và đổi mật khẩu" : "Đã lưu thông tin cá nhân", "success");
   }
 
   return { open, close, isOpen };

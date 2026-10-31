@@ -4109,9 +4109,15 @@ html.cx-rail-off {
 }
 .gs-ai-file-thumb--pdf,
 .gs-ai-file-thumb--doc,
-.gs-ai-file-thumb--xls {
+.gs-ai-file-thumb--xls,
+.gs-ai-file-thumb--img {
   @apply flex items-center justify-center;
   border-color: transparent;
+}
+/* Ảnh đã gửi (không còn bản thu nhỏ để vẽ) — chỉ hiện icon. */
+.gs-ai-file-thumb--img {
+  color: rgb(var(--ai-chip-text-rgb));
+  background: rgb(var(--ai-chip-bg-rgb));
 }
 .gs-ai-file-thumb--pdf {
   color: rgb(var(--state-error-text-rgb));

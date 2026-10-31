@@ -212,14 +212,16 @@ Luồng: `invitation-setup/guests/` → `ai-invitation` (`mode=guests`, chỉ Đ
       bảo AI bỏ SĐT khi xuất nhưng dữ liệu vẫn đã gửi đi. Áp cho cả `ai-chat`. Đổi ý thì chỉ
       cần chuyển `GEMINI_API_KEYS` sang key của project có bật thanh toán — mã không đổi.
 - [x] **A24. Một tài khoản đốt hết quota Gemini của mọi tính năng AI bằng PDF nhiều trang.**
-      **Đã vá:** `ai-invitation` đếm trang PDF (`pdfPageCount`, `/Type /Page` thô), tổng
-      ≤ `MAX_GUEST_PDF_PAGES` (10) mỗi lượt; PDF không đếm được trang (nén object stream) chỉ
-      nhận ≤ ~2MB. Mỗi tệp tính 1 lượt AI (`cost` của `enforceRateLimit`,
-      `_shared/ai-rate-limit.ts` — `cost` mặc định 1 nên `ai-chat` không đổi). Client kiểm
-      cùng luật ở `_aiPdfPages` (`invitation-setup/guests/index.js`).
+      **Đã vá:** luật tệp chung ở `_shared/ai-files.ts` (`readAttachments`), dùng cho cả
+      `ai-invitation` (mode=guests) lẫn `ai-chat`: đếm trang PDF (`/Type /Page` thô), tổng
+      ≤ `MAX_PDF_PAGES` (10) mỗi lượt; PDF không đếm được trang (nén object stream) chỉ
+      nhận ≤ ~2MB. Mỗi ảnh/PDF tính 1 lượt AI (`cost` của `enforceRateLimit`,
+      `_shared/ai-rate-limit.ts`). Client kiểm cùng luật ở `core/helpers/ai-files.js`
+      (`CONFIG.aiFiles`). ⚠️ `ai-chat` nhận tệp cả khi CHƯA đăng nhập (mode=guests thì bắt
+      đăng nhập) — vẫn qua hạn mức ẩn danh, nên điểm hở của A10 áp cho lượt có tệp, đắt hơn.
 - [x] **A25. `ai-invitation` đọc trọn body trước khi kiểm đăng nhập.** Ai cũng POST được body
-      hàng chục MB. **Đã vá:** kiểm `Content-Length` đầu handler — > `MAX_BODY_GUESTS` (12MB)
-      là 413; mode khác `guests` mà > `MAX_BODY_TEXT` (100KB) cũng 413. Request không khai
+      hàng chục MB. **Đã vá:** kiểm `Content-Length` đầu handler — > `MAX_BODY_FILES` (12MB,
+      `_shared/ai-files.ts`; `ai-chat` chặn cùng ngưỡng) là 413; mode khác `guests` mà > `MAX_BODY_TEXT` (100KB) cũng 413. Request không khai
       `Content-Length` (chunked) vẫn lọt — trần cứng còn lại là giới hạn body của Supabase.
 - [x] **A26. Tệp gửi AI chỉ tin `mime` client khai.** **Đã vá:** `fileMagicOk` kiểm byte đầu
       (JPEG `/9j/`, PNG `iVBORw0KGgo`, WebP `RIFF…WEBP`, PDF `JVBERi0`) trước khi trừ lượt AI.
@@ -276,8 +278,22 @@ Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `
 - [x] **A36. Ai vào được `/admin-support`.** Trang ra web nên mọi chốt nằm ở server:
       `supportStaffEmail` (`_shared/support-staff.ts`) đòi phiên HIỆN TẠI là OAuth (claim `amr`
       của JWT đã qua `auth.getUser`) VÀ identity Google có email trong `SUPPORT_EMAILS`. Đăng nhập
-      OTP/mật khẩu cùng email không qua. Danh sách rỗng = không ai vào (fail-closed). Mã admin
-      KHÔNG mở được resource này.
+      OTP/mật khẩu cùng email không qua. `amr` không nói nhà cung cấp nên user có thêm danh
+      tính OAuth khác (Facebook — Supabase tự gộp theo email đã xác minh) bị từ chối luôn.
+      Danh sách rỗng = không ai vào (fail-closed). Mã admin KHÔNG mở được resource này.
+- [ ] **A37. Tài khoản Google trong `SUPPORT_EMAILS` là chìa khoá chung** — mất một cái là
+      đặt lại được mật khẩu mọi khách. Phải bật xác minh 2 bước cho từng tài khoản (ngoài repo).
+- [x] **A38. Toast chạy mã chèn qua link (có từ trước luồng này).** `showToast` (`alert.js`)
+      gán `innerHTML`, `auth-ui.js` đổ thẳng `?error_description=` của URL và tên khách
+      (`full_name`, khách tự sửa được) vào toast; CSP có `'unsafe-inline'` nên `onerror=` chạy →
+      đọc token trong `localStorage`, ở `/admin-support` là lấy phiên nhân viên. **Đã vá:**
+      `showToast` dùng `textContent` (không chỗ nào trong 230 lời gọi cố ý truyền HTML).
+- [x] **A39. Nhân viên biết mật khẩu khách mãi mãi.** Khách tài khoản Cưới Xinh tự đổi được ở
+      "Thông tin cá nhân" (`profile-modal.js`, chỉ hiện với `CXAuth.isAccount`); lời nhắn gửi
+      khách ở `/admin-support` nhắc đổi. Nhân viên vẫn đặt lại được khi khách quên.
+- [x] **A40. Thư dội ngược khi gửi OTP tới `@account.cuoixinh.com`** — gọi thẳng API là tạo
+      bounce, hại uy tín gửi thư. Chấp nhận: cùng loại với mọi tên miền giả từ trước; giao diện
+      đã tự chuyển sang bước tài khoản thay vì gửi mã. Chặn hẳn phải dùng Auth Hook.
 - [x] **A33. Khách tự tạo tài khoản Cưới Xinh hàng loạt.** Khách không có đường tạo:
       nút chỉ ĐĂNG NHẬP. Endpoint công khai `/auth/v1/signup` vẫn mở (OTP cần
       `shouldCreateUser`), nên ai cũng gọi được với email đuôi `@account.cuoixinh.com` — nhưng

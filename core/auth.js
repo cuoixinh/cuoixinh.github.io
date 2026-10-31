@@ -9,6 +9,7 @@
  *   CXAuth.accessToken()  Promise<string|null> — JWT cho request cần quyền
  *   CXAuth.onChange(cb)   theo dõi phiên, trả về hàm huỷ đăng ký
  *   CXAuth.accountName(u) email hoặc tên đăng nhập Cưới Xinh — dùng khi HIỆN tài khoản
+ *   CXAuth.isAccount(u)   tài khoản Cưới Xinh (tên + mật khẩu, nhân viên tạo hộ)
  *
  * QUY TẮC: vẽ UI thì dùng bản SYNC (khỏi nhấp nháy); mọi quyết định GHI (lưu DB,
  * xuất bản, gọi API cần quyền) phải `await` bản ASYNC — token hết hạn vẫn refresh
@@ -141,14 +142,19 @@
   // `<tên>@ACCOUNT_DOMAIN` — phải trùng ACCOUNT_DOMAIN ở wedding-admin/accounts.ts.
   const ACCOUNT_DOMAIN = "account.cuoixinh.com";
 
+  function isAccount(user) {
+    return ((user && user.email) || "").toLowerCase().endsWith("@" + ACCOUNT_DOMAIN);
+  }
+
   // Chuỗi nhận diện tài khoản để HIỆN ra (email thật, hoặc tên đăng nhập của tài khoản Cưới Xinh).
   function accountName(user) {
     const email = (user && user.email) || "";
-    return email.toLowerCase().endsWith("@" + ACCOUNT_DOMAIN) ? email.split("@")[0] : email;
+    return isAccount(user) ? email.split("@")[0] : email;
   }
 
   window.CXAuth = {
     ACCOUNT_DOMAIN,
+    isAccount,
     accountName,
     client,
     getUserSync,
