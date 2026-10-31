@@ -1452,6 +1452,8 @@ textarea::-webkit-scrollbar-thumb:hover {
   isolation: isolate; /* nhốt z-index 400–1000 của Leaflet trong khung */
   flex: 1;
   min-height: 0;
+  overflow: hidden; /* bàn phím bung là khung co còn vài chục px — thẻ nổi không được tràn lên ô gõ */
+  container-type: size; /* .cx-mp-gmap-card gọn lại theo chiều cao khung */
   background: rgb(var(--surface-hover-rgb));
 }
 
@@ -1669,6 +1671,24 @@ textarea::-webkit-scrollbar-thumb:hover {
   color: rgb(var(--text-body-rgb));
   font-size: 12px;
   line-height: 1.5;
+}
+
+/* Khung thấp (bàn phím đang bung): bỏ đoạn giải thích, thấp hơn nữa thì giấu cả thẻ —
+   lúc đó khách đang gõ, thẻ chỉ che bản đồ. */
+@container (max-height: 239px) {
+  .cx-mp-gmap-sub {
+    display: none;
+  }
+
+  .cx-mp-gmap-title {
+    margin-bottom: 12px;
+  }
+}
+
+@container (max-height: 159px) {
+  .cx-mp-gmap-card {
+    display: none;
+  }
 }
 
 /* Chip nhắc trên bản đồ — hai trạng thái, cờ .is-set do _markPinned() đặt. */
