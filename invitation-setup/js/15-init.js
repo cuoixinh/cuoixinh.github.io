@@ -353,7 +353,8 @@ function initializePage() {
       ?.addEventListener("input", _syncPartyIfSame);
   });
 
-  // Xoá rỗng ô địa điểm → ẩn luôn tag bản đồ bên dưới (tag đồng bộ với input)
+  // Gõ ô địa điểm → bản đồ tự ghim theo chữ (ngừng gõ mới ghim, khỏi tải lại khung bản đồ
+  // mỗi phím); xoá rỗng → ẩn luôn tag + khung bản đồ bên dưới.
   [
     ["ceremony", "ceremony_location"],
     ["vu_quy", "vu_quy_location"],
@@ -361,9 +362,16 @@ function initializePage() {
     ["bride_party", "bride_party_location"],
   ].forEach(([mapSide, name]) => {
     const inp = document.querySelector(`input[name="${name}"]`);
-    inp?.addEventListener("input", () => {
-      if (!inp.value.trim() && typeof clearMapAddress === "function")
-        clearMapAddress(mapSide);
+    let pinTimer = null;
+    inp?.addEventListener("input", (e) => {
+      clearTimeout(pinTimer);
+      if (!inp.value.trim()) {
+        if (typeof clearMapAddress === "function") clearMapAddress(mapSide);
+        return;
+      }
+      // Chỉ chữ khách tự gõ: lần gán bằng mã (chép "trùng địa điểm", bảng chọn, XuXi) đã kèm bản đồ riêng.
+      if (e.isTrusted && !inp.readOnly && typeof cxAutoPinMap === "function")
+        pinTimer = setTimeout(() => cxAutoPinMap(mapSide, inp.value), 700);
     });
   });
 

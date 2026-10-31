@@ -1612,6 +1612,65 @@ textarea::-webkit-scrollbar-thumb:hover {
   outline: none;
 }
 
+/* Lớp Google Maps (nhúng theo tên) phủ trọn bản đồ OSM khi khách tìm — _showGmap(). */
+.cx-mp-gmap {
+  position: absolute;
+  inset: 0;
+  z-index: 1001; /* trên mọi lớp của Leaflet lẫn chip nhắc */
+  background: rgb(var(--surface-hover-rgb));
+}
+
+.cx-mp-gmap[hidden] {
+  display: none;
+}
+
+/* Chỉ để XEM: bấm/kéo trên bản đồ Google không đổi được vị trí đã chọn, nên khoá hẳn
+   và làm xám mờ cho ra dáng "không bấm được" — ghim tay đi qua nút trong .cx-mp-gmap-card. */
+.cx-mp-gmap iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+  filter: grayscale(0.85);
+  opacity: 0.6;
+}
+
+/* Thẻ giải thích neo đáy lớp phủ: vì sao không bấm được + lối ghim tay. */
+.cx-mp-gmap-card {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 8px 24px rgb(var(--scrim-rgb) / 0.18);
+}
+
+.cx-mp-gmap-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgb(var(--text-heading-rgb));
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cx-mp-gmap-title svg {
+  flex-shrink: 0;
+  color: rgb(var(--action-primary-rgb));
+}
+
+.cx-mp-gmap-sub {
+  margin: 4px 0 12px;
+  color: rgb(var(--text-body-rgb));
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* Chip nhắc trên bản đồ — hai trạng thái, cờ .is-set do _markPinned() đặt. */
 .cx-mp-hint {
   position: absolute;
