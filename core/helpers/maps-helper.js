@@ -168,9 +168,12 @@ function openMapPicker(side, opts = {}) {
         <div id="map-picker-gmap" class="cx-mp-gmap" hidden>
           <iframe title="Bản đồ Google" referrerpolicy="no-referrer-when-downgrade"></iframe>
           <div class="cx-mp-gmap-card">
-            <p class="cx-mp-gmap-title"><i data-lucide="eye" style="width:16px;height:16px"></i>Bản đồ này sẽ hiện trên thiệp</p>
-            <p class="cx-mp-gmap-sub">Bản đồ Google chỉ để xem trước, chạm vào không đổi được vị trí. Chưa đúng chỗ thì tự ghim lại nhé.</p>
-            <x-button size="lg" icon="hand" full onclick="_pinOnOsm()">Tự ghim trên bản đồ</x-button>
+            <div class="cx-mp-gmap-txt">
+              <p class="cx-mp-gmap-title"><i data-lucide="eye" style="width:16px;height:16px"></i><span>Bản đồ này sẽ hiện trên thiệp</span></p>
+              <p class="cx-mp-gmap-sub">Bản đồ Google chỉ để xem trước, chạm vào không đổi được vị trí. Chưa đúng chỗ thì tự ghim lại nhé.</p>
+              <p class="cx-mp-gmap-sub-s">Chỉ xem, chạm không đổi vị trí.</p>
+            </div>
+            <x-button size="sm" icon="hand" class="cx-mp-gmap-pin" onclick="_pinOnOsm()"><span class="cx-mp-gmap-short">Tự ghim</span><span class="cx-mp-gmap-wide">Tự ghim trên bản đồ</span></x-button>
           </div>
         </div>
         <p id="map-picker-hint" class="cx-mp-hint${hasCoords ? " is-set" : ""}">
