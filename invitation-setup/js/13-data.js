@@ -618,6 +618,7 @@ function _fillForm(data) {
       // Manually trigger lunar date update for date fields
       if (
         key === "ceremony_date" ||
+        key === "vu_quy_date" ||
         key === "groom_party_date" ||
         key === "bride_party_date"
       ) {
@@ -838,7 +839,13 @@ async function _saveAllOnce(overrides, label) {
       if (typeof value !== "string") return; // skip File objects
       if (value.trim()) {
         payload[key] = value.trim();
-      } else if (key.includes("_url") || key.includes("_lunar")) {
+      } else if (
+        key.includes("_url") ||
+        key.includes("_lunar") ||
+        key.endsWith("_date")
+      ) {
+        // Ô ngày xoá trắng phải ghi null — bỏ qua là DB giữ ngày cũ (vu quy rỗng
+        // nghĩa là "cùng ngày lễ thành hôn").
         payload[key] = null;
       }
     });

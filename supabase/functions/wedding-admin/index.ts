@@ -92,8 +92,8 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
   'ceremony_location', 'ceremony_map_embed_url', 'ceremony_use_embed',
   'ceremony_display_order',
   // Lễ vu quy
-  'vu_quy_enabled', 'vu_quy_time', 'vu_quy_location', 'vu_quy_map_embed_url',
-  'vu_quy_use_embed',
+  'vu_quy_enabled', 'vu_quy_date', 'vu_quy_lunar', 'vu_quy_time', 'vu_quy_location',
+  'vu_quy_map_embed_url', 'vu_quy_use_embed',
   // Nhà trai
   'groom_father', 'groom_mother', 'groom_address', 'groom_image_url',
   'groom_party_date', 'groom_party_time', 'groom_party_lunar',

@@ -82,7 +82,14 @@
       </div>
       <div id="vu-quy-fields" class="space-y-4 mt-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <x-date label="Ngày vu quy" name="vu_quy_date"></x-date>
           <x-time label="Giờ vu quy" name="vu_quy_time"></x-time>
+        </div>
+        <!-- Bỏ trống ngày = cùng ngày lễ thành hôn (thiệp tự lấy ceremony_date). -->
+        <p id="vu-quy-lunar-display" class="text-sm text-gray-500 italic">
+          Bỏ trống thì lấy theo ngày lễ thành hôn
+        </p>
+        <div>
           <div>
             <label
               for="vu_quy_location"
