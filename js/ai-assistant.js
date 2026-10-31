@@ -1369,7 +1369,7 @@
           time: f.ceremony_time,
           place: f.ceremony_location,
         },
-        vuQuy && { label: "Lễ Vu Quy", time: f.vu_quy_time, place: f.vu_quy_location },
+        vuQuy && { label: "Lễ Vu Quy", date: f.vu_quy_date, time: f.vu_quy_time, place: f.vu_quy_location },
         {
           label: "Tiệc nhà trai",
           date: f.groom_party_date,

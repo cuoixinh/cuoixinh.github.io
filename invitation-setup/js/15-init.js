@@ -39,7 +39,12 @@ function _updateTimelineDateBadge() {
 
 function setupLunarDateListeners() {
   // Helper function to update lunar display
-  const updateLunarDisplay = (dateValue, displayEl, valueEl) => {
+  const updateLunarDisplay = (
+    dateValue,
+    displayEl,
+    valueEl,
+    emptyText = "Chọn ngày để tự động tính ngày âm lịch",
+  ) => {
     if (dateValue) {
       const lunarDate = formatLunarDate(dateValue);
       const fullText = `Tức ngày ${lunarDate}`;
@@ -48,7 +53,7 @@ function setupLunarDateListeners() {
       displayEl.classList.remove("italic", "text-gray-500");
       displayEl.classList.add("text-gray-700");
     } else {
-      displayEl.textContent = "Chọn ngày để tự động tính ngày âm lịch";
+      displayEl.textContent = emptyText;
       valueEl.value = "";
       displayEl.classList.add("italic", "text-gray-500");
       displayEl.classList.remove("text-gray-700");
@@ -169,6 +174,23 @@ function setupLunarDateListeners() {
         bridePartyTime.value = "17:00";
       }
     });
+  }
+
+  // Lễ vu quy — bỏ trống ngày thì thiệp lấy ngày lễ thành hôn, ngày âm cũng vậy.
+  const vuQuyDate = document.querySelector('input[name="vu_quy_date"]');
+  const vuQuyLunarDisplay = document.getElementById("vu-quy-lunar-display");
+  const vuQuyLunarValue = document.getElementById("vu-quy-lunar-value");
+
+  if (vuQuyDate && vuQuyLunarDisplay && vuQuyLunarValue) {
+    const syncVuQuyLunar = (e) =>
+      updateLunarDisplay(
+        e.target.value,
+        vuQuyLunarDisplay,
+        vuQuyLunarValue,
+        "Bỏ trống thì lấy theo ngày lễ thành hôn",
+      );
+    vuQuyDate.addEventListener("change", syncVuQuyLunar);
+    vuQuyDate.addEventListener("blur", syncVuQuyLunar);
   }
 
   // Tiệc cưới nhà trai

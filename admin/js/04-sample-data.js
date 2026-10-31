@@ -47,7 +47,9 @@ const SI_CONTENT_GROUPS = [
     icon: "house",
     fields: [
       { name: "vu_quy_enabled", label: "Hiện lễ vu quy", type: "switch" },
+      { name: "vu_quy_date", label: "Ngày (trống = ngày lễ thành hôn)", type: "date", lunar: "vu_quy_lunar" },
       { name: "vu_quy_time", label: "Giờ", type: "time" },
+      { name: "vu_quy_lunar", label: "Ngày âm (tự tính)", type: "text" },
       { name: "vu_quy_location", label: "Địa điểm", type: "text", wide: true },
       { name: "vu_quy_map_embed_url", label: "Google Maps embed URL", type: "map", wide: true },
     ],

@@ -23,7 +23,11 @@ function _doAutoSave() {
     if (typeof value !== "string") return;
     if (value.trim()) {
       payload[key] = value.trim();
-    } else if (key.includes("_url") || key.includes("_lunar")) {
+    } else if (
+      key.includes("_url") ||
+      key.includes("_lunar") ||
+      key.endsWith("_date")
+    ) {
       payload[key] = null;
     }
   });

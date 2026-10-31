@@ -1,6 +1,15 @@
 // Nạp dữ liệu thiệp rồi dựng, cộng phần cá nhân hoá theo khách mời của link.
 // MỘT đường dựng cho cả thiệp thật (?slug=) lẫn bản xem (?preview=true, dữ liệu từ
 // cxPreviewWedding ở public/themes/preview-data.js) — thêm bước dựng thì thêm ở đây.
+// Thiệp nhà gái bật vu quy: lễ vu quy THAY lễ thành hôn, nên mọi chỗ mẫu đọc ngày lễ
+// (thư mời, đếm ngược, lịch, bản đồ…) phải ra ngày vu quy. Mẫu chỉ đọc ceremony_date
+// nên đổi ở đây một lần; ngày vu quy trống = cùng ngày lễ thành hôn, giữ nguyên.
+function cxVuQuyAsCeremony(w) {
+  const on = w?.vu_quy_enabled === true || w?.vu_quy_enabled === "true";
+  if (!on || !w.vu_quy_date || isGroomSide()) return w;
+  return { ...w, ceremony_date: w.vu_quy_date, ceremony_lunar: w.vu_quy_lunar || "" };
+}
+
 async function loadWeddingData(weddingSlug, renderCallback) {
   if (!weddingSlug && !isPreviewMode()) {
     window.location.href = "/";
@@ -45,6 +54,8 @@ async function loadWeddingData(weddingSlug, renderCallback) {
         document.addEventListener("DOMContentLoaded", r, { once: true }),
       );
     }
+
+    wedding = cxVuQuyAsCeremony(wedding);
 
     // Áp dụng tuỳ chỉnh font/màu chữ (nếu có) trước khi render
     if (typeof applyThemeSetting === "function") {
