@@ -1,0 +1,203 @@
+<!doctype html>
+<!-- Ảnh ghim đầu page Facebook (1080×1350, 4:5): giá + tính năng. Số liệu chép tay từ
+     assets/data/pricing.json và _CMP_ROWS (core/payment.js) — đổi giá/gói thì sửa cả đây
+     rồi chụp lại bằng Playwright: viewport 1080×1350, deviceScaleFactor 2. -->
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700;800&family=Great+Vibes&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root {
+    --accent: 236 130 158;
+    --primary: 225 29 72;
+    --heading: 90 58 69;
+    --caption: 138 107 115;
+    --soft: 255 183 202;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1350px; }
+  body {
+    font-family: "Inter", sans-serif;
+    color: rgb(var(--heading));
+    background:
+      radial-gradient(640px 520px at 92% 4%, rgb(var(--soft) / .55), transparent 70%),
+      radial-gradient(560px 480px at 0% 62%, rgb(var(--soft) / .35), transparent 70%),
+      linear-gradient(180deg, #fff6f8 0%, #ffffff 55%, #fff4f6 100%);
+    overflow: hidden;
+    position: relative;
+  }
+  .wrap { position: absolute; inset: 0; padding: 48px 56px 40px; display: flex; flex-direction: column; }
+
+  /* Đầu */
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo img { width: 52px; height: 52px; }
+  .logo b { font-size: 28px; font-weight: 800; letter-spacing: -.01em; color: rgb(var(--heading)); }
+  .logo small { display: block; font-size: 11px; font-weight: 600; letter-spacing: .24em; color: rgb(var(--caption)); margin-top: 3px; }
+  .url { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 999px; background: #fff;
+    box-shadow: 0 6px 20px -10px rgb(var(--primary) / .4); font-weight: 700; font-size: 20px; color: rgb(var(--primary)); }
+  .url svg { width: 20px; height: 20px; }
+
+  /* Hero */
+  .hero { display: flex; gap: 24px; margin-top: 28px; height: 360px; }
+  .hero-copy { flex: 1; padding-top: 16px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px;
+    background: rgb(var(--accent) / .14); color: rgb(var(--primary)); font-weight: 700; font-size: 16px; letter-spacing: .02em; }
+  .eyebrow svg { width: 16px; height: 16px; }
+  h1 { font-family: "Playfair Display", serif; font-weight: 700; font-size: 50px; line-height: 1.14; margin-top: 18px; letter-spacing: -.01em; }
+  h1 em { font-style: italic; color: rgb(var(--primary)); }
+  .lead { margin-top: 18px; font-size: 21px; line-height: 1.5; color: rgb(var(--caption)); max-width: 470px; }
+  .lead b { color: rgb(var(--heading)); }
+
+  .phones { position: relative; width: 430px; flex-shrink: 0; }
+  .ph { position: absolute; width: 168px; height: 310px; border-radius: 30px; background: #1f1416; padding: 7px;
+    box-shadow: 0 24px 40px -18px rgb(90 58 69 / .55); }
+  .ph img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 24px; display: block; }
+  .ph.a { left: 0; top: 46px; transform: rotate(-8deg); }
+  .ph.b { left: 131px; top: 4px; z-index: 2; width: 178px; height: 330px; }
+  .ph.c { left: 262px; top: 46px; transform: rotate(8deg); }
+  .tag-guest { position: absolute; z-index: 3; left: 72px; bottom: 6px; display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; background: #fff; border-radius: 16px; box-shadow: 0 14px 30px -14px rgb(90 58 69 / .5); font-size: 15px; }
+  .tag-guest .ic { width: 32px; height: 32px; border-radius: 10px; background: rgb(var(--accent) / .16); color: rgb(var(--primary));
+    display: grid; place-items: center; }
+  .tag-guest .ic svg { width: 18px; height: 18px; }
+  .tag-guest small { display: block; color: rgb(var(--caption)); font-size: 12px; }
+  .tag-guest b { font-family: "Playfair Display", serif; font-size: 17px; }
+
+  /* Tính năng */
+  .sec-title { display: flex; align-items: center; gap: 14px; margin-top: 34px; }
+  .sec-title h2 { font-family: "Playfair Display", serif; font-size: 32px; font-weight: 700; white-space: nowrap; }
+  .sec-title small { font-size: 16px; font-weight: 600; color: rgb(var(--primary)); background: rgb(var(--accent) / .12); padding: 5px 12px; border-radius: 999px; white-space: nowrap; }
+  .sec-title span { flex: 1; height: 1px; background: linear-gradient(90deg, rgb(var(--accent) / .5), transparent); }
+  .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+  .ft { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #fff; border-radius: 16px;
+    border: 1px solid rgb(var(--accent) / .18); }
+  .ft .ic { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; display: grid; place-items: center;
+    background: rgb(var(--c) / .14); color: rgb(var(--c)); }
+  .ft .ic svg { width: 22px; height: 22px; }
+  .ft b { display: block; font-size: 17px; font-weight: 700; line-height: 1.2; }
+  .ft small { display: block; font-size: 13.5px; color: rgb(var(--caption)); margin-top: 3px; line-height: 1.3; }
+
+  /* Bảng giá */
+  .plans { display: grid; grid-template-columns: 1fr 1.12fr 1fr; gap: 14px; margin-top: 16px; align-items: stretch; }
+  .pl { position: relative; background: #fff; border-radius: 22px; padding: 20px 20px 18px; border: 1.5px solid rgb(var(--accent) / .22); }
+  .pl.rec { border: 2.5px solid rgb(var(--primary)); box-shadow: 0 22px 40px -22px rgb(var(--primary) / .6);
+    background: linear-gradient(180deg, #fff 0%, #fff5f7 100%); }
+  .badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 5px 14px; border-radius: 999px;
+    background: linear-gradient(135deg, rgb(var(--accent)), rgb(var(--primary))); color: #fff; font-size: 13px; font-weight: 800; letter-spacing: .04em; }
+  .pl-name { display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; }
+  .pl-name svg { width: 18px; height: 18px; }
+  .pl-term { font-size: 14px; color: rgb(var(--caption)); margin-top: 2px; }
+  .price { margin-top: 10px; display: flex; align-items: baseline; gap: 8px; }
+  .price b { font-size: 40px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+  .pl.rec .price b { color: rgb(var(--primary)); }
+  .price s { font-size: 16px; color: rgb(var(--caption) / .8); }
+  .pl ul { list-style: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgb(var(--accent) / .35); }
+  .pl li { display: flex; gap: 7px; align-items: flex-start; font-size: 14.5px; line-height: 1.35; margin-top: 6px; }
+  .pl li svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; color: rgb(var(--primary)); }
+  .pl.free li svg { color: rgb(var(--caption)); }
+
+  /* Đáy */
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 18px 24px; border-radius: 22px; background: linear-gradient(135deg, rgb(var(--accent)), rgb(var(--primary))); color: #fff; }
+  .perks { display: flex; flex-direction: column; gap: 6px; font-size: 16.5px; font-weight: 600; }
+  .perks span { display: flex; align-items: center; gap: 8px; }
+  .perks svg { width: 18px; height: 18px; }
+  .cta { text-align: right; }
+  .cta small { display: block; font-size: 15px; opacity: .92; }
+  .cta b { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; padding: 10px 20px; border-radius: 999px; background: #fff;
+    color: rgb(var(--primary)); font-size: 20px; font-weight: 800; }
+  .cta b svg { width: 20px; height: 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="logo">
+      <img src="../../assets/icons/logo.png" alt="" />
+      <div><b>Cưới Xinh</b><small>THIỆP CƯỚI ONLINE</small></div>
+    </div>
+    <span class="url"><i data-lucide="globe"></i>cuoixinh.com</span>
+  </div>
+
+  <div class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow"><i data-lucide="sparkles"></i>Hơn 20 mẫu thiệp · cùng một giá</span>
+      <h1>Thiệp cưới online<br /><em>mang tên</em> từng khách</h1>
+      <p class="lead">Tạo xong trong một buổi chiều, gửi link qua <b>Zalo, Messenger</b>. Dựng thiệp và xem thử <b>miễn phí</b> — ưng rồi mới trả.</p>
+    </div>
+    <div class="phones">
+      <div class="ph a"><img src="../../assets/images/templates/vintage-forest.jpg" alt="" /></div>
+      <div class="ph b"><img src="../../assets/images/templates/romantic-blush.jpg" alt="" /></div>
+      <div class="ph c"><img src="../../assets/images/templates/noir-elegance.jpg" alt="" /></div>
+      <div class="tag-guest">
+        <span class="ic"><i data-lucide="contact"></i></span>
+        <span><small>Trân trọng kính mời</small><b>Anh Tuấn &amp; người thương</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-title"><h2>Thiệp có gì?</h2><span></span><small>Gói nào cũng có đủ</small></div>
+  <div class="feats">
+    <div class="ft" style="--c: 225 29 72"><span class="ic"><i data-lucide="user-check"></i></span><div><b>Tên riêng từng khách</b><small>Mỗi người một link mời</small></div></div>
+    <div class="ft" style="--c: 124 58 237"><span class="ic"><i data-lucide="wand-sparkles"></i></span><div><b>AI XuXi viết giúp</b><small>Lời mời, chuyện tình yêu</small></div></div>
+    <div class="ft" style="--c: 22 163 74"><span class="ic"><i data-lucide="circle-check"></i></span><div><b>Xác nhận tham dự</b><small>Biết trước ai sẽ tới</small></div></div>
+    <div class="ft" style="--c: 234 88 12"><span class="ic"><i data-lucide="message-circle-heart"></i></span><div><b>Lời chúc của khách</b><small>Gửi ngay trên thiệp</small></div></div>
+    <div class="ft" style="--c: 2 132 199"><span class="ic"><i data-lucide="qr-code"></i></span><div><b>Hộp mừng cưới QR</b><small>Chuyển khoản tận tay</small></div></div>
+    <div class="ft" style="--c: 219 39 119"><span class="ic"><i data-lucide="images"></i></span><div><b>Album &amp; chuyện tình</b><small>Tới 20 ảnh cưới</small></div></div>
+    <div class="ft" style="--c: 13 148 136"><span class="ic"><i data-lucide="map-pin"></i></span><div><b>Bản đồ chỉ đường</b><small>Google Maps tới nơi lễ</small></div></div>
+    <div class="ft" style="--c: 202 138 4"><span class="ic"><i data-lucide="music"></i></span><div><b>Nhạc nền YouTube</b><small>Chọn bài hai bạn thích</small></div></div>
+    <div class="ft" style="--c: 79 70 229"><span class="ic"><i data-lucide="clipboard-list"></i></span><div><b>Quản lý khách mời</b><small>Nhập Excel, xem ai sẽ tới</small></div></div>
+  </div>
+
+  <div class="sec-title"><h2>Bảng giá</h2><span></span></div>
+  <div class="plans">
+    <div class="pl free">
+      <div class="pl-name"><i data-lucide="gift"></i>Free</div>
+      <div class="pl-term">90 ngày · 1 lần / tài khoản</div>
+      <div class="price"><b>0đ</b></div>
+      <ul>
+        <li><i data-lucide="check"></i>300 lượt xem thiệp</li>
+        <li><i data-lucide="check"></i>1 bên nhà trai hoặc nhà gái</li>
+        <li><i data-lucide="check"></i>20 khách mời có tên</li>
+      </ul>
+    </div>
+    <div class="pl rec">
+      <span class="badge">KHUYÊN DÙNG</span>
+      <div class="pl-name"><i data-lucide="crown"></i>Premium</div>
+      <div class="pl-term">Dùng 6 tháng</div>
+      <div class="price"><b>109.000đ</b><s>139.000đ</s></div>
+      <ul>
+        <li><i data-lucide="check"></i>Không giới hạn lượt xem</li>
+        <li><i data-lucide="check"></i>Cả thiệp nhà trai &amp; nhà gái</li>
+        <li><i data-lucide="check"></i>200 khách mời có tên</li>
+        <li><i data-lucide="check"></i>Chia sẻ quyền quản lý</li>
+      </ul>
+    </div>
+    <div class="pl">
+      <div class="pl-name"><i data-lucide="infinity"></i>Forever</div>
+      <div class="pl-term">Dùng trọn đời</div>
+      <div class="price"><b>164.000đ</b><s>209.000đ</s></div>
+      <ul>
+        <li><i data-lucide="check"></i>Mọi quyền lợi Premium</li>
+        <li><i data-lucide="check"></i>Thiệp giữ mãi làm kỷ niệm</li>
+        <li><i data-lucide="check"></i>Từ Premium lên chỉ trả chênh lệch</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="perks">
+      <span><i data-lucide="calendar-check"></i>Xuất bản xong được dùng thử 3 ngày</span>
+      <span><i data-lucide="badge-check"></i>Thanh toán 1 lần · không phí duy trì</span>
+    </div>
+    <div class="cta">
+      <small>Tạo thiệp ngay tại</small>
+      <b><i data-lucide="mouse-pointer-click"></i>cuoixinh.com</b>
+    </div>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

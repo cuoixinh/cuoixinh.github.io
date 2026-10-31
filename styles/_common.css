@@ -1452,6 +1452,8 @@ textarea::-webkit-scrollbar-thumb:hover {
   isolation: isolate; /* nhốt z-index 400–1000 của Leaflet trong khung */
   flex: 1;
   min-height: 0;
+  overflow: hidden; /* bàn phím bung là khung co còn vài chục px — thẻ nổi không được tràn lên ô gõ */
+  container-type: size; /* .cx-mp-gmap-card gọn lại theo chiều cao khung */
   background: rgb(var(--surface-hover-rgb));
 }
 
@@ -1636,18 +1638,26 @@ textarea::-webkit-scrollbar-thumb:hover {
   opacity: 0.6;
 }
 
-/* Thẻ giải thích neo đáy lớp phủ: vì sao không bấm được + lối ghim tay. */
+/* Thẻ giải thích neo đáy lớp phủ: vì sao không bấm được + lối ghim tay. Mobile khung bản
+   đồ chỉ cao vài trăm px mà ghim của Google nằm GIỮA khung → chữ và nút "Tự ghim" xếp
+   NGANG cho thẻ thấp; từ sm mới xếp dọc với nút tràn ngang. */
 .cx-mp-gmap-card {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
-  left: 12px;
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 16px;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 12px;
   border-radius: 16px;
   background: rgb(var(--white-rgb));
   box-shadow: 0 8px 24px rgb(var(--scrim-rgb) / 0.18);
+}
+
+.cx-mp-gmap-txt {
+  flex: 1;
+  min-width: 0;
 }
 
 .cx-mp-gmap-title {
@@ -1659,16 +1669,71 @@ textarea::-webkit-scrollbar-thumb:hover {
   font-weight: 600;
 }
 
+.cx-mp-gmap-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .cx-mp-gmap-title svg {
   flex-shrink: 0;
   color: rgb(var(--action-primary-rgb));
 }
 
 .cx-mp-gmap-sub {
-  margin: 4px 0 12px;
+  margin-top: 4px;
   color: rgb(var(--text-body-rgb));
   font-size: 12px;
   line-height: 1.5;
+}
+
+.cx-mp-gmap-wide {
+  display: none;
+}
+
+.cx-mp-gmap-pin {
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .cx-mp-gmap-card {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    display: block;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  .cx-mp-gmap-sub {
+    margin-bottom: 12px;
+  }
+
+  .cx-mp-gmap-short {
+    display: none;
+  }
+
+  .cx-mp-gmap-wide {
+    display: inline;
+  }
+
+  /* Ghi đè khổ `sm` của x-button thành khổ `lg` tràn ngang. */
+  .cx-mp-gmap-card .cx-mp-gmap-pin {
+    width: 100%;
+    height: 48px;
+    gap: 8px;
+    padding: 0 28px;
+    font-size: 15px;
+  }
+}
+
+/* Khung thấp (bàn phím đang bung): giấu thẻ — lúc đó khách đang gõ, thẻ chỉ che bản đồ. */
+@container (max-height: 159px) {
+  .cx-mp-gmap-card {
+    display: none;
+  }
 }
 
 /* Chip nhắc trên bản đồ — hai trạng thái, cờ .is-set do _markPinned() đặt. */

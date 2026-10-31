@@ -1,7 +1,8 @@
 // Đọc tệp người dùng đính kèm để gửi AI (window.CXAiFiles): ảnh nén JPEG + PDF gửi thẳng
 // dạng base64, Word/Excel/.txt đọc ra chữ ngay ở trình duyệt. Dùng chung cho "Nhập bằng AI"
 // (trang Khách mời) và khung chat XuXi; luật ở CONFIG.aiFiles, server kiểm lại ở
-// supabase/functions/_shared/ai-files.ts. Dải thẻ tệp dùng style .gs-ai-* (styles/_setup.css).
+// supabase/functions/_shared/ai-files.ts. Dải thẻ tệp + menu đính kèm dùng style .gs-ai-* /
+// .gs-pop-ico (styles/_setup.css).
 (function () {
   if (window.CXAiFiles) return;
 
@@ -241,8 +242,34 @@
     window.lucide?.createIcons({ root: box });
   }
 
+  // Menu nút đính kèm: Camera chỉ có trên máy cảm ứng (điện thoại, iPad) — ở máy tính
+  // capture không mở được camera mà chỉ ra hộp chọn tệp, trùng với "Ảnh".
+  // iOS: ô tệp nhận ảnh LUÔN bật bảng của hệ thống (Chụp ảnh / Thư viện / Chọn tệp),
+  // web không tắt được — mở thẳng ô "Tệp" để bảng đó làm menu, khỏi chồng hai lớp.
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  const popIco = (name, tone) => `<span class="gs-pop-ico ${tone}">${ico(name, 16)}</span>`;
+
+  // `pop` là <x-popover>; cam/photo/file là ba <input type=file> (camera có
+  // capture="environment", ảnh accept="image/*", tệp accept = CXAiFiles.accept).
+  function togglePicker(pop, anchor, { cam, photo, file }) {
+    if (isIOS) return void file.click();
+    if (!pop.isOpen) {
+      pop.setItems([
+        ...(matchMedia("(pointer: coarse)").matches
+          ? [{ icon: popIco("camera", "gs-tone-pink"), label: "Camera", onClick: () => cam.click() }] : []),
+        { icon: popIco("image", "gs-tone-green"), label: "Ảnh", onClick: () => photo.click() },
+        { icon: popIco("paperclip", "gs-tone-blue"), label: "Tệp", onClick: () => file.click() },
+      ]);
+      window.lucide?.createIcons({ root: pop });
+    }
+    pop.toggle(anchor);
+  }
+
   window.CXAiFiles = {
     accept: "image/*,.pdf,.docx,.doc,.xlsx,.xls,.csv,.txt",
+    togglePicker,
     read,
     checkSend,
     payload,

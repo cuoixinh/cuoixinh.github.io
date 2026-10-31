@@ -42,16 +42,16 @@ function cxHeroMenu(btn) {
     pop.setItems([
       { icon: _cxHeroMenuIcon("home"), label: "Trang chủ", active: true, onClick: go("/") },
       { icon: _cxHeroMenuIcon("layers"), label: "Mẫu thiệp", onClick: go("/theme-template/") },
-      // Cùng trang: đóng menu rồi cuộn tới mục, không tải lại trang.
-      { icon: _cxHeroMenuIcon("tag"), label: "Bảng giá", onClick: () => {
-        window.flushLazyRender?.();
-        document.getElementById("pricing")?.scrollIntoView();
-      } },
       { icon: _cxHeroMenuIcon("cart"), label: `${loggedIn ? "Thiệp của tôi" : "Đã chọn"}${n ? ` (${n})` : ""}`, onClick: go("/my-invitations/") },
       // Khách mời chỉ có nghĩa khi đã đăng nhập — cùng luật mục `login: true` ở navbar.
       ...(loggedIn
         ? [{ icon: _cxHeroMenuIcon("users"), label: "Khách mời", onClick: go("/guest-list/") }]
         : []),
+      // Cùng trang: đóng menu rồi cuộn tới mục, không tải lại trang.
+      { icon: _cxHeroMenuIcon("tag"), label: "Bảng giá", onClick: () => {
+        window.flushLazyRender?.();
+        document.getElementById("pricing")?.scrollIntoView();
+      } },
       { sep: true },
       // Mục tài khoản ghép thẳng vào menu này (không mở thêm popover chồng lên).
       ...(window.CXAccount?.items?.() || []),
