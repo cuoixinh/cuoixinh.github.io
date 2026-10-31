@@ -5,6 +5,7 @@
 //   AuthUI.openModal(opts)       mở popup chứa form; opts.oauthRedirect
 //   AuthUI.requireLogin(opts)    mời đăng nhập tại chỗ (title/subtitle/onAuth)
 //   AuthUI.closeModal()
+//   AuthUI.oauth(provider, redirect?)  rời trang đăng nhập OAuth, quay về redirect
 //   AuthUI.oauthLanding          lần mở trang này là OAuth vừa trả về
 (function () {
   // Chụp TRƯỚC khi dựng client: supabase-js đọc xong là xoá token/code khỏi URL.
@@ -121,6 +122,11 @@
   const _BTN_CLS =
     "w-full h-11 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-60";
 
+  // Ô của bước tài khoản Cưới Xinh = dòng chấm để điền trên thiệp; đang gõ thì thành nét liền
+  // hồng. Chữ ≥ 16px: nhỏ hơn là iPhone tự zoom khi gõ.
+  const _BLANK_CLS =
+    "w-full h-12 px-0 bg-transparent border-0 border-b-2 border-dotted border-gray-300 rounded-none text-lg tracking-wide text-gray-800 outline-none focus:border-solid focus:border-rose-400 transition-colors placeholder:text-gray-300 placeholder:tracking-normal";
+
   // Nút OAuth kiểu "Tiếp tục với …" — viền nhạt, xếp dọc, full width
   const _OAUTH_CLS =
     "w-full h-11 rounded-xl border border-gray-200 bg-white flex items-center justify-center gap-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors";
@@ -135,6 +141,9 @@
           </x-button>
           <x-button variant="ghost" type="button" data-auth-oauth="facebook" class="${_OAUTH_CLS}">
             <span style="color:rgb(var(--social-facebook-rgb));display:flex">${_FB_SVG}</span> Tiếp tục với Facebook
+          </x-button>
+          <x-button variant="ghost" type="button" data-auth-go-account class="${_OAUTH_CLS}">
+            <img src="/assets/icons/logo.png" alt="" class="w-4 h-4 object-contain" /> Đăng nhập bằng tài khoản Cưới Xinh
           </x-button>
 
           <div class="flex items-center gap-3 !my-4">
@@ -151,7 +160,7 @@
           <x-button variant="ghost" type="button" data-auth-send class="${_BTN_CLS} !mt-3">
             ${_MAIL_SVG}<span data-auth-send-label>Gửi mã đăng nhập</span>
           </x-button>
-          <p class="text-center text-xs text-gray-400 leading-relaxed !mt-3">
+          <p data-auth-opt="1" class="text-center text-xs text-gray-400 leading-relaxed !mt-3">
             Một mã gồm 6 chữ số sẽ được gửi tới email của bạn — đăng nhập chỉ trong vài giây, khỏi cần nhớ mật khẩu.
           </p>
           <p class="text-center text-[11px] text-gray-400 leading-relaxed !mt-4 pt-3 border-t border-gray-100">
@@ -160,6 +169,65 @@
             <a href="/policy/#privacy" target="_blank" rel="noopener" class="text-color-secondary font-medium underline">Chính sách bảo mật</a> của Cưới Xinh.
           </p>
         </div>
+
+        <!-- Tài khoản Cưới Xinh: tên đăng nhập + mật khẩu do Cưới Xinh tạo hộ khách -->
+        <form data-auth-step="account" class="hidden" novalidate>
+          <x-button variant="bare" type="button" data-auth-back
+            class="group -ml-1.5 mb-4 h-9 pl-1 pr-3.5 gap-2 text-[13px] font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300">
+            <span class="w-7 h-7 rounded-full flex items-center justify-center transition-transform motion-safe:group-hover:-translate-x-0.5"
+              style="background:rgb(var(--surface-section-rgb));color:rgb(var(--brand-accent-rgb))">
+              <i data-lucide="arrow-left" style="width:15px;height:15px"></i>
+            </span>
+            Cách đăng nhập khác
+          </x-button>
+
+          <!-- Tấm "thiệp": giấy + khung viền trong; hai ô là dòng chấm để điền như dòng
+               "Trân trọng kính mời: ……" trên thiệp in. -->
+          <div class="rounded-2xl bg-cream-50 p-1.5 shadow-sm ring-1 ring-black/5">
+            <div data-auth-card class="rounded-xl border px-4 pt-4 pb-5" style="border-color:rgb(var(--brand-accent-rgb) / .35)">
+              <div data-auth-cardhead class="flex items-center gap-3 mb-5">
+                <img data-auth-opt="2" src="/assets/icons/logo.png" alt="" class="w-9 h-9 shrink-0 object-contain" />
+                <div class="min-w-0">
+                  <p class="text-[15px] font-semibold text-gray-800 leading-tight">Tài khoản Cưới Xinh</p>
+                  <p data-auth-opt="1" class="text-xs text-gray-500 leading-relaxed mt-0.5">Điền tên đăng nhập và mật khẩu mà Cưới Xinh đã cấp cho bạn.</p>
+                </div>
+              </div>
+
+              <label class="block mb-4">
+                <span class="block text-[13px] font-medium text-gray-500">Tên đăng nhập</span>
+                <input data-auth-user type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"
+                  placeholder="vd: lan-minh" class="${_BLANK_CLS}" />
+              </label>
+
+              <label class="block">
+                <span class="block text-[13px] font-medium text-gray-500">Mật khẩu</span>
+                <span class="relative block">
+                  <input data-auth-pass type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false"
+                    class="${_BLANK_CLS} pr-11" />
+                  <button type="button" data-auth-pass-toggle aria-label="Hiện mật khẩu"
+                    class="absolute right-0 bottom-1 w-10 h-10 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300">
+                    <i data-lucide="eye" style="width:18px;height:18px"></i>
+                  </button>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div data-auth-acc-err role="alert" class="hidden mt-3">
+            <p class="flex items-start gap-1.5 text-sm text-red-600">
+              <i data-lucide="circle-alert" class="shrink-0 mt-0.5" style="width:16px;height:16px"></i>
+              <span data-auth-acc-err-text></span>
+            </p>
+          </div>
+
+          <x-button variant="ghost" type="submit" data-auth-login class="${_BTN_CLS} !h-12 !text-base mt-5">
+            <span data-auth-login-label>Đăng nhập</span>
+          </x-button>
+
+          <p data-auth-opt="2" class="mt-3 text-center text-xs text-gray-500 leading-relaxed">
+            Quên mật khẩu? Nhắn Cưới Xinh để được cấp mật khẩu mới.
+          </p>
+        </form>
 
         <!-- Bước 2: nhập mã 6 số -->
         <div data-auth-step="code" class="hidden space-y-4">
@@ -197,17 +265,45 @@
 
   const _EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-  // Gắn handler cho form vừa render trong `root`. opts: { onAuth, oauthRedirect }
-  function _wire(root, opts) {
-    opts = opts || {};
+  // Tên đăng nhập nếu `email` là email của tài khoản Cưới Xinh (<tên>@ACCOUNT_DOMAIN), ngược lại "".
+  function _accountName(email) {
+    const domain = window.CXAuth && window.CXAuth.ACCOUNT_DOMAIN;
+    const v = String(email || "").trim().toLowerCase();
+    return domain && v.endsWith("@" + domain) ? v.slice(0, -(domain.length + 1)) : "";
+  }
+
+  // Rời trang sang nhà cung cấp OAuth rồi quay về `redirect` (mặc định URL đang đứng).
+  async function oauth(provider, redirect) {
     // Bỏ #hash (trang Thiết lập ghi bước đang mở vào đó): luồng implicit trả token
     // qua #access_token=…, URL đích đã có # thì token bị ghép sai, supabase-js không
     // đọc được phiên — quay về vẫn chưa đăng nhập mà không có lỗi nào.
-    const oauthRedirect = (() => {
-      const u = new URL(opts.oauthRedirect || window.location.href, location.href);
-      u.hash = "";
-      return u.toString();
-    })();
+    const u = new URL(redirect || window.location.href, location.href);
+    u.hash = "";
+    const to = u.toString();
+    // Đánh dấu để sau khi redirect OAuth quay lại thì toast lời chào.
+    // (Luồng OTP toast ngay tại chỗ; OAuth rời trang nên phải nhớ qua sessionStorage.)
+    armLoginToast();
+    // Nhớ màn cần quay lại. redirectTo thử về thẳng màn đó; nếu URL chưa whitelist,
+    // Supabase đá về Site URL (trang chủ) — nhưng auth-ui.js ở trang chủ sẽ đọc
+    // cờ này và tự bật về đúng màn (xem onAuthStateChange ở trên).
+    try { sessionStorage.setItem(_OAUTH_RETURN_KEY, to); } catch {}
+    const { error } = await sb.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: to },
+    });
+    if (error) {
+      try { sessionStorage.removeItem(_OAUTH_TOAST_KEY); } catch {}
+      try { sessionStorage.removeItem(_OAUTH_RETURN_KEY); } catch {}
+      _toast(_friendlyError(error), "error");
+    }
+  }
+
+  // Gắn handler cho form vừa render trong `root`. opts: { onAuth, oauthRedirect }
+  function _wire(root, opts) {
+    opts = opts || {};
+    // Đổi bước là đổi chiều cao → popup đo lại để ẩn/hiện phần phụ (openModal nghe).
+    const stepChanged = () =>
+      root.dispatchEvent(new CustomEvent("cx-auth-step", { bubbles: true }));
 
     const stepEmail = root.querySelector('[data-auth-step="email"]');
     const stepCode = root.querySelector('[data-auth-step="code"]');
@@ -218,6 +314,11 @@
     const emailLabel = root.querySelector("[data-auth-email-label]");
     const resendBtn = root.querySelector("[data-auth-resend]");
     const otpBoxes = Array.prototype.slice.call(root.querySelectorAll("[data-auth-otp-box]"));
+    const stepAccount = root.querySelector('[data-auth-step="account"]');
+    const userEl = root.querySelector("[data-auth-user]");
+    const passEl = root.querySelector("[data-auth-pass]");
+    const loginBtn = root.querySelector("[data-auth-login]");
+    const loginLabel = root.querySelector("[data-auth-login-label]");
     let email = "";
     let busy = false;
 
@@ -258,6 +359,15 @@
     async function sendCode() {
       const val = emailEl.value.trim();
       if (!_EMAIL_RE.test(val)) return _toast("Vui lòng nhập email hợp lệ", "error");
+      // Email của tài khoản Cưới Xinh không nhận thư → mã sẽ không bao giờ tới. Chuyển
+      // thẳng sang bước tài khoản, điền sẵn tên đăng nhập.
+      const name = _accountName(val);
+      if (name) {
+        toAccount(true);
+        userEl.value = name;
+        passEl.focus();
+        return;
+      }
       if (busy) return;
       busy = true;
       sendBtn.disabled = true;
@@ -272,6 +382,7 @@
         emailLabel.textContent = val;
         stepEmail.classList.add("hidden");
         stepCode.classList.remove("hidden");
+        stepChanged();
         clearOtp();
         focusOtp(0);
         startResendCooldown(); // khoá nút "Gửi lại mã" 60s tránh 429
@@ -342,42 +453,101 @@
     root.querySelector("[data-auth-change]").addEventListener("click", () => {
       stepCode.classList.add("hidden");
       stepEmail.classList.remove("hidden");
+      stepChanged();
       clearOtp();
       emailEl.focus();
     });
 
-    root.querySelectorAll("[data-auth-oauth]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const provider = btn.getAttribute("data-auth-oauth");
-        // Đánh dấu để sau khi redirect OAuth quay lại thì toast lời chào.
-        // (Luồng OTP toast ngay tại chỗ; OAuth rời trang nên phải nhớ qua sessionStorage.)
-        armLoginToast();
-        // Nhớ màn cần quay lại. redirectTo thử về thẳng màn đó; nếu URL chưa whitelist,
-        // Supabase đá về Site URL (trang chủ) — nhưng auth-ui.js ở trang chủ sẽ đọc
-        // cờ này và tự bật về đúng màn (xem onAuthStateChange ở trên).
-        try { sessionStorage.setItem(_OAUTH_RETURN_KEY, oauthRedirect); } catch {}
-        const { error } = await sb.auth.signInWithOAuth({
-          provider,
-          options: { redirectTo: oauthRedirect },
+    // ── Tài khoản Cưới Xinh: tên đăng nhập là phần trước @ của email giả (core/auth.js) ──
+    // Lỗi hiện NGAY dưới ô (khách lớn tuổi hay bỏ lỡ toast); gõ lại là tự ẩn.
+    const accErr = root.querySelector("[data-auth-acc-err]");
+    const accErrText = root.querySelector("[data-auth-acc-err-text]");
+    function showAccErr(msg) {
+      accErrText.textContent = msg || "";
+      accErr.classList.toggle("hidden", !msg);
+    }
+    userEl.addEventListener("input", () => showAccErr(""));
+    passEl.addEventListener("input", () => showAccErr(""));
+
+    async function loginAccount(e) {
+      e.preventDefault();
+      // Khách gõ cả email của tài khoản (<tên>@ACCOUNT_DOMAIN) cũng nhận.
+      const raw = userEl.value.trim().toLowerCase();
+      const name = _accountName(raw) || raw;
+      const pass = passEl.value.trim();
+      if (!name) { userEl.focus(); return showAccErr("Vui lòng nhập tên đăng nhập."); }
+      if (name.includes("@")) { userEl.focus(); return showAccErr("Tên đăng nhập không có ký tự @ — đây không phải email."); }
+      if (!pass) { passEl.focus(); return showAccErr("Vui lòng nhập mật khẩu."); }
+      const domain = window.CXAuth && window.CXAuth.ACCOUNT_DOMAIN;
+      if (!domain || busy) return;
+      showAccErr("");
+      busy = true;
+      loginBtn.disabled = true;
+      loginLabel.textContent = "Đang đăng nhập...";
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({
+          email: name + "@" + domain,
+          password: pass,
         });
-        if (error) {
-          try { sessionStorage.removeItem(_OAUTH_TOAST_KEY); } catch {}
-          try { sessionStorage.removeItem(_OAUTH_RETURN_KEY); } catch {}
-          _toast(_friendlyError(error), "error");
-        }
-      });
+        if (error) throw error;
+        greet(data.user);
+        opts.onAuth && opts.onAuth(data.user);
+      } catch (err) {
+        const code = (err && (err.code || err.error_code)) || "";
+        showAccErr(
+          code === "invalid_credentials"
+            ? "Tên đăng nhập hoặc mật khẩu không đúng. Kiểm tra lại từng chữ nhé."
+            : _friendlyError(err),
+        );
+      } finally {
+        busy = false;
+        loginBtn.disabled = false;
+        loginLabel.textContent = "Đăng nhập";
+      }
+    }
+
+    stepAccount.addEventListener("submit", loginAccount);
+    // Chip "Không cần mật khẩu" của popup nói sai về bước này → ẩn khi đang ở đây.
+    const chips = root.closest("#auth-ui-modal")?.querySelector("[data-auth-chips]");
+    function toAccount(on) {
+      stepEmail.classList.toggle("hidden", on);
+      stepAccount.classList.toggle("hidden", !on);
+      chips?.classList.toggle("hidden", on);
+      showAccErr("");
+      stepChanged();
+      if (on) userEl.focus();
+    }
+    root.querySelector("[data-auth-go-account]").addEventListener("click", () => toAccount(true));
+    root.querySelector("[data-auth-back]").addEventListener("click", () => toAccount(false));
+    // Nút con mắt nằm trong lòng ô mật khẩu — khách lớn tuổi gõ sai mà không thấy là bỏ cuộc.
+    const passToggle = root.querySelector("[data-auth-pass-toggle]");
+    passToggle.addEventListener("click", () => {
+      const show = passEl.type === "password";
+      passEl.type = show ? "text" : "password";
+      passToggle.setAttribute("aria-label", show ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+      passToggle.innerHTML = `<i data-lucide="${show ? "eye-off" : "eye"}" style="width:18px;height:18px"></i>`;
+      window.lucide?.createIcons({ root: passToggle });
+    });
+
+    root.querySelectorAll("[data-auth-oauth]").forEach((btn) => {
+      btn.addEventListener("click", () =>
+        oauth(btn.getAttribute("data-auth-oauth"), opts.oauthRedirect),
+      );
     });
   }
 
   function renderForm(container, opts) {
     if (!container) return;
     container.innerHTML = _formHtml();
+    window.lucide?.createIcons({ root: container });
     _wire(container.querySelector("[data-auth-root]"), opts);
   }
 
   function closeModal() {
     const m = document.getElementById("auth-ui-modal");
-    if (m) m.remove();
+    if (!m) return;
+    m._cxOff?.();
+    m.remove();
   }
 
   function openModal(opts) {
@@ -389,7 +559,7 @@
     modal.className =
       "fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/50";
     modal.innerHTML = `
-      <div data-kb-box class="relative bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+      <div data-kb-box class="relative bg-white rounded-2xl w-full max-w-sm max-h-full shadow-2xl overflow-y-auto">
         <!-- Thanh gradient trên đỉnh -->
         <div class="h-1.5 bg-gradient-to-r from-[rgb(var(--brand-accent-rgb))] via-[rgb(var(--brand-accent-light-rgb))] to-[rgb(var(--brand-primary-rgb))]"></div>
 
@@ -397,16 +567,16 @@
           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </x-button>
 
-        <div class="px-6 pt-6 pb-6">
+        <div data-auth-pad class="px-6 pt-6 pb-6">
           <!-- Trái tim -->
-          <div class="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-3" style="background: rgb(var(--surface-section-rgb))">
+          <div data-auth-opt="1" class="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-3" style="background: rgb(var(--surface-section-rgb))">
             ${_HEART_SVG}
           </div>
           <h3 class="text-center text-xl font-bold text-gray-800">${opts.title || "Đăng nhập"}</h3>
-          <p class="text-center text-sm text-gray-500 mt-1">${opts.subtitle || "Tiếp tục hành trình chuẩn bị đám cưới cùng Cưới Xinh"}</p>
+          <p data-auth-opt="2" class="text-center text-sm text-gray-500 mt-1">${opts.subtitle || "Tiếp tục hành trình chuẩn bị đám cưới cùng Cưới Xinh"}</p>
 
           <!-- 2 chip tin cậy -->
-          <div class="flex flex-wrap justify-center gap-2 mt-3.5 mb-5">
+          <div data-auth-chips data-auth-opt="1" class="flex flex-wrap justify-center gap-2 mt-3.5">
             <span class="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full" style="background:rgb(var(--surface-section-rgb));color:rgb(var(--avatar-initial-rgb))">
               <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-6.716-4.297-9.428-7.01C.86 12.278.5 10.5 1.05 8.86A4.5 4.5 0 0 1 8.5 6.9l.5.5.5-.5a4.5 4.5 0 0 1 7.45 1.96c.55 1.64.19 3.42-1.52 5.13C18.716 16.703 12 21 12 21z"/></svg>
               Miễn phí
@@ -417,7 +587,7 @@
             </span>
           </div>
 
-          <div data-auth-modal-body></div>
+          <div data-auth-modal-body class="mt-5"></div>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -430,6 +600,23 @@
       onAuth: wrappedOnAuth,
       oauthRedirect: opts.oauthRedirect,
     });
+
+    // Màn thấp: hộp cao hơn khung thì ẩn phần phụ mức 1 (.cx-auth-short), còn chưa vừa thì
+    // ẩn thêm mức 2 (.cx-auth-tiny) — đánh dấu bằng data-auth-opt, CSS ở styles/_common.css.
+    // Đo theo innerHeight chứ không theo visualViewport: bàn phím bật lên không làm thiếu
+    // phần, chỗ đó kb-avoid lo. Vẫn không vừa thì hộp tự cuộn (max-h-full).
+    const box = modal.querySelector("[data-kb-box]");
+    const fit = () => {
+      modal.classList.remove("cx-auth-short", "cx-auth-tiny");
+      const room = window.innerHeight - 32; // p-4 của lớp nền
+      if (box.scrollHeight <= room) return;
+      modal.classList.add("cx-auth-short");
+      if (box.scrollHeight > room) modal.classList.add("cx-auth-tiny");
+    };
+    fit();
+    modal.addEventListener("cx-auth-step", fit);
+    window.addEventListener("resize", fit);
+    modal._cxOff = () => window.removeEventListener("resize", fit);
 
     modal.querySelector("[data-auth-close]").addEventListener("click", closeModal);
     modal.addEventListener("click", (e) => {
@@ -459,6 +646,8 @@
     closeModal,
     armLoginToast,
     requireLogin,
+    oauth,
+    googleIcon: _GG_SVG,
     oauthLanding: _oauthLanding,
   };
 })();

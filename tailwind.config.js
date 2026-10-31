@@ -22,6 +22,7 @@ module.exports = {
     "./invitation-setup/**/*.{html,js}",
     "./theme-template/**/*.{html,js}",
     "./policy/**/*.html",
+    "./admin-support/**/*.{html,js}",
   ],
   theme: {
     extend: {

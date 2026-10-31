@@ -8,6 +8,7 @@
  *   CXAuth.getUser()      Promise<user|null> — hỏi supabase (tự refresh token)
  *   CXAuth.accessToken()  Promise<string|null> — JWT cho request cần quyền
  *   CXAuth.onChange(cb)   theo dõi phiên, trả về hàm huỷ đăng ký
+ *   CXAuth.accountName(u) email hoặc tên đăng nhập Cưới Xinh — dùng khi HIỆN tài khoản
  *
  * QUY TẮC: vẽ UI thì dùng bản SYNC (khỏi nhấp nháy); mọi quyết định GHI (lưu DB,
  * xuất bản, gọi API cần quyền) phải `await` bản ASYNC — token hết hạn vẫn refresh
@@ -136,7 +137,19 @@
   // bị hiểu nhầm là "vừa đăng nhập" và báo đổi phiên oan cho mọi nơi đang nghe.
   _user = _storedUser();
 
+  // Tài khoản Cưới Xinh (admin tạo cho khách, đăng nhập bằng tên + mật khẩu) là email giả
+  // `<tên>@ACCOUNT_DOMAIN` — phải trùng ACCOUNT_DOMAIN ở wedding-admin/accounts.ts.
+  const ACCOUNT_DOMAIN = "account.cuoixinh.com";
+
+  // Chuỗi nhận diện tài khoản để HIỆN ra (email thật, hoặc tên đăng nhập của tài khoản Cưới Xinh).
+  function accountName(user) {
+    const email = (user && user.email) || "";
+    return email.toLowerCase().endsWith("@" + ACCOUNT_DOMAIN) ? email.split("@")[0] : email;
+  }
+
   window.CXAuth = {
+    ACCOUNT_DOMAIN,
+    accountName,
     client,
     getUserSync,
     isLoggedIn,

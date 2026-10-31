@@ -267,6 +267,31 @@ Luồng: `invitation-setup/guests/` → `ai-invitation` (`mode=guests`, chỉ Đ
       Free (gói trả phí không có trần) và chỉ là khoá chứ không lộ dữ liệu. Đừng thêm tham số
       URL kiểu "không đếm": chủ thiệp gắn nó vào link gửi khách là vượt trần.
 
+### Đợt 2026-10-31 — Tài khoản Cưới Xinh (tên đăng nhập + mật khẩu, chưa deploy)
+
+Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `wedding-admin?resource=accounts`
+(`auth.admin.createUser`) → khách đăng nhập `signInWithPassword` bằng email giả
+`<tên>@account.cuoixinh.com` (`core/auth-ui.js`). Tài khoản này KHÔNG có quyền gì hơn khách thường.
+
+- [x] **A36. Ai vào được `/admin-support`.** Trang ra web nên mọi chốt nằm ở server:
+      `supportStaffEmail` (`_shared/support-staff.ts`) đòi phiên HIỆN TẠI là OAuth (claim `amr`
+      của JWT đã qua `auth.getUser`) VÀ identity Google có email trong `SUPPORT_EMAILS`. Đăng nhập
+      OTP/mật khẩu cùng email không qua. Danh sách rỗng = không ai vào (fail-closed). Mã admin
+      KHÔNG mở được resource này.
+- [x] **A33. Khách tự tạo tài khoản Cưới Xinh hàng loạt.** Khách không có đường tạo:
+      nút chỉ ĐĂNG NHẬP. Endpoint công khai `/auth/v1/signup` vẫn mở (OTP cần
+      `shouldCreateUser`), nên ai cũng gọi được với email đuôi `@account.cuoixinh.com` — nhưng
+      đó cũng là thứ họ làm được với email bất kỳ từ trước, không thêm quyền. Chỉ còn rủi ro
+      GIỮ CHỖ tên đăng nhập: hàng không mang `app_metadata.cx_account` (chỉ service_role ghi
+      được) mà chưa xác nhận email thì lần tạo của nhân viên tự gỡ rồi tạo lại (`accounts.ts`); bảng
+      ở `/admin-support` đánh dấu "(tự đăng ký, giữ chỗ)". Đặt lại mật khẩu chỉ nhận hàng có cờ.
+- [ ] **A34. Tên miền `account.cuoixinh.com` phải KHÔNG nhận thư** (không MX, không
+      catch-all ở Cloudflare Email Routing). Nhận được thư thì ai gõ `<tên>@account…` vào ô
+      OTP là lấy được mã đăng nhập vào tài khoản của khách. Kèm: Dashboard → Auth → Email bật
+      **Confirm email**, không thì hàng giữ chỗ ở A33 đăng nhập được ngay và nhân viên phải đổi tên khác.
+- [x] **A35. Dò mật khẩu.** Mật khẩu tự sinh 8 ký tự trên bảng 31 chữ (~2^39); cổng
+      `/auth/v1/token` có rate limit theo IP của Supabase. Nhân viên tự gõ mật khẩu yếu là việc của nhân viên.
+
 ---
 
 ## B. ĐÃ ĐÓNG từ trước — đừng dò lại

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Hỗ trợ khách - Cưới Xinh</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/png" href="/assets/icons/favicon.png" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/build.css" />
+    <script src="/core/helpers/no-zoom.js"></script>
+    <script src="/core/helpers/no-inspect.js"></script>
+  </head>
+  <body class="font-inter text-gray-800 bg-gray-50 min-h-screen">
+    <!-- Trang của nhân viên hỗ trợ: tạo tài khoản Cưới Xinh cho khách. Vào bằng Google, quyền
+         thật là danh sách SUPPORT_EMAILS ở supabase/functions/_shared/support-staff.ts. -->
+    <main class="mx-auto max-w-5xl px-4 py-6 sm:px-6 space-y-4">
+      <header class="flex items-center justify-between gap-3">
+        <a href="/" class="flex items-center gap-3 min-w-0">
+          <x-logo size="32"></x-logo>
+          <span class="text-lg font-semibold text-gray-800 truncate">Hỗ trợ khách</span>
+        </a>
+        <div id="sup-who" class="hidden min-w-0">
+          <div class="flex items-center gap-2">
+            <span id="sup-email" class="text-xs text-gray-500 truncate"></span>
+            <x-button variant="outline" tone="neutral" size="sm" icon="log-out" onclick="supSignOut()">Đăng xuất</x-button>
+          </div>
+        </div>
+      </header>
+
+      <div id="sup-loading" class="py-16 text-center text-sm text-gray-400">Đang kiểm tra quyền…</div>
+
+      <!-- Chưa đăng nhập / không có quyền -->
+      <div id="sup-gate" class="hidden bg-white rounded-2xl shadow-lg p-6 sm:p-8 max-w-sm mx-auto text-center space-y-4">
+        <div class="w-12 h-12 mx-auto rounded-full bg-rose-50 text-rose-500 flex items-center justify-center">
+          <i data-lucide="shield-check" style="width:24px;height:24px"></i>
+        </div>
+        <h1 class="text-lg font-semibold text-gray-800">Khu vực nhân viên</h1>
+        <p id="sup-gate-msg" class="text-sm text-gray-500">Đăng nhập bằng tài khoản Google đã được cấp quyền.</p>
+        <x-button id="sup-google" variant="outline" tone="neutral" full onclick="supGoogle()">
+          <span id="sup-google-icon" class="flex"></span> Tiếp tục với Google
+        </x-button>
+      </div>
+
+      <!-- Đã có quyền -->
+      <div id="sup-app" class="hidden space-y-4">
+        <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="p-4 sm:p-6 border-b border-gray-100">
+            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo tài khoản cho khách</h2>
+            <p class="text-xs text-gray-500 mt-1">
+              Dành cho khách không tự đăng nhập Google/email được. Tạo xong thì mở trang web ở cửa sổ ẩn danh,
+              bấm <strong>Đăng nhập bằng tài khoản Cưới Xinh</strong> để tạo thiệp hộ, rồi gửi tên đăng nhập + mật khẩu cho khách.
+            </p>
+            <p class="text-xs text-gray-400 mt-1">
+              Mật khẩu chỉ hiện <strong>một lần</strong> ngay sau khi tạo. Khách quên thì bấm "Đặt lại mật khẩu" ở bảng dưới.
+            </p>
+          </div>
+
+          <div class="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Tên đăng nhập</label>
+              <input id="acc-username" type="text" placeholder="lan-minh" autocomplete="off" spellcheck="false" autocapitalize="none"
+                class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none lowercase focus:border-rose-400" />
+              <p class="text-[11px] text-gray-400 mt-1">3–32 ký tự: chữ không dấu, số, . _ -</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Tên hiển thị</label>
+              <input id="acc-fullname" type="text" placeholder="Lan & Minh"
+                class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+              <p class="text-[11px] text-gray-400 mt-1">Hiện ở lời chào và menu tài khoản</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Mật khẩu</label>
+              <input id="acc-password" type="text" placeholder="Để trống = tự sinh" autocomplete="off" spellcheck="false" autocapitalize="none"
+                class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+              <p class="text-[11px] text-gray-400 mt-1">Tự sinh 8 ký tự dễ đọc</p>
+            </div>
+            <div class="flex items-start sm:pt-5">
+              <x-button id="acc-create-btn" onclick="accCreate()" icon="user-plus" full>Tạo tài khoản</x-button>
+            </div>
+          </div>
+
+          <!-- Tài khoản vừa tạo / vừa đặt lại mật khẩu -->
+          <div id="acc-result" class="hidden px-4 sm:px-6 pb-4 sm:pb-6">
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
+              <pre id="acc-result-text" class="text-sm text-gray-800 whitespace-pre-wrap font-sans"></pre>
+              <x-button variant="outline" size="sm" onclick="accCopyResult()" icon="copy">Chép lời nhắn gửi khách</x-button>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center gap-3">
+            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Danh sách tài khoản</h2>
+            <x-button variant="outline" onclick="loadAccounts()" icon="refresh-cw">Tải lại</x-button>
+          </div>
+          <div class="p-4 sm:p-6 overflow-x-auto">
+            <table class="w-full min-w-[760px] lg:min-w-0">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Tên đăng nhập</th>
+                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Tên hiển thị</th>
+                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Số thiệp</th>
+                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Người tạo</th>
+                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Đăng nhập gần nhất</th>
+                  <th class="py-3 px-4 text-right text-xs font-semibold text-gray-500 uppercase">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="acc-list"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <script src="/core/x-button.js"></script>
+    <script src="/core/x-logo.js"></script>
+    <script src="/core/config.js"></script>
+    <script src="/core/utils.js"></script>
+    <script src="/core/helpers/alert.js"></script>
+    <script src="/core/auth.js"></script>
+    <script src="/core/auth-ui.js"></script>
+    <script src="/admin-support/index.js"></script>
+  </body>
+</html>

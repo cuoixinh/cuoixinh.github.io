@@ -1839,7 +1839,7 @@
     if (!user) return null;
     const meta = user.user_metadata || {};
     return {
-      name: meta.full_name || meta.name || user.email || "",
+      name: meta.full_name || meta.name || window.CXAuth?.accountName?.(user) || user.email || "",
       email: user.email || "",
       phone: meta.phone || "",
       avatar: meta.avatar_url || meta.picture || "",
@@ -1866,7 +1866,8 @@
     const iniEl = document.getElementById("payment-avatar-ini");
     if (iniEl) iniEl.textContent = (b.name.trim()[0] || "?").toUpperCase();
     document.getElementById("payment-user-name-display").textContent = b.name;
-    document.getElementById("payment-user-email-display").textContent = b.email;
+    document.getElementById("payment-user-email-display").textContent =
+      window.CXAuth?.accountName?.(getCurrentUser()) || b.email;
   }
 
   window.PaymentModal = {
