@@ -942,6 +942,16 @@ async function _saveAllOnce(overrides, label) {
       _galleryOrder = [...payload.gallery_images];
     }
 
+    // Ảnh album vừa lên Storage: điểm lấy nét đang gắn theo File → chuyển sang tên
+    // file, không thì lần lưu sau tra theo tên ra 50/50 và ghi đè mất bản vừa lưu.
+    pendingUploads.galleryImages.forEach((file, i) => {
+      const fn = newGalleryFilenames[i];
+      const fp = pendingFocalPoints.gallery_images;
+      if (!fn || !fp.has(file)) return;
+      fp.set(fn, fp.get(file));
+      fp.delete(file);
+    });
+
     // Step 6: Clear pending uploads and deleted images
     // CHỈ dọn khi ảnh THỰC SỰ đã lên Storage. Chưa đăng nhập thì
     // uploadAllPendingImages() trả `skipped` và không đẩy gì cả — dọn lúc đó là
