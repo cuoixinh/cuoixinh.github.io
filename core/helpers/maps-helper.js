@@ -171,7 +171,6 @@ function openMapPicker(side, opts = {}) {
             <div class="cx-mp-gmap-txt">
               <p class="cx-mp-gmap-title"><i data-lucide="eye" style="width:16px;height:16px"></i><span>Bản đồ này sẽ hiện trên thiệp</span></p>
               <p class="cx-mp-gmap-sub">Bản đồ Google chỉ để xem trước, chạm vào không đổi được vị trí. Chưa đúng chỗ thì tự ghim lại nhé.</p>
-              <p class="cx-mp-gmap-sub-s">Chỉ xem, chạm không đổi vị trí.</p>
             </div>
             <x-button size="sm" icon="hand" class="cx-mp-gmap-pin" onclick="_pinOnOsm()"><span class="cx-mp-gmap-short">Tự ghim</span><span class="cx-mp-gmap-wide">Tự ghim trên bản đồ</span></x-button>
           </div>

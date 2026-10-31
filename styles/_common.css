@@ -1639,8 +1639,8 @@ textarea::-webkit-scrollbar-thumb:hover {
 }
 
 /* Thẻ giải thích neo đáy lớp phủ: vì sao không bấm được + lối ghim tay. Mobile khung bản
-   đồ chỉ cao vài trăm px mà ghim của Google nằm GIỮA khung → thẻ là một dải một hàng
-   (chữ ngắn + nút "Tự ghim"); từ sm mới bung thành thẻ đủ đoạn giải thích. */
+   đồ chỉ cao vài trăm px mà ghim của Google nằm GIỮA khung → chữ và nút "Tự ghim" xếp
+   NGANG cho thẻ thấp; từ sm mới xếp dọc với nút tràn ngang. */
 .cx-mp-gmap-card {
   position: absolute;
   right: 8px;
@@ -1669,8 +1669,7 @@ textarea::-webkit-scrollbar-thumb:hover {
   font-weight: 600;
 }
 
-.cx-mp-gmap-title span,
-.cx-mp-gmap-sub-s {
+.cx-mp-gmap-title span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1682,15 +1681,15 @@ textarea::-webkit-scrollbar-thumb:hover {
   color: rgb(var(--action-primary-rgb));
 }
 
-.cx-mp-gmap-sub,
-.cx-mp-gmap-wide {
-  display: none;
-}
-
-.cx-mp-gmap-sub-s {
+.cx-mp-gmap-sub {
   margin-top: 4px;
   color: rgb(var(--text-body-rgb));
   font-size: 12px;
+  line-height: 1.5;
+}
+
+.cx-mp-gmap-wide {
+  display: none;
 }
 
 .cx-mp-gmap-pin {
@@ -1709,14 +1708,9 @@ textarea::-webkit-scrollbar-thumb:hover {
   }
 
   .cx-mp-gmap-sub {
-    display: block;
-    margin: 4px 0 12px;
-    color: rgb(var(--text-body-rgb));
-    font-size: 12px;
-    line-height: 1.5;
+    margin-bottom: 12px;
   }
 
-  .cx-mp-gmap-sub-s,
   .cx-mp-gmap-short {
     display: none;
   }
