@@ -1,7 +1,7 @@
 # Plan: Phân hệ "Slide cưới" (video trình chiếu ảnh cưới)
 
-> Trạng thái: **P0 xong** (mục menu + trang `/slide-cuoi/` "Sắp ra mắt") — P1 trở đi chờ chốt
-> các câu hỏi ở cuối file.
+> Trạng thái: trang `/slide-cuoi/` "Sắp ra mắt" đã có nhưng **mục menu đang ẨN** (chỉ vào
+> được bằng URL) — mở lại khi ra mắt P1. P1 trở đi chờ chốt các câu hỏi ở cuối file.
 
 **Mục đích: công cụ MIỄN PHÍ để kéo người truy cập vào trang**, KHÔNG gắn với thiệp cưới.
 Khách chọn ảnh → chọn mẫu slide + nhạc + chữ → xem trước → **xuất video** để đăng mạng xã
@@ -160,9 +160,9 @@ Không có bản trên server, nên không có "mở trên máy khác" — chấ
 
 ## 4. Các giai đoạn
 
-### P0 — Lối vào (ĐÃ LÀM)
+### P0 — Lối vào (ĐÃ LÀM, mục menu đang ẩn)
 - Mục **"Slide cưới"** cạnh "Bảng giá" ở navbar trang chủ + menu màn mở đầu trên điện thoại
-  (`js/hero-menu.js`).
+  (`js/hero-menu.js`) — đã gỡ ra, thêm lại lúc ra mắt (nhớ đổi `--hm-cols` về `"3"`).
 - Trang `/slide-cuoi/` giới thiệu + nhãn "Sắp ra mắt"; khai vào `INCLUDE` của
   `scripts/deploy-public.mjs` và `content` của `tailwind.config.js`.
 

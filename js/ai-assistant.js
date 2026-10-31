@@ -207,12 +207,15 @@
               <i data-lucide="plus" style="width:18px;height:18px"></i>
             </x-button>
             <x-button variant="bare" icon-only id="aichatFile" type="button" hidden
-                      aria-label="Gửi kèm tệp: ảnh, PDF, Word, Excel"
-                      title="Gửi kèm tệp: ảnh, PDF, Word, Excel" class="aichat-mic aichat-clip">
+                      aria-haspopup="menu" aria-expanded="false"
+                      aria-label="Đính kèm: chụp ảnh, ảnh, tệp PDF/Word/Excel"
+                      title="Đính kèm ảnh hoặc tệp" class="aichat-mic aichat-clip">
               <i data-lucide="paperclip" style="width:18px;height:18px"></i>
             </x-button>
             <input id="aichatFileInput" type="file" multiple hidden
                    accept="${window.CXAiFiles?.accept || ""}" />
+            <input id="aichatPhotoInput" type="file" multiple hidden accept="image/*" />
+            <input id="aichatCamInput" type="file" hidden accept="image/*" capture="environment" />
             <div class="aichat-tools-end">
               <x-button variant="bare" icon-only id="aichatMic" type="button"
                         aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
@@ -253,6 +256,8 @@
       attach: panel.querySelector("#aichatAttach"),
       file: panel.querySelector("#aichatFile"),
       fileInput: panel.querySelector("#aichatFileInput"),
+      photoInput: panel.querySelector("#aichatPhotoInput"),
+      camInput: panel.querySelector("#aichatCamInput"),
       files: panel.querySelector("#aichatFiles"),
       fileList: panel.querySelector("#aichatFileList"),
       fileErr: panel.querySelector("#aichatFileErr"),
@@ -2819,6 +2824,28 @@
 
   const canAttach = () => !!window.CXAiFiles && mode === "create";
 
+  // Menu Camera / Ảnh / Tệp của nút 📎 — cùng menu với "Nhập bằng AI". Thẻ nổi gắn vào
+  // <body> chứ không vào bảng chat: x-popover là position fixed, nằm trong bảng (kéo đi
+  // được, có lúc mang transform) là bị lệch.
+  let filePop = null;
+  function toggleFilePicker() {
+    if (!canAttach() || busy || filing) return;
+    if (!filePop) {
+      filePop = document.createElement("x-popover");
+      filePop.setAttribute("placement", "top");
+      filePop.setAttribute("align", "start");
+      filePop.setAttribute("width", "200");
+      document.body.appendChild(filePop);
+      filePop.addEventListener("open", () => els.file.setAttribute("aria-expanded", "true"));
+      filePop.addEventListener("close", () => els.file.setAttribute("aria-expanded", "false"));
+    }
+    window.CXAiFiles.togglePicker(filePop, els.file, {
+      cam: els.camInput,
+      photo: els.photoInput,
+      file: els.fileInput,
+    });
+  }
+
   // Đọc lần lượt, dừng ở tệp lỗi đầu tiên (câu báo hiện dưới dải tệp).
   async function addFiles(list) {
     if (!canAttach() || busy || filing) return;
@@ -2945,13 +2972,15 @@
       else if (e.target.closest("#aichatExpand"))
         setExpanded(!els.panel.classList.contains("is-expanded"));
       else if (e.target.closest("#aichatAttach")) toggleKitbar();
-      else if (e.target.closest("#aichatFile")) els.fileInput.click();
+      else if (e.target.closest("#aichatFile")) toggleFilePicker();
     });
-    els.fileInput.addEventListener("change", (e) => {
-      const list = Array.from(e.target.files || []);
-      e.target.value = "";
-      addFiles(list);
-    });
+    [els.fileInput, els.photoInput, els.camInput].forEach((input) =>
+      input.addEventListener("change", (e) => {
+        const list = Array.from(e.target.files || []);
+        e.target.value = "";
+        addFiles(list);
+      }),
+    );
     // Dán ảnh chụp màn hình (Ctrl+V) = đính kèm; dán chữ thì như thường.
     els.input.addEventListener("paste", (e) => {
       const list = Array.from(e.clipboardData?.files || []);

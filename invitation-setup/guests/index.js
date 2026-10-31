@@ -814,29 +814,14 @@ function _aiSetBusy(busy) {
 
 // ── Tệp: chọn / chụp / kéo thả / dán ảnh ──────────────────────────────────────
 
-// Menu nút "+": Camera chỉ có trên máy cảm ứng (điện thoại, iPad) — ở máy tính
-// capture không mở được camera mà chỉ ra hộp chọn tệp, trùng với "Ảnh".
-// iOS: ô tệp nhận ảnh LUÔN bật bảng của hệ thống (Chụp ảnh / Thư viện / Chọn tệp),
-// web không tắt được — mở thẳng ô "Tệp" để bảng đó làm menu, khỏi chồng hai lớp.
-const _aiIsIOS =
-  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-  (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
-
+// Menu nút "+" (Camera / Ảnh / Tệp) — dựng chung ở CXAiFiles.togglePicker.
 function toggleAiAttachMenu() {
   if (_ai.busy) return;
-  if (_aiIsIOS) return void _aiEl("ai-file").click();
-  const pop = _aiEl("ai-attach-pop");
-  if (!pop.isOpen) {
-    const pick = (id) => () => _aiEl(id).click();
-    pop.setItems([
-      ...(matchMedia("(pointer: coarse)").matches
-        ? [{ icon: _popIco("camera", "gs-tone-pink"), label: "Camera", onClick: pick("ai-cam") }] : []),
-      { icon: _popIco("image", "gs-tone-green"), label: "Ảnh", onClick: pick("ai-photo") },
-      { icon: _popIco("paperclip", "gs-tone-blue"), label: "Tệp", onClick: pick("ai-file") },
-    ]);
-    lucide.createIcons({ root: pop });
-  }
-  pop.toggle(_aiEl("ai-plus"));
+  CXAiFiles.togglePicker(_aiEl("ai-attach-pop"), _aiEl("ai-plus"), {
+    cam: _aiEl("ai-cam"),
+    photo: _aiEl("ai-photo"),
+    file: _aiEl("ai-file"),
+  });
 }
 
 // Nhiều tệp một lúc (chọn nhiều, kéo thả, dán): xử lý lần lượt, dừng ở lỗi đầu tiên.
