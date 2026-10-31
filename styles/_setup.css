@@ -1801,12 +1801,38 @@ button.cx-add-tile-sm {
   padding-bottom: 0;
 }
 
-/* Đầu sợi chỉ: icon tròn đặc + tiêu đề, số mốc, nút XuXi. Vạch chạy qua khoảng
-   space-y-4 (16px) + mt-2 của nút số đầu tiên nên bottom âm 24px. */
+/* Đầu sợi chỉ: icon tròn đặc + tiêu đề, số mốc, nút Sắp xếp (từ 2 mốc), nút XuXi.
+   Vạch chạy qua khoảng space-y-4 (16px) + mt-2 của nút số đầu tiên nên bottom âm 24px. */
 .cx-ls-head {
-  @apply relative grid items-center gap-x-3 gap-y-2;
+  @apply relative grid items-center gap-x-2 gap-y-2;
 
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+}
+
+/* Nút Sắp xếp đang ẩn thì bỏ luôn cột của nó, không thì dư một khoảng gap cuối hàng. */
+.cx-ls-head:has(> .cx-ls-sort.hidden) {
   grid-template-columns: 28px minmax(0, 1fr) auto;
+}
+
+.cx-ls-sort {
+  @apply inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap px-3.5 py-2 text-[13px] font-medium;
+
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.8);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.cx-ls-sort:hover {
+  background: rgb(var(--surface-brand-rgb));
+  border-color: rgb(var(--brand-accent-rgb) / 0.6);
+}
+
+/* .hidden của Tailwind đứng TRƯỚC rule trên trong build.css nên thua display ở đó. */
+.cx-ls-sort.hidden {
+  display: none;
 }
 
 .cx-ls-head::before {
@@ -1840,8 +1866,13 @@ button.cx-add-tile-sm {
   @apply text-xs text-gray-500;
 }
 
-/* Màn hẹp: nút XuXi xuống hàng riêng, thẳng cột chữ. */
+/* Màn hẹp: nút XuXi xuống hàng riêng, thẳng cột chữ; nút Sắp xếp ở lại hàng tiêu đề. */
 @media (max-width: 479px) {
+  .cx-ls-head,
+  .cx-ls-head:has(> .cx-ls-sort.hidden) {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+  }
+
   .cx-ls-head > .btn-ai {
     grid-column: 2 / -1;
     justify-self: start;
@@ -1897,6 +1928,11 @@ button.cx-add-tile-sm {
 
 .cx-ls-lbl {
   @apply mb-1 block text-xs font-medium text-gray-600;
+}
+
+/* Icon lịch trong ô Thời gian chỉ dùng khi ô ra nằm trên trục (container ≥ 640px). */
+.cx-ls-date-ico {
+  display: none;
 }
 
 .cx-ls-input {
@@ -1982,32 +2018,53 @@ button.cx-ls-thumb {
     grid-column: 2;
   }
 
+  /* Ô Thời gian thành viên pill có viền + icon lịch, nối vào nút số bằng một vạch
+     ngắn: nhìn ra ngay là ô điền thời gian CỦA mốc đó, không lẫn với tên mốc. Cao
+     32px, top 6px để tâm trùng tâm nút số (mt-2 + 14px). */
   .cx-ls-date {
     position: absolute;
     left: 0;
-    top: 2px;
+    top: 6px;
     width: 128px;
+  }
+
+  .cx-ls-date::after {
+    content: "";
+    position: absolute;
+    right: -12px;
+    top: 15px;
+    width: 12px;
+    height: 2px;
+    background: rgb(var(--brand-primary-rgb) / 0.7);
   }
 
   .cx-ls-date .cx-ls-lbl {
     @apply sr-only;
   }
 
-  /* Trên trục: chữ đậm căn phải, viền chỉ hiện khi rê chuột / đang sửa. */
+  .cx-ls-date-ico {
+    position: absolute;
+    left: 12px;
+    top: 9px;
+    display: block;
+    pointer-events: none;
+    color: rgb(var(--brand-accent-rgb));
+  }
+
   .cx-ls-date .cx-ls-input {
-    @apply px-2 text-right font-semibold;
+    @apply h-8 rounded-full pl-8 pr-3 text-[13px] font-medium;
 
     color: rgb(var(--text-heading-rgb));
-    background: transparent;
-    border-color: transparent;
+    background: rgb(var(--white-rgb));
+    border-color: rgb(var(--brand-primary-rgb) / 0.8);
   }
 
   .cx-ls-date .cx-ls-input:hover {
-    @apply border-gray-200;
+    border-color: rgb(var(--brand-accent-rgb) / 0.6);
   }
 
   .cx-ls-date .cx-ls-input:focus {
-    @apply border-gray-400 bg-white text-left font-normal;
+    border-color: rgb(var(--brand-accent-rgb));
   }
 
   .cx-ls-body {
@@ -2120,6 +2177,354 @@ button.cx-ls-thumb {
 
 .cx-ls-opt:active {
   background: rgb(var(--brand-accent-rgb) / 0.14);
+}
+
+/* Popup "Sắp xếp các mốc" (openLoveStorySort ở js/14-timeline-story.js). Dưới sm
+   là bottom sheet, từ sm là hộp 440px giữa vùng ứng dụng (lùi trái --cx-rail-w).
+   Sợi chỉ vẽ MỘT lần trên cả danh sách nên đứng yên khi các thẻ trượt dọc theo nó;
+   số trên nút là vị trí, JS đánh lại sau mỗi lần đổi. */
+@keyframes cx-lsort-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cx-lsort-up {
+  from {
+    transform: translateY(32px);
+    opacity: 0;
+  }
+}
+
+@keyframes cx-lsort-pop {
+  from {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+@keyframes cx-lsort-tick {
+  40% {
+    transform: scale(1.2);
+  }
+}
+
+.cx-lsort {
+  position: fixed;
+  inset: 0;
+  right: var(--cx-rail-w, 0px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: rgb(var(--scrim-plum-rgb) / 0.45);
+  animation: cx-lsort-fade 0.2s ease;
+}
+
+.cx-lsort.is-out {
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.cx-lsort.is-dragging,
+.cx-lsort.is-dragging * {
+  cursor: grabbing !important;
+}
+
+.cx-lsort-box {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(var(--vh, 1vh) * 88);
+  border-radius: 28px 28px 0 0;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 -16px 40px rgb(var(--scrim-plum-rgb) / 0.18);
+  color: rgb(var(--text-heading-rgb));
+  animation: cx-lsort-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cx-lsort-grab {
+  align-self: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: rgb(var(--brand-primary-rgb) / 0.45);
+}
+
+.cx-lsort-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 12px 12px 20px;
+}
+
+.cx-lsort-title {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+  color: rgb(var(--scrim-plum-rgb));
+}
+
+.cx-lsort-sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: rgb(var(--text-subtle-rgb));
+}
+
+.cx-lsort-sub svg {
+  display: inline-block;
+  vertical-align: -2px;
+}
+
+.cx-lsort-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 16px 16px;
+}
+
+.cx-lsort-list {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Sợi chỉ: từ tâm nút đầu tới tâm nút cuối (dòng cao 56px, dòng cuối không đệm đáy). */
+.cx-lsort-list::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 28px;
+  bottom: 28px;
+  width: 2px;
+  background: rgb(var(--brand-primary-rgb) / 0.7);
+}
+
+.cx-lsort-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cx-lsort-row:last-child {
+  padding-bottom: 0;
+}
+
+.cx-lsort-row.is-drag {
+  z-index: 2;
+  transition: none;
+}
+
+.cx-lsort-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb));
+  border: 2px solid rgb(var(--brand-accent-rgb));
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.cx-lsort-node.is-tick {
+  animation: cx-lsort-tick 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Mốc đã rời chỗ cũ: nút nhuộm hồng nhạt — nhìn là biết mình đã đổi những gì. */
+.cx-lsort-row.is-moved .cx-lsort-node {
+  background: rgb(var(--surface-blossom-rgb));
+}
+
+.cx-lsort-card {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 8px 4px 8px 12px;
+  border-radius: 16px;
+  background: rgb(var(--surface-brand-subtle-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+@media (pointer: fine) {
+  .cx-lsort-card {
+    cursor: grab;
+  }
+}
+
+/* Thẻ đang nắm: nhấc lên khỏi sợi chỉ, nút số đặc màu nhấn. */
+.cx-lsort-row.is-drag .cx-lsort-card {
+  background: rgb(var(--white-rgb));
+  border-color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 12px 28px rgb(var(--shadow-brand-rgb) / 0.24);
+  transform: scale(1.02);
+}
+
+.cx-lsort-row.is-drag .cx-lsort-node {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--brand-accent-rgb));
+}
+
+.cx-lsort-txt {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cx-lsort-date,
+.cx-lsort-name {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cx-lsort-date {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-subtle-rgb));
+}
+
+.cx-lsort-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: rgb(var(--text-heading-rgb));
+}
+
+.cx-lsort-date.is-blank,
+.cx-lsort-name.is-blank {
+  font-weight: 400;
+  color: rgb(var(--text-idle-rgb));
+}
+
+.cx-lsort-step {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.cx-lsort-step > button,
+.cx-lsort-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: rgb(var(--text-subtle-rgb));
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.cx-lsort-step > button {
+  width: 32px;
+  height: 24px;
+}
+
+.cx-lsort-step > button:disabled {
+  opacity: 0.25;
+}
+
+.cx-lsort-grip {
+  width: 36px;
+  height: 44px;
+  cursor: grab;
+  touch-action: none;
+}
+
+@media (hover: hover) {
+  .cx-lsort-step > button:hover,
+  .cx-lsort-grip:hover {
+    color: rgb(var(--text-heading-rgb));
+    background: rgb(var(--brand-primary-rgb) / 0.3);
+  }
+}
+
+.cx-lsort-step > button:focus-visible,
+.cx-lsort-grip:focus-visible {
+  outline: 2px solid rgb(var(--brand-accent-rgb) / 0.6);
+  outline-offset: 0;
+}
+
+.cx-lsort-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.3);
+}
+
+@media (min-width: 640px) {
+  .cx-lsort {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .cx-lsort-box {
+    width: 440px;
+    max-width: 100%;
+    max-height: calc(var(--vh, 1vh) * 80);
+    border-radius: 24px;
+    box-shadow: 0 24px 56px rgb(var(--scrim-plum-rgb) / 0.24);
+    animation-name: cx-lsort-pop;
+  }
+
+  .cx-lsort-grab {
+    display: none;
+  }
+
+  .cx-lsort-head {
+    padding: 20px 16px 12px 24px;
+  }
+
+  .cx-lsort-body {
+    padding: 4px 24px 20px;
+  }
+
+  .cx-lsort-foot {
+    padding: 12px 24px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-lsort,
+  .cx-lsort-box,
+  .cx-lsort-node.is-tick {
+    animation: none;
+  }
+
+  .cx-lsort-row,
+  .cx-lsort-card {
+    transition: none;
+  }
 }
 
 /* Bước Chuyện tình yêu: lúc chưa có mốc, hai nút trong .cx-empty thay cho nút

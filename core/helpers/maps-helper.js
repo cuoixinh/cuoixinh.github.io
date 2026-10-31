@@ -131,7 +131,7 @@ function openMapPicker(side, opts = {}) {
       <div class="cx-mp-ctrl">
         <div id="map-picker-search-wrap" class="relative z-10">
           <i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" style="width:16px;height:16px"></i>
-          <input id="map-picker-search" type="text" enterkeyhint="search" value="${escapeHtml(currentQuery)}"
+          <input id="map-picker-search" type="text" enterkeyhint="search" value="${escapeHtml(currentQuery || (hasCoords ? currentDisplayName : ""))}"
             placeholder="Tìm nhà hàng, trung tâm tiệc, địa chỉ…"
             autocomplete="off" aria-label="Tìm địa điểm"
             class="cx-mp-search"
@@ -205,9 +205,29 @@ function openMapPicker(side, opts = {}) {
       _reverseGeocode(e.latlng.lat, e.latlng.lng);
     });
     if (autoSearch) searchMapPicker();
+    else if (currentQuery) _locateSavedQuery(currentQuery);
   }, 80);
 
   _setupMapPickerAutocomplete();
+}
+
+// Bản đồ đã lưu dạng CHỮ (gõ rồi dùng luôn, hoặc XuXi điền): tra để mở sẵn đúng chỗ
+// và cắm ghim. Chỉ để NHÌN — không đặt _mapPickerSelected, không đổi ô tìm/tên, nên
+// "Dùng vị trí này" mà không chỉnh gì thì link nhúng giữ nguyên chuỗi cũ.
+async function _locateSavedQuery(q) {
+  const map = _leafletMap;
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&accept-language=vi`,
+      { headers: { "Accept-Language": "vi" } }
+    );
+    const r = (await res.json())[0];
+    // Sheet đã đóng/mở lại, hoặc khách đã tự ghim/tìm trong lúc chờ → bỏ.
+    if (!r || map !== _leafletMap || _mapPickerSelected || _leafletMarker) return;
+    const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
+    map.setView([lat, lon], 16);
+    _placeMarker(lat, lon);
+  } catch (e) {}
 }
 
 // Công tắc <x-switch key="map-name"> dựng sẵn ở trạng thái BẬT → đồng bộ lại theo ô tên.
