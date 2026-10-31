@@ -520,15 +520,25 @@
       : s.scrollTop <= 2;
   }
 
+  // Vuốt ngang bắt đầu trong thứ cuộn ngang được (dải chip, ô gõ…) là việc của nó, không đổi màn.
+  function _ownsX(el) {
+    for (let n = el; n && n.nodeType === 1 && n.id !== "main-card"; n = n.parentElement) {
+      if (n.matches("textarea, input, .rb-nav")) return true;
+      if (n.scrollWidth > n.clientWidth + 2 && /auto|scroll/.test(getComputedStyle(n).overflowX)) return true;
+    }
+    return false;
+  }
+
   function _wireGestures() {
     const card = document.getElementById("main-card");
     if (!card) return;
 
-    // Vuốt dọc. Mép được chốt lúc BẮT ĐẦU chạm: vuốt tới cuối màn dài thì lần vuốt
-    // đó chỉ cuộn, lần sau mới sang màn.
+    // Vuốt dọc hoặc ngang (sang trái = màn sau). Mép được chốt lúc BẮT ĐẦU chạm: vuốt
+    // dọc tới cuối màn dài thì lần vuốt đó chỉ cuộn, lần sau mới sang màn.
     let sx = 0;
     let sy = 0;
     let edge = { 1: true, "-1": true };
+    let ownX = false;
     card.addEventListener(
       "touchstart",
       (e) => {
@@ -536,6 +546,7 @@
         sx = t.clientX;
         sy = t.clientY;
         edge = { 1: _atEdge(1), "-1": _atEdge(-1) };
+        ownX = _ownsX(e.target);
       },
       { passive: true },
     );
@@ -557,24 +568,28 @@
         const t = e.changedTouches[0];
         const dy = sy - t.clientY;
         const dx = sx - t.clientX;
-        if (Math.abs(dy) < 40 || Math.abs(dy) < Math.abs(dx)) return;
-        const dir = dy > 0 ? 1 : -1;
-        if (edge[dir]) _step(dir);
+        const horiz = Math.abs(dx) > Math.abs(dy);
+        const d = horiz ? dx : dy;
+        if (Math.abs(d) < 40) return;
+        const dir = d > 0 ? 1 : -1;
+        if (horiz ? !ownX : edge[dir]) _step(dir);
       },
       { passive: true },
     );
 
-    // Lăn chuột / bàn di: dồn deltaY cho đủ một nấc rồi mới đổi màn.
+    // Lăn chuột / bàn di (cả vuốt ngang trên bàn di): dồn delta cho đủ một nấc rồi mới đổi màn.
     let acc = 0;
     let accT = 0;
     card.addEventListener(
       "wheel",
       (e) => {
-        const dir = e.deltaY > 0 ? 1 : -1;
-        if (!_atEdge(dir)) return;
+        const horiz = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+        const delta = horiz ? e.deltaX : e.deltaY;
+        const dir = delta > 0 ? 1 : -1;
+        if (horiz ? _ownsX(e.target) : !_atEdge(dir)) return;
         e.preventDefault();
         if (Date.now() < _busyUntil) return;
-        acc += e.deltaY;
+        acc += delta;
         clearTimeout(accT);
         accT = setTimeout(() => (acc = 0), 200);
         if (Math.abs(acc) > 40) {
@@ -587,8 +602,8 @@
 
     document.addEventListener("keydown", (e) => {
       if (e.target.closest?.("textarea, input")) return;
-      if (["ArrowDown", "PageDown", " "].includes(e.key)) _step(1);
-      else if (["ArrowUp", "PageUp"].includes(e.key)) _step(-1);
+      if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(e.key)) _step(1);
+      else if (["ArrowUp", "ArrowLeft", "PageUp"].includes(e.key)) _step(-1);
       else return;
       e.preventDefault();
     });
