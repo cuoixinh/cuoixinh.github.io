@@ -33,6 +33,7 @@
   ];
   const GALLERY_MAX = 10; // khớp MAX_GALLERY_IMAGES của invitation-setup/js/10-images.js
   const MUSIC_DEFAULT_Q = "nhạc đám cưới hay nhất";
+  const MUSIC_TYPE_MS = 1000; // ô tìm nhạc: ngừng gõ bấy lâu thì tự tìm
 
   const VISIT_KEY = "cx_aichat_visited"; // sessionStorage: ô đã đi qua trong luồng dẫn
   // sessionStorage: nhạc/bản đồ/mẫu chọn ở trang chủ + gương URL ảnh đã lên thiệp (saved)
@@ -717,7 +718,12 @@
       sink().setMusic(url, title);
     }
 
+    // `seq`: gõ tiếp khi lượt trước chưa về thì kết quả cũ về sau không được đè lên.
+    let seq = 0;
+    let lastQ = "";
     async function search(q) {
+      const my = ++seq;
+      lastQ = q;
       list.innerHTML = "";
       list.appendChild(el("p", "aichat-kit-sub", "Đang tìm…"));
       try {
@@ -726,6 +732,7 @@
           { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
         );
         const items = await res.json();
+        if (my !== seq) return;
         list.innerHTML = "";
         if (!Array.isArray(items) || !items.length) {
           list.appendChild(el("p", "aichat-kit-sub", "Không tìm thấy bài nào, bạn thử tên khác nhé."));
@@ -750,18 +757,31 @@
         });
         mark();
       } catch {
+        if (my !== seq) return;
+        lastQ = "";
         list.innerHTML = "";
         list.appendChild(el("p", "aichat-kit-sub", "Lỗi tìm kiếm, bạn thử lại nhé."));
       }
     }
 
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
+    // Gõ là tìm: ngừng gõ MUSIC_TYPE_MS thì chạy, Enter thì chạy ngay. Dán link
+    // YouTube là chọn luôn bài đó.
+    let typeTimer = 0;
+    function run() {
+      clearTimeout(typeTimer);
       const q = input.value.trim();
       if (!q) return;
       const id = ytId(q);
       if (id) pickUrl(`https://www.youtube.com/watch?v=${id}`, "");
-      else if (q.length >= 2) search(q);
+      else if (q.length >= 2 && q !== lastQ) search(q);
+    }
+    input.addEventListener("input", () => {
+      clearTimeout(typeTimer);
+      typeTimer = setTimeout(run, MUSIC_TYPE_MS);
+    });
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      run();
     });
     search(MUSIC_DEFAULT_Q);
 

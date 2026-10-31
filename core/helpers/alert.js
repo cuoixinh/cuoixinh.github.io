@@ -125,7 +125,9 @@ function showToast(msg, type = "default", icon = null) {
   iconEl.style.background = c.bg;
   iconEl.style.color = c.color;
   _setLucideIcon(iconEl, icon || typeIcon, 18, typeIcon);
-  text.innerHTML = msg;
+  // textContent, không innerHTML: msg hay ghép dữ liệu từ ngoài (tên khách, tham số URL như
+  // error_description) — đổ vào innerHTML là chạy được mã chèn vào link.
+  text.textContent = msg;
 
   el.classList.add("visible");
 

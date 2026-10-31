@@ -19,8 +19,15 @@ import {
   GEMINI_MODEL_GUESTS,
   generateWithGemini,
   json,
-  type GeminiPart,
 } from '../_shared/ai-provider.ts'
+// Kiểm + dựng part cho tệp đính kèm của mode=guests (dùng chung với ai-chat).
+import {
+  MAX_BODY_FILES,
+  docsBlock,
+  fileParts,
+  readAttachments,
+  type AiDoc,
+} from '../_shared/ai-files.ts'
 import { enforceRateLimit, sanitizeDevice } from '../_shared/ai-rate-limit.ts'
 // Hợp đồng dữ liệu thiệp (whitelist field, nhãn văn phong, tầng validate output)
 // dùng chung với ai-chat — xem _shared/card-schema.ts.
@@ -51,46 +58,10 @@ const MAX_GUESTS_IN    = 8000    // ô dán danh sách khách (khớp AI_GUEST_M
 // Trần số khách AI trả về (văn bản có thể ghi cả hai nhóm, 2 × MAX_PER_SIDE của
 // guest-handler). Trần THẬT mỗi bên do guest-handler giữ lúc ghi.
 const MAX_GUESTS_OUT   = 200
-// Tệp đính kèm của mode=guests (ảnh đã nén ở trình duyệt, hoặc PDF): tối đa
-// MAX_GUEST_FILES tệp một lượt, mỗi tệp ~4MB, tổng ~8MB (tính theo độ dài base64).
-// Khớp aiMaxFiles / aiFileMaxMB / aiFilesMaxMB của CONFIG.guestImport ở client.
-const GUEST_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
-const MAX_GUEST_FILES = 5
-// Word/Excel/.txt: trình duyệt đọc ra chữ rồi gửi kèm trong `docs` (tính chung số tệp
-// với ảnh/PDF). Trần tổng ký tự — khớp aiDocsMaxChars của client.
-const MAX_GUEST_DOCS_IN = 20000
-const GUEST_DOC_TYPES = ['Word', 'Excel', '.txt', 'CSV']
-const MAX_GUEST_FILE_B64 = 5_600_000
-const MAX_GUEST_FILES_B64 = 11_200_000
-// PDF tốn token theo SỐ TRANG — một file 4MB có thể vài trăm trang, đủ đốt quota Gemini
-// của mọi tính năng AI. Đếm thô được thì giới hạn tổng trang; không đếm được (PDF nén
-// object stream) thì chỉ nhận file nhỏ. Khớp aiPdfMaxPages / aiPdfUnknownMaxMB ở client.
-const MAX_GUEST_PDF_PAGES = 10
-const MAX_GUEST_PDF_UNKNOWN_B64 = 2_800_000
 // Trần body đọc vào (kiểm Content-Length TRƯỚC khi parse, kể cả khách chưa đăng nhập):
-// mode=guests mang tệp nên cao, mọi mode khác chỉ là chữ ngắn.
-const MAX_BODY_GUESTS = 12_000_000
+// mode=guests mang tệp (MAX_BODY_FILES, luật tệp ở _shared/ai-files.ts) nên cao, mọi
+// mode khác chỉ là chữ ngắn.
 const MAX_BODY_TEXT = 100_000
-
-// Nhận diện tệp theo vài byte đầu — không tin trường mime client gửi.
-function fileMagicOk(mime: string, b64: string): boolean {
-  if (mime === 'image/jpeg') return b64.startsWith('/9j/')
-  if (mime === 'image/png') return b64.startsWith('iVBORw0KGgo')
-  if (mime === 'application/pdf') return b64.startsWith('JVBERi0')
-  if (mime === 'image/webp') {
-    try { return atob(b64.slice(0, 16)).slice(8, 12) === 'WEBP' } catch { return false }
-  }
-  return false
-}
-
-// Số trang PDF đếm thô (không giải nén) từ đối tượng /Type /Page. 0 = không đếm được.
-function pdfPageCount(b64: string): number {
-  try {
-    return (atob(b64).match(/\/Type\s*\/Page(?![A-Za-z])/g) ?? []).length
-  } catch {
-    return 0
-  }
-}
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Cho phép: origin nằm trong allowlist, hoặc bất kỳ localhost/127.0.0.1 (mọi cổng, để dev).
@@ -241,15 +212,9 @@ const GUEST_ITEM_SCHEMA = {
 
 // fromFile = danh sách nằm trong tệp đính kèm (ảnh/PDF) gửi cùng lượt; khi đó `text`
 // (có thể rỗng) là phần người dùng gõ thêm — khách bổ sung hoặc lời dặn cách đọc.
-type GuestDoc = { name: string; type: string; text: string }
-
-// Tên tệp/sheet nằm trong prompt: một dòng, bỏ ngoặc kép để không phá khối trích.
-const guestFileName = (v: unknown) =>
-  String(v ?? '').replace(/[\r\n"“”]+/g, ' ').trim().slice(0, 120) || 'không tên'
-
 // files: số ảnh/PDF gửi kèm (đánh số 1..files, mỗi tệp có dòng "Tệp N: …" đứng trước);
 // docs: chữ trích từ Word/Excel/.txt, đánh số tiếp theo, mỗi tệp một khối có rào.
-function buildGuestsPrompt(text: string, files = 0, docs: GuestDoc[] = []): string {
+function buildGuestsPrompt(text: string, files = 0, docs: AiDoc[] = []): string {
   const attached = files > 0 || docs.length > 0
   const intro = attached
     ? `Bạn là XuXi, trợ lý của Cưới Xinh. Người dùng gửi danh sách khách mời đám cưới trong MỘT HOẶC NHIỀU TỆP (ảnh chụp giấy viết tay, ảnh màn hình Zalo, PDF, Word, Excel…). Mỗi tệp được đánh số và ghi tên: ảnh/PDF gửi kèm, có dòng "Tệp N: …" đứng ngay trước; Word/Excel/.txt đã đổi sang chữ, nằm giữa dòng "=== Tệp N … ===" và "=== Hết tệp N ===" ở cuối lời nhắn này. Đọc kỹ MỌI chữ trong từng tệp, kể cả chữ viết tay, giữ đúng dấu tiếng Việt; chữ nào không đọc chắc thì ghi đúng như nhìn thấy, KHÔNG đoán thành tên khác. Nhiều tệp là các phần của CÙNG một danh sách: đọc lần lượt theo số tệp, gộp lại; một người xuất hiện ở nhiều tệp (ảnh chụp chồng lên nhau) chỉ xuất MỘT lần. Tên tệp hoặc tên sheet có thể cho biết nhóm (VD "khach-nha-gai.xlsx", sheet "Nhà gái:") — dùng nó như tiêu đề nhóm ở mục 6. Nội dung Excel: mỗi hàng một dòng, các ô ngăn bằng " | ", hàng đầu thường là tiêu đề cột chứ không phải khách. Rồi TÁCH thành từng khách mời — mỗi khách là MỘT lời mời (một người, một cặp vợ chồng, hoặc một gia đình).`
@@ -258,10 +223,7 @@ function buildGuestsPrompt(text: string, files = 0, docs: GuestDoc[] = []): stri
     ? `
 
 Nội dung trích từ tệp:
-${docs.map((d, i) => {
-  const no = files + i + 1
-  return `=== Tệp ${no}: "${d.name}" (${d.type}) ===\n${d.text}\n=== Hết tệp ${no} ===`
-}).join('\n\n')}`
+${docsBlock(docs, files)}`
     : ''
   const userText = !attached
     ? `
@@ -599,70 +561,19 @@ async function handleGuests(
 ): Promise<Response> {
   if (!user) return json({ error: 'Đăng nhập để nhập khách bằng AI', login: true }, 401, origin)
 
-  // Chữ (tuỳ chọn khi có tệp) + tối đa MAX_GUEST_FILES tệp ảnh/PDF cho model tự đọc.
-  if ((body.files !== undefined && !Array.isArray(body.files)) || (body.docs !== undefined && !Array.isArray(body.docs))) {
-    return json({ error: 'Danh sách tệp không hợp lệ' }, 400, origin)
-  }
-  const files = (body.files ?? []) as { mime?: unknown; data?: unknown; name?: unknown }[]
-  const rawDocs = (body.docs ?? []) as { name?: unknown; type?: unknown; text?: unknown }[]
-  if (files.length + rawDocs.length > MAX_GUEST_FILES) {
-    return json({ error: `Mỗi lượt tối đa ${MAX_GUEST_FILES} tệp` }, 400, origin)
-  }
+  // Chữ (tuỳ chọn khi có tệp) + tệp ảnh/PDF cho model tự đọc + chữ trích từ Word/Excel/.txt.
+  const att = readAttachments(body)
+  if ('error' in att) return json({ error: att.error }, 400, origin)
+  const { files, docs } = att
   const raw = String(body.text ?? '')
   if (raw.length > MAX_GUESTS_IN) {
     return json({ error: `Danh sách dài quá ${MAX_GUESTS_IN} ký tự, hãy chia làm nhiều lần` }, 400, origin)
   }
   const text = clampText(raw, MAX_GUESTS_IN)
-  const docs: GuestDoc[] = []
-  let docChars = 0
-  for (const d of rawDocs) {
-    const t = String(d?.text ?? '').trim()
-    if (!t) return json({ error: 'Có tệp không có chữ nào' }, 400, origin)
-    docChars += t.length
-    if (docChars > MAX_GUEST_DOCS_IN) {
-      return json({ error: `Nội dung các tệp Word/Excel/.txt dài quá ${MAX_GUEST_DOCS_IN} ký tự, hãy chia làm nhiều lần` }, 400, origin)
-    }
-    const type = String(d?.type ?? '')
-    docs.push({ name: guestFileName(d?.name), type: GUEST_DOC_TYPES.includes(type) ? type : 'Văn bản', text: t })
-  }
-  let parts: GeminiPart[] | null = null
-  if (files.length) {
-    parts = []
-    let total = 0
-    let pages = 0
-    for (const f of files) {
-      const mime = String(f?.mime ?? '')
-      const data = String(f?.data ?? '')
-      if (!GUEST_FILE_TYPES.includes(mime)) {
-        return json({ error: 'Chỉ đọc được ảnh (JPG, PNG, WebP) hoặc PDF' }, 400, origin)
-      }
-      total += data.length
-      if (!data || data.length > MAX_GUEST_FILE_B64 || !/^[A-Za-z0-9+/]+={0,2}$/.test(data)) {
-        return json({ error: 'Có tệp quá lớn hoặc hỏng, mỗi tệp phải nhỏ hơn 4MB' }, 400, origin)
-      }
-      if (total > MAX_GUEST_FILES_B64) {
-        return json({ error: 'Tổng dung lượng tệp vượt 8MB, hãy bớt tệp rồi thử lại' }, 400, origin)
-      }
-      if (!fileMagicOk(mime, data)) {
-        return json({ error: 'Có tệp không đúng định dạng ảnh/PDF' }, 400, origin)
-      }
-      if (mime === 'application/pdf') {
-        const n = pdfPageCount(data)
-        if (!n && data.length > MAX_GUEST_PDF_UNKNOWN_B64) {
-          return json({ error: 'Không đếm được số trang của PDF lớn này, hãy xuất lại PDF hoặc chụp ảnh danh sách' }, 400, origin)
-        }
-        pages += n || 1
-        if (pages > MAX_GUEST_PDF_PAGES) {
-          return json({ error: `PDF tối đa ${MAX_GUEST_PDF_PAGES} trang mỗi lượt, hãy tách bớt trang` }, 400, origin)
-        }
-      }
-      parts.push({ text: `Tệp ${parts.length / 2 + 1}: "${guestFileName(f?.name)}" (${mime === 'application/pdf' ? 'PDF' : 'Ảnh'})` })
-      parts.push({ inlineData: { mimeType: mime, data } })
-    }
-    parts.push({ text: buildGuestsPrompt(text, files.length, docs) })
-  } else if (!text && !docs.length) {
+  if (!files.length && !text && !docs.length) {
     return json({ error: 'Hãy dán danh sách khách mời trước' }, 400, origin)
   }
+  const parts = files.length ? [...fileParts(files), { text: buildGuestsPrompt(text, files.length, docs) }] : null
 
   // Mỗi tệp tính một lượt AI (tệp tốn token hơn chữ nhiều); chỉ chữ = 1 lượt.
   const limited = await enforceAiLimit(req, admin, user, body, origin, log, Math.max(1, files.length))
@@ -745,7 +656,7 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
 
   // Chặn body khổng lồ TRƯỚC khi đọc/xác thực — ai cũng gọi được function này.
   const bodyLen = Number(req.headers.get('content-length') ?? 0)
-  if (bodyLen > MAX_BODY_GUESTS) {
+  if (bodyLen > MAX_BODY_FILES) {
     log.warn('ai.body_too_large', { bytes: bodyLen })
     return json({ error: 'Dữ liệu gửi lên quá lớn' }, 413, origin)
   }

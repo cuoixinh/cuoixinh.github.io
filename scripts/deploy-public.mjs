@@ -48,6 +48,8 @@ const INCLUDE = [
   "guest-list/",
   "invitation-setup/",
   "policy/",
+  // Trang nhân viên hỗ trợ — vào bằng Google, quyền kiểm ở wedding-admin (SUPPORT_EMAILS).
+  "admin-support/",
   // Mã dùng chung + JS của landing
   "core/",
   "js/",

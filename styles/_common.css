@@ -6300,3 +6300,31 @@ fieldset.cx-mem-field > .cx-mem-label {
     height: 40px;
   }
 }
+
+/* Popup đăng nhập (core/auth-ui.js) ở màn THẤP. auth-ui tự đo: hộp cao hơn khung thì đặt
+   .cx-auth-short lên lớp nền (ẩn phần phụ data-auth-opt="1" + thu khe), còn chưa vừa thì
+   thêm .cx-auth-tiny (ẩn cả data-auth-opt="2"). Ô nhập và nút không bao giờ bị ẩn. */
+.cx-auth-short [data-auth-opt="1"],
+.cx-auth-tiny [data-auth-opt="2"] {
+  display: none;
+}
+.cx-auth-short [data-auth-pad] {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+.cx-auth-short [data-auth-modal-body] {
+  margin-top: 12px;
+}
+.cx-auth-short [data-auth-back] {
+  margin-bottom: 8px;
+}
+.cx-auth-short [data-auth-card] {
+  padding-top: 12px;
+  padding-bottom: 16px;
+}
+.cx-auth-short [data-auth-cardhead] {
+  margin-bottom: 12px;
+}
+.cx-auth-short [data-auth-login] {
+  margin-top: 16px;
+}

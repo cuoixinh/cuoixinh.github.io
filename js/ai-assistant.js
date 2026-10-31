@@ -131,6 +131,10 @@
   let presetTheme = false;
   let abort = null; // AbortController của lượt đang chạy (nút Làm mới huỷ nó)
   let els = null;
+  // Tệp khách đính kèm cho câu sắp gửi (bản đọc của CXAiFiles.read) — xem addFiles.
+  // `filing` = đang đọc/nén tệp, chưa cho gửi.
+  let attached = [];
+  let filing = false;
 
   // ── Dựng giao diện ────────────────────────────────────────────────────────
 
@@ -188,6 +192,10 @@
         <div class="aichat-kitbar" id="aichatKitbar" hidden></div>
         <p class="aichat-count" id="aichatCount">0/${MAX_LEN.toLocaleString("vi-VN")}</p>
         <div class="aichat-composer">
+          <div class="aichat-files" id="aichatFiles" hidden>
+            <div id="aichatFileList"></div>
+            <p class="aichat-files-err" id="aichatFileErr" role="alert" hidden></p>
+          </div>
           <textarea id="aichatInput" class="aichat-input" rows="1"
                     placeholder="Hỏi XuXi bất cứ điều gì…"
                     aria-label="Câu hỏi cho XuXi"></textarea>
@@ -197,7 +205,15 @@
                       title="Thêm ảnh, nhạc, bản đồ, mẫu thiệp"
                       aria-expanded="false" class="aichat-mic">
               <i data-lucide="plus" style="width:18px;height:18px"></i>
-            </x-button>            <div class="aichat-tools-end">
+            </x-button>
+            <x-button variant="bare" icon-only id="aichatFile" type="button" hidden
+                      aria-label="Gửi kèm tệp: ảnh, PDF, Word, Excel"
+                      title="Gửi kèm tệp: ảnh, PDF, Word, Excel" class="aichat-mic aichat-clip">
+              <i data-lucide="paperclip" style="width:18px;height:18px"></i>
+            </x-button>
+            <input id="aichatFileInput" type="file" multiple hidden
+                   accept="${window.CXAiFiles?.accept || ""}" />
+            <div class="aichat-tools-end">
               <x-button variant="bare" icon-only id="aichatMic" type="button"
                         aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
                         aria-pressed="false" class="aichat-mic">
@@ -235,8 +251,14 @@
       nav: panel.querySelector("#aichatNav"),
       input: panel.querySelector("#aichatInput"),
       attach: panel.querySelector("#aichatAttach"),
+      file: panel.querySelector("#aichatFile"),
+      fileInput: panel.querySelector("#aichatFileInput"),
+      files: panel.querySelector("#aichatFiles"),
+      fileList: panel.querySelector("#aichatFileList"),
+      fileErr: panel.querySelector("#aichatFileErr"),
       count: panel.querySelector("#aichatCount"),
       composer: panel.querySelector(".aichat-composer"),
+      foot: panel.querySelector(".aichat-foot"),
       kitbar: panel.querySelector("#aichatKitbar"),
       mic: panel.querySelector("#aichatMic"),
       send: panel.querySelector("#aichatSend"),
@@ -651,6 +673,20 @@
     return bubble;
   }
 
+  // Câu khách kèm tệp: thẻ tên tệp ngay dưới bong bóng (chỉ tên + loại — dữ liệu tệp không
+  // cất lại). Chỉ gửi tệp không lời thì giấu bong bóng rỗng.
+  function addUserBubble(text, files, at) {
+    const bubble = addBubble("user", text, at);
+    if (files?.length && window.CXAiFiles) {
+      bubble.hidden = !text;
+      const box = document.createElement("div");
+      box.className = "aichat-sent-files";
+      bubble.after(box);
+      window.CXAiFiles.renderStrip(box, files);
+    }
+    return bubble;
+  }
+
   // ── Thanh thao tác dưới tin nhắn: Đọc (chỉ phía XuXi) + Sao chép ─────────
   // Đứng cuối cột, mang luôn dấu giờ; thẻ thiệp/ô chọn chèn sau đó đi qua colInsert
   // nên vẫn nằm trên nó. Bong bóng đang stream thì thanh ẩn tới khi gõ xong.
@@ -901,7 +937,9 @@
     const i = history.indexOf(m);
     if (i >= 0) history.splice(i, 1);
     failRows.get(m)?.remove();
-    ask(m.content, { note: m.note, build: m.build, echo: false });
+    // Sau F5 dữ liệu tệp không còn (chỉ cất tên) → gửi lại nguyên câu, kèm dòng ghi chú tệp.
+    const lost = m.files && !m._files;
+    ask(m.files && !lost ? m.text : m.content, { note: m.note, build: m.build, echo: false, files: m._files });
   }
 
   // Đăng nhập xong là GỬI LẠI luôn câu vừa bị chặn — khách không phải gõ lại.
@@ -2227,7 +2265,9 @@
       else if (m.local && m.ask) {
         if (showAsk(m, i)) addWidget(m.ask, null, m.guided, m.pre);
       } else {
-        const bubble = addBubble(m.role === "user" ? "user" : "bot", m.content, m.at);
+        const bubble = m.role === "user"
+          ? addUserBubble(m.files ? m.text : m.content, m.files, m.at)
+          : addBubble("bot", m.content, m.at);
         if (m.card) addCardAction(bubble.parentElement, m.card, m);
         if (showAsk(m, i)) addWidget(m.ask, bubble.parentElement, m.guided);
       }
@@ -2275,6 +2315,7 @@
     setMode("");
     newConvId(); // cuộc mới bắt đầu từ đây, không đợi tới lượt hỏi đầu tiên
     toggleKitbar(false);
+    dropFiles();
     try {
       // Ảnh/nhạc/bản đồ của cuộc cũ (trang chủ) đi theo nháp của nó — đọc mã TRƯỚC khi xoá.
       window.CXChatMedia?.reset(sessionStorage.getItem(DRAFT_KEY));
@@ -2434,11 +2475,13 @@
   // đăng nhập) nên đừng vẽ thêm lần nữa.
   // opts.note: câu do giao diện tự gửi (buildCard) — vẽ thành dòng ghi chú, không đụng
   // ô nhập của khách. opts.build: lượt xin dựng thiệp (xem aiChatDAL.ask).
+  // opts.files — tệp đính kèm câu này (lấy từ ô soạn tin, hoặc của lượt đang gửi lại).
   async function ask(question, opts = {}) {
     const text = String(question || "").trim();
+    const sending = opts.files || [];
     // Quá dài thì KHÔNG cắt bớt rồi gửi: khách mất đúng phần đuôi mà không hay.
     // Ô nhập đang báo đỏ (syncSend) — để nguyên cho khách tự rút gọn.
-    if (!text || busy || text.length > MAX_LEN) return;
+    if ((!text && !sending.length) || busy || filing || text.length > MAX_LEN) return;
     // Câu tới từ ngoài cửa chọn chế độ (ô hỏi ở màn mở đầu trang chủ, câu gửi lại sau
     // khi đăng nhập) = hỏi đáp; muốn làm thiệp thì server tự chuyển. Vẽ lại để dọn cửa
     // đi và đeo tag vào đầu đoạn chat.
@@ -2453,18 +2496,38 @@
       stopMic(); // đang gửi thì câu nói dở không còn ô nào để rơi vào
       els.input.value = "";
       autoGrow();
+      if (sending === attached) {
+        attached = [];
+        renderFiles();
+      }
     }
     els.mic.disabled = true;
     syncSend();
 
+    // Tệp chỉ tới model ở lượt này; dòng ghi chú trong `content` giữ dấu vết cho các lượt sau
+    // (thông tin đọc được thì đã nằm trong `known`).
+    const fileMeta = sending.map(({ kind, fmt, name, size, lines }) => ({ kind, fmt, name, size, lines }));
+    const content = sending.length
+      ? [text, `(Gửi kèm ${sending.length} tệp: ${fileMeta.map((f) => f.name).join(", ")})`]
+        .filter(Boolean)
+        .join("\n")
+      : text;
     let userBubble = null;
     if (opts.echo !== false) {
       if (opts.note) addNote(text);
-      else userBubble = addBubble("user", text);
+      else userBubble = addUserBubble(text, fileMeta);
     }
     // Hỏi sang chuyện khác thì lượt lỗi cũ chỉ còn để đọc — nút Thử lại chỉ đi với lượt cuối.
     els.body.querySelectorAll("[data-retry]").forEach((b) => b.remove());
-    const asked = { role: "user", content: text, at: Date.now(), ...(opts.note && { note: true }) };
+    const asked = {
+      role: "user",
+      content,
+      at: Date.now(),
+      ...(opts.note && { note: true }),
+      ...(sending.length && { text, files: fileMeta }),
+    };
+    // Bản đọc đủ của tệp để Thử lại — thuộc tính ẩn nên JSON bỏ qua, không vào sessionStorage.
+    if (sending.length) Object.defineProperty(asked, "_files", { value: sending });
     history.push(asked);
     saveHistory();
     renderSuggests();
@@ -2498,8 +2561,12 @@
       els.body.lastElementChild?.classList.remove("is-cont-next");
       // Khách đã gõ thêm trong lúc chờ thì giữ lại, đặt câu vừa huỷ lên trước.
       const typed = els.input.value.trim();
-      els.input.value = typed ? text + "\n" + typed : text;
+      els.input.value = typed && text ? text + "\n" + typed : text || typed;
       autoGrow();
+      if (sending.length) {
+        attached = sending.concat(attached);
+        renderFiles();
+      }
       els.input.focus();
       renderSuggests();
     };
@@ -2518,6 +2585,7 @@
         build: opts.build === true,
         mode,
         current: mode === "create" ? currentCard() : null,
+        files: sending,
         onDelta: (partial) => {
           // Mảnh chữ đầu tiên tới nơi → thay ba chấm bằng bong bóng thật. Dòng "đang
           // dựng" đã hiện từ trước (khách giục dựng luôn) thì dời xuống dưới bong bóng.
@@ -2609,6 +2677,8 @@
     } finally {
       busy = false;
       els.mic.disabled = false;
+      // Ảnh thu nhỏ chỉ cần ở ô soạn tin; bị Dừng thì tệp đã quay về đó (stopped).
+      if (!attached.includes(sending[0])) window.CXAiFiles?.release(sending);
       syncSend();
       if (abort === mine) abort = null;
       scrollToEnd();
@@ -2668,11 +2738,28 @@
     }
     const layout = root.clientHeight;
     const gap = Math.max(0, Math.round(layout - vv.height - vv.offsetTop));
-    root.style.setProperty("--aichat-vh", Math.round(vv.height) + "px");
-    root.style.setProperty("--aichat-vb", gap + "px");
     // Hở hơn 120px so với màn = bàn phím đang bung (thanh địa chỉ co giãn chỉ
     // vài chục px nên không dính nhầm).
-    root.classList.toggle("aichat-kb", layout - vv.height > 120);
+    const kb = layout - vv.height > 120;
+    // Gõ ở ô TRONG đoạn chat (tìm nhạc…): chân bảng (ô nhập chính) chìm xuống dưới
+    // bàn phím, khung tin nhắn lấy trọn phần màn còn thấy — để chân bảng nổi lên là
+    // khung tin nhắn hẹp lại, che mất thứ khách đang tìm.
+    const a = document.activeElement;
+    const inner = kb && a !== els.input && els.body.contains(a) && a.matches("input, textarea");
+    const sink = inner ? els.foot.offsetHeight : 0;
+    root.style.setProperty("--aichat-vh", Math.round(vv.height) + sink + "px");
+    root.style.setProperty("--aichat-vb", gap - sink + "px");
+    root.classList.toggle("aichat-kb", kb);
+    if (inner) requestAnimationFrame(() => revealInBody(a));
+  }
+
+  // Kéo ô đang gõ vào tầm nhìn bằng cuộn của RIÊNG khung tin nhắn — scrollIntoView
+  // cuộn lây cả trang (iOS vẫn cuộn được <html> dù overflow: hidden).
+  function revealInBody(el) {
+    const r = el.getBoundingClientRect();
+    const b = els.body.getBoundingClientRect();
+    if (r.bottom > b.bottom - 8) els.body.scrollTop += r.bottom - b.bottom + 8;
+    else if (r.top < b.top + 8) els.body.scrollTop -= b.top + 8 - r.top;
   }
 
   // Ô nhập cao dần theo nội dung, tối đa max-h-24 do CSS chặn. scrollHeight KHÔNG
@@ -2708,7 +2795,9 @@
     els.send.setAttribute("aria-label", busy ? "Dừng" : "Gửi");
     els.send.disabled = busy
       ? !abort
-      : !mode || inPreStep() || !els.input.value.trim() || over;
+      : !mode || inPreStep() || filing || (!els.input.value.trim() && !attached.length) || over;
+    els.file.hidden = !canAttach();
+    els.file.disabled = busy || filing || inPreStep();
     els.composer.classList.toggle("is-over", over);
     els.count.classList.toggle("is-over", over);
     const fmt = (n) => n.toLocaleString("vi-VN");
@@ -2721,6 +2810,58 @@
     } catch {
       /* chặn cookie: chỉ mất câu gõ dở khi tải lại */
     }
+  }
+
+  // ── Tệp đính kèm ──────────────────────────────────────────────────────────
+  // Ảnh chụp thiệp giấy, ảnh tin nhắn, PDF, Word/Excel… gửi kèm câu tiếp theo để XuXi đọc
+  // thông tin thiệp — cùng bộ đọc với "Nhập bằng AI" ở trang Khách mời
+  // (core/helpers/ai-files.js). Chỉ ở chế độ tạo thiệp; chọn, dán (Ctrl+V) hay kéo thả.
+
+  const canAttach = () => !!window.CXAiFiles && mode === "create";
+
+  // Đọc lần lượt, dừng ở tệp lỗi đầu tiên (câu báo hiện dưới dải tệp).
+  async function addFiles(list) {
+    if (!canAttach() || busy || filing) return;
+    filing = true;
+    fileError("");
+    syncSend();
+    try {
+      for (const f of Array.from(list || [])) {
+        attached.push(await window.CXAiFiles.read(f, attached));
+        renderFiles();
+      }
+    } catch (e) {
+      fileError(e?.message || "Không đọc được tệp, bạn thử tệp khác nhé.");
+    } finally {
+      filing = false;
+      renderFiles();
+    }
+  }
+
+  function renderFiles() {
+    window.CXAiFiles?.renderStrip(els.fileList, attached, removeFile);
+    els.files.hidden = !attached.length && els.fileErr.hidden;
+    syncSend();
+  }
+
+  function fileError(msg) {
+    els.fileErr.textContent = msg;
+    els.fileErr.hidden = !msg;
+    els.files.hidden = !attached.length && !msg;
+  }
+
+  function removeFile(i) {
+    if (busy) return;
+    window.CXAiFiles.release(attached.splice(i, 1));
+    fileError("");
+    renderFiles();
+  }
+
+  function dropFiles() {
+    window.CXAiFiles?.release(attached);
+    attached = [];
+    fileError("");
+    renderFiles();
   }
 
   // ── Khởi động ─────────────────────────────────────────────────────────────
@@ -2804,6 +2945,35 @@
       else if (e.target.closest("#aichatExpand"))
         setExpanded(!els.panel.classList.contains("is-expanded"));
       else if (e.target.closest("#aichatAttach")) toggleKitbar();
+      else if (e.target.closest("#aichatFile")) els.fileInput.click();
+    });
+    els.fileInput.addEventListener("change", (e) => {
+      const list = Array.from(e.target.files || []);
+      e.target.value = "";
+      addFiles(list);
+    });
+    // Dán ảnh chụp màn hình (Ctrl+V) = đính kèm; dán chữ thì như thường.
+    els.input.addEventListener("paste", (e) => {
+      const list = Array.from(e.clipboardData?.files || []);
+      if (!list.length || !canAttach()) return;
+      e.preventDefault();
+      addFiles(list);
+    });
+    // Kéo thả tệp vào bảng chat. Luôn chặn mặc định khi kéo tệp: thả trượt là trình
+    // duyệt mở luôn tệp đó, rời khỏi trang.
+    els.panel.addEventListener("dragover", (e) => {
+      if (!e.dataTransfer?.types?.includes("Files")) return;
+      e.preventDefault();
+      els.composer.classList.toggle("is-drop", canAttach());
+    });
+    els.panel.addEventListener("dragleave", (e) => {
+      if (!els.panel.contains(e.relatedTarget)) els.composer.classList.remove("is-drop");
+    });
+    els.panel.addEventListener("drop", (e) => {
+      if (!e.dataTransfer?.files?.length) return;
+      e.preventDefault();
+      els.composer.classList.remove("is-drop");
+      addFiles(e.dataTransfer.files);
     });
     els.body.addEventListener("click", (e) => {
       const speak = e.target.closest("[data-speak]");
@@ -2824,7 +2994,7 @@
         buildCard();
       }
     });
-    els.send.addEventListener("click", () => (busy ? stopAsk() : ask(els.input.value)));
+    els.send.addEventListener("click", () => (busy ? stopAsk() : ask(els.input.value, { files: attached })));
     els.input.addEventListener("input", () => {
       autoGrow();
       syncSend();
@@ -2844,7 +3014,7 @@
         return;
       }
       e.preventDefault();
-      ask(els.input.value);
+      ask(els.input.value, { files: attached });
     });
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape" || els.panel.hidden) return;
@@ -2857,6 +3027,10 @@
       window.visualViewport.addEventListener("resize", syncViewport);
       window.visualViewport.addEventListener("scroll", syncViewport);
     }
+    // Chuyển con trỏ giữa ô nhập chính và ô trong đoạn chat thì bàn phím vẫn mở,
+    // không có resize nào — tự đo lại (focusout: đợi ô kế nhận focus rồi mới đo).
+    els.panel.addEventListener("focusin", syncViewport);
+    els.panel.addEventListener("focusout", () => requestAnimationFrame(syncViewport));
     // Bảng vừa co lại vì bàn phím → tin nhắn cuối bị đẩy khuất, kéo về cuối.
     els.input.addEventListener("focus", () => {
       setTimeout(() => {

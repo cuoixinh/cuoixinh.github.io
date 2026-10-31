@@ -1570,6 +1570,44 @@
   color: rgb(var(--text-placeholder-rgb));
 }
 
+/* Tệp chờ gửi kèm câu tiếp theo: dải thẻ ngang trên ô gõ (thẻ .gs-ai-* dùng chung với
+   "Nhập bằng AI" ở trang Khách mời — core/helpers/ai-files.js). Đệm trên/phải của dải
+   chừa chỗ cho nút × nhô ra góc thẻ. */
+.aichat-files .gs-ai-strip {
+  padding: 8px 12px 4px 0;
+}
+
+.aichat-files-err {
+  padding: 4px 4px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--state-error-text-rgb));
+}
+
+/* Đang kéo tệp vào bảng chat. */
+.aichat-composer.is-drop {
+  border-color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 0 0 4px rgb(var(--brand-primary-rgb) / 0.3);
+}
+
+/* Thẻ tệp dưới bong bóng câu khách đã gửi, dạt phải theo bong bóng. margin-left:auto
+   thay cho justify-content: flex-end, để dải tràn vẫn cuộn tới được thẻ đầu. */
+.aichat-sent-files {
+  max-width: 100%;
+}
+
+.aichat-sent-files .gs-ai-strip {
+  padding: 0;
+}
+
+.aichat-sent-files .gs-ai-file:first-child {
+  margin-left: auto;
+}
+
+.aichat-clip[hidden] {
+  display: none;
+}
+
 /* Hàng công cụ: chip điều hướng chiếm phần trống bên trái, hai nút dồn phải. */
 .aichat-tools {
   @apply flex items-center gap-2;

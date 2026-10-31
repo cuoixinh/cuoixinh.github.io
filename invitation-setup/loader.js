@@ -136,6 +136,8 @@
     // Khung chat AI dùng chung với trang chủ; thấy window.cxApplyAiCard thì đổ
     // thẳng vào thiệp đang mở thay vì dựng nháp mới.
     "../core/dal/ai-chat-dal.js",
+    // Đọc tệp đính kèm trong khung chat (ảnh/PDF/Word/Excel) — dùng chung với trang Khách mời.
+    "../core/helpers/ai-files.js",
     // Ô chọn ảnh/nhạc/bản đồ/mẫu trong khung chat — đích ghi là cxAiMediaSink (24-ai-apply.js).
     "../js/ai-chat-media.js",
     "../js/ai-assistant.js",

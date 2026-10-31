@@ -112,7 +112,7 @@ const CXAccount = (function () {
     const meta = u.user_metadata || {};
     const name = meta.full_name || meta.name || (u.email || "").split("@")[0] || "Tài khoản";
     const avatar = meta.avatar_url || meta.picture || "";
-    el.title = u.email || name;
+    el.title = window.CXAuth?.accountName?.(u) || u.email || name;
     // Chữ cái đầu nằm SẴN dưới ảnh: link avatar của Google/Facebook chết là
     // chuyện thường, onerror gỡ ảnh đi thì lộ ngay chữ cái, không thành ô trống.
     el.innerHTML =
