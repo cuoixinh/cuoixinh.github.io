@@ -139,6 +139,302 @@
     });
   }
 
+  // ── Lưu mã QR thành ảnh ─────────────────────────────────────────────────────
+  // Ảnh dựng SẴN ngay khi màn QR hiện: Safari chỉ cho navigator.share() chạy trong
+  // chính cú bấm, chờ vẽ canvas xong mới gọi là bị từ chối.
+  let _qrSave = null; // { orderId, file, promise }
+
+  function _qrSavePrepare(text, info, orderId) {
+    const job = { orderId, file: null };
+    _qrSave = job;
+    job.promise = _qrBuildImage(text, info, orderId)
+      .then((file) => {
+        if (_qrSave !== job) return null;
+        job.file = file;
+        const btn = document.getElementById("qr-save-btn");
+        if (btn) btn.disabled = false;
+        return file;
+      })
+      .catch((e) => {
+        console.warn("[payment] Không dựng được ảnh QR để lưu:", e);
+        if (_qrSave === job) document.getElementById("qr-save")?.remove();
+        return null;
+      });
+  }
+
+  // Màu lấy từ token của trang (styles/_colors.css) — canvas không đọc được var().
+  function _qrTok(name, a = 1) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(`--${name}-rgb`).trim();
+    const [r, g, b] = (v || "0 0 0").split(/[\s,]+/);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  function _qrRound(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // Ngắt dòng theo bề ngang `w` (chữ dài không dấu cách — số tài khoản — thì cắt theo ký tự).
+  function _qrWrap(ctx, text, w) {
+    const lines = [];
+    let line = "";
+    for (const word of String(text).split(/\s+/).filter(Boolean)) {
+      const next = line ? line + " " + word : word;
+      if (ctx.measureText(next).width <= w) { line = next; continue; }
+      if (line) lines.push(line);
+      line = "";
+      for (const ch of word) {
+        if (ctx.measureText(line + ch).width > w && line) { lines.push(line); line = ""; }
+        line += ch;
+      }
+    }
+    if (line) lines.push(line);
+    return lines.length ? lines : [""];
+  }
+
+  function _qrLoadImg(src) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  }
+
+  // Thẻ thanh toán 360px logic × 3 (1080px): thương hiệu · số tiền · QR · thông tin
+  // chuyển khoản. QR vẽ lại ở khổ lớn và tắt làm mịn để app ngân hàng đọc nét.
+  async function _qrBuildImage(text, info, orderId) {
+    await _loadQRCodeLib();
+    const tmp = document.createElement("div");
+    new QRCode(tmp, { text, width: 600, height: 600, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+    const qr = tmp.querySelector("canvas");
+    if (!qr) throw new Error("qrcodejs không trả canvas");
+
+    const headEl = document.querySelector("#payment-step-2 h3");
+    const HEAD = (headEl && getComputedStyle(headEl).fontFamily) || "serif";
+    const BODY = getComputedStyle(document.body).fontFamily || "sans-serif";
+    try {
+      await Promise.all([
+        document.fonts.load(`700 22px ${HEAD}`),
+        document.fonts.load(`600 18px ${HEAD}`),
+        document.fonts.load(`400 12px ${BODY}`),
+        document.fonts.load(`600 13px ${BODY}`),
+        document.fonts.load(`700 20px ${BODY}`),
+      ]);
+    } catch (_) {}
+    const logo = await _qrLoadImg("/assets/icons/logo.png");
+
+    const S = 3, W = 360, PAD = 20, CX = PAD, CW = W - PAD * 2, IN = 24, IW = CW - IN * 2;
+    const LABEL_W = 96, VAL_W = IW - LABEL_W - 12, QR_BOX = 208;
+    const rows = [
+      ["Ngân hàng", info.bank_name],
+      ["Chủ tài khoản", info.account_name],
+      ["Số tài khoản", info.account_number],
+      ["Nội dung", info.content],
+    ].filter(([, v]) => v);
+    const NOTE = "Giữ nguyên nội dung chuyển khoản để hệ thống nhận đúng đơn của bạn.";
+
+    // Lượt đo: ngắt dòng trước để biết chiều cao thẻ.
+    const m = document.createElement("canvas").getContext("2d");
+    m.font = `600 13px ${BODY}`;
+    const rowLines = rows.map(([, v]) => _qrWrap(m, v, VAL_W));
+    m.font = `400 11px ${BODY}`;
+    const noteLines = _qrWrap(m, NOTE, IW - 24);
+    const rowsH = rowLines.reduce((h, l) => h + l.length * 18 + 20, 0);
+    const noteH = noteLines.length * 16 + 20;
+    const CARD_Y = PAD;
+    const CARD_H = IN + 28 + 16 + 28 + 4 + 16 + 16 + 40 + 24 + QR_BOX + 24 + rowsH + 12 + noteH + IN;
+    const H = CARD_Y + CARD_H + 40;
+
+    const cv = document.createElement("canvas");
+    cv.width = W * S;
+    cv.height = H * S;
+    const ctx = cv.getContext("2d");
+    ctx.scale(S, S);
+    ctx.textBaseline = "middle";
+
+    // Nền: dải kem → hồng nhạt, hai vệt hồng mờ ở góc.
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, _qrTok("surface-tint"));
+    bg.addColorStop(1, _qrTok("surface-brand"));
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+    for (const [x, y, r] of [[W + 10, 40, 120], [-20, H - 60, 110]]) {
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, _qrTok("brand-primary", 0.35));
+      g.addColorStop(1, _qrTok("brand-primary", 0));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Thẻ trắng.
+    ctx.save();
+    ctx.shadowColor = _qrTok("shadow-brand", 0.18);
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetY = 8;
+    _qrRound(ctx, CX, CARD_Y, CW, CARD_H, 24);
+    ctx.fillStyle = _qrTok("white");
+    ctx.fill();
+    ctx.restore();
+
+    const mid = W / 2;
+    let y = CARD_Y + IN;
+
+    // Thương hiệu: logo + "Cưới Xinh" canh giữa.
+    ctx.font = `600 18px ${HEAD}`;
+    const brand = "Cưới Xinh";
+    const LOGO = logo ? 28 : 0, GAPL = logo ? 8 : 0;
+    const bw = LOGO + GAPL + ctx.measureText(brand).width;
+    let bx = mid - bw / 2;
+    if (logo) ctx.drawImage(logo, bx, y, LOGO, LOGO);
+    ctx.fillStyle = _qrTok("text-heading");
+    ctx.textAlign = "left";
+    ctx.fillText(brand, bx + LOGO + GAPL, y + 14);
+    y += 28 + 16;
+
+    ctx.textAlign = "center";
+    ctx.font = `700 22px ${HEAD}`;
+    ctx.fillStyle = _qrTok("text-heading");
+    ctx.fillText("Quét mã để thanh toán", mid, y + 14);
+    y += 28 + 4;
+    ctx.font = `400 12px ${BODY}`;
+    ctx.fillStyle = _qrTok("text-body");
+    ctx.fillText("Mở app ngân hàng → Quét QR → chọn ảnh này", mid, y + 8);
+    y += 16 + 16;
+
+    // Số tiền trong viên thuốc.
+    const amount = `${Number(info.amount || 0).toLocaleString("vi-VN")}đ`;
+    ctx.font = `400 12px ${BODY}`;
+    const lw = ctx.measureText("Số tiền").width;
+    ctx.font = `700 20px ${BODY}`;
+    const aw = ctx.measureText(amount).width;
+    const pw = 20 + lw + 8 + aw + 20;
+    _qrRound(ctx, mid - pw / 2, y, pw, 40, 20);
+    ctx.fillStyle = _qrTok("surface-brand");
+    ctx.fill();
+    ctx.textAlign = "left";
+    ctx.font = `400 12px ${BODY}`;
+    ctx.fillStyle = _qrTok("text-body");
+    ctx.fillText("Số tiền", mid - pw / 2 + 20, y + 21);
+    ctx.font = `700 20px ${BODY}`;
+    ctx.fillStyle = _qrTok("brand-accent");
+    ctx.fillText(amount, mid - pw / 2 + 20 + lw + 8, y + 20);
+    y += 40 + 24;
+
+    // QR + bốn viền góc như trên màn.
+    const qx = mid - QR_BOX / 2;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(qr, qx + 8, y + 8, QR_BOX - 16, QR_BOX - 16);
+    ctx.imageSmoothingEnabled = true;
+    ctx.strokeStyle = _qrTok("brand-primary");
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    const L = 22, o = -2;
+    for (const [cx, cy, dx, dy] of [
+      [qx + o, y + o, 1, 1],
+      [qx + QR_BOX - o, y + o, -1, 1],
+      [qx + o, y + QR_BOX - o, 1, -1],
+      [qx + QR_BOX - o, y + QR_BOX - o, -1, -1],
+    ]) {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + dy * L);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx + dx * L, cy);
+      ctx.stroke();
+    }
+    y += QR_BOX + 24;
+
+    // Thông tin chuyển khoản: nhãn trái, giá trị phải, kẻ đứt giữa các hàng.
+    const x0 = CX + IN, x1 = CX + IN + IW;
+    rows.forEach(([label], i) => {
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = _qrTok("brand-primary", 0.6);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x0, y + 0.5);
+      ctx.lineTo(x1, y + 0.5);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const lines = rowLines[i];
+      ctx.textAlign = "left";
+      ctx.font = `400 12px ${BODY}`;
+      ctx.fillStyle = _qrTok("text-tertiary");
+      ctx.fillText(label, x0, y + 10 + 9);
+      ctx.textAlign = "right";
+      ctx.font = `600 13px ${BODY}`;
+      ctx.fillStyle = _qrTok("text-heading");
+      lines.forEach((ln, k) => ctx.fillText(ln, x1, y + 10 + 9 + k * 18));
+      y += lines.length * 18 + 20;
+    });
+    y += 12;
+
+    _qrRound(ctx, x0, y, IW, noteH, 12);
+    ctx.fillStyle = _qrTok("surface-tint-warm");
+    ctx.fill();
+    ctx.textAlign = "center";
+    ctx.font = `400 11px ${BODY}`;
+    ctx.fillStyle = _qrTok("text-body");
+    noteLines.forEach((ln, k) => ctx.fillText(ln, mid, y + 10 + 8 + k * 16));
+
+    ctx.font = `600 11px ${BODY}`;
+    ctx.fillStyle = _qrTok("text-body", 0.8);
+    ctx.fillText("cuoixinh.com", mid, CARD_Y + CARD_H + 20);
+
+    const blob = await new Promise((resolve, reject) =>
+      cv.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob rỗng"))), "image/png"),
+    );
+    return new File([blob], `cuoixinh-thanh-toan-${orderId || "qr"}.png`, { type: "image/png" });
+  }
+
+  function _qrSaved(btn) {
+    if (!btn) return;
+    const prev = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="check" style="width:16px;height:16px"></i>Đã lưu';
+    window.lucide?.createIcons({ root: btn });
+    setTimeout(() => {
+      if (btn.isConnected) btn.innerHTML = prev;
+    }, 2000);
+  }
+
+  function _qrDownload(file) {
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  // Lối cuối: hiện ảnh để khách nhấn giữ → "Lưu ảnh" (webview Zalo/Facebook không tải
+  // file, iOS cũ không share được file). data-cx-allow-menu: no-inspect.js để yên menu.
+  function _qrPreview(file) {
+    const url = URL.createObjectURL(file);
+    const ov = document.createElement("div");
+    ov.className = "fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-3 bg-black/75 p-4";
+    ov.innerHTML = `
+      <img src="${url}" alt="Mã QR thanh toán" data-cx-allow-menu class="min-h-0 max-w-full flex-initial rounded-2xl object-contain shadow-2xl" style="-webkit-touch-callout:default;" />
+      <p class="m-0 flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold" style="color:rgb(var(--text-heading-rgb));">
+        <i data-lucide="hand" style="width:16px;height:16px;color:rgb(var(--brand-accent-rgb));"></i>Nhấn giữ ảnh rồi chọn “Lưu ảnh”
+      </p>
+      <x-button variant="outline" tone="neutral" size="sm" icon="x">Đóng</x-button>`;
+    const close = () => {
+      ov.remove();
+      URL.revokeObjectURL(url);
+    };
+    ov.addEventListener("click", (e) => {
+      if (e.target === ov || e.target.closest("button")) close();
+    });
+    document.body.appendChild(ov);
+    window.lucide?.createIcons({ root: ov });
+  }
+
   // Task 5.3: Display QR code
   function displayQRCode(qrDataString, paymentInfo, orderId) {
     const step2 = document.getElementById("payment-step-2");
@@ -170,6 +466,14 @@
             <div class="absolute -bottom-1 -left-1 w-5 h-5 border-b-[3px] border-l-[3px] rounded-bl" style="border-color:rgb(var(--brand-primary-rgb));"></div>
             <div class="absolute -bottom-1 -right-1 w-5 h-5 border-b-[3px] border-r-[3px] rounded-br" style="border-color:rgb(var(--brand-primary-rgb));"></div>
             <div id="qrcode-container" class="w-[220px] h-[220px] min-w-[220px] min-h-[220px] flex items-center justify-center bg-white rounded-xl"></div>
+          </div>
+
+          <!-- Lưu mã: trả tiền ngay trên chính điện thoại này thì không quét được màn của
+               mình — lưu ảnh rồi mở bằng "quét từ thư viện ảnh" của app ngân hàng.
+               Khoá tới khi ảnh dựng xong (_qrSavePrepare). -->
+          <div id="qr-save" class="-mt-1 flex flex-col items-center gap-1.5">
+            <x-button id="qr-save-btn" variant="soft" size="sm" icon="download" onclick="PaymentModal.saveQR(this)" disabled>Lưu mã QR</x-button>
+            <p class="m-0 text-center text-[11px] text-gray-400">Lưu về máy rồi chọn ảnh trong app ngân hàng để quét.</p>
           </div>
 
           <!-- Trạng thái chờ: một hàng mảnh, KHÔNG phải khối lớn — máy đang chờ,
@@ -270,6 +574,7 @@
             qrImg.style.height = "100%";
             qrImg.style.objectFit = "contain";
           }
+          _qrSavePrepare(qrDataString, paymentInfo, orderId);
         } else {
           // Fallback: show error message
           qrcodeContainer.innerHTML = `
@@ -2212,6 +2517,28 @@
           window.lucide?.createIcons({ root: btn });
         }, 2000);
       });
+    },
+
+    // Lưu mã QR: iPhone → bảng chia sẻ (có "Lưu hình ảnh" vào Ảnh); máy tính và
+    // Android → tải file; webview Zalo/Facebook (không tải được) → ảnh để nhấn giữ.
+    async saveQR(btn) {
+      if (!_qrSave) return;
+      const file = _qrSave.file || (await _qrSave.promise);
+      if (!file) return;
+      const ua = navigator.userAgent;
+      const inApp = /Zalo|FBAN|FBAV|FB_IAB|Instagram|Line\//i.test(ua);
+      const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (ios && !inApp && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file] });
+          return _qrSaved(btn);
+        } catch (e) {
+          if (e?.name === "AbortError") return;
+        }
+      }
+      if (inApp || ios) return _qrPreview(file);
+      _qrDownload(file);
+      _qrSaved(btn);
     },
 
     // Cancel payment

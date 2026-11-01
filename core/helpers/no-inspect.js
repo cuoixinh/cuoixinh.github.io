@@ -9,11 +9,12 @@
   if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
   const off = () => typeof CONFIG !== "undefined" && CONFIG.noInspect === false;
 
-  // Ô nhập vẫn giữ menu chuột phải (dán, sửa chính tả).
+  // Ô nhập vẫn giữ menu chuột phải (dán, sửa chính tả); [data-cx-allow-menu] (ảnh QR để
+  // nhấn giữ lưu về máy) cũng vậy — Android mở menu "Tải ảnh xuống" bằng chính sự kiện này.
   document.addEventListener("contextmenu", function (e) {
     if (off()) return;
     const t = e.target;
-    if (t && t.closest && t.closest("input, textarea, [contenteditable]:not([contenteditable='false'])")) return;
+    if (t && t.closest && t.closest("input, textarea, [contenteditable]:not([contenteditable='false']), [data-cx-allow-menu]")) return;
     e.preventDefault();
   });
 
