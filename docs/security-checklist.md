@@ -154,6 +154,12 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       chưa xuất bản / `is_active = false` / tắt Lời chúc / hết dùng thử / hết gói / gói Free
       hết lượt xem — cùng luật khoá với GET `?slug=` của `wedding-admin`, đổi bên đó thì đổi
       cả bên này.
+- [ ] **A12e. Giả link khách mời.** Link CŨ (`name=`/`relationship=` mã hoá, khoá nằm trong
+      bundle) ai biết tên khách là tự dựng được → RSVP/gửi lời chúc thay người đó. Link mới
+      `?g=<guests.code>` (8 ký tự ngẫu nhiên, `dqvinh_018`, `findPublicGuest` ở
+      `guest-handler`) không giả được, **nhưng lỗ CHƯA đóng**: nhánh tên + xưng hô vẫn khớp
+      MỌI khách, kể cả khách đã có mã — dựng link dạng cũ cho khách mới vẫn qua. Đóng được
+      khi `findGuestByLink` chỉ xét hàng có link dạng cũ (link cũ đã gửi phải sống mãi).
 - [ ] **A12c. `rsvp`/`wish` không rate limit.** Chưa vá — chặn ở tầng Cloudflare, xem mục E.
 
 - [x] **A13. `returnUrl`/`cancelUrl` lấy từ header `origin`.**

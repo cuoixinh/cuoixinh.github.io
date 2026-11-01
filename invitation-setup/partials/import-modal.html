@@ -62,34 +62,10 @@
             <div id="mapping-preview"></div>
           </div>
 
-          <!-- Import mode -->
-          <div class="bg-gray-50 rounded-xl p-3 space-y-2">
-            <p class="text-xs font-medium text-gray-600">Khi nhập khẩu:</p>
-            <label class="flex items-center gap-2.5 cursor-pointer">
-              <input
-                type="radio"
-                name="import-mode"
-                value="overwrite"
-                checked
-                class="accent-rose-500 w-3.5 h-3.5"
-              />
-              <span class="text-xs text-gray-700">Ghi đè toàn bộ</span>
-            </label>
-            <label class="flex items-center gap-2.5 cursor-pointer">
-              <input
-                type="radio"
-                name="import-mode"
-                value="merge"
-                class="accent-rose-500 w-3.5 h-3.5"
-              />
-              <span class="text-xs text-gray-700"
-                >Không ghi đè
-                <span class="text-gray-400"
-                  >(bỏ qua trùng Họ tên + Tên thiệp)</span
-                ></span
-              >
-            </label>
-          </div>
+          <!-- Không có chế độ ghi đè: xoá rồi chèn lại là khách nhận mã link mới, link đã gửi chết. -->
+          <p class="text-xs text-gray-500">
+            Khách đã có trong danh sách (trùng Họ tên, Tên trên thiệp và Xưng hô) được giữ nguyên, dòng trùng bỏ qua.
+          </p>
         </div>
 
         <!-- Footer -->

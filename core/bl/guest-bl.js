@@ -122,7 +122,7 @@ class GuestBL {
     return mapping;
   }
 
-  async importGuests(weddingId, side, data, colMapping, overwrite) {
+  async importGuests(weddingId, side, data, colMapping) {
     const guests = data
       .map(row => ({
         full_name:    String(row[colMapping.full_name]    ?? "").trim(),
@@ -133,8 +133,8 @@ class GuestBL {
 
     if (guests.length === 0) throw new Error("Không có dữ liệu hợp lệ để nhập khẩu");
 
-    // Sanitize + validate + count enforcement đều do Edge Function xử lý
-    return this.dal.importGuestsViaEdge(weddingId, side, guests, overwrite);
+    // Sanitize + validate + count enforcement + bỏ dòng trùng đều do Edge Function xử lý
+    return this.dal.importGuestsViaEdge(weddingId, side, guests);
   }
 
   // ─── Nhập bằng AI ───────────────────────────────────────────────────────────
@@ -190,6 +190,6 @@ class GuestBL {
       relationship: r.relationship.trim() || "Bạn",
     }));
     if (!guests.length) return { inserted: 0, skipped: 0 };
-    return this.dal.importGuestsViaEdge(weddingId, side, guests, false);
+    return this.dal.importGuestsViaEdge(weddingId, side, guests);
   }
 }

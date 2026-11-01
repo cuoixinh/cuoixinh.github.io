@@ -703,7 +703,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `opacity`; `btn` không khai thì rơi về `accent`). Màu là phần CỐ ĐỊNH của mẫu: khách KHÔNG
   chỉnh được.
   Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
-  (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/
+  (`action=wish` khớp một hàng `guests` theo slug + mã `?g=` (`guests.code`), link cũ theo
+  tên + xưng hô — link cũ đã gửi cho khách nên nhánh đó giữ mãi): tham số `name`/
   `relationship` trên link mã hoá bằng khoá nằm trong bundle client nên **giải mã được ở
   client KHÔNG chứng minh gì** — đừng dời phép kiểm tra đó lên trang. Danh sách lời chúc ai
   mở link cũng đọc được (`action=wishes-list`); khách gửi rồi không sửa/xoá, chỉ chủ thiệp

@@ -658,10 +658,16 @@ function _cxMountMusic(decl) {
   };
 
   // --- LỜI CHÀO RIÊNG ---
-  const _greet = () =>
+  const _greetNow = () =>
     setupPersonalizedGreeting(getSlugFromUrl(), isGroomSide(), () =>
       _openInvitation(T.onOpen),
     );
+  // Link mã ngắn (?g=): chờ tra tên khách xong mới chào — mẫu bọc hàm chào kiểm
+  // CX_GUEST ngay sau lời gọi, gọi sớm là khối tên khách không bao giờ hiện.
+  const _greet = () =>
+    new URLSearchParams(window.location.search).get("g")
+      ? cxGuestFromCode(getSlugFromUrl()).then(_greetNow)
+      : _greetNow();
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", _greet);
   } else {

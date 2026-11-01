@@ -287,23 +287,8 @@
             <p class="gs-label mb-2">Xem trước dữ liệu</p>
             <div id="mapping-preview"></div>
           </div>
-          <fieldset class="space-y-2">
-            <legend class="gs-label mb-2">Khi nhập vào danh sách</legend>
-            <label class="gs-radio">
-              <input type="radio" name="import-mode" value="overwrite" checked />
-              <span>
-                <span class="gs-radio-title">Thay toàn bộ danh sách</span>
-                <span class="gs-radio-desc">Xoá khách hiện có của bên này rồi nhập mới.</span>
-              </span>
-            </label>
-            <label class="gs-radio">
-              <input type="radio" name="import-mode" value="merge" />
-              <span>
-                <span class="gs-radio-title">Thêm vào danh sách</span>
-                <span class="gs-radio-desc">Giữ khách cũ, bỏ qua dòng trùng Họ tên, Tên trên thiệp và Xưng hô.</span>
-              </span>
-            </label>
-          </fieldset>
+          <!-- Không có chế độ ghi đè: xoá rồi chèn lại là khách nhận mã link mới, link đã gửi chết. -->
+          <p class="gs-map-note">Khách đã có trong danh sách (trùng Họ tên, Tên trên thiệp và Xưng hô) được giữ nguyên, dòng trùng bỏ qua.</p>
         </div>
         <div class="gs-sheet-foot">
           <div class="flex-1"></div>

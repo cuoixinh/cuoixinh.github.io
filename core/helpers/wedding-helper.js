@@ -10,11 +10,50 @@ function cxVuQuyAsCeremony(w) {
   return { ...w, ceremony_date: w.vu_quy_date, ceremony_lunar: w.vu_quy_lunar || "" };
 }
 
+// Link mã ngắn (?g=): tên + xưng hô nằm ở server. Tra MỘT lần, dùng chung cho
+// loadWeddingData (chờ trước khi dựng — mẫu đọc CX_GUEST ngay trong renderWedding) và
+// lời chào; lượt tra này cũng là lượt ghi "Đã xem". Quá hạn chờ thì coi như link chung.
+const CX_GUEST_WAIT_MS = 4000;
+let _cxGuestByCode = null;
+// Kết quả khi đã tra xong (undefined = chưa xong) — lời chào đọc ĐỒNG BỘ được.
+let _cxGuestCodeRes;
+function cxGuestFromCode(slug) {
+  if (_cxGuestByCode) return _cxGuestByCode;
+  const code = new URLSearchParams(window.location.search).get("g");
+  if (!code || !slug || isPreviewMode() || !window.guestDAL?.viewPublic) {
+    _cxGuestCodeRes = null;
+    return (_cxGuestByCode = Promise.resolve(null));
+  }
+  let late = false;
+  const ask = window.guestDAL
+    .viewPublic({ slug, code })
+    .then((res) => {
+      // Trả về sau hạn chờ: thiệp đã dựng như link chung, gán CX_GUEST lúc này là lệch.
+      if (late || !res?.matched || !res.name) return null;
+      window.CX_GUEST = { slug, code, name: res.name, relationship: res.relationship || "" };
+      return res;
+    })
+    .catch((error) => {
+      console.error("Lỗi tra mã khách mời:", error);
+      return null;
+    });
+  const wait = new Promise((r) =>
+    setTimeout(() => {
+      late = true;
+      r(null);
+    }, CX_GUEST_WAIT_MS),
+  );
+  return (_cxGuestByCode = Promise.race([ask, wait]).then((res) => (_cxGuestCodeRes = res)));
+}
+
 async function loadWeddingData(weddingSlug, renderCallback) {
   if (!weddingSlug && !isPreviewMode()) {
     window.location.href = "/";
     return;
   }
+
+  // Chạy song song với lượt tải thiệp bên dưới, không cộng thêm thời gian chờ.
+  const guestReady = cxGuestFromCode(weddingSlug);
 
   try {
     let wedding;
@@ -54,6 +93,7 @@ async function loadWeddingData(weddingSlug, renderCallback) {
         document.addEventListener("DOMContentLoaded", r, { once: true }),
       );
     }
+    await guestReady;
 
     wedding = cxVuQuyAsCeremony(wedding);
 
@@ -223,7 +263,44 @@ function setupPersonalizedGreeting(
     return;
   }
 
-  if (isPreviewMode() || !encryptedName || !encryptedRelationship) {
+  // Tên + xưng hô (Anh, Chị, Bạn…) nối vào lời mời riêng của từng mẫu
+  // ("Trân trọng kính mời" / "Kính gửi") — không viết cứng chữ nào vào markup.
+  const greet = (name, relationship) => {
+    if (coverGuestName) coverGuestName.textContent = name;
+    document.querySelectorAll("[data-cx-invite]").forEach((el) => {
+      el.dataset.cxInvite ||= el.textContent.trim();
+      el.textContent = `${el.dataset.cxInvite} ${relationship}`;
+    });
+    const rsvpSection = document.getElementById("rsvp-section");
+    if (rsvpSection) {
+      rsvpSection.style.display = "flex";
+    }
+  };
+
+  if (isPreviewMode()) {
+    generic();
+    return;
+  }
+
+  // Link mã ngắn: cxGuestFromCode đã gán CX_GUEST và ghi "Đã xem" trong cùng lượt tra.
+  // theme-boot gọi hàm này SAU khi tra xong nên nhánh đồng bộ là đường chính — mẫu bọc
+  // hàm này (romantic-gold, noir-elegance…) kiểm CX_GUEST ngay sau lời gọi.
+  if (urlParams.get("g")) {
+    const apply = (res) => {
+      if (!res) {
+        generic();
+        return;
+      }
+      greet(res.name, res.relationship || "");
+      _cxShowConfirmed(res.confirmed);
+    };
+    if (_cxGuestCodeRes !== undefined) apply(_cxGuestCodeRes);
+    else cxGuestFromCode(weddingSlug).then(apply);
+    return;
+  }
+
+  // Link cũ (name/relationship mã hoá) đã gửi cho khách thật — giữ mãi nhánh này.
+  if (!encryptedName || !encryptedRelationship) {
     generic();
     return;
   }
@@ -240,19 +317,7 @@ function setupPersonalizedGreeting(
     // Khách của link này — confirmAttend() cần đúng cặp tên + xưng hô để tìm ra
     // hàng tương ứng trong bảng khách mời.
     window.CX_GUEST = { slug: weddingSlug, name, relationship };
-
-    if (coverGuestName) coverGuestName.textContent = name;
-    // Xưng hô lấy từ link (Anh, Chị, Bạn…) nối vào lời mời riêng của từng mẫu
-    // ("Trân trọng kính mời" / "Kính gửi") — không viết cứng chữ nào vào markup.
-    document.querySelectorAll("[data-cx-invite]").forEach((el) => {
-      el.dataset.cxInvite ||= el.textContent.trim();
-      el.textContent = `${el.dataset.cxInvite} ${relationship}`;
-    });
-
-    const rsvpSection = document.getElementById("rsvp-section");
-    if (rsvpSection) {
-      rsvpSection.style.display = "flex";
-    }
+    greet(name, relationship);
     _markViewed(window.CX_GUEST);
   } catch (error) {
     generic();
@@ -417,19 +482,23 @@ async function _markViewed(g) {
   if (!g || !window.guestDAL?.viewPublic) return;
   try {
     const res = await window.guestDAL.viewPublic(g);
-    if (!res?.matched || !res.confirmed) return;
-    const msg = document.getElementById("attend-msg");
-    if (msg) {
-      msg.textContent =
-        res.confirmed === "Có tham dự"
-          ? "Bạn đã xác nhận tham dự. Hẹn gặp bạn nhé 🌸"
-          : "Bạn đã phản hồi không tham dự. Cảm ơn bạn!";
-      _rsvpShow(msg, true);
-    }
-    _hideRsvpButtons();
+    if (res?.matched) _cxShowConfirmed(res.confirmed);
   } catch (error) {
     console.error("Lỗi đánh dấu đã xem:", error);
   }
+}
+
+function _cxShowConfirmed(confirmed) {
+  if (!confirmed) return;
+  const msg = document.getElementById("attend-msg");
+  if (msg) {
+    msg.textContent =
+      confirmed === "Có tham dự"
+        ? "Bạn đã xác nhận tham dự. Hẹn gặp bạn nhé 🌸"
+        : "Bạn đã phản hồi không tham dự. Cảm ơn bạn!";
+    _rsvpShow(msg, true);
+  }
+  _hideRsvpButtons();
 }
 
 // Gửi xác nhận lên server. Lỗi mạng thì báo ngay dưới hai nút — im lặng là chủ
@@ -447,6 +516,7 @@ async function _saveRsvp(attending, message, msgEl) {
   try {
     await window.guestDAL.rsvpPublic({
       slug: g.slug,
+      code: g.code,
       name: g.name,
       relationship: g.relationship,
       attending: !!attending,

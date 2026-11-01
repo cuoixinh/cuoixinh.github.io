@@ -125,6 +125,37 @@ async function findGuestByLink(
   return { error: null, guest }
 }
 
+// Link mới mang mã `g` (guests.code, dqvinh_018) — khớp đúng một hàng, không đoán được.
+// Link cũ mang tên + xưng hô đã gửi cho khách thật nên nhánh findGuestByLink phải giữ mãi.
+const GUEST_CODE_RE = /^[0-9A-Za-z]{8}$/
+type LinkGuest = { code: string; name: string; relationship: string }
+
+function readLinkGuest(src: Record<string, unknown>): LinkGuest {
+  return {
+    code: String(src.code ?? '').trim(),
+    name: String(src.name ?? '').trim().slice(0, MAX_FIELD_LEN),
+    relationship: String(src.relationship ?? '').trim().slice(0, MAX_REL_LEN),
+  }
+}
+
+async function findPublicGuest(
+  supabase: ReturnType<typeof createClient>,
+  wedding_id: string,
+  who: LinkGuest,
+  columns: string,
+) {
+  if (!who.code) return findGuestByLink(supabase, wedding_id, who.name, who.relationship, columns)
+  if (!GUEST_CODE_RE.test(who.code)) return { error: null, guest: null }
+  const { data, error } = await supabase
+    .from('guests')
+    .select(columns)
+    .eq('wedding_id', wedding_id)
+    .eq('code', who.code)
+    .maybeSingle()
+  if (error) return { error: error.message, guest: null }
+  return { error: null, guest: data as Record<string, unknown> | null }
+}
+
 // Lời chúc đã lưu → mảng sạch. Hàng cũ có cột null hoặc dữ liệu hỏng thì coi
 // như chưa có lời chúc nào, đừng để một hàng lỗi chặn khách gửi.
 function readWishes(raw: unknown): { id: string; text: string; at: string }[] {
@@ -351,6 +382,37 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     return ok(items.slice(0, MAX_WISHES_RETURNED))
   }
 
+  // Tên + xưng hô của link mã ngắn cho worker trang thiệp dựng thẻ og:* (crawler không
+  // chạy JS). CHỈ đọc: crawler Zalo/Facebook gọi tới đây, ghi "Đã xem" ở đây là sai.
+  if (req.method === 'GET' && action === 'guest') {
+    const slug = String(url.searchParams.get('slug') ?? '').trim()
+    const code = String(url.searchParams.get('code') ?? '').trim()
+    if (!slug || !GUEST_CODE_RE.test(code)) return fail('Thiếu thông tin khách mời')
+
+    const { data: wedding, error: wErr } = await supabase
+      .from('weddings')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle()
+    if (wErr) {
+      log.error('guest.code_wedding_failed', { slug, code: wErr.code, message: wErr.message })
+      return fail('Không đọc được thiệp', 500)
+    }
+    if (!wedding) return fail('Thiệp không tồn tại', 404)
+
+    const { error: gErr, guest } = await findPublicGuest(
+      supabase, wedding.id, { code, name: '', relationship: '' },
+      'full_name, display_name, relationship'
+    )
+    if (gErr) return fail(gErr, 500)
+    if (!guest) return fail('Không tìm thấy khách mời', 404)
+
+    return ok({
+      name: String(guest.display_name || guest.full_name || '').trim(),
+      relationship: String(guest.relationship ?? ''),
+    })
+  }
+
   // ── GET: thiệp người khác mời mình cùng quản lý khách (trang Khách mời) ──
   // Cùng dạng hàng với my-weddings của wedding-admin (gói suy ra, không trả dữ liệu
   // thanh toán) + member_side. Bỏ thiệp đã ẩn, gói Miễn phí, và thiệp của chính mình.
@@ -550,11 +612,10 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
   if (req.method === 'POST' && action === 'wish') {
     const body = await req.json()
     const slug = String(body.slug ?? '').trim()
-    const name = String(body.name ?? '').trim().slice(0, MAX_FIELD_LEN)
-    const relationship = String(body.relationship ?? '').trim().slice(0, MAX_REL_LEN)
+    const who = readLinkGuest(body)
     const text = String(body.text ?? '').trim()
 
-    if (!slug || !name) return fail('Thiếu thông tin khách mời')
+    if (!slug || (!who.code && !who.name)) return fail('Thiếu thông tin khách mời')
     if (!text) return fail('Lời chúc không được để trống')
     if (text.length > MAX_WISH_LEN) return fail(`Lời chúc tối đa ${MAX_WISH_LEN} ký tự`)
 
@@ -571,8 +632,8 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (!wedding) return fail('Thiệp không tồn tại', 404)
     if (wedding.enable_wishes === false) return fail('Thiệp này đang tắt phần lời chúc', 403)
 
-    const { error: listErr, guest } = await findGuestByLink(
-      supabase, wedding.id, name, relationship,
+    const { error: listErr, guest } = await findPublicGuest(
+      supabase, wedding.id, who,
       'id, full_name, display_name, relationship, wishes'
     )
     if (listErr) return fail(listErr, 500)
@@ -608,14 +669,14 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
   // ── POST công khai: khách mở thiệp bằng link cá nhân hoá → đánh dấu Đã xem ──
   // Cùng cổng khớp khách như rsvp; chỉ ghi lần mở ĐẦU (viewed_at giữ mốc đó). Trả
-  // kèm trạng thái xác nhận để thiệp giấu sẵn hai nút khi khách đã trả lời rồi.
+  // kèm trạng thái xác nhận để thiệp giấu sẵn hai nút khi khách đã trả lời rồi, và
+  // tên + xưng hô để link mã ngắn (chỉ có `g`) dựng được lời mời đích danh.
   if (req.method === 'POST' && action === 'view') {
     const body = await req.json()
     const slug = String(body.slug ?? '').trim()
-    const name = String(body.name ?? '').trim().slice(0, MAX_FIELD_LEN)
-    const relationship = String(body.relationship ?? '').trim().slice(0, MAX_REL_LEN)
+    const who = readLinkGuest(body)
 
-    if (!slug || !name) return fail('Thiếu thông tin khách mời')
+    if (!slug || (!who.code && !who.name)) return fail('Thiếu thông tin khách mời')
 
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
@@ -626,14 +687,14 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (wErr) return fail(wErr.message, 500)
     if (!wedding) return fail('Thiệp không tồn tại', 404)
 
-    const { error: listErr, guest } = await findGuestByLink(
-      supabase, wedding.id, name, relationship,
+    const { error: listErr, guest } = await findPublicGuest(
+      supabase, wedding.id, who,
       'id, full_name, display_name, relationship, viewed, confirmed'
     )
     if (listErr) return fail(listErr, 500)
 
     if (!guest) {
-      log.warn('guest.view.nomatch', { slug })
+      log.warn('guest.view.nomatch', { slug, by: who.code ? 'code' : 'name' })
       return ok({ matched: false })
     }
 
@@ -645,7 +706,12 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       if (upErr) return fail(upErr.message, 500)
     }
 
-    return ok({ matched: true, confirmed: guest.confirmed ?? null })
+    return ok({
+      matched: true,
+      confirmed: guest.confirmed ?? null,
+      name: String(guest.display_name || guest.full_name || '').trim(),
+      relationship: String(guest.relationship ?? ''),
+    })
   }
 
   // ── POST công khai: khách mời tự xác nhận tham dự ────────────────────────
@@ -656,12 +722,11 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
   if (req.method === 'POST' && action === 'rsvp') {
     const body = await req.json()
     const slug = String(body.slug ?? '').trim()
-    const name = String(body.name ?? '').trim().slice(0, MAX_FIELD_LEN)
-    const relationship = String(body.relationship ?? '').trim().slice(0, MAX_REL_LEN)
+    const who = readLinkGuest(body)
     const attending = body.attending === true || body.attending === 'true'
     const message = String(body.message ?? '').trim().slice(0, 1000)
 
-    if (!slug || !name) return fail('Thiếu thông tin khách mời')
+    if (!slug || (!who.code && !who.name)) return fail('Thiếu thông tin khách mời')
 
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
@@ -672,8 +737,8 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (wErr) return fail(wErr.message, 500)
     if (!wedding) return fail('Thiệp không tồn tại', 404)
 
-    const { error: listErr, guest } = await findGuestByLink(
-      supabase, wedding.id, name, relationship,
+    const { error: listErr, guest } = await findPublicGuest(
+      supabase, wedding.id, who,
       'id, full_name, display_name, relationship, viewed'
     )
     if (listErr) return fail(listErr, 500)
@@ -793,9 +858,11 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     }
 
     // ── Import hàng loạt ──
+    // Dòng trùng (guestKey) luôn BỎ QUA, không có chế độ ghi đè: khoá trùng chính là mọi
+    // cột được nhập nên "ghi đè" chỉ là xoá rồi chèn lại y vậy — mất mã link (?g= đã gửi
+    // cho khách chết), Đã xem, xác nhận, lời chúc. Client cũ còn gửi `overwrite` thì lờ đi.
     if (action === 'import') {
       const raw: Record<string, unknown>[] = body.guests ?? []
-      const overwrite: boolean = body.overwrite ?? false
 
       if (!Array.isArray(raw) || raw.length === 0) return fail('Không có dữ liệu')
       if (raw.length > MAX_PER_SIDE) return fail(`File vượt quá ${MAX_PER_SIDE} dòng`)
@@ -806,88 +873,33 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
       if (guests.length === 0) return fail('Không có dữ liệu hợp lệ')
 
-      if (overwrite) {
-        // Xóa các bản ghi trùng (guestKey), giữ bản ghi không trùng
-        const importKeys = new Set(guests.map(guestKey))
+      const { data: existingRows, error: exErr } = await supabase
+        .from('guests')
+        .select('full_name, display_name, relationship')
+        .eq('wedding_id', wedding_id)
+        .eq('side', side)
 
-        const { data: existingRows, error: exErr } = await supabase
-          .from('guests')
-          .select('id, full_name, display_name, relationship')
-          .eq('wedding_id', wedding_id)
-          .eq('side', side)
+      // Đọc hỏng → không thấy ai trùng → chèn lại toàn bộ danh sách.
+      if (exErr) return fail(exErr.message, 500)
 
-        // Đọc hỏng → danh sách trùng rỗng → không xoá gì mà vẫn chèn tiếp, nên
-        // "ghi đè" lại đẻ ra bản trùng.
-        if (exErr) return fail(exErr.message, 500)
+      const existingKeys = new Set((existingRows ?? []).map(guestKey))
 
-        const idsToDelete = (existingRows ?? [])
-          .filter(e => importKeys.has(guestKey(e)))
-          .map(e => e.id)
+      const newGuests = guests.filter(g => !existingKeys.has(guestKey(g)))
+      const canInsert = Math.max(0, cap - existing)
+      const toInsert = newGuests.slice(0, canInsert)
 
-        if (idsToDelete.length > 0) {
-          const { error: delErr } = await supabase.from('guests').delete().in('id', idsToDelete)
-          // Bỏ qua lỗi ở đây là import "ghi đè" hoá ra thêm trùng: bản cũ còn
-          // nguyên mà bản mới vẫn chèn vào.
-          if (delErr) return fail(delErr.message, 500)
-        }
-
-        // Đếm lại sau khi xóa, kiểm tra tổng không vượt giới hạn
-        const { count: afterCount, error: afterErr } = await supabase
-          .from('guests')
-          .select('id', { count: 'exact', head: true })
-          .eq('wedding_id', wedding_id)
-          .eq('side', side)
-
-        // Như trên: hỏng mà coi như 0 là mở đường nhập quá trần.
-        if (afterErr) return fail('Không đếm được danh sách khách, vui lòng thử lại', 500)
-
-        const remaining = (afterCount ?? 0)
-        if (remaining + guests.length > cap) {
-          return fail(
-            cap === MAX_PER_SIDE
-              ? `Tổng khách bên ${side === 'groom' ? 'nhà trai' : 'nhà gái'} sẽ vượt ${cap}. Hiện còn ${remaining} khách.`
-              : `${capMsg} Hiện đang có ${remaining} khách.`,
-            409
-          )
-        }
-
-        // Batch insert
-        for (let i = 0; i < guests.length; i += BATCH_SIZE) {
-          const { error } = await supabase.from('guests').insert(guests.slice(i, i + BATCH_SIZE))
+      if (toInsert.length > 0) {
+        for (let i = 0; i < toInsert.length; i += BATCH_SIZE) {
+          const { error } = await supabase.from('guests').insert(toInsert.slice(i, i + BATCH_SIZE))
           if (error) return fail(error.message, 500)
         }
-
-        return ok({ inserted: guests.length, skipped: 0 })
-      } else {
-        // Bỏ qua trùng lặp
-        const { data: existingRows, error: exErr } = await supabase
-          .from('guests')
-          .select('full_name, display_name, relationship')
-          .eq('wedding_id', wedding_id)
-          .eq('side', side)
-
-        // Đọc hỏng → không thấy ai trùng → chèn lại toàn bộ danh sách.
-        if (exErr) return fail(exErr.message, 500)
-
-        const existingKeys = new Set((existingRows ?? []).map(guestKey))
-
-        const newGuests = guests.filter(g => !existingKeys.has(guestKey(g)))
-        const canInsert = Math.max(0, cap - existing)
-        const toInsert = newGuests.slice(0, canInsert)
-
-        if (toInsert.length > 0) {
-          for (let i = 0; i < toInsert.length; i += BATCH_SIZE) {
-            const { error } = await supabase.from('guests').insert(toInsert.slice(i, i + BATCH_SIZE))
-            if (error) return fail(error.message, 500)
-          }
-        }
-
-        return ok({
-          inserted: toInsert.length,
-          skipped: guests.length - toInsert.length,
-          capped: newGuests.length > toInsert.length,
-        })
       }
+
+      return ok({
+        inserted: toInsert.length,
+        skipped: guests.length - toInsert.length,
+        capped: newGuests.length > toInsert.length,
+      })
     }
 
     return fail('action không hợp lệ cho POST')

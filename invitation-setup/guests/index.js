@@ -327,6 +327,7 @@ function _relationBox(value) {
 // Popup dùng cho cả thêm lẫn sửa: _gmId = khách đang mở (null = chưa lưu lần nào).
 // Đã lưu thì "Lưu" chỉ bật lại khi 3 ô khác bản đã lưu (_gmSnap), và sửa chính khách đó.
 let _gmId = null;
+let _gmCode = null; // guests.code của khách đang mở — dựng link
 let _gmSnap = "";
 let _gmBusy = false;
 
@@ -396,6 +397,7 @@ function _gmShowLink(link) {
 
 function _gmFill(guest) {
   _gmId = guest?.id || null;
+  _gmCode = guest?.code || null;
   document.getElementById("add-guest-fullname").value    = guest?.full_name || "";
   document.getElementById("add-guest-displayname").value = guest?.display_name || "";
   _relationBox(guest?.relationship);
@@ -461,11 +463,15 @@ function copyAddGuestLink() {
   if (link) copyGuestLink(link);
 }
 
-// Link mã hoá tên hiển thị + xưng hô → đổi một trong hai là phải dựng lại link.
+// Link mang mã khách (guests.code, server sinh) nên đổi tên/xưng hô link vẫn giữ nguyên.
+// Nhà trai bỏ tham số vì isGroomSide() mặc định là nhà trai. Khách tạo trước dqvinh_018
+// không có mã (cố ý không backfill) thì giữ dạng cũ mã hoá tên + xưng hô.
 function _guestLink(slug, side, g) {
+  const base = `${window.location.origin}/${slug}`;
+  if (g.code) return `${base}?${side === "groom" ? "" : "isGroom=false&"}g=${g.code}`;
   const encName = encryptData(g.display_name || g.full_name);
   const encRel  = encryptData(g.relationship || "");
-  return `${window.location.origin}/${slug}?isGroom=${side === "groom"}&name=${encName}&relationship=${encRel}`;
+  return `${base}?isGroom=${side === "groom"}&name=${encName}&relationship=${encRel}`;
 }
 
 async function saveAddGuest() {
@@ -486,6 +492,7 @@ async function saveAddGuest() {
     if (isNew) {
       const row = await guestDAL.insertOneGuest(WEDDING_ID, side, v);
       _gmId = row.id;
+      _gmCode = row.code || null;
     } else {
       await guestDAL.updateGuest(_gmId, v);
     }
@@ -494,7 +501,7 @@ async function saveAddGuest() {
     const slug = await _getWeddingSlug();
     let link = "";
     if (slug) {
-      link = _guestLink(slug, side, v);
+      link = _guestLink(slug, side, { ...v, code: _gmCode });
       await guestDAL.updateGuestsBatchLinks([{ id: _gmId, link }]);
     } else {
       showToast("Không tìm thấy slug thiệp, không thể tạo link", "warning");
@@ -604,7 +611,6 @@ function _openMappingModal(headers, data) {
   _renderMappingPreview(headers, data.slice(0, 4));
   document.getElementById("map-sub").textContent =
     `${data.length} dòng · nhập vào danh sách khách ${_SIDE_LABEL[_importState.side] || ""}`;
-  document.querySelector("input[name='import-mode'][value='overwrite']").checked = true;
 
   _modalShow(document.getElementById("import-mapping-modal"), document.getElementById("map-full-name"));
 }
@@ -637,14 +643,13 @@ async function confirmImport() {
     return;
   }
 
-  const overwrite = document.querySelector("input[name='import-mode']:checked").value === "overwrite";
   const { data, side } = _importState;
 
   closeMappingModal();
   showLoading(true, "Đang nhập khách...");
 
   try {
-    const result = await guestBL.importGuests(WEDDING_ID, side, data, colMapping, overwrite);
+    const result = await guestBL.importGuests(WEDDING_ID, side, data, colMapping);
     const skipMsg = result.skipped > 0 ? `, bỏ qua ${result.skipped} trùng` : "";
     showToast(`Đã nhập ${result.inserted} khách${skipMsg}`, "success");
     await _generateGuestLinks(side);
