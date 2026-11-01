@@ -89,6 +89,31 @@ function sanitizeGuest(raw: Record<string, unknown>, wedding_id: string, side: s
 const guestKey = (g: { full_name?: unknown; display_name?: unknown; relationship?: unknown }) =>
   [g.full_name, g.display_name, g.relationship].map(v => String(v ?? '').trim()).join('||')
 
+// Thêm tay / sửa khách: trùng guestKey với khách khác CÙNG bên thì chặn (409) — cùng luật bỏ
+// trùng của import. Link cũ khớp theo tên + xưng hô nên hai hàng trùng là RSVP/lời chúc của
+// người sau ghi nhầm vào hàng người trước. Đọc hỏng thì DỪNG, coi như không trùng là lọt.
+async function checkDuplicateGuest(
+  supabase: ReturnType<typeof createClient>,
+  wedding_id: string,
+  side: string,
+  g: { full_name: string; display_name: string; relationship: string },
+  exceptId: string | null,
+): Promise<{ error: string | null; message: string | null }> {
+  const { data, error } = await supabase
+    .from('guests')
+    .select('id, full_name, display_name, relationship')
+    .eq('wedding_id', wedding_id)
+    .eq('side', side)
+  if (error) return { error: error.message, message: null }
+  const key = guestKey(g)
+  if (!(data ?? []).some(r => r.id !== exceptId && guestKey(r) === key)) return { error: null, message: null }
+  const who = [g.relationship, g.display_name || g.full_name].filter(Boolean).join(' ')
+  return {
+    error: null,
+    message: `Đã có khách "${who}" trong danh sách ${side === 'groom' ? 'nhà trai' : 'nhà gái'}`,
+  }
+}
+
 // ── Khớp khách theo link cá nhân hoá ─────────────────────────────────────────
 // CỔNG CHẶN THẬT của mọi thao tác công khai (rsvp, gửi lời chúc): tham số
 // name/relationship trên link mã hoá bằng khoá nằm trong bundle client nên ai
@@ -541,11 +566,26 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       const denied = await denyIfNotAllowedGuests([id])
       if (denied) return denied
 
-      const { error } = await supabase.from('guests').update({
+      const fields = {
         full_name: full,
         display_name: String(display_name ?? '').trim().slice(0, MAX_FIELD_LEN),
         relationship: String(relationship ?? '').trim().slice(0, MAX_REL_LEN),
-      }).eq('id', id)
+      }
+
+      // Đã qua denyIfNotAllowedGuests nên hàng chắc chắn tồn tại; đọc lại để biết thiệp + bên.
+      const { data: cur, error: curErr } = await supabase
+        .from('guests')
+        .select('wedding_id, side')
+        .eq('id', id)
+        .maybeSingle()
+      if (curErr) return fail(curErr.message, 500)
+      if (!cur) return fail('Không tìm thấy khách mời', 404)
+
+      const dup = await checkDuplicateGuest(supabase, cur.wedding_id, cur.side, fields, String(id))
+      if (dup.error) return fail(dup.error, 500)
+      if (dup.message) return fail(dup.message, 409)
+
+      const { error } = await supabase.from('guests').update(fields).eq('id', id)
 
       if (error) return fail(error.message, 500)
       return ok({ success: true })
@@ -852,6 +892,10 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       const g = sanitizeGuest(body.guest ?? {}, wedding_id, side)
       if (!g.full_name) return fail('Họ và tên không được để trống')
 
+      const dup = await checkDuplicateGuest(supabase, wedding_id, side, g, null)
+      if (dup.error) return fail(dup.error, 500)
+      if (dup.message) return fail(dup.message, 409)
+
       const { data, error } = await supabase.from('guests').insert(g).select().single()
       if (error) return fail(error.message, 500)
       return ok(data, 201)
@@ -882,9 +926,15 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       // Đọc hỏng → không thấy ai trùng → chèn lại toàn bộ danh sách.
       if (exErr) return fail(exErr.message, 500)
 
-      const existingKeys = new Set((existingRows ?? []).map(guestKey))
+      // Thêm khoá vào tập ngay khi nhận một dòng: hai dòng trùng nhau TRONG file cũng chỉ lấy một.
+      const seenKeys = new Set((existingRows ?? []).map(guestKey))
 
-      const newGuests = guests.filter(g => !existingKeys.has(guestKey(g)))
+      const newGuests = guests.filter(g => {
+        const k = guestKey(g)
+        if (seenKeys.has(k)) return false
+        seenKeys.add(k)
+        return true
+      })
       const canInsert = Math.max(0, cap - existing)
       const toInsert = newGuests.slice(0, canInsert)
 
