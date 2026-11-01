@@ -2750,21 +2750,35 @@
     // bàn phím, khung tin nhắn lấy trọn phần màn còn thấy — để chân bảng nổi lên là
     // khung tin nhắn hẹp lại, che mất thứ khách đang tìm.
     const a = document.activeElement;
-    const inner = kb && a !== els.input && els.body.contains(a) && a.matches("input, textarea");
-    const sink = inner ? els.foot.offsetHeight : 0;
+    const inner = a !== els.input && els.body.contains(a) && a.matches("input, textarea");
+    const sink = inner && kb ? els.foot.offsetHeight : 0;
     root.style.setProperty("--aichat-vh", Math.round(vv.height) + sink + "px");
     root.style.setProperty("--aichat-vb", gap - sink + "px");
     root.classList.toggle("aichat-kb", kb);
-    if (inner) requestAnimationFrame(() => revealInBody(a));
+    if (!inner) revealed = null;
+    // Chỉ cuộn khi đổi ô hoặc bàn phím cao thêm — khách tự cuộn danh sách lúc đang gõ thì để yên.
+    else if (!revealed || revealed.el !== a || vv.height < revealed.h - 1) {
+      revealed = { el: a, h: vv.height };
+      requestAnimationFrame(() => revealInBody(a));
+    }
   }
+  let revealed = null; // { el, h } — ô đã kéo vào tầm nhìn ở chiều cao vùng nhìn h
 
   // Kéo ô đang gõ vào tầm nhìn bằng cuộn của RIÊNG khung tin nhắn — scrollIntoView
-  // cuộn lây cả trang (iOS vẫn cuộn được <html> dù overflow: hidden).
+  // cuộn lây cả trang (iOS vẫn cuộn được <html> dù overflow: hidden). Mép dưới lấy
+  // thẳng từ visualViewport (mép bàn phím), đừng tin khung đã co đúng; chừa
+  // REVEAL_ROOM px dưới ô cho danh sách kết quả (tìm nhạc, địa điểm) mà không đẩy ô khuất đầu.
+  const REVEAL_ROOM = 240;
   function revealInBody(el) {
-    const r = el.getBoundingClientRect();
+    if (!el.isConnected) return;
+    const vv = window.visualViewport;
     const b = els.body.getBoundingClientRect();
-    if (r.bottom > b.bottom - 8) els.body.scrollTop += r.bottom - b.bottom + 8;
-    else if (r.top < b.top + 8) els.body.scrollTop -= b.top + 8 - r.top;
+    const r = el.getBoundingClientRect();
+    const top = b.top + 8;
+    const bottom = Math.min(b.bottom, vv ? vv.offsetTop + vv.height : b.bottom) - 8;
+    const d = Math.max(r.bottom - bottom, Math.min(r.bottom + REVEAL_ROOM - bottom, r.top - top));
+    if (d > 0) els.body.scrollTop += d;
+    else if (r.top < top) els.body.scrollTop -= top - r.top;
   }
 
   // Ô nhập cao dần theo nội dung, tối đa max-h-24 do CSS chặn. scrollHeight KHÔNG
@@ -3058,7 +3072,15 @@
     }
     // Chuyển con trỏ giữa ô nhập chính và ô trong đoạn chat thì bàn phím vẫn mở,
     // không có resize nào — tự đo lại (focusout: đợi ô kế nhận focus rồi mới đo).
-    els.panel.addEventListener("focusin", syncViewport);
+    els.panel.addEventListener("focusin", (e) => {
+      syncViewport();
+      // iOS bung bàn phím xong (và tự đẩy trang) sau focus một nhịp, có khi không kèm
+      // resize nào bắt được — đo lại khi đã yên.
+      if (e.target !== els.input) setTimeout(() => {
+        revealed = null;
+        syncViewport();
+      }, 350);
+    });
     els.panel.addEventListener("focusout", () => requestAnimationFrame(syncViewport));
     // Bảng vừa co lại vì bàn phím → tin nhắn cuối bị đẩy khuất, kéo về cuối.
     els.input.addEventListener("focus", () => {
