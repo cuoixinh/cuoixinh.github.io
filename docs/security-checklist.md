@@ -150,6 +150,10 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       khách CÓ lời chúc, và đúng cái tên vẫn chạy trên dải lời chúc của thiệp — tức thông tin
       này vốn đã công khai. Đổi sang chỉ `display_name` làm mọi khách nhập bằng Excel (chỉ có
       `full_name`) hiện thành "Khách mời". Khớp audit 2026-09-10 #4.
+- [x] **A12d. `wishes-list` trả lời chúc của thiệp đã khoá.** **Đã vá**: trả `[]` khi thiệp
+      chưa xuất bản / `is_active = false` / tắt Lời chúc / hết dùng thử / hết gói / gói Free
+      hết lượt xem — cùng luật khoá với GET `?slug=` của `wedding-admin`, đổi bên đó thì đổi
+      cả bên này.
 - [ ] **A12c. `rsvp`/`wish` không rate limit.** Chưa vá — chặn ở tầng Cloudflare, xem mục E.
 
 - [x] **A13. `returnUrl`/`cancelUrl` lấy từ header `origin`.**

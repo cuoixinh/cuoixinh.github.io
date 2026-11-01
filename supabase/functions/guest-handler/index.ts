@@ -1,7 +1,7 @@
 import type { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
-import { currentPlan, FREE_PLAN, freeSide, isFreePlan } from '../_shared/plans.ts'
+import { currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired } from '../_shared/plans.ts'
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*' (danh sách giống ai-invitation). CORS chỉ ràng
@@ -299,20 +299,41 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     const slug = String(url.searchParams.get('slug') ?? '').trim()
     if (!slug) return fail('Thiếu slug')
 
-    const { data: wedding } = await supabase
+    const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select('id')
+      .select('id, is_published, is_active, enable_wishes, expires_at, payment_status, plan, plan_expires_at, free_side, wedding_stats(view_count)')
       .eq('slug', slug)
       .maybeSingle()
 
+    if (wErr) {
+      log.error('wish.list_wedding_failed', { slug, code: wErr.code, message: wErr.message })
+      return fail('Không tải được lời chúc', 500)
+    }
     if (!wedding) return fail('Thiệp không tồn tại', 404)
 
+    // Cùng luật khoá với GET ?slug= của wedding-admin — thiệp khách không mở được thì
+    // tên + lời chúc của khách cũng không được lộ qua đường này.
+    const trialOver = !!wedding.expires_at && new Date(wedding.expires_at).getTime() < Date.now()
+    const st = Array.isArray(wedding.wedding_stats) ? wedding.wedding_stats[0] : wedding.wedding_stats
+    const viewLocked = isFreePlan(wedding) && (st?.view_count ?? 0) >= FREE_PLAN.views
+    const closed =
+      !wedding.is_published || wedding.is_active === false ||
+      wedding.enable_wishes === false || wedding.enable_wishes === 'false' ||
+      (trialOver && wedding.payment_status !== 'completed') ||
+      isPlanExpired(wedding) || viewLocked
+    if (closed) return ok([])
+
+    // Chỉ kéo hàng CÓ lời chúc — thiệp vài trăm khách mà ít người chúc thì khỏi đọc cả danh sách.
     const { data: rows, error } = await supabase
       .from('guests')
       .select('display_name, full_name, relationship, wishes')
       .eq('wedding_id', wedding.id)
+      .neq('wishes', '[]')
 
-    if (error) return fail(error.message, 500)
+    if (error) {
+      log.error('wish.list_db_failed', { slug, code: error.code, message: error.message })
+      return fail('Không tải được lời chúc', 500)
+    }
 
     // Chỉ trả về khách CÓ lời chúc, và đúng cái tên vẫn hiện trên dải lời chúc
     // của thiệp — tức thông tin này vốn đã công khai theo thiết kế, không phải rò rỉ.
