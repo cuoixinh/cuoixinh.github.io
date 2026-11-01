@@ -132,7 +132,7 @@
     return id;
   }
 
-  // chosen = khách vừa chỉ đích danh một mẫu ("Dùng ngay" ở thẻ mẫu, "Dùng mẫu
+  // chosen = khách vừa chỉ đích danh một mẫu ("Tạo ngay" ở thẻ mẫu, "Dùng mẫu
   // này" ở bản xem thử). false = vào từ nút chung như "Tạo thiệp ngay" ở hero,
   // lúc đó mẫu chỉ là mặc định do code chọn hộ → câu hỏi TUYỆT ĐỐI không được
   // nhắc tên mẫu sắp chuyển sang, vì khách có đòi chuyển đâu.

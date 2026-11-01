@@ -73,24 +73,25 @@
          Khách bấm "Mở Thiệp" thì openInvitation() ẩn màn này và hiện #main-card. -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="hd-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
-        <!-- Màn bìa kiểu POSTER: ảnh bìa tràn màn, màn đỏ mờ phủ đầu + đáy giữ chữ đọc
-             được trên mọi ảnh, kim tuyến vàng rơi chậm, tiêu đề "The Wedding of" ở đầu,
-             lời mời + nút Mở Thiệp ở đáy. -->
-        <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="hd-cv-photo w-full h-full object-cover" alt="" fetchpriority="high" />
-        <div class="hd-cv-veil" aria-hidden="true"></div>
+        <!-- Màn bìa ba tầng cắt thẳng: mảng đỏ chấm vàng + tiêu đề · ảnh bìa tràn ngang, đôi
+             chỉ vàng ở hai mép · mảng đỏ + lời mời. Chữ không đè lên ảnh nên khỏi phủ màn mờ.
+             Con dấu 囍 đè lên mép dưới ảnh. Kim tuyến rơi sau ảnh. -->
         <div class="hd-cv-glitter" aria-hidden="true"></div>
 
         <div class="hd-cv-head">
-          <div class="cx-h hd-cv-welcome">Welcome to</div>
           <div class="hd-cv-title">
             <span class="cx-h hd-cv-side">The</span>
             <span class="cx-h hd-cv-word">Wedding</span>
             <span class="cx-h hd-cv-side">Of</span>
           </div>
-          <div class="cx-t hd-cv-quote">No measure of time with you will be long enough<br />but let's start with forever</div>
+        </div>
+
+        <div class="hd-cv-window">
+          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="hd-cv-photo w-full h-full object-cover" alt="" fetchpriority="high" />
         </div>
 
         <div class="hd-cover-text">
+          <div class="hd-cv-seal" aria-hidden="true">囍</div>
           <div data-cx-invite class="cx-t hd-cover-invite">Trân trọng kính mời</div>
           <div class="cx-t hd-cover-guest" id="cover-guest-name">----------</div>
           <div data-cx-invite-to class="cx-t hd-cover-invite">đến dự lễ thành hôn của</div>

@@ -326,6 +326,12 @@
     visibility 0.4s;
 }
 
+/* Bản xem thử trên điện thoại có nút ba chấm ở đúng góc này (.cx-pmenu-btn ở
+   _common.css) → nút nhạc đứng ngay dưới nó. */
+.cx-pmenu-on .cx-mw-fixed {
+  top: 68px;
+}
+
 /* Nút neo góc chưa được hiện (màn bìa / chưa cuộn — data-cx-reveal-on-scroll):
    ẩn cả nút, không dùng `display` vì setupMusic() đang quản thuộc tính đó. */
 
@@ -355,6 +361,12 @@
   .cx-mw-fixed {
     top: 34px;
     right: max(14px, calc(50% - var(--cx-card-max) / 2 + 14px));
+  }
+}
+
+@media (min-width: 768px) {
+  .cx-pmenu-on .cx-mw-fixed {
+    top: 88px;
   }
 }
 

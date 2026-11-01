@@ -1259,7 +1259,7 @@ function closeTimePicker() {
 // Mở /public/themes/* với ?preview=true: cuộn tới mục mà mẫu khai ở
 // CX_THEME.suggest thì các thẻ mẫu khác NỔI LÊN TRÊN thiệp (kiểu màn đề xuất
 // cuối video của YouTube) — vuốt ngang để xem, dưới là hai việc (Về trang chủ ·
-// Dùng ngay mẫu này), góc trên phải là nút Ẩn. Hình dạng khai ở .cx-sug* trong
+// Tạo ngay với mẫu này), góc trên phải là nút Ẩn. Hình dạng khai ở .cx-sug* trong
 // styles/_common.css; ở đây chỉ dựng khung, chọn mốc bung và nối sự kiện.
 (function initPreviewSuggest() {
   const params = new URLSearchParams(window.location.search);
@@ -1298,7 +1298,7 @@ function closeTimePicker() {
   const themeDisplay = _display(themeName);
 
   // Tạo nháp — hoặc hỏi trước nếu khách còn thiệp làm dở. Dùng chung với nút
-  // "Dùng ngay" ở trang chủ qua core/helpers/draft-start.js; trang thiệp phải
+  // "Tạo ngay" ở trang chủ qua core/helpers/draft-start.js; trang thiệp phải
   // nạp file đó, thiếu là nút này không làm gì.
   function _chooseTheme(theme, display) {
     if (typeof cxStartDraft !== "function") {
@@ -1363,15 +1363,24 @@ function closeTimePicker() {
     window.location.replace(window.location.pathname + "?" + q);
   }
 
-  // "Dùng ngay" (primary) đứng cạnh câu hỏi "Bạn có thích mẫu này không?"
-  // ở đầu bảng — nút đặc DUY NHẤT của lớp phủ; hai lối phụ nằm chung thanh kính
-  // chia đôi ở đáy (.cx-sug-sec).
+  // "Tạo ngay" (primary) đứng cạnh câu hỏi "Bạn có thích mẫu này không?"
+  // ở đầu bảng — nút đặc DUY NHẤT của lớp phủ; ba lối phụ nằm chung thanh kính
+  // ở đáy (.cx-sug-sec).
   // `go` = đường dẫn nội bộ; nút `primary` tạo nháp bằng mẫu ĐANG XEM.
+  // "Tạo với AI" sang kho mẫu kèm ?ai= — XuXi chỉ nạp ở đó (js/ai-assistant.js
+  // openFromUrl) và mở sẵn khung chat với mẫu đang xem.
   const SUG_ACTS = [
     { id: "sug-home", label: "Trang chủ", icon: "home", go: "/" },
     {
+      id: "sug-ai",
+      label: "Tạo với AI",
+      img: "/assets/icons/XuXi.webp",
+      aria: "Tạo thiệp với mẫu này cùng trợ lý XuXi",
+      go: "/theme-template/?ai=" + encodeURIComponent(themeName),
+    },
+    {
       id: "sug-use",
-      label: "Dùng ngay",
+      label: "Tạo ngay",
       icon: "play",
       aria: "Tạo thiệp với mẫu này",
       primary: true,
@@ -1393,7 +1402,7 @@ function closeTimePicker() {
     home:
       '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>' +
       '<path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-    // play: "Dùng ngay" — cùng hình với nút cùng tên ở thẻ mẫu (item-template.js).
+    // play: "Tạo ngay" — cùng hình với nút cùng tên ở thẻ mẫu (item-template.js).
     play:
       '<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/>',
     // layout-grid: ô "Xem tất cả" — bốn ô vuông, đúng nghĩa lưới mẫu.
@@ -1408,6 +1417,11 @@ function closeTimePicker() {
       '<circle cx="12" cy="12" r="3"/>',
     // user-round: nút "Xem với tư cách khách mời".
     guest: '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+    // pen-line: "Tạo ngay" trong menu ba chấm — cùng hình với thẻ cạnh khung máy.
+    pen:
+      '<path d="M13 21h8"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
+    // ellipsis: nút ba chấm góc trên phải (bản xem thử trên điện thoại).
+    more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
     // eye-off: nút "Ẩn" ở góc trên phải, đúng glyph YouTube dùng cho việc tắt
     // màn đề xuất.
     hide:
@@ -1445,9 +1459,11 @@ function closeTimePicker() {
   function _sugTile(it) {
     return (
       '<x-button variant="bare" class="cx-sug-tile' +
-      (it.primary ? " is-primary" : "") + '" id="' + it.id + '"' +
+      (it.primary ? " is-primary" : "") + (it.img ? " is-ai" : "") + '" id="' + it.id + '"' +
       (it.aria ? ' aria-label="' + it.aria + '"' : "") + ">" +
-      '<span class="cx-sug-ico">' + _sugIcon(it.icon, 16) + "</span>" +
+      '<span class="cx-sug-ico">' +
+      (it.img ? '<img src="' + it.img + '" alt="" width="18" height="18" />' : _sugIcon(it.icon, 16)) +
+      "</span>" +
       '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
       "</x-button>"
     );
@@ -1589,10 +1605,10 @@ function closeTimePicker() {
   // Hai việc làm được với MỘT mẫu trong dãy, bày ngay trên thẻ: xem thử mẫu đó
   // (giống bấm cả thẻ) và tạo nháp bằng mẫu đó luôn — khách ưng ngay tấm ảnh
   // thì khỏi phải mở mẫu ra. Cả hai đều là nút PHỤ (không tô đặc): nút chính
-  // của màn là "Dùng ngay" ở đầu bảng.
+  // của màn là "Tạo ngay" ở đầu bảng.
   const SUG_CARD_ACTS = [
     { act: "view", label: "Xem trước", icon: "eye" },
-    { act: "use", label: "Dùng ngay", icon: "play", use: true },
+    { act: "use", label: "Tạo ngay", icon: "play", use: true },
   ];
 
   // Thẻ dùng ẢNH CHỤP SẴN của mẫu (/assets/images/templates/*.jpg) — cùng bộ
@@ -1654,7 +1670,7 @@ function closeTimePicker() {
     const cards = Array.from(row.querySelectorAll(".cx-sug-card"));
     cards.forEach(function (card) {
       card.addEventListener("click", function () { _go(card.dataset.url); });
-      // Cả thẻ bấm được → nút con phải chặn nổi bọt, không thì bấm "Dùng ngay"
+      // Cả thẻ bấm được → nút con phải chặn nổi bọt, không thì bấm "Tạo ngay"
       // vừa tạo nháp vừa điều hướng sang trang xem thử.
       card.querySelectorAll("[data-act]").forEach(function (btn) {
         btn.addEventListener("click", function (e) {
@@ -1877,10 +1893,80 @@ function closeTimePicker() {
     return !el || el.offsetParent === null || el.offsetHeight === 0;
   }
 
+  // Nút ba chấm góc trên phải — bản tương đương menu ba chấm của khung máy (máy tính)
+  // cho điện thoại, nơi trang mẫu chạy thẳng không có khung. Trong khung máy (IN_SHELL)
+  // thì không dựng: chrome của khung đã có. Nút nhạc neo cùng góc nên cờ .cx-pmenu-on
+  // đẩy nó xuống dưới (styles/_music-player.css).
+  function _mountMenu() {
+    if (IN_SHELL) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cx-pmenu-btn";
+    btn.setAttribute("data-no-scan", "");
+    btn.setAttribute("aria-label", "Tùy chọn mẫu thiệp");
+    btn.setAttribute("aria-haspopup", "menu");
+    btn.innerHTML = _sugIcon("more", 20);
+    document.body.appendChild(btn);
+    document.documentElement.classList.add("cx-pmenu-on");
+
+    let pop = null;
+    function _build() {
+      pop = document.createElement("x-popover");
+      pop.setAttribute("placement", "bottom");
+      pop.setAttribute("align", "end");
+      pop.setAttribute("width", "248");
+      document.body.appendChild(pop);
+      // Nhãn của x-popover là HTML: dòng tên (kèm tag) + dòng mô tả, cùng câu với thẻ
+      // cạnh khung máy (theme-boot.js).
+      const row = function (title, desc, tag) {
+        return (
+          '<span class="cx-pmenu-lb">' + title +
+          (tag ? '<span class="cx-pside-tag">' + tag + "</span>" : "") +
+          '</span><span class="cx-pmenu-desc">' + desc + "</span>"
+        );
+      };
+      pop.setItems([
+        {
+          icon: _sugIcon("guest", 16),
+          label: GUEST_ON
+            ? row("Xem bản mẫu", "Bỏ tên khách trên thiệp")
+            : row("Xem với tư cách khách mời",
+                "Thiệp gửi tới: " + _esc(CX_DEMO_GUEST.rel + " " + CX_DEMO_GUEST.name)),
+          onClick: _guest,
+        },
+        {
+          icon: _sugIcon("pen", 16),
+          label: row("Tạo ngay", "Tự điền từng bước"),
+          onClick: function () { _use(); },
+        },
+        {
+          icon: '<img src="/assets/icons/XuXi.webp" alt="" width="22" height="22" />',
+          label: row("Tạo với AI", "Kể cho XuXi, thiệp tự điền sẵn", "5 phút"),
+          onClick: function () { _go("/theme-template/?ai=" + encodeURIComponent(themeName)); },
+        },
+      ]);
+    }
+    // x-popover.js không nằm trong bộ script của mẫu thiệp — nạp lúc bấm lần đầu.
+    function _loadPopover(cb) {
+      if (window.customElements.get("x-popover")) return cb();
+      const sc = document.createElement("script");
+      sc.src = "/core/x-popover.js";
+      sc.onload = cb;
+      document.head.appendChild(sc);
+    }
+    btn.addEventListener("click", function () {
+      _loadPopover(function () {
+        if (!pop) _build();
+        pop.toggle(btn);
+      });
+    });
+  }
+
   function _mount() {
     if (document.documentElement.classList.contains("cx-pshell-host")) {
       return _listenShell();
     }
+    _mountMenu();
     document.body.appendChild(panel);
 
     function _dismiss() {

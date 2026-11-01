@@ -49,6 +49,9 @@
       '<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458' +
       'l-12 7A2 2 0 0 1 5 19z"/>',
     "user-round": '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+    "pen-line":
+      '<path d="M13 21h8"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174' +
+      'a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
     refresh:
       '<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>' +
       '<path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>',
@@ -88,9 +91,25 @@
     });
   }
 
+  // `img` = ảnh thay cho nét icon (logo XuXi); `tag` = nhãn nhỏ cạnh tên (vd "5 phút");
+  // `desc` = dòng mô tả dưới tên. `label`/`desc` có thể là hàm (tính lại mỗi lần mở).
+  function _val(v) {
+    return typeof v === "function" ? v() : v;
+  }
+
   function _itemInner(it) {
-    const label = typeof it.label === "function" ? it.label() : it.label;
-    return _stroke(it.icon) + _esc(label);
+    const desc = _val(it.desc);
+    return (
+      (it.img
+        ? '<img class="cx-pchrome-img" src="' + _esc(it.img) + '" alt="" />'
+        : _stroke(it.icon)) +
+      '<span class="cx-pchrome-txt"><span class="cx-pchrome-lb">' +
+      _esc(_val(it.label)) +
+      (it.tag ? '<span class="cx-pchrome-tag">' + _esc(it.tag) + "</span>" : "") +
+      "</span>" +
+      (desc ? '<span class="cx-pchrome-desc">' + _esc(desc) + "</span>" : "") +
+      "</span>"
+    );
   }
 
   function _clock() {
@@ -218,8 +237,9 @@
     function toggle(open) {
       if (open)
         pop.querySelectorAll(".cx-pchrome-item").forEach(function (b, i) {
-          if (typeof items[i]?.label === "function")
-            b.innerHTML = _itemInner(items[i]);
+          const it = items[i];
+          if (typeof it?.label === "function" || typeof it?.desc === "function")
+            b.innerHTML = _itemInner(it);
         });
       pop.hidden = !open;
       if (more) more.setAttribute("aria-expanded", open ? "true" : "false");
