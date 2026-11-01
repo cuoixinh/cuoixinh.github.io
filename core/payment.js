@@ -424,7 +424,13 @@
         <i data-lucide="hand" style="width:16px;height:16px;color:rgb(var(--brand-accent-rgb));"></i>Nhấn giữ ảnh rồi chọn “Lưu ảnh”
       </p>
       <x-button variant="outline" tone="neutral" size="sm" icon="x">Đóng</x-button>`;
+    // Rời màn QR khi tấm còn mở (thanh toán xong, Back, đóng hộp thoại) → tự gỡ, không
+    // thì nó phủ lên màn kế tiếp. Dò theo khối nút thay vì chèn lệnh đóng vào từng bước.
+    const watch = setInterval(() => {
+      if (!document.getElementById("qr-save")?.offsetParent) close();
+    }, 400);
     const close = () => {
+      clearInterval(watch);
       ov.remove();
       URL.revokeObjectURL(url);
     };
@@ -574,7 +580,13 @@
             qrImg.style.height = "100%";
             qrImg.style.objectFit = "contain";
           }
-          _qrSavePrepare(qrDataString, paymentInfo, orderId);
+          // Bọc riêng: lỗi của phần lưu ảnh không được rơi vào catch dưới — catch đó
+          // thay mã QR bằng thông báo lỗi, tức là chặn luôn việc thanh toán.
+          try {
+            _qrSavePrepare(qrDataString, paymentInfo, orderId);
+          } catch (e) {
+            console.warn("[payment] Bỏ qua nút Lưu mã QR:", e);
+          }
         } else {
           // Fallback: show error message
           qrcodeContainer.innerHTML = `
