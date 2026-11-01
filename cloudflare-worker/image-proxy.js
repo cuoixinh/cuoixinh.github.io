@@ -23,47 +23,36 @@ export default {
       return new Response("Invalid filename", { status: 400 });
     }
 
-    // Check cache trước
+    // Khoá cache chỉ theo URL — header của trình duyệt (no-cache khi bật DevTools…) không được tách bản.
     const cache = caches.default;
-    let response = await cache.match(request);
+    const cacheKey = new Request(url.toString(), { method: "GET" });
+    const hit = await cache.match(cacheKey);
 
-    if (response) {
-      // Cache HIT
-      return new Response(response.body, {
-        headers: {
-          ...Object.fromEntries(response.headers),
-          "X-Cache": "HIT",
-          "Cache-Control": `public, max-age=${CACHE_TTL}`,
-        },
-      });
+    if (hit) {
+      const res = new Response(hit.body, hit);
+      res.headers.set("X-Cache", "HIT");
+      return res;
     }
 
-    // Cache MISS → fetch từ Supabase Storage
-    const storageUrl = `${STORAGE_BASE_URL}/${filename}`;
-    response = await fetch(storageUrl);
+    const upstream = await fetch(`${STORAGE_BASE_URL}/${filename}`);
 
-    if (!response.ok) {
-      return response; // Trả về lỗi từ Supabase
+    if (!upstream.ok) {
+      return upstream; // Trả về lỗi từ Supabase
     }
 
-    // Clone response để cache
-    const responseToCache = response.clone();
+    // Chỉ chép header của file: phản hồi Supabase mang Set-Cookie (__cf_bm) mà Cache API
+    // từ chối lưu, và cache-control 1 giờ viết thường — trộn vào là ra hai giá trị.
+    const headers = new Headers({ "Cache-Control": `public, max-age=${CACHE_TTL}` });
+    for (const h of ["content-type", "content-length", "etag", "last-modified"]) {
+      const v = upstream.headers.get(h);
+      if (v) headers.set(h, v);
+    }
+    const clean = new Response(upstream.body, { status: 200, headers });
 
-    // Tạo response mới với cache headers
-    const cachedResponse = new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: {
-        ...Object.fromEntries(response.headers),
-        "X-Cache": "MISS",
-        "Cache-Control": `public, max-age=${CACHE_TTL}`,
-        "CDN-Cache-Control": `public, max-age=${CACHE_TTL}`,
-      },
-    });
+    ctx.waitUntil(cache.put(cacheKey, clean.clone()));
 
-    // Lưu vào cache bất đồng bộ
-    ctx.waitUntil(cache.put(request, responseToCache));
-
-    return cachedResponse;
+    const res = new Response(clean.body, clean);
+    res.headers.set("X-Cache", "MISS");
+    return res;
   },
 };
