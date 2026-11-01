@@ -1632,6 +1632,7 @@ async function _cxWishSend() {
   try {
     const res = await window.guestDAL.sendWishPublic({
       slug: g.slug,
+      code: g.code,
       name: g.name,
       relationship: g.relationship,
       text,

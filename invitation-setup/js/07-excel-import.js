@@ -47,10 +47,6 @@ function _openMappingModal(headers, data) {
 
   _renderMappingPreview(headers, data.slice(0, 4));
 
-  document.querySelector(
-    "input[name='import-mode'][value='overwrite']",
-  ).checked = true;
-
   const modal = document.getElementById("import-mapping-modal");
   modal.classList.remove("hidden");
   modal.classList.add("flex");
@@ -100,9 +96,6 @@ async function confirmImport() {
     return;
   }
 
-  const overwrite =
-    document.querySelector("input[name='import-mode']:checked").value ===
-    "overwrite";
   const { data, side } = _importState;
 
   closeMappingModal();
@@ -114,7 +107,6 @@ async function confirmImport() {
       side,
       data,
       colMapping,
-      overwrite,
     );
     const skipMsg =
       result.skipped > 0 ? `, bỏ qua ${result.skipped} trùng` : "";

@@ -105,10 +105,11 @@
 
   const _isGroom = isGroomSide();
 
-  // Link riêng (?name=) hiện lời mời ngay, khỏi đợi giải mã xong mới nhảy chữ;
+  // Link riêng (?g= hoặc ?name= cũ) hiện lời mời ngay, khỏi đợi giải mã xong mới nhảy chữ;
   // link chung thì setupPersonalizedGreeting() tự gỡ .hidden.
   try {
-    if (new URLSearchParams(window.location.search).get("name")) {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("name") || q.get("g")) {
       document.getElementById("cover-guest-wrap")?.classList.remove("hidden");
     }
   } catch (e) {}

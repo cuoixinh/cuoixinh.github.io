@@ -95,11 +95,11 @@ class GuestDAL {
 
   /**
    * Khách mời tự xác nhận từ trang thiệp — KHÔNG đăng nhập, nên gửi anon key chứ
-   * không dùng _authHeaders(). Edge function khớp khách theo slug + tên + xưng hô
-   * trên link rồi chỉ ghi cột confirmed; trả { matched } để biết link có ứng với
-   * khách nào trong danh sách hay không.
+   * không dùng _authHeaders(). Edge function khớp khách theo slug + mã (link mới)
+   * hoặc tên + xưng hô (link cũ) rồi chỉ ghi cột confirmed; trả { matched } để
+   * biết link có ứng với khách nào trong danh sách hay không.
    */
-  async rsvpPublic({ slug, name, relationship, attending, message }) {
+  async rsvpPublic({ slug, code, name, relationship, attending, message }) {
     const res = await fetch(`${this._url}?action=rsvp`, {
       method: 'POST',
       headers: {
@@ -107,16 +107,17 @@ class GuestDAL {
         apikey: CONFIG.supabase.anonKey,
         Authorization: `Bearer ${CONFIG.supabase.anonKey}`,
       },
-      body: JSON.stringify({ slug, name, relationship, attending, message }),
+      body: JSON.stringify({ slug, code, name, relationship, attending, message }),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Lỗi máy chủ');
     return json;
   }
 
-  // Khách mở thiệp bằng link riêng → đánh dấu Đã xem (công khai, anon key).
-  // Trả { matched, confirmed } — confirmed khác null là khách đã trả lời rồi.
-  async viewPublic({ slug, name, relationship }) {
+  // Khách mở thiệp bằng link riêng → đánh dấu Đã xem (công khai, anon key). Link mới
+  // gửi `code`, link cũ gửi name + relationship. Trả { matched, confirmed, name,
+  // relationship } — confirmed khác null là khách đã trả lời rồi.
+  async viewPublic({ slug, code, name, relationship }) {
     const res = await fetch(`${this._url}?action=view`, {
       method: 'POST',
       headers: {
@@ -124,7 +125,7 @@ class GuestDAL {
         apikey: CONFIG.supabase.anonKey,
         Authorization: `Bearer ${CONFIG.supabase.anonKey}`,
       },
-      body: JSON.stringify({ slug, name, relationship }),
+      body: JSON.stringify({ slug, code, name, relationship }),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Lỗi máy chủ');
@@ -152,10 +153,10 @@ class GuestDAL {
 
   /**
    * Khách mời gửi lời chúc từ trang thiệp. Edge function khớp khách theo
-   * slug + tên + xưng hô trên link rồi mới ghi — không khớp là 403, quá số lượt
+   * slug + mã (hoặc tên + xưng hô ở link cũ) rồi mới ghi — không khớp là 403, quá số lượt
    * là 409; ném Error mang đúng câu để UI hiện thẳng cho khách.
    */
-  async sendWishPublic({ slug, name, relationship, text }) {
+  async sendWishPublic({ slug, code, name, relationship, text }) {
     const res = await fetch(`${this._url}?action=wish`, {
       method: 'POST',
       headers: {
@@ -163,7 +164,7 @@ class GuestDAL {
         apikey: CONFIG.supabase.anonKey,
         Authorization: `Bearer ${CONFIG.supabase.anonKey}`,
       },
-      body: JSON.stringify({ slug, name, relationship, text }),
+      body: JSON.stringify({ slug, code, name, relationship, text }),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Lỗi máy chủ');
@@ -176,8 +177,8 @@ class GuestDAL {
     return this._post('insert-one', { wedding_id: weddingId, side, guest });
   }
 
-  async importGuestsViaEdge(weddingId, side, guests, overwrite) {
-    return this._post('import', { wedding_id: weddingId, side, guests, overwrite });
+  async importGuestsViaEdge(weddingId, side, guests) {
+    return this._post('import', { wedding_id: weddingId, side, guests });
   }
 
   async updateGuestsBatchLinks(updates) {

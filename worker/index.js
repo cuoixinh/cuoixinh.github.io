@@ -86,11 +86,21 @@ export default {
     const asset = await env.ASSETS.fetch(request);
     if (asset.status !== 404) return asset;
 
-    const wedding = await fetchWedding(env, seg);
+    // Link mã ngắn: tra tên khách SONG SONG với thiệp, nối đuôi là mỗi lượt mở chậm thêm
+    // một vòng Edge Function.
+    const code = url.searchParams.get("g");
+    const [wedding, byCode] = await Promise.all([
+      fetchWedding(env, seg),
+      code ? fetchGuestByCode(env, seg, code) : null,
+    ]);
     // Không tra được (slug sai, thiệp nháp, Edge Function lỗi) → 404 kèm trang
     // chuyển hướng, không bịa thẻ preview.
-    const guest = wedding ? await decryptGuestParam(env, url, "name") : "";
-    const rel = wedding ? await decryptGuestParam(env, url, "relationship") : "";
+    const { guest, rel } = !wedding
+      ? { guest: "", rel: "" }
+      : byCode || {
+          guest: await decryptGuestParam(env, url, "name"),
+          rel: await decryptGuestParam(env, url, "relationship"),
+        };
 
     if (wedding) {
       try {
@@ -143,6 +153,29 @@ async function fetchWedding(env, slug) {
     return data;
   } catch (_) {
     return null;
+  }
+}
+
+// Link mã ngắn (?g=): tên khách nằm ở server. guest-handler cùng thư mục functions với
+// EDGE_URL (wedding-admin) nên suy ra từ đó, khỏi khai thêm biến ở hai wrangler*.jsonc.
+// Nhánh action=guest chỉ ĐỌC — crawler gọi tới đây không được ghi "Đã xem".
+async function fetchGuestByCode(env, slug, code) {
+  const none = { guest: "", rel: "" };
+  if (!/^[0-9A-Za-z]{8}$/.test(code)) return none;
+  try {
+    const base = env.EDGE_URL.replace(/\/wedding-admin$/, "/guest-handler");
+    const q = new URLSearchParams({ action: "guest", slug, code });
+    const r = await fetch(`${base}?${q}`, {
+      headers: { Authorization: `Bearer ${env.ANON_KEY}`, apikey: env.ANON_KEY },
+    });
+    if (!r.ok) return none;
+    const d = await r.json();
+    return {
+      guest: String(d?.name || "").trim().slice(0, 80),
+      rel: String(d?.relationship || "").trim().slice(0, 80),
+    };
+  } catch (_) {
+    return none;
   }
 }
 
