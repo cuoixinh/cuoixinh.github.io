@@ -447,7 +447,7 @@ function _fillForm(data) {
     delete _themeSetting.decorations;
   }
 
-  // Mẫu thiệp phải gán NGOÀI nhánh `data.slug`: nháp vừa tạo từ nút "Dùng ngay"
+  // Mẫu thiệp phải gán NGOÀI nhánh `data.slug`: nháp vừa tạo từ nút "Tạo ngay"
   // chưa có slug, để trong đó thì WEDDING_THEME kẹt ở mặc định "basic-gold" —
   // bản xem trước, popup đổi mẫu, lúc lưu và trang thanh toán đều đi theo mẫu sai
   // trong khi tên mẫu ở header (đọc sessionStorage) vẫn đúng nên rất khó nhận ra.

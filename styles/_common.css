@@ -1082,8 +1082,8 @@ svg.cx-ic {
 
 /* KHÁC cặp nút ở thẻ mẫu trang chủ (.tt-btn-*), cố ý: ở lưới mẫu mỗi thẻ là
    một lựa chọn ngang hàng, còn ở đây màn đã có nút chính "Dùng mẫu này" — tô
-   đặc thêm "Dùng ngay" trên từng thẻ là bốn năm nút chính tranh nhau. Nên:
-   "Xem trước" viền, "Dùng ngay" nền hồng nhạt; chữ action-primary-deep (≥5.7:1
+   đặc thêm "Tạo ngay" trên từng thẻ là bốn năm nút chính tranh nhau. Nên:
+   "Xem trước" viền, "Tạo ngay" nền hồng nhạt; chữ action-primary-deep (≥5.7:1
    trên cả hai nền — brand-accent chỉ 2.5:1). */
 
 .cx-sug-mini-btn {
@@ -1119,7 +1119,7 @@ svg.cx-ic {
 }
 
 /* ── Ba lối ra ở đáy bảng ──────────────────────────────────────────────────
-   "Dùng ngay" là pill hồng đặc ở GIỮA; "Trang chủ" và "Kho mẫu" là nút TRÒN chỉ
+   "Tạo ngay" là pill hồng đặc ở GIỮA; "Trang chủ" và "Kho mẫu" là nút TRÒN chỉ
    có icon, nhãn nhỏ nằm dưới — hai việc phụ nên không được to ngang việc chính.
    Cả hàng dồn vào giữa và canh theo MÉP TRÊN để pill thẳng hàng với hai vòng
    tròn (nhãn dưới cao thấp khác nhau thì hàng vẫn phẳng).
@@ -1162,7 +1162,8 @@ svg.cx-ic {
 }
 
 /* Thanh lối phụ: kính mờ (nền trắng trong + viền mảnh, không backdrop-filter —
-   xem .cx-sug), hai nửa bằng nhau ngăn bởi một vạch dọc. */
+   xem .cx-sug), các ô bằng nhau ngăn bởi vạch dọc. Ô "Tạo với AI" chữ hồng + logo
+   XuXi để nổi hơn hai lối điều hướng. */
 
 .cx-sug-sec {
   flex: 0 0 auto;
@@ -1198,6 +1199,20 @@ svg.cx-ic {
 
 .cx-sug-sec .cx-sug-ico {
   opacity: 0.85;
+}
+
+.cx-sug-sec .cx-sug-tile.is-ai {
+  color: rgb(var(--action-primary-deep-rgb));
+}
+
+.cx-sug-sec .cx-sug-tile.is-ai .cx-sug-ico {
+  opacity: 1;
+}
+
+.cx-sug-ico img {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .cx-sug-tile-lb {
@@ -2622,45 +2637,228 @@ x-button {
   transform: translateX(20px);
 }
 
-.cx-pside .cx-pside-cta {
-  gap: 12px;
-  width: 100%;
-  height: 52px;
-  margin-top: 16px;
-  padding: 0 24px;
-  background: #1f2430;
-  color: #fff;
-  font-size: 15px;
+/* Hai lối tạo thiệp, bo 12px trong khung viền đứt; tên nút cùng serif với tên mẫu. Cùng
+   bộ màu với cặp nút ở thẻ mẫu (.tt-btn-use / .tt-ai ở tailwind-src.css) nhưng nền đặc lùi
+   về tông đỏ đậm (action-primary-deep) — ở đây là nút lớn, tông tươi phủ cả mảng trông chói.
+   Nhắm kèm .cx-pside để thắng rounded-full/justify-center mà x-button bare gắn sẵn. */
+/* Khung viền đứt như tấm phiếu cắt rời, gom hai lối tạo thiệp: <fieldset> để <legend>
+   "Chọn cách tạo thiệp" tự cắt ngang viền trên (khỏi tô nền che viền), chữ kiểu nhãn
+   "MẪU THIỆP" đầu thẻ. Góc 20px, đệm 8px → nút bo 12px đồng tâm (20 − 8). */
+.cx-pside-acts {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 16px 0 0;
+  padding: 4px 8px 8px;
+  border: 1.5px dashed rgb(var(--action-primary-rgb) / 0.35);
+  border-radius: 20px;
+  background: rgb(var(--white-rgb) / 0.5);
+}
+
+.cx-pside-acts-lg {
+  margin-left: 12px;
+  padding: 0 8px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.12),
-    0 8px 20px -8px rgb(31 36 48 / 0.5);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #b4536a;
+}
+
+.cx-pside .cx-pside-route {
+  justify-content: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 20px 14px 14px;
+  border-radius: 12px;
+  text-align: left;
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-/* Mũi tên đứng SAU chữ (x-button chèn icon trước) — svg là flex item nên đẩy
-   bằng order, chữ là anonymous item giữ order 0. */
-.cx-pside .cx-pside-cta svg {
-  order: 1;
-  transition: transform 0.2s ease;
-}
-
-.cx-pside .cx-pside-cta:hover {
-  background: #2c3240;
+.cx-pside .cx-pside-route:hover {
   transform: translateY(-1px);
+}
+
+.cx-pside .cx-pside-route.is-manual {
+  background: rgb(var(--action-primary-deep-rgb));
+  color: rgb(var(--white-rgb));
+  box-shadow: 0 4px 12px rgb(var(--action-primary-deep-rgb) / 0.35);
+}
+
+.cx-pside .cx-pside-route.is-manual:hover {
+  background: #9f1239;
+  box-shadow: 0 6px 16px rgb(var(--action-primary-deep-rgb) / 0.45);
+}
+
+.cx-pside .cx-pside-route.is-manual:active {
+  background: #881337;
+}
+
+.cx-pside .cx-pside-route.is-ai {
+  background: rgb(var(--white-rgb));
+  color: rgb(var(--action-primary-deep-rgb));
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.12),
-    0 12px 24px -8px rgb(31 36 48 / 0.6);
+    0 0 0 1px rgb(var(--brand-primary-rgb) / 0.5),
+    0 6px 16px -6px rgb(31 36 48 / 0.2);
 }
 
-.cx-pside .cx-pside-cta:hover svg {
-  transform: translateX(4px);
+/* Hover chỉ ửng hồng nhạt (cùng nền hover của nút viền ở thẻ mẫu), không đổ đặc —
+   nút đặc duy nhất của khối là "Tạo ngay". */
+.cx-pside .cx-pside-route.is-ai:hover {
+  background: rgb(var(--surface-brand-rgb));
+  box-shadow:
+    0 0 0 1px rgb(var(--brand-primary-rgb) / 0.9),
+    0 8px 20px -10px rgb(31 36 48 / 0.25);
 }
 
-.cx-pside .cx-pside-guest:focus-visible,
-.cx-pside .cx-pside-cta:focus-visible {
+.cx-pside .cx-pside-route:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 3px;
+}
+
+.cx-pside-route-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+}
+
+.is-manual .cx-pside-route-ico {
+  background: rgb(255 255 255 / 0.18);
+}
+
+.is-ai .cx-pside-route-ico {
+  background: rgb(var(--action-primary-rgb) / 0.12);
+  transition: transform 0.24s ease, background-color 0.18s ease;
+}
+
+.cx-pside .cx-pside-route.is-ai:hover .cx-pside-route-ico {
+  background: rgb(var(--white-rgb));
+  transform: rotate(-12deg) scale(1.08);
+}
+
+.cx-pside-route-ico svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cx-pside-route-ico img {
+  width: 26px;
+  height: 26px;
+}
+
+.cx-pside-route-txt {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cx-pside-route-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Cambria, "Times New Roman", "Noto Serif", serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.cx-pside-route-sub {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: rgb(31 36 48 / 0.72);
+}
+
+.is-manual .cx-pside-route-sub {
+  color: rgb(var(--white-rgb) / 0.9);
+}
+
+/* Nút ba chấm góc trên phải của bản xem thử trên điện thoại (core/utils.js
+   _mountMenu): tròn kính trắng, cùng trục dọc với nút nhạc neo góc (nút nhạc rộng 44px
+   cách mép 14px → tâm cách mép 36px) — nút nhạc dời xuống ngay dưới
+   (styles/_music-player.css, cờ .cx-pmenu-on). Trên màn bìa (z 50) và nút nhạc (z 60). */
+.cx-pmenu-btn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 61;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.88);
+  color: #1f2430;
+  box-shadow: 0 0 0 1px rgb(31 36 48 / 0.08), 0 8px 20px -8px rgb(31 36 48 / 0.4);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Màn rộng không khung máy (máy tính bảng): neo theo góc cột thiệp như nút nhạc. */
+@media (min-width: 768px) {
+  .cx-pmenu-btn {
+    top: 32px;
+    right: max(12px, calc(50% - var(--cx-card-max) / 2 + 12px));
+  }
+}
+
+.cx-pmenu-btn:active {
+  transform: scale(0.94);
+}
+
+.cx-pmenu-btn:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+
+.x-pop-ico img {
+  width: 22px;
+  height: 22px;
+}
+
+/* Mục menu ba chấm có hai dòng: tên (kèm tag) + mô tả nhỏ. */
+.cx-pmenu-lb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.cx-pmenu-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.65;
+}
+
+/* Nhãn thời lượng "5 phút" — con tem viền chỉ hồng; dùng chung cho thẻ cạnh máy và mục
+   menu ba chấm. Font Quicksand của thẻ, không ăn serif của tên nút. */
+.cx-pside-tag {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+  box-shadow: inset 0 0 0 1px rgb(var(--action-primary-rgb) / 0.45);
+  color: rgb(var(--action-primary-deep-rgb));
+  font-family: Quicksand, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.cx-pside .cx-pside-guest:focus-visible {
   outline: 2px solid #b4536a;
   outline-offset: 3px;
 }
@@ -2916,12 +3114,16 @@ x-button {
 @media (prefers-reduced-motion: reduce) {
   .cx-pside-switch,
   .cx-pside-switch::after,
-  .cx-pside .cx-pside-cta,
-  .cx-pside .cx-pside-cta svg,
+  .cx-pside .cx-pside-route,
+  .is-ai .cx-pside-route-ico,
   .cx-pside .cx-pside-nav,
   .cx-pside-dot,
   .cx-pside-card img {
     transition: none;
+  }
+
+  .cx-pside .cx-pside-route.is-ai:hover .cx-pside-route-ico {
+    transform: none;
   }
 }
 
@@ -3162,6 +3364,42 @@ button.cx-pchrome-btn:hover {
   flex: none;
   width: calc(16px * var(--cx-pu));
   height: calc(16px * var(--cx-pu));
+}
+
+.cx-pchrome-img {
+  flex: none;
+  width: calc(18px * var(--cx-pu));
+  height: calc(18px * var(--cx-pu));
+}
+
+.cx-pchrome-txt {
+  display: flex;
+  flex-direction: column;
+  gap: calc(2px * var(--cx-pu));
+  min-width: 0;
+}
+
+.cx-pchrome-lb {
+  display: flex;
+  align-items: center;
+  gap: calc(8px * var(--cx-pu));
+}
+
+.cx-pchrome-desc {
+  font-size: calc(12px * var(--cx-pu));
+  font-weight: 400;
+  color: #6b6b70;
+}
+
+.cx-pchrome-tag {
+  padding: calc(3px * var(--cx-pu)) calc(7px * var(--cx-pu));
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+  box-shadow: inset 0 0 0 1px rgb(var(--action-primary-rgb) / 0.45);
+  color: rgb(var(--action-primary-deep-rgb));
+  font-size: calc(11px * var(--cx-pu));
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* Khung chạy thiệp: phần còn lại của ô màn sau chrome và dải trắng đáy. */

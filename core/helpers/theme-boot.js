@@ -341,7 +341,7 @@ function _cxShellTopHtml() {
 }
 
 // Khai báo chrome của khung máy: quay lại (về kho mẫu nếu mở thẳng bằng link)
-// và menu: xem như khách mời (bật/tắt) · chọn luôn mẫu đang xem.
+// và menu: xem như khách mời (bật/tắt) · chọn luôn mẫu đang xem · tạo với AI.
 //
 // `source=live` = thiệp CỦA KHÁCH nạp từ trang Thiết lập (các khung xem thử), không
 // phải mẫu đang chào bán → menu rỗng, mời chọn mẫu ở đó là lạc chỗ. `live` =
@@ -364,16 +364,34 @@ function _cxShellOpts(slug, live) {
           {
             label: () =>
               _cxShellGuestOn() ? "Xem bản mẫu" : "Xem với tư cách khách mời",
+            desc: () =>
+              _cxShellGuestOn()
+                ? "Bỏ tên khách trên thiệp"
+                : `Thiệp gửi tới: ${CX_DEMO_GUEST.rel} ${CX_DEMO_GUEST.name}`,
             icon: "user-round",
             onClick: _cxShellGuestToggle,
           },
           {
-            label: "Chọn mẫu này",
-            icon: "play",
+            label: "Tạo ngay",
+            desc: "Tự điền từng bước",
+            icon: "pen-line",
             onClick: () => _cxShellChoose(slug),
+          },
+          {
+            label: "Tạo với AI",
+            desc: "Kể cho XuXi, thiệp tự điền sẵn",
+            img: "/assets/icons/XuXi.webp",
+            tag: "5 phút",
+            onClick: () => _cxShellAi(slug),
           },
         ],
   };
+}
+
+// "Tạo với AI": sang kho mẫu kèm ?ai= — XuXi chỉ nạp ở đó và tự mở khung chat với
+// mẫu này (openFromUrl ở js/ai-assistant.js).
+function _cxShellAi(slug) {
+  location.href = "/theme-template/?ai=" + encodeURIComponent(slug);
 }
 
 // Cùng đường tạo nháp với nút "Dùng mẫu" ở bảng đề xuất: hỏi trước nếu khách
@@ -386,6 +404,13 @@ function _cxShellChoose(slug) {
   const el = document.querySelector(".cx-pchrome-name");
   cxStartDraft(slug, (el && el.textContent) || _cxThemeTitle(slug));
 }
+
+// Nét lucide (bản 1.26.0) nhúng thẳng: thẻ dựng ngoài lượt quét icon của trang.
+const _CX_PSIDE_SVG = {
+  pen:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M13 21h8"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>',
+};
 
 // Thẻ cạnh khung máy: bản đặt ngoài của hai mục trong menu ba chấm (menu vẫn
 // giữ). Chỉ dựng cho bản xem thử mẫu — cùng điều kiện `items` của chrome.
@@ -403,7 +428,23 @@ function _cxShellSideHtml(slug) {
         </span>
         <span class="cx-pside-switch" aria-hidden="true"></span>
       </x-button>
-      <x-button variant="bare" class="cx-pside-cta" icon="arrow-right" data-act="choose" label="Chọn mẫu này"></x-button>
+      <fieldset class="cx-pside-acts">
+        <legend class="cx-pside-acts-lg">Chọn cách tạo thiệp</legend>
+        <x-button variant="bare" class="cx-pside-route is-manual" data-act="choose">
+          <span class="cx-pside-route-ico">${_CX_PSIDE_SVG.pen}</span>
+          <span class="cx-pside-route-txt">
+            <span class="cx-pside-route-title">Tạo ngay</span>
+            <span class="cx-pside-route-sub">Tự điền từng bước</span>
+          </span>
+        </x-button>
+        <x-button variant="bare" class="cx-pside-route is-ai" data-act="ai">
+          <span class="cx-pside-route-ico"><img src="/assets/icons/XuXi.webp" alt="" width="26" height="26" /></span>
+          <span class="cx-pside-route-txt">
+            <span class="cx-pside-route-title">Tạo với AI<span class="cx-pside-tag">5 phút</span></span>
+            <span class="cx-pside-route-sub">Kể cho XuXi, thiệp tự điền sẵn</span>
+          </span>
+        </x-button>
+      </fieldset>
       <section class="cx-pside-more" hidden>
         <div class="cx-pside-more-head">
           <p class="cx-pside-more-title">Mẫu tương tự</p>
@@ -427,6 +468,7 @@ function _cxShellSideWire(side, slug) {
     const act = e.target.closest("[data-act]")?.dataset.act;
     if (act === "guest") _cxShellGuestToggle();
     else if (act === "choose") _cxShellChoose(slug);
+    else if (act === "ai") _cxShellAi(slug);
   });
 }
 

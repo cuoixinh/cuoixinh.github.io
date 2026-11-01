@@ -71,7 +71,7 @@
         <h3 class="tt-name">${name}</h3>
         <div class="tt-cardbtns mt-3">
           <x-button size="xs" variant="bare" class="tt-btn-preview" data-tpl-act="preview">${ICON_EYE}Xem trước</x-button>
-          <x-button size="xs" variant="bare" class="tt-btn-use" data-tpl-act="use">${ICON_USE}Dùng ngay</x-button>
+          <x-button size="xs" variant="bare" class="tt-btn-use" data-tpl-act="use">${ICON_USE}Tạo ngay</x-button>
         </div>
       </div>
     </article>`;

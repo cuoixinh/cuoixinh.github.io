@@ -2122,10 +2122,7 @@ html.cx-landing {
 
 /* Nút "Tạo với AI" — viên thuốc trắng đè góc dưới phải ảnh (góc trên đã có
    hàng nhãn/sao). Logo XuXi trong ô tròn hồng nhạt; rê chuột thì cả viên đổ
-   hồng đặc như nút "Dùng ngay". Thẻ hẹp (lưới 2 cột điện thoại) chỉ còn logo. */
-.tt-media {
-  container-type: inline-size;
-}
+   hồng đặc như nút "Tạo ngay". Luôn có chữ, kể cả thẻ hẹp ở lưới 2 cột điện thoại. */
 .tt-ai {
   position: absolute;
   right: 8px;
@@ -2181,14 +2178,6 @@ html.cx-landing {
 .tt-ai:focus-visible {
   outline: 2px solid rgb(var(--action-primary-rgb));
   outline-offset: 2px;
-}
-@container (max-width: 196px) {
-  .tt-ai {
-    padding-right: 3px;
-  }
-  .tt-ai-t {
-    display: none;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .tt-ai,
@@ -2288,7 +2277,7 @@ html.cx-landing {
 }
 
 /* Cùng tông với bảng chat AI (styles/_ai-chat.css): "Xem trước" là chip trắng
-   viền hồng (.aichat-chip), "Dùng ngay" là nút hồng đặc (.aichat-send). Đổi tông
+   viền hồng (.aichat-chip), "Tạo ngay" là nút hồng đặc (.aichat-send). Đổi tông
    ở đây thì đổi luôn bên đó, hai chỗ cố ý nhìn như một bộ. */
 .tt-btn-preview {
   background: rgb(var(--white-rgb));

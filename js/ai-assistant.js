@@ -2907,6 +2907,28 @@
 
   // ── Khởi động ─────────────────────────────────────────────────────────────
 
+  // Link "Tạo với AI" từ màn xem thử mẫu (?ai=<mẫu>): mở chat như nút cùng tên trên thẻ
+  // mẫu. Tên + phép kiểm mẫu tra từ danh sách mẫu, không tin chuỗi trên URL. Gỡ tham số
+  // ngay, không thì F5 lại xoá cuộc chat đang làm (`history` ở đây là lịch sử chat).
+  function openFromUrl() {
+    if (inSetup()) return;
+    const url = new URL(location.href);
+    const slug = url.searchParams.get("ai");
+    if (!slug) return;
+    url.searchParams.delete("ai");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    const plain = () => window.cxOpenAiChat({ pick: "create" });
+    if (!window.templatesDAL) return plain();
+    window.templatesDAL
+      .list()
+      .then((rows) => {
+        const t = rows.find((r) => r.theme === slug);
+        if (!t) return plain();
+        window.cxOpenAiChat({ pick: "create", theme: { theme: t.theme, name: t.name } });
+      })
+      .catch(plain);
+  }
+
   function init() {
     if (document.getElementById("aichatFab")) return;
     build();
@@ -2931,6 +2953,8 @@
     // Vừa đăng nhập bằng OAuth và quay lại: mở bảng chat rồi gửi tiếp câu đang
     // dở. Lượt đó đã bị gỡ khỏi lịch sử nên màn chưa có bong bóng → phải vẽ lại.
     resendPending({ echo: true, open: true });
+
+    openFromUrl();
 
     // Không có bong bóng ở trang Thiết lập thì cũng không có gì để kéo/bấm.
     if (!inSetup()) {
@@ -3101,6 +3125,9 @@
     if (opt?.theme?.theme && window.CXChatMedia?.setTheme) {
       if (history.length || mode) clearChat();
       window.CXChatMedia.setTheme(opt.theme.theme, opt.theme.name);
+      // Đánh dấu đã qua ô mẫu, không thì luồng dẫn (CXChatMedia.next) mời chọn mẫu lại
+      // sau khi khách kể xong thông tin.
+      window.CXChatMedia.visit?.("theme");
       presetTheme = true;
     }
     // Có sẵn câu hỏi thì khách đã biết mình muốn gì — đừng dội lời mở đầu lên trước.

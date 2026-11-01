@@ -72,7 +72,7 @@ body {
    nên thắng font của hai lớp đó. */
 .hd-cover-names,
 .hd-hero-names {
-  font-family: "Photograph", "Playfair Display", serif;
+  font-family: "SaltyFeathers", "Playfair Display", serif;
   font-style: normal;
   white-space: nowrap;
 }
@@ -399,39 +399,58 @@ html.hd-on {
   }
 }
 
-/* ── Màn bìa kiểu poster: ảnh tràn màn, tiêu đề vàng trên đầu, lời mời ở đáy ── */
+/* ── Màn bìa ba tầng: mảng đỏ + tiêu đề · ảnh tràn ngang · mảng đỏ + lời mời ── */
 #cover-screen .hd-cover {
   --hd-cv-h: calc(var(--vh, 1svh) * 100);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: calc(var(--hd-cv-h) * 0.06) 0 calc(var(--hd-cv-h) * 0.05);
-  background: rgb(var(--cx-band-rgb));
+  padding: calc(var(--hd-cv-h) * 0.05) 0 calc(var(--hd-cv-h) * 0.04);
+  background:
+    radial-gradient(circle, rgb(var(--cx-deco-rgb) / 0.1) 1px, transparent 1.6px) 0 0 / 18px 18px,
+    rgb(var(--cx-band-rgb));
   color: rgb(var(--cx-deco-soft-rgb));
 }
-.hd-cv-photo {
+/* Ảnh bìa tràn ngang, ăn hết chỗ thừa giữa hai mảng đỏ; mép trên/dưới là đôi chỉ vàng
+   (border + ::after lùi vào 4px). */
+.hd-cv-window {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  margin-top: calc(var(--hd-cv-h) * 0.03);
+  overflow: hidden;
+  background: rgb(var(--cx-surface-rgb));
+  border-block: 1px solid rgb(var(--cx-deco-rgb));
+  animation: cx-hd-cv-fade 1.4s 0.3s ease both;
+}
+.hd-cv-window::after {
+  content: "";
   position: absolute;
-  inset: 0;
+  inset: 4px 0;
+  border-block: 1px solid rgb(var(--cx-deco-soft-rgb) / 0.7);
+  pointer-events: none;
+}
+.hd-cv-photo {
   animation: cx-hd-cv-drift 10s ease-out both;
 }
-/* Màn đỏ đậm ở đầu (sau tiêu đề) và đáy (sau lời mời), giữa để lộ trọn ảnh. */
-.hd-cv-veil {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      to bottom,
-      rgb(var(--cx-band-rgb) / 0.45) 0%,
-      rgb(var(--cx-band-rgb) / 0.2) 16%,
-      rgb(var(--cx-band-rgb) / 0) 30%,
-      rgb(var(--cx-band-rgb) / 0) 58%,
-      rgb(var(--cx-band-rgb) / 0.35) 74%,
-      rgb(var(--cx-band-rgb) / 0.6) 88%,
-      rgb(var(--cx-band-rgb) / 0.72) 100%
-    ),
-    radial-gradient(120% 80% at 50% 45%, transparent 60%, rgb(var(--cx-shadow-rgb) / 0.2));
-  pointer-events: none;
+/* Con dấu 囍: nửa trên đè lên mép dưới ảnh (margin âm = nửa khổ dấu), hai vòng chỉ vàng. */
+.hd-cv-seal {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 calc(var(--hd-cv-h) * 0.012);
+  border: 1px solid rgb(var(--cx-deco-rgb));
+  border-radius: 50%;
+  outline: 1px solid rgb(var(--cx-deco-rgb) / 0.55);
+  outline-offset: 3px;
+  background: rgb(var(--cx-band-rgb));
+  font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: 32px;
+  line-height: 1;
+  color: rgb(var(--cx-deco-rgb));
+  box-shadow: 0 8px 16px -8px rgb(var(--cx-shadow-rgb) / 0.6);
 }
 /* Kim tuyến vàng rơi: ba lớp chấm khác khổ ô, mỗi lớp trôi đúng bội số chiều cao ô
    của nó trong một vòng nên lặp lại không giật; tốc độ khác nhau tạo chiều sâu. */
@@ -470,14 +489,7 @@ html.hd-on {
   align-items: center;
   padding: 0 24px;
   text-align: center;
-  text-shadow: 0 2px 12px rgb(var(--cx-shadow-rgb) / 0.5);
   animation: cx-hd-cv-down 1.2s 0.2s var(--hd-ease) both;
-}
-.hd-cv-welcome {
-  font-size: 15px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: rgb(var(--cx-deco-soft-rgb));
 }
 .hd-cv-title {
   display: flex;
@@ -498,12 +510,6 @@ html.hd-on {
   line-height: 1.2;
   color: rgb(var(--cx-deco-soft-rgb));
 }
-.hd-cv-quote {
-  margin-top: 4px;
-  font-size: 11px;
-  line-height: 1.7;
-  color: rgb(var(--cx-deco-soft-rgb) / 0.9);
-}
 .hd-cover-text {
   position: relative;
   display: flex;
@@ -512,7 +518,6 @@ html.hd-on {
   gap: min(8px, calc(var(--hd-cv-h) * 0.01));
   padding: 0 32px;
   text-align: center;
-  text-shadow: 0 2px 10px rgb(var(--cx-shadow-rgb) / 0.5);
   animation: cx-hd-cv-up 1.2s 0.6s var(--hd-ease) both;
 }
 .hd-cover-invite {
@@ -554,8 +559,17 @@ html.hd-on {
   background: rgb(var(--cx-deco-soft-rgb));
   border-color: rgb(var(--cx-deco-rgb));
   color: rgb(var(--cx-accent-rgb));
-  text-shadow: none;
+  margin-top: min(12px, calc(var(--hd-cv-h) * 0.015));
   box-shadow: 0 0 0 4px rgb(var(--cx-deco-rgb) / 0.2);
+}
+/* Ngày chỉ hiện ở link chung (cờ .cx-guest-generic do wedding-helper đặt); bìa có tên khách
+   nhường chỗ cho tên — trang đầu thiệp đã có ngày. Ẩn là MẶC ĐỊNH để khách có tên, người xem
+   chính, không thấy bìa nhảy bố cục lúc helper chạy xong. */
+.hd-cv-date {
+  display: none;
+}
+.cx-guest-generic .hd-cv-date {
+  display: flex;
 }
 @keyframes cx-hd-cv-drift {
   from {
