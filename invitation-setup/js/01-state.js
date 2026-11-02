@@ -62,7 +62,7 @@ let VIEW_LIMIT = null;
 // thao tác chắc chắn hỏng — chốt thật nằm ở Edge Function.
 let IS_THEME_LOCKED = false;
 
-// Đám cưới đã diễn ra + hết ân hạn → wedding-admin PATCH trả 409 WEDDING_ENDED. Cờ dữ liệu
+// Đám cưới đã diễn ra (thiệp đã xuất bản) → wedding-admin PATCH trả 409 WEDDING_ENDED. Cờ dữ liệu
 // do server tính (edit_locked); trang chuyển chỉ xem (_syncEditLock ở 13-data.js).
 let IS_EDIT_LOCKED = false;
 

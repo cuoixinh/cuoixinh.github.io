@@ -1058,7 +1058,7 @@ async function _saveAllOnce(overrides, label) {
       window.cxShowSlugTaken?.(e.slug || WEDDING_SLUG);
       return false;
     }
-    // Trang mở từ trước mốc khoá rồi để đó qua ân hạn: server chặn → chuyển chỉ xem luôn.
+    // Trang mở từ trước mốc khoá rồi để đó qua mốc: server chặn → chuyển chỉ xem luôn.
     if (e.code === "WEDDING_ENDED") {
       IS_EDIT_LOCKED = true;
       _syncEditLock();

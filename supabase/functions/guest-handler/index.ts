@@ -319,7 +319,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     return fail('Bạn không có quyền quản lý khách mời của thiệp này', 403)
   }
 
-  // Qua ngày cưới + ân hạn: mọi lượt GHI khách mời của chủ/thành viên bị khoá (admin thì không).
+  // Qua ngày cưới: mọi lượt GHI khách mời của chủ/thành viên bị khoá (admin thì không).
   function denyEnded(a: Access): Response | null {
     if (a.role === 'admin' || !a.wedding || !isOwnerLocked(a.wedding)) return null
     return fail('Đám cưới đã diễn ra nên danh sách khách mời không chỉnh sửa được nữa.', 409, WEDDING_ENDED)
@@ -522,7 +522,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         // Trang Khách mời: owner thấy nút Thành viên; member chỉ thấy bên member_side.
         role: access.role,
         member_side: access.side,
-        // Qua ngày cưới + ân hạn: trang Khách mời chuyển chỉ xem (server vẫn tự chặn ghi).
+        // Qua ngày cưới: trang Khách mời chuyển chỉ xem (server vẫn tự chặn ghi).
         edit_locked: access.role !== 'admin' && !!access.wedding && isOwnerLocked(access.wedding),
       })
     }

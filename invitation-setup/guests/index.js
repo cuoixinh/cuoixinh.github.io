@@ -63,7 +63,7 @@ function _applySideLock() {
 }
 
 
-// Đám cưới đã diễn ra + hết ân hạn (guest-handler trả edit_locked): chỉ xem. Ẩn thanh thao
+// Đám cưới đã diễn ra (guest-handler trả edit_locked): chỉ xem. Ẩn thanh thao
 // tác, chặn sửa/menu từng hàng ở dưới — server vẫn tự từ chối mọi lượt ghi.
 const GS_EDIT_LOCKED_MSG = "Đám cưới đã diễn ra nên danh sách khách mời không chỉnh sửa được nữa.";
 function _applyEditLock() {

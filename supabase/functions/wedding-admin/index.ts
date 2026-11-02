@@ -18,7 +18,7 @@ import { supportStaffEmail } from '../_shared/support-staff.ts'
 import { findSlugHold, getUniqueSlug } from '../_shared/slug-holds.ts'
 import { applyFreeLimits, currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired, startingPrice } from '../_shared/plans.ts'
 import {
-  dateTooFar, isOwnerLocked, isWeddingEnded, MAX_DATE_AHEAD_MONTHS, ownerEditUntil, WEDDING_DATE_COLUMNS, WEDDING_DATE_SELECT, WEDDING_ENDED,
+  dateTooFar, isOwnerLocked, isWeddingEnded, MAX_DATE_AHEAD_MONTHS, WEDDING_DATE_COLUMNS, WEDDING_DATE_SELECT, WEDDING_ENDED,
 } from '../_shared/wedding-ended.ts'
 import {
   checkWeddingLimit,
@@ -224,12 +224,7 @@ const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$/
 
 // Trạng thái "đám cưới đã diễn ra" cho trang của chủ thiệp (trình chỉnh sửa, thẻ thiệp).
 function endedFlags(row: Record<string, unknown>) {
-  const until = ownerEditUntil(row)
-  return {
-    wedding_ended: isWeddingEnded(row),
-    edit_locked: isOwnerLocked(row),
-    edit_until: until == null ? null : new Date(until).toISOString(),
-  }
+  return { wedding_ended: isWeddingEnded(row), edit_locked: isOwnerLocked(row) }
 }
 
 function isValidSlug(v: unknown): boolean {
@@ -1056,7 +1051,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }
     }
 
-    // ── Qua ngày cưới + ân hạn là CHỐT thiệp ─────────────────────────────────
+    // ── Qua ngày cưới là CHỐT thiệp ──────────────────────────────────────────
     // Xét theo ngày ĐANG LƯU, không theo ngày client gửi lên (gửi ngày mới là tự mở khoá).
     // Đứng TRƯỚC khối xoá ảnh. Hoãn cưới sau khi đã khoá thì admin sửa ngày hộ.
     if (!isAdmin && isOwnerLocked(existing)) {
@@ -1892,7 +1887,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         data.view_count = viewCount
         data.view_limit = isFree ? FREE_PLAN.views : null
         data.view_locked = viewLocked
-        // Qua ngày cưới: khách hết tương tác; qua thêm ân hạn: trình chỉnh sửa chỉ xem.
+        // Qua ngày cưới: khách hết tương tác, trình chỉnh sửa chỉ xem (edit_locked chỉ khi đã xuất bản).
         Object.assign(data, endedFlags(data))
       }
     }

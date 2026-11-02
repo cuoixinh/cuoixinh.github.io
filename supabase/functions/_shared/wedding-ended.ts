@@ -1,14 +1,14 @@
 // Mốc "đám cưới đã diễn ra" — nguồn sự thật DUY NHẤT phía server (guest-handler, wedding-admin).
-// Mốc = hết ngày (giờ VN) của ngày muộn nhất trong WEDDING_DATE_COLUMNS. Qua mốc: khách không
-// gửi lời chúc/RSVP; chủ thiệp còn OWNER_GRACE_DAYS ngày rồi mọi lượt ghi bị khoá (trừ admin).
-// Bản sao cho giao diện ở core/helpers/wedding-ended.js — đổi luật phải đổi cả hai.
+// Mốc = hết ngày (giờ VN) của ngày muộn nhất trong WEDDING_DATE_COLUMNS. Qua mốc là chốt CÙNG
+// LÚC: khách hết gửi lời chúc/RSVP, chủ thiệp hết sửa thiệp + khách mời (trừ admin), mọi gói.
+// Bản sao cho giao diện: cxWeddingEnded ở core/bl/wedding-bl.js — đổi luật phải đổi cả hai.
 
 export const WEDDING_DATE_COLUMNS = ['ceremony_date', 'vu_quy_date', 'groom_party_date', 'bride_party_date'] as const
 export const WEDDING_DATE_SELECT = WEDDING_DATE_COLUMNS.join(', ')
 
-export const OWNER_GRACE_DAYS = 7
-// Trần ngày cưới khi đặt/dời — không có trần thì đặt năm 2099 là sửa thiệp mãi.
-export const MAX_DATE_AHEAD_MONTHS = 18
+// Trần ngày cưới khi đặt/dời — không có trần thì đặt năm 2099 là sửa thiệp mãi. Bản sao ở
+// CONFIG.maxWeddingMonthsAhead (bảng chọn ngày làm mờ ngày quá trần), đổi phải đổi cả hai.
+export const MAX_DATE_AHEAD_MONTHS = 6
 
 export const WEDDING_ENDED = 'WEDDING_ENDED'
 
@@ -41,20 +41,12 @@ export function isWeddingEnded(row: DateRow, now = Date.now()): boolean {
   return end != null && now >= end
 }
 
-/** Hạn cuối chủ thiệp còn sửa được (ms); null = không có ngày cưới. */
-export function ownerEditUntil(row: DateRow): number | null {
-  const end = weddingEndAt(row)
-  return end == null ? null : end + OWNER_GRACE_DAYS * DAY_MS
-}
-
 /**
  * Chủ thiệp (và thành viên) hết được sửa thiệp + khách mời. Chỉ xét thiệp ĐÃ XUẤT BẢN:
  * nháp mang ngày cũ (gõ nhầm năm, bản thử) vẫn phải sửa lại được.
  */
 export function isOwnerLocked(row: DateRow & { is_published?: unknown }, now = Date.now()): boolean {
-  if (row.is_published !== true) return false
-  const until = ownerEditUntil(row)
-  return until != null && now >= until
+  return row.is_published === true && isWeddingEnded(row, now)
 }
 
 /**

@@ -211,6 +211,11 @@ const CONFIG = {
   // bên kia.
   maxWeddings: 3,
 
+  // Ngày cưới chỉ chọn được trong vòng ngần này tháng (bảng chọn làm mờ ngày quá trần).
+  // Chốt THẬT là MAX_DATE_AHEAD_MONTHS ở supabase/functions/_shared/wedding-ended.ts — đổi
+  // một bên phải đổi cả bên kia.
+  maxWeddingMonthsAhead: 6,
+
   // Love Story
   maxLoveStoryItems: 10,
 
