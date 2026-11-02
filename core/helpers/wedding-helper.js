@@ -534,31 +534,76 @@ async function _saveRsvp(attending, message, msgEl) {
   }
 }
 
+// Lưu mã QR: webview Zalo/Messenger không tải file, không share được file và
+// nuốt window.open → hiện ảnh để khách nhấn giữ. Cùng luật với saveQR ở core/payment.js.
 async function saveQR(id) {
   if (showPreviewAlert()) return;
 
   const img = document.getElementById(id);
   if (!img) return;
 
-  const filename = `${id}.png`;
+  const ua = navigator.userAgent;
+  const inApp = /Zalo|FBAN|FBAV|FB_IAB|Instagram|Line\//i.test(ua);
+  if (inApp) return _cxQrHoldToSave(img.src);
 
   try {
     const response = await fetch(img.src);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const blob = await response.blob();
-    const file = new File([blob], filename, { type: "image/png" });
+    const ext = (blob.type.split("/")[1] || "png").replace("jpeg", "jpg");
+    const file = new File([blob], `${id}.${ext}`, { type: blob.type || "image/png" });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: "QR Mừng Cưới" });
-    } else {
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(a.href);
+      try {
+        await navigator.share({ files: [file], title: "QR Mừng Cưới" });
+        return;
+      } catch (e) {
+        if (e?.name === "AbortError") return;
+      }
     }
+    const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (ios) return _cxQrHoldToSave(img.src);
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // Thu hồi ngay sau click() là trình duyệt chưa kịp đọc → tải hỏng.
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
   } catch (e) {
-    window.open(img.src, "_blank");
+    _cxQrHoldToSave(img.src);
   }
+}
+
+// Tấm phủ hiện ảnh QR cỡ lớn để nhấn giữ → "Lưu ảnh". data-cx-allow-menu: no-inspect.js
+// và khoá ảnh của theme-boot.js để yên menu nhấn giữ. Màu theo token lightbox của thiệp.
+function _cxQrHoldToSave(src) {
+  const ov = document.createElement("div");
+  ov.style.cssText =
+    "position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;background:rgb(var(--cx-lightbox-bg-rgb) / 0.9)";
+  const pic = document.createElement("img");
+  pic.src = src;
+  pic.alt = "Mã QR mừng cưới";
+  pic.setAttribute("data-cx-allow-menu", "");
+  pic.style.cssText =
+    "max-width:min(100%,360px);max-height:70%;object-fit:contain;border-radius:16px;background:rgb(var(--cx-qr-bg-rgb));-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto";
+  const hint = document.createElement("p");
+  hint.textContent = "Nhấn giữ ảnh rồi chọn “Lưu ảnh”";
+  hint.style.cssText = "margin:0;font-size:14px;color:rgb(var(--cx-on-lightbox-rgb))";
+  const close = document.createElement("x-button");
+  close.setAttribute("variant", "bare");
+  close.textContent = "Đóng";
+  close.setAttribute(
+    "style",
+    "padding:8px 20px;border:1px solid rgb(var(--cx-on-lightbox-rgb) / 0.6);background:transparent;color:rgb(var(--cx-on-lightbox-rgb));font-size:14px",
+  );
+  ov.append(pic, hint, close);
+  ov.addEventListener("click", (e) => {
+    if (e.target !== pic) ov.remove();
+  });
+  document.body.appendChild(ov);
 }
 
 // Make functions global
