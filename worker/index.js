@@ -46,9 +46,9 @@ const OG_IMG_NAME = /^(?:w\/[0-9a-f]{32}\/)?(?!\.{1,2}$)[A-Za-z0-9._-]{1,120}$/;
 // nên lên bucket còn nguyên EXIF/APP13 của máy chụp — ảnh chụp bằng iPhone hay
 // dính — và Facebook bỏ luôn ô ảnh với loại file đó, trong khi trình duyệt lẫn
 // Zalo vẫn hiện bình thường. Cho ảnh đi qua bộ chuyển đổi của Cloudflare là ra
-// JPEG sạch metadata. Ảnh DỌC hiện tốt trên Messenger nên "scale-down" giữ
-// nguyên tỉ lệ, chỉ thu lại ảnh quá to.
-const OG_IMG_BOX = { width: 1200, height: 1200, fit: "scale-down" };
+// JPEG sạch metadata. Cắt sẵn khổ ngang 1.91:1 theo điểm lấy nét (?fx=&fy= của
+// URL /__og/): để nguyên ảnh dọc thì Messenger tự cắt quanh tâm, mất đầu người.
+const OG_IMG_BOX = { width: 1200, height: 630, fit: "cover" };
 
 // Trang mẫu: /public/themes/<mẫu>/ (index.html thì asset router tự chuyển về dạng này).
 const THEMES_PREFIX = "/public/themes/";
@@ -190,6 +190,23 @@ function coverRef(w) {
   );
 }
 
+/** Điểm lấy nét (%) của đúng ảnh coverRef chọn; khoá album trong DB có thể là URL đầy đủ. */
+function coverFocal(w, ref) {
+  const fp = w?.image_focal_points;
+  if (!ref || !fp || typeof fp !== "object") return null;
+  let p = null;
+  if (ref === w.cover_image_url) p = fp.cover_image_url;
+  else if (ref === w.groom_image_url) p = fp.groom_image_url;
+  else {
+    const g = fp.gallery_images || {};
+    p = g[ref] || Object.entries(g).find(([k]) => k.endsWith(`/${ref}`))?.[1];
+  }
+  const n = (v) => (Number.isFinite(Number(v)) ? Math.round(Math.min(100, Math.max(0, Number(v)))) : null);
+  const x = n(p?.x);
+  const y = n(p?.y);
+  return x === null || y === null ? null : { x, y };
+}
+
 function imageUrl(env, filename) {
   if (!filename) return "";
   if (/^https?:\/\//i.test(filename)) return filename;
@@ -218,8 +235,10 @@ function ogDesc(w, guest, rel) {
   const text = tpl
     .replace(/##\s*relationship\s*##/gi, rel || "Quý Khách")
     .replace(/##\s*danh\s*x[ưu]ng\s*##/giu, guest || "Quý Khách") // câu mẫu cũ
-    .replace(/##\s*link\s*##/gi, "")
-    .replace(/https?:\/\/\S+/gi, "")
+    // Bỏ link kèm nhãn ngắn đứng riêng trước nó ("… gia đình. Thiệp mời: ##link##")
+    // hoặc dấu ":" treo ("… cùng nhé: ##link##").
+    .replace(/(?:^|(?<=[.!?…]))\s*[^.!?…:\n]{1,20}:\s*(?:##\s*link\s*##|https?:\/\/\S+)/giu, "")
+    .replace(/\s*:?\s*(?:##\s*link\s*##|https?:\/\/\S+)/gi, "")
     .replace(/\s+/g, " ")
     .trim();
   return text || DEFAULT_DESC;
@@ -230,9 +249,18 @@ async function ogImage(env, url) {
   const name = decodeURIComponent(url.pathname.slice(OG_IMG_PREFIX.length));
   if (!OG_IMG_NAME.test(name)) return new Response("", { status: 404 });
   const origin = `${env.STORAGE_URL}/${name}`;
+  // Không có điểm lấy nét thì để Cloudflare tự dò vùng nổi bật.
+  const pct = (k) => {
+    const s = url.searchParams.get(k);
+    const v = s === null || s === "" ? NaN : Number(s);
+    return v >= 0 && v <= 100 ? v / 100 : null;
+  };
+  const fx = pct("fx");
+  const fy = pct("fy");
+  const gravity = fx !== null && fy !== null ? { x: fx, y: fy } : "auto";
   let src = await fetch(origin, {
     cf: {
-      image: { ...OG_IMG_BOX, format: "jpeg", quality: 85 },
+      image: { ...OG_IMG_BOX, gravity, format: "jpeg", quality: 85 },
       cacheEverything: true,
       cacheTtl: 86400,
     },
@@ -528,12 +556,17 @@ const esc = (s) =>
 async function ogMeta(env, w, guest, url, rel) {
   const title = w ? ogTitle(w, guest) : "Cưới Xinh";
   const desc = w ? ogDesc(w, guest, rel) : "";
-  const src = w ? imageUrl(env, coverRef(w)) : "";
+  const ref = w ? coverRef(w) : "";
+  const src = imageUrl(env, ref);
   // Ảnh nằm trong bucket của mình thì phát qua /__og/ (xem OG_IMG_PREFIX); URL
   // ngoài — khách dán link ảnh sẵn có — giữ nguyên, không biến worker thành proxy.
+  // Điểm lấy nét nằm trong URL nên đổi nét là đổi URL, crawler tải lại ảnh.
   const mine = src.startsWith(`${env.STORAGE_URL}/`);
+  const fp = mine ? coverFocal(w, ref) : null;
   const img = mine
-    ? `${url.origin}${OG_IMG_PREFIX}${src.slice(env.STORAGE_URL.length + 1)}`
+    ? `${url.origin}${OG_IMG_PREFIX}${src.slice(env.STORAGE_URL.length + 1)}${
+        fp ? `?fx=${fp.x}&fy=${fp.y}` : ""
+      }`
     : src;
   // Đo trên ĐÚNG luồng byte crawler sẽ tải (gọi thẳng hàm phát ảnh), nên khổ khai
   // ra luôn khớp dù zone đã bật Transformations hay còn lùi về file gốc.

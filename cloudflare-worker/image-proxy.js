@@ -30,6 +30,8 @@ export default {
 
     if (hit) {
       const res = new Response(hit.body, hit);
+      // Đặt lại cả lúc HIT: bản đã cache trước khi có header này vẫn còn 30 ngày.
+      res.headers.set("Access-Control-Allow-Origin", "*");
       res.headers.set("X-Cache", "HIT");
       return res;
     }
@@ -42,7 +44,11 @@ export default {
 
     // Chỉ chép header của file: phản hồi Supabase mang Set-Cookie (__cf_bm) mà Cache API
     // từ chối lưu, và cache-control 1 giờ viết thường — trộn vào là ra hai giá trị.
-    const headers = new Headers({ "Cache-Control": `public, max-age=${CACHE_TTL}` });
+    // CORS phải có: trang Thiết lập fetch() ảnh đã lưu ra blob để cắt lại QR.
+    const headers = new Headers({
+      "Cache-Control": `public, max-age=${CACHE_TTL}`,
+      "Access-Control-Allow-Origin": "*",
+    });
     for (const h of ["content-type", "content-length", "etag", "last-modified"]) {
       const v = upstream.headers.get(h);
       if (v) headers.set(h, v);

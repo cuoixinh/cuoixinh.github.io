@@ -575,7 +575,10 @@ async function recropSingleImage(fieldName) {
     const existingFilename = hiddenInput ? hiddenInput.value : null;
     if (!existingFilename) return;
     try {
-      const resp = await fetch(getImageUrl(existingFilename));
+      // `reload`: bản trình duyệt đã cache từ thẻ <img> (không CORS) có thể thiếu
+      // header CORS → fetch đọc lại bản đó là bị chặn.
+      const resp = await fetch(getImageUrl(existingFilename), { cache: "reload" });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       source = await resp.blob();
     } catch (e) {
       console.error("recrop fetch error:", e);
