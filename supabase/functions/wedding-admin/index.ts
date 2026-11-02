@@ -18,6 +18,9 @@ import { supportStaffEmail } from '../_shared/support-staff.ts'
 import { findSlugHold, getUniqueSlug } from '../_shared/slug-holds.ts'
 import { applyFreeLimits, currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired, startingPrice } from '../_shared/plans.ts'
 import {
+  dateTooFar, isOwnerLocked, isWeddingEnded, MAX_DATE_AHEAD_MONTHS, ownerEditUntil, WEDDING_DATE_COLUMNS, WEDDING_DATE_SELECT, WEDDING_ENDED,
+} from '../_shared/wedding-ended.ts'
+import {
   checkWeddingLimit,
   FREE_LIMIT_MESSAGE,
   hasOtherFreeWedding,
@@ -218,6 +221,16 @@ function safeParse(s: string): unknown {
 // Luật đặt slug — bản SERVER. core/bl/wedding-bl.js có bản client cùng luật,
 // nhưng client bỏ qua được nên phép kiểm thật phải nằm ở đây.
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$/
+
+// Trạng thái "đám cưới đã diễn ra" cho trang của chủ thiệp (trình chỉnh sửa, thẻ thiệp).
+function endedFlags(row: Record<string, unknown>) {
+  const until = ownerEditUntil(row)
+  return {
+    wedding_ended: isWeddingEnded(row),
+    edit_locked: isOwnerLocked(row),
+    edit_until: until == null ? null : new Date(until).toISOString(),
+  }
+}
 
 function isValidSlug(v: unknown): boolean {
   return typeof v === 'string' && SLUG_RE.test(v)
@@ -1003,7 +1016,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Kiểm tra id tồn tại và lấy data hiện tại
     const { data: existing, error: fetchError } = await supabase
       .from('weddings')
-      .select(`${WEDDING_IMAGE_SELECT}, user_id, slug, theme, payment_status, payment_amount, is_published, expires_at, free_side`)
+      .select(`${WEDDING_IMAGE_SELECT}, ${WEDDING_DATE_SELECT}, user_id, slug, theme, payment_status, payment_amount, is_published, expires_at, free_side`)
       .eq('id', id)
       .single()
 
@@ -1041,6 +1054,27 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
           code: 'FORBIDDEN',
         }), { status: 403, headers: corsHeaders })
       }
+    }
+
+    // ── Qua ngày cưới + ân hạn là CHỐT thiệp ─────────────────────────────────
+    // Xét theo ngày ĐANG LƯU, không theo ngày client gửi lên (gửi ngày mới là tự mở khoá).
+    // Đứng TRƯỚC khối xoá ảnh. Hoãn cưới sau khi đã khoá thì admin sửa ngày hộ.
+    if (!isAdmin && isOwnerLocked(existing)) {
+      log.warn('wedding.patch_ended', { id })
+      return new Response(JSON.stringify({
+        error: 'Đám cưới đã diễn ra nên thiệp không chỉnh sửa được nữa.',
+        code: WEDDING_ENDED,
+      }), { status: 409, headers: corsHeaders })
+    }
+
+    // Dời ngày cưới quá xa là đường lách chốt ở trên (đặt năm 2099 = sửa mãi).
+    const farKey = isAdmin ? null : dateTooFar(fields, existing)
+    if (farKey) {
+      log.warn('wedding.date_too_far', { id, field: farKey })
+      return new Response(JSON.stringify({
+        error: `Ngày cưới chỉ đặt được trong vòng ${MAX_DATE_AHEAD_MONTHS} tháng tới. Cần dời xa hơn, vui lòng liên hệ hỗ trợ.`,
+        code: 'DATE_TOO_FAR',
+      }), { status: 400, headers: corsHeaders })
     }
 
     // Ảnh MỚI gắn vào thiệp phải nằm trong thư mục của chính thiệp. Không chặn thì
@@ -1590,7 +1624,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       // hai cột này là mọi thiệp cùng mẫu trông giống hệt nhau.
       const { data, error } = await supabase
         .from('weddings')
-        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at, payment_status, plan, plan_expires_at, cover_image_url, gallery_images, free_side')
+        .select(`id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at, payment_status, plan, plan_expires_at, cover_image_url, gallery_images, free_side, ${WEDDING_DATE_SELECT}`)
         .eq('user_id', userId)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
@@ -1605,7 +1639,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       const rows = (data ?? []).map(({ payment_status, plan, plan_expires_at, free_side, ...w }: Record<string, unknown>) => {
         const cur = currentPlan({ payment_status: payment_status as string, plan: plan as string })
         const fs = freeSide({ payment_status: payment_status as string, free_side: free_side as string })
-        return { ...w, plan: cur, plan_expires_at: cur ? plan_expires_at : null, free_side: fs }
+        const out: Record<string, unknown> = { ...w, plan: cur, plan_expires_at: cur ? plan_expires_at : null, free_side: fs, ...endedFlags(w) }
+        // Ngày chỉ lấy để tính cờ — thẻ thiệp không hiện.
+        for (const k of WEDDING_DATE_COLUMNS) delete out[k]
+        return out
       })
 
       // Lượt xem chỉ thiệp gói Free có (view_limit = trần); thiệp khác không đọc bảng này.
@@ -1855,6 +1892,8 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         data.view_count = viewCount
         data.view_limit = isFree ? FREE_PLAN.views : null
         data.view_locked = viewLocked
+        // Qua ngày cưới: khách hết tương tác; qua thêm ân hạn: trình chỉnh sửa chỉ xem.
+        Object.assign(data, endedFlags(data))
       }
     }
 

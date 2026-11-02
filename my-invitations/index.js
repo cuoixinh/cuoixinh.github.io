@@ -375,6 +375,10 @@ function _cardFromWedding(w) {
     // Lượt mở link công khai — chỉ gói Free có (viewLimit = trần); null = không có số.
     views: w.view_count ?? null,
     viewLimit: w.view_limit ?? null,
+    // Đám cưới đã diễn ra (server tính): khách hết tương tác; qua editUntil thì chỉ xem.
+    ended: !!w.wedding_ended,
+    editLocked: !!w.edit_locked,
+    editUntil: w.edit_until || null,
     createdAt: w.created_at,
     local: false,
     cover: _coverUrl(w),
@@ -747,6 +751,7 @@ function cardHTML(c, i) {
             <span class="shrink-0">${formatDate(c.createdAt)}</span>
           </p>
           ${viewsHTML(c)}
+          ${endedHTML(c)}
           ${hintHTML(c, state)}
           <div class="mi-gap"></div>
           ${c.slug ? slugRowHTML(c, i) : ""}
@@ -822,6 +827,15 @@ function viewsHTML(c) {
   if (c.local || !c.published || !c.viewLimit || c.views == null) return "";
   const text = `${c.views.toLocaleString("vi-VN")}/${c.viewLimit.toLocaleString("vi-VN")} lượt xem`;
   return `<p class="mi-meta">${_ico("eye")}<span>${text}</span></p>`;
+}
+
+// Thiệp đã xuất bản mà đám cưới đã diễn ra: còn sửa được tới đâu, hay đã chỉ xem.
+function endedHTML(c) {
+  if (c.local || !c.published || !c.ended) return "";
+  const text = c.editLocked
+    ? "Đám cưới đã diễn ra · thiệp chỉ để xem"
+    : `Đám cưới đã diễn ra · còn chỉnh sửa được đến ${formatDate(Date.parse(c.editUntil) - 1)}`;
+  return `<p class="mi-meta">${_ico(c.editLocked ? "lock" : "calendar-check")}<span>${text}</span></p>`;
 }
 
 // Sao chép link là việc chính của thiệp nên nằm ngay trên thẻ ở mọi khổ màn.

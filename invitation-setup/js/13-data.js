@@ -657,12 +657,13 @@ function _fillForm(data) {
   IS_TRIAL_LOCKED = !!data.trial_locked;
   IS_PLAN_LOCKED = !!data.plan_locked;
   IS_THEME_LOCKED = !!data.theme_locked;
+  IS_EDIT_LOCKED = !!data.edit_locked;
   FREE_SIDE = data.free_side || null;
   VIEW_COUNT = data.view_count ?? null;
   VIEW_LIMIT = data.view_limit ?? null;
   _warnFreeViews();
   window._syncThemeLock?.();
-  _syncAdvancedSection();
+  _syncEditLock();
 
   if (typeof lucide !== "undefined") lucide.createIcons();
 
@@ -684,6 +685,29 @@ function _warnFreeViews() {
 }
 
 // Ngày sự kiện KHÔNG bị chặn theo hôm nay — cho nhập/lưu cả ngày trong quá khứ.
+
+const CX_EDIT_LOCKED_MSG =
+  "Đám cưới đã diễn ra nên thiệp không chỉnh sửa được nữa. Thiệp vẫn mở bình thường cho khách xem.";
+
+// Chế độ chỉ xem khi IS_EDIT_LOCKED: form `inert` (vẫn cuộn, xem được), thêm dòng báo đầu
+// form; hai nút Lưu nháp/Xuất bản do _syncAdvancedSection ẩn (nó cũng lo cxNavReflow).
+function _syncEditLock() {
+  const form = document.getElementById("wedding-form");
+  if (form) form.inert = IS_EDIT_LOCKED;
+  let note = document.getElementById("cx-edit-locked");
+  if (IS_EDIT_LOCKED && !note && form) {
+    note = document.createElement("div");
+    note.id = "cx-edit-locked";
+    note.className =
+      "mx-4 mt-4 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800";
+    note.innerHTML = '<i data-lucide="lock" style="width:16px;height:16px" class="mt-0.5 shrink-0"></i><span></span>';
+    note.querySelector("span").textContent = CX_EDIT_LOCKED_MSG;
+    form.before(note);
+    window.lucide?.createIcons({ root: note });
+  }
+  note?.classList.toggle("hidden", !IS_EDIT_LOCKED);
+  _syncAdvancedSection();
+}
 
 // Mỗi lúc chỉ MỘT lượt lưu chạy: hai lượt song song cùng thấy _isLocalDraft và
 // cùng POST. Lượt trùng hệt lượt đang chờ (bấm đúp, Enter) dùng chung kết quả;
@@ -740,6 +764,12 @@ async function _createDraftRow() {
 }
 
 async function _saveAllOnce(overrides, label) {
+  // Chặn TRƯỚC bước upload: lượt lưu chắc chắn bị PATCH từ chối thì ảnh đẩy lên thành rác.
+  if (IS_EDIT_LOCKED) {
+    showLoading(false);
+    showToast(CX_EDIT_LOCKED_MSG, "warning");
+    return false;
+  }
   const form = document.getElementById("wedding-form");
   if (!validateForm(form)) {
     showLoading(false);
@@ -1026,6 +1056,13 @@ async function _saveAllOnce(overrides, label) {
     }
     if (e.code === "SLUG_TAKEN") {
       window.cxShowSlugTaken?.(e.slug || WEDDING_SLUG);
+      return false;
+    }
+    // Trang mở từ trước mốc khoá rồi để đó qua ân hạn: server chặn → chuyển chỉ xem luôn.
+    if (e.code === "WEDDING_ENDED") {
+      IS_EDIT_LOCKED = true;
+      _syncEditLock();
+      showToast(CX_EDIT_LOCKED_MSG, "warning");
       return false;
     }
     if (e.code === "FORBIDDEN" || e.status === 403) {

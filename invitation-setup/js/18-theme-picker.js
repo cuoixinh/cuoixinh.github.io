@@ -200,9 +200,11 @@ function _syncAdvancedSection() {
   const published = IS_PUBLISHED && IS_LOGIN;
   window._syncSlugSaveBtn?.();
 
-  // Ẩn cả container nút "Lưu nháp" khi đã xuất bản → nhường không gian cho nút "Lưu & Xuất bản"
+  // Ẩn cả container nút "Lưu nháp" khi đã xuất bản → nhường không gian cho nút "Lưu & Xuất bản".
+  // Thiệp chốt sau ngày cưới (IS_EDIT_LOCKED) thì ẩn cả hai nút.
   const draftWrap = document.getElementById("tab-draft-wrap");
-  if (draftWrap) draftWrap.classList.toggle("hidden", published);
+  if (draftWrap) draftWrap.classList.toggle("hidden", published || IS_EDIT_LOCKED);
+  document.getElementById("tab-publish-wrap")?.classList.toggle("hidden", IS_EDIT_LOCKED);
   const draftTab = document.getElementById("tab-draft");
   if (draftTab) draftTab.classList.toggle("hidden", published);
 

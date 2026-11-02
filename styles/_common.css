@@ -1316,6 +1316,12 @@ svg.cx-ic {
   display: none;
 }
 
+/* Đám cưới đã diễn ra (cờ do loadWeddingData đặt): hết nhận xác nhận tham dự. !important
+   vì mẫu bật mục này bằng style inline (display:flex). */
+.cx-wedding-ended #rsvp-section {
+  display: none !important;
+}
+
 #cover-screen > div {
   min-height: calc(var(--vh, 1vh) * 100);
   min-height: calc(var(--vh, 1svh) * 100);

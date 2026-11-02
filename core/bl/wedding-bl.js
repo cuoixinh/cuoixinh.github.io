@@ -9,6 +9,27 @@ const VIEW_DEDUPE_MS = 30 * 60 * 1000;
 // Gói Free dùng tới tỉ lệ lượt xem này thì cảnh báo sắp hết (viewsLevel).
 const VIEW_WARN_RATIO = 0.8;
 
+// Mốc "đám cưới đã diễn ra" = hết ngày (giờ VN) của ngày muộn nhất trong các cột dưới.
+// BẢN SAO của supabase/functions/_shared/wedding-ended.ts — chỉ để vẽ giao diện, chốt thật
+// ở Edge Function; đổi luật phải đổi cả hai.
+const CX_WEDDING_DATE_KEYS = ["ceremony_date", "vu_quy_date", "groom_party_date", "bride_party_date"];
+
+function cxWeddingEndAt(w) {
+  let end = null;
+  for (const k of CX_WEDDING_DATE_KEYS) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(w?.[k] ?? ""));
+    if (!m) continue;
+    const t = Date.UTC(+m[1], +m[2] - 1, +m[3] + 1) - 7 * 60 * 60 * 1000;
+    if (Number.isFinite(t) && (end == null || t > end)) end = t;
+  }
+  return end;
+}
+
+function cxWeddingEnded(w, now = Date.now()) {
+  const end = cxWeddingEndAt(w);
+  return end != null && now >= end;
+}
+
 class WeddingBL {
   constructor(weddingDAL, storageDAL) {
     this.dal = weddingDAL;
@@ -216,4 +237,5 @@ class WeddingBL {
 if (typeof window !== "undefined") {
   window.WeddingBL = WeddingBL;
   window.SLUG_MAX_LENGTH = SLUG_MAX_LENGTH;
+  window.cxWeddingEnded = cxWeddingEnded;
 }

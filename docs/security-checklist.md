@@ -161,6 +161,13 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       MỌI khách, kể cả khách đã có mã — dựng link dạng cũ cho khách mới vẫn qua. Đóng được
       khi `findGuestByLink` chỉ xét hàng có link dạng cũ (link cũ đã gửi phải sống mãi).
 - [ ] **A12c. `rsvp`/`wish` không rate limit.** Chưa vá — chặn ở tầng Cloudflare, xem mục E.
+- [x] **A12f. Ghi dữ liệu sau ngày cưới.** **Đã vá trong mã, chưa deploy**: mốc ở
+      `_shared/wedding-ended.ts` (hết ngày muộn nhất trong 4 cột ngày, giờ VN). Qua mốc:
+      `wish`/`rsvp` → 403 `WEDDING_ENDED`, `view` không ghi (vẫn trả tên). Qua thêm
+      `OWNER_GRACE_DAYS` (chỉ thiệp đã xuất bản): PATCH `wedding-admin` và mọi lượt ghi khách
+      mời qua `denyEnded` → 409 `WEDDING_ENDED`, trừ admin và `member-remove`. Xét theo ngày
+      ĐANG LƯU; đặt/dời ngày quá `MAX_DATE_AHEAD_MONTHS` → 400 `DATE_TOO_FAR` (không thì đặt
+      năm 2099 là sửa mãi). Ẩn nút ở client chỉ là giao diện.
 
 - [x] **A13. `returnUrl`/`cancelUrl` lấy từ header `origin`.**
       **Đã vá**: `allowedBaseUrl()` trong `payment-handler` — allowlist ba miền của hệ thống,
