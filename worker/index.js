@@ -198,13 +198,48 @@ function coverFocal(w, ref) {
   if (ref === w.cover_image_url) p = fp.cover_image_url;
   else if (ref === w.groom_image_url) p = fp.groom_image_url;
   else {
+    // Cùng một ảnh có thể lưu dạng ngắn hay URL đầy đủ → so theo tên file (ngẫu nhiên, duy nhất trong thiệp).
     const g = fp.gallery_images || {};
-    p = g[ref] || Object.entries(g).find(([k]) => k.endsWith(`/${ref}`))?.[1];
+    const name = (s) => String(s).split(/[?#]/)[0].split("/").pop();
+    p = g[ref] || Object.entries(g).find(([k]) => name(k) === name(ref))?.[1];
   }
   const n = (v) => (Number.isFinite(Number(v)) ? Math.round(Math.min(100, Math.max(0, Number(v)))) : null);
   const x = n(p?.x);
   const y = n(p?.y);
-  return x === null || y === null ? null : { x, y };
+  // 50/50 là mặc định trang Thiết lập luôn lưu = khách chưa chỉnh → để Cloudflare tự dò
+  // vùng nổi bật (ảnh dọc cắt giữa hay mất đầu người).
+  if (x === null || y === null || (x === 50 && y === 50)) return null;
+  return { x, y };
+}
+
+// Host proxy ảnh — bản sao phần proxy của STORAGE_HOSTS (_shared/wedding-images.ts):
+// trình chỉnh sửa có lúc lưu nguyên URL proxy thay vì đường dẫn ngắn.
+const IMG_PROXY_HOST = /^wedding-image-proxy(?:-staging)?\.cuoixinh-api\.workers\.dev$/;
+
+/** Đường dẫn trong bucket của một giá trị ảnh (tên file, URL bucket, URL proxy); ảnh ngoài → null. */
+function storagePath(env, ref) {
+  const v = String(ref || "").trim();
+  if (!v) return null;
+  let path = v;
+  if (/^https?:\/\//i.test(v)) {
+    if (v.startsWith(`${env.STORAGE_URL}/`)) path = v.slice(env.STORAGE_URL.length + 1);
+    else {
+      try {
+        const u = new URL(v);
+        if (u.protocol !== "https:" || !IMG_PROXY_HOST.test(u.hostname)) return null;
+        path = u.pathname.slice(1);
+      } catch (_) {
+        return null;
+      }
+    }
+    path = path.split(/[?#]/)[0];
+    try {
+      path = decodeURIComponent(path);
+    } catch (_) {
+      return null;
+    }
+  }
+  return OG_IMG_NAME.test(path) ? path : null;
 }
 
 function imageUrl(env, filename) {
@@ -558,15 +593,14 @@ async function ogMeta(env, w, guest, url, rel) {
   const desc = w ? ogDesc(w, guest, rel) : "";
   const ref = w ? coverRef(w) : "";
   const src = imageUrl(env, ref);
-  // Ảnh nằm trong bucket của mình thì phát qua /__og/ (xem OG_IMG_PREFIX); URL
-  // ngoài — khách dán link ảnh sẵn có — giữ nguyên, không biến worker thành proxy.
-  // Điểm lấy nét nằm trong URL nên đổi nét là đổi URL, crawler tải lại ảnh.
-  const mine = src.startsWith(`${env.STORAGE_URL}/`);
+  // Ảnh nằm trong bucket của mình (kể cả lưu dạng URL proxy) thì phát qua /__og/ (xem
+  // OG_IMG_PREFIX); URL ngoài — khách dán link ảnh sẵn có — giữ nguyên, không biến
+  // worker thành proxy. Điểm lấy nét nằm trong URL nên đổi nét là đổi URL, crawler tải lại ảnh.
+  const path = storagePath(env, ref);
+  const mine = !!path;
   const fp = mine ? coverFocal(w, ref) : null;
   const img = mine
-    ? `${url.origin}${OG_IMG_PREFIX}${src.slice(env.STORAGE_URL.length + 1)}${
-        fp ? `?fx=${fp.x}&fy=${fp.y}` : ""
-      }`
+    ? `${url.origin}${OG_IMG_PREFIX}${path}${fp ? `?fx=${fp.x}&fy=${fp.y}` : ""}`
     : src;
   // Đo trên ĐÚNG luồng byte crawler sẽ tải (gọi thẳng hàm phát ảnh), nên khổ khai
   // ra luôn khớp dù zone đã bật Transformations hay còn lùi về file gốc.
