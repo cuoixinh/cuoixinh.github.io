@@ -38,7 +38,10 @@ window.cxToggle = cxToggle;
   document.head.appendChild(css);
   root.classList.add("cx-img-lock");
 
-  const locked = (e) => root.classList.contains("cx-img-lock") && e.target.closest?.("img");
+  const locked = (e) =>
+    root.classList.contains("cx-img-lock") &&
+    e.target.closest?.("img") &&
+    !e.target.closest("[data-cx-allow-menu]");
   document.addEventListener("contextmenu", (e) => {
     if (locked(e)) e.preventDefault();
   });
