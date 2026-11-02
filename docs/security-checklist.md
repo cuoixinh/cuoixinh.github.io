@@ -292,7 +292,16 @@ Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `
       tính OAuth khác (Facebook — Supabase tự gộp theo email đã xác minh) bị từ chối luôn.
       Danh sách rỗng = không ai vào (fail-closed). Mã admin KHÔNG mở được resource này.
 - [ ] **A37. Tài khoản Google trong `SUPPORT_EMAILS` là chìa khoá chung** — mất một cái là
-      đặt lại được mật khẩu mọi khách. Phải bật xác minh 2 bước cho từng tài khoản (ngoài repo).
+      đặt lại được mật khẩu mọi khách, và (A41) bật gói trả phí cho thiệp bất kỳ mà không thu
+      tiền. Phải bật xác minh 2 bước cho từng tài khoản (ngoài repo).
+- [x] **A41. Thanh toán hộ (`wedding-admin?resource=support-pay`, 2026-11-02, chưa deploy).**
+      Nhân viên xác nhận "đã nhận tiền" → thiệp `completed` + gói, KHÔNG qua PayOS. Chốt quyền
+      dùng chung với `accounts` (cùng nhánh ở `index.ts`, mã admin không mở được). Client chỉ gửi
+      `id` + `plan` + số tiền thực nhận; gói được phép và hạn gói tính lại ở server bằng
+      `quotePlans`/`planExpiry` (chỉ NÂNG, không mua lại gói đang có). Lệnh ghi khoá theo trạng thái
+      vừa đọc nên bấm hai lần/hai người cùng lúc không áp hai lần. Mỗi lượt ghi `payment_logs`
+      (`event_type completed`, `payload.by` = email nhân viên, `manual: true`) + Axiom
+      `support_pay.confirmed` — đó là sổ duy nhất để đối soát, vì tiền không qua cổng nào.
 - [x] **A38. Toast chạy mã chèn qua link (có từ trước luồng này).** `showToast` (`alert.js`)
       gán `innerHTML`, `auth-ui.js` đổ thẳng `?error_description=` của URL và tên khách
       (`full_name`, khách tự sửa được) vào toast; CSP có `'unsafe-inline'` nên `onerror=` chạy →

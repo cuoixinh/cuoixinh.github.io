@@ -1930,8 +1930,9 @@ button.cx-add-tile-sm {
   @apply mb-1 block text-xs font-medium text-gray-600;
 }
 
-/* Icon lịch trong ô Thời gian chỉ dùng khi ô ra nằm trên trục (container ≥ 640px). */
-.cx-ls-date-ico {
+/* Icon lịch trong ô Thời gian chỉ dùng khi ô ra nằm trên trục (container ≥ 640px).
+   Hai lớp: `svg.lucide` (inline-block) đặc hiệu hơn một class trần, ẩn không nổi. */
+.cx-ls-date .cx-ls-date-ico {
   display: none;
 }
 
@@ -2042,7 +2043,7 @@ button.cx-ls-thumb {
     @apply sr-only;
   }
 
-  .cx-ls-date-ico {
+  .cx-ls-date .cx-ls-date-ico {
     position: absolute;
     left: 12px;
     top: 9px;

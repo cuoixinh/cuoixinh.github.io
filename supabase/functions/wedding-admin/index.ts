@@ -13,6 +13,7 @@ import {
 } from '../_shared/wedding-images.ts'
 import { handleCleanup } from './cleanup.ts'
 import { handleAccounts } from './accounts.ts'
+import { handleSupportPay } from './support-pay.ts'
 import { supportStaffEmail } from '../_shared/support-staff.ts'
 import { findSlugHold, getUniqueSlug } from '../_shared/slug-holds.ts'
 import { applyFreeLimits, currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired, startingPrice } from '../_shared/plans.ts'
@@ -268,9 +269,9 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     return handleCleanup(req, url, supabase, log, corsHeaders)
   }
 
-  // ============= TÀI KHOẢN CƯỚI XINH (trang /admin-support) — xem ./accounts.ts =============
+  // ============= TRANG /admin-support — xem ./accounts.ts, ./support-pay.ts =============
   // Quyền là phiên Google của nhân viên trong SUPPORT_EMAILS, KHÔNG phải mã admin.
-  if (resource === 'accounts') {
+  if (resource === 'accounts' || resource === 'support-pay') {
     const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim()
     if (!jwt || jwt === Deno.env.get('SUPABASE_ANON_KEY')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
@@ -281,10 +282,12 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
     const staff = supportStaffEmail(au.user, jwt)
     if (!staff) {
-      log.warn('account.forbidden', { user_id: au.user.id })
+      log.warn('support.forbidden', { user_id: au.user.id, resource })
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders })
     }
-    return handleAccounts(req, supabase, log, corsHeaders, staff)
+    return resource === 'accounts'
+      ? handleAccounts(req, supabase, log, corsHeaders, staff)
+      : handleSupportPay(req, url, supabase, log, corsHeaders, staff)
   }
 
   // ============= TEMPLATES MANAGEMENT =============

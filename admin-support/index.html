@@ -25,7 +25,7 @@
     <script src="/core/helpers/no-inspect.js"></script>
   </head>
   <body class="font-inter text-gray-800 bg-gray-50 min-h-screen">
-    <!-- Trang của nhân viên hỗ trợ: tạo tài khoản Cưới Xinh cho khách. Vào bằng Google, quyền
+    <!-- Trang của nhân viên hỗ trợ: thanh toán hộ + tạo tài khoản Cưới Xinh cho khách. Vào bằng Google, quyền
          thật là danh sách SUPPORT_EMAILS ở supabase/functions/_shared/support-staff.ts. -->
     <main class="mx-auto max-w-5xl px-4 py-6 sm:px-6 space-y-4">
       <header class="flex items-center justify-between gap-3">
@@ -57,6 +57,24 @@
 
       <!-- Đã có quyền -->
       <div id="sup-app" class="hidden space-y-4">
+        <!-- Thanh toán hộ: khách chuyển khoản thẳng / trả tiền mặt → nhân viên xác nhận (support-pay.ts) -->
+        <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="p-4 sm:p-6 border-b border-gray-100">
+            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Thanh toán hộ</h2>
+            <p class="text-xs text-gray-500 mt-1">
+              Khách chuyển khoản thẳng hoặc trả tiền mặt cho mình. <strong>Kiểm tra đã nhận đủ tiền</strong> rồi mới xác nhận:
+              không qua PayOS nên không có đối soát tự động, mọi lượt đều ghi lại email người xác nhận.
+            </p>
+          </div>
+          <div class="p-4 sm:p-6 flex flex-col sm:flex-row gap-3">
+            <input id="pay-slug" type="text" placeholder="Dán link thiệp hoặc slug, vd. cuoixinh.com/lan-minh" autocomplete="off" spellcheck="false" autocapitalize="none"
+              onkeydown="if (event.key === 'Enter') payLookup()"
+              class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+            <x-button id="pay-lookup-btn" variant="outline" icon="search" onclick="payLookup()">Tra thiệp</x-button>
+          </div>
+          <div id="pay-result" class="hidden px-4 sm:px-6 pb-4 sm:pb-6"></div>
+        </section>
+
         <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div class="p-4 sm:p-6 border-b border-gray-100">
             <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo tài khoản cho khách</h2>

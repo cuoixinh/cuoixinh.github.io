@@ -14,10 +14,12 @@ class AccError extends Error {
   }
 }
 
-async function accRequest(method, payload) {
+// `query`: tham số thêm vào URL (GET); `payload`: thân JSON.
+async function supRequest(resource, method, { query, payload } = {}) {
   const token = await CXAuth.accessToken();
   if (!token) throw new AccError("Chưa đăng nhập", 401);
-  const res = await fetch(`${CONFIG.supabase.edgeUrl}?resource=accounts`, {
+  const qs = new URLSearchParams({ resource, ...(query || {}) });
+  const res = await fetch(`${CONFIG.supabase.edgeUrl}?${qs}`, {
     method,
     headers: {
       apikey: CONFIG.supabase.anonKey,
@@ -30,6 +32,8 @@ async function accRequest(method, payload) {
   if (!res.ok) throw new AccError(data.error || `Lỗi ${res.status}`, res.status);
   return data;
 }
+
+const accRequest = (method, payload) => supRequest("accounts", method, { payload });
 
 function supShow(id) {
   ["sup-loading", "sup-gate", "sup-app"].forEach((x) =>
@@ -153,6 +157,134 @@ async function accReset(id, username) {
     showToast("Đã đặt lại mật khẩu", "success");
   } catch (e) {
     showAlert("Không đặt lại được", e.message);
+  }
+}
+
+// ── Thanh toán hộ (wedding-admin?resource=support-pay) ──────────────────────
+// Server tự tính gói được phép + giá; trang chỉ hiện báo giá và gửi gói + số tiền thực nhận.
+
+let payWedding = null;
+const payMoney = (n) => `${Number(n || 0).toLocaleString("vi-VN")}đ`;
+const payDate = (t) => (t ? new Date(t).toLocaleDateString("vi-VN") : "");
+
+function payStatusText(w) {
+  if (!w.current_plan) return w.payment_status === "pending" ? "Chưa thanh toán (có đơn PayOS đang chờ)" : "Chưa thanh toán";
+  const label = w.current_plan === "lifetime" ? "Forever" : "Premium";
+  if (!w.plan_expires_at) return `Đã thanh toán — gói ${label}`;
+  const over = new Date(w.plan_expires_at).getTime() < Date.now();
+  return `Đã thanh toán — gói ${label}, ${over ? "đã hết hạn" : "hạn tới"} ${payDate(w.plan_expires_at)}`;
+}
+
+async function payLookup() {
+  const input = document.getElementById("pay-slug");
+  const box = document.getElementById("pay-result");
+  const btn = document.getElementById("pay-lookup-btn");
+  if (!input.value.trim()) return showToast("Dán link thiệp hoặc slug", "error");
+  btn.disabled = true;
+  try {
+    payWedding = await supRequest("support-pay", "GET", { query: { slug: input.value.trim() } });
+    payRender();
+  } catch (e) {
+    payWedding = null;
+    box.classList.remove("hidden");
+    box.innerHTML = `<p class="text-sm text-red-500">${escapeHtml(e.message)}</p>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function payRender() {
+  const w = payWedding;
+  const box = document.getElementById("pay-result");
+  box.classList.remove("hidden");
+  const plans = w.plans.filter((p) => p.available);
+  const first = plans[0];
+  const planRows = plans
+    .map(
+      (p, i) => `
+      <label class="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 cursor-pointer hover:border-rose-300">
+        <input type="radio" name="pay-plan" value="${escapeHtml(p.id)}" data-amount="${p.amount}" ${i === 0 ? "checked" : ""}
+          onchange="document.getElementById('pay-amount').value = this.dataset.amount" class="accent-rose-500" />
+        <span class="flex-1 text-sm text-gray-800">
+          <strong>${escapeHtml(p.label)}</strong>${p.expires_at ? ` · tới ${payDate(p.expires_at)}` : " · vĩnh viễn"}
+          ${w.current_plan ? '<span class="text-[11px] text-gray-400">(nâng gói, phần chênh)</span>' : ""}
+        </span>
+        <span class="text-sm font-semibold text-gray-800">${payMoney(p.amount)}</span>
+      </label>`,
+    )
+    .join("");
+
+  box.innerHTML = `
+    <div class="rounded-xl border border-gray-200 p-4 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+        <p><span class="text-gray-500">Thiệp:</span> <strong>${escapeHtml(w.couple || "(chưa có tên)")}</strong></p>
+        <p><span class="text-gray-500">Link:</span> <a href="${escapeHtml(ACC_SITE)}/${escapeHtml(w.slug)}" target="_blank" rel="noopener" class="text-rose-600 underline">/${escapeHtml(w.slug)}</a>${w.is_published ? "" : ' <span class="text-[11px] text-amber-600">(chưa xuất bản)</span>'}</p>
+        <p><span class="text-gray-500">Chủ thiệp:</span> ${escapeHtml(w.owner || "—")}</p>
+        <p><span class="text-gray-500">Mẫu:</span> ${escapeHtml(w.theme || "—")}</p>
+        <p class="sm:col-span-2"><span class="text-gray-500">Trạng thái:</span> ${escapeHtml(payStatusText(w))}</p>
+      </div>
+      ${
+        w.pending_payos
+          ? `<p class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+              Thiệp đang có một đơn PayOS chờ thanh toán. Xác nhận ở đây là đơn đó bị bỏ — dặn khách KHÔNG quét mã QR cũ nữa,
+              quét rồi thì tiền vào mà thiệp không ghi nhận.
+            </p>`
+          : ""
+      }
+      ${
+        plans.length
+          ? `<div class="space-y-2">
+              <p class="text-xs font-medium text-gray-600">Gói đã thu tiền</p>
+              ${planRows}
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Số tiền thực nhận (đ)</label>
+                <input id="pay-amount" type="number" min="0" step="1000" value="${first.amount}"
+                  class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+                <p class="text-[11px] text-gray-400 mt-1">Chỉ để ghi sổ; giảm tay cho khách thì sửa ở đây</p>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Ghi chú</label>
+                <input id="pay-note" type="text" maxlength="300" placeholder="vd. CK Vietcombank 14:20, nội dung LAN MINH"
+                  class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+              </div>
+            </div>
+            <x-button id="pay-confirm-btn" icon="badge-check" onclick="payConfirm()">Xác nhận đã nhận tiền</x-button>`
+          : `<p class="text-sm text-gray-500">${
+              w.plans.length ? "Thiệp đã ở gói cao nhất, không còn gói nào để nâng." : "Mẫu này chưa có giá nên không xác nhận được."
+            }</p>`
+      }
+    </div>`;
+  window.lucide?.createIcons({ root: box });
+}
+
+async function payConfirm() {
+  const w = payWedding;
+  const picked = document.querySelector('input[name="pay-plan"]:checked');
+  if (!w || !picked) return;
+  const amount = Number(document.getElementById("pay-amount").value);
+  if (!Number.isInteger(amount) || amount < 0) return showToast("Số tiền không hợp lệ", "error");
+  const plan = w.plans.find((p) => p.id === picked.value);
+  const ok = await showConfirm(
+    "Xác nhận đã nhận tiền?",
+    `Thiệp ${w.couple || w.slug} lên gói ${plan.label}, đã nhận ${payMoney(amount)}` +
+      (amount !== plan.amount ? ` (giá gói ${payMoney(plan.amount)})` : "") +
+      ". Thao tác này không hoàn tác được ở đây.",
+    { confirmText: "Xác nhận" },
+  );
+  if (!ok) return;
+  const btn = document.getElementById("pay-confirm-btn");
+  btn.disabled = true;
+  try {
+    await supRequest("support-pay", "POST", {
+      payload: { id: w.id, plan: plan.id, amount, note: document.getElementById("pay-note").value.trim() },
+    });
+    showToast(`Đã chuyển thiệp sang gói ${plan.label}`, "success");
+    payLookup();
+  } catch (e) {
+    showAlert("Không xác nhận được", e.message);
+    btn.disabled = false;
   }
 }
 
