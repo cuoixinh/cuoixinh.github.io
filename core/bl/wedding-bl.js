@@ -26,7 +26,29 @@ class WeddingBL {
       throw new Error("Wedding not found");
     }
 
-    return this.processWeddingData(data);
+    return this._focalByUrl(this.processWeddingData(data));
+  }
+
+  // Thiệp tra điểm nhìn album theo phần tử của `gallery_images` (đã thành URL đầy đủ),
+  // còn DB khoá theo đường dẫn kho → đổi khoá sang URL. CHỈ ở đường đọc ?slug=: trình
+  // chỉnh sửa giữ khoá đường dẫn kho, đổi ở đó là lần lưu sau ghi đè điểm nhìn về 50/50.
+  _focalByUrl(w) {
+    let fp = w.image_focal_points;
+    if (typeof fp === "string") {
+      try {
+        fp = JSON.parse(fp);
+      } catch (e) {
+        return w;
+      }
+    }
+    const gallery = fp?.gallery_images;
+    if (!gallery || typeof gallery !== "object" || Array.isArray(gallery)) return w;
+    const byUrl = {};
+    Object.entries(gallery).forEach(([key, p]) => {
+      byUrl[this.storage.getPublicUrl(key)] = p;
+    });
+    w.image_focal_points = { ...fp, gallery_images: byUrl };
+    return w;
   }
 
   // Một máy mở lại cùng thiệp trong VIEW_DEDUPE_MS chỉ tính một lượt (tải lại trang,
