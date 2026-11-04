@@ -504,7 +504,11 @@ function _fillForm(data) {
                 p && typeof p.x === "number" && typeof p.y === "number",
             )
           : [];
-      pendingFocalPoints.gallery_images = new Map(entries);
+      // Album trong form là URL đầy đủ (processWeddingData), còn DB có thể khoá theo
+      // đường dẫn kho → đổi khoá về đúng dạng đó, lệch là lần lưu sau ghi đè về 50/50.
+      pendingFocalPoints.gallery_images = new Map(
+        entries.map(([k, p]) => [getImageUrl(k), p]),
+      );
     }
   }
 
