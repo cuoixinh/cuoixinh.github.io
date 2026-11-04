@@ -13,7 +13,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.11.04-1";
+const CX_VERSION = "2026.11.04-2";
  
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -210,11 +210,6 @@ const CONFIG = {
   // sửa được; số ở đây chỉ để UI chặn sớm và hiện "x/3" — đổi một bên phải đổi cả
   // bên kia.
   maxWeddings: 3,
-
-  // Ngày cưới chỉ chọn được trong vòng ngần này tháng (bảng chọn làm mờ ngày quá trần).
-  // Chốt THẬT là MAX_DATE_AHEAD_MONTHS ở supabase/functions/_shared/wedding-ended.ts — đổi
-  // một bên phải đổi cả bên kia.
-  maxWeddingMonthsAhead: 6,
 
   // Love Story
   maxLoveStoryItems: 10,

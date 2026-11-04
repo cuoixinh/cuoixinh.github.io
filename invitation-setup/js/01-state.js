@@ -62,10 +62,6 @@ let VIEW_LIMIT = null;
 // thao tác chắc chắn hỏng — chốt thật nằm ở Edge Function.
 let IS_THEME_LOCKED = false;
 
-// Đám cưới đã diễn ra (thiệp đã xuất bản) → wedding-admin PATCH trả 409 WEDDING_ENDED. Cờ dữ liệu
-// do server tính (edit_locked); trang chuyển chỉ xem (_syncEditLock ở 13-data.js).
-let IS_EDIT_LOCKED = false;
-
 // Gán cờ và vẽ lại UI phụ thuộc phiên NGAY khi giá trị đổi. Mọi lối cập nhật cờ
 // đều đi qua đây — trước kia có nhánh chỉ gán cờ mà quên vẽ lại, nên phát hiện
 // mất phiên rồi mà nút vẫn còn nhãn "Lưu & Xuất bản".

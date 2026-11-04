@@ -1689,9 +1689,9 @@ async function initWishes(wedding) {
     }
 
     // Khách link riêng: dựng vỏ trước rồi mới nạp (mount của danh sách nằm trong
-    // chính vỏ). Khách vãn lai — và mọi khách khi đám cưới đã diễn ra — chỉ đọc →
-    // nạp trước, chưa có lời chúc nào thì bỏ hẳn mục, khỏi hiện một khung rỗng rồi mới gỡ.
-    const guest = window.CX_WEDDING_ENDED ? null : window.CX_GUEST;
+    // chính vỏ). Khách vãn lai chỉ đọc → nạp trước, chưa có lời chúc nào thì bỏ
+    // hẳn mục, khỏi hiện một khung rỗng rồi mới gỡ.
+    const guest = window.CX_GUEST;
     if (guest) {
       _cxWishMount(true);
       applyWishStyle();

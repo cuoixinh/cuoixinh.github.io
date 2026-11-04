@@ -2,7 +2,6 @@ import type { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
 import { currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired } from '../_shared/plans.ts'
-import { isOwnerLocked, isWeddingEnded, WEDDING_DATE_SELECT, WEDDING_ENDED } from '../_shared/wedding-ended.ts'
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*' (danh sách giống ai-invitation). CORS chỉ ràng
@@ -213,9 +212,9 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
   // 4xx là lỗi của phía gọi (thiếu trường, sai quyền) — chuyện thường, không log.
   // 5xx thì luôn là DB/hệ thống hỏng: log để Axiom thấy, vì mọi đường ghi khách
   // mời đều thoát qua đây và không chỗ nào tự log.
-  function fail(message: string, status = 400, code?: string) {
+  function fail(message: string, status = 400) {
     if (status >= 500) log.error('guest.db_failed', { action, message })
-    return new Response(JSON.stringify(code ? { error: message, code } : { error: message }), {
+    return new Response(JSON.stringify({ error: message }), {
       status,
       headers: { ...CORS, 'Content-Type': 'application/json' },
     })
@@ -259,10 +258,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
   type Access = {
     role: 'admin' | 'owner' | 'member'
     side: 'groom' | 'bride' | null // thành viên chỉ quản lý bên này; null = cả hai
-    wedding: {
-      user_id: string | null; payment_status: string | null; free_side: string | null; is_active: boolean | null
-      is_published: boolean | null; [date: string]: unknown
-    } | null
+    wedding: { user_id: string | null; payment_status: string | null; free_side: string | null; is_active: boolean | null } | null
   }
 
   // Ai được quản lý khách mời của thiệp: admin, chủ thiệp (weddings.user_id), hoặc thành
@@ -274,7 +270,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const { data: wedding, error } = await supabase
       .from('weddings')
-      .select(`user_id, payment_status, free_side, is_active, is_published, ${WEDDING_DATE_SELECT}`)
+      .select('user_id, payment_status, free_side, is_active')
       .eq('id', wedding_id)
       .maybeSingle()
     if (error) {
@@ -319,12 +315,6 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     return fail('Bạn không có quyền quản lý khách mời của thiệp này', 403)
   }
 
-  // Qua ngày cưới: mọi lượt GHI khách mời của chủ/thành viên bị khoá (admin thì không).
-  function denyEnded(a: Access): Response | null {
-    if (a.role === 'admin' || !a.wedding || !isOwnerLocked(a.wedding)) return null
-    return fail('Đám cưới đã diễn ra nên danh sách khách mời không chỉnh sửa được nữa.', 409, WEDDING_ENDED)
-  }
-
   const SIDE_NAME: Record<string, string> = { groom: 'nhà trai', bride: 'nhà gái' }
   // Thành viên giới hạn một bên mà đụng sang bên kia → 403.
   function denySide(a: Access, side: unknown): Response | null {
@@ -350,8 +340,6 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const a = await authorize(weddingIds[0])
     if (a instanceof Response) return a
-    const ended = denyEnded(a)
-    if (ended) return ended
     for (const r of rows) {
       const d = denySide(a, r.side)
       if (d) return d
@@ -522,8 +510,6 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         // Trang Khách mời: owner thấy nút Thành viên; member chỉ thấy bên member_side.
         role: access.role,
         member_side: access.side,
-        // Qua ngày cưới: trang Khách mời chuyển chỉ xem (server vẫn tự chặn ghi).
-        edit_locked: access.role !== 'admin' && !!access.wedding && isOwnerLocked(access.wedding),
       })
     }
 
@@ -675,7 +661,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select(`id, enable_wishes, ${WEDDING_DATE_SELECT}`)
+      .select('id, enable_wishes')
       .eq('slug', slug)
       .maybeSingle()
 
@@ -685,7 +671,6 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     }
     if (!wedding) return fail('Thiệp không tồn tại', 404)
     if (wedding.enable_wishes === false) return fail('Thiệp này đang tắt phần lời chúc', 403)
-    if (isWeddingEnded(wedding)) return fail('Đám cưới đã diễn ra, thiệp không nhận thêm lời chúc', 403, WEDDING_ENDED)
 
     const { error: listErr, guest } = await findPublicGuest(
       supabase, wedding.id, who,
@@ -735,7 +720,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select(`id, ${WEDDING_DATE_SELECT}`)
+      .select('id')
       .eq('slug', slug)
       .maybeSingle()
 
@@ -753,8 +738,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       return ok({ matched: false })
     }
 
-    // Qua ngày cưới thì không ghi gì nữa, nhưng vẫn trả tên + xưng hô để link riêng hiện đúng lời mời.
-    if (!guest.viewed && !isWeddingEnded(wedding)) {
+    if (!guest.viewed) {
       const { error: upErr } = await supabase
         .from('guests')
         .update({ viewed: true, viewed_at: new Date().toISOString() })
@@ -786,13 +770,12 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select(`id, ${WEDDING_DATE_SELECT}`)
+      .select('id')
       .eq('slug', slug)
       .maybeSingle()
 
     if (wErr) return fail(wErr.message, 500)
     if (!wedding) return fail('Thiệp không tồn tại', 404)
-    if (isWeddingEnded(wedding)) return fail('Đám cưới đã diễn ra, không nhận xác nhận tham dự nữa', 403, WEDDING_ENDED)
 
     const { error: listErr, guest } = await findPublicGuest(
       supabase, wedding.id, who,
@@ -841,10 +824,6 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       return ok({ removed: true })
     }
 
-    // Gỡ người cùng quản lý vẫn được sau ngày cưới (thu quyền), mời thêm thì không.
-    const ended = denyEnded(access)
-    if (ended) return ended
-
     if (access.wedding && isFreePlan(access.wedding)) {
       return fail('Gói Free không chia sẻ được quyền quản lý. Nâng gói để mời người cùng quản lý khách mời.', 403)
     }
@@ -878,8 +857,6 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (access instanceof Response) return access
     const sideDenied = denySide(access, side)
     if (sideDenied) return sideDenied
-    const ended = denyEnded(access)
-    if (ended) return ended
 
     // Xác nhận wedding tồn tại + lấy trạng thái thanh toán để chọn trần. Đọc hỏng là
     // dừng: đoán sai trần là mở rộng giới hạn cho thiệp chưa thanh toán.

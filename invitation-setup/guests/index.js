@@ -40,7 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("getWedding error:", e);
   }
   _applySideLock();
-  _applyEditLock();
   _syncTopSub(w);
   const only = _lockedSide();
   await Promise.all((only ? [only] : ["groom", "bride"]).map((s) => loadGuestList(s)));
@@ -63,24 +62,6 @@ function _applySideLock() {
 }
 
 
-// Đám cưới đã diễn ra (guest-handler trả edit_locked): chỉ xem. Ẩn thanh thao
-// tác, chặn sửa/menu từng hàng ở dưới — server vẫn tự từ chối mọi lượt ghi.
-const GS_EDIT_LOCKED_MSG = "Đám cưới đã diễn ra nên danh sách khách mời không chỉnh sửa được nữa.";
-function _applyEditLock() {
-  if (!_wedding?.edit_locked) return;
-  // Inline: .gs-actions tự khai display ở _setup.css, đè được class .hidden.
-  const acts = document.querySelector(".gs-actions");
-  if (acts) acts.style.display = "none";
-  const tb = document.querySelector(".gs-toolbar");
-  if (tb && !document.getElementById("gs-edit-locked")) {
-    const note = document.createElement("p");
-    note.id = "gs-edit-locked";
-    note.className = "w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800";
-    note.textContent = GS_EDIT_LOCKED_MSG;
-    tb.after(note);
-  }
-}
-
 // Event delegation cho nút trong danh sách (tránh inline onclick với dữ liệu user)
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-action]");
@@ -89,12 +70,6 @@ document.addEventListener("click", (e) => {
   const link   = btn.dataset.link;
   const guestId = btn.dataset.guestId;
   const side    = btn.dataset.side;
-
-  if (_wedding?.edit_locked && (action === "edit" || action === "menu")) {
-    e.stopPropagation();
-    showToast(GS_EDIT_LOCKED_MSG, "warning");
-    return;
-  }
 
   if (action === "copy" && link)         { e.stopPropagation(); copyGuestLink(link); }
   if (action === "share" && guestId)     { e.stopPropagation(); _openShareModal(guestId, side); }

@@ -95,12 +95,6 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     }
     await guestReady;
 
-    // Qua ngày cưới: khách chỉ còn xem — ẩn xác nhận tham dự (cờ trên <html>, xem
-    // _common.css), lời chúc chỉ đọc. Xét TRƯỚC cxVuQuyAsCeremony vì nó đè ngày lễ.
-    window.CX_WEDDING_ENDED =
-      !isPreviewMode() && typeof cxWeddingEnded === "function" && cxWeddingEnded(wedding);
-    document.documentElement.classList.toggle("cx-wedding-ended", window.CX_WEDDING_ENDED);
-
     wedding = cxVuQuyAsCeremony(wedding);
 
     // Áp dụng tuỳ chỉnh font/màu chữ (nếu có) trước khi render

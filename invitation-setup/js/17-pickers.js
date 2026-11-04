@@ -67,14 +67,6 @@ window._weddingFpOptions = function (input) {
     onReady: function (selectedDates, dateStr, instance) {
       instance.altInput.placeholder = "Chọn ngày...";
     },
-    // Ngày quá CONFIG.maxWeddingMonthsAhead tháng không bấm được (chốt thật: DATE_TOO_FAR ở
-    // wedding-admin). Làm mờ bằng class chứ KHÔNG dùng maxDate: maxDate khiến setDate lúc
-    // nạp thiệp / AI điền lặng lẽ bỏ ngày đã lưu nằm ngoài trần.
-    onDayCreate: function (selectedDates, dateStr, instance, dayElem) {
-      const limit = new Date();
-      limit.setMonth(limit.getMonth() + CONFIG.maxWeddingMonthsAhead);
-      if (dayElem.dateObj > limit) dayElem.classList.add("flatpickr-disabled");
-    },
     onChange: function (selectedDates, dateStr, instance) {
       const event = new Event("change", { bubbles: true });
       input.dispatchEvent(event);

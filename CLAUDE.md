@@ -756,10 +756,6 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   Miễn phí. Quyền chỉ kiểm ở `authorize` của `guest-handler`; thêm thao tác khách mời mới
   phải đi qua đó (và `denySide`). Mời/gỡ ở thẻ thiệp của `/guest-list/`
   (`core/helpers/member-sheet.js`); thiệp được mời cũng hiện ở đó (`action=shared`).
-- **Sau ngày cưới là CHỐT thiệp** (mọi gói, khách lẫn chủ thiệp cùng lúc): mốc + trần dời
-  ngày ở `supabase/functions/_shared/wedding-ended.ts` (bản sao cho giao diện: `cxWeddingEnded`
-  ở `core/bl/wedding-bl.js`, `CONFIG.maxWeddingMonthsAhead`). Thêm cột ngày sự kiện mới phải khai ở CẢ HAI, thêm đường ghi mới
-  (khách mời: qua `denyEnded`; thiệp: PATCH) phải hỏi qua đó — sót là còn đường sửa thiệp đã chốt.
 - **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán, thiệp hết hạn gói
   Premium và nháp bỏ quên bị cron xoá vĩnh viễn; thiệp hết hạn dùng thử/hết hạn gói bị khoá
   với khách mời. Số ngày ở `CONFIG.retention` **và**
