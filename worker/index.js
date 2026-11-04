@@ -424,7 +424,8 @@ async function decryptGuestParam(env, url, key) {
   const raw = url.searchParams.get(key);
   if (!raw || !env.ENCRYPTION_KEY) return "";
   try {
-    const blob = base64ToBytes(decodeURIComponent(raw));
+    // `+` trần trên link (bị giải mã khi copy/dán) bị đọc thành dấu cách — trả lại `+`.
+    const blob = base64ToBytes(decodeURIComponent(raw).replace(/ /g, "+"));
     // 8 byte "Salted__" + 8 byte salt + ít nhất một khối 16 byte
     if (blob.length < 32) return "";
     const salt = blob.slice(8, 16);
