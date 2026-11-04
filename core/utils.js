@@ -277,7 +277,9 @@ function encryptData(text) {
 function decryptData(encryptedText) {
   if (!encryptedText) return "";
   try {
-    const decoded = decodeURIComponent(encryptedText);
+    // Link bị giải mã một lớp khi copy/dán (Zalo, Messenger…) thì `%2B` thành `+` trần, và
+    // URLSearchParams đọc `+` thành dấu cách — base64 không có dấu cách nên trả lại `+`.
+    const decoded = decodeURIComponent(encryptedText).replace(/ /g, "+");
     const decrypted = CryptoJS.AES.decrypt(decoded, ENCRYPTION_KEY);
     return decrypted.toString(CryptoJS.enc.Utf8);
   } catch (error) {
