@@ -39,16 +39,16 @@
       }
     },
     "cover_image_url": {
-      "x": 54,
-      "y": 42
+      "x": 81,
+      "y": 34
     },
     "groom_image_url": {
       "x": 2,
       "y": 48
     },
     "bride_image_url": {
-      "x": 65,
-      "y": 34
+      "x": 41,
+      "y": 44
     }
   },
   "cover_image_url": "cover.webp",
@@ -208,5 +208,5 @@
       }
     ]
   },
-  "updated_at": "2026-11-05T15:32:45.254Z"
+  "updated_at": "2026-11-05T16:38:05.591Z"
 }
