@@ -73,8 +73,8 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 
   | Build    | Config                      | Nguồn → Kết quả                  | Trang dùng                                                                   |
   | -------- | --------------------------- | -------------------------------- | ---------------------------------------------------------------------------- |
-  | Ứng dụng | `tailwind.config.js`        | `tailwind-src.css` → `build.css` | `index`, `admin/`, `invitation-setup/`, `my-invitations/`, `guest-list/`, `theme-template/` |
-  | Thiệp    | `tailwind.themes.config.js` | `themes-src.css` → `themes.css`  | `public/themes/*`                                                            |
+  | Ứng dụng | `tailwind.config.js`        | `tailwind-src.css` → `build.css` | `index`, `admin/`, `invitation-setup/`, `my-invitations/`, `guest-list/`, `theme-template/`, `slide-cuoi/` |
+  | Thiệp    | `tailwind.themes.config.js` | `themes-src.css` → `themes.css`  | `public/themes/*`, `slide-cuoi/templates/*`                                  |
 
 - Thêm thư mục/trang mới → **thêm vào `content`** của config tương ứng, không thì bị purge.
 - **Không ghép tên class từ chuỗi** (`` `bg-${c}` ``) — purge quét văn bản thô.
@@ -624,6 +624,16 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   cho dải "Mẫu thiệp" ở trang chủ và lưới `/theme-template`, sửa hình thức thẻ là sửa một
   chỗ. Hành vi gắn bằng `bind(khung, {onPreview,onUse,onFav})` (uỷ quyền sự kiện), đừng
   viết `onclick` vào markup.
+- **Slide cưới (`slide-cuoi/`):** mẫu slide ở `templates/<id>/` chỉ KHAI cảnh dưới dạng dữ
+  liệu (`CX_SLIDE.scenes`); vẽ bằng canvas ở `engine/slide-engine.js` — xem trước, trình chiếu
+  và xuất MP4 1080p/4K (`engine/slide-export.js`, WebCodecs, chạy trên máy khách) dùng CHUNG
+  bộ vẽ đó, đừng vẽ riêng cho một bên. Trang cha lấy thiệp (mọi thiệp của tài khoản) rồi
+  `postMessage` vào iframe — mẫu không tự gọi API. Mọi chữ trên slide phải sửa được ở mục
+  "Chữ trong slide" (khoá gán ở `_scene` của mẫu), chữ sửa CHỈ lưu localStorage. Mục menu
+  ẩn/hiện bằng `CONFIG.features.slides` (navbar khai `feature: "slides"`, trang nào có mục đó
+  phải nạp `config.js` TRƯỚC navbar) — chỉ ẩn lối vào, URL vẫn mở được. Ảnh phải tải `crossOrigin="anonymous"`,
+  thiếu là không xuất được video. Slide là màn SÂN KHẤU, không phải bản sao thiệp. Xem
+  `docs/PLAN-slide-cuoi.md`.
 - **Trình phát nhạc:** markup ở `core/components/music-player.js`, logic ở
   `music-player-helper.js` — theme chỉ đánh dấu vai trò bằng `data-cx-music="…"`.
   Có 6 dạng (`bar` · `mini` · `pill` · `square` · `disc` · `ring`); mẫu KHAI dạng

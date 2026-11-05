@@ -13,7 +13,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.11.04-4";
+const CX_VERSION = "2026.11.05-1";
  
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -210,6 +210,12 @@ const CONFIG = {
   // sửa được; số ở đây chỉ để UI chặn sớm và hiện "x/3" — đổi một bên phải đổi cả
   // bên kia.
   maxWeddings: 3,
+
+  // Bật/tắt mục MENU của từng phân hệ (navbar + menu trang chủ). Chỉ ẩn lối vào —
+  // trang vẫn mở được bằng URL. Mục navbar khai `feature: "<khoá>"` để đi theo cờ này.
+  features: {
+    slides: false, // "Slide cưới" (/slide-cuoi/)
+  },
 
   // Love Story
   maxLoveStoryItems: 10,

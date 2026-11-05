@@ -1,9 +1,82 @@
 # Plan: Phân hệ "Slide cưới" (video trình chiếu ảnh cưới)
 
-> Trạng thái: trang `/slide-cuoi/` "Sắp ra mắt" đã có nhưng **mục menu đang ẨN** (chỉ vào
-> được bằng URL) — mở lại khi ra mắt P1. P1 trở đi chờ chốt các câu hỏi ở cuối file.
+> **Hướng hiện tại (chốt 2026-11-05):** chưa làm trình tạo slide từ ảnh của khách. Thay vào đó
+> là **mẫu slide dựng sẵn** (phong cách do mình thiết kế) chạy bằng **dữ liệu của thiệp thật**:
+> khách chọn mẫu → tích "Lấy dữ liệu từ thiệp của bạn" (mọi thiệp của tài khoản, KHÔNG xét
+> thanh toán) → xem trước / trình chiếu toàn màn. Không tích thì slide chạy dữ liệu mẫu.
+> Cái bán sau này là **mẫu slide**: mẫu đẹp thu phí, mẫu miễn phí là mẫu đơn giản.
+>
+> Slide là màn **chiếu lên sân khấu tiệc cưới**, KHÔNG phải bản sao thiệp: từ thiệp chỉ lấy
+> ảnh cưới, họ tên, ngày cưới, cha mẹ, chuyện tình; lời văn là của mẫu (lời chú rể / cô dâu
+> gửi quan khách, gửi cha mẹ, lời cảm ơn). Bố cục: **ảnh một bên, chữ một bên**.
+> Xưng hô trong lời văn: cô dâu, chú rể nói với quan khách và cha mẹ thì xưng **"con"**; chú rể
+> nói với cô dâu là **"anh"**, cô dâu nói với chú rể là **"em"**. **Không chèn họ tên vào lời văn**
+> — tên chỉ đứng riêng ở cảnh mở đầu.
+> Mẫu đầu tiên: `templates/romantic-blush/` ("Mãi mãi về sau") — 16:9, mượn bảng màu + bộ chữ
+> của mẫu thiệp romantic-blush.
+>
+> **Vẽ bằng canvas + xuất video bằng WebCodecs (chốt 2026-11-06)**, chạy trọn trên máy khách:
+> xem trước, trình chiếu và xuất video dùng CÙNG một bộ vẽ nên video ra y hệt bản xem.
+> Đo trên máy dev (Chrome): slide 2 phút 17 giây xuất 1080p mất ~24 giây; 4K nhanh hơn
+> thời lượng thật khoảng 1,7 lần. Phần dưới (§1–§6) là kế hoạch CŨ.
 
-**Mục đích: công cụ MIỄN PHÍ để kéo người truy cập vào trang**, KHÔNG gắn với thiệp cưới.
+### Cấu trúc hiện tại
+
+```
+slide-cuoi/
+  index.html, index.js     Trang chọn mẫu + chọn thiệp, khung xem (iframe), trình chiếu,
+                           xuất video (chọn 1080p/4K, tiến độ, tải về), "Chữ trong slide"
+                           (danh sách cảnh, bấm là chiếu + mở ô sửa chữ của cảnh đó)
+  templates.js             Danh mục mẫu slide (CX_SLIDE_TEMPLATES)
+  engine/slide-engine.js   Bộ vẽ canvas: build(tpl, wedding) → dự án; frame(ctx, P, t) vẽ khung
+                           tại t (thuần theo t). Phần tử: rect · frame · line · image (cover
+                           theo điểm lấy nét, Ken Burns) · text (tự xuống dòng) · group; hiệu
+                           ứng fade · up · left · right · spread · wipe · type (đánh chữ
+                           từng ký tự + con trỏ, dùng cho LỜI NÓI; mẫu tự xếp các đoạn
+                           gõ nối đuôi và giãn thời lượng cảnh theo chữ đã sửa)
+  engine/slide-export.js   Vẽ từng khung 30 hình/giây ở 1920×1080 / 3840×2160 → VideoEncoder
+                           H.264 → vendor/mp4-muxer.js → Blob MP4. Nhạc FILE thì ghép AAC
+  vendor/mp4-muxer.js      mp4-muxer 5.2.2 tự host (MIT) — đừng sửa tay
+  runtime/slide-runtime.*  Bộ phát trong iframe: đồng hồ riêng (tạm dừng = dừng đồng hồ), nhảy
+                           cảnh, thanh điều khiển, nhạc YouTube/mp3, toàn màn hình, xuất video
+  templates/<id>/          Một mẫu = index.html (nạp engine + runtime) + index.js (CX_SLIDE:
+                           khổ, font, scenes(w, L) trả cảnh dưới dạng dữ liệu) + thumb.jpg
+```
+
+- Dữ liệu: trang cha lấy `listMyWeddings` (cả nháp lẫn đã xuất bản) rồi `getWeddingById`
+  (chỉ chủ thiệp) và gửi hàng thiệp vào iframe bằng `postMessage` — mẫu KHÔNG tự gọi API,
+  nên không cần đăng nhập trong iframe.
+- Dữ liệu lấy CHUNG của thiệp (lễ thành hôn), không tách nhà trai / nhà gái.
+- Thiệp được chia sẻ quyền quản lý (thành viên) không hiện: `getWeddingById` chỉ trả cho chủ.
+- Sửa chữ: **mọi chữ hiện trên slide phải sửa được** ở mục "Chữ trong slide" — mỗi khối chữ
+  mẫu khai có khoá `<id cảnh>.<vị trí trong mảng khai>` (cột con thêm `.<cột>.<dòng>`), gán ở
+  `_scene` của mẫu. Trang cha lưu `{khoá: chữ}` ở `localStorage.cx_slide_texts` theo
+  `<mẫu>|<id thiệp hoặc demo>` — **chỉ localStorage, cố ý không lưu lên server**. Sửa thành
+  rỗng là bỏ khối.
+- Tin nhắn iframe ↔ trang cha: `cx-slide-ready` · `cx-slide-data` (thiệp + chữ đã sửa) ·
+  `cx-slide-texts` (chữ đã sửa, dựng lại tại cảnh đang mở) · `cx-slide-state` (danh sách
+  cảnh kèm chữ + cảnh đang chiếu + loại nhạc) · `cx-slide-go` (`pause` = dừng ở cảnh đó,
+  chữ đã hiện đủ) · `cx-slide-full(-state)` · `cx-slide-caps`
+  (máy mã hoá được 1080p/4K không) · `cx-slide-export` / `-cancel` / `-state` (tiến độ, Blob).
+- Ảnh phải tải với `crossOrigin="anonymous"`, thiếu là canvas bị "nhiễm" và VideoFrame từ chối
+  xuất. Supabase Storage và worker proxy ảnh đều trả `Access-Control-Allow-Origin: *`.
+- Font phải tải xong trước khi đo chữ (`CX_SLIDE.fonts`) — canvas không tự đợi font.
+- Nhạc YouTube không ghép được vào video (không lấy được luồng tiếng, trái điều khoản):
+  video xuất ra không tiếng, trang báo trước. Nhạc file (mp3) thì ghép, lặp + mờ vào/ra.
+- Bán mẫu (chưa làm): khoá theo MẪU slide chứ không theo thiệp. Lúc làm thì phải kiểm ở
+  server — chặn ở client là ai cũng mở thẳng `templates/<id>/` được.
+
+### Việc tiếp theo
+
+- Thêm mẫu slide (bộ vẽ nhận `CX_SLIDE.w/h` bất kỳ, khung xem theo `ratio` ở templates.js).
+- Thử xuất trên Safari (macOS/iOS) và điện thoại Android tầm trung; điện thoại 4K dễ hết bộ
+  nhớ — nếu vậy chỉ mở 1080p cho điện thoại.
+- File 4K của slide dài nằm trọn trong RAM (~16 Mbps → slide 2 phút ~270 MB). Slide dài hơn
+  nhiều thì chuyển sang ghi thẳng ra đĩa (StreamTarget + File System Access).
+
+---
+
+**Mục đích (kế hoạch cũ): công cụ MIỄN PHÍ để kéo người truy cập vào trang**, KHÔNG gắn với thiệp cưới.
 Khách chọn ảnh → chọn mẫu slide + nhạc + chữ → xem trước → **xuất video** để đăng mạng xã
 hội, gửi Zalo, chiếu màn LED ở tiệc cưới. Không cần đăng nhập, không trả tiền.
 
@@ -160,9 +233,9 @@ Không có bản trên server, nên không có "mở trên máy khác" — chấ
 
 ## 4. Các giai đoạn
 
-### P0 — Lối vào (ĐÃ LÀM, mục menu đang ẩn)
+### P0 — Lối vào (ĐÃ LÀM)
 - Mục **"Slide cưới"** cạnh "Bảng giá" ở navbar trang chủ + menu màn mở đầu trên điện thoại
-  (`js/hero-menu.js`) — đã gỡ ra, thêm lại lúc ra mắt (nhớ đổi `--hm-cols` về `"3"`).
+  (`js/hero-menu.js`).
 - Trang `/slide-cuoi/` giới thiệu + nhãn "Sắp ra mắt"; khai vào `INCLUDE` của
   `scripts/deploy-public.mjs` và `content` của `tailwind.config.js`.
 

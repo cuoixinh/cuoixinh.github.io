@@ -5,6 +5,8 @@
 module.exports = {
   content: [
     "./public/themes/**/*.{html,js}",
+    // Mẫu slide cưới nạp themes.css (font tự host, lớp của <x-button>) nên đi build này.
+    "./slide-cuoi/templates/**/*.{html,js}",
     // Theme render qua helper dùng chung (loadWeddingData, applyThemeSetting,
     // applyCustomBlocks…) — các file này sinh markup kèm class nên phải quét,
     // nếu không class chỉ xuất hiện trong JS sẽ bị purge.

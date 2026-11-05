@@ -37,9 +37,7 @@ function cxHeroMenu(btn) {
     const n = countEl && !countEl.classList.contains("hidden") ? countEl.textContent : "";
     const go = (href) => () => (location.href = href);
     const loggedIn = !!window.CXAuth?.isLoggedIn?.();
-    // 4 trang thì lưới 2×2, 5 trang thì 3 + 2 — không để ô lẻ trơ một mình.
-    pop.style.setProperty("--hm-cols", loggedIn ? "3" : "2");
-    pop.setItems([
+    const pages = [
       { icon: _cxHeroMenuIcon("home"), label: "Trang chủ", active: true, onClick: go("/") },
       { icon: _cxHeroMenuIcon("layers"), label: "Mẫu thiệp", onClick: go("/theme-template/") },
       { icon: _cxHeroMenuIcon("cart"), label: `${loggedIn ? "Thiệp của tôi" : "Đã chọn"}${n ? ` (${n})` : ""}`, onClick: go("/my-invitations/") },
@@ -52,6 +50,15 @@ function cxHeroMenu(btn) {
         window.flushLazyRender?.();
         document.getElementById("pricing")?.scrollIntoView();
       } },
+      // Theo cờ CONFIG.features.slides — cùng cờ với mục `feature: "slides"` ở navbar.
+      ...(typeof CONFIG === "undefined" || CONFIG.features?.slides !== false
+        ? [{ icon: _cxHeroMenuIcon("film"), label: "Slide cưới", onClick: go("/slide-cuoi/") }]
+        : []),
+    ];
+    // 4 trang thì 2 + 2, 5 thì 3 + 2, 6 thì 3 + 3 — không để ô lẻ trơ một mình.
+    pop.style.setProperty("--hm-cols", pages.length === 4 ? "2" : "3");
+    pop.setItems([
+      ...pages,
       { sep: true },
       // Mục tài khoản ghép thẳng vào menu này (không mở thêm popover chồng lên).
       ...(window.CXAccount?.items?.() || []),
