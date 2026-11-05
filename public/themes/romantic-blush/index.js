@@ -671,9 +671,11 @@
   }
 
   // Tên khách của link mời nằm trên màn bìa. Helper chung điền
-  // #cover-guest-name và tự bật khối này cho link chung/bản xem thử; link riêng (?name=) bật ở đây.
+  // #cover-guest-name và tự bật khối này cho link chung/bản xem thử; link riêng
+  // (?g= mã ngắn, hoặc ?name= link cũ) bật ở đây.
+  const _q = new URLSearchParams(location.search);
   if (
-    new URLSearchParams(location.search).has("name") &&
+    (_q.has("g") || _q.has("name")) &&
     !(typeof isPreviewMode === "function" && isPreviewMode())
   ) {
     // cxToggle nằm ở theme-boot.js (nạp SAU file này) → gỡ class trực tiếp.
