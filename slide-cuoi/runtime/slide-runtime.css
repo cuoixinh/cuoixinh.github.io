@@ -1,0 +1,175 @@
+/* Khung trình chiếu chung của mọi mẫu slide (slide-runtime.js): canvas đúng tỉ lệ mẫu giữa
+   cửa sổ, nền mờ lấy ảnh bìa, thanh tiến độ + nút điều khiển tự ẩn khi đang chạy. CSS thuần. */
+
+html.sl-root,
+html.sl-root body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+  cursor: none;
+}
+
+html.sl-ui-on body,
+html.sl-paused body {
+  cursor: auto;
+}
+
+#sl-backdrop {
+  position: fixed;
+  inset: -64px;
+  background: center / cover no-repeat;
+  filter: blur(40px) brightness(0.5);
+}
+
+/* Khổ sân khấu do slide-runtime.js đặt (vừa khít cửa sổ, đúng tỉ lệ mẫu). */
+#sl-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+}
+
+#sl-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Trình phát YouTube chỉ để lấy tiếng — giữ trong DOM (ẩn hẳn là trình duyệt dừng phát). */
+#sl-yt {
+  position: fixed;
+  left: -8px;
+  top: -8px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#sl-ui {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sl-ui-on #sl-ui,
+.sl-paused #sl-ui {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sl-segs {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.sl-segs i {
+  flex: 1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.3);
+}
+
+.sl-segs b {
+  display: block;
+  height: 100%;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.sl-segs i.is-done b {
+  transform: scaleX(1);
+}
+
+.sl-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.48);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.sl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: #fff;
+  transition: background-color 0.18s ease;
+}
+
+.sl-btn:hover {
+  background: rgb(255 255 255 / 0.16);
+}
+
+.sl-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+
+.sl-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Hai icon nằm sẵn trong một nút, cờ trên <html> quyết định cái nào hiện. */
+.sl-i-play,
+.sl-paused .sl-i-pause,
+.sl-music,
+.sl-full,
+.sl-music .sl-i-on,
+.sl-full .sl-i-on,
+.sl-music-on .sl-music .sl-i-off,
+.sl-is-full .sl-full .sl-i-off {
+  display: none;
+}
+
+.sl-paused .sl-i-play,
+.sl-has-music .sl-music,
+.sl-can-full .sl-full,
+.sl-music-on .sl-music .sl-i-on,
+.sl-is-full .sl-full .sl-i-on {
+  display: inline-flex;
+}
+
+/* Có nhạc mà chưa bật (trình duyệt chặn tự phát tiếng): nút nhạc nhấp nháy mời bấm. */
+.sl-has-music .sl-music {
+  animation: cx-sl-pulse 1.6s ease-in-out infinite;
+}
+
+.sl-music-on .sl-music {
+  animation: none;
+}
+
+@keyframes cx-sl-pulse {
+  50% {
+    background: rgb(255 255 255 / 0.24);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-has-music .sl-music {
+    animation: none;
+  }
+}

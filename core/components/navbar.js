@@ -17,6 +17,7 @@
 //   khi đã đăng nhập. Lúc mount hỏi CXAuth (bản sync) nên trang phải nạp
 //   core/auth.js TRƯỚC navbar — thiếu thì vẽ như chưa đăng nhập rồi mới tráo (nháy).
 //   pin: true → không bao giờ bị gom vào nút "…".
+//   feature: "<khoá>" → chỉ hiện khi CONFIG.features[khoá] không phải false.
 // Thanh nào không đủ chỗ (nhãn tab phải xuống dòng, dãy mục thanh trên tràn) thì
 // mục thừa lùi dần vào popover của nút "…" cuối thanh (mục cuối lùi trước, mục
 // đang mở và mục pin thì không) — CÙNG phần tử, dáng hàng menu do popover quyết định.
@@ -117,8 +118,12 @@ const CXNavbar = (function () {
   // Phiên lúc mount (bản sync của CXAuth) — vẽ đúng ngay lần đầu.
   let _on0 = false;
 
+  // Cờ CONFIG.features (core/config.js) — trang phải nạp config.js TRƯỚC navbar, thiếu
+  // CONFIG thì coi như bật (không giấu nhầm mục ở trang nạp sai thứ tự).
+  const _featureOn = (k) => typeof CONFIG === "undefined" || CONFIG.features?.[k] !== false;
+
   function mount(cfg) {
-    const items = cfg.items || [];
+    const items = (cfg.items || []).filter((i) => !i.feature || _featureOn(i.feature));
     _on0 = !!window.CXAuth?.isLoggedIn?.();
 
     const top =

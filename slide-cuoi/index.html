@@ -9,7 +9,7 @@
     <title>Slide cưới - Cưới Xinh</title>
     <meta
       name="description"
-      content="Làm video slide ảnh cưới có nhạc miễn phí, không cần đăng nhập. Xuất MP4 để đăng Facebook, TikTok, Zalo hay chiếu màn LED ở tiệc cưới."
+      content="Trình chiếu ảnh cưới theo mẫu dựng sẵn, lấy luôn tên, ngày cưới, album và chuyện tình từ thiệp đã tạo trên Cưới Xinh. Chiếu toàn màn hình ở tiệc cưới hay trên điện thoại."
     />
     <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
     <script
@@ -31,67 +31,154 @@
   <body
     class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
   >
-    <!-- "Slide cưới" — công cụ miễn phí, độc lập với thiệp (không đăng nhập, chạy trọn
-         ở trình duyệt). Hiện mới là trang "Sắp ra mắt"; kế hoạch ở
-         docs/PLAN-slide-cuoi.md. Khung dùng lại .tg-* / .gl-* của trang "Khách mời". -->
-    <main class="gl-page mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
-      <header class="mi-head">
+    <!-- "Slide cưới": màn chiếu cho sân khấu tiệc cưới. Đầu trang, khung xem iframe templates/<id>/ tràn hết bề ngang, dưới là chọn mẫu, chọn thiệp và
+         thứ tự trình chiếu (runtime báo danh sách cảnh lên). Logic ở index.js, kế hoạch ở
+         docs/PLAN-slide-cuoi.md. -->
+    <main class="gl-page pb-12">
+      <header class="sc-head mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div class="min-w-0">
-          <div class="tg-head-row">
-            <h1 class="tg-title">Slide cưới</h1>
-            <span class="tg-count">Sắp ra mắt</span>
-          </div>
-          <p class="tg-sub">
-            Ghép ảnh cưới thành video có nhạc và lời chúc, xuất MP4 để đăng Facebook,
-            TikTok, gửi Zalo hay chiếu màn LED ở tiệc cưới. Miễn phí, không cần đăng
-            nhập — ảnh không rời khỏi máy bạn.
-          </p>
+          <h1 class="tg-title">Slide cưới</h1>
+          <p class="sc-sub">Chiếu ảnh cưới lên màn hình sân khấu tiệc.</p>
         </div>
       </header>
 
-      <ol class="gl-steps" aria-label="Cách tạo slide cưới">
-        <li class="gl-step">
-          <span class="gl-step-ico"><i data-lucide="images"></i></span>
-          <span>
-            <span class="gl-step-title">1. Chọn ảnh</span>
-            <span class="gl-step-desc">Kéo thả ảnh cưới từ máy, sắp xếp thứ tự và chỉnh khung từng tấm.</span>
-          </span>
-        </li>
-        <li class="gl-step">
-          <span class="gl-step-ico"><i data-lucide="music"></i></span>
-          <span>
-            <span class="gl-step-title">2. Chọn mẫu và nhạc</span>
-            <span class="gl-step-desc">Hiệu ứng chuyển cảnh, tên hai bạn, ngày cưới và bài hát yêu thích.</span>
-          </span>
-        </li>
-        <li class="gl-step">
-          <span class="gl-step-ico"><i data-lucide="download"></i></span>
-          <span>
-            <span class="gl-step-title">3. Xuất video</span>
-            <span class="gl-step-desc">MP4 khổ dọc 9:16, ngang 16:9 hoặc vuông 1:1 — tải về hoặc chia sẻ ngay.</span>
-          </span>
-        </li>
-      </ol>
-
-      <div class="tg-empty">
-        <span class="tg-empty-ico"><i data-lucide="film"></i></span>
-        <p class="tg-empty-title">Chúng mình đang hoàn thiện tính năng này</p>
-        <p class="tg-empty-desc max-w-sm">
-          Trong lúc chờ, ghé xem các mẫu thiệp cưới online của Cưới Xinh nhé.
-        </p>
-        <x-button
-          variant="bare"
-          icon="layers"
-          onclick="location.href = '/theme-template/'"
-          class="mi-btn mi-btn--primary mt-5"
-        >
-          Xem mẫu thiệp
+      <div id="sc-stagebox" class="sc-screen">
+        <iframe
+          id="sc-frame"
+          title="Xem trước slide cưới"
+          allow="autoplay; fullscreen"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <div class="sc-bar mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <x-button variant="bare" icon="maximize" onclick="scFullscreen()" class="mi-btn mi-btn--primary">
+          Trình chiếu
         </x-button>
+        <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="mi-btn mi-btn--soft" aria-expanded="false" aria-controls="sc-export">
+          Xuất video
+        </x-button>
+      </div>
+
+      <!-- Xuất video MP4 ngay trên máy (CXSlideExport trong khung slide). Bốn trạng thái loại
+           trừ nhau: chọn khổ · đang xuất · xong · lỗi — _scExportState bật/tắt. -->
+      <div id="sc-export" class="sc-export hidden mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div class="sc-export-box" aria-live="polite">
+          <div id="sc-ex-pick">
+            <p class="sc-export-h">Chọn chất lượng video</p>
+            <div id="sc-ex-res" class="cx-seg sc-ex-res" style="--n: 2; --i: 1">
+              <button type="button" class="cx-seg-btn" data-res="1080">Full HD 1080p</button>
+              <button type="button" class="cx-seg-btn is-on" data-res="2160">4K</button>
+            </div>
+            <p id="sc-ex-note" class="sc-export-note"></p>
+            <x-button variant="bare" icon="download" onclick="scExportStart()" class="mi-btn mi-btn--primary mt-4">
+              Bắt đầu xuất
+            </x-button>
+          </div>
+
+          <div id="sc-ex-run" class="hidden">
+            <p class="sc-export-h">Đang xuất video <span id="sc-ex-pct">0%</span></p>
+            <div class="sc-ex-track"><i id="sc-ex-fill"></i></div>
+            <p class="sc-export-note">Giữ tab này mở cho tới khi xong.</p>
+            <x-button variant="bare" icon="x" onclick="scExportCancel()" class="mi-btn mi-btn--soft mt-4">
+              Huỷ
+            </x-button>
+          </div>
+
+          <div id="sc-ex-done" class="hidden">
+            <p class="sc-export-h">Đã xuất xong</p>
+            <p id="sc-ex-done-note" class="sc-export-note"></p>
+            <x-button variant="bare" icon="download" onclick="scExportSave()" class="mi-btn mi-btn--primary mt-4">
+              Tải video
+            </x-button>
+          </div>
+
+          <div id="sc-ex-error" class="hidden">
+            <p class="sc-export-h">Chưa xuất được video</p>
+            <p id="sc-ex-error-note" class="sc-export-note"></p>
+            <x-button variant="bare" icon="refresh-cw" onclick="scExportOpen(true)" class="mi-btn mi-btn--soft mt-4">
+              Thử lại
+            </x-button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sc-panel mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <section class="sc-sec" aria-labelledby="sc-h-texts">
+          <div class="sc-sec-side">
+            <h2 id="sc-h-texts" class="sc-h">Chữ trong slide</h2>
+            <p class="sc-lead">Bấm một cảnh để chiếu và sửa chữ. Xoá trắng một ô là bỏ dòng đó.</p>
+            <x-button id="sc-tx-reset" variant="bare" icon="rotate-ccw" onclick="scTextsReset()" class="mi-btn mi-btn--soft sc-side-btn hidden">
+              Về lời mẫu
+            </x-button>
+            <p class="sc-keys">Phím cách: tạm dừng. Mũi tên: chuyển cảnh. Esc: thoát.</p>
+          </div>
+          <div class="sc-sec-main">
+            <ol id="sc-cues" class="sc-cues"></ol>
+          </div>
+        </section>
+
+        <section class="sc-sec" aria-labelledby="sc-h-data">
+          <div class="sc-sec-side">
+            <h2 id="sc-h-data" class="sc-h">Ảnh và thông tin</h2>
+            <p class="sc-lead">Lấy ảnh, tên, ngày cưới và chuyện tình từ thiệp của bạn.</p>
+          </div>
+          <div class="sc-sec-main">
+            <label class="sc-check">
+              <span class="sc-check-text">
+                <span class="sc-check-title">Dùng thiệp của tôi</span>
+                <span class="sc-check-desc">Tắt thì slide dùng dữ liệu mẫu.</span>
+              </span>
+              <input id="sc-use-real" type="checkbox" role="switch" class="sc-switch" />
+            </label>
+
+            <div id="sc-real" class="hidden">
+              <div id="sc-st-loading" class="sc-wlist" aria-hidden="true">
+                <div class="sc-w-sk mi-sk animate-pulse"></div>
+                <div class="sc-w-sk mi-sk animate-pulse"></div>
+                <div class="sc-w-sk mi-sk animate-pulse"></div>
+              </div>
+
+              <div id="sc-st-guest" class="sc-empty hidden">
+                <p>Đăng nhập để chọn thiệp.</p>
+                <x-button variant="bare" icon="log-in" onclick="scLogin()" class="mi-btn mi-btn--primary mt-3">
+                  Đăng nhập
+                </x-button>
+              </div>
+
+              <div id="sc-st-empty" class="sc-empty hidden">
+                <p>Bạn chưa có thiệp nào.</p>
+                <x-button variant="bare" icon="layers" onclick="location.href = '/theme-template/'" class="mi-btn mi-btn--soft mt-3">
+                  Chọn mẫu thiệp
+                </x-button>
+              </div>
+
+              <div id="sc-st-error" class="sc-empty hidden">
+                <p>Không tải được danh sách thiệp.</p>
+                <x-button variant="bare" icon="refresh-cw" onclick="scLoadList()" class="mi-btn mi-btn--soft mt-3">
+                  Thử lại
+                </x-button>
+              </div>
+
+              <div id="sc-weddings" class="sc-wlist hidden" role="radiogroup" aria-label="Chọn thiệp"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="sc-sec" aria-labelledby="sc-h-tpl">
+          <div class="sc-sec-side">
+            <h2 id="sc-h-tpl" class="sc-h">Mẫu slide</h2>
+            <p class="sc-lead">Chọn một mẫu, slide phía trên đổi theo ngay.</p>
+          </div>
+          <div class="sc-sec-main">
+            <div id="sc-tpls" class="sc-tpls"></div>
+          </div>
+        </section>
       </div>
     </main>
 
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
-    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng. -->
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
     <script>
       document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
     </script>
@@ -99,6 +186,8 @@
     <script src="../core/x-logo.js"></script>
     <script src="../core/x-popover.js"></script>
     <script src="../core/helpers/account-menu.js"></script>
+    <!-- config.js TRƯỚC navbar: mục có `feature` đọc CONFIG.features lúc mount. -->
+    <script src="../core/config.js"></script>
     <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
     <script src="../core/auth.js"></script>
     <script src="../core/components/navbar.js"></script>
@@ -114,7 +203,7 @@
             href: "/theme-template/",
           },
           { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
-          { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/" },
+          { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/", feature: "slides" },
           {
             id: "cart",
             label: "Đã chọn",
@@ -135,9 +224,17 @@
       CXAccount.mountChip();
     </script>
     <script src="../core/cache-util.js"></script>
-    <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/auth-ui.js"></script>
+    <script src="../core/dal/wedding-dal.js"></script>
+    <script src="../core/dal/storage-dal.js"></script>
+    <!-- core/supabase.js dựng sẵn cả WeddingBL/ImageBL — thiếu hai file này là
+         ReferenceError dù trang chỉ đọc. -->
+    <script src="../core/bl/wedding-bl.js"></script>
+    <script src="../core/bl/image-bl.js"></script>
+    <script src="../core/supabase.js"></script>
+    <script src="templates.js"></script>
+    <script src="index.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="../core/helpers/nav-cart-count.js"></script>
   </body>

@@ -1,0 +1,485 @@
+// Bộ phát chung của mọi mẫu slide (slide-cuoi/templates/<mẫu>/): dựng dự án bằng
+// CXSlideEngine.build từ CX_SLIDE của mẫu, vẽ lên canvas theo đồng hồ riêng (tạm dừng = dừng
+// đồng hồ), quay vòng, thanh điều khiển tự ẩn, nhạc nền của thiệp, và XUẤT VIDEO
+// (CXSlideExport) khi trang cha yêu cầu. ?embed=1 thì đợi trang /slide-cuoi/ gửi dữ liệu qua
+// postMessage, mở thẳng thì dùng dữ liệu mẫu. Nạp CUỐI trang, sau index.js của mẫu.
+
+(function () {
+  const D = window.CX_SLIDE;
+  if (!D || !window.CXSlideEngine) return;
+
+  const E = window.CXSlideEngine;
+  const W = D.w;
+  const H = D.h;
+  const EMBED = new URLSearchParams(location.search).get("embed") === "1" && window.parent !== window;
+  const root = document.documentElement;
+  const stage = document.getElementById("sl-stage");
+  const backdrop = document.getElementById("sl-backdrop");
+  const on = (v) => v !== false && v !== "false";
+  const post = (msg) => EMBED && parent.postMessage(msg, location.origin);
+
+  // ── Sân khấu: canvas đúng tỉ lệ mẫu, vừa khít cửa sổ, nét theo mật độ điểm ảnh ──
+  root.classList.add("sl-root");
+  const canvas = document.createElement("canvas");
+  canvas.id = "sl-canvas";
+  stage.appendChild(canvas);
+  const ctx = canvas.getContext("2d", { alpha: false });
+  function fit() {
+    const s = Math.max(0.01, Math.min(innerWidth / W, innerHeight / H));
+    stage.style.width = `${W * s}px`;
+    stage.style.height = `${H * s}px`;
+    // Trần 4K: màn hình to hơn cũng không vẽ nặng hơn mức xuất video.
+    const px = Math.min(W * s * (devicePixelRatio || 1), 3840);
+    canvas.width = Math.round(px);
+    canvas.height = Math.round((px * H) / W);
+    draw();
+  }
+  addEventListener("resize", fit);
+
+  // ── Thanh điều khiển ──
+  const ui = document.createElement("div");
+  ui.id = "sl-ui";
+  ui.innerHTML = `
+    <div class="sl-segs"></div>
+    <div class="sl-ctrl">
+      <x-button variant="bare" icon-only class="sl-btn" data-sl="prev" aria-label="Cảnh trước" title="Cảnh trước (←)"><i data-lucide="skip-back"></i></x-button>
+      <x-button variant="bare" icon-only class="sl-btn" data-sl="play" aria-label="Phát / tạm dừng" title="Phát / tạm dừng (phím cách)"><span class="sl-i-pause"><i data-lucide="pause"></i></span><span class="sl-i-play"><i data-lucide="play"></i></span></x-button>
+      <x-button variant="bare" icon-only class="sl-btn" data-sl="next" aria-label="Cảnh sau" title="Cảnh sau (→)"><i data-lucide="skip-forward"></i></x-button>
+      <x-button variant="bare" icon-only class="sl-btn sl-music" data-sl="music" aria-label="Bật / tắt nhạc" title="Bật / tắt nhạc (M)"><span class="sl-i-on"><i data-lucide="volume-2"></i></span><span class="sl-i-off"><i data-lucide="volume-x"></i></span></x-button>
+      <x-button variant="bare" icon-only class="sl-btn sl-full" data-sl="full" aria-label="Toàn màn hình" title="Toàn màn hình (F)"><span class="sl-i-on"><i data-lucide="minimize"></i></span><span class="sl-i-off"><i data-lucide="maximize"></i></span></x-button>
+    </div>`;
+  document.body.appendChild(ui);
+  window.lucide?.createIcons({ root: ui });
+
+  // Uỷ quyền qua #sl-ui: <x-button> tự thay mình bằng <button> nên gắn thẳng là mất listener.
+  ui.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-sl]");
+    if (!b) return;
+    e.stopPropagation();
+    act(b.dataset.sl);
+  });
+
+  function act(k) {
+    wake();
+    if (k === "prev") show(idx - 1);
+    else if (k === "next") show(idx + 1);
+    else if (k === "play") playing ? pause() : play();
+    else if (k === "music") Music.toggle();
+    else if (k === "full") full();
+  }
+
+  // Hiện thanh khi có thao tác, đang chạy thì tự ẩn sau một nhịp.
+  let wakeT = 0;
+  function wake() {
+    root.classList.add("sl-ui-on");
+    clearTimeout(wakeT);
+    wakeT = setTimeout(() => root.classList.remove("sl-ui-on"), 2600);
+  }
+  addEventListener("pointermove", (e) => e.pointerType === "mouse" && wake());
+  // Chạm vào sân khấu: thanh đang ẩn thì hiện, đang hiện thì ẩn.
+  addEventListener("pointerup", (e) => {
+    if (ui.contains(e.target)) return;
+    if (root.classList.contains("sl-ui-on")) {
+      clearTimeout(wakeT);
+      root.classList.remove("sl-ui-on");
+    } else wake();
+  });
+  addEventListener("keydown", (e) => {
+    // Esc chỉ phải tự lo khi trang cha phủ kín bằng CSS; toàn màn thật thì trình duyệt thoát.
+    if (e.key === "Escape" && pseudoFull) return full();
+    const k = { " ": "play", k: "play", ArrowRight: "next", PageDown: "next", ArrowLeft: "prev", PageUp: "prev", m: "music", f: "full" }[e.key];
+    // Phím cách trên chính một nút đã thành cú bấm nút đó — đừng xử lý hai lần.
+    if (!k || (e.key === " " && e.target.closest?.("button"))) return;
+    e.preventDefault();
+    act(k);
+  });
+
+  function sync() {
+    root.classList.toggle("sl-paused", !playing);
+    root.classList.toggle("sl-has-music", Music.has());
+    root.classList.toggle("sl-music-on", Music.isOn());
+    root.classList.toggle("sl-can-full", CAN_FS || EMBED);
+    root.classList.toggle("sl-is-full", !!fsEl() || pseudoFull);
+  }
+
+  // ── Đồng hồ + vẽ ──
+  let P = null; // dự án đang chiếu (CXSlideEngine.build)
+  let t = 0; // giây, đếm từ đầu slide
+  let playing = true;
+  let idx = -1;
+  let last = 0;
+  // Nhảy cảnh: khung cũ chụp lại rồi mờ dần đè lên cảnh mới (thay cho lớp cảnh-trước của engine).
+  let snap = null;
+  let snapAt = 0;
+  let jumpIdx = -1;
+
+  function local() {
+    const tt = ((t % P.total) + P.total) % P.total;
+    const i = E.indexAt(P, tt);
+    return { i, lt: tt - P.starts[i] };
+  }
+
+  function draw() {
+    if (!P) return;
+    const { i, lt } = local();
+    if (i !== jumpIdx) jumpIdx = -1;
+    E.frame(ctx, P, t, { loop: true, noFade: i === jumpIdx });
+    if (snap) {
+      const p = (performance.now() - snapAt) / (P.fade * 1000);
+      if (p >= 1) snap = null;
+      else {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 1 - p;
+        ctx.drawImage(snap, 0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1;
+      }
+    }
+    if (i !== idx) {
+      idx = i;
+      bar();
+      report();
+    }
+    const fill = ui.querySelector(".sl-segs")?.children[i]?.firstElementChild;
+    if (fill) fill.style.transform = `scaleX(${Math.min(1, lt / P.scenes[i].dur)})`;
+  }
+
+  function tick(now) {
+    if (playing && P && !exporting) t += Math.min(0.25, (now - last) / 1000);
+    last = now;
+    draw();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame((now) => {
+    last = now;
+    tick(now);
+  });
+
+  // Mốc trong cảnh i mà mọi chữ đã hiện đủ (cả đoạn đánh chữ) — đứng ở đó khi dừng để sửa chữ.
+  const settled = (i) => P.starts[i] + Math.max(0, P.scenes[i].dur - 0.05);
+
+  function show(i, rest) {
+    if (!P) return;
+    const n = P.scenes.length;
+    i = ((i % n) + n) % n;
+    snap = document.createElement("canvas");
+    snap.width = canvas.width;
+    snap.height = canvas.height;
+    snap.getContext("2d").drawImage(canvas, 0, 0);
+    snapAt = performance.now();
+    jumpIdx = i;
+    t = rest ? settled(i) : P.starts[i];
+    idx = -1; // để draw() báo cảnh mới
+    draw();
+  }
+
+  function pause() {
+    if (!playing) return;
+    playing = false;
+    Music.pause();
+    sync();
+    report();
+  }
+
+  function play() {
+    if (playing) return;
+    playing = true;
+    Music.play();
+    sync();
+    report();
+  }
+
+  function bar() {
+    const segs = ui.querySelector(".sl-segs");
+    if (segs.childElementCount !== P.scenes.length) segs.innerHTML = P.scenes.map(() => "<i><b></b></i>").join("");
+    Array.from(segs.children).forEach((n, k) => {
+      n.classList.toggle("is-done", k < idx);
+      n.firstElementChild.style.transform = "";
+    });
+  }
+
+  // Trang cha vẽ "thứ tự trình chiếu" từ đây: danh sách cảnh mỗi lần dựng lại, và cảnh đang
+  // chiếu mỗi lần đổi cảnh / tạm dừng.
+  function report(all) {
+    if (!P) return;
+    const msg = { type: "cx-slide-state", index: idx, playing };
+    if (all) {
+      msg.scenes = P.scenes.map((s, k) => ({
+        label: s.label || `Cảnh ${k + 1}`,
+        dur: Math.round(s.dur * 1000),
+        texts: s.texts || [],
+      }));
+      // Loại nhạc: "file" ghép được vào video xuất, "yt" thì không.
+      msg.music = Music.fileUrl() ? "file" : Music.isYouTube() ? "yt" : "";
+    }
+    post(msg);
+  }
+
+  // ── Nhạc nền: link YouTube của thiệp (iframe API, ẩn) hoặc file nhạc tải lên ──
+  // Trình duyệt chặn tự phát tiếng nên nhạc chỉ bật ở cú chạm/phím đầu tiên trong khung.
+  const Music = (() => {
+    let kind = "";
+    let vid = "";
+    let start = 0;
+    let yt = null;
+    let ready = false;
+    let audio = null;
+    let fileUrl = "";
+    let want = false;
+    let touched = false;
+
+    const ytId = (u) =>
+      (/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{6,})/.exec(u) || [])[1] || "";
+    // Giây bắt đầu từ tham số t của link (90 · 90s · 1m30s).
+    function ytStart(u) {
+      const s = /[?&]t=([\dhms]+)/.exec(u)?.[1] || "";
+      if (/^\d+$/.test(s)) return Number(s);
+      const p = /(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/.exec(s) || [];
+      return (Number(p[1]) || 0) * 3600 + (Number(p[2]) || 0) * 60 + (Number(p[3]) || 0);
+    }
+
+    function build() {
+      const host = document.createElement("div");
+      host.id = "sl-yt";
+      document.body.appendChild(host);
+      yt = new YT.Player(host, {
+        width: 1,
+        height: 1,
+        videoId: vid,
+        playerVars: { autoplay: 0, controls: 0, start, playsinline: 1 },
+        events: {
+          onReady: () => {
+            ready = true;
+            if (want && playing) yt.playVideo();
+          },
+          // Hết bài thì quay về đúng giây bắt đầu (loop của YouTube về giây 0).
+          onStateChange: (e) => {
+            if (e.data === 0) {
+              yt.seekTo(start, true);
+              yt.playVideo();
+            }
+          },
+        },
+      });
+    }
+
+    function ensureYT() {
+      if (window.YT?.Player) return build();
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        prev?.();
+        if (kind === "yt" && !yt) build();
+      };
+      if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+        const s = document.createElement("script");
+        s.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(s);
+      }
+    }
+
+    function reset() {
+      try {
+        yt?.destroy();
+      } catch (e) {}
+      document.getElementById("sl-yt")?.remove();
+      audio?.pause();
+      yt = audio = null;
+      kind = vid = fileUrl = "";
+      ready = false;
+    }
+
+    function load(url) {
+      reset();
+      url = String(url || "").trim();
+      if (url) {
+        vid = ytId(url);
+        if (vid) {
+          kind = "yt";
+          start = ytStart(url);
+          ensureYT();
+        } else {
+          kind = "audio";
+          fileUrl = getImageUrl(url);
+          audio = new Audio(fileUrl);
+          audio.loop = true;
+          audio.preload = "auto";
+        }
+      }
+      if (want) play();
+      sync();
+    }
+
+    function play() {
+      if (!want || !playing || exporting) return;
+      if (kind === "yt" && ready) yt.playVideo();
+      else if (kind === "audio") audio.play().catch(() => {});
+    }
+
+    function pause() {
+      if (ready) yt?.pauseVideo();
+      audio?.pause();
+    }
+
+    // Cú chạm đầu tiên (trừ chính nút nhạc — nút đó tự quyết) là lúc bật tiếng.
+    function first(e) {
+      if (touched || !kind) return;
+      if (e.target?.closest?.('[data-sl="music"]')) return;
+      touched = true;
+      want = true;
+      play();
+      sync();
+    }
+    addEventListener("pointerdown", first, true);
+    addEventListener("keydown", first, true);
+
+    return {
+      load,
+      play,
+      pause,
+      has: () => !!kind,
+      isOn: () => !!kind && want,
+      // Nhạc dạng file thì ghép được vào video xuất; YouTube thì không.
+      fileUrl: () => (kind === "audio" ? fileUrl : ""),
+      isYouTube: () => kind === "yt",
+      toggle() {
+        touched = true;
+        want = !want;
+        want ? play() : pause();
+        sync();
+      },
+    };
+  })();
+
+  // ── Toàn màn hình ──
+  // Trong khung của trang /slide-cuoi/ thì nhờ trang cha phóng cả iframe (cú bấm ở đây
+  // cũng kích hoạt trang cha); iPhone không có Fullscreen API → trang cha phủ kín bằng CSS.
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const CAN_FS =
+    !!(root.requestFullscreen || root.webkitRequestFullscreen) &&
+    !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+  let pseudoFull = false;
+
+  function full() {
+    if (EMBED) {
+      post({ type: "cx-slide-full" });
+      return;
+    }
+    if (!CAN_FS) return;
+    if (fsEl()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else {
+      const r = (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+      r?.catch?.(() => {});
+    }
+  }
+  document.addEventListener("fullscreenchange", sync);
+  document.addEventListener("webkitfullscreenchange", sync);
+
+  // ── Xuất video ──
+  // Trang cha gửi {type:"cx-slide-export", height}; tiến độ báo ngược bằng cx-slide-export-state
+  // (run · done kèm Blob · error · cancel). Lúc xuất đồng hồ xem trước đứng, nhạc tắt.
+  let exporting = null;
+
+  async function exportVideo(height) {
+    if (exporting || !P || !window.CXSlideExport) return;
+    exporting = new AbortController();
+    const wasPlaying = playing;
+    Music.pause();
+    post({ type: "cx-slide-export-state", state: "run", p: 0 });
+    try {
+      const blob = await CXSlideExport.run(P, {
+        height,
+        audioUrl: Music.fileUrl(),
+        signal: exporting.signal,
+        onProgress: (p) => post({ type: "cx-slide-export-state", state: "run", p }),
+      });
+      post({ type: "cx-slide-export-state", state: "done", blob, silent: !Music.fileUrl() && Music.has() });
+      if (!EMBED) _download(blob, `slide-cuoi-${height}p.mp4`);
+    } catch (e) {
+      post({
+        type: "cx-slide-export-state",
+        state: e.code === "ABORTED" ? "cancel" : "error",
+        code: e.code || "",
+        message: String(e.message || e),
+      });
+    } finally {
+      exporting = null;
+      if (wasPlaying) Music.play();
+    }
+  }
+
+  function _download(blob, name) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  }
+
+  // Khổ nào máy mã hoá được — trang cha khoá lựa chọn 4K khi máy không làm nổi.
+  async function caps() {
+    const X = window.CXSlideExport;
+    const ok = X?.supported() ? await Promise.all([X.pickCodec(1080), X.pickCodec(2160)]) : [null, null];
+    post({ type: "cx-slide-caps", h1080: !!ok[0], h2160: !!ok[1] });
+  }
+
+  // ── Dữ liệu ──
+  let gen = 0;
+
+  let cur = null; // thiệp đang chiếu
+  let texts = {}; // chữ người dùng sửa ở trang cha, theo khoá khối của mẫu
+
+  // keep = cảnh nên đứng lại sau khi dựng (sửa chữ thì ở nguyên cảnh đang sửa, không chạy lại).
+  async function load(w, keep) {
+    const my = ++gen;
+    cur = w || {};
+    const proj = await E.build(D, cur, texts);
+    if (my !== gen) return;
+    P = proj;
+    const k = Number.isInteger(keep) && keep >= 0 && keep < P.scenes.length ? keep : -1;
+    t = k < 0 ? 0 : playing ? P.starts[k] : settled(k);
+    idx = -1;
+    snap = null;
+    const bg = w.cover_image_url || (w.gallery_images || [])[0];
+    backdrop.style.backgroundImage = bg ? `url(${JSON.stringify(getImageUrl(bg))})` : "";
+    Music.load(on(w.enable_music) ? w.music_url : "");
+    fit();
+    report(true);
+    sync();
+  }
+
+  async function demo() {
+    const my = ++gen;
+    // preview-data.js đọc ảnh/chữ mẫu theo tên mẫu THIỆP lấy từ URL — trang slide không
+    // nằm dưới /public/themes/ nên khai thẳng tên đó (CX_SLIDE.demo).
+    if (D.demo) window.currentThemeName = () => D.demo;
+    const w = typeof cxPreviewWedding === "function" ? await cxPreviewWedding() : { is_active: true };
+    if (my === gen) load(w);
+  }
+
+  addEventListener("message", (e) => {
+    if (e.source !== window.parent || e.origin !== location.origin) return;
+    const m = e.data || {};
+    if (m.type === "cx-slide-data") {
+      texts = m.texts && typeof m.texts === "object" ? m.texts : {};
+      m.wedding ? load(m.wedding) : demo();
+    } else if (m.type === "cx-slide-texts" && cur) {
+      texts = m.texts && typeof m.texts === "object" ? m.texts : {};
+      if (!exporting) load(cur, Number.isInteger(m.index) ? m.index : idx);
+    } else if (m.type === "cx-slide-go" && Number.isInteger(m.index)) {
+      show(m.index, !!m.pause);
+      if (m.pause) pause();
+    }
+    else if (m.type === "cx-slide-export" && (m.height === 1080 || m.height === 2160)) exportVideo(m.height);
+    else if (m.type === "cx-slide-export-cancel") exporting?.abort();
+    else if (m.type === "cx-slide-full-state") {
+      pseudoFull = !!m.on;
+      sync();
+    }
+  });
+
+  fit();
+  sync();
+  if (EMBED) {
+    post({ type: "cx-slide-ready" });
+    caps();
+  } else demo();
+})();
