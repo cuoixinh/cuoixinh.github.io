@@ -1,116 +1,111 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.jpg": {
-        "x": 50,
-        "y": 41
-      },
-      "gallery-02.jpg": {
-        "x": 44,
-        "y": 50
-      },
-      "gallery-03.jpg": {
-        "x": 7,
-        "y": 28
-      },
-      "gallery-04.jpg": {
-        "x": 63,
-        "y": 56
-      },
-      "gallery-05.jpg": {
-        "x": 71,
-        "y": 68
-      },
-      "gallery-06.jpg": {
+      "gallery-01.webp": {
         "x": 50,
         "y": 50
       },
-      "gallery-07.jpg": {
-        "x": 40,
+      "gallery-02.webp": {
+        "x": 50,
+        "y": 36
+      },
+      "gallery-03.webp": {
+        "x": 87,
         "y": 54
       },
-      "gallery-08.jpg": {
-        "x": 45,
+      "gallery-04.webp": {
+        "x": 51,
         "y": 53
       },
-      "gallery-09.jpg": {
-        "x": 44,
-        "y": 59
+      "gallery-05.webp": {
+        "x": 24,
+        "y": 45
       },
-      "gallery-10.jpg": {
-        "x": 41,
-        "y": 59
+      "gallery-06.webp": {
+        "x": 51,
+        "y": 58
+      },
+      "gallery-07.webp": {
+        "x": 53,
+        "y": 30
+      },
+      "gallery-08.webp": {
+        "x": 50,
+        "y": 50
+      },
+      "gallery-09.webp": {
+        "x": 66,
+        "y": 86
       }
     },
     "cover_image_url": {
-      "x": 48,
-      "y": 18
+      "x": 54,
+      "y": 42
     },
     "groom_image_url": {
-      "x": 57,
-      "y": 59
+      "x": 2,
+      "y": 48
     },
     "bride_image_url": {
-      "x": 26,
-      "y": 49
+      "x": 65,
+      "y": 34
     }
   },
-  "cover_image_url": "cover.jpg",
-  "groom_image_url": "groom.jpg",
-  "bride_image_url": "bride.jpg",
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.jpg",
-    "gallery-02.jpg",
-    "gallery-03.jpg",
-    "gallery-04.jpg",
-    "gallery-05.jpg",
-    "gallery-06.jpg",
-    "gallery-07.jpg",
-    "gallery-08.jpg",
-    "gallery-09.jpg",
-    "gallery-10.jpg"
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp",
+    "gallery-08.webp",
+    "gallery-09.webp"
   ],
   "love_story": [
     {
       "date": "03/2021",
       "title": "Lần đầu gặp gỡ",
       "content": "Chúng mình tình cờ ngồi chung bàn ở một buổi workshop, rồi nhận ra hai đứa đang đọc cùng một cuốn sách.",
-      "image_url": "love-story-01.jpg",
+      "image_url": "love-story-01.webp",
       "focal_point": {
-        "x": 59,
-        "y": 70
+        "x": 100,
+        "y": 40
       }
     },
     {
       "date": "06/2021",
       "title": "Những buổi hẹn hò đầu tiên",
       "content": "Những buổi chiều cà phê kéo dài tới tối, nói đủ thứ chuyện trên đời mà vẫn thấy chưa đủ.",
-      "image_url": "love-story-02.jpg",
+      "image_url": "love-story-02.webp",
       "focal_point": {
-        "x": 67,
-        "y": 70
+        "x": 50,
+        "y": 58
       }
     },
     {
       "date": "09/2021",
       "title": "Chính thức yêu nhau",
       "content": "Sau sáu tháng tìm hiểu, anh ngỏ lời vào đúng một buổi tối Hà Nội trở gió.",
-      "image_url": "love-story-03.jpg",
+      "image_url": "love-story-03.webp",
       "focal_point": {
-        "x": 33,
-        "y": 48
+        "x": 60,
+        "y": 53
       }
     },
     {
       "date": "05/2026",
       "title": "Lời cầu hôn",
       "content": "Một buổi tối bên hồ Tây, anh bất ngờ quỳ xuống và em đã hạnh phúc nói lời đồng ý.",
-      "image_url": "love-story-04.jpg",
+      "image_url": "love-story-04.webp",
       "focal_point": {
-        "x": 74,
-        "y": 53
+        "x": 46,
+        "y": 58
       }
     }
   ],
@@ -213,5 +208,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-11T14:43:14.898Z"
+  "updated_at": "2026-11-05T15:32:45.254Z"
 }
