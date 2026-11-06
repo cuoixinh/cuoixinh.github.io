@@ -1,4 +1,4 @@
-// Tab "Giọng đọc" của /slide-cuoi/: tối đa 10 file ghi âm (≤ 50 MB), mỗi file một LỚP trên dòng
+// Dòng thời gian của tab "Âm thanh" (/slide-cuoi/): làn Nhạc nền (chọn ở index.js) + tối đa 10 file ghi âm (≤ 50 MB), mỗi file một LỚP trên dòng
 // thời gian của slide kiểu phần mềm dựng phim — kéo khối đổi lúc bắt đầu, kéo hai mép để cắt.
 // Byte file cất IndexedDB (kho "voice"), vị trí/cắt/âm lượng cất localStorage — chỉ trên máy,
 // theo mẫu + thiệp. Nạp SAU index.js (dùng chung _scDB, _scTxKey, _scCues, _scFrame…).
@@ -10,6 +10,7 @@ const _SC_VO_MB = 50;
 const _SC_VO_DUCK = 0.3; // nhạc nền còn 30% khi có giọng (mặc định)
 let _scVo = { key: null, clips: [], duck: _SC_VO_DUCK }; // clip: {id, name, dur, start, in, len, vol, mute, blob, peaks}
 let _scVoSel = "";
+const _SC_VO_MU = "@music"; // _scVoSel khi đang chọn khối Nhạc nền (không trùng id lớp nào)
 // px mỗi giây của dòng thời gian: 0 = mặc định (vừa khung nhưng không dưới _SC_VO_PPS — slide
 // vài phút ép vừa khung thì đoạn ghi âm vài giây chỉ còn một vạch), -1 = vừa khung, > 0 = đã phóng.
 let _scVoPps = 0;
@@ -25,7 +26,17 @@ const _scVoFmt = (s) => {
   const m = Math.floor(s / 60);
   return `${m}:${(s - m * 60).toFixed(1).padStart(4, "0")}`;
 };
-const _scVoClip = (id) => _scVo.clips.find((c) => c.id === id) || null;
+const _scVoClip = (id) => (id === _SC_VO_MU ? _scVoMuClip() : _scVo.clips.find((c) => c.id === id) || null);
+// Khối Nhạc nền dưới dạng một lớp (cùng bộ kéo dời/cắt): chính object đoạn nhạc của index.js
+// (_scMuCut), thêm id · tên · dur vô hạn (bài lặp nên mép phải không chạm đáy bài).
+function _scVoMuClip() {
+  const c = _scMuCut();
+  const mi = c && _scMuInfo();
+  if (!mi) return null;
+  const total = _scVoTotal();
+  if (c.full && _scVoDrag?.c !== c) c.len = Math.max(0.2, total - c.start);
+  return Object.assign(c, { id: _SC_VO_MU, name: mi.name, dur: Infinity });
+}
 const _scVoNow = () => {
   const T = _scVoT;
   const t = T.playing ? T.t + (performance.now() - T.at) / 1000 : T.t;
@@ -51,6 +62,7 @@ function _scVoMetaAll() {
   }
 }
 function _scVoSave() {
+  _scMuCutSave();
   clearTimeout(_scVoSaveT);
   const key = _scVo.key;
   const meta = {
@@ -104,12 +116,14 @@ function _scVoMsg() {
     clips: _scVo.clips.map((c) => ({ id: c.id, blob: c.blob, start: c.start, in: c.in, len: c.len, vol: c.vol, mute: c.mute })),
   };
 }
+// Gửi cả đoạn nhạc nền: khối nhạc kéo trên cùng dòng thời gian, đi chung đường lưu/gửi với lớp giọng.
 function _scVoSend() {
   clearTimeout(_scVoSendT);
-  _scVoSendT = setTimeout(
-    () => _scFrame.contentWindow?.postMessage({ type: "cx-slide-voice", voice: _scVoMsg() }, location.origin),
-    60,
-  );
+  _scVoSendT = setTimeout(() => {
+    _scFrame.contentWindow?.postMessage({ type: "cx-slide-voice", voice: _scVoMsg() }, location.origin);
+    const cut = _scMuMsg()?.cut;
+    if (cut) _scFrame.contentWindow?.postMessage({ type: "cx-slide-music-cut", cut }, location.origin);
+  }, 60);
 }
 function _scVoBusy() {
   if (_scExState !== "run") return false;
@@ -152,8 +166,11 @@ function _scVoStartAt() {
   return Math.max(0, Math.min(at, Math.max(0, total - 0.5)));
 }
 
-function scVoicePick() {
+// `at` = mốc (giây) đặt lớp mới — bấm thẳng vào làn "Lớp mới"; bỏ trống thì theo _scVoStartAt.
+let _scVoPickAt = null;
+function scVoicePick(at) {
   if (_scVoBusy() || _scVoRec) return;
+  _scVoPickAt = Number.isFinite(at) ? at : null;
   if (_scVo.clips.length >= _SC_VO_MAX) {
     window.showToast?.(`Đã đủ ${_SC_VO_MAX} lớp giọng đọc. Xoá bớt một lớp để thêm file khác.`, "warning");
     return;
@@ -199,7 +216,9 @@ _scEl("sc-vo-file")?.addEventListener("change", async (e) => {
   const room = _SC_VO_MAX - _scVo.clips.length;
   if (files.length > room) window.showToast?.(`Chỉ thêm được ${room} file nữa (tối đa ${_SC_VO_MAX} lớp).`, "warning");
   let added = null;
-  let at = _scVoStartAt(); // nhiều file một lần thì xếp nối đuôi nhau
+  // Nhiều file một lần thì xếp nối đuôi nhau.
+  let at = _scVoPickAt != null ? Math.max(0, Math.min(_scVoPickAt, Math.max(0, _scVoTotal() - 0.5))) : _scVoStartAt();
+  _scVoPickAt = null;
   window.showLoading?.(true, "Đang đọc file ghi âm...");
   try {
     for (const f of files.slice(0, Math.max(0, room))) {
@@ -394,7 +413,7 @@ function _scVoPx() {
 
 function _scVoRender() {
   const box = _scEl("sc-vo-tl");
-  if (!box || _scEl("sc-tab-voice")?.classList.contains("hidden")) return;
+  if (!box || _scEl("sc-tab-audio")?.classList.contains("hidden")) return;
   const total = _scVoTotal();
   const pps = _scVoPx();
   const W = Math.max(box.clientWidth - _scVoHead(box), Math.ceil(total * pps) + 24);
@@ -409,10 +428,30 @@ function _scVoRender() {
         `<span class="sc-vo-seg${i % 2 ? " is-alt" : ""}" style="left:${(starts[i] * pps).toFixed(1)}px;width:${((c.dur / 1000) * pps).toFixed(1)}px" title="${_scEsc(c.label)}">${_scEsc(c.label)}</span>`,
     )
     .join("");
-  const mus =
-    _scMusic || _scMu.pick
-      ? `<span class="sc-vo-mbar" style="width:${(total * pps).toFixed(1)}px">Nhạc nền</span>`
-      : `<span class="sc-vo-note">Chưa có nhạc nền. Chọn ở tab Nhạc.</span>`;
+  // Làn Nhạc nền dựng như một lớp giọng đọc: đầu làn icon · tên · thư viện · chọn file; khối nhạc
+  // kéo dời / cắt hai mép y như khối giọng (_scVoMuClip); làn trống bấm = chọn file.
+  const mi = _scVoMuClip();
+  const music = `<div class="sc-vo-row is-voice is-music">
+      <div class="sc-vo-head">
+        <span class="sc-vo-n is-music" aria-hidden="true">${_scIco("music")}</span>
+        <span class="sc-vo-name">Nhạc nền</span>
+        <button type="button" class="sc-vo-mute" data-mu-lib aria-label="Chọn nhạc trong thư viện" title="Thư viện nhạc">${_scIco("list-music")}</button>
+        <button type="button" class="sc-vo-mute" data-mu-add aria-label="${mi ? "Đổi" : "Chọn"} file nhạc nền" title="${mi ? "Đổi" : "Chọn"} file nhạc">${_scIco("upload")}</button>
+      </div>
+      ${
+        mi
+          ? `<div class="sc-vo-lane" data-lane>
+              <div class="sc-vo-clip is-music${_scVoSel === _SC_VO_MU ? " is-sel" : ""}" data-clip="${_SC_VO_MU}" tabindex="0" role="button" aria-label="Nhạc nền: ${_scEsc(mi.name)}">
+                <span class="sc-vo-cname">${_scEsc(mi.name)}</span>
+                <span class="sc-vo-edge is-l" data-edge="l" aria-hidden="true"></span>
+                <span class="sc-vo-edge is-r" data-edge="r" aria-hidden="true"></span>
+              </div>
+            </div>`
+          : `<div class="sc-vo-lane is-add" data-lane data-mu-add title="Bấm để chọn file nhạc nền">
+              <span class="sc-vo-note">Bấm vào làn này để chọn file nhạc, hoặc nút thư viện để chọn bài có sẵn.</span>
+            </div>`
+      }
+    </div>`;
   // Mỗi lớp: số · tên · tắt tiếng · micro (thu lại lớp đó). Cuối cùng là hàng "Lớp mới" để thu
   // thẳng một lớp nữa (còn chỗ thì mới có). Lớp đang thu có khối đỏ chạy dài theo đầu phát.
   const R = _scVoRec;
@@ -446,30 +485,26 @@ function _scVoRender() {
     (_scVo.clips.length < _SC_VO_MAX
       ? `<div class="sc-vo-row is-voice is-new${R && !R.id ? " is-rec" : ""}">
           <div class="sc-vo-head">
-            <span class="sc-vo-n is-new">${_scIco("plus")}</span>
+            <button type="button" class="sc-vo-n is-new" data-vo-add aria-label="Thêm file ghi âm ở chỗ đầu phát" title="Thêm file ghi âm">${_scIco("plus")}</button>
             <span class="sc-vo-name">Lớp mới</span>
             ${recBtn("", "Thu âm lớp mới từ đầu phát")}
           </div>
-          <div class="sc-vo-lane" data-lane>
-            ${R && !R.id ? live("") : `<span class="sc-vo-note">${_scVo.clips.length ? "Bấm micro để thu thêm một lớp từ chỗ đầu phát." : "Bấm micro để thu âm từ chỗ đầu phát, hoặc thêm file ghi âm bên dưới."}</span>`}
+          <div class="sc-vo-lane${R ? "" : " is-add"}" data-lane ${R ? "" : 'data-vo-addlane title="Bấm để thêm file ghi âm bắt đầu từ chỗ này"'}>
+            ${R && !R.id ? live("") : `<span class="sc-vo-note">Bấm vào làn này để thêm file ghi âm đúng chỗ đó, hoặc micro để thu.</span><i class="sc-vo-ghost" aria-hidden="true"></i>`}
           </div>
         </div>`
       : "");
   box.innerHTML = `<div class="sc-vo-in" style="--vo-w:${W}px">
       <div class="sc-vo-row is-ruler"><div class="sc-vo-head"></div><div class="sc-vo-lane" data-scrub>${ticks}</div></div>
       <div class="sc-vo-row is-scenes"><div class="sc-vo-head"><span class="sc-vo-name">Cảnh</span></div><div class="sc-vo-lane" data-scrub>${segs}</div></div>
-      <div class="sc-vo-row is-music"><div class="sc-vo-head"><span class="sc-vo-name">Nhạc</span></div><div class="sc-vo-lane">${mus}</div></div>
+      ${music}
       ${rows}
       <div class="sc-vo-ph" aria-hidden="true"><i></i></div>
     </div>`;
   window.lucide?.createIcons({ root: box });
   _scVo.clips.forEach((c) => _scVoPlace(c));
+  if (mi) _scVoPlace(mi);
   _scEl("sc-vo-total").textContent = `/ ${_scVoFmt(total)}`;
-  const full = _scVo.clips.length >= _SC_VO_MAX;
-  _scEl("sc-vo-up").disabled = full;
-  _scEl("sc-vo-up-d").textContent = full
-    ? `Đã đủ ${_SC_VO_MAX} lớp. Xoá bớt một lớp để thêm file khác.`
-    : `MP3, M4A hoặc WAV, mỗi file tối đa ${_SC_VO_MB} MB. Còn thêm được ${_SC_VO_MAX - _scVo.clips.length} lớp.`;
   const duck = _scEl("sc-vo-duck");
   duck.value = String(Math.round(_scVo.duck * 100));
   _scRangeFill(duck);
@@ -515,9 +550,18 @@ function _scVoPlace(c) {
 function _scVoInspect() {
   const box = _scEl("sc-vo-sel");
   if (!box) return;
+  if (_scVoSel === _SC_VO_MU) {
+    const mi = _scMuInfo();
+    const c = _scVoMuClip();
+    if (mi && c) return _scVoInspectMusic(box, mi, c);
+    _scVoSel = "";
+  }
   const c = _scVoClip(_scVoSel);
   _scToggle("sc-vo-sel", !!c);
-  if (!c) return (box.innerHTML = "");
+  if (!c) {
+    box.dataset.sig = "";
+    return (box.innerHTML = "");
+  }
   if (box.dataset.sig !== c.id) {
     box.dataset.sig = c.id;
     box.innerHTML = `
@@ -534,6 +578,26 @@ function _scVoInspect() {
   if (document.activeElement !== vol) vol.value = String(Math.round(c.vol * 100));
   _scRangeFill(vol);
   box.querySelector(".sc-vo-vol-v").textContent = `Âm lượng ${Math.round(c.vol * 100)}%`;
+}
+
+// Bảng của khối Nhạc nền: tên bài · quãng phát trên slide · nguồn/độ dài · ghi công · dấu x (bỏ nhạc).
+function _scVoInspectMusic(box, mi, c) {
+  _scToggle("sc-vo-sel", true);
+  const sig = `${_SC_VO_MU}:${mi.name}:${mi.desc}`;
+  if (box.dataset.sig !== sig) {
+    box.dataset.sig = sig;
+    box.innerHTML = `
+      <div class="sc-vo-sel-head">
+        <span class="sc-vo-n is-music" aria-hidden="true">${_scIco("music")}</span>
+        <p class="sc-vo-sel-name" title="${_scEsc(mi.name)}">${_scEsc(mi.name)}</p>
+        <output class="sc-vo-vol-v"></output>
+        <button type="button" class="sc-vo-x" data-mu-clear aria-label="Bỏ nhạc nền" title="Bỏ nhạc nền">${_scIco("x")}</button>
+      </div>
+      <p class="sc-vo-sel-sub">${_scEsc(mi.desc)} Kéo hai mép khối để cắt ngắn, kéo thân khối để dời.</p>
+      ${mi.credit ? `<p class="sc-vo-sel-sub">${_scEsc(mi.credit)}</p>` : ""}`;
+    window.lucide?.createIcons({ root: box });
+  }
+  box.querySelector(".sc-vo-vol-v").textContent = `${_scVoFmt(c.start)} → ${_scVoFmt(c.start + c.len)}`;
 }
 
 function _scVoSelect(id) {
@@ -572,7 +636,7 @@ function _scVoLoop() {
   if (_scVoRaf) return;
   const step = () => {
     const box = _scEl("sc-vo-tl");
-    if (!box || _scEl("sc-tab-voice")?.classList.contains("hidden")) {
+    if (!box || _scEl("sc-tab-audio")?.classList.contains("hidden")) {
       _scVoRaf = 0;
       return;
     }
@@ -662,6 +726,12 @@ _scEl("sc-vo-tl")?.addEventListener("pointerdown", (e) => {
 });
 
 _scEl("sc-vo-tl")?.addEventListener("pointermove", (e) => {
+  // Vạch "+" chạy theo con trỏ trên làn Lớp mới: chỗ file sẽ bắt đầu nếu bấm.
+  const add = !_scVoDrag && e.pointerType === "mouse" && e.target.closest("[data-vo-addlane]");
+  if (add) {
+    const g = add.querySelector(".sc-vo-ghost");
+    if (g) g.style.left = `${Math.max(0, e.clientX - add.getBoundingClientRect().left).toFixed(1)}px`;
+  }
   if (!_scVoDrag) return;
   if (_scVoEdge) _scVoEdge.x = e.clientX;
   _scVoDragMove(e.clientX);
@@ -688,12 +758,18 @@ function _scVoDragMove(x) {
   } else if (D.edge === "r") {
     const end = _scVoSnap(D.s0.start + D.s0.len + dt, c.id);
     c.len = Math.max(MIN, Math.min(end - D.s0.start, c.dur - c.in));
+    // Nhạc nền (bài lặp): mép phải chặn ở hết slide; chạm hết slide là lại "chạy tới cuối".
+    if (c.id === _SC_VO_MU) {
+      c.len = Math.min(c.len, Math.max(MIN, total - c.start));
+      c.full = c.start + c.len >= total - 0.05;
+    }
   } else {
     let s = D.s0.start + dt;
     const a = _scVoSnap(s, c.id);
     const b = _scVoSnap(s + c.len, c.id) - c.len;
     s = Math.abs(a - s) <= Math.abs(b - s) ? a : b;
     c.start = Math.max(0, Math.min(s, Math.max(0, total - MIN)));
+    if (c.id === _SC_VO_MU) c.full = c.start + c.len >= total - 0.05;
   }
   _scVoPlace(c);
   _scVoInspect();
@@ -706,7 +782,14 @@ const _scVoEnd = () => {
   _scVoDrag = null;
   _scVoEdge = null;
   _scEl("sc-vo-tl")?.querySelector(".is-drag")?.classList.remove("is-drag");
-  if (D.moved) _scVoSave();
+  if (!D.moved) return;
+  _scVoSave();
+  // Khối nhạc "chạy tới cuối" kéo xong thì co / giãn lại cho vừa hết slide.
+  if (D.c.id === _SC_VO_MU) {
+    _scVoPlace(_scVoMuClip());
+    _scVoInspect();
+    _scVoSend();
+  }
 };
 _scEl("sc-vo-tl")?.addEventListener("pointerup", _scVoEnd);
 _scEl("sc-vo-tl")?.addEventListener("pointercancel", _scVoEnd);
@@ -725,6 +808,15 @@ _scEl("sc-vo-tl")?.addEventListener("keydown", (e) => {
 
 // Nút trong dòng thời gian (tắt tiếng, micro) và dấu x của bảng lớp đang chọn.
 function _scVoClick(e) {
+  if (e.target.closest("[data-mu-add]")) return scMusicPick();
+  if (e.target.closest("[data-mu-lib]")) return scMusicLibOpen(_scEl("sc-mu-libbox").classList.contains("hidden"));
+  if (e.target.closest("[data-mu-clear]")) {
+    _scVoSelect("");
+    return scMusicClear();
+  }
+  if (e.target.closest("[data-vo-add]")) return scVoicePick();
+  const addLane = e.target.closest("[data-vo-addlane]");
+  if (addLane) return scVoicePick((e.clientX - addLane.getBoundingClientRect().left) / _scVoPx());
   const rec = e.target.closest("[data-vo-rec]");
   if (rec) return scVoiceRecord(rec.dataset.voRec);
   const mute = e.target.closest("[data-vo-mute]");

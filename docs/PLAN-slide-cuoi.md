@@ -18,7 +18,7 @@
 > chữ dọc sát mép), mỗi cảnh nhiều ảnh bay từ ngoài khung vào. **Thiệp ít ảnh hơn số khung thì
 > ảnh LẶP VÒNG cho đủ** — không bớt cảnh, không để khung trống. Mẫu này theo LỜI CÔ DÂU: sau Mở đầu + Đôi
 > uyên ương là lời cô dâu (~1 phút, gửi quan khách · bố mẹ · anh) chạy chữ kiểu máy chữ ở nhịp
-> nói để cô dâu thu âm theo ở tab Giọng; phần dài quá khung tự chia thêm cảnh nối tiếp (không cố
+> nói để cô dâu thu âm theo ở tab Âm thanh; phần dài quá khung tự chia thêm cảnh nối tiếp (không cố
 > định 3 cảnh). Chú rể chỉ có "My groom" ngắn, không có cảnh "My bride". KHÔNG hiện tên bố mẹ.
 >
 > **Vẽ bằng canvas + xuất video bằng WebCodecs (chốt 2026-11-06)**, chạy trọn trên máy khách:
@@ -85,7 +85,8 @@ slide-cuoi/
   mỗi cảnh trong [min, max]: min = lúc mọi hiệu ứng của cảnh chạy xong + 1 giây (`_end`), max
   30 giây; đổi thời lượng chỉ `retime` (đặt lại mốc), không dựng lại dự án. Cảnh phải có `id`
   ổn định (mẫu đặt = id cảnh), thiếu thì engine lấy vị trí — chèn cảnh là lệch thời lượng đã chỉnh.
-- Giọng đọc (`voice.js`, tab "Giọng"): tối đa 10 file ghi âm, mỗi file ≤ 50 MB, mỗi file một LỚP
+- Tab "Âm thanh" gộp nhạc nền + giọng đọc: một dòng thời gian (`voice.js`) có làn Nhạc nền (dấu + chọn file nhạc, bấm khối là xuống phần chọn nhạc), các lớp giọng, và hàng "Lớp mới" — dấu + thêm file ở đầu phát, bấm thẳng vào làn thêm file BẮT ĐẦU đúng mốc đó (vạch + chạy theo chuột), micro thu âm. Dưới là phần Nhạc nền (file · thư viện).
+- Giọng đọc (`voice.js`): tối đa 10 file ghi âm, mỗi file ≤ 50 MB, mỗi file một LỚP
   trên dòng thời gian của slide (thước giây · dải cảnh · nhạc · các lớp). Kéo thân khối = đổi lúc
   bắt đầu, kéo hai mép = cắt đầu/cuối, hút về đầu cảnh / đầu phát / mép lớp khác; bảng lớp đang
   chọn chỉ có âm lượng + dấu x (xoá lớp, có hỏi lại). Nút micro ở đầu mỗi lớp (thu lại, giữ chỗ
@@ -118,9 +119,9 @@ slide-cuoi/
   xuất. Supabase Storage và worker proxy ảnh đều trả `Access-Control-Allow-Origin: *`.
 - Font phải tải xong trước khi đo chữ (`CX_SLIDE.fonts`) — canvas không tự đợi font.
 - **Không dùng nhạc của thiệp** (thường là YouTube — không ghép được vào video vì không lấy được
-  luồng tiếng, lại trái điều khoản): khách không chọn nhạc ở tab Nhạc thì slide KHÔNG có nhạc,
+  luồng tiếng, lại trái điều khoản): khách không chọn nhạc ở tab Âm thanh thì slide KHÔNG có nhạc,
   trang không còn khối nào nhắc YouTube. Nhạc file thì ghép vào video, lặp + mờ vào/ra.
-- Tab **Nhạc**: file từ máy (MP3/M4A/WAV ≤ 30 MB, cất BYTE ở
+- Nhạc nền (phần dưới tab **Âm thanh**): file từ máy (MP3/M4A/WAV ≤ 30 MB, cất BYTE ở
   IndexedDB kho `music`, khoá = id thiệp hoặc `demo` — không theo mẫu) · bài trong thư viện
   `CONFIG.slideMusic.library` (`{tracks:[{id, title, artist, file, credit}]}`; `file` tính theo
   URL của file danh mục, `credit` hiện dưới danh sách khi bài cần ghi công). Kho chưa dựng /
@@ -140,8 +141,8 @@ slide-cuoi/
   Linux không có AAC). Khung báo `audio` trong `cx-slide-caps` và lý do video không tiếng
   (`mute`: yt · codec · decode) khi xong, trang ghi đúng lý do. File nhạc khách tải lên đưa
   thẳng Blob cho bộ xuất: CSP chặn `fetch` URL `blob:`.
-- **Bản xem thử gửi khách** (lựa chọn "Xem thử" trong ô Xuất video, mặc định): video DỌC 720×1280
-  ~1,5 Mbps, slide vẽ nhỏ rồi đặt vào ô màn chiếu của ảnh hội trường `slide-cuoi/assets/hall.jpg`,
+- **Bản xem thử gửi khách** (lựa chọn "Xem thử" trong ô Xuất video, mặc định): video DỌC 1080×1920
+  ~3 Mbps, slide vẽ nhỏ rồi đặt vào ô màn chiếu của ảnh hội trường `slide-cuoi/assets/hall.jpg`,
   có dấu "Bản xem thử" góc màn + `cuoixinh.com` ở đáy — để gửi Zalo cho khách duyệt TRƯỚC khi
   thanh toán, thay vì đưa file 1080p/4K chiếu được thật. Ô màn chiếu khai MỘT chỗ (`HALL` ở
   `engine/slide-export.js`); nút "Màn chiếu" dưới slide dựng đúng bố cục đó bằng CSS

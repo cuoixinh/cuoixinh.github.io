@@ -9,7 +9,7 @@ window.CXSlideExport = (() => {
     2160: { w: 3840, h: 2160, bitrate: 16e6, codecs: ["avc1.640033", "avc1.4d0033", "avc1.640034"] },
     // Bản xem thử gửi khách chưa thanh toán: video dọc, slide nhỏ nằm trên màn chiếu của ảnh
     // hội trường (HALL), có dấu "Bản xem thử" — xem được trên điện thoại, không đem chiếu thật được.
-    demo: { w: 720, h: 1280, bitrate: 1.5e6, codecs: ["avc1.640028", "avc1.4d0028", "avc1.42e01f"] },
+    demo: { w: 1080, h: 1920, bitrate: 3e6, codecs: ["avc1.640028", "avc1.4d0028", "avc1.42e028"] },
   };
   // Ảnh hội trường 941×1672 + ô màn chiếu (tỉ lệ 0–1 của ảnh, đúng 16:9, tràn hết bề ngang ảnh) — trang /slide-cuoi/
   // dựng khung "Màn chiếu" theo CÙNG số này (.sc-stage.is-hall ở styles/_slide-cuoi.css).
@@ -39,11 +39,12 @@ window.CXSlideExport = (() => {
     ch.port2.postMessage(0);
   });
 
-  // Tiếng của video, 48kHz stereo dài đúng `seconds`: nhạc nền (lặp nếu ngắn, mờ vào/ra 1.5 giây)
-  // + các đoạn GIỌNG ĐỌC đặt đúng mốc {blob, start, in, len, vol, mute}; trong lúc có giọng nhạc hạ
-  // còn `duck` (0..1). Nguồn là URL cùng gốc hoặc Blob — file khách tải lên phải đưa thẳng Blob:
-  // CSP chặn fetch URL `blob:`. Trả {buf, music, voices, lost} hoặc null khi không đọc được gì.
-  async function _mix({ music, voices = [], duck = 1 }, seconds) {
+  // Tiếng của video, 48kHz stereo dài đúng `seconds`: nhạc nền trong đoạn `cut` {start, in,
+  // len|null} (bài lặp nếu ngắn, mờ vào/ra 1.5 giây ở hai mép đoạn) + các đoạn GIỌNG ĐỌC đặt đúng
+  // mốc {blob, start, in, len, vol, mute}; trong lúc có giọng nhạc hạ còn `duck` (0..1). Nguồn là URL
+  // cùng gốc hoặc Blob — file khách tải lên phải đưa thẳng Blob: CSP chặn fetch URL `blob:`.
+  // Trả {buf, music, voices, lost} hoặc null khi không đọc được gì.
+  async function _mix({ music, cut, voices = [], duck = 1 }, seconds) {
     const frames = Math.ceil(seconds * AUDIO_RATE);
     const off = new OfflineAudioContext(2, frames, AUDIO_RATE);
     const dec = async (from) => {
@@ -74,16 +75,18 @@ window.CXSlideExport = (() => {
       spans.push([at, at + len]);
     });
 
-    if (mbuf) {
+    const mAt = Math.min(Math.max(0, Number(cut?.start) || 0), seconds);
+    const mEnd = cut?.len == null ? seconds : Math.min(seconds, mAt + Math.max(0, Number(cut.len) || 0));
+    if (mbuf && mEnd - mAt > 0.05) {
       const src = off.createBufferSource();
       src.buffer = mbuf;
       src.loop = true;
       const fade = off.createGain();
-      const f = Math.min(1.5, seconds / 4);
-      fade.gain.setValueAtTime(0, 0);
-      fade.gain.linearRampToValueAtTime(1, f);
-      fade.gain.setValueAtTime(1, Math.max(f, seconds - f));
-      fade.gain.linearRampToValueAtTime(0, seconds);
+      const f = Math.min(1.5, (mEnd - mAt) / 4);
+      fade.gain.setValueAtTime(0, mAt);
+      fade.gain.linearRampToValueAtTime(1, mAt + f);
+      fade.gain.setValueAtTime(1, Math.max(mAt + f, mEnd - f));
+      fade.gain.linearRampToValueAtTime(0, mEnd);
       // Hạ nhạc theo các quãng có giọng (quãng cách nhau dưới 1.2 giây gộp làm một, khỏi phập phồng).
       const dk = off.createGain();
       dk.gain.setValueAtTime(1, 0);
@@ -105,7 +108,8 @@ window.CXSlideExport = (() => {
         });
       }
       src.connect(fade).connect(dk).connect(off.destination);
-      src.start(0);
+      src.start(mAt, (Math.max(0, Number(cut?.in) || 0)) % mbuf.duration);
+      src.stop(mEnd);
     }
     if (!mbuf && !spans.length) return null;
     return { buf: await off.startRendering(), music: !!mbuf, voices: spans.length, lost: vs.length - spans.length };
@@ -194,7 +198,7 @@ window.CXSlideExport = (() => {
     const voices = (opts.voices || []).filter((v) => v && !v.mute);
     if (opts.audioUrl || voices.length) {
       audio = await _audioCfg();
-      const mix = audio ? await _mix({ music: opts.audioUrl, voices, duck: opts.duck ?? 1 }, P.total).catch(() => null) : null;
+      const mix = audio ? await _mix({ music: opts.audioUrl, cut: opts.musicCut, voices, duck: opts.duck ?? 1 }, P.total).catch(() => null) : null;
       pcm = mix?.buf || null;
       opts.onAudio?.({
         ok: !!pcm,
