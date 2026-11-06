@@ -86,7 +86,18 @@ slide-cuoi/
   xuất. Supabase Storage và worker proxy ảnh đều trả `Access-Control-Allow-Origin: *`.
 - Font phải tải xong trước khi đo chữ (`CX_SLIDE.fonts`) — canvas không tự đợi font.
 - Nhạc YouTube không ghép được vào video (không lấy được luồng tiếng, trái điều khoản):
-  video xuất ra không tiếng, trang báo trước. Nhạc file (mp3) thì ghép, lặp + mờ vào/ra.
+  video xuất ra không tiếng, trang báo trước. Nhạc file thì ghép, lặp + mờ vào/ra.
+- Tab **Nhạc**: nhạc của thiệp (mặc định) · file từ máy (MP3/M4A/WAV ≤ 30 MB, cất BYTE ở
+  IndexedDB kho `music`, khoá = id thiệp hoặc `demo` — không theo mẫu) · bài trong thư viện
+  `assets/music/library.json` (`{tracks:[{id, title, artist, file, credit}]}`; `file` là URL,
+  `credit` hiện dưới danh sách khi bài cần ghi công). Kho rỗng → "Thư viện nhạc hiện đang chưa
+  có". Gửi sang khung: `{id, blob}` · `{url}` · null qua `cx-slide-data` / `cx-slide-music`.
+  Bài thư viện đặt ở host khác thì host đó phải trả CORS và có trong `connect-src` của
+  `_headers` (bộ xuất `fetch` file nhạc).
+- Mã tiếng khi xuất: AAC nếu máy có bộ mã, không thì Opus (Chromium mã nguồn mở, Firefox, Chrome
+  Linux không có AAC). Khung báo `audio` trong `cx-slide-caps` và lý do video không tiếng
+  (`mute`: yt · codec · decode) khi xong, trang ghi đúng lý do. File nhạc khách tải lên đưa
+  thẳng Blob cho bộ xuất: CSP chặn `fetch` URL `blob:`.
 - Bán mẫu (chưa làm): khoá theo MẪU slide chứ không theo thiệp. Lúc làm thì phải kiểm ở
   server — chặn ở client là ai cũng mở thẳng `templates/<id>/` được.
 

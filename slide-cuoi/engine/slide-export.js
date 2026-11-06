@@ -34,8 +34,10 @@ window.CXSlideExport = (() => {
   });
 
   // Nhạc file → PCM 48kHz stereo dài đúng `seconds`: lặp nếu bài ngắn, mờ vào/ra 1.5 giây.
-  async function _pcm(url, seconds) {
-    const buf = await (await fetch(url)).arrayBuffer();
+  // `from` là URL cùng gốc hoặc Blob — file khách tải lên phải đưa thẳng Blob: CSP chặn fetch
+  // URL `blob:` (connect-src không có blob:).
+  async function _pcm(from, seconds) {
+    const buf = from instanceof Blob ? await from.arrayBuffer() : await (await fetch(from)).arrayBuffer();
     const frames = Math.ceil(seconds * AUDIO_RATE);
     const off = new OfflineAudioContext(2, frames, AUDIO_RATE);
     const decoded = await off.decodeAudioData(buf);
@@ -53,35 +55,46 @@ window.CXSlideExport = (() => {
     return off.startRendering();
   }
 
+  // Mã tiếng: AAC trước (phát được ở mọi nơi). Máy không có bộ mã AAC (Chromium mã nguồn mở,
+  // Firefox, Chrome trên Linux…) thì Opus — MP4 mang Opus phát được trên Chrome, Firefox, VLC,
+  // Android. Trả {cfg cho AudioEncoder, mux: tên codec cho mp4-muxer} hoặc null.
+  const _AUDIO = [
+    { codec: "mp4a.40.2", mux: "aac", bitrate: 160000 },
+    { codec: "opus", mux: "opus", bitrate: 128000 },
+  ];
   async function _audioCfg() {
     if (typeof AudioEncoder !== "function") return null;
-    const cfg = { codec: "mp4a.40.2", sampleRate: AUDIO_RATE, numberOfChannels: 2, bitrate: 160000 };
-    try {
-      return (await AudioEncoder.isConfigSupported(cfg)).supported ? cfg : null;
-    } catch (e) {
-      return null;
+    for (const a of _AUDIO) {
+      const cfg = { codec: a.codec, sampleRate: AUDIO_RATE, numberOfChannels: 2, bitrate: a.bitrate };
+      try {
+        if ((await AudioEncoder.isConfigSupported(cfg)).supported) return { cfg, mux: a.mux };
+      } catch (e) {}
     }
+    return null;
   }
 
-  // opts: { height: 1080|2160, audioUrl, signal, onProgress(p 0..1) } → Blob MP4.
+  // opts: { height: 1080|2160, audioUrl (URL hoặc Blob nhạc), signal, onProgress(p 0..1),
+  // onAudio({ok, reason: "codec"|"decode"|""}) — báo trước khi mã hoá: có ghép được tiếng không } → Blob MP4.
   async function run(P, opts) {
     const vcfg = await pickCodec(opts.height);
     if (!vcfg) throw Object.assign(new Error("Máy này không mã hoá được video khổ này"), { code: "UNSUPPORTED" });
     const S = SIZES[opts.height];
 
-    // Nhạc (nếu có và máy mã hoá được AAC). Hỏng thì xuất video không tiếng, không dừng cả việc.
+    // Nhạc (nếu có và máy mã hoá được tiếng). Hỏng thì xuất video không tiếng, không dừng cả việc.
     let pcm = null;
-    let acfg = null;
+    let audio = null;
     if (opts.audioUrl) {
-      acfg = await _audioCfg();
-      if (acfg) pcm = await _pcm(opts.audioUrl, P.total).catch(() => null);
-      if (!pcm) acfg = null;
+      audio = await _audioCfg();
+      if (audio) pcm = await _pcm(opts.audioUrl, P.total).catch(() => null);
+      opts.onAudio?.({ ok: !!(audio && pcm), reason: !audio ? "codec" : !pcm ? "decode" : "" });
+      if (!pcm) audio = null;
     }
+    const acfg = audio?.cfg || null;
 
     const muxer = new Mp4Muxer.Muxer({
       target: new Mp4Muxer.ArrayBufferTarget(),
       video: { codec: "avc", width: S.w, height: S.h, frameRate: FPS },
-      audio: acfg ? { codec: "aac", numberOfChannels: 2, sampleRate: AUDIO_RATE } : undefined,
+      audio: audio ? { codec: audio.mux, numberOfChannels: 2, sampleRate: AUDIO_RATE } : undefined,
       fastStart: "in-memory",
     });
 
@@ -156,5 +169,8 @@ window.CXSlideExport = (() => {
     return new Blob([muxer.target.buffer], { type: "video/mp4" });
   }
 
-  return { supported, pickCodec, run, FPS };
+  // Mã tiếng máy này dùng được khi xuất: "aac" · "opus" · "" (không ghép được tiếng).
+  const audioCodec = async () => (await _audioCfg())?.mux || "";
+
+  return { supported, pickCodec, audioCodec, run, FPS };
 })();

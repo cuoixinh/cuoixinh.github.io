@@ -231,6 +231,9 @@
       }));
       // Loại nhạc: "file" ghép được vào video xuất, "yt" thì không.
       msg.music = Music.fileUrl() ? "file" : Music.isYouTube() ? "yt" : "";
+      // Nhạc RIÊNG của thiệp (khi khách chưa chọn nhạc khác) — trang cha tả ở tab Nhạc.
+      const own = cur && on(cur.enable_music) ? String(cur.music_url || "").trim() : "";
+      msg.cardMusic = !own ? "" : /youtu\.?be/i.test(own) ? "yt" : "file";
     }
     post(msg);
   }
@@ -364,6 +367,8 @@
     let ready = false;
     let audio = null;
     let fileUrl = "";
+    let fileBlob = null; // file nhạc khách tải lên (trang cha gửi Blob) — bộ xuất đọc thẳng
+    let loaded = null; // khoá nguồn đang nạp: nạp lại đúng nguồn đó thì giữ nguyên, nhạc không chạy lại từ đầu
     let want = false;
     let touched = false;
 
@@ -422,15 +427,27 @@
       } catch (e) {}
       document.getElementById("sl-yt")?.remove();
       audio?.pause();
-      yt = audio = null;
+      if (fileBlob && fileUrl) URL.revokeObjectURL(fileUrl);
+      yt = audio = fileBlob = null;
       kind = vid = fileUrl = "";
       ready = false;
     }
 
-    function load(url) {
-      reset();
+    // url: link YouTube hoặc file nhạc; file = {id, blob} nhạc khách tải lên (thắng url).
+    function load(url, file) {
       url = String(url || "").trim();
-      if (url) {
+      const key = file?.blob ? `file:${file.id}` : url;
+      if (key === loaded) return sync();
+      loaded = key;
+      reset();
+      if (file?.blob) {
+        kind = "audio";
+        fileBlob = file.blob;
+        fileUrl = URL.createObjectURL(file.blob);
+        audio = new Audio(fileUrl);
+        audio.loop = true;
+        audio.preload = "auto";
+      } else if (url) {
         vid = ytId(url);
         if (vid) {
           kind = "yt";
@@ -479,6 +496,8 @@
       isOn: () => !!kind && want,
       // Nhạc dạng file thì ghép được vào video xuất; YouTube thì không.
       fileUrl: () => (kind === "audio" ? fileUrl : ""),
+      // Nguồn cho bộ xuất: Blob nếu là file tải lên (CSP chặn fetch URL blob:), không thì URL.
+      exportSrc: () => (kind === "audio" ? fileBlob || fileUrl : ""),
       isYouTube: () => kind === "yt",
       toggle() {
         touched = true;
@@ -525,14 +544,18 @@
     const wasPlaying = playing;
     Music.pause();
     post({ type: "cx-slide-export-state", state: "run", p: 0 });
+    // Lý do video ra không tiếng: "yt" (nhạc YouTube) · "codec" (máy không mã hoá được tiếng) ·
+    // "decode" (không đọc được file nhạc) · "" (có tiếng, hoặc slide không có nhạc).
+    let mute = Music.has() && !Music.fileUrl() ? "yt" : "";
     try {
       const blob = await CXSlideExport.run(P, {
         height,
-        audioUrl: Music.fileUrl(),
+        audioUrl: Music.exportSrc(),
         signal: exporting.signal,
         onProgress: (p) => post({ type: "cx-slide-export-state", state: "run", p }),
+        onAudio: (a) => (mute = a.ok ? "" : a.reason),
       });
-      post({ type: "cx-slide-export-state", state: "done", blob, silent: !Music.fileUrl() && Music.has() });
+      post({ type: "cx-slide-export-state", state: "done", blob, mute });
       if (!EMBED) _download(blob, `slide-cuoi-${height}p.mp4`);
     } catch (e) {
       post({
@@ -560,13 +583,25 @@
   async function caps() {
     const X = window.CXSlideExport;
     const ok = X?.supported() ? await Promise.all([X.pickCodec(1080), X.pickCodec(2160)]) : [null, null];
-    post({ type: "cx-slide-caps", h1080: !!ok[0], h2160: !!ok[1] });
+    const audio = X?.audioCodec ? await X.audioCodec().catch(() => "") : "";
+    post({ type: "cx-slide-caps", h1080: !!ok[0], h2160: !!ok[1], audio });
   }
 
   // ── Dữ liệu ──
   let gen = 0;
 
   let cur = null; // thiệp đang chiếu
+  // Nhạc khách chọn ở tab Nhạc của trang cha: {id, blob} (file từ máy) · {url} (thư viện) ·
+  // null = nhạc của thiệp.
+  let musicPick = null;
+  function setMusic(m) {
+    musicPick = m?.blob instanceof Blob && m.id ? { id: String(m.id), blob: m.blob } : m?.url ? { url: String(m.url) } : null;
+  }
+  function applyMusic() {
+    if (musicPick?.blob) Music.load("", musicPick);
+    else if (musicPick?.url) Music.load(musicPick.url);
+    else Music.load(cur && on(cur.enable_music) ? cur.music_url : "");
+  }
   let texts = {}; // chữ người dùng sửa ở trang cha, theo khoá khối của mẫu
   let photos = {}; // id cảnh → {src: blob URL, focal} của ảnh khách tải lên ở trang cha
   const photoUrls = new Map(); // id ảnh (trang cha đặt) → blob URL, để khỏi tạo lại mỗi lần gửi
@@ -605,7 +640,7 @@
     snap = null;
     const bg = w.cover_image_url || (w.gallery_images || [])[0];
     backdrop.style.backgroundImage = bg ? `url(${JSON.stringify(getImageUrl(bg))})` : "";
-    Music.load(on(w.enable_music) ? w.music_url : "");
+    applyMusic();
     fit();
     report(true);
     sync();
@@ -630,10 +665,18 @@
     if (m.type === "cx-slide-data") {
       texts = m.texts && typeof m.texts === "object" ? m.texts : {};
       setPhotos(m.photos);
+      setMusic(m.music);
       m.wedding ? load(m.wedding) : demo();
     } else if (m.type === "cx-slide-texts" && cur) {
       texts = m.texts && typeof m.texts === "object" ? m.texts : {};
       if (!exporting) load(cur, Number.isInteger(m.index) ? m.index : idx);
+    } else if (m.type === "cx-slide-music") {
+      if (exporting) return;
+      setMusic(m.music);
+      if (cur) {
+        applyMusic();
+        report(true);
+      }
     } else if (m.type === "cx-slide-photos" && cur) {
       if (exporting) return;
       setPhotos(m.photos);
