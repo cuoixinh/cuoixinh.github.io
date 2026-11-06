@@ -205,19 +205,19 @@
           </div>
         </section>
 
-        <!-- Nhạc cho slide + video xuất ra: nhạc của thiệp (mặc định) · file từ máy · thư viện
-             (assets/music/library.json). Lựa chọn lưu IndexedDB theo thiệp, không lên server. -->
+        <!-- Nhạc cho slide + video xuất ra: file từ máy · thư viện (media.cuoixinh.com); không chọn
+             là không có nhạc. Lựa chọn lưu IndexedDB theo thiệp, không lên server. -->
         <section id="sc-tab-music" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-music">
           <p class="sc-lead">Nhạc phát khi trình chiếu và được ghép vào video xuất ra.</p>
 
           <div class="sc-mu-now">
             <span class="sc-mu-ico" aria-hidden="true"><i data-lucide="music"></i></span>
             <div class="sc-mu-now-text">
-              <p id="sc-mu-now-t" class="sc-mu-now-t">Nhạc của thiệp</p>
+              <p id="sc-mu-now-t" class="sc-mu-now-t">Chưa có nhạc</p>
               <p id="sc-mu-now-d" class="sc-mu-now-d"></p>
             </div>
-            <x-button id="sc-mu-clear" variant="bare" icon="undo-2" onclick="scMusicClear()" class="sc-mu-clear hidden">
-              Dùng nhạc của thiệp
+            <x-button id="sc-mu-clear" variant="bare" icon="x" onclick="scMusicClear()" class="sc-mu-clear hidden">
+              Bỏ nhạc
             </x-button>
           </div>
 

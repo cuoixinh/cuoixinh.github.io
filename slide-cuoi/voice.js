@@ -409,10 +409,10 @@ function _scVoRender() {
         `<span class="sc-vo-seg${i % 2 ? " is-alt" : ""}" style="left:${(starts[i] * pps).toFixed(1)}px;width:${((c.dur / 1000) * pps).toFixed(1)}px" title="${_scEsc(c.label)}">${_scEsc(c.label)}</span>`,
     )
     .join("");
-  const music = _scMusic || (_scMu.pick ? "file" : _scCardMusic);
-  const mus = music
-    ? `<span class="sc-vo-mbar" style="width:${(total * pps).toFixed(1)}px">${music === "yt" ? "Nhạc YouTube" : "Nhạc nền"}</span>`
-    : `<span class="sc-vo-note">Chưa có nhạc nền</span>`;
+  const mus =
+    _scMusic || _scMu.pick
+      ? `<span class="sc-vo-mbar" style="width:${(total * pps).toFixed(1)}px">Nhạc nền</span>`
+      : `<span class="sc-vo-note">Chưa có nhạc nền. Chọn ở tab Nhạc.</span>`;
   // Mỗi lớp: số · tên · tắt tiếng · micro (thu lại lớp đó). Cuối cùng là hàng "Lớp mới" để thu
   // thẳng một lớp nữa (còn chỗ thì mới có). Lớp đang thu có khối đỏ chạy dài theo đầu phát.
   const R = _scVoRec;
