@@ -16,9 +16,10 @@
 > của mẫu thiệp romantic-blush. Mẫu thứ hai: `templates/mai-ben-nhau/` ("Mãi Bên Nhau") — bố
 > cục tạp chí (nền hồng xám, mảng nâu be lệch sau ảnh, tiêu đề tiếng Anh viết hoa dãn rộng,
 > chữ dọc sát mép), mỗi cảnh nhiều ảnh bay từ ngoài khung vào. **Thiệp ít ảnh hơn số khung thì
-> ảnh LẶP VÒNG cho đủ** — không bớt cảnh, không để khung trống. Mẫu này theo LỜI CÔ DÂU: chú rể
-> chỉ có cảnh "My groom" ngắn; cô dâu có ba lời dài (gửi quan khách · gửi bố mẹ hai bên · gửi
-> chồng) viết để thu âm rồi lồng vào ở tab Giọng đọc. KHÔNG hiện tên bố mẹ.
+> ảnh LẶP VÒNG cho đủ** — không bớt cảnh, không để khung trống. Mẫu này theo LỜI CÔ DÂU: sau Mở đầu + Đôi
+> uyên ương là lời cô dâu (~1 phút, gửi quan khách · bố mẹ · anh) chạy chữ kiểu máy chữ ở nhịp
+> nói để cô dâu thu âm theo ở tab Giọng; phần dài quá khung tự chia thêm cảnh nối tiếp (không cố
+> định 3 cảnh). Chú rể chỉ có "My groom" ngắn, không có cảnh "My bride". KHÔNG hiện tên bố mẹ.
 >
 > **Vẽ bằng canvas + xuất video bằng WebCodecs (chốt 2026-11-06)**, chạy trọn trên máy khách:
 > xem trước, trình chiếu và xuất video dùng CÙNG một bộ vẽ nên video ra y hệt bản xem.
