@@ -251,6 +251,16 @@ html.sc-lock,
 html.sc-lock body {
   overflow: hidden;
 }
+/* Đang phủ kín màn: ẩn navbar (trên + thanh tab dưới) và đưa sân khấu lên trên mọi lớp — khối
+   sticky có z-index riêng nên khung `fixed` bên trong không vượt được lớp ngoài nó. */
+html.sc-lock .sc-stage {
+  z-index: 200;
+}
+html.sc-lock #main-nav,
+html.sc-lock .cx-tabbar,
+html.sc-lock .cx-navmore-pop {
+  display: none;
+}
 
 /* Hàng dưới slide: Trình chiếu · Xuất video, tổng số cảnh + thời lượng đẩy sang phải. */
 .sc-bar {
