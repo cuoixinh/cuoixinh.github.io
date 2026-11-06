@@ -32,7 +32,7 @@
     class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
   >
     <!-- "Slide cưới": màn chiếu cho sân khấu tiệc cưới. Đầu trang, khung xem iframe templates/<id>/ tràn hết bề ngang, dưới là chọn mẫu, chọn thiệp và
-         thứ tự trình chiếu (runtime báo danh sách cảnh lên). Logic ở index.js, kế hoạch ở
+         thứ tự trình chiếu (runtime báo danh sách cảnh lên), ảnh từng cảnh. Logic ở index.js, kế hoạch ở
          docs/PLAN-slide-cuoi.md. -->
     <main class="gl-page pb-12">
       <header class="sc-head mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -114,6 +114,20 @@
           </div>
           <div class="sc-sec-main">
             <ol id="sc-cues" class="sc-cues"></ol>
+          </div>
+        </section>
+
+        <section class="sc-sec" aria-labelledby="sc-h-photos">
+          <div class="sc-sec-side">
+            <h2 id="sc-h-photos" class="sc-h">Ảnh trong slide</h2>
+            <p class="sc-lead">Mỗi cảnh một ảnh, lấy sẵn từ thiệp. Bấm vào ảnh để thay bằng ảnh trong máy. Ảnh chỉ nằm trên máy này, không tải lên đâu cả.</p>
+            <x-button id="sc-ph-reset" variant="bare" icon="rotate-ccw" onclick="scPhotosReset()" class="mi-btn mi-btn--soft sc-side-btn hidden">
+              Về ảnh của thiệp
+            </x-button>
+          </div>
+          <div class="sc-sec-main">
+            <ul id="sc-photos" class="sc-photos"></ul>
+            <input id="sc-ph-file" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
           </div>
         </section>
 
@@ -233,6 +247,8 @@
     <script src="../core/bl/wedding-bl.js"></script>
     <script src="../core/bl/image-bl.js"></script>
     <script src="../core/supabase.js"></script>
+    <!-- Nén ảnh khách tự chọn cho mục "Ảnh trong slide" (ImageHelper). -->
+    <script src="../core/helpers/image-helper.js"></script>
     <script src="templates.js"></script>
     <script src="index.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->

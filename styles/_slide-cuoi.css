@@ -119,7 +119,7 @@ html.sc-lock body {
   transition: transform 0.2s linear;
 }
 
-/* Ba mục xếp dọc (Chữ trong slide · Ảnh và thông tin · Mẫu slide), ngăn bằng vạch mảnh.
+/* Các mục xếp dọc (Chữ trong slide · Ảnh trong slide · Ảnh và thông tin · Mẫu slide), ngăn bằng vạch mảnh.
    Từ lg mỗi mục chia hai cột: tiêu đề + lời dẫn đứng dính bên trái, nội dung bên phải. */
 .sc-panel {
   margin-top: 40px;
@@ -601,4 +601,120 @@ html.sc-lock body {
   .sc-keys {
     display: none;
   }
+}
+
+/* Ảnh trong slide: lưới ô ảnh khổ dọc 3:4 (gần khung ảnh của cảnh), mỗi ô một cảnh. Ô đã
+   thay bằng ảnh của khách viền màu nhấn + hai nút bên dưới. */
+.sc-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 16px 12px;
+}
+@media (min-width: 640px) {
+  .sc-photos {
+    grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+  }
+}
+.sc-ph {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+.sc-ph-pick {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.sc-ph-pick:hover {
+  border-color: rgb(var(--brand-accent-rgb) / 0.6);
+}
+.sc-ph-pick:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(var(--action-primary-rgb) / 0.3);
+}
+.sc-ph.is-own .sc-ph-pick {
+  border-color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 0 0 2px rgb(var(--brand-accent-rgb) / 0.3);
+}
+.sc-ph-thumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  font-size: 24px;
+  color: rgb(var(--brand-accent-rgb) / 0.6);
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-ph-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Nhãn nổi đáy ảnh: luôn hiện trên máy cảm ứng, máy có chuột thì hiện khi rê vào. */
+.sc-ph-badge {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--scrim-rgb) / 0.55);
+  transition: opacity 0.2s ease;
+}
+@media (hover: hover) {
+  .sc-ph-badge {
+    opacity: 0;
+  }
+  .sc-ph-pick:hover .sc-ph-badge,
+  .sc-ph-pick:focus-visible .sc-ph-badge,
+  .sc-ph.is-own .sc-ph-badge {
+    opacity: 1;
+  }
+}
+.sc-ph-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-inline: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+/* Hai nút của ô đã thay ảnh: chỉnh điểm lấy nét · trả về ảnh thiệp. */
+.sc-ph-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: -4px;
+}
+.sc-ph-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.sc-ph-act:hover {
+  background: rgb(var(--surface-brand-subtle-rgb));
 }

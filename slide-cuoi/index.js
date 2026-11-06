@@ -2,6 +2,7 @@
 // thiệp của tài khoản → xem trước, trình chiếu toàn màn, xuất video MP4 (1080p/4K).
 // Mẫu chạy trong iframe templates/<id>/?embed=1 và KHÔNG tự gọi API: trang này lấy thiệp
 // (getWeddingById, chỉ chủ thiệp) rồi gửi sang bằng postMessage mỗi khi khung báo sẵn sàng.
+// Ảnh khách tự thay cho từng cảnh nằm trong IndexedDB của máy, gửi sang dạng Blob.
 
 const _scS = { tpl: CX_SLIDE_TEMPLATES[0]?.id || "", real: false, wid: null, user: null };
 let _scList = null; // thiệp của tài khoản; null = chưa tải
@@ -74,20 +75,25 @@ function _scFrameLoad() {
   _scEl("sc-cues").innerHTML = "";
   _scSig = "";
   _scOpen = -1;
+  _scPhSig = "";
+  _scEl("sc-photos").innerHTML = "";
   const t = CX_SLIDE_TEMPLATES.find((x) => x.id === _scS.tpl);
   _scBox.style.setProperty("--sc-ratio", t?.ratio || "16 / 9");
   _scFrame.src = `/slide-cuoi/templates/${encodeURIComponent(_scS.tpl)}/?embed=1`;
 }
 
 // ── Gửi dữ liệu sang khung ──
-function _scPush(force) {
+async function _scPush(force) {
   const w = _scS.real && _scS.wid ? _scData.get(_scS.wid) : null;
   const key = w ? _scS.wid : "demo";
   if (!force && key === _scSent) return;
   _scSent = key;
   _scSig = ""; // bộ dữ liệu khác → các ô chữ phải vẽ lại dù khoá trùng
+  _scPhSig = "";
+  await _scPhLoad();
+  if (_scSent !== key) return; // trong lúc đọc ảnh đã đổi sang bộ dữ liệu khác
   _scFrame.contentWindow?.postMessage(
-    { type: "cx-slide-data", wedding: w || null, texts: _scTexts() },
+    { type: "cx-slide-data", wedding: w || null, texts: _scTexts(), photos: _scPhMsg() },
     location.origin,
   );
 }
@@ -190,7 +196,11 @@ function _scCueState(m) {
         text: String(x.text ?? ""),
         def: String(x.def ?? ""),
       })),
+      photo: c.photo?.key
+        ? { key: String(c.photo.key), def: String(c.photo.def || ""), w: Number(c.photo.w) || 3, h: Number(c.photo.h) || 4 }
+        : null,
     }));
+    _scPhRender();
     const sig = _scCues.map((c) => c.label + ":" + c.texts.map((x) => x.key).join(",")).join("|");
     if (sig === _scSig) _scCueTimes();
     else {
@@ -278,6 +288,298 @@ _scEl("sc-cues").addEventListener("input", (e) => {
   ta.parentElement.querySelector(".sc-tx-undo")?.classList.toggle("is-off", ta.value === ta.dataset.def);
   _scTextSet(ta.dataset.key, ta.value, ta.dataset.def);
 });
+
+// ── Ảnh trong slide: mỗi cảnh có ảnh một ô, mặc định là ảnh khung báo lên (ảnh thiệp, hoặc
+// ảnh mẫu khi chưa chọn thiệp). Ảnh khách chọn được nén rồi cất BYTE vào IndexedDB theo
+// <mẫu>|<thiệp hoặc demo>|<id cảnh> — không lên server, đúng như chữ sửa. Cất byte chứ không
+// cất Blob: WebKit có máy đọc lại Blob đã cất thành rỗng. Chọn ảnh xong là mở bảng lấy nét
+// (openFocalPointPicker của core/utils.js, nạp lúc cần) với đúng khổ khung ảnh của cảnh.
+const _SC_PH_DB = "cx_slide";
+const _SC_PH_STORE = "photos";
+const _SC_PH_LIMITS = { maxWidth: 2560, maxHeight: 2560, maxSizeMB: 2, quality: 0.9 };
+let _scPh = { key: null, map: {} }; // map: id cảnh → {id, blob, url, focal}
+let _scPhSig = "";
+let _scPhPick = null; // {key, index} ô đang chọn ảnh
+let _scDbP = null;
+
+function _scDB() {
+  _scDbP ||= new Promise((resolve, reject) => {
+    const rq = indexedDB.open(_SC_PH_DB, 1);
+    rq.onupgradeneeded = () => rq.result.createObjectStore(_SC_PH_STORE);
+    rq.onsuccess = () => resolve(rq.result);
+    rq.onerror = () => reject(rq.error);
+  }).catch((e) => {
+    _scDbP = null;
+    throw e;
+  });
+  return _scDbP;
+}
+
+async function _scDbDo(mode, fn) {
+  const db = await _scDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(_SC_PH_STORE, mode);
+    const rq = fn(tx.objectStore(_SC_PH_STORE));
+    tx.oncomplete = () => resolve(rq?.result);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+
+function _scPhClear() {
+  Object.values(_scPh.map).forEach((p) => URL.revokeObjectURL(p.url));
+  _scPh.map = {};
+}
+
+// Đọc ảnh đã cất của bộ dữ liệu đang chiếu (đọc lại chỉ khi đổi mẫu / thiệp).
+async function _scPhLoad() {
+  const key = _scTxKey();
+  if (_scPh.key === key) return;
+  _scPhClear();
+  _scPh.key = key;
+  const prefix = key + "|";
+  let keys = [];
+  let vals = [];
+  try {
+    const range = IDBKeyRange.bound(prefix, prefix + "\uffff");
+    [keys, vals] = await Promise.all([
+      _scDbDo("readonly", (st) => st.getAllKeys(range)),
+      _scDbDo("readonly", (st) => st.getAll(range)),
+    ]);
+  } catch (e) {
+    console.warn("Không đọc được ảnh slide đã lưu:", e);
+  }
+  if (_scPh.key !== key) return;
+  (keys || []).forEach((k, i) => {
+    const v = vals[i];
+    if (!v?.buf?.byteLength) return;
+    const blob = new Blob([v.buf], { type: v.type || "image/jpeg" });
+    _scPh.map[String(k).slice(prefix.length)] = { id: v.id, blob, url: URL.createObjectURL(blob), focal: v.focal || null };
+  });
+}
+
+function _scPhMsg() {
+  const out = {};
+  Object.entries(_scPh.map).forEach(([k, p]) => (out[k] = { id: p.id, blob: p.blob, focal: p.focal }));
+  return out;
+}
+
+function _scPhSend(index) {
+  _scFrame.contentWindow?.postMessage({ type: "cx-slide-photos", photos: _scPhMsg(), index }, location.origin);
+}
+
+function _scPhRender() {
+  const slots = _scCues.map((c, i) => (c.photo ? { ...c.photo, label: c.label, i } : null)).filter(Boolean);
+  const sig = slots
+    .map((p) => {
+      const own = _scPh.map[p.key];
+      return `${p.key}:${p.def}:${own ? `${own.id}@${own.focal?.x},${own.focal?.y}` : ""}`;
+    })
+    .join("|");
+  _scToggle("sc-ph-reset", slots.some((p) => _scPh.map[p.key]));
+  if (sig === _scPhSig) return;
+  _scPhSig = sig;
+  const ul = _scEl("sc-photos");
+  const demo = _scTxKey().endsWith("|demo");
+  ul.innerHTML = slots
+    .map((p) => {
+      const own = _scPh.map[p.key];
+      const src = own?.url || p.def;
+      const pos = own?.focal ? ` style="object-position:${Number(own.focal.x)}% ${Number(own.focal.y)}%"` : "";
+      const at = `data-i="${p.i}" data-w="${p.w}" data-h="${p.h}"`;
+      return `<li class="sc-ph${own ? " is-own" : ""}">
+        <button type="button" class="sc-ph-pick" data-ph="${_scEsc(p.key)}" ${at} aria-label="Đổi ảnh cảnh ${_scEsc(p.label)}">
+          <span class="sc-ph-thumb">${_scIco("image-plus")}${src ? `<img src="${_scEsc(src)}" alt="" loading="lazy"${pos} onerror="this.remove()" />` : ""}</span>
+          <span class="sc-ph-badge">${_scIco("upload")}${own ? "Ảnh của bạn" : "Đổi ảnh"}</span>
+        </button>
+        <span class="sc-ph-name">${_scEsc(p.label)}</span>
+        ${
+          own
+            ? `<span class="sc-ph-acts">
+          <button type="button" class="sc-ph-act" data-ph-focal="${_scEsc(p.key)}" ${at}>${_scIco("focus")}Lấy nét</button>
+          <button type="button" class="sc-ph-act" data-ph-undo="${_scEsc(p.key)}" ${at}>${_scIco("undo-2")}${demo ? "Ảnh mẫu" : "Ảnh thiệp"}</button>
+        </span>`
+            : ""
+        }
+      </li>`;
+    })
+    .join("");
+  window.lucide?.createIcons({ root: ul });
+}
+
+// Đang xuất thì khung không nhận ảnh mới (nó đang vẽ bộ cũ) — chặn luôn ở đây cho khỏi lệch.
+function _scPhBusy() {
+  if (_scExState !== "run") return false;
+  window.showToast?.("Đang xuất video, đợi xong rồi hãy đổi ảnh", "warning");
+  return true;
+}
+
+// Bảng lấy nét dạng Promise: {x, y} (%) khi bấm Áp dụng, null khi đóng/huỷ. Xem trước đúng
+// khổ khung ảnh của cảnh (w × h theo toạ độ mẫu).
+let _scUtilsReq = null;
+function _scUtils() {
+  if (typeof openFocalPointPicker === "function") return Promise.resolve();
+  _scUtilsReq ||= new Promise((resolve, reject) => {
+    const sc = document.createElement("script");
+    sc.src = "/core/utils.js" + (CONFIG.version ? "?v=" + CONFIG.version : "");
+    sc.onload = resolve;
+    sc.onerror = () => {
+      _scUtilsReq = null;
+      sc.remove();
+      reject(new Error("utils"));
+    };
+    document.head.appendChild(sc);
+  });
+  return _scUtilsReq;
+}
+
+async function _scPhFocal(src, current, w, h) {
+  try {
+    await _scUtils();
+  } catch (e) {
+    window.showToast?.("Không mở được bảng lấy nét, bạn thử lại nhé", "error");
+    return null;
+  }
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (v) => {
+      if (done) return;
+      done = true;
+      obs.disconnect();
+      resolve(v);
+    };
+    // Bảng gọi callback TRƯỚC khi gỡ thẻ nên lượt Áp dụng luôn thắng lượt "thẻ biến mất".
+    const obs = new MutationObserver(() => !document.getElementById("focal-modal") && finish(null));
+    openFocalPointPicker(src, current || { x: 50, y: 50 }, (pt) => finish({ x: pt.x, y: pt.y }), null, [
+      { label: "Khung ảnh trên slide", w, h },
+    ]);
+    if (document.getElementById("focal-modal")) obs.observe(document.body, { childList: true, subtree: true });
+    else finish(null);
+  });
+}
+
+const _scPhGo = (index) =>
+  _scFrame.contentWindow?.postMessage({ type: "cx-slide-go", index, pause: true }, location.origin);
+
+_scEl("sc-photos").addEventListener("click", (e) => {
+  const undo = e.target.closest("[data-ph-undo]");
+  if (undo) {
+    if (_scPhBusy()) return;
+    scPhotoRemove(undo.dataset.phUndo, Number(undo.dataset.i));
+    return;
+  }
+  const fb = e.target.closest("[data-ph-focal]");
+  if (fb) {
+    if (_scPhBusy()) return;
+    _scPhGo(Number(fb.dataset.i));
+    scPhotoFocal(fb.dataset.phFocal, Number(fb.dataset.i), Number(fb.dataset.w), Number(fb.dataset.h));
+    return;
+  }
+  const b = e.target.closest("[data-ph]");
+  if (!b || _scPhBusy()) return;
+  _scPhPick = { key: b.dataset.ph, index: Number(b.dataset.i), w: Number(b.dataset.w), h: Number(b.dataset.h) };
+  // Chiếu đúng cảnh đó để thấy ảnh mới nằm ra sao.
+  _scPhGo(_scPhPick.index);
+  const input = _scEl("sc-ph-file");
+  input.value = "";
+  input.click();
+});
+
+_scEl("sc-ph-file").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  const pick = _scPhPick;
+  e.target.value = "";
+  if (!file || !pick) return;
+  const H = window.ImageHelper;
+  if (H && !H.isAllowedType(file)) {
+    window.showToast?.("Định dạng không hỗ trợ — hãy dùng JPG, PNG hoặc WebP (ảnh iPhone .HEIC cần đổi sang JPG).", "error");
+    return;
+  }
+  const txKey = _scTxKey();
+  let buf;
+  let type;
+  window.showLoading?.(true, "Đang xử lý ảnh...");
+  try {
+    const out = H ? (await H.prepareImage(file, _SC_PH_LIMITS)).file : file;
+    buf = await out.arrayBuffer();
+    type = out.type || file.type;
+    if (!buf.byteLength) throw new Error("empty");
+  } catch (err) {
+    window.showToast?.(err?.message && err.message !== "empty" ? err.message : "Không đọc được ảnh này, bạn chọn lại nhé", "error");
+    return;
+  } finally {
+    window.showLoading?.(false);
+  }
+  const blob = new Blob([buf], { type });
+  const url = URL.createObjectURL(blob);
+  // Huỷ bảng lấy nét = bỏ ảnh vừa chọn, giống trang Thiết lập.
+  const focal = await _scPhFocal(url, null, pick.w, pick.h);
+  if (!focal || _scPh.key !== txKey) {
+    URL.revokeObjectURL(url);
+    return;
+  }
+  const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  try {
+    await _scDbDo("readwrite", (st) => st.put({ id, buf, type, name: file.name, focal }, `${txKey}|${pick.key}`));
+  } catch (err) {
+    console.warn("Không lưu được ảnh slide:", err);
+    window.showToast?.("Máy không cho lưu ảnh (bộ nhớ trình duyệt đầy hoặc đang ở chế độ ẩn danh)", "warning");
+  }
+  if (_scPh.key !== txKey) return URL.revokeObjectURL(url); // đã đổi mẫu / thiệp trong lúc lưu
+  const old = _scPh.map[pick.key];
+  if (old) URL.revokeObjectURL(old.url);
+  _scPh.map[pick.key] = { id, blob, url, focal };
+  _scPhRender();
+  _scPhSend(pick.index);
+});
+
+// Chỉnh lại điểm lấy nét của ảnh đã tải lên.
+async function scPhotoFocal(key, index, w, h) {
+  const txKey = _scTxKey();
+  const own = _scPh.map[key];
+  if (!own) return;
+  const focal = await _scPhFocal(own.url, own.focal, w, h);
+  if (!focal || _scPh.key !== txKey || _scPh.map[key] !== own) return;
+  own.focal = focal;
+  try {
+    const dbKey = `${txKey}|${key}`;
+    await _scDbDo("readwrite", (st) => {
+      const rq = st.get(dbKey);
+      rq.onsuccess = () => rq.result && st.put({ ...rq.result, focal }, dbKey);
+      return rq;
+    });
+  } catch (err) {
+    console.warn("Không lưu được điểm lấy nét:", err);
+  }
+  _scPhRender();
+  _scPhSend(index);
+}
+
+async function scPhotoRemove(key, index) {
+  const txKey = _scTxKey();
+  try {
+    await _scDbDo("readwrite", (st) => st.delete(`${txKey}|${key}`));
+  } catch (e) {}
+  if (_scPh.key !== txKey) return;
+  const old = _scPh.map[key];
+  if (old) URL.revokeObjectURL(old.url);
+  delete _scPh.map[key];
+  _scPhRender();
+  _scPhSend(index);
+}
+
+async function scPhotosReset() {
+  if (_scPhBusy()) return;
+  const txKey = _scTxKey();
+  try {
+    const prefix = txKey + "|";
+    await _scDbDo("readwrite", (st) => st.delete(IDBKeyRange.bound(prefix, prefix + "\uffff")));
+  } catch (e) {}
+  if (_scPh.key !== txKey) return;
+  _scPhClear();
+  _scPhRender();
+  _scPhSend();
+}
 
 // ── Toàn màn hình: phóng cả iframe; máy không có Fullscreen API (iPhone) thì phủ kín bằng CSS ──
 const _scFsEl = () => document.fullscreenElement || document.webkitFullscreenElement;

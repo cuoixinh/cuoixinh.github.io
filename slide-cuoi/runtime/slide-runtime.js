@@ -207,6 +207,7 @@
         label: s.label || `Cảnh ${k + 1}`,
         dur: Math.round(s.dur * 1000),
         texts: s.texts || [],
+        photo: s.photo || null,
       }));
       // Loại nhạc: "file" ghép được vào video xuất, "yt" thì không.
       msg.music = Music.fileUrl() ? "file" : Music.isYouTube() ? "yt" : "";
@@ -426,12 +427,35 @@
 
   let cur = null; // thiệp đang chiếu
   let texts = {}; // chữ người dùng sửa ở trang cha, theo khoá khối của mẫu
+  let photos = {}; // id cảnh → {src: blob URL, focal} của ảnh khách tải lên ở trang cha
+  const photoUrls = new Map(); // id ảnh (trang cha đặt) → blob URL, để khỏi tạo lại mỗi lần gửi
+
+  // m = {id cảnh: {id, blob, focal}}. Blob qua postMessage là bản sao mới mỗi lần nên nhận ảnh theo
+  // `id`; URL của ảnh không còn dùng thì nhả.
+  function setPhotos(m) {
+    const next = {};
+    const keep = new Set();
+    Object.entries(m && typeof m === "object" ? m : {}).forEach(([k, v]) => {
+      if (!v?.id || !(v.blob instanceof Blob)) return;
+      if (!photoUrls.has(v.id)) photoUrls.set(v.id, URL.createObjectURL(v.blob));
+      const f = v.focal;
+      const focal = Number.isFinite(f?.x) && Number.isFinite(f?.y) ? { x: f.x, y: f.y } : null;
+      next[k] = { src: photoUrls.get(v.id), focal };
+      keep.add(v.id);
+    });
+    photoUrls.forEach((url, id) => {
+      if (keep.has(id)) return;
+      URL.revokeObjectURL(url);
+      photoUrls.delete(id);
+    });
+    photos = next;
+  }
 
   // keep = cảnh nên đứng lại sau khi dựng (sửa chữ thì ở nguyên cảnh đang sửa, không chạy lại).
   async function load(w, keep) {
     const my = ++gen;
     cur = w || {};
-    const proj = await E.build(D, cur, texts);
+    const proj = await E.build(D, cur, texts, photos);
     if (my !== gen) return;
     P = proj;
     const k = Number.isInteger(keep) && keep >= 0 && keep < P.scenes.length ? keep : -1;
@@ -460,10 +484,15 @@
     const m = e.data || {};
     if (m.type === "cx-slide-data") {
       texts = m.texts && typeof m.texts === "object" ? m.texts : {};
+      setPhotos(m.photos);
       m.wedding ? load(m.wedding) : demo();
     } else if (m.type === "cx-slide-texts" && cur) {
       texts = m.texts && typeof m.texts === "object" ? m.texts : {};
       if (!exporting) load(cur, Number.isInteger(m.index) ? m.index : idx);
+    } else if (m.type === "cx-slide-photos" && cur) {
+      if (exporting) return;
+      setPhotos(m.photos);
+      load(cur, Number.isInteger(m.index) ? m.index : idx);
     } else if (m.type === "cx-slide-go" && Number.isInteger(m.index)) {
       show(m.index, !!m.pause);
       if (m.pause) pause();
