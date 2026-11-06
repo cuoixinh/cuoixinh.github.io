@@ -31,7 +31,17 @@ window.CXSlideEngine = (() => {
     if (!_imgs.has(src)) _imgs.set(src, _loadImage(src));
     return _imgs.get(src);
   }
+  // Lượt crossOrigin hỏng thì tải lại bằng URL khác: bản ảnh đã nằm trong cache trình duyệt
+  // từ một lượt KHÔNG CORS (thẻ <img> thường, hoặc worker ảnh bản cũ chưa trả
+  // Access-Control-Allow-Origin — cache 30 ngày) bị dùng lại và trình duyệt chặn.
   function _loadImage(src) {
+    return _fetchImage(src).then((img) => {
+      if (img || !/^https?:/i.test(src || "")) return img;
+      if (new URL(src, location.href).origin === location.origin) return img;
+      return _fetchImage(src + (src.includes("?") ? "&" : "?") + "cx-cors=1");
+    });
+  }
+  function _fetchImage(src) {
     return new Promise((resolve) => {
       if (!src) return resolve(null);
       const img = new Image();
@@ -114,11 +124,12 @@ window.CXSlideEngine = (() => {
   }
 
   // ── Dựng dự án ──
-  // tpl = CX_SLIDE của mẫu; tpl.scenes(w, api) trả [{dur (giây), label, els, texts}].
-  // texts = {khoá: chữ} người dùng sửa ở trang cha, mẫu tự áp vào khối cùng khoá.
-  async function build(tpl, wedding, texts) {
+  // tpl = CX_SLIDE của mẫu; tpl.scenes(w, api) trả [{dur (giây), label, els, texts, photo}].
+  // texts = {khoá: chữ} người dùng sửa ở trang cha, mẫu tự áp vào khối cùng khoá; photos =
+  // {id cảnh: blob URL} ảnh khách tải lên, đè ảnh thiệp của cảnh đó (photo = {key, def}).
+  async function build(tpl, wedding, texts, photos) {
     await loadFonts(tpl.fonts);
-    const scenes = tpl.scenes(wedding, { column, wrap, typeTime, texts: texts || {} }) || [];
+    const scenes = tpl.scenes(wedding, { column, wrap, typeTime, texts: texts || {}, photos: photos || {} }) || [];
     const srcs = new Set();
     const walk = (el) => {
       if (el.type === "image" && el.src) srcs.add(el.src);
