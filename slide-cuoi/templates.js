@@ -9,4 +9,11 @@ window.CX_SLIDE_TEMPLATES = [
     ratio: "16 / 9",
     thumb: "/slide-cuoi/templates/romantic-blush/thumb.jpg",
   },
+  {
+    id: "mai-ben-nhau",
+    name: "Mãi Bên Nhau",
+    desc: "Bố cục tạp chí, ảnh bay từ ngoài vào",
+    ratio: "16 / 9",
+    thumb: "/slide-cuoi/templates/mai-ben-nhau/thumb.jpg",
+  },
 ];

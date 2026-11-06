@@ -224,10 +224,16 @@
     const msg = { type: "cx-slide-state", index: idx, playing };
     if (all) {
       msg.scenes = P.scenes.map((s, k) => ({
+        id: s.id,
         label: s.label || `Cảnh ${k + 1}`,
         dur: Math.round(s.dur * 1000),
+        // Khung thời lượng cho thanh kéo ở trang cha (ms): mặc định của mẫu, ngắn nhất, dài nhất.
+        base: Math.round(s.base * 1000),
+        min: Math.round(s.min * 1000),
+        max: Math.round(s.max * 1000),
         texts: s.texts || [],
-        photo: s.photo || null,
+        // Ô ảnh của cảnh: mẫu khai `photos` (nhiều ô) hoặc `photo` (một ô).
+        photos: s.photos || (s.photo ? [s.photo] : []),
       }));
       // Loại nhạc: "file" ghép được vào video xuất, "yt" thì không.
       msg.music = Music.fileUrl() ? "file" : Music.isYouTube() ? "yt" : "";
@@ -273,7 +279,7 @@
     const walk = (el) => {
       if (el.anim && lt < (el.anim.d || 0)) return;
       if (el.kids) return el.kids.forEach(walk);
-      if (el.type === "text" && el.key) out.push({ kind: "text", key: el.key, x: el.x, y: el.y, w: el.tw || el.w, h: el.h });
+      if (el.type === "text" && el.key) out.push({ kind: "text", key: el.key, ...E.bounds(el) });
       else if (el.type === "image" && el.edit) out.push({ kind: "photo", key: el.edit, x: el.x, y: el.y, w: el.w, h: el.h });
     };
     P.scenes[i].els.forEach(walk);
@@ -603,6 +609,20 @@
     else Music.load(cur && on(cur.enable_music) ? cur.music_url : "");
   }
   let texts = {}; // chữ người dùng sửa ở trang cha, theo khoá khối của mẫu
+  let timing = {}; // thời lượng khách kéo ở trang cha: {scale, scenes: {id cảnh: giây}}
+
+  // Đổi thời lượng: đặt lại mốc các cảnh, đứng nguyên ở cảnh đang chiếu (đang dừng thì ở trạng
+  // thái chữ đã hiện đủ, đang chạy thì giữ vị trí trong cảnh).
+  function setTiming(m) {
+    timing = m && typeof m === "object" ? m : {};
+    if (!P || exporting) return;
+    const { i, lt } = local();
+    E.retime(P, timing);
+    t = playing ? P.starts[i] + Math.min(lt, P.scenes[i].dur - 0.05) : settled(i);
+    idx = -1;
+    draw();
+    report(true);
+  }
   let photos = {}; // id cảnh → {src: blob URL, focal} của ảnh khách tải lên ở trang cha
   const photoUrls = new Map(); // id ảnh (trang cha đặt) → blob URL, để khỏi tạo lại mỗi lần gửi
 
@@ -631,7 +651,7 @@
   async function load(w, keep) {
     const my = ++gen;
     cur = w || {};
-    const proj = await E.build(D, cur, texts, photos);
+    const proj = await E.build(D, cur, texts, photos, timing);
     if (my !== gen) return;
     P = proj;
     const k = Number.isInteger(keep) && keep >= 0 && keep < P.scenes.length ? keep : -1;
@@ -664,6 +684,7 @@
     const m = e.data || {};
     if (m.type === "cx-slide-data") {
       texts = m.texts && typeof m.texts === "object" ? m.texts : {};
+      timing = m.timing && typeof m.timing === "object" ? m.timing : {};
       setPhotos(m.photos);
       setMusic(m.music);
       m.wedding ? load(m.wedding) : demo();
@@ -681,6 +702,8 @@
       if (exporting) return;
       setPhotos(m.photos);
       load(cur, Number.isInteger(m.index) ? m.index : idx);
+    } else if (m.type === "cx-slide-timing") {
+      setTiming(m.timing);
     } else if (m.type === "cx-slide-go" && Number.isInteger(m.index)) {
       show(m.index, !!m.pause);
       if (m.pause) pause();

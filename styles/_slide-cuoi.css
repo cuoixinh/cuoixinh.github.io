@@ -251,6 +251,16 @@ html.sc-lock,
 html.sc-lock body {
   overflow: hidden;
 }
+/* Đang phủ kín màn: ẩn navbar (trên + thanh tab dưới) và đưa sân khấu lên trên mọi lớp — khối
+   sticky có z-index riêng nên khung `fixed` bên trong không vượt được lớp ngoài nó. */
+html.sc-lock .sc-stage {
+  z-index: 200;
+}
+html.sc-lock #main-nav,
+html.sc-lock .cx-tabbar,
+html.sc-lock .cx-navmore-pop {
+  display: none;
+}
 
 /* Hàng dưới slide: Trình chiếu · Xuất video, tổng số cảnh + thời lượng đẩy sang phải. */
 .sc-bar {
@@ -947,6 +957,207 @@ html.sc-lock body {
   color: rgb(var(--text-caption-rgb));
 }
 
+/* Thanh kéo dùng chung (thời lượng cả slide + từng cảnh): rãnh mảnh, phần đã kéo tô màu nhấn
+   theo --p (JS đặt), núm tròn trắng viền nhấn. Vùng chạm cao 32px, máy cảm ứng núm to hơn. */
+.sc-range {
+  --p: 50%;
+  display: block;
+  width: 100%;
+  height: 32px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: pan-y;
+}
+.sc-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    rgb(var(--action-primary-rgb)) 0,
+    rgb(var(--action-primary-rgb)) var(--p),
+    rgb(var(--brand-primary-rgb) / 0.55) var(--p),
+    rgb(var(--brand-primary-rgb) / 0.55) 100%
+  );
+}
+.sc-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(var(--brand-primary-rgb) / 0.55);
+}
+.sc-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(var(--action-primary-rgb));
+}
+.sc-range::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+  border: 2px solid rgb(var(--action-primary-rgb));
+  box-shadow: 0 2px 8px rgb(var(--action-primary-rgb) / 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.sc-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+  border: 2px solid rgb(var(--action-primary-rgb));
+  box-shadow: 0 2px 8px rgb(var(--action-primary-rgb) / 0.3);
+}
+.sc-range:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+.sc-range:focus {
+  outline: none;
+}
+.sc-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 6px rgb(var(--action-primary-rgb) / 0.2);
+}
+.sc-range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 6px rgb(var(--action-primary-rgb) / 0.2);
+}
+@media (pointer: coarse) {
+  .sc-range::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -9px;
+  }
+  .sc-range::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
+}
+.sc-range-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+
+/* Thẻ "Thời lượng cả slide" đầu tab Cảnh: tổng thời gian số lớn + thanh hệ số 0,5×–2×. */
+.sc-time {
+  margin-bottom: 16px;
+  padding: 16px 16px 12px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
+  box-shadow: 0 8px 24px -16px rgb(var(--action-primary-rgb) / 0.35);
+}
+.sc-time-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+}
+.sc-time-l {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-time-l svg {
+  color: rgb(var(--action-primary-rgb));
+}
+.sc-time-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding-inline: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-time-reset:hover {
+  background: rgb(var(--brand-primary-rgb) / 0.45);
+}
+.sc-time-v {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 4px 0 4px;
+}
+.sc-time-v output {
+  font-family: "Playfair Display", serif;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.sc-time-def {
+  font-size: 13px;
+  color: rgb(var(--text-caption-rgb));
+}
+
+/* Thời gian riêng của cảnh: đầu phần mở rộng của dòng cảnh. */
+.sc-dur {
+  margin-bottom: 8px;
+  padding: 8px 12px 8px;
+  border-radius: 12px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+}
+.sc-dur-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+.sc-dur-l {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-dur-l svg {
+  color: rgb(var(--action-primary-rgb));
+}
+.sc-dur-v {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.sc-dur-undo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: 15px;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.sc-dur-undo:hover {
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-dur-undo:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+.sc-dur-undo.is-off {
+  visibility: hidden;
+}
+
 /* Khối ảnh của cảnh: ảnh theo đúng khổ khung trên slide (bấm để đổi) · nguồn ảnh + nút. */
 .sc-phbox {
   display: flex;
@@ -969,7 +1180,7 @@ html.sc-lock body {
   outline: 2px solid rgb(var(--action-primary-rgb));
   outline-offset: 2px;
 }
-.sc-scene.is-own .sc-ph-pick {
+.sc-ph-own .sc-ph-pick {
   border-color: rgb(var(--action-primary-rgb));
 }
 .sc-ph-thumb {
@@ -988,6 +1199,56 @@ html.sc-lock body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+/* Cảnh nhiều ảnh: lưới ô vuông; ô đã thay ảnh có hai nút nhỏ (lấy nét · trả ảnh thiệp). */
+.sc-phbox.sc-ph-many {
+  display: block;
+}
+.sc-ph-head {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-ph-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+.sc-ph-cell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+.sc-ph-cell .sc-ph-pick {
+  width: 100%;
+}
+.sc-ph-cell .sc-ph-thumb {
+  aspect-ratio: 1 / 1;
+}
+.sc-ph-mini {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+.sc-ph-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: 14px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+}
+.sc-ph-ic:hover {
+  border-color: rgb(var(--action-primary-rgb));
+}
+.sc-ph-ic:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
 }
 .sc-ph-side {
   display: flex;

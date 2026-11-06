@@ -266,6 +266,6 @@
     const tx = rev ? 72 : PW + 96;
     const text = L.column(blocks, { x: tx, w: 592, top: 56, bottom: 720 - 56 });
     blocks.forEach((b, k) => b.indent && text[k] && (text[k].x += b.indent));
-    return { dur, label: opt.label || "", texts, photo: { key: sid, def, w: PW - 48, h: 624 }, els: [group, ...text] };
+    return { id: sid, dur, label: opt.label || "", texts, photo: { key: sid, def, w: PW - 48, h: 624 }, els: [group, ...text] };
   }
 })();

@@ -95,7 +95,7 @@ async function _scPush(force) {
   await Promise.all([_scPhLoad(), _scMuLoad()]);
   if (_scSent !== key) return; // trong lúc đọc ảnh / nhạc đã đổi sang bộ dữ liệu khác
   _scFrame.contentWindow?.postMessage(
-    { type: "cx-slide-data", wedding: w || null, texts: _scTexts(), photos: _scPhMsg(), music: _scMuMsg() },
+    { type: "cx-slide-data", wedding: w || null, texts: _scTexts(), photos: _scPhMsg(), music: _scMuMsg(), timing: _scTiming() },
     location.origin,
   );
 }
@@ -144,6 +144,124 @@ function _scTextsSave(own) {
   } catch (e) {}
 }
 
+// ── Thời lượng: thanh "cả slide" (hệ số nhân thời lượng mẫu, 0,5×–2×) + thanh riêng từng cảnh
+// (giây, đè hệ số). Lưu trên máy như chữ sửa — localStorage `cx_slide_timing` theo mẫu + thiệp,
+// dạng {scale, scenes: {id cảnh: giây}} — gửi khung bằng cx-slide-timing; khung chỉ đặt lại mốc,
+// tự kẹp mỗi cảnh trong [min, max] (min = đủ cho mọi hiệu ứng chạy xong) rồi báo cảnh lên lại.
+const _SC_TIMING = "cx_slide_timing";
+let _scTmT = 0;
+function _scTiming() {
+  try {
+    const own = JSON.parse(localStorage.getItem(_SC_TIMING) || "{}")?.[_scTxKey()];
+    return own && typeof own === "object" ? own : {};
+  } catch (e) {
+    return {};
+  }
+}
+function _scTimingSave(own) {
+  if (own.scenes && !Object.keys(own.scenes).length) delete own.scenes;
+  if (own.scale === 1) delete own.scale;
+  try {
+    const all = JSON.parse(localStorage.getItem(_SC_TIMING) || "{}") || {};
+    if (Object.keys(own).length) all[_scTxKey()] = own;
+    else delete all[_scTxKey()];
+    localStorage.setItem(_SC_TIMING, JSON.stringify(all));
+  } catch (e) {}
+  // Gom các nấc kéo liền nhau thành một lần gửi.
+  clearTimeout(_scTmT);
+  _scTmT = setTimeout(() => _scFrame.contentWindow?.postMessage({ type: "cx-slide-timing", timing: _scTiming() }, location.origin), 120);
+}
+const _scSec = (s) => `${(Math.round(s * 2) / 2).toLocaleString("vi-VN")} giây`;
+// Phần đã kéo của thanh (tô màu nhấn), CSS đọc qua --p.
+function _scRangeFill(r) {
+  const min = Number(r.min);
+  const max = Number(r.max);
+  r.style.setProperty("--p", `${max > min ? ((Number(r.value) - min) / (max - min)) * 100 : 0}%`);
+}
+// Đang xuất thì khung không nhận thời lượng mới — chặn và kéo thanh về chỗ cũ.
+function _scTimeBusy() {
+  if (_scExState !== "run") return false;
+  window.showToast?.("Đang xuất video, đợi xong rồi hãy chỉnh thời gian", "warning");
+  _scCueTimes();
+  return true;
+}
+
+// Đồng bộ thẻ "cả slide" + thanh từng cảnh theo bản khung vừa báo; thanh đang kéo thì để yên.
+function _scTimeSync() {
+  const own = _scTiming();
+  const sp = _scEl("sc-speed");
+  const live = document.activeElement;
+  if (sp && live !== sp) sp.value = String(own.scale || 1);
+  if (sp) _scRangeFill(sp);
+  const total = _scCues.reduce((n, c) => n + c.dur, 0);
+  const base = _scCues.reduce((n, c) => n + Math.min(c.max, Math.max(c.min, c.base)), 0);
+  const tv = _scEl("sc-time-total");
+  if (tv) tv.textContent = _scCues.length ? _scClock(total) : "–:––";
+  const changed = Object.keys(own).length > 0;
+  _scToggle("sc-time-reset", changed);
+  const def = _scEl("sc-time-def");
+  if (def) def.textContent = changed && _scCues.length ? `Mặc định ${_scClock(base)}` : "";
+  _scEl("sc-cues").querySelectorAll("[data-dur]").forEach((r) => {
+    const c = _scCues[Number(r.dataset.dur)];
+    if (!c) return;
+    r.min = String(c.min / 1000);
+    r.max = String(c.max / 1000);
+    if (r !== live) r.value = String(c.dur / 1000);
+    _scRangeFill(r);
+    const box = r.closest(".sc-dur");
+    box.querySelector(".sc-dur-v").textContent = _scSec(Number(r.value));
+    box.querySelector(".sc-dur-min").textContent = _scSec(c.min / 1000);
+    box.querySelector(".sc-dur-max").textContent = _scSec(c.max / 1000);
+    box.querySelector(".sc-dur-undo").classList.toggle("is-off", !(own.scenes && c.id in own.scenes));
+  });
+}
+
+_scEl("sc-speed")?.addEventListener("input", (e) => {
+  if (_scTimeBusy()) return;
+  const own = _scTiming();
+  own.scale = Number(e.target.value);
+  _scRangeFill(e.target);
+  // Hiện ngay tổng mới (ước lượng theo hệ số), khung báo lại số chính xác sau một nhịp.
+  const total = _scCues.reduce((n, c) => {
+    const s = own.scenes?.[c.id];
+    return n + Math.min(c.max, Math.max(c.min, s ? s * 1000 : c.base * own.scale));
+  }, 0);
+  _scEl("sc-time-total").textContent = _scClock(total);
+  _scTimingSave(own);
+});
+
+function scTimingReset() {
+  if (_scTimeBusy()) return;
+  _scTimingSave({});
+  _scEl("sc-speed").value = "1";
+  _scRangeFill(_scEl("sc-speed"));
+}
+
+_scEl("sc-cues").addEventListener("input", (e) => {
+  const r = e.target.closest("[data-dur]");
+  if (!r || _scTimeBusy()) return;
+  const c = _scCues[Number(r.dataset.dur)];
+  if (!c) return;
+  const own = _scTiming();
+  own.scenes = { ...(own.scenes || {}), [c.id]: Number(r.value) };
+  _scRangeFill(r);
+  const box = r.closest(".sc-dur");
+  box.querySelector(".sc-dur-v").textContent = _scSec(Number(r.value));
+  box.querySelector(".sc-dur-undo").classList.remove("is-off");
+  _scTimingSave(own);
+});
+
+_scEl("sc-cues").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-dur-undo]");
+  if (!b || _scTimeBusy()) return;
+  const c = _scCues[Number(b.dataset.durUndo)];
+  const own = _scTiming();
+  if (!c || !own.scenes) return;
+  delete own.scenes[c.id];
+  b.classList.add("is-off");
+  _scTimingSave(own);
+});
+
 function _scFieldHTML(x) {
   return `<label class="sc-tx">
     <textarea class="sc-tx-in" data-key="${_scEsc(x.key)}" data-def="${_scEsc(x.def)}" rows="1" spellcheck="false">${_scEsc(x.text)}</textarea>
@@ -157,9 +275,10 @@ function _scCueTimes() {
     const c = _scCues[i];
     if (!c) return;
     b.querySelector(".sc-cue-t").textContent = _scClock(t);
-    b.querySelector(".sc-cue-d").textContent = `${Math.round(c.dur / 1000)} giây`;
+    b.querySelector(".sc-cue-d").textContent = _scSec(c.dur / 1000);
     t += c.dur;
   });
+  _scTimeSync();
   // Màn hẹp chỉ còn chỗ cho thời lượng: phần số cảnh nằm trong .sc-total-n để CSS giấu.
   _scEl("sc-total").innerHTML = _scCues.length
     ? `<span class="sc-total-n">${_scCues.length} cảnh, dài </span>${_scClock(t)}`
@@ -184,7 +303,18 @@ function _scCueRender() {
           </span>
           <span class="sc-cue-d"></span>
         </button>
-        <div class="sc-tx-list${open ? "" : " hidden"}">${c.photo ? `<div class="sc-phbox"></div>` : ""}${fields}</div>
+        <div class="sc-tx-list${open ? "" : " hidden"}">
+          <div class="sc-dur">
+            <div class="sc-dur-row">
+              <label class="sc-dur-l" for="sc-dur-${i}">${_scIco("timer")}Thời gian cảnh</label>
+              <output class="sc-dur-v" for="sc-dur-${i}"></output>
+              <button type="button" class="sc-dur-undo is-off" data-dur-undo="${i}" aria-label="Trả thời gian cảnh về mặc định" title="Về mặc định">${_scIco("undo-2")}</button>
+            </div>
+            <input id="sc-dur-${i}" type="range" class="sc-range" data-dur="${i}" step="0.5" />
+            <div class="sc-range-ends"><span class="sc-dur-min"></span><span class="sc-dur-max"></span></div>
+          </div>
+          ${c.photos.length ? `<div class="sc-phbox"></div>` : ""}${fields}
+        </div>
       </li>`;
     })
     .join("");
@@ -203,19 +333,25 @@ function _scCueState(m) {
     _scCardMusic = m.cardMusic || "";
     _scExportNote();
     _scMuRender();
-    _scCues = m.scenes.map((c) => ({
+    _scCues = m.scenes.map((c, k) => ({
+      id: String(c.id ?? k),
       label: String(c.label || ""),
       dur: Number(c.dur) || 0,
+      base: Number(c.base) || Number(c.dur) || 0,
+      min: Number(c.min) || 1000,
+      max: Number(c.max) || 30000,
       texts: (Array.isArray(c.texts) ? c.texts : []).map((x) => ({
         key: String(x.key),
         text: String(x.text ?? ""),
         def: String(x.def ?? ""),
       })),
-      photo: c.photo?.key
-        ? { key: String(c.photo.key), def: String(c.photo.def || ""), w: Number(c.photo.w) || 3, h: Number(c.photo.h) || 4 }
-        : null,
+      photos: (Array.isArray(c.photos) ? c.photos : [])
+        .filter((p) => p?.key)
+        .map((p) => ({ key: String(p.key), def: String(p.def || ""), w: Number(p.w) || 3, h: Number(p.h) || 4 })),
     }));
-    const sig = _scCues.map((c) => c.label + ":" + c.texts.map((x) => x.key).join(",")).join("|");
+    const sig = _scCues
+      .map((c) => c.label + ":" + c.texts.map((x) => x.key).join(",") + ":" + c.photos.map((p) => p.key).join(","))
+      .join("|");
     if (sig === _scSig) {
       _scCueTimes();
       _scPhRender();
@@ -317,7 +453,7 @@ function _scEditFromSlide(m) {
   const target =
     m.kind === "text"
       ? li.querySelector(`.sc-tx-in[data-key="${CSS.escape(String(m.key))}"]`)
-      : li.querySelector(".sc-ph-pick");
+      : li.querySelector(`.sc-ph-pick[data-ph="${CSS.escape(String(m.key))}"]`) || li.querySelector(".sc-ph-pick");
   const el = target || li;
   const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
   el.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
@@ -420,49 +556,82 @@ function _scPhSend(index) {
   _scFrame.contentWindow?.postMessage({ type: "cx-slide-photos", photos: _scPhMsg(), index }, location.origin);
 }
 
-// Đổ ảnh vào từng dòng cảnh: ô ảnh nhỏ trên dòng + khối đổi ảnh trong phần mở rộng. Chỉ thay
+// Đổ ảnh vào từng dòng cảnh: ô ảnh nhỏ trên dòng + khối đổi ảnh trong phần mở rộng (cảnh một
+// ảnh: ảnh đúng khổ khung + nút; cảnh nhiều ảnh: lưới ô vuông, nút nhỏ dưới ô đã thay). Chỉ thay
 // hai chỗ đó, không vẽ lại cả danh sách — ô chữ đang gõ giữ nguyên con trỏ.
 function _scPhRender() {
-  const slots = _scCues.map((c, i) => (c.photo ? { ...c.photo, label: c.label, i } : null)).filter(Boolean);
-  const sig = slots
-    .map((p) => {
-      const own = _scPh.map[p.key];
-      return `${p.key}:${p.def}:${own ? `${own.id}@${own.focal?.x},${own.focal?.y}` : ""}`;
-    })
+  const sig = _scCues
+    .map((c) =>
+      c.photos
+        .map((p) => {
+          const own = _scPh.map[p.key];
+          return `${p.key}:${p.def}:${own ? `${own.id}@${own.focal?.x},${own.focal?.y}` : ""}`;
+        })
+        .join(","),
+    )
     .join("|");
-  _scToggle("sc-ph-reset", slots.some((p) => _scPh.map[p.key]));
+  _scToggle("sc-ph-reset", _scCues.some((c) => c.photos.some((p) => _scPh.map[p.key])));
   if (sig === _scPhSig) return;
   _scPhSig = sig;
   const lis = _scEl("sc-cues").children;
   const demo = _scTxKey().endsWith("|demo");
-  slots.forEach((p) => {
-    const li = lis[p.i];
-    if (!li) return;
+  const img = (p) => {
     const own = _scPh.map[p.key];
     const src = own?.url || p.def;
     const pos = own?.focal ? ` style="object-position:${Number(own.focal.x)}% ${Number(own.focal.y)}%"` : "";
-    const img = src ? `<img src="${_scEsc(src)}" alt="" loading="lazy"${pos} onerror="this.remove()" />` : "";
-    const at = `data-ph="${_scEsc(p.key)}" data-i="${p.i}" data-w="${p.w}" data-h="${p.h}"`;
-    li.classList.toggle("is-own", !!own);
-    li.querySelector(".sc-cue-thumb").innerHTML = img;
+    return src ? `<img src="${_scEsc(src)}" alt="" loading="lazy"${pos} onerror="this.remove()" />` : "";
+  };
+  const at = (p, i) => `data-i="${i}" data-w="${p.w}" data-h="${p.h}"`;
+  const back = demo ? "Dùng ảnh mẫu" : "Dùng ảnh thiệp";
+  _scCues.forEach((c, i) => {
+    const li = lis[i];
+    if (!li || !c.photos.length) return;
+    li.classList.toggle("is-own", c.photos.some((p) => _scPh.map[p.key]));
+    li.querySelector(".sc-cue-thumb").innerHTML = img(c.photos[0]);
     const box = li.querySelector(".sc-phbox");
     if (!box) return;
-    box.innerHTML = `
-      <button type="button" class="sc-ph-pick" ${at} aria-label="Đổi ảnh cảnh ${_scEsc(p.label)}">
-        <span class="sc-ph-thumb" style="aspect-ratio:${p.w} / ${p.h}">${_scIco("image-plus")}${img}</span>
+    if (c.photos.length === 1) {
+      const p = c.photos[0];
+      const own = _scPh.map[p.key];
+      box.classList.toggle("sc-ph-own", !!own);
+      box.innerHTML = `
+      <button type="button" class="sc-ph-pick" data-ph="${_scEsc(p.key)}" ${at(p, i)} aria-label="Đổi ảnh cảnh ${_scEsc(c.label)}">
+        <span class="sc-ph-thumb" style="aspect-ratio:${p.w} / ${p.h}">${_scIco("image-plus")}${img(p)}</span>
       </button>
       <div class="sc-ph-side">
         <p class="sc-ph-src">${own ? "Ảnh của bạn" : demo ? "Ảnh mẫu" : "Ảnh của thiệp"}</p>
         <div class="sc-ph-acts">
-          <button type="button" class="sc-ph-act" ${at}>${_scIco("image-up")}Đổi ảnh</button>
+          <button type="button" class="sc-ph-act" data-ph="${_scEsc(p.key)}" ${at(p, i)}>${_scIco("image-up")}Đổi ảnh</button>
           ${
             own
-              ? `<button type="button" class="sc-ph-act" data-ph-focal="${_scEsc(p.key)}" data-i="${p.i}" data-w="${p.w}" data-h="${p.h}">${_scIco("focus")}Lấy nét</button>
-          <button type="button" class="sc-ph-act" data-ph-undo="${_scEsc(p.key)}" data-i="${p.i}">${_scIco("undo-2")}${demo ? "Dùng ảnh mẫu" : "Dùng ảnh thiệp"}</button>`
+              ? `<button type="button" class="sc-ph-act" data-ph-focal="${_scEsc(p.key)}" ${at(p, i)}>${_scIco("focus")}Lấy nét</button>
+          <button type="button" class="sc-ph-act" data-ph-undo="${_scEsc(p.key)}" data-i="${i}">${_scIco("undo-2")}${back}</button>`
               : ""
           }
         </div>
       </div>`;
+    } else {
+      box.classList.add("sc-ph-many");
+      box.innerHTML = `
+      <p class="sc-ph-head">Cảnh có ${c.photos.length} ảnh. Bấm vào ảnh để đổi.</p>
+      <div class="sc-ph-grid">${c.photos
+        .map((p, n) => {
+          const own = _scPh.map[p.key];
+          return `<div class="sc-ph-cell${own ? " sc-ph-own" : ""}">
+          <button type="button" class="sc-ph-pick" data-ph="${_scEsc(p.key)}" ${at(p, i)} aria-label="Đổi ảnh ${n + 1} của cảnh ${_scEsc(c.label)}">
+            <span class="sc-ph-thumb">${_scIco("image-plus")}${img(p)}</span>
+          </button>${
+            own
+              ? `<div class="sc-ph-mini">
+            <button type="button" class="sc-ph-ic" data-ph-focal="${_scEsc(p.key)}" ${at(p, i)} title="Lấy nét" aria-label="Lấy nét ảnh ${n + 1}">${_scIco("focus")}</button>
+            <button type="button" class="sc-ph-ic" data-ph-undo="${_scEsc(p.key)}" data-i="${i}" title="${back}" aria-label="${back} cho ảnh ${n + 1}">${_scIco("undo-2")}</button>
+          </div>`
+              : ""
+          }
+        </div>`;
+        })
+        .join("")}</div>`;
+    }
     window.lucide?.createIcons({ root: box });
   });
 }
