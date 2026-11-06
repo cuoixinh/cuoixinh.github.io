@@ -10,10 +10,10 @@ let _scSeq = 0; // đổi phiên làm scLoadList chạy chồng; chỉ lần M�
 let _scSent = ""; // bộ dữ liệu khung đang chiếu — trùng thì khỏi gửi lại (gửi là chạy lại từ đầu)
 const _scData = new Map(); // id → hàng thiệp đầy đủ
 // Xuất video — khai ở đầu file vì _scFrameLoad (chạy ngay lúc khởi động) đọc tới.
-let _scCapsOk = null; // {h1080, h2160} khung báo lên; null = chưa biết
+let _scCapsOk = null; // {h1080, h2160, demo} khung báo lên; null = chưa biết
 let _scMusic = ""; // "file" có nhạc nền (ghép vào video) · "" không có nhạc
 let _scExState = "";
-let _scExRes = 2160;
+let _scExRes = "demo"; // "demo" (bản xem thử gửi khách) · 1080 · 2160
 let _scExBlob = null;
 let _scWake = null;
 
@@ -1137,6 +1137,15 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && _scBox.classList.contains("is-full")) _scPseudo(false);
 });
 
+// ── Màn chiếu: đặt khung slide lên ảnh hội trường (đúng bố cục video "Xem thử") để xem slide
+// trông ra sao trên sân khấu. Chỉ đổi CSS của khung — iframe không nạp lại, không mất cảnh đang chiếu.
+function scHall(on) {
+  const stage = _scBox.closest(".sc-stage");
+  on = typeof on === "boolean" ? on : !stage.classList.contains("is-hall");
+  stage.classList.toggle("is-hall", on);
+  _scEl("sc-hall-btn")?.setAttribute("aria-pressed", String(on));
+}
+
 // ── Thiệp của tài khoản ──
 // Mọi thiệp đã lưu của tài khoản đều dùng được, không xét gói/thanh toán — cái bán là
 // MẪU slide, không phải quyền lấy dữ liệu.
@@ -1280,19 +1289,24 @@ function scLogin() {
 // ── Xuất video: chạy TRONG khung slide (CXSlideExport), trang này chỉ chọn khổ + báo tiến độ ──
 
 function _scCaps(m) {
-  _scCapsOk = { h1080: !!m.h1080, h2160: !!m.h2160, audio: String(m.audio || "") };
+  _scCapsOk = { h1080: !!m.h1080, h2160: !!m.h2160, demo: !!m.demo, audio: String(m.audio || "") };
   // Máy không mã hoá nổi 4K thì khoá ô 4K, tự về 1080p.
   const b4k = _scEl("sc-ex-res").querySelector('[data-res="2160"]');
   b4k.disabled = !_scCapsOk.h2160;
   if (!_scCapsOk.h2160 && _scExRes === 2160) _scPickRes(1080);
+  else if (!_scCapsOk.demo && _scExRes === "demo" && _scCapsOk.h1080) _scPickRes(1080);
+  _scEl("sc-ex-res").querySelector('[data-res="demo"]').disabled = !_scCapsOk.demo;
   _scExportNote();
 }
+
+const _scResOf = (b) => (b.dataset.res === "demo" ? "demo" : Number(b.dataset.res));
+const _scResName = (r) => (r === "demo" ? "bản xem thử" : r === 2160 ? "4K" : "1080p");
 
 function _scPickRes(res) {
   _scExRes = res;
   const seg = _scEl("sc-ex-res");
   seg.querySelectorAll("[data-res]").forEach((b, i) => {
-    const on = Number(b.dataset.res) === res;
+    const on = _scResOf(b) === res;
     b.classList.toggle("is-on", on);
     b.setAttribute("aria-pressed", String(on));
     if (on) seg.style.setProperty("--i", String(i));
@@ -1302,7 +1316,7 @@ function _scPickRes(res) {
 
 _scEl("sc-ex-res").addEventListener("click", (e) => {
   const b = e.target.closest("[data-res]");
-  if (b && !b.disabled) _scPickRes(Number(b.dataset.res));
+  if (b && !b.disabled) _scPickRes(_scResOf(b));
 });
 
 function _scExportNote() {
@@ -1310,6 +1324,8 @@ function _scExportNote() {
   if (_scCapsOk && !_scCapsOk.h1080) notes.push("Trình duyệt này chưa xuất được video. Hãy mở bằng Chrome hoặc Edge bản mới trên máy tính.");
   else {
     if (_scCapsOk && !_scCapsOk.h2160) notes.push("Máy này không mã hoá được 4K, chỉ xuất được 1080p.");
+    if (_scExRes === "demo")
+      notes.push("Video dọc, slide nằm trên màn chiếu hội trường và có dấu Bản xem thử. File nhẹ, gửi qua Zalo hay Messenger để khách duyệt trước khi thanh toán.");
     if (_scExRes === 2160) notes.push("4K xuất lâu hơn và file nặng hơn khoảng 2,5 lần.");
     const voice = typeof _scVo !== "undefined" && _scVo.clips.some((c) => !c.mute);
     if (!_scMusic && !voice) notes.push("Slide chưa có nhạc nên video xuất ra sẽ không có tiếng. Chọn nhạc ở tab Nhạc hoặc thêm giọng đọc ở tab Giọng.");
@@ -1389,7 +1405,7 @@ function _scExportMsg(m) {
     _scExBlob = m.blob;
     const mb = Math.max(1, Math.round(m.blob.size / 1048576));
     _scEl("sc-ex-done-note").textContent =
-      `File MP4 ${_scExRes === 2160 ? "4K" : "1080p"}, ${mb} MB.` +
+      `File MP4 ${_scResName(_scExRes)}, ${mb} MB.` +
       ({
         music: " Video có giọng đọc nhưng thiếu nhạc nền vì không đọc được file nhạc.",
         voice: " Có lớp giọng đọc không đọc được nên bị bỏ khỏi video. Hãy đổi file đó sang MP3 rồi tải lại.",
@@ -1417,7 +1433,7 @@ function scExportSave() {
   if (!_scExBlob) return;
   const a = document.createElement("a");
   a.href = URL.createObjectURL(_scExBlob);
-  a.download = `slide-cuoi-${_scExRes === 2160 ? "4k" : "1080p"}.mp4`;
+  a.download = `slide-cuoi-${_scExRes === "demo" ? "xem-thu" : _scExRes === 2160 ? "4k" : "1080p"}.mp4`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }

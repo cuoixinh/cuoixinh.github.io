@@ -564,7 +564,7 @@
   document.addEventListener("webkitfullscreenchange", sync);
 
   // ── Xuất video ──
-  // Trang cha gửi {type:"cx-slide-export", height}; tiến độ báo ngược bằng cx-slide-export-state
+  // Trang cha gửi {type:"cx-slide-export", height: 1080|2160|"demo"}; tiến độ báo ngược bằng cx-slide-export-state
   // (run · done kèm Blob · error · cancel). Lúc xuất đồng hồ xem trước đứng, nhạc tắt.
   let exporting = null;
 
@@ -594,7 +594,7 @@
         },
       });
       post({ type: "cx-slide-export-state", state: "done", blob, mute });
-      if (!EMBED) _download(blob, `slide-cuoi-${height}p.mp4`);
+      if (!EMBED) _download(blob, height === "demo" ? "slide-cuoi-xem-thu.mp4" : `slide-cuoi-${height}p.mp4`);
     } catch (e) {
       post({
         type: "cx-slide-export-state",
@@ -620,9 +620,9 @@
   // Khổ nào máy mã hoá được — trang cha khoá lựa chọn 4K khi máy không làm nổi.
   async function caps() {
     const X = window.CXSlideExport;
-    const ok = X?.supported() ? await Promise.all([X.pickCodec(1080), X.pickCodec(2160)]) : [null, null];
+    const ok = X?.supported() ? await Promise.all([X.pickCodec(1080), X.pickCodec(2160), X.pickCodec("demo")]) : [];
     const audio = X?.audioCodec ? await X.audioCodec().catch(() => "") : "";
-    post({ type: "cx-slide-caps", h1080: !!ok[0], h2160: !!ok[1], audio });
+    post({ type: "cx-slide-caps", h1080: !!ok[0], h2160: !!ok[1], demo: !!ok[2], audio });
   }
 
   // ── Dữ liệu ──
@@ -755,7 +755,7 @@
       show(m.index, !!m.pause);
       if (m.pause) pause();
     }
-    else if (m.type === "cx-slide-export" && (m.height === 1080 || m.height === 2160)) exportVideo(m.height);
+    else if (m.type === "cx-slide-export" && (m.height === 1080 || m.height === 2160 || m.height === "demo")) exportVideo(m.height);
     else if (m.type === "cx-slide-export-cancel") exporting?.abort();
     else if (m.type === "cx-slide-full-state") {
       pseudoFull = !!m.on;
