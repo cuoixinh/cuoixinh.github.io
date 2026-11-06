@@ -7,7 +7,7 @@
 > Cái bán sau này là **mẫu slide**: mẫu đẹp thu phí, mẫu miễn phí là mẫu đơn giản.
 >
 > Slide là màn **chiếu lên sân khấu tiệc cưới**, KHÔNG phải bản sao thiệp: từ thiệp chỉ lấy
-> ảnh cưới, họ tên, ngày cưới, cha mẹ, chuyện tình; lời văn là của mẫu (lời chú rể / cô dâu
+> ảnh cưới, họ tên, ngày cưới, chuyện tình — **không hiện tên cha mẹ** ở mẫu nào; lời văn là của mẫu (lời chú rể / cô dâu
 > gửi quan khách, gửi cha mẹ, lời cảm ơn). Bố cục: **ảnh một bên, chữ một bên**.
 > Xưng hô trong lời văn: cô dâu, chú rể nói với quan khách và cha mẹ thì xưng **"con"**; chú rể
 > nói với cô dâu là **"anh"**, cô dâu nói với chú rể là **"em"**. **Không chèn họ tên vào lời văn**
