@@ -20,6 +20,10 @@
 > Đo trên máy dev (Chrome): slide 2 phút 17 giây xuất 1080p mất ~24 giây; 4K nhanh hơn
 > thời lượng thật khoảng 1,7 lần. Phần dưới (§1–§6) là kế hoạch CŨ.
 
+> **Phân hệ này KHÔNG GHI gì lên server/DB** — chỉ đọc thiệp của tài khoản. Chữ sửa nằm ở
+> localStorage, ảnh khách tự tải lên nằm ở IndexedDB của máy; không upload Storage, không
+> Edge Function ghi, không changelog. Thêm tính năng mới cũng giữ nguyên luật này.
+
 ### Cấu trúc hiện tại
 
 ```
