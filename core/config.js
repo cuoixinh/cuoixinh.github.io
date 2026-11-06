@@ -217,6 +217,14 @@ const CONFIG = {
     slides: false, // "Slide cưới" (/slide-cuoi/)
   },
 
+  // Thư viện nhạc của trang Slide cưới — Worker file tĩnh RIÊNG (thư mục
+  // cloudflare-media/, `npm run deploy:media`), dùng chung cho mọi môi trường. Đường dẫn
+  // bài trong file danh mục tính theo chính file đó. Đổi tên miền thì đổi cả connect-src
+  // trong `_headers` (bộ xuất video fetch file nhạc).
+  slideMusic: {
+    library: "https://media.cuoixinh.com/library.json",
+  },
+
   // Love Story
   maxLoveStoryItems: 10,
 

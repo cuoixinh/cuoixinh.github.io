@@ -642,7 +642,8 @@ async function scPhotosReset() {
 }
 
 // ── Nhạc: nhạc của thiệp (mặc định) · file khách chọn từ máy · bài trong thư viện nhạc
-// (assets/music/library.json — {tracks:[{id, title, artist, file, license, credit}]}). Lựa
+// (CONFIG.slideMusic.library — {tracks:[{id, title, artist, file, credit}]}, `file` tính theo
+// URL của file danh mục; kho là thư mục cloudflare-media/). Lựa
 // chọn cất ở IndexedDB kho "music" theo thiệp (`<id thiệp hoặc demo>`), file cất BYTE như
 // ảnh. Gửi sang khung: {id, blob} · {url} · null — khung phát + ghép vào video xuất ra.
 const _SC_MU_MAX = 30 * 1024 * 1024;
@@ -656,8 +657,17 @@ let _scPrevId = "";
 
 const _scMuKey = () => (_scS.real && _scS.wid ? _scS.wid : "demo");
 
+// Kho chưa dựng / lỗi mạng / file hỏng đều ra danh sách rỗng ("Thư viện nhạc hiện đang chưa có").
 function _scLibLoad() {
-  _scLibReq ||= fetch(`/assets/music/library.json?v=${encodeURIComponent(CONFIG.version || "")}`)
+  const base = CONFIG.slideMusic?.library || "";
+  const abs = (f) => {
+    try {
+      return new URL(f, base).href;
+    } catch (e) {
+      return "";
+    }
+  };
+  _scLibReq ||= (base ? fetch(base, { cache: "no-cache" }) : Promise.reject(new Error("no library")))
     .then((r) => (r.ok ? r.json() : { tracks: [] }))
     .catch(() => ({ tracks: [] }))
     .then((j) => {
@@ -667,9 +677,10 @@ function _scLibLoad() {
           id: String(t.id),
           title: String(t.title),
           artist: String(t.artist || ""),
-          file: String(t.file),
+          file: abs(String(t.file)),
           credit: String(t.credit || ""),
-        }));
+        }))
+        .filter((t) => /^https:\/\//.test(t.file));
       _scMuRender();
       return _scLib;
     });

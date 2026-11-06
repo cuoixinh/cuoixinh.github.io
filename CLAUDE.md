@@ -49,6 +49,7 @@ assets/background/       Ảnh nền WebP do tab "Ảnh nền" của admin chụ
 supabase/functions/      Edge Functions
 changelogs/              Lịch sử thay đổi DB
 cloudflare-worker/       Workers proxy/cache
+cloudflare-media/        Kho nhạc thư viện của Slide cưới (Worker file tĩnh, media.cuoixinh.com) — file nhạc KHÔNG vào git
 worker/                  Worker của site chính — trả trang thiệp tại /<slug> + thẻ og:*
 ```
 

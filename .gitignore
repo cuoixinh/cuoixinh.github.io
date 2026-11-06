@@ -23,3 +23,6 @@ changelogs/*.final.sql
 
 # Token MCP Supabase (scripts/mcp-supabase.sh đọc)
 .mcp.env
+
+# Kho nhạc slide: file nhạc chỉ nằm trên máy rồi đẩy thẳng lên Cloudflare (npm run deploy:media), không vào git.
+cloudflare-media/public/songs/
