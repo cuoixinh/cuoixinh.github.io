@@ -837,6 +837,43 @@ let _scPrevId = "";
 
 const _scMuKey = () => (_scS.real && _scS.wid ? _scS.wid : "demo");
 
+// Đoạn nhạc nền trên dòng thời gian (giây, cùng khuôn lớp giọng đọc): đặt ở `start`, bắt đầu từ
+// giây `in` của bài (bài LẶP nếu đoạn dài hơn bài), dài `len`; `full` = khối chạy tới hết slide,
+// tự dài theo khi đổi thời lượng cảnh. Lưu localStorage theo thiệp + bài — đổi bài là về nguyên bài.
+const _SC_MU_CUT = "cx_slide_mucut";
+const _scMuPid = (p) => (p ? `${p.mode}:${p.id}` : "");
+function _scMuCutAll() {
+  try {
+    return JSON.parse(localStorage.getItem(_SC_MU_CUT) || "{}") || {};
+  } catch (e) {
+    return {};
+  }
+}
+// Đoạn của bài đang chọn (tạo mặc định "cả slide" lần đầu); null khi chưa có nhạc. Trả CÙNG một
+// object suốt phiên để dòng thời gian kéo thẳng trên nó.
+function _scMuCut() {
+  const p = _scMu.pick;
+  if (!p) return null;
+  if (!p.cut) {
+    const s = _scMuCutAll()[_scMuKey()];
+    const ok = s && s.pid === _scMuPid(p);
+    const n = (v) => Math.max(0, Number(v) || 0);
+    p.cut = ok ? { start: n(s.start), in: n(s.in), len: n(s.len), full: s.full !== false } : { start: 0, in: 0, len: 0, full: true };
+  }
+  return p.cut;
+}
+function _scMuCutSave() {
+  const c = _scMu.pick?.cut;
+  try {
+    const all = _scMuCutAll();
+    const key = _scMuKey();
+    if (c && (c.start > 0.01 || c.in > 0.01 || !c.full)) {
+      all[key] = { pid: _scMuPid(_scMu.pick), start: c.start, in: c.in, len: c.len, full: c.full };
+    } else delete all[key];
+    localStorage.setItem(_SC_MU_CUT, JSON.stringify(all));
+  } catch (e) {}
+}
+
 // Kho chưa dựng / lỗi mạng / file hỏng / quá _SC_LIB_WAIT đều ra danh sách rỗng ("Thư viện nhạc
 // hiện đang chưa có") — kho là dịch vụ ngoài, không bao giờ được chặn slide.
 const _SC_LIB_WAIT = 6000;
@@ -899,10 +936,13 @@ async function _scMuLoad() {
   _scMuRender();
 }
 
+// `cut` cho khung: {start, in, len} — len null = tới hết slide.
 function _scMuMsg() {
   const p = _scMu.pick;
-  if (p?.mode === "file") return { id: p.id, blob: p.blob };
-  if (p?.mode === "lib") return { url: _scTrack(p.id)?.file || "" };
+  const c = _scMuCut();
+  const cut = c ? { start: c.start, in: c.in, len: c.full ? null : c.len } : null;
+  if (p?.mode === "file") return { id: p.id, blob: p.blob, cut };
+  if (p?.mode === "lib") return { url: _scTrack(p.id)?.file || "", cut };
   return null;
 }
 
@@ -981,6 +1021,7 @@ _scEl("sc-mu-file").addEventListener("change", async (e) => {
   const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
   if (!(await _scMuSave({ mode: "file", id, buf, type, name: file.name, dur }))) return;
   _scMu.pick = { mode: "file", id, blob, name: file.name, dur };
+  _scMuCutSave(); // bài mới: về nguyên bài
   _scPreviewStop();
   _scMuRender();
   _scMuSend();
@@ -991,6 +1032,7 @@ async function scMusicLib(id) {
   if (_scMuBusy() || !_scTrack(id)) return;
   if (!(await _scMuSave({ mode: "lib", id }))) return;
   _scMu.pick = { mode: "lib", id };
+  _scMuCutSave();
   _scPreviewStop();
   _scMuRender();
   _scMuSend();
@@ -1000,6 +1042,7 @@ async function scMusicClear() {
   if (_scMuBusy()) return;
   if (!(await _scMuSave(null))) return;
   _scMu.pick = null;
+  _scMuCutSave();
   _scMuRender();
   _scMuSend();
 }
@@ -1023,24 +1066,28 @@ function _scPreviewStop() {
   _scMuRender();
 }
 
+// Nhạc nền đang dùng cho làn Nhạc + bảng lớp đang chọn (voice.js); null khi chưa có.
+function _scMuInfo() {
+  const p = _scMu.pick;
+  if (p?.mode === "file") {
+    return { name: p.name || "File nhạc của bạn", desc: `File của bạn${p.dur ? `, dài ${_scClock(p.dur * 1000)}` : ""}. Có trong video xuất ra.` };
+  }
+  const track = p?.mode === "lib" ? _scTrack(p.id) : null;
+  if (!track) return null;
+  return { name: track.title, desc: `${track.artist ? track.artist + ". " : ""}Từ thư viện nhạc, có trong video xuất ra.`, credit: track.credit };
+}
+
+// Bảng thư viện nhạc dưới dòng thời gian — mở từ nút ở đầu làn Nhạc nền.
+function scMusicLibOpen(on) {
+  _scToggle("sc-mu-libbox", on);
+  if (!on) return _scPreviewStop();
+  _scLibLoad();
+  _scEl("sc-mu-libbox").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
 function _scMuRender() {
   const p = _scMu.pick;
   const track = p?.mode === "lib" ? _scTrack(p.id) : null;
-  let title;
-  let desc;
-  if (p?.mode === "file") {
-    title = "File nhạc của bạn";
-    desc = `${p.name}${p.dur ? `, dài ${_scClock(p.dur * 1000)}` : ""}. Có trong video xuất ra.`;
-  } else if (track) {
-    title = track.title;
-    desc = `${track.artist ? track.artist + ". " : ""}Từ thư viện nhạc, có trong video xuất ra.`;
-  } else {
-    title = "Chưa có nhạc";
-    desc = "Chọn file nhạc từ máy hoặc một bài trong thư viện bên dưới.";
-  }
-  _scEl("sc-mu-now-t").textContent = title;
-  _scEl("sc-mu-now-d").textContent = desc;
-  _scToggle("sc-mu-clear", !!p);
 
   const box = _scEl("sc-mu-lib");
   if (_scLib === null) {
@@ -1067,6 +1114,8 @@ function _scMuRender() {
   const credit = _scEl("sc-mu-credit");
   credit.textContent = track?.credit || "";
   credit.classList.toggle("hidden", !track?.credit);
+  // Làn Nhạc của dòng thời gian (voice.js) hiện tên bài đang chọn.
+  if (typeof _scVoOnCues === "function") _scVoOnCues();
 }
 
 _scEl("sc-mu-lib").addEventListener("click", (e) => {
@@ -1076,8 +1125,8 @@ _scEl("sc-mu-lib").addEventListener("click", (e) => {
   if (pick) scMusicLib(pick.dataset.muLib);
 });
 
-// ── Các tab của bảng chỉnh (Cảnh · Thiệp · Nhạc · Mẫu): một dải .cx-seg, con trượt theo --i. ──
-const _SC_TABS = ["scenes", "data", "music", "voice", "tpl"];
+// ── Các tab của bảng chỉnh (Cảnh · Thiệp · Âm thanh · Mẫu): một dải .cx-seg, con trượt theo --i. ──
+const _SC_TABS = ["scenes", "data", "audio", "tpl"];
 function scTab(id) {
   const i = Math.max(0, _SC_TABS.indexOf(id));
   const seg = _scEl("sc-tabs");
@@ -1090,7 +1139,7 @@ function scTab(id) {
   });
   _SC_TABS.forEach((t, k) => _scToggle(`sc-tab-${t}`, k === i));
   // Dòng thời gian đo theo bề ngang khung — chỉ vẽ được khi tab đã hiện.
-  if (_SC_TABS[i] === "voice" && typeof _scVoRender === "function") _scVoRender();
+  if (_SC_TABS[i] === "audio" && typeof _scVoRender === "function") _scVoRender();
 }
 _scEl("sc-tabs").addEventListener("click", (e) => {
   const b = e.target.closest("[data-tab]");
@@ -1328,7 +1377,7 @@ function _scExportNote() {
       notes.push("Video dọc, slide nằm trên màn chiếu hội trường và có dấu Bản xem thử. File nhẹ, gửi qua Zalo hay Messenger để khách duyệt trước khi thanh toán.");
     if (_scExRes === 2160) notes.push("4K xuất lâu hơn và file nặng hơn khoảng 2,5 lần.");
     const voice = typeof _scVo !== "undefined" && _scVo.clips.some((c) => !c.mute);
-    if (!_scMusic && !voice) notes.push("Slide chưa có nhạc nên video xuất ra sẽ không có tiếng. Chọn nhạc ở tab Nhạc hoặc thêm giọng đọc ở tab Giọng.");
+    if (!_scMusic && !voice) notes.push("Slide chưa có nhạc nên video xuất ra sẽ không có tiếng. Chọn nhạc hoặc thêm giọng đọc ở tab Âm thanh.");
     if ((_scMusic === "file" || voice) && _scCapsOk && !_scCapsOk.audio)
       notes.push("Trình duyệt này không ghép được tiếng vào video, file xuất ra sẽ không có tiếng. Hãy dùng Chrome hoặc Edge bản mới.");
   }

@@ -169,6 +169,7 @@
     draw();
     if (P) {
       const tt = ((t % P.total) + P.total) % P.total;
+      Music.tick(tt, playing && !exporting && Music.wanted());
       Voice.tick(tt, playing && !exporting && Music.wanted());
       // Vị trí đang phát cho dòng thời gian của trang cha (~10 lần/giây).
       if (EMBED && now - sentAt > 100) {
@@ -448,10 +449,12 @@
     };
   })();
 
-  // ── Nhạc nền: CHỈ nhạc khách chọn ở tab Nhạc (file từ máy hoặc bài thư viện) — không lấy nhạc
+  // ── Nhạc nền: CHỈ nhạc khách chọn ở tab Âm thanh (file từ máy hoặc bài thư viện) — không lấy nhạc
   // của thiệp (thường là YouTube, không ghép được vào video). Trình duyệt chặn tự phát tiếng nên
-  // nhạc chỉ bật ở cú chạm/phím đầu tiên trong khung.
+  // nhạc chỉ bật ở cú chạm/phím đầu tiên trong khung. Phát KHỚP đồng hồ slide trong đoạn `cut`
+  // {start, in, len|null} như giọng đọc (bài lặp; len null = tới hết slide).
   const Music = (() => {
+    let cut = { start: 0, in: 0, len: null };
     let audio = null;
     let fileUrl = "";
     let fileBlob = null; // file nhạc khách tải lên (trang cha gửi Blob) — bộ xuất đọc thẳng
@@ -509,10 +512,38 @@
     addEventListener("pointerdown", first, true);
     addEventListener("keydown", first, true);
 
+    // tt = giây trong slide; run = đang phát và đang bật tiếng. Ngoài đoạn thì im; trong đoạn lệch
+    // quá 0,35 giây thì tua lại (tính vòng lặp của bài).
+    function tick(tt, run) {
+      if (!audio) return;
+      const end = cut.len == null ? Infinity : cut.start + cut.len;
+      if (!run || tt < cut.start || tt >= end) {
+        if (!audio.paused) audio.pause();
+        return;
+      }
+      const d = audio.duration;
+      if (Number.isFinite(d) && d > 0 && !audio.seeking) {
+        const want = (cut.in + tt - cut.start) % d;
+        const off = Math.abs(audio.currentTime - want);
+        if (off > 0.35 && off < d - 0.35) {
+          try {
+            audio.currentTime = want;
+          } catch (e) {}
+        }
+      }
+      if (audio.paused) audio.play().catch(() => {});
+    }
+
     return {
       load,
       play,
       pause,
+      tick,
+      setCut(c) {
+        const n = (v) => Math.max(0, Number(v) || 0);
+        cut = { start: n(c?.start), in: n(c?.in), len: c?.len == null ? null : n(c.len) };
+      },
+      exportCut: () => ({ ...cut }),
       has: () => !!audio,
       isOn: () => (!!audio || Voice.has()) && want,
       wanted: () => want,
@@ -583,6 +614,7 @@
       const blob = await CXSlideExport.run(P, {
         height,
         audioUrl: Music.exportSrc(),
+        musicCut: Music.exportCut(),
         voices: Voice.exportList(),
         duck: Voice.duck(),
         signal: exporting.signal,
@@ -634,6 +666,7 @@
   let musicPick = null;
   function setMusic(m) {
     musicPick = m?.blob instanceof Blob && m.id ? { id: String(m.id), blob: m.blob } : m?.url ? { url: String(m.url) } : null;
+    Music.setCut(m?.cut);
   }
   function applyMusic() {
     if (musicPick?.blob) Music.load("", musicPick);
@@ -724,6 +757,9 @@
     } else if (m.type === "cx-slide-texts" && cur) {
       texts = m.texts && typeof m.texts === "object" ? m.texts : {};
       if (!exporting) load(cur, Number.isInteger(m.index) ? m.index : idx);
+    } else if (m.type === "cx-slide-music-cut") {
+      // Kéo khối nhạc trên dòng thời gian: chỉ đổi đoạn phát, không nạp lại bài.
+      if (!exporting) Music.setCut(m.cut);
     } else if (m.type === "cx-slide-music") {
       if (exporting) return;
       setMusic(m.music);

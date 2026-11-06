@@ -1383,106 +1383,14 @@ html.sc-lock .cx-navmore-pop {
   }
 }
 
-/* Tab Nhạc: thẻ "đang dùng" ở đầu · ô chọn file (khung nét đứt) · danh sách thư viện (mỗi
-   dòng: nút nghe thử · tên bài để chọn · dấu đang chọn). */
-.sc-mu-now {
-  display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 16px;
-  background: rgb(var(--surface-brand-subtle-rgb));
+/* Bảng Thư viện nhạc (dưới dòng thời gian): mỗi dòng nút nghe thử · tên bài để chọn · dấu đang chọn. */
+.sc-mu-libbox .sc-mu-lib {
+  margin-bottom: 8px;
 }
-.sc-mu-ico {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  font-size: 18px;
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
-}
-.sc-mu-now-text {
-  flex: 1 1 200px;
-  min-width: 0;
-}
-.sc-mu-now-t {
-  font-size: 15px;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-  color: rgb(var(--text-heading-rgb));
-}
-.sc-mu-now-d {
-  margin-top: 4px;
-  font-size: 13px;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-  color: rgb(var(--text-caption-rgb));
-}
-.sc-mu-clear {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding-inline: 12px;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  color: rgb(var(--action-primary-deep-rgb));
-  background: rgb(var(--white-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
-}
-.sc-mu-clear:hover {
-  border-color: rgb(var(--action-primary-rgb));
-}
-.sc-mu-h {
-  margin: 24px 0 12px;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgb(var(--text-heading-rgb));
-}
-.sc-mu-up {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  column-gap: 12px;
-  width: 100%;
-  padding: 16px;
-  text-align: left;
-  border-radius: 16px;
-  border: 1.5px dashed rgb(var(--brand-primary-rgb));
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease;
-}
-.sc-mu-up:hover {
-  border-color: rgb(var(--action-primary-rgb));
-  background: rgb(var(--surface-brand-subtle-rgb));
-}
-.sc-mu-up:focus-visible,
 .sc-mu-play:focus-visible,
 .sc-mu-pick:focus-visible {
   outline: 2px solid rgb(var(--action-primary-rgb));
   outline-offset: 2px;
-}
-.sc-mu-up svg {
-  grid-row: span 2;
-  width: 24px;
-  height: 24px;
-  color: rgb(var(--action-primary-rgb));
-}
-.sc-mu-up-t {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgb(var(--text-heading-rgb));
-}
-.sc-mu-up-d {
-  font-size: 13px;
-  color: rgb(var(--text-caption-rgb));
 }
 .sc-mu-empty {
   padding: 20px 16px;
@@ -1662,8 +1570,7 @@ html.sc-lock .cx-navmore-pop {
 .sc-vo-row.is-ruler {
   height: 24px;
 }
-.sc-vo-row.is-scenes,
-.sc-vo-row.is-music {
+.sc-vo-row.is-scenes {
   height: 28px;
 }
 .sc-vo-head {
@@ -1762,17 +1669,65 @@ html.sc-lock .cx-navmore-pop {
 .sc-vo-seg.is-alt {
   background: rgb(var(--vo-ink) / 0.16);
 }
-.sc-vo-mbar {
+.sc-vo-n.is-new:focus-visible {
+  outline: 2px solid rgb(var(--vo-ink) / 0.8);
+  outline-offset: -2px;
+}
+/* Làn Nhạc nền: cùng khuôn một lớp giọng đọc (kéo dời, kéo hai mép để cắt), khác màu vàng đồng. */
+.sc-vo-n.is-music {
+  font-size: 12px;
+  background: rgb(176 124 72);
+}
+.sc-vo-clip.is-music {
+  background: linear-gradient(180deg, rgb(201 150 96), rgb(150 102 58));
+}
+.sc-vo-n.is-new {
+  cursor: pointer;
+}
+.sc-vo-n.is-new:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+}
+/* Làn "Lớp mới": bấm chỗ nào là thêm file bắt đầu từ chỗ đó; vạch + chạy theo chuột báo trước. */
+.sc-vo-lane.is-add {
+  cursor: copy;
+}
+.sc-vo-lane.is-add:hover {
+  background: rgb(var(--vo-ink) / 0.04);
+}
+.sc-vo-ghost {
   position: absolute;
-  top: 4px;
-  bottom: 4px;
+  top: 6px;
+  bottom: 6px;
   left: 0;
-  padding: 0 8px;
-  font-size: 11px;
-  line-height: 20px;
-  border-radius: 6px;
-  color: rgb(var(--vo-ink) / 0.8);
-  background: repeating-linear-gradient(90deg, rgb(214 170 120 / 0.35) 0 3px, rgb(214 170 120 / 0.2) 3px 6px);
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: rgb(var(--vo-ink) / 0.7);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+.sc-vo-ghost::after {
+  content: "+";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  color: rgb(var(--vo-bg));
+  background: rgb(var(--vo-ink));
+}
+@media (hover: hover) {
+  .sc-vo-lane.is-add:hover .sc-vo-ghost {
+    opacity: 1;
+  }
 }
 .sc-vo-note {
   position: sticky;
@@ -1922,6 +1877,13 @@ html.sc-lock .cx-navmore-pop {
   text-overflow: ellipsis;
   color: rgb(var(--text-heading-rgb));
 }
+.sc-vo-sel-sub {
+  padding-bottom: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  color: rgb(var(--text-caption-rgb));
+}
 .sc-vo-x {
   display: inline-flex;
   align-items: center;
@@ -1941,13 +1903,6 @@ html.sc-lock .cx-navmore-pop {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: rgb(var(--action-primary-deep-rgb));
-}
-.sc-vo-up {
-  margin-bottom: 12px;
-}
-.sc-vo-up:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
 }
 .sc-vo-duck {
   margin-bottom: 8px;
