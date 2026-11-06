@@ -57,10 +57,7 @@ function _scRenderTpls() {
 
 _scEl("sc-tpls").addEventListener("click", (e) => {
   const b = e.target.closest("[data-tpl]");
-  if (!b) return;
-  // Mục Mẫu slide nằm cuối trang — bấm mẫu nào (kể cả mẫu đang chọn) cũng cuộn về đầu để xem.
-  scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-  if (b.dataset.tpl === _scS.tpl) return;
+  if (!b || b.dataset.tpl === _scS.tpl) return;
   _scS.tpl = b.dataset.tpl;
   _scSave();
   _scRenderTpls();
@@ -76,9 +73,14 @@ function _scFrameLoad() {
   _scSig = "";
   _scOpen = -1;
   _scPhSig = "";
-  _scEl("sc-photos").innerHTML = "";
+  _scEl("sc-total").textContent = "";
   const t = CX_SLIDE_TEMPLATES.find((x) => x.id === _scS.tpl);
-  _scBox.style.setProperty("--sc-ratio", t?.ratio || "16 / 9");
+  // Tỉ lệ dạng chữ cho aspect-ratio của khung, dạng số cho phép tính bề ngang (hàng nút, ô xuất
+  // video canh theo bề ngang slide) — đặt ở .sc-app để cả sân khấu cùng đọc.
+  const ratio = t?.ratio || "16 / 9";
+  const [rw, rh] = ratio.split("/").map(Number);
+  _scBox.style.setProperty("--sc-ratio", ratio);
+  _scBox.closest(".sc-app")?.style.setProperty("--sc-ratio-n", String(rw > 0 && rh > 0 ? rw / rh : 16 / 9));
   _scFrame.src = `/slide-cuoi/templates/${encodeURIComponent(_scS.tpl)}/?embed=1`;
 }
 
@@ -106,6 +108,7 @@ addEventListener("message", (e) => {
   else if (t === "cx-slide-state") _scCueState(e.data);
   else if (t === "cx-slide-caps") _scCaps(e.data);
   else if (t === "cx-slide-export-state") _scExportMsg(e.data);
+  else if (t === "cx-slide-edit") _scEditFromSlide(e.data);
 });
 
 // ── Chữ trong slide: mỗi cảnh một dòng (mốc giờ · tên · thời lượng), bấm là chiếu cảnh đó,
@@ -157,6 +160,10 @@ function _scCueTimes() {
     b.querySelector(".sc-cue-d").textContent = `${Math.round(c.dur / 1000)} giây`;
     t += c.dur;
   });
+  // Màn hẹp chỉ còn chỗ cho thời lượng: phần số cảnh nằm trong .sc-total-n để CSS giấu.
+  _scEl("sc-total").innerHTML = _scCues.length
+    ? `<span class="sc-total-n">${_scCues.length} cảnh, dài </span>${_scClock(t)}`
+    : "";
 }
 
 function _scCueRender() {
@@ -167,13 +174,17 @@ function _scCueRender() {
       const fields = c.texts.length
         ? c.texts.map(_scFieldHTML).join("")
         : `<p class="sc-tx-none">Cảnh này chỉ có ảnh.</p>`;
+      // Ô ảnh nhỏ (.sc-cue-thumb) và khối đổi ảnh (.sc-phbox) để trống: _scPhRender đổ vào.
       return `<li class="sc-scene${open ? " is-open" : ""}">
         <button type="button" class="sc-cue" data-cue="${i}" aria-expanded="${open}">
-          <span class="sc-cue-t"></span>
-          <span class="sc-cue-n">${_scEsc(c.label)}</span>
+          <span class="sc-cue-thumb" aria-hidden="true"></span>
+          <span class="sc-cue-main">
+            <span class="sc-cue-n">${_scEsc(c.label)}</span>
+            <span class="sc-cue-t"></span>
+          </span>
           <span class="sc-cue-d"></span>
         </button>
-        <div class="sc-tx-list${open ? "" : " hidden"}">${fields}</div>
+        <div class="sc-tx-list${open ? "" : " hidden"}">${c.photo ? `<div class="sc-phbox"></div>` : ""}${fields}</div>
       </li>`;
     })
     .join("");
@@ -181,6 +192,8 @@ function _scCueRender() {
   window.lucide?.createIcons({ root: ol });
   ol.querySelectorAll(".sc-tx-in").forEach(_scGrow);
   _scResetBtn();
+  _scPhSig = "";
+  _scPhRender();
 }
 
 function _scCueState(m) {
@@ -200,10 +213,11 @@ function _scCueState(m) {
         ? { key: String(c.photo.key), def: String(c.photo.def || ""), w: Number(c.photo.w) || 3, h: Number(c.photo.h) || 4 }
         : null,
     }));
-    _scPhRender();
     const sig = _scCues.map((c) => c.label + ":" + c.texts.map((x) => x.key).join(",")).join("|");
-    if (sig === _scSig) _scCueTimes();
-    else {
+    if (sig === _scSig) {
+      _scCueTimes();
+      _scPhRender();
+    } else {
       _scSig = sig;
       if (_scOpen >= _scCues.length) _scOpen = -1;
       _scCueRender();
@@ -270,16 +284,48 @@ _scEl("sc-cues").addEventListener("click", (e) => {
   const b = e.target.closest("[data-cue]");
   if (!b) return;
   const i = Number(b.dataset.cue);
-  _scOpen = _scOpen === i ? -1 : i;
+  _scOpenScene(_scOpen === i ? -1 : i);
+  _scFrame.contentWindow?.postMessage({ type: "cx-slide-go", index: i, pause: _scOpen === i }, location.origin);
+});
+
+// Mở phần chỉnh của cảnh i (-1 = đóng hết), trả về dòng đang mở.
+function _scOpenScene(i) {
+  _scOpen = i;
+  let hit = null;
   _scEl("sc-cues").querySelectorAll(".sc-scene").forEach((li, k) => {
     const open = k === _scOpen;
     li.classList.toggle("is-open", open);
     li.querySelector(".sc-tx-list").classList.toggle("hidden", !open);
     li.querySelector("[data-cue]").setAttribute("aria-expanded", String(open));
-    if (open) li.querySelectorAll(".sc-tx-in").forEach(_scGrow);
+    if (open) {
+      li.querySelectorAll(".sc-tx-in").forEach(_scGrow);
+      hit = li;
+    }
   });
-  _scFrame.contentWindow?.postMessage({ type: "cx-slide-go", index: i, pause: _scOpen === i }, location.origin);
-});
+  return hit;
+}
+
+// Bấm thẳng lên slide (khung đã tự dừng ở cảnh đó): về tab Cảnh, mở cảnh, cuộn tới rồi đặt
+// con trỏ vào đúng ô chữ — hoặc làm nổi khối ảnh — kèm một nhịp sáng để mắt tìm thấy.
+function _scEditFromSlide(m) {
+  if (!Number.isInteger(m.index)) return;
+  scTab("scenes");
+  const li = _scOpenScene(m.index);
+  if (!li) return;
+  const target =
+    m.kind === "text"
+      ? li.querySelector(`.sc-tx-in[data-key="${CSS.escape(String(m.key))}"]`)
+      : li.querySelector(".sc-ph-pick");
+  const el = target || li;
+  const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  el.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
+  el.focus?.({ preventScroll: true });
+  const box = target?.closest(".sc-tx") || target || li;
+  box.classList.remove("is-flash");
+  void box.offsetWidth; // chạy lại hiệu ứng khi bấm liên tiếp cùng một chỗ
+  box.classList.add("is-flash");
+  setTimeout(() => box.classList.remove("is-flash"), 1300);
+}
 
 _scEl("sc-cues").addEventListener("input", (e) => {
   const ta = e.target.closest(".sc-tx-in");
@@ -368,6 +414,8 @@ function _scPhSend(index) {
   _scFrame.contentWindow?.postMessage({ type: "cx-slide-photos", photos: _scPhMsg(), index }, location.origin);
 }
 
+// Đổ ảnh vào từng dòng cảnh: ô ảnh nhỏ trên dòng + khối đổi ảnh trong phần mở rộng. Chỉ thay
+// hai chỗ đó, không vẽ lại cả danh sách — ô chữ đang gõ giữ nguyên con trỏ.
 function _scPhRender() {
   const slots = _scCues.map((c, i) => (c.photo ? { ...c.photo, label: c.label, i } : null)).filter(Boolean);
   const sig = slots
@@ -379,32 +427,38 @@ function _scPhRender() {
   _scToggle("sc-ph-reset", slots.some((p) => _scPh.map[p.key]));
   if (sig === _scPhSig) return;
   _scPhSig = sig;
-  const ul = _scEl("sc-photos");
+  const lis = _scEl("sc-cues").children;
   const demo = _scTxKey().endsWith("|demo");
-  ul.innerHTML = slots
-    .map((p) => {
-      const own = _scPh.map[p.key];
-      const src = own?.url || p.def;
-      const pos = own?.focal ? ` style="object-position:${Number(own.focal.x)}% ${Number(own.focal.y)}%"` : "";
-      const at = `data-i="${p.i}" data-w="${p.w}" data-h="${p.h}"`;
-      return `<li class="sc-ph${own ? " is-own" : ""}">
-        <button type="button" class="sc-ph-pick" data-ph="${_scEsc(p.key)}" ${at} aria-label="Đổi ảnh cảnh ${_scEsc(p.label)}">
-          <span class="sc-ph-thumb">${_scIco("image-plus")}${src ? `<img src="${_scEsc(src)}" alt="" loading="lazy"${pos} onerror="this.remove()" />` : ""}</span>
-          <span class="sc-ph-badge">${_scIco("upload")}${own ? "Ảnh của bạn" : "Đổi ảnh"}</span>
-        </button>
-        <span class="sc-ph-name">${_scEsc(p.label)}</span>
-        ${
-          own
-            ? `<span class="sc-ph-acts">
-          <button type="button" class="sc-ph-act" data-ph-focal="${_scEsc(p.key)}" ${at}>${_scIco("focus")}Lấy nét</button>
-          <button type="button" class="sc-ph-act" data-ph-undo="${_scEsc(p.key)}" ${at}>${_scIco("undo-2")}${demo ? "Ảnh mẫu" : "Ảnh thiệp"}</button>
-        </span>`
-            : ""
-        }
-      </li>`;
-    })
-    .join("");
-  window.lucide?.createIcons({ root: ul });
+  slots.forEach((p) => {
+    const li = lis[p.i];
+    if (!li) return;
+    const own = _scPh.map[p.key];
+    const src = own?.url || p.def;
+    const pos = own?.focal ? ` style="object-position:${Number(own.focal.x)}% ${Number(own.focal.y)}%"` : "";
+    const img = src ? `<img src="${_scEsc(src)}" alt="" loading="lazy"${pos} onerror="this.remove()" />` : "";
+    const at = `data-ph="${_scEsc(p.key)}" data-i="${p.i}" data-w="${p.w}" data-h="${p.h}"`;
+    li.classList.toggle("is-own", !!own);
+    li.querySelector(".sc-cue-thumb").innerHTML = img;
+    const box = li.querySelector(".sc-phbox");
+    if (!box) return;
+    box.innerHTML = `
+      <button type="button" class="sc-ph-pick" ${at} aria-label="Đổi ảnh cảnh ${_scEsc(p.label)}">
+        <span class="sc-ph-thumb" style="aspect-ratio:${p.w} / ${p.h}">${_scIco("image-plus")}${img}</span>
+      </button>
+      <div class="sc-ph-side">
+        <p class="sc-ph-src">${own ? "Ảnh của bạn" : demo ? "Ảnh mẫu" : "Ảnh của thiệp"}</p>
+        <div class="sc-ph-acts">
+          <button type="button" class="sc-ph-act" ${at}>${_scIco("image-up")}Đổi ảnh</button>
+          ${
+            own
+              ? `<button type="button" class="sc-ph-act" data-ph-focal="${_scEsc(p.key)}" data-i="${p.i}" data-w="${p.w}" data-h="${p.h}">${_scIco("focus")}Lấy nét</button>
+          <button type="button" class="sc-ph-act" data-ph-undo="${_scEsc(p.key)}" data-i="${p.i}">${_scIco("undo-2")}${demo ? "Dùng ảnh mẫu" : "Dùng ảnh thiệp"}</button>`
+              : ""
+          }
+        </div>
+      </div>`;
+    window.lucide?.createIcons({ root: box });
+  });
 }
 
 // Đang xuất thì khung không nhận ảnh mới (nó đang vẽ bộ cũ) — chặn luôn ở đây cho khỏi lệch.
@@ -461,7 +515,7 @@ async function _scPhFocal(src, current, w, h) {
 const _scPhGo = (index) =>
   _scFrame.contentWindow?.postMessage({ type: "cx-slide-go", index, pause: true }, location.origin);
 
-_scEl("sc-photos").addEventListener("click", (e) => {
+_scEl("sc-cues").addEventListener("click", (e) => {
   const undo = e.target.closest("[data-ph-undo]");
   if (undo) {
     if (_scPhBusy()) return;
@@ -580,6 +634,35 @@ async function scPhotosReset() {
   _scPhRender();
   _scPhSend();
 }
+
+// ── Ba tab của bảng chỉnh (Cảnh · Thiệp · Mẫu): cùng một dải .cx-seg, con trượt theo --i. ──
+const _SC_TABS = ["scenes", "data", "tpl"];
+function scTab(id) {
+  const i = Math.max(0, _SC_TABS.indexOf(id));
+  const seg = _scEl("sc-tabs");
+  seg.style.setProperty("--i", String(i));
+  seg.querySelectorAll("[data-tab]").forEach((b) => {
+    const on = b.dataset.tab === _SC_TABS[i];
+    b.classList.toggle("is-on", on);
+    b.setAttribute("aria-selected", String(on));
+    b.tabIndex = on ? 0 : -1;
+  });
+  _SC_TABS.forEach((t, k) => _scToggle(`sc-tab-${t}`, k === i));
+}
+_scEl("sc-tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-tab]");
+  if (b) scTab(b.dataset.tab);
+});
+// Mũi tên trái/phải chuyển tab (mẫu tablist chuẩn).
+_scEl("sc-tabs").addEventListener("keydown", (e) => {
+  const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+  if (!d) return;
+  e.preventDefault();
+  const cur = _SC_TABS.findIndex((t) => _scEl(`sc-tabbtn-${t}`).classList.contains("is-on"));
+  const next = _SC_TABS[(cur + d + _SC_TABS.length) % _SC_TABS.length];
+  scTab(next);
+  _scEl(`sc-tabbtn-${next}`).focus();
+});
 
 // ── Toàn màn hình: phóng cả iframe; máy không có Fullscreen API (iPhone) thì phủ kín bằng CSS ──
 const _scFsEl = () => document.fullscreenElement || document.webkitFullscreenElement;

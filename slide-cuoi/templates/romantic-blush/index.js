@@ -206,6 +206,8 @@
   // MỌI khối chữ mang khoá `<sid>.<vị trí trong mảng khai>` (tính cả ô rỗng nên không xê dịch
   // theo dữ liệu; chữ trong cột con thêm `.<cột>.<dòng>`) — trang cha sửa chữ theo khoá đó,
   // sửa thành rỗng là bỏ khối. Thêm chữ vào cảnh mà không qua đây là chữ đó không sửa được.
+  // Khối giữ `key` (engine chép sang phần tử chữ) và ảnh cảnh mang `edit: sid` — bộ phát dùng
+  // hai dấu đó để bấm thẳng lên slide là mở đúng ô sửa.
   function _scene(i, sid, photo, blocks, opt, L) {
     const texts = [];
     const apply = (b, key) => {
@@ -220,7 +222,7 @@
       const own = L.texts?.[key];
       const text = typeof own === "string" ? own : String(b.text);
       texts.push({ key, text, def: String(b.text) });
-      return text.trim() ? { ...b, text } : null;
+      return text.trim() ? { ...b, text, key } : null;
     };
     blocks = blocks.map((b, k) => apply(b, `${sid}.${k}`)).filter(Boolean);
 
@@ -250,12 +252,12 @@
     const photoEls = rev
       ? [
           { type: "rect", x: 1280 - 320, y: 360, w: 320, h: 360, fill: C.accent },
-          { type: "image", x: px, y: 48, w: PW - 48, h: 624, src, focal: fp, kb: true, empty: C.surface },
+          { type: "image", x: px, y: 48, w: PW - 48, h: 624, src, focal: fp, kb: true, empty: C.surface, edit: sid },
           { type: "frame", x: px - 28, y: 24, w: PW - 76 + 28, h: 620, stroke: C.line },
         ]
       : [
           { type: "rect", x: 0, y: 0, w: 320, h: 360, fill: C.accent },
-          { type: "image", x: 48, y: 48, w: PW - 48, h: 624, src, focal: fp, kb: true, empty: C.surface },
+          { type: "image", x: 48, y: 48, w: PW - 48, h: 624, src, focal: fp, kb: true, empty: C.surface, edit: sid },
           { type: "frame", x: 76, y: 76, w: PW - 76 + 28, h: 620, stroke: C.line },
         ];
     const group = { type: "group", x: px, y: 0, w: PW, h: 720, kids: photoEls, anim: { k: rev ? "right" : "left", d: 0 } };

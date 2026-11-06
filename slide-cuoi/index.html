@@ -27,42 +27,52 @@
     <link rel="stylesheet" href="../styles/build.css" />
     <script src="../core/helpers/no-zoom.js"></script>
     <script src="../core/helpers/no-inspect.js"></script>
+    <!-- --vh: chiều cao khung chiếu ghim tính theo màn, không nhảy khi thanh URL ẩn/hiện. -->
+    <script src="../core/helpers/vh-lock.js"></script>
   </head>
   <body
     class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
   >
-    <!-- "Slide cưới": màn chiếu cho sân khấu tiệc cưới. Đầu trang, khung xem iframe templates/<id>/ tràn hết bề ngang, dưới là chọn mẫu, chọn thiệp và
-         thứ tự trình chiếu (runtime báo danh sách cảnh lên), ảnh từng cảnh. Logic ở index.js, kế hoạch ở
-         docs/PLAN-slide-cuoi.md. -->
-    <main class="gl-page pb-12">
-      <header class="sc-head mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="min-w-0">
-          <h1 class="tg-title">Slide cưới</h1>
-          <p class="sc-sub">Chiếu ảnh cưới lên màn hình sân khấu tiệc.</p>
-        </div>
+    <!-- "Slide cưới": màn chiếu cho sân khấu tiệc cưới. Lưới ba vùng: đầu trang · sân khấu
+         (khung xem iframe templates/<id>/ + nút chiếu/xuất, GHIM khi cuộn) · bảng chỉnh ba tab
+         (Cảnh: ảnh + chữ từng cảnh · Thiệp · Mẫu). Từ lg sân khấu bên trái, bảng chỉnh bên
+         phải; dưới lg xếp chồng, sân khấu ghim đầu màn. Logic ở index.js. -->
+    <main class="sc-app">
+      <header class="sc-head">
+        <h1 class="tg-title">Slide cưới</h1>
+        <p class="sc-sub">Xem trước rồi chiếu lên màn hình sân khấu tiệc cưới.</p>
       </header>
 
-      <div id="sc-stagebox" class="sc-screen">
-        <iframe
-          id="sc-frame"
-          title="Xem trước slide cưới"
-          allow="autoplay; fullscreen"
-          allowfullscreen
-        ></iframe>
-      </div>
-      <div class="sc-bar mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <x-button variant="bare" icon="maximize" onclick="scFullscreen()" class="mi-btn mi-btn--primary">
-          Trình chiếu
-        </x-button>
-        <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="mi-btn mi-btn--soft" aria-expanded="false" aria-controls="sc-export">
-          Xuất video
-        </x-button>
-      </div>
+      <section class="sc-stage" aria-label="Khung chiếu">
+        <!-- Ánh sáng động của nền sân khấu (chỉ CSS): 3 quầng trôi · 1 vệt quét · 5 đốm bokeh. -->
+        <div class="sc-lights" aria-hidden="true">
+          <i class="sc-glow sc-glow--a"></i>
+          <i class="sc-glow sc-glow--b"></i>
+          <i class="sc-glow sc-glow--c"></i>
+          <i class="sc-sweep"></i>
+          <i class="sc-bokeh"></i><i class="sc-bokeh"></i><i class="sc-bokeh"></i><i class="sc-bokeh"></i><i class="sc-bokeh"></i>
+        </div>
+        <div id="sc-stagebox" class="sc-screen">
+          <iframe
+            id="sc-frame"
+            title="Xem trước slide cưới"
+            allow="autoplay; fullscreen"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <div class="sc-bar">
+          <x-button variant="bare" icon="maximize" onclick="scFullscreen()" class="sc-play">
+            Trình chiếu
+          </x-button>
+          <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="sc-ghost" aria-expanded="false" aria-controls="sc-export">
+            Xuất video
+          </x-button>
+          <p id="sc-total" class="sc-total"></p>
+        </div>
 
-      <!-- Xuất video MP4 ngay trên máy (CXSlideExport trong khung slide). Bốn trạng thái loại
-           trừ nhau: chọn khổ · đang xuất · xong · lỗi — _scExportState bật/tắt. -->
-      <div id="sc-export" class="sc-export hidden mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="sc-export-box" aria-live="polite">
+        <!-- Xuất video MP4 ngay trên máy (CXSlideExport trong khung slide). Bốn trạng thái loại
+             trừ nhau: chọn khổ · đang xuất · xong · lỗi — _scExportState bật/tắt. -->
+        <div id="sc-export" class="sc-export hidden" aria-live="polite">
           <div id="sc-ex-pick">
             <p class="sc-export-h">Chọn chất lượng video</p>
             <div id="sc-ex-res" class="cx-seg sc-ex-res" style="--n: 2; --i: 1">
@@ -70,7 +80,7 @@
               <button type="button" class="cx-seg-btn is-on" data-res="2160">4K</button>
             </div>
             <p id="sc-ex-note" class="sc-export-note"></p>
-            <x-button variant="bare" icon="download" onclick="scExportStart()" class="mi-btn mi-btn--primary mt-4">
+            <x-button variant="bare" icon="download" onclick="scExportStart()" class="sc-play mt-4">
               Bắt đầu xuất
             </x-button>
           </div>
@@ -79,7 +89,7 @@
             <p class="sc-export-h">Đang xuất video <span id="sc-ex-pct">0%</span></p>
             <div class="sc-ex-track"><i id="sc-ex-fill"></i></div>
             <p class="sc-export-note">Giữ tab này mở cho tới khi xong.</p>
-            <x-button variant="bare" icon="x" onclick="scExportCancel()" class="mi-btn mi-btn--soft mt-4">
+            <x-button variant="bare" icon="x" onclick="scExportCancel()" class="sc-ghost mt-4">
               Huỷ
             </x-button>
           </div>
@@ -87,7 +97,7 @@
           <div id="sc-ex-done" class="hidden">
             <p class="sc-export-h">Đã xuất xong</p>
             <p id="sc-ex-done-note" class="sc-export-note"></p>
-            <x-button variant="bare" icon="download" onclick="scExportSave()" class="mi-btn mi-btn--primary mt-4">
+            <x-button variant="bare" icon="download" onclick="scExportSave()" class="sc-play mt-4">
               Tải video
             </x-button>
           </div>
@@ -95,97 +105,81 @@
           <div id="sc-ex-error" class="hidden">
             <p class="sc-export-h">Chưa xuất được video</p>
             <p id="sc-ex-error-note" class="sc-export-note"></p>
-            <x-button variant="bare" icon="refresh-cw" onclick="scExportOpen(true)" class="mi-btn mi-btn--soft mt-4">
+            <x-button variant="bare" icon="refresh-cw" onclick="scExportOpen(true)" class="sc-ghost mt-4">
               Thử lại
             </x-button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="sc-panel mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <section class="sc-sec" aria-labelledby="sc-h-texts">
-          <div class="sc-sec-side">
-            <h2 id="sc-h-texts" class="sc-h">Chữ trong slide</h2>
-            <p class="sc-lead">Bấm một cảnh để chiếu và sửa chữ. Xoá trắng một ô là bỏ dòng đó.</p>
-            <x-button id="sc-tx-reset" variant="bare" icon="rotate-ccw" onclick="scTextsReset()" class="mi-btn mi-btn--soft sc-side-btn hidden">
+      <div class="sc-panel">
+        <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 3; --i: 0">
+          <button type="button" class="cx-seg-btn is-on" role="tab" id="sc-tabbtn-scenes" data-tab="scenes" aria-selected="true" aria-controls="sc-tab-scenes">Cảnh</button>
+          <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-data" data-tab="data" aria-selected="false" aria-controls="sc-tab-data">Thiệp</button>
+          <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-tpl" data-tab="tpl" aria-selected="false" aria-controls="sc-tab-tpl">Mẫu</button>
+        </div>
+
+        <section id="sc-tab-scenes" class="sc-tab" role="tabpanel" aria-labelledby="sc-tabbtn-scenes">
+          <p class="sc-lead">Bấm thẳng vào chữ hoặc ảnh trên slide, hoặc chọn một cảnh dưới đây để đổi ảnh và sửa chữ. Xoá trắng một dòng chữ là bỏ dòng đó.</p>
+          <ol id="sc-cues" class="sc-cues"></ol>
+          <input id="sc-ph-file" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
+          <div class="sc-foot">
+            <x-button id="sc-tx-reset" variant="bare" icon="rotate-ccw" onclick="scTextsReset()" class="mi-btn mi-btn--soft hidden">
               Về lời mẫu
             </x-button>
-            <p class="sc-keys">Phím cách: tạm dừng. Mũi tên: chuyển cảnh. Esc: thoát.</p>
-          </div>
-          <div class="sc-sec-main">
-            <ol id="sc-cues" class="sc-cues"></ol>
-          </div>
-        </section>
-
-        <section class="sc-sec" aria-labelledby="sc-h-photos">
-          <div class="sc-sec-side">
-            <h2 id="sc-h-photos" class="sc-h">Ảnh trong slide</h2>
-            <p class="sc-lead">Mỗi cảnh một ảnh, lấy sẵn từ thiệp. Bấm vào ảnh để thay bằng ảnh trong máy. Ảnh chỉ nằm trên máy này, không tải lên đâu cả.</p>
-            <x-button id="sc-ph-reset" variant="bare" icon="rotate-ccw" onclick="scPhotosReset()" class="mi-btn mi-btn--soft sc-side-btn hidden">
+            <x-button id="sc-ph-reset" variant="bare" icon="rotate-ccw" onclick="scPhotosReset()" class="mi-btn mi-btn--soft hidden">
               Về ảnh của thiệp
             </x-button>
           </div>
-          <div class="sc-sec-main">
-            <ul id="sc-photos" class="sc-photos"></ul>
-            <input id="sc-ph-file" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
-          </div>
+          <p class="sc-keys">Phím cách: tạm dừng. Mũi tên: chuyển cảnh. Esc: thoát toàn màn.</p>
+          <p class="sc-fine">Ảnh bạn đổi và chữ bạn sửa chỉ lưu trên máy này, không tải lên đâu cả.</p>
         </section>
 
-        <section class="sc-sec" aria-labelledby="sc-h-data">
-          <div class="sc-sec-side">
-            <h2 id="sc-h-data" class="sc-h">Ảnh và thông tin</h2>
-            <p class="sc-lead">Lấy ảnh, tên, ngày cưới và chuyện tình từ thiệp của bạn.</p>
-          </div>
-          <div class="sc-sec-main">
-            <label class="sc-check">
-              <span class="sc-check-text">
-                <span class="sc-check-title">Dùng thiệp của tôi</span>
-                <span class="sc-check-desc">Tắt thì slide dùng dữ liệu mẫu.</span>
-              </span>
-              <input id="sc-use-real" type="checkbox" role="switch" class="sc-switch" />
-            </label>
+        <section id="sc-tab-data" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-data">
+          <p class="sc-lead">Lấy ảnh, tên, ngày cưới và chuyện tình từ thiệp của bạn.</p>
+          <label class="sc-check">
+            <span class="sc-check-text">
+              <span class="sc-check-title">Dùng thiệp của tôi</span>
+              <span class="sc-check-desc">Tắt thì slide dùng dữ liệu mẫu.</span>
+            </span>
+            <input id="sc-use-real" type="checkbox" role="switch" class="sc-switch" />
+          </label>
 
-            <div id="sc-real" class="hidden">
-              <div id="sc-st-loading" class="sc-wlist" aria-hidden="true">
-                <div class="sc-w-sk mi-sk animate-pulse"></div>
-                <div class="sc-w-sk mi-sk animate-pulse"></div>
-                <div class="sc-w-sk mi-sk animate-pulse"></div>
-              </div>
-
-              <div id="sc-st-guest" class="sc-empty hidden">
-                <p>Đăng nhập để chọn thiệp.</p>
-                <x-button variant="bare" icon="log-in" onclick="scLogin()" class="mi-btn mi-btn--primary mt-3">
-                  Đăng nhập
-                </x-button>
-              </div>
-
-              <div id="sc-st-empty" class="sc-empty hidden">
-                <p>Bạn chưa có thiệp nào.</p>
-                <x-button variant="bare" icon="layers" onclick="location.href = '/theme-template/'" class="mi-btn mi-btn--soft mt-3">
-                  Chọn mẫu thiệp
-                </x-button>
-              </div>
-
-              <div id="sc-st-error" class="sc-empty hidden">
-                <p>Không tải được danh sách thiệp.</p>
-                <x-button variant="bare" icon="refresh-cw" onclick="scLoadList()" class="mi-btn mi-btn--soft mt-3">
-                  Thử lại
-                </x-button>
-              </div>
-
-              <div id="sc-weddings" class="sc-wlist hidden" role="radiogroup" aria-label="Chọn thiệp"></div>
+          <div id="sc-real" class="hidden">
+            <div id="sc-st-loading" class="sc-wlist" aria-hidden="true">
+              <div class="sc-w-sk mi-sk animate-pulse"></div>
+              <div class="sc-w-sk mi-sk animate-pulse"></div>
+              <div class="sc-w-sk mi-sk animate-pulse"></div>
             </div>
+
+            <div id="sc-st-guest" class="sc-empty hidden">
+              <p>Đăng nhập để chọn thiệp.</p>
+              <x-button variant="bare" icon="log-in" onclick="scLogin()" class="mi-btn mi-btn--primary mt-3">
+                Đăng nhập
+              </x-button>
+            </div>
+
+            <div id="sc-st-empty" class="sc-empty hidden">
+              <p>Bạn chưa có thiệp nào.</p>
+              <x-button variant="bare" icon="layers" onclick="location.href = '/theme-template/'" class="mi-btn mi-btn--soft mt-3">
+                Chọn mẫu thiệp
+              </x-button>
+            </div>
+
+            <div id="sc-st-error" class="sc-empty hidden">
+              <p>Không tải được danh sách thiệp.</p>
+              <x-button variant="bare" icon="refresh-cw" onclick="scLoadList()" class="mi-btn mi-btn--soft mt-3">
+                Thử lại
+              </x-button>
+            </div>
+
+            <div id="sc-weddings" class="sc-wlist hidden" role="radiogroup" aria-label="Chọn thiệp"></div>
           </div>
         </section>
 
-        <section class="sc-sec" aria-labelledby="sc-h-tpl">
-          <div class="sc-sec-side">
-            <h2 id="sc-h-tpl" class="sc-h">Mẫu slide</h2>
-            <p class="sc-lead">Chọn một mẫu, slide phía trên đổi theo ngay.</p>
-          </div>
-          <div class="sc-sec-main">
-            <div id="sc-tpls" class="sc-tpls"></div>
-          </div>
+        <section id="sc-tab-tpl" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-tpl">
+          <p class="sc-lead">Chọn một mẫu, slide đổi theo ngay.</p>
+          <div id="sc-tpls" class="sc-tpls"></div>
         </section>
       </div>
     </main>
