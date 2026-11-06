@@ -50,6 +50,12 @@ const OG_IMG_NAME = /^(?:w\/[0-9a-f]{32}\/)?(?!\.{1,2}$)[A-Za-z0-9._-]{1,120}$/;
 // URL /__og/): để nguyên ảnh dọc thì Messenger tự cắt quanh tâm, mất đầu người.
 const OG_IMG_BOX = { width: 1200, height: 630, fit: "cover" };
 
+// Ảnh bìa của bản xem thử MẪU (file tĩnh trong dist/) cũng đi qua bộ cắt đó:
+// /__og-tpl/assets/data-template/<mẫu>/<file>?fx=&fy=. Chỉ nhận hai thư mục ảnh mẫu.
+const OG_TPL_PREFIX = "/__og-tpl/";
+const OG_TPL_SRC =
+  /^\/assets\/(?:data-template\/[a-z0-9][a-z0-9-]*|images\/templates)\/(?!\.{1,2}$)[A-Za-z0-9._-]{1,120}$/;
+
 // Trang mẫu: /public/themes/<mẫu>/ (index.html thì asset router tự chuyển về dạng này).
 const THEMES_PREFIX = "/public/themes/";
 const THEME_PAGE = /^\/public\/themes\/([a-z0-9][a-z0-9-]*)\/(?:index\.html)?$/;
@@ -59,6 +65,7 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith(OG_IMG_PREFIX)) return ogImage(env, url);
+    if (url.pathname.startsWith(OG_TPL_PREFIX)) return ogTemplateImage(env, url);
 
     // Trang mẫu tới đây nhờ run_worker_first; mọi file khác trong nhóm đó (ảnh…)
     // trả thẳng như asset router.
@@ -284,7 +291,24 @@ async function ogImage(env, url) {
   const name = decodeURIComponent(url.pathname.slice(OG_IMG_PREFIX.length));
   if (!OG_IMG_NAME.test(name)) return new Response("", { status: 404 });
   const origin = `${env.STORAGE_URL}/${name}`;
-  // Không có điểm lấy nét thì để Cloudflare tự dò vùng nổi bật.
+  // Tên file có mã ngẫu nhiên, đổi ảnh là đổi tên → cache thoải mái.
+  return ogEncode(origin, ogGravity(url), "public, max-age=31536000, immutable", () =>
+    fetch(origin, { cf: { cacheEverything: true, cacheTtl: 86400 } }),
+  );
+}
+
+/** Ảnh bìa bản xem thử mẫu: file tĩnh cùng site, cắt 1200×630 theo điểm lấy nét của data.json. */
+async function ogTemplateImage(env, url) {
+  const path = "/" + decodeURIComponent(url.pathname.slice(OG_TPL_PREFIX.length));
+  if (!OG_TPL_SRC.test(path)) return new Response("", { status: 404 });
+  // Tên file mẫu cố định (cover.jpg) nên cache ngắn; URL đã mang ?v= theo updated_at.
+  return ogEncode(url.origin + path, ogGravity(url), "public, max-age=86400", () =>
+    env.ASSETS.fetch(new Request(new URL(path, url.origin))),
+  );
+}
+
+/** ?fx=&fy= (%) → gravity của Cloudflare; thiếu thì để nó tự dò vùng nổi bật. */
+function ogGravity(url) {
   const pct = (k) => {
     const s = url.searchParams.get(k);
     const v = s === null || s === "" ? NaN : Number(s);
@@ -292,7 +316,11 @@ async function ogImage(env, url) {
   };
   const fx = pct("fx");
   const fy = pct("fy");
-  const gravity = fx !== null && fy !== null ? { x: fx, y: fy } : "auto";
+  return fx !== null && fy !== null ? { x: fx, y: fy } : "auto";
+}
+
+/** Cắt + mã hoá lại thành JPEG 1200×630; `fallback` trả file gốc khi chưa bật Transformations. */
+async function ogEncode(origin, gravity, cacheControl, fallback) {
   let src = await fetch(origin, {
     cf: {
       image: { ...OG_IMG_BOX, gravity, format: "jpeg", quality: 85 },
@@ -302,13 +330,11 @@ async function ogImage(env, url) {
   });
   // Zone chưa bật Transformations thì Cloudflare trả lỗi chứ không trả ảnh —
   // lùi về file gốc để thẻ vẫn có ảnh.
-  if (!src.ok || !/^image\//.test(src.headers.get("Content-Type") || ""))
-    src = await fetch(origin, { cf: { cacheEverything: true, cacheTtl: 86400 } });
+  if (!src.ok || !/^image\//.test(src.headers.get("Content-Type") || "")) src = await fallback();
   if (!src.ok || !src.body) return new Response("", { status: 404 });
   const headers = new Headers({
     "Content-Type": src.headers.get("Content-Type") || "image/jpeg",
-    // Tên file có mã ngẫu nhiên, đổi ảnh là đổi tên → cache thoải mái.
-    "Cache-Control": "public, max-age=31536000, immutable",
+    "Cache-Control": cacheControl,
   });
   const len = src.headers.get("Content-Length");
   if (len) headers.set("Content-Length", len);
@@ -678,13 +704,24 @@ async function templatePage(env, url, theme, res) {
     (v) => typeof v === "string" && /^[A-Za-z0-9._-]+$/.test(v),
   );
   let path = pick ? base + pick : `/assets/images/templates/${theme}.jpg`;
-  let imgRes = await env.ASSETS.fetch(new Request(new URL(path, url.origin)));
-  if (!imgRes.ok && pick) {
+  let found = await env.ASSETS.fetch(new Request(new URL(path, url.origin), { method: "HEAD" }));
+  if (!found.ok && pick) {
     path = `/assets/images/templates/${theme}.jpg`;
-    imgRes = await env.ASSETS.fetch(new Request(new URL(path, url.origin)));
+    found = await env.ASSETS.fetch(new Request(new URL(path, url.origin), { method: "HEAD" }));
   }
-  const img = imgRes.ok ? url.origin + path : "";
-  const dim = imgRes.ok ? await imageMeta(imgRes) : null;
+  // Cắt sẵn khổ ngang theo điểm lấy nét của bộ mẫu (như thiệp thật), không thì Messenger
+  // cắt ảnh dọc quanh tâm. ?v= theo updated_at: tên file mẫu cố định, đổi ảnh phải đổi URL.
+  const fp = path.startsWith(base) ? coverFocal(sample, pick) : null;
+  const q = new URLSearchParams();
+  if (fp) {
+    q.set("fx", fp.x);
+    q.set("fy", fp.y);
+  }
+  if (sample?.updated_at) q.set("v", String(Date.parse(sample.updated_at) || sample.updated_at));
+  const qs = q.toString();
+  const img = found.ok ? `${url.origin}${OG_TPL_PREFIX}${path.slice(1)}${qs ? `?${qs}` : ""}` : "";
+  // Đo trên đúng luồng byte crawler sẽ tải (như ogMeta).
+  const dim = img ? await imageMeta(await ogTemplateImage(env, new URL(img))) : null;
 
   const title = ogTitle(w, "");
   const meta = ogTags({ title, desc: ogDesc(w, "", ""), img, dim, url, noindex: false });
