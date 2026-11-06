@@ -1,6 +1,6 @@
 // Bộ phát chung của mọi mẫu slide (slide-cuoi/templates/<mẫu>/): dựng dự án bằng
 // CXSlideEngine.build từ CX_SLIDE của mẫu, vẽ lên canvas theo đồng hồ riêng (tạm dừng = dừng
-// đồng hồ), quay vòng, thanh điều khiển tự ẩn, nhạc nền của thiệp, và XUẤT VIDEO
+// đồng hồ), quay vòng, thanh điều khiển tự ẩn, nhạc nền + giọng đọc khách chọn, và XUẤT VIDEO
 // (CXSlideExport) khi trang cha yêu cầu. ?embed=1 thì đợi trang /slide-cuoi/ gửi dữ liệu qua
 // postMessage, mở thẳng thì dùng dữ liệu mẫu. Nạp CUỐI trang, sau index.js của mẫu.
 
@@ -15,7 +15,6 @@
   const root = document.documentElement;
   const stage = document.getElementById("sl-stage");
   const backdrop = document.getElementById("sl-backdrop");
-  const on = (v) => v !== false && v !== "false";
   const post = (msg) => EMBED && parent.postMessage(msg, location.origin);
 
   // ── Sân khấu: canvas đúng tỉ lệ mẫu, vừa khít cửa sổ, nét theo mật độ điểm ảnh ──
@@ -255,11 +254,8 @@
         // Ô ảnh của cảnh: mẫu khai `photos` (nhiều ô) hoặc `photo` (một ô).
         photos: s.photos || (s.photo ? [s.photo] : []),
       }));
-      // Loại nhạc: "file" ghép được vào video xuất, "yt" thì không.
-      msg.music = Music.fileUrl() ? "file" : Music.isYouTube() ? "yt" : "";
-      // Nhạc RIÊNG của thiệp (khi khách chưa chọn nhạc khác) — trang cha tả ở tab Nhạc.
-      const own = cur && on(cur.enable_music) ? String(cur.music_url || "").trim() : "";
-      msg.cardMusic = !own ? "" : /youtu\.?be/i.test(own) ? "yt" : "file";
+      // Có nhạc nền không ("file" = có, ghép được vào video xuất).
+      msg.music = Music.has() ? "file" : "";
     }
     post(msg);
   }
@@ -452,14 +448,10 @@
     };
   })();
 
-  // ── Nhạc nền: link YouTube của thiệp (iframe API, ẩn) hoặc file nhạc tải lên ──
-  // Trình duyệt chặn tự phát tiếng nên nhạc chỉ bật ở cú chạm/phím đầu tiên trong khung.
+  // ── Nhạc nền: CHỈ nhạc khách chọn ở tab Nhạc (file từ máy hoặc bài thư viện) — không lấy nhạc
+  // của thiệp (thường là YouTube, không ghép được vào video). Trình duyệt chặn tự phát tiếng nên
+  // nhạc chỉ bật ở cú chạm/phím đầu tiên trong khung.
   const Music = (() => {
-    let kind = "";
-    let vid = "";
-    let start = 0;
-    let yt = null;
-    let ready = false;
     let audio = null;
     let fileUrl = "";
     let fileBlob = null; // file nhạc khách tải lên (trang cha gửi Blob) — bộ xuất đọc thẳng
@@ -468,69 +460,14 @@
     let touched = false;
     let vol = 1; // mức nhạc hiện tại (Voice hạ xuống khi có giọng đọc)
 
-    const ytId = (u) =>
-      (/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{6,})/.exec(u) || [])[1] || "";
-    // Giây bắt đầu từ tham số t của link (90 · 90s · 1m30s).
-    function ytStart(u) {
-      const s = /[?&]t=([\dhms]+)/.exec(u)?.[1] || "";
-      if (/^\d+$/.test(s)) return Number(s);
-      const p = /(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/.exec(s) || [];
-      return (Number(p[1]) || 0) * 3600 + (Number(p[2]) || 0) * 60 + (Number(p[3]) || 0);
-    }
-
-    function build() {
-      const host = document.createElement("div");
-      host.id = "sl-yt";
-      document.body.appendChild(host);
-      yt = new YT.Player(host, {
-        width: 1,
-        height: 1,
-        videoId: vid,
-        playerVars: { autoplay: 0, controls: 0, start, playsinline: 1 },
-        events: {
-          onReady: () => {
-            ready = true;
-            yt.setVolume(Math.round(vol * 100));
-            if (want && playing) yt.playVideo();
-          },
-          // Hết bài thì quay về đúng giây bắt đầu (loop của YouTube về giây 0).
-          onStateChange: (e) => {
-            if (e.data === 0) {
-              yt.seekTo(start, true);
-              yt.playVideo();
-            }
-          },
-        },
-      });
-    }
-
-    function ensureYT() {
-      if (window.YT?.Player) return build();
-      const prev = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        prev?.();
-        if (kind === "yt" && !yt) build();
-      };
-      if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-        const s = document.createElement("script");
-        s.src = "https://www.youtube.com/iframe_api";
-        document.head.appendChild(s);
-      }
-    }
-
     function reset() {
-      try {
-        yt?.destroy();
-      } catch (e) {}
-      document.getElementById("sl-yt")?.remove();
       audio?.pause();
       if (fileBlob && fileUrl) URL.revokeObjectURL(fileUrl);
-      yt = audio = fileBlob = null;
-      kind = vid = fileUrl = "";
-      ready = false;
+      audio = fileBlob = null;
+      fileUrl = "";
     }
 
-    // url: link YouTube hoặc file nhạc; file = {id, blob} nhạc khách tải lên (thắng url).
+    // url: file nhạc thư viện; file = {id, blob} nhạc khách tải lên (thắng url). Rỗng = không nhạc.
     function load(url, file) {
       url = String(url || "").trim();
       const key = file?.blob ? `file:${file.id}` : url;
@@ -538,26 +475,14 @@
       loaded = key;
       reset();
       if (file?.blob) {
-        kind = "audio";
         fileBlob = file.blob;
         fileUrl = URL.createObjectURL(file.blob);
+      } else if (url) fileUrl = url;
+      if (fileUrl) {
         audio = new Audio(fileUrl);
         audio.loop = true;
         audio.preload = "auto";
         audio.volume = vol;
-      } else if (url) {
-        vid = ytId(url);
-        if (vid) {
-          kind = "yt";
-          start = ytStart(url);
-          ensureYT();
-        } else {
-          kind = "audio";
-          fileUrl = getImageUrl(url);
-          audio = new Audio(fileUrl);
-          audio.loop = true;
-          audio.preload = "auto";
-        }
       }
       if (want) play();
       sync();
@@ -565,18 +490,16 @@
 
     function play() {
       if (!want || !playing || exporting) return;
-      if (kind === "yt" && ready) yt.playVideo();
-      else if (kind === "audio") audio.play().catch(() => {});
+      audio?.play().catch(() => {});
     }
 
     function pause() {
-      if (ready) yt?.pauseVideo();
       audio?.pause();
     }
 
     // Cú chạm đầu tiên (trừ chính nút nhạc — nút đó tự quyết) là lúc bật tiếng.
     function first(e) {
-      if (touched || (!kind && !Voice.has())) return;
+      if (touched || (!audio && !Voice.has())) return;
       if (e.target?.closest?.('[data-sl="music"]')) return;
       touched = true;
       want = true;
@@ -590,8 +513,8 @@
       load,
       play,
       pause,
-      has: () => !!kind,
-      isOn: () => (!!kind || Voice.has()) && want,
+      has: () => !!audio,
+      isOn: () => (!!audio || Voice.has()) && want,
       wanted: () => want,
       // Bấm phát từ trang cha (dòng thời gian Giọng đọc) cũng là lúc bật tiếng.
       enable() {
@@ -604,13 +527,9 @@
         if (Math.abs(v - vol) < 0.005) return;
         vol = v;
         if (audio) audio.volume = vol;
-        if (ready) yt?.setVolume?.(Math.round(vol * 100));
       },
-      // Nhạc dạng file thì ghép được vào video xuất; YouTube thì không.
-      fileUrl: () => (kind === "audio" ? fileUrl : ""),
       // Nguồn cho bộ xuất: Blob nếu là file tải lên (CSP chặn fetch URL blob:), không thì URL.
-      exportSrc: () => (kind === "audio" ? fileBlob || fileUrl : ""),
-      isYouTube: () => kind === "yt",
+      exportSrc: () => fileBlob || fileUrl,
       toggle() {
         touched = true;
         want = !want;
@@ -656,11 +575,10 @@
     const wasPlaying = playing;
     Music.pause();
     post({ type: "cx-slide-export-state", state: "run", p: 0 });
-    // Lý do video ra không tiếng: "yt" (nhạc YouTube) · "codec" (máy không mã hoá được tiếng) ·
-    // "decode" (không đọc được file nhạc) · "" (có tiếng, hoặc slide không có nhạc).
-    // Có giọng đọc thì video vẫn có tiếng dù nhạc là YouTube ("yt-voice"); "music" = có giọng
-    // nhưng không đọc được file nhạc; "voice" = có đoạn giọng đọc hỏng bị bỏ.
-    let mute = Music.has() && !Music.fileUrl() ? (Voice.has() ? "yt-voice" : "yt") : "";
+    // Lý do video thiếu tiếng: "codec" (máy không mã hoá được tiếng) · "decode" (không đọc được
+    // file nhạc / giọng) · "music" (có giọng nhưng không đọc được file nhạc) · "voice" (có đoạn
+    // giọng đọc hỏng bị bỏ) · "" (đủ tiếng, hoặc slide không có tiếng nào).
+    let mute = "";
     try {
       const blob = await CXSlideExport.run(P, {
         height,
@@ -673,7 +591,6 @@
           if (!a.ok) mute = a.reason;
           else if (a.lost) mute = "voice";
           else if (Music.exportSrc() && !a.music) mute = "music";
-          else if (mute !== "yt-voice") mute = "";
         },
       });
       post({ type: "cx-slide-export-state", state: "done", blob, mute });
@@ -713,7 +630,7 @@
 
   let cur = null; // thiệp đang chiếu
   // Nhạc khách chọn ở tab Nhạc của trang cha: {id, blob} (file từ máy) · {url} (thư viện) ·
-  // null = nhạc của thiệp.
+  // null = không có nhạc.
   let musicPick = null;
   function setMusic(m) {
     musicPick = m?.blob instanceof Blob && m.id ? { id: String(m.id), blob: m.blob } : m?.url ? { url: String(m.url) } : null;
@@ -721,7 +638,7 @@
   function applyMusic() {
     if (musicPick?.blob) Music.load("", musicPick);
     else if (musicPick?.url) Music.load(musicPick.url);
-    else Music.load(cur && on(cur.enable_music) ? cur.music_url : "");
+    else Music.load("");
   }
   let texts = {}; // chữ người dùng sửa ở trang cha, theo khoá khối của mẫu
   let timing = {}; // thời lượng khách kéo ở trang cha: {scale, scenes: {id cảnh: giây}}

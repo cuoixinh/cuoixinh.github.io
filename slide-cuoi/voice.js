@@ -409,10 +409,10 @@ function _scVoRender() {
         `<span class="sc-vo-seg${i % 2 ? " is-alt" : ""}" style="left:${(starts[i] * pps).toFixed(1)}px;width:${((c.dur / 1000) * pps).toFixed(1)}px" title="${_scEsc(c.label)}">${_scEsc(c.label)}</span>`,
     )
     .join("");
-  const music = _scMusic || (_scMu.pick ? "file" : _scCardMusic);
-  const mus = music
-    ? `<span class="sc-vo-mbar" style="width:${(total * pps).toFixed(1)}px">${music === "yt" ? "Nhạc YouTube" : "Nhạc nền"}</span>`
-    : `<span class="sc-vo-note">Chưa có nhạc nền</span>`;
+  const mus =
+    _scMusic || _scMu.pick
+      ? `<span class="sc-vo-mbar" style="width:${(total * pps).toFixed(1)}px">Nhạc nền</span>`
+      : `<span class="sc-vo-note">Chưa có nhạc nền. Chọn ở tab Nhạc.</span>`;
   // Mỗi lớp: số · tên · tắt tiếng · micro (thu lại lớp đó). Cuối cùng là hàng "Lớp mới" để thu
   // thẳng một lớp nữa (còn chỗ thì mới có). Lớp đang thu có khối đỏ chạy dài theo đầu phát.
   const R = _scVoRec;
@@ -588,12 +588,25 @@ function _scVoLoop() {
       if (lv) lv.style.width = `${Math.max(2, ((performance.now() - R.at) / 1000) * pps).toFixed(1)}px`;
       _scVoRecLabel();
     }
-    // Đang phát mà đầu phát ra khỏi khung nhìn thì cuộn theo.
-    if (_scVoT.playing && !_scVoDrag) {
+    // Đang kéo (tua / dời lớp) mà con trỏ chạm sát mép khung thì tự cuộn cả dòng thời gian
+    // về phía đó, rồi áp lại thao tác ở đúng chỗ con trỏ.
+    const E = _scVoEdge;
+    if (E) {
+      const r = box.getBoundingClientRect();
+      const left = r.left + _scVoHead(box);
+      const zone = 48;
+      const v = E.x < left + zone ? E.x - (left + zone) : E.x > r.right - zone ? E.x - (r.right - zone) : 0;
+      const before = box.scrollLeft;
+      if (v) box.scrollLeft = before + Math.max(-28, Math.min(28, v * 0.45));
+      if (box.scrollLeft !== before) E.run(E.x);
+    } else if (_scVoT.playing || Math.abs(t - _scVoLastT) > 0.05) {
+      // Đầu phát chạy (đang phát) hay vừa nhảy (tua, quay về đầu, chọn cảnh) mà ra khỏi khung
+      // nhìn thì cuộn theo; đứng yên thì để khách tự cuộn xem chỗ khác.
       const x = t * pps;
       const vis = box.clientWidth - _scVoHead(box);
       if (x < box.scrollLeft || x > box.scrollLeft + vis - 24) box.scrollLeft = Math.max(0, x - vis * 0.2);
     }
+    _scVoLastT = t;
     _scVoRaf = requestAnimationFrame(step);
   };
   _scVoRaf = requestAnimationFrame(step);
@@ -601,6 +614,8 @@ function _scVoLoop() {
 
 // ── Thao tác trên dòng thời gian: kéo khối / mép khối, kéo thước để tua ──
 let _scVoDrag = null;
+let _scVoEdge = null; // {x, run(x)} khi đang kéo — vòng vẽ dùng để tự cuộn ở mép khung
+let _scVoLastT = 0;
 _scEl("sc-vo-tl")?.addEventListener("pointerdown", (e) => {
   const box = e.currentTarget;
   const clipEl = e.target.closest("[data-clip]");
@@ -614,7 +629,8 @@ _scEl("sc-vo-tl")?.addEventListener("pointerdown", (e) => {
     e.preventDefault();
     clipEl.setPointerCapture(e.pointerId);
     const edge = e.target.closest("[data-edge]")?.dataset.edge || "";
-    _scVoDrag = { c, edge, x0: e.clientX, s0: { start: c.start, in: c.in, len: c.len }, moved: false };
+    _scVoDrag = { c, edge, x0: e.clientX, sl0: box.scrollLeft, s0: { start: c.start, in: c.in, len: c.len }, moved: false };
+    _scVoEdge = { x: e.clientX, run: _scVoDragMove };
     clipEl.classList.add("is-drag");
     return;
   }
@@ -629,8 +645,13 @@ _scEl("sc-vo-tl")?.addEventListener("pointerdown", (e) => {
   };
   go(e);
   lane.setPointerCapture(e.pointerId);
-  const move = (ev) => go(ev);
+  _scVoEdge = { x: e.clientX, run: (x) => go({ clientX: x }) };
+  const move = (ev) => {
+    _scVoEdge.x = ev.clientX;
+    go(ev);
+  };
   const up = () => {
+    _scVoEdge = null;
     lane.removeEventListener("pointermove", move);
     lane.removeEventListener("pointerup", up);
     lane.removeEventListener("pointercancel", up);
@@ -638,13 +659,19 @@ _scEl("sc-vo-tl")?.addEventListener("pointerdown", (e) => {
   lane.addEventListener("pointermove", move);
   lane.addEventListener("pointerup", up);
   lane.addEventListener("pointercancel", up);
-  void box;
 });
 
 _scEl("sc-vo-tl")?.addEventListener("pointermove", (e) => {
+  if (!_scVoDrag) return;
+  if (_scVoEdge) _scVoEdge.x = e.clientX;
+  _scVoDragMove(e.clientX);
+});
+
+// Dời / cắt lớp theo vị trí con trỏ — tính cả quãng dòng thời gian đã tự cuộn từ lúc bấm.
+function _scVoDragMove(x) {
   const D = _scVoDrag;
   if (!D) return;
-  const dx = e.clientX - D.x0;
+  const dx = x - D.x0 + (_scEl("sc-vo-tl").scrollLeft - D.sl0);
   if (Math.abs(dx) > 2) D.moved = true;
   if (!D.moved) return;
   const c = D.c;
@@ -671,12 +698,13 @@ _scEl("sc-vo-tl")?.addEventListener("pointermove", (e) => {
   _scVoPlace(c);
   _scVoInspect();
   _scVoSend();
-});
+}
 
 const _scVoEnd = () => {
   const D = _scVoDrag;
   if (!D) return;
   _scVoDrag = null;
+  _scVoEdge = null;
   _scEl("sc-vo-tl")?.querySelector(".is-drag")?.classList.remove("is-drag");
   if (D.moved) _scVoSave();
 };

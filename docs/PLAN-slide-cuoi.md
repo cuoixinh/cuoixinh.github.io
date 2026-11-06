@@ -54,7 +54,7 @@ slide-cuoi/
                            H.264 → vendor/mp4-muxer.js → Blob MP4. Nhạc FILE thì ghép AAC
   vendor/mp4-muxer.js      mp4-muxer 5.2.2 tự host (MIT) — đừng sửa tay
   runtime/slide-runtime.*  Bộ phát trong iframe: đồng hồ riêng (tạm dừng = dừng đồng hồ), nhảy
-                           cảnh, thanh điều khiển, nhạc YouTube/mp3, toàn màn hình, xuất video
+                           cảnh, thanh điều khiển, nhạc file + giọng đọc, toàn màn hình, xuất video
   templates/<id>/          Một mẫu = index.html (nạp engine + runtime) + index.js (CX_SLIDE:
                            khổ, font, scenes(w, L) trả cảnh dưới dạng dữ liệu) + thumb.jpg
 ```
@@ -116,15 +116,16 @@ slide-cuoi/
 - Ảnh phải tải với `crossOrigin="anonymous"`, thiếu là canvas bị "nhiễm" và VideoFrame từ chối
   xuất. Supabase Storage và worker proxy ảnh đều trả `Access-Control-Allow-Origin: *`.
 - Font phải tải xong trước khi đo chữ (`CX_SLIDE.fonts`) — canvas không tự đợi font.
-- Nhạc YouTube không ghép được vào video (không lấy được luồng tiếng, trái điều khoản):
-  video xuất ra không tiếng, trang báo trước. Nhạc file thì ghép, lặp + mờ vào/ra.
-- Tab **Nhạc**: nhạc của thiệp (mặc định) · file từ máy (MP3/M4A/WAV ≤ 30 MB, cất BYTE ở
+- **Không dùng nhạc của thiệp** (thường là YouTube — không ghép được vào video vì không lấy được
+  luồng tiếng, lại trái điều khoản): khách không chọn nhạc ở tab Nhạc thì slide KHÔNG có nhạc,
+  trang không còn khối nào nhắc YouTube. Nhạc file thì ghép vào video, lặp + mờ vào/ra.
+- Tab **Nhạc**: file từ máy (MP3/M4A/WAV ≤ 30 MB, cất BYTE ở
   IndexedDB kho `music`, khoá = id thiệp hoặc `demo` — không theo mẫu) · bài trong thư viện
   `CONFIG.slideMusic.library` (`{tracks:[{id, title, artist, file, credit}]}`; `file` tính theo
   URL của file danh mục, `credit` hiện dưới danh sách khi bài cần ghi công). Kho chưa dựng /
   rỗng / lỗi mạng / treo quá 6 giây → "Thư viện nhạc hiện đang chưa có". Kho là dịch vụ NGOÀI
   nên **không bao giờ chặn slide**: dữ liệu gửi sang khung không chờ kho; bài thư viện đã chọn
-  chỉ được áp khi kho trả lời, trước đó (hoặc kho chết) slide chạy nhạc của thiệp. Gửi sang khung: `{id, blob}` · `{url}` ·
+  chỉ được áp khi kho trả lời, trước đó (hoặc kho chết) slide chạy không nhạc. Gửi sang khung: `{id, blob}` · `{url}` ·
   null qua `cx-slide-data` / `cx-slide-music`.
 - **Kho nhạc thư viện** = Worker CHỈ phục vụ file tĩnh `cuoixinh-media` ở `media.cuoixinh.com`
   (thư mục `cloudflare-media/`, `npm run deploy:media`) — không tính vào 10 GB miễn phí của R2,

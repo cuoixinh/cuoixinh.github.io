@@ -11,7 +11,7 @@ let _scSent = ""; // bộ dữ liệu khung đang chiếu — trùng thì khỏi
 const _scData = new Map(); // id → hàng thiệp đầy đủ
 // Xuất video — khai ở đầu file vì _scFrameLoad (chạy ngay lúc khởi động) đọc tới.
 let _scCapsOk = null; // {h1080, h2160} khung báo lên; null = chưa biết
-let _scMusic = ""; // "file" ghép được tiếng · "yt" không · "" không có nhạc
+let _scMusic = ""; // "file" có nhạc nền (ghép vào video) · "" không có nhạc
 let _scExState = "";
 let _scExRes = 2160;
 let _scExBlob = null;
@@ -342,7 +342,6 @@ function _scCueState(m) {
   const ol = _scEl("sc-cues");
   if (Array.isArray(m.scenes)) {
     _scMusic = m.music || "";
-    _scCardMusic = m.cardMusic || "";
     _scExportNote();
     _scMuRender();
     _scCues = m.scenes.map((c, k) => ({
@@ -824,15 +823,13 @@ async function scPhotosReset() {
   _scPhSend();
 }
 
-// ── Nhạc: nhạc của thiệp (mặc định) · file khách chọn từ máy · bài trong thư viện nhạc
-// (CONFIG.slideMusic.library — {tracks:[{id, title, artist, file, credit}]}, `file` tính theo
-// URL của file danh mục; kho là thư mục cloudflare-media/). Lựa
-// chọn cất ở IndexedDB kho "music" theo thiệp (`<id thiệp hoặc demo>`), file cất BYTE như
-// ảnh. Gửi sang khung: {id, blob} · {url} · null — khung phát + ghép vào video xuất ra.
+// ── Nhạc: file khách chọn từ máy · bài trong thư viện (CONFIG.slideMusic.library, kho ở
+// cloudflare-media/); không chọn thì slide KHÔNG có nhạc — không lấy nhạc của thiệp (thường là
+// YouTube, không ghép được vào video). Lựa chọn cất IndexedDB kho "music" theo thiệp, file cất
+// BYTE như ảnh. Gửi sang khung: {id, blob} · {url} · null — khung phát + ghép vào video xuất ra.
 const _SC_MU_MAX = 30 * 1024 * 1024;
 const _SC_MU_EXT = /\.(mp3|m4a|aac|wav)$/i;
 let _scMu = { key: null, pick: null }; // pick: {mode:"file", id, blob, name, dur} | {mode:"lib", id} | null
-let _scCardMusic = ""; // nhạc riêng của thiệp: "yt" | "file" | "" (khung báo lên)
 let _scLib = null; // bài trong thư viện; null = chưa tải
 let _scLibReq = null;
 let _scPrev = null; // <audio> nghe thử bài thư viện
@@ -891,8 +888,8 @@ async function _scMuLoad() {
   if (rec?.mode === "file" && rec.buf?.byteLength) {
     _scMu.pick = { mode: "file", id: rec.id, blob: new Blob([rec.buf], { type: rec.type || "audio/mpeg" }), name: rec.name || "", dur: rec.dur || 0 };
   }
-  // Bài thư viện: KHÔNG chờ kho (dịch vụ ngoài) — slide chạy ngay với nhạc của thiệp, kho tải
-  // xong mà còn bài đó thì mới chuyển sang; kho chết thì giữ nhạc của thiệp.
+  // Bài thư viện: KHÔNG chờ kho (dịch vụ ngoài) — slide chạy ngay chưa có nhạc, kho tải xong mà
+  // còn bài đó thì mới bật; kho chết thì slide chạy không nhạc.
   _scLibLoad().then(() => {
     if (rec?.mode !== "lib" || _scMu.key !== key || _scMu.pick || !_scTrack(rec.id)) return;
     _scMu.pick = { mode: "lib", id: rec.id };
@@ -1037,12 +1034,6 @@ function _scMuRender() {
   } else if (track) {
     title = track.title;
     desc = `${track.artist ? track.artist + ". " : ""}Từ thư viện nhạc, có trong video xuất ra.`;
-  } else if (_scCardMusic === "yt") {
-    title = "Nhạc YouTube của thiệp";
-    desc = "Chỉ phát khi trình chiếu, video xuất ra sẽ không có tiếng. Chọn file hoặc nhạc trong thư viện để video có tiếng.";
-  } else if (_scCardMusic === "file") {
-    title = "Nhạc của thiệp";
-    desc = "Phát khi trình chiếu và có trong video xuất ra.";
   } else {
     title = "Chưa có nhạc";
     desc = "Chọn file nhạc từ máy hoặc một bài trong thư viện bên dưới.";
@@ -1321,12 +1312,7 @@ function _scExportNote() {
     if (_scCapsOk && !_scCapsOk.h2160) notes.push("Máy này không mã hoá được 4K, chỉ xuất được 1080p.");
     if (_scExRes === 2160) notes.push("4K xuất lâu hơn và file nặng hơn khoảng 2,5 lần.");
     const voice = typeof _scVo !== "undefined" && _scVo.clips.some((c) => !c.mute);
-    if (_scMusic === "yt")
-      notes.push(
-        voice
-          ? "Nhạc YouTube không ghép được vào video, file xuất ra chỉ có giọng đọc. Chọn nhạc ở tab Nhạc để có cả nhạc nền."
-          : "Nhạc YouTube không ghép được vào video, file xuất ra sẽ không có tiếng. Chọn nhạc ở tab Nhạc để video có tiếng.",
-      );
+    if (!_scMusic && !voice) notes.push("Slide chưa có nhạc nên video xuất ra sẽ không có tiếng. Chọn nhạc ở tab Nhạc hoặc thêm giọng đọc ở tab Giọng.");
     if ((_scMusic === "file" || voice) && _scCapsOk && !_scCapsOk.audio)
       notes.push("Trình duyệt này không ghép được tiếng vào video, file xuất ra sẽ không có tiếng. Hãy dùng Chrome hoặc Edge bản mới.");
   }
@@ -1405,8 +1391,6 @@ function _scExportMsg(m) {
     _scEl("sc-ex-done-note").textContent =
       `File MP4 ${_scExRes === 2160 ? "4K" : "1080p"}, ${mb} MB.` +
       ({
-        yt: " Video không có tiếng vì nhạc đang dùng là YouTube.",
-        "yt-voice": " Video chỉ có giọng đọc, không có nhạc nền vì nhạc đang dùng là YouTube.",
         music: " Video có giọng đọc nhưng thiếu nhạc nền vì không đọc được file nhạc.",
         voice: " Có lớp giọng đọc không đọc được nên bị bỏ khỏi video. Hãy đổi file đó sang MP3 rồi tải lại.",
         codec: " Video không có tiếng vì trình duyệt này không ghép được tiếng. Hãy dùng Chrome hoặc Edge bản mới.",
