@@ -184,7 +184,7 @@ function _scCueRender() {
           </span>
           <span class="sc-cue-d"></span>
         </button>
-        <div class="sc-tx-list${open ? "" : " hidden"}">${c.photo ? `<div class="sc-phbox"></div>` : ""}${fields}</div>
+        <div class="sc-tx-list${open ? "" : " hidden"}">${c.photos.length ? `<div class="sc-phbox"></div>` : ""}${fields}</div>
       </li>`;
     })
     .join("");
@@ -211,11 +211,13 @@ function _scCueState(m) {
         text: String(x.text ?? ""),
         def: String(x.def ?? ""),
       })),
-      photo: c.photo?.key
-        ? { key: String(c.photo.key), def: String(c.photo.def || ""), w: Number(c.photo.w) || 3, h: Number(c.photo.h) || 4 }
-        : null,
+      photos: (Array.isArray(c.photos) ? c.photos : [])
+        .filter((p) => p?.key)
+        .map((p) => ({ key: String(p.key), def: String(p.def || ""), w: Number(p.w) || 3, h: Number(p.h) || 4 })),
     }));
-    const sig = _scCues.map((c) => c.label + ":" + c.texts.map((x) => x.key).join(",")).join("|");
+    const sig = _scCues
+      .map((c) => c.label + ":" + c.texts.map((x) => x.key).join(",") + ":" + c.photos.map((p) => p.key).join(","))
+      .join("|");
     if (sig === _scSig) {
       _scCueTimes();
       _scPhRender();
@@ -317,7 +319,7 @@ function _scEditFromSlide(m) {
   const target =
     m.kind === "text"
       ? li.querySelector(`.sc-tx-in[data-key="${CSS.escape(String(m.key))}"]`)
-      : li.querySelector(".sc-ph-pick");
+      : li.querySelector(`.sc-ph-pick[data-ph="${CSS.escape(String(m.key))}"]`) || li.querySelector(".sc-ph-pick");
   const el = target || li;
   const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
   el.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
@@ -420,49 +422,82 @@ function _scPhSend(index) {
   _scFrame.contentWindow?.postMessage({ type: "cx-slide-photos", photos: _scPhMsg(), index }, location.origin);
 }
 
-// Đổ ảnh vào từng dòng cảnh: ô ảnh nhỏ trên dòng + khối đổi ảnh trong phần mở rộng. Chỉ thay
+// Đổ ảnh vào từng dòng cảnh: ô ảnh nhỏ trên dòng + khối đổi ảnh trong phần mở rộng (cảnh một
+// ảnh: ảnh đúng khổ khung + nút; cảnh nhiều ảnh: lưới ô vuông, nút nhỏ dưới ô đã thay). Chỉ thay
 // hai chỗ đó, không vẽ lại cả danh sách — ô chữ đang gõ giữ nguyên con trỏ.
 function _scPhRender() {
-  const slots = _scCues.map((c, i) => (c.photo ? { ...c.photo, label: c.label, i } : null)).filter(Boolean);
-  const sig = slots
-    .map((p) => {
-      const own = _scPh.map[p.key];
-      return `${p.key}:${p.def}:${own ? `${own.id}@${own.focal?.x},${own.focal?.y}` : ""}`;
-    })
+  const sig = _scCues
+    .map((c) =>
+      c.photos
+        .map((p) => {
+          const own = _scPh.map[p.key];
+          return `${p.key}:${p.def}:${own ? `${own.id}@${own.focal?.x},${own.focal?.y}` : ""}`;
+        })
+        .join(","),
+    )
     .join("|");
-  _scToggle("sc-ph-reset", slots.some((p) => _scPh.map[p.key]));
+  _scToggle("sc-ph-reset", _scCues.some((c) => c.photos.some((p) => _scPh.map[p.key])));
   if (sig === _scPhSig) return;
   _scPhSig = sig;
   const lis = _scEl("sc-cues").children;
   const demo = _scTxKey().endsWith("|demo");
-  slots.forEach((p) => {
-    const li = lis[p.i];
-    if (!li) return;
+  const img = (p) => {
     const own = _scPh.map[p.key];
     const src = own?.url || p.def;
     const pos = own?.focal ? ` style="object-position:${Number(own.focal.x)}% ${Number(own.focal.y)}%"` : "";
-    const img = src ? `<img src="${_scEsc(src)}" alt="" loading="lazy"${pos} onerror="this.remove()" />` : "";
-    const at = `data-ph="${_scEsc(p.key)}" data-i="${p.i}" data-w="${p.w}" data-h="${p.h}"`;
-    li.classList.toggle("is-own", !!own);
-    li.querySelector(".sc-cue-thumb").innerHTML = img;
+    return src ? `<img src="${_scEsc(src)}" alt="" loading="lazy"${pos} onerror="this.remove()" />` : "";
+  };
+  const at = (p, i) => `data-i="${i}" data-w="${p.w}" data-h="${p.h}"`;
+  const back = demo ? "Dùng ảnh mẫu" : "Dùng ảnh thiệp";
+  _scCues.forEach((c, i) => {
+    const li = lis[i];
+    if (!li || !c.photos.length) return;
+    li.classList.toggle("is-own", c.photos.some((p) => _scPh.map[p.key]));
+    li.querySelector(".sc-cue-thumb").innerHTML = img(c.photos[0]);
     const box = li.querySelector(".sc-phbox");
     if (!box) return;
-    box.innerHTML = `
-      <button type="button" class="sc-ph-pick" ${at} aria-label="Đổi ảnh cảnh ${_scEsc(p.label)}">
-        <span class="sc-ph-thumb" style="aspect-ratio:${p.w} / ${p.h}">${_scIco("image-plus")}${img}</span>
+    if (c.photos.length === 1) {
+      const p = c.photos[0];
+      const own = _scPh.map[p.key];
+      box.classList.toggle("sc-ph-own", !!own);
+      box.innerHTML = `
+      <button type="button" class="sc-ph-pick" data-ph="${_scEsc(p.key)}" ${at(p, i)} aria-label="Đổi ảnh cảnh ${_scEsc(c.label)}">
+        <span class="sc-ph-thumb" style="aspect-ratio:${p.w} / ${p.h}">${_scIco("image-plus")}${img(p)}</span>
       </button>
       <div class="sc-ph-side">
         <p class="sc-ph-src">${own ? "Ảnh của bạn" : demo ? "Ảnh mẫu" : "Ảnh của thiệp"}</p>
         <div class="sc-ph-acts">
-          <button type="button" class="sc-ph-act" ${at}>${_scIco("image-up")}Đổi ảnh</button>
+          <button type="button" class="sc-ph-act" data-ph="${_scEsc(p.key)}" ${at(p, i)}>${_scIco("image-up")}Đổi ảnh</button>
           ${
             own
-              ? `<button type="button" class="sc-ph-act" data-ph-focal="${_scEsc(p.key)}" data-i="${p.i}" data-w="${p.w}" data-h="${p.h}">${_scIco("focus")}Lấy nét</button>
-          <button type="button" class="sc-ph-act" data-ph-undo="${_scEsc(p.key)}" data-i="${p.i}">${_scIco("undo-2")}${demo ? "Dùng ảnh mẫu" : "Dùng ảnh thiệp"}</button>`
+              ? `<button type="button" class="sc-ph-act" data-ph-focal="${_scEsc(p.key)}" ${at(p, i)}>${_scIco("focus")}Lấy nét</button>
+          <button type="button" class="sc-ph-act" data-ph-undo="${_scEsc(p.key)}" data-i="${i}">${_scIco("undo-2")}${back}</button>`
               : ""
           }
         </div>
       </div>`;
+    } else {
+      box.classList.add("sc-ph-many");
+      box.innerHTML = `
+      <p class="sc-ph-head">Cảnh có ${c.photos.length} ảnh. Bấm vào ảnh để đổi.</p>
+      <div class="sc-ph-grid">${c.photos
+        .map((p, n) => {
+          const own = _scPh.map[p.key];
+          return `<div class="sc-ph-cell${own ? " sc-ph-own" : ""}">
+          <button type="button" class="sc-ph-pick" data-ph="${_scEsc(p.key)}" ${at(p, i)} aria-label="Đổi ảnh ${n + 1} của cảnh ${_scEsc(c.label)}">
+            <span class="sc-ph-thumb">${_scIco("image-plus")}${img(p)}</span>
+          </button>${
+            own
+              ? `<div class="sc-ph-mini">
+            <button type="button" class="sc-ph-ic" data-ph-focal="${_scEsc(p.key)}" ${at(p, i)} title="Lấy nét" aria-label="Lấy nét ảnh ${n + 1}">${_scIco("focus")}</button>
+            <button type="button" class="sc-ph-ic" data-ph-undo="${_scEsc(p.key)}" data-i="${i}" title="${back}" aria-label="${back} cho ảnh ${n + 1}">${_scIco("undo-2")}</button>
+          </div>`
+              : ""
+          }
+        </div>`;
+        })
+        .join("")}</div>`;
+    }
     window.lucide?.createIcons({ root: box });
   });
 }

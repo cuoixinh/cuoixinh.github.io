@@ -13,7 +13,10 @@
 > nói với cô dâu là **"anh"**, cô dâu nói với chú rể là **"em"**. **Không chèn họ tên vào lời văn**
 > — tên chỉ đứng riêng ở cảnh mở đầu.
 > Mẫu đầu tiên: `templates/romantic-blush/` ("Mãi mãi về sau") — 16:9, mượn bảng màu + bộ chữ
-> của mẫu thiệp romantic-blush.
+> của mẫu thiệp romantic-blush. Mẫu thứ hai: `templates/mai-ben-nhau/` ("Mãi Bên Nhau") — bố
+> cục tạp chí (nền hồng xám, mảng nâu be lệch sau ảnh, tiêu đề tiếng Anh viết hoa dãn rộng,
+> chữ dọc sát mép), mỗi cảnh nhiều ảnh bay từ ngoài khung vào. **Thiệp ít ảnh hơn số khung thì
+> ảnh LẶP VÒNG cho đủ** — không bớt cảnh, không để khung trống.
 >
 > **Vẽ bằng canvas + xuất video bằng WebCodecs (chốt 2026-11-06)**, chạy trọn trên máy khách:
 > xem trước, trình chiếu và xuất video dùng CÙNG một bộ vẽ nên video ra y hệt bản xem.
@@ -35,11 +38,16 @@ slide-cuoi/
                            Thiệp (dùng thiệp của tài khoản) · Mẫu
   templates.js             Danh mục mẫu slide (CX_SLIDE_TEMPLATES)
   engine/slide-engine.js   Bộ vẽ canvas: build(tpl, wedding) → dự án; frame(ctx, P, t) vẽ khung
-                           tại t (thuần theo t). Phần tử: rect · frame · line · image (cover
-                           theo điểm lấy nét, Ken Burns) · text (tự xuống dòng) · group; hiệu
-                           ứng fade · up · left · right · spread · wipe · type (đánh chữ
-                           từng ký tự + con trỏ, dùng cho LỜI NÓI; mẫu tự xếp các đoạn
-                           gõ nối đuôi và giãn thời lượng cảnh theo chữ đã sửa)
+                           tại t (thuần theo t). Phần tử: rect · grad · frame · line · image
+                           (cover theo điểm lấy nét, Ken Burns) · text (tự xuống dòng; caps ·
+                           ls dãn chữ · align · shadow · rot xoay) · sparkle (đốm sáng) · group;
+                           hiệu ứng fade · up · left · right · spread · wipe · type (đánh chữ
+                           cho LỜI NÓI, mẫu tự xếp các đoạn gõ nối đuôi) · fly (bay từ ngoài
+                           khung vào, xoay + nảy) · zoom · flip · reveal (mở từ một mép) ·
+                           track (chữ dãn rồi khép) · letters · lines; chuyển cảnh `tr` của
+                           cảnh/mẫu: fade · slide · slide-up · zoom · split; `CX_SLIDE.fx.sparkle`
+                           = lớp đốm sáng phủ suốt slide. Ảnh to hơn khung thu nhỏ MỘT lần lúc
+                           dựng (đủ nét cho 4K)
   engine/slide-export.js   Vẽ từng khung 30 hình/giây ở 1920×1080 / 3840×2160 → VideoEncoder
                            H.264 → vendor/mp4-muxer.js → Blob MP4. Nhạc FILE thì ghép AAC
   vendor/mp4-muxer.js      mp4-muxer 5.2.2 tự host (MIT) — đừng sửa tay
@@ -59,14 +67,15 @@ slide-cuoi/
   `_scene` của mẫu. Trang cha lưu `{khoá: chữ}` ở `localStorage.cx_slide_texts` theo
   `<mẫu>|<id thiệp hoặc demo>` — **chỉ localStorage, cố ý không lưu lên server**. Sửa thành
   rỗng là bỏ khối.
-- Ảnh từng cảnh: mỗi dòng cảnh có ô ảnh, mặc định là ảnh mẫu
-  báo lên (`photo: {key: <id cảnh>, def, w, h}` của cảnh — ảnh thiệp, hoặc ảnh mẫu khi chưa chọn
-  thiệp). Khách bấm ô để thay bằng ảnh trong máy: nén (cạnh dài ≤ 2560px) rồi cất BYTE vào
-  IndexedDB `cx_slide/photos` theo `<mẫu>|<id thiệp hoặc demo>|<id cảnh>` — không lên server.
-  Trang cha gửi `{id cảnh: {id, blob, focal}}`, khung đổi thành blob URL và đưa vào `L.photos`; mẫu đè
-  ảnh của cảnh bằng `L.photos[id cảnh]` = `{src, focal}`. Chọn ảnh xong là mở bảng lấy nét
-  (`openFocalPointPicker`, `core/utils.js` nạp lúc cần) xem trước đúng khổ khung ảnh mẫu khai
-  ở `photo.w/h`; huỷ bảng = bỏ ảnh vừa chọn. Ô đã thay có nút "Lấy nét" để chỉnh lại.
+- Ảnh từng cảnh: cảnh khai các Ô ẢNH, mỗi ô `{key, def, w, h}` — `photos: [...]` (nhiều ô, khoá
+  `<id cảnh>.p<n>` ở mai-ben-nhau) hoặc `photo` (một ô, khoá = id cảnh ở romantic-blush); mặc
+  định là ảnh thiệp, hoặc ảnh mẫu khi chưa chọn thiệp. Cảnh một ô hiện ảnh đúng khổ + nút, cảnh
+  nhiều ô hiện lưới ô vuông. Khách bấm ô để thay bằng ảnh trong máy: nén (cạnh dài ≤ 2560px) rồi
+  cất BYTE vào IndexedDB `cx_slide/photos` theo `<mẫu>|<id thiệp hoặc demo>|<khoá ô>` — không lên
+  server. Trang cha gửi `{khoá ô: {id, blob, focal}}`, khung đổi thành blob URL và đưa vào
+  `L.photos`; mẫu đè ảnh của ô bằng `L.photos[khoá ô]` = `{src, focal}`. Chọn ảnh xong là mở
+  bảng lấy nét (`openFocalPointPicker`, `core/utils.js` nạp lúc cần) xem trước đúng khổ khung ô
+  (`w/h`); huỷ bảng = bỏ ảnh vừa chọn. Ô đã thay có nút "Lấy nét" để chỉnh lại.
 - Ảnh thiệp đi qua worker ảnh / Storage: lượt tải crossOrigin hỏng thì engine tải lại kèm
   `?cx-cors=1` — bản trong cache trình duyệt có thể là bản KHÔNG có header CORS (thẻ `<img>`
   thường, worker ảnh bản cũ cache 30 ngày) và canvas không nhận nó.
@@ -80,7 +89,7 @@ slide-cuoi/
 - Sửa ngay trên slide: rê chuột lên chữ/ảnh thì runtime vẽ khung nét đứt + nhãn lên canvas
   XEM TRƯỚC (không qua engine nên video xuất không dính), lần nạp đầu viền mọi vùng nhấp nháy
   ~2,6 giây, chip "Bấm vào chữ hoặc ảnh để sửa" hiện cùng thanh điều khiển. Vùng sửa = phần tử
-  chữ có `key` (engine chép từ khối) + ảnh có `edit: <id cảnh>` — mẫu mới phải giữ hai dấu
+  chữ có `key` (engine chép từ khối) + ảnh có `edit: <khoá ô>` — mẫu mới phải giữ hai dấu
   này. Tắt hẳn khi trình chiếu toàn màn hoặc đang xuất video.
 - Ảnh phải tải với `crossOrigin="anonymous"`, thiếu là canvas bị "nhiễm" và VideoFrame từ chối
   xuất. Supabase Storage và worker proxy ảnh đều trả `Access-Control-Allow-Origin: *`.

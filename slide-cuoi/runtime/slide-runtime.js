@@ -227,7 +227,8 @@
         label: s.label || `Cảnh ${k + 1}`,
         dur: Math.round(s.dur * 1000),
         texts: s.texts || [],
-        photo: s.photo || null,
+        // Ô ảnh của cảnh: mẫu khai `photos` (nhiều ô) hoặc `photo` (một ô).
+        photos: s.photos || (s.photo ? [s.photo] : []),
       }));
       // Loại nhạc: "file" ghép được vào video xuất, "yt" thì không.
       msg.music = Music.fileUrl() ? "file" : Music.isYouTube() ? "yt" : "";
@@ -273,7 +274,7 @@
     const walk = (el) => {
       if (el.anim && lt < (el.anim.d || 0)) return;
       if (el.kids) return el.kids.forEach(walk);
-      if (el.type === "text" && el.key) out.push({ kind: "text", key: el.key, x: el.x, y: el.y, w: el.tw || el.w, h: el.h });
+      if (el.type === "text" && el.key) out.push({ kind: "text", key: el.key, ...E.bounds(el) });
       else if (el.type === "image" && el.edit) out.push({ kind: "photo", key: el.edit, x: el.x, y: el.y, w: el.w, h: el.h });
     };
     P.scenes[i].els.forEach(walk);
