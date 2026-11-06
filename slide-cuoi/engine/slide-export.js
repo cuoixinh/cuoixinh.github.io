@@ -1,5 +1,5 @@
 // Xuất slide ra MP4 ngay trên trình duyệt: vẽ từng khung bằng CÙNG bộ vẽ của bản xem
-// (CXSlideEngine.frame) ở khổ 1080p/4K, mã hoá H.264 bằng WebCodecs (phần cứng nếu có),
+// (CXSlideEngine.frame) ở khổ 1080p/4K (hoặc bản xem thử dọc 720p đặt trên ảnh hội trường), mã hoá H.264 bằng WebCodecs (phần cứng nếu có),
 // ghép MP4 bằng vendor/mp4-muxer.js. Nhạc chỉ ghép được khi là FILE (mp3…) — YouTube không
 // lấy được luồng tiếng; giọng đọc khách tải lên luôn là file nên luôn ghép được. Toàn bộ chạy trên máy khách, không gửi gì lên server.
 
@@ -7,7 +7,13 @@ window.CXSlideExport = (() => {
   const SIZES = {
     1080: { w: 1920, h: 1080, bitrate: 8e6, codecs: ["avc1.640028", "avc1.4d0028", "avc1.42e028"] },
     2160: { w: 3840, h: 2160, bitrate: 16e6, codecs: ["avc1.640033", "avc1.4d0033", "avc1.640034"] },
+    // Bản xem thử gửi khách chưa thanh toán: video dọc, slide nhỏ nằm trên màn chiếu của ảnh
+    // hội trường (HALL), có dấu "Bản xem thử" — xem được trên điện thoại, không đem chiếu thật được.
+    demo: { w: 720, h: 1280, bitrate: 1.5e6, codecs: ["avc1.640028", "avc1.4d0028", "avc1.42e01f"] },
   };
+  // Ảnh hội trường 941×1672 + ô màn chiếu (tỉ lệ 0–1 của ảnh, đúng 16:9, tràn hết bề ngang ảnh) — trang /slide-cuoi/
+  // dựng khung "Màn chiếu" theo CÙNG số này (.sc-stage.is-hall ở styles/_slide-cuoi.css).
+  const HALL = { src: "/slide-cuoi/assets/hall.jpg", x: 0, y: 406.84 / 1672, w: 1, h: 529.31 / 1672 };
   const FPS = 30;
   const AUDIO_RATE = 48000;
 
@@ -123,13 +129,63 @@ window.CXSlideExport = (() => {
     return null;
   }
 
-  // opts: { height: 1080|2160, audioUrl (URL hoặc Blob nhạc), voices (đoạn giọng đọc, xem _mix),
+  // Ảnh hội trường cho bản xem thử (cùng gốc nên canvas không bị "bẩn").
+  const _img = (src) =>
+    new Promise((ok, no) => {
+      const im = new Image();
+      im.onload = () => ok(im);
+      im.onerror = () => no(Object.assign(new Error("Không tải được ảnh hội trường"), { code: "HALL" }));
+      im.src = src;
+    });
+
+  // Một khung bản xem thử: ảnh hội trường → slide (vẽ sẵn ở `slide`) đặt vào ô màn chiếu, hắt
+  // chút sáng ra tường → dấu "Bản xem thử" góc màn + tên miền ở đáy.
+  function _hallFrame(ctx, hall, slide) {
+    const W = ctx.canvas.width;
+    const H = ctx.canvas.height;
+    const r = { x: HALL.x * W, y: HALL.y * H, w: HALL.w * W, h: HALL.h * H };
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.drawImage(hall, 0, 0, W, H);
+    ctx.save();
+    ctx.shadowColor = "rgba(255, 236, 224, 0.28)";
+    ctx.shadowBlur = 36;
+    ctx.drawImage(slide, r.x, r.y, r.w, r.h);
+    ctx.restore();
+    const fs = Math.round(r.h * 0.055);
+    ctx.font = `600 ${fs}px Inter, "Segoe UI", Roboto, Arial, sans-serif`;
+    ctx.textBaseline = "middle";
+    const tag = "Bản xem thử";
+    const tw = ctx.measureText(tag).width;
+    const px = fs * 0.7;
+    const bh = fs * 1.8;
+    const bx = r.x + r.w - tw - px * 2 - fs * 0.6;
+    const by = r.y + fs * 0.6;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(bx, by, tw + px * 2, bh, bh / 2) : ctx.rect(bx, by, tw + px * 2, bh);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+    ctx.textAlign = "left";
+    ctx.fillText(tag, bx + px, by + bh / 2);
+    ctx.font = `600 ${Math.round(H * 0.018)}px Inter, "Segoe UI", Roboto, Arial, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.fillText("cuoixinh.com", W / 2, H * 0.965);
+    ctx.shadowBlur = 0;
+  }
+
+  // opts: { height: 1080|2160|"demo" (bản xem thử dọc trên màn chiếu), audioUrl (URL hoặc Blob nhạc), voices (đoạn giọng đọc, xem _mix),
   // duck, signal, onProgress(p 0..1), onAudio({ok, reason: "codec"|"decode"|"", music, voices, lost})
   // — báo trước khi mã hoá: ghép được những tiếng nào } → Blob MP4.
   async function run(P, opts) {
     const vcfg = await pickCodec(opts.height);
     if (!vcfg) throw Object.assign(new Error("Máy này không mã hoá được video khổ này"), { code: "UNSUPPORTED" });
     const S = SIZES[opts.height];
+    const demo = opts.height === "demo";
+    const hall = demo ? await _img(HALL.src) : null;
 
     // Nhạc + giọng đọc (nếu có và máy mã hoá được tiếng). Hỏng thì xuất video không tiếng,
     // không dừng cả việc.
@@ -169,6 +225,14 @@ window.CXSlideExport = (() => {
     canvas.width = S.w;
     canvas.height = S.h;
     const ctx = canvas.getContext("2d", { alpha: false });
+    // Bản xem thử: slide vẽ lên canvas riêng (khổ ô màn ×1.5 cho nét) rồi mới ghép vào hội trường.
+    let sctx = ctx;
+    if (demo) {
+      const sc = document.createElement("canvas");
+      sc.width = Math.round(HALL.w * S.w * 1.5);
+      sc.height = Math.round((sc.width * P.H) / P.W);
+      sctx = sc.getContext("2d", { alpha: false });
+    }
 
     const frames = Math.ceil(P.total * FPS);
     const step = 1e6 / FPS;
@@ -176,7 +240,8 @@ window.CXSlideExport = (() => {
       for (let i = 0; i < frames; i++) {
         if (opts.signal?.aborted) throw Object.assign(new Error("Đã huỷ"), { code: "ABORTED" });
         if (fail) throw fail;
-        CXSlideEngine.frame(ctx, P, i / FPS);
+        CXSlideEngine.frame(sctx, P, i / FPS);
+        if (demo) _hallFrame(ctx, hall, sctx.canvas);
         const vf = new VideoFrame(canvas, { timestamp: Math.round(i * step), duration: Math.round(step) });
         venc.encode(vf, { keyFrame: i % (FPS * 2) === 0 });
         vf.close();
@@ -232,5 +297,5 @@ window.CXSlideExport = (() => {
   // Mã tiếng máy này dùng được khi xuất: "aac" · "opus" · "" (không ghép được tiếng).
   const audioCodec = async () => (await _audioCfg())?.mux || "";
 
-  return { supported, pickCodec, audioCodec, run, FPS };
+  return { supported, pickCodec, audioCodec, run, FPS, HALL };
 })();

@@ -235,6 +235,47 @@
   border: 0;
   border-radius: inherit;
 }
+/* Chế độ "Màn chiếu" (.sc-stage.is-hall, nút ở hàng dưới slide): khung thành ảnh hội trường
+   dọc 941×1672, iframe nằm đúng ô màn chiếu — số khớp HALL ở engine/slide-export.js (video
+   "Xem thử" dựng y bố cục này). Toàn màn hình vẫn phủ kín: .is-full ở dưới đè lại. */
+.sc-stage.is-hall .sc-screen {
+  width: min(100%, calc(var(--sc-max-h) * 941 / 1672));
+  aspect-ratio: 941 / 1672;
+  overflow: hidden;
+  background: rgb(0 0 0) url("/slide-cuoi/assets/hall.jpg") center / 100% 100% no-repeat;
+}
+.sc-stage.is-hall .sc-screen iframe {
+  inset: auto;
+  left: 0;
+  top: 24.333%;
+  width: 100%;
+  height: 31.657%;
+  border-radius: 0;
+  box-shadow: 0 0 24px rgb(255 236 224 / 0.3);
+}
+@media (max-width: 1023px) {
+  .sc-stage.is-hall {
+    --sc-max-h: calc(var(--vh, 1svh) * 62);
+  }
+}
+.sc-bar .sc-hall-btn[aria-pressed="true"] {
+  color: rgb(var(--white-rgb));
+  border-color: rgb(var(--sc-on));
+  background: rgb(var(--sc-on));
+}
+.sc-bar .sc-hall-btn[aria-pressed="true"]:hover {
+  background: rgb(var(--sc-on) / 0.88);
+}
+@media (max-width: 479px) {
+  .sc-hall-t {
+    display: none;
+  }
+  .sc-bar .sc-hall-btn {
+    justify-content: center;
+    width: 40px;
+    padding-inline: 0;
+  }
+}
 /* Máy không có Fullscreen API (iPhone): phủ kín màn bằng CSS. Nền sân khấu không được có
    transform/filter, không thì khung `fixed` này bị nhốt trong nó. */
 .sc-screen.is-full {
@@ -245,6 +286,12 @@
   margin: 0;
   aspect-ratio: auto;
   border-radius: 0;
+  box-shadow: none;
+}
+.sc-screen.is-full iframe {
+  inset: 0;
+  width: 100%;
+  height: 100%;
   box-shadow: none;
 }
 html.sc-lock,
