@@ -376,6 +376,28 @@ html.sc-lock body {
 .sc-ex-btn.is-run {
   border-color: rgb(var(--action-primary-rgb) / 0.6);
 }
+/* Hàng nút không bao giờ bóp nút (chữ "Đang xuất 45%" bị cắt). Màn hẹp lúc đang xuất
+   (.sc-bar.is-run): ẩn tổng thời lượng, Huỷ chỉ còn biểu tượng; hẹp nữa thì nút tiến độ bỏ
+   biểu tượng tải xuống. */
+.sc-bar > button {
+  flex-shrink: 0;
+}
+@media (max-width: 479px) {
+  .sc-bar.is-run .sc-total,
+  .sc-bar.is-run .sc-ex-stop-t {
+    display: none;
+  }
+  .sc-bar.is-run .sc-ex-stop {
+    justify-content: center;
+    width: 40px;
+    padding-inline: 0;
+  }
+}
+@media (max-width: 379px) {
+  .sc-bar.is-run .sc-ex-btn svg {
+    display: none;
+  }
+}
 
 /* Thẻ nổi xuất video (x-popover neo vào nút "Xuất video"): bốn trạng thái chọn khổ · đang
    xuất · xong · lỗi. Thẻ nổi nên slide không đổi cỡ. */

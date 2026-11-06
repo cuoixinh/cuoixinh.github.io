@@ -67,6 +67,10 @@
           <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="sc-ghost sc-ex-btn" aria-expanded="false" aria-controls="sc-export">
             <span id="sc-ex-btn-label">Xuất video</span>
           </x-button>
+          <!-- Chỉ hiện khi đang xuất (_scExportBtn), để huỷ được cả khi thẻ nổi đã đóng. -->
+          <x-button id="sc-ex-stop" variant="bare" icon="x" onclick="scExportCancel()" class="sc-ghost sc-ex-stop hidden" aria-label="Huỷ xuất video">
+            <span class="sc-ex-stop-t">Huỷ</span>
+          </x-button>
           <p id="sc-total" class="sc-total"></p>
         </div>
 

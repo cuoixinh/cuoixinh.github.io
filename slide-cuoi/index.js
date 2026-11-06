@@ -874,12 +874,15 @@ function _scExportNote() {
 }
 
 // Nút "Xuất video" kiêm thanh tiến độ: đang xuất thì nhãn thành phần trăm và nền tô dần
-// (--p), xong thì "Tải lại video" — đóng thẻ nổi vẫn theo dõi được.
+// (--p), xong thì "Tải lại video" — đóng thẻ nổi vẫn theo dõi được; nút "Huỷ" cạnh nó chỉ
+// hiện lúc đang xuất.
 function _scExportBtn(p) {
   const btn = _scEl("sc-export-open");
   const label = _scEl("sc-ex-btn-label");
   if (!btn || !label) return;
   btn.classList.toggle("is-run", _scExState === "run");
+  _scToggle("sc-ex-stop", _scExState === "run");
+  btn.closest(".sc-bar")?.classList.toggle("is-run", _scExState === "run");
   btn.style.setProperty("--p", String(_scExState === "run" ? (p || 0) / 100 : 0));
   label.textContent =
     _scExState === "run" ? `Đang xuất ${p || 0}%` : _scExState === "done" ? "Tải lại video" : "Xuất video";
