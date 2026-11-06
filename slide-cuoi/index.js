@@ -108,6 +108,7 @@ addEventListener("message", (e) => {
   else if (t === "cx-slide-state") _scCueState(e.data);
   else if (t === "cx-slide-caps") _scCaps(e.data);
   else if (t === "cx-slide-export-state") _scExportMsg(e.data);
+  else if (t === "cx-slide-edit") _scEditFromSlide(e.data);
 });
 
 // ── Chữ trong slide: mỗi cảnh một dòng (mốc giờ · tên · thời lượng), bấm là chiếu cảnh đó,
@@ -283,16 +284,48 @@ _scEl("sc-cues").addEventListener("click", (e) => {
   const b = e.target.closest("[data-cue]");
   if (!b) return;
   const i = Number(b.dataset.cue);
-  _scOpen = _scOpen === i ? -1 : i;
+  _scOpenScene(_scOpen === i ? -1 : i);
+  _scFrame.contentWindow?.postMessage({ type: "cx-slide-go", index: i, pause: _scOpen === i }, location.origin);
+});
+
+// Mở phần chỉnh của cảnh i (-1 = đóng hết), trả về dòng đang mở.
+function _scOpenScene(i) {
+  _scOpen = i;
+  let hit = null;
   _scEl("sc-cues").querySelectorAll(".sc-scene").forEach((li, k) => {
     const open = k === _scOpen;
     li.classList.toggle("is-open", open);
     li.querySelector(".sc-tx-list").classList.toggle("hidden", !open);
     li.querySelector("[data-cue]").setAttribute("aria-expanded", String(open));
-    if (open) li.querySelectorAll(".sc-tx-in").forEach(_scGrow);
+    if (open) {
+      li.querySelectorAll(".sc-tx-in").forEach(_scGrow);
+      hit = li;
+    }
   });
-  _scFrame.contentWindow?.postMessage({ type: "cx-slide-go", index: i, pause: _scOpen === i }, location.origin);
-});
+  return hit;
+}
+
+// Bấm thẳng lên slide (khung đã tự dừng ở cảnh đó): về tab Cảnh, mở cảnh, cuộn tới rồi đặt
+// con trỏ vào đúng ô chữ — hoặc làm nổi khối ảnh — kèm một nhịp sáng để mắt tìm thấy.
+function _scEditFromSlide(m) {
+  if (!Number.isInteger(m.index)) return;
+  scTab("scenes");
+  const li = _scOpenScene(m.index);
+  if (!li) return;
+  const target =
+    m.kind === "text"
+      ? li.querySelector(`.sc-tx-in[data-key="${CSS.escape(String(m.key))}"]`)
+      : li.querySelector(".sc-ph-pick");
+  const el = target || li;
+  const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  el.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
+  el.focus?.({ preventScroll: true });
+  const box = target?.closest(".sc-tx") || target || li;
+  box.classList.remove("is-flash");
+  void box.offsetWidth; // chạy lại hiệu ứng khi bấm liên tiếp cùng một chỗ
+  box.classList.add("is-flash");
+  setTimeout(() => box.classList.remove("is-flash"), 1300);
+}
 
 _scEl("sc-cues").addEventListener("input", (e) => {
   const ta = e.target.closest(".sc-tx-in");

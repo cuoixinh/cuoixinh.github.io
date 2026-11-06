@@ -79,7 +79,8 @@ window.CXSlideEngine = (() => {
 
   // Xếp một cột khối (chữ / vạch / nhiều cột con) từ trên xuống, canh giữa theo chiều dọc
   // trong [top, bottom]. Khối: {text, font, color, lh, mt, anim} · {line, w, color, mt, anim}
-  // · {cols: [[khối…], …], gap, mt, anim}. Trả mảng phần tử để vẽ.
+  // · {cols: [[khối…], …], gap, mt, anim}. Trả mảng phần tử để vẽ. Khối chữ có `key` thì
+  // phần tử chữ giữ lại key đó (bộ phát dùng để bấm lên slide là sửa đúng dòng).
   function column(blocks, { x, w, top, bottom }) {
     const laid = _lay(blocks, x, w);
     const y0 = top + Math.max(0, (bottom - top - laid.h) / 2);
@@ -111,7 +112,11 @@ window.CXSlideEngine = (() => {
       } else {
         const lines = wrap(b.text, b.font, w);
         const lh = b.font.size * (b.lh || 1.3);
-        els.push({ type: "text", x, y, w, h: lines.length * lh, lines, lh, font: b.font, color: b.color, anim: b.anim });
+        // tw = bề ngang thật của dòng dài nhất (vùng bấm để sửa); key = khoá chữ của mẫu.
+        const ctx = _measure();
+        ctx.font = fontStr(b.font);
+        const tw = Math.min(w, Math.max(0, ...lines.map((l) => ctx.measureText(l).width)));
+        els.push({ type: "text", x, y, w, tw, h: lines.length * lh, lines, lh, font: b.font, color: b.color, anim: b.anim, key: b.key });
         y += lines.length * lh;
       }
     });

@@ -1035,3 +1035,24 @@ html.sc-lock body {
     display: none;
   }
 }
+
+/* Nhịp sáng khi bấm lên slide mở đúng ô chữ / khối ảnh ở đây (_scEditFromSlide). */
+.sc-tx.is-flash .sc-tx-in,
+.sc-ph-pick.is-flash {
+  animation: cx-sc-flash 1.2s ease-out;
+}
+@keyframes cx-sc-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgb(var(--action-primary-rgb) / 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgb(var(--action-primary-rgb) / 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-tx.is-flash .sc-tx-in,
+  .sc-ph-pick.is-flash {
+    animation: none;
+    box-shadow: 0 0 0 3px rgb(var(--action-primary-rgb) / 0.4);
+  }
+}

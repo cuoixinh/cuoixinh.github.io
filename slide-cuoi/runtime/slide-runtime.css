@@ -173,3 +173,40 @@ html.sl-paused body {
     animation: none;
   }
 }
+
+/* Chip gợi ý "Bấm vào chữ hoặc ảnh để sửa": góc trên trái, chỉ trong khung xem của trang
+   /slide-cuoi/ (.sl-can-edit — runtime tắt cờ này khi trình chiếu / xuất video), hiện cùng
+   lúc với thanh điều khiển. Không bắt chuột: bấm xuyên qua xuống slide. */
+#sl-hint {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  font: 600 clamp(11px, 2.4vw, 13px) / 1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: rgb(190 18 60);
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 4px 16px -4px rgb(0 0 0 / 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+#sl-hint svg {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
+
+.sl-can-edit #sl-hint {
+  display: inline-flex;
+}
+
+.sl-can-edit.sl-ui-on #sl-hint,
+.sl-can-edit.sl-paused #sl-hint {
+  opacity: 1;
+}

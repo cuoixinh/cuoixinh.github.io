@@ -72,10 +72,16 @@ slide-cuoi/
   thường, worker ảnh bản cũ cache 30 ngày) và canvas không nhận nó.
 - Tin nhắn iframe ↔ trang cha: `cx-slide-ready` · `cx-slide-data` (thiệp + chữ đã sửa + ảnh
   khách) · `cx-slide-texts` (chữ đã sửa, dựng lại tại cảnh đang mở) · `cx-slide-photos` (ảnh
-  khách, dựng lại tại cảnh vừa đổi) · `cx-slide-state` (danh sách
+  khách, dựng lại tại cảnh vừa đổi) · `cx-slide-edit` (bấm thẳng lên slide: `{index, kind:
+  "text"|"photo", key}` → trang cha mở cảnh, đặt con trỏ vào ô chữ / khối ảnh) · `cx-slide-state` (danh sách
   cảnh kèm chữ + cảnh đang chiếu + loại nhạc) · `cx-slide-go` (`pause` = dừng ở cảnh đó,
   chữ đã hiện đủ) · `cx-slide-full(-state)` · `cx-slide-caps`
   (máy mã hoá được 1080p/4K không) · `cx-slide-export` / `-cancel` / `-state` (tiến độ, Blob).
+- Sửa ngay trên slide: rê chuột lên chữ/ảnh thì runtime vẽ khung nét đứt + nhãn lên canvas
+  XEM TRƯỚC (không qua engine nên video xuất không dính), lần nạp đầu viền mọi vùng nhấp nháy
+  ~2,6 giây, chip "Bấm vào chữ hoặc ảnh để sửa" hiện cùng thanh điều khiển. Vùng sửa = phần tử
+  chữ có `key` (engine chép từ khối) + ảnh có `edit: <id cảnh>` — mẫu mới phải giữ hai dấu
+  này. Tắt hẳn khi trình chiếu toàn màn hoặc đang xuất video.
 - Ảnh phải tải với `crossOrigin="anonymous"`, thiếu là canvas bị "nhiễm" và VideoFrame từ chối
   xuất. Supabase Storage và worker proxy ảnh đều trả `Access-Control-Allow-Origin: *`.
 - Font phải tải xong trước khi đo chữ (`CX_SLIDE.fonts`) — canvas không tự đợi font.

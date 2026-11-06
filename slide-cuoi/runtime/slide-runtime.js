@@ -50,6 +50,13 @@
     </div>`;
   document.body.appendChild(ui);
   window.lucide?.createIcons({ root: ui });
+  // Chip gợi ý sửa ngay trên slide — chỉ hiện trong khung xem của trang /slide-cuoi/ (CSS theo
+  // cờ .sl-can-edit), không bao giờ ở màn trình chiếu.
+  const hint = document.createElement("div");
+  hint.id = "sl-hint";
+  hint.innerHTML = '<i data-lucide="mouse-pointer-click"></i><span>Bấm vào chữ hoặc ảnh để sửa</span>';
+  document.body.appendChild(hint);
+  window.lucide?.createIcons({ root: hint });
 
   // Uỷ quyền qua #sl-ui: <x-button> tự thay mình bằng <button> nên gắn thẳng là mất listener.
   ui.addEventListener("click", (e) => {
@@ -75,10 +82,21 @@
     clearTimeout(wakeT);
     wakeT = setTimeout(() => root.classList.remove("sl-ui-on"), 2600);
   }
-  addEventListener("pointermove", (e) => e.pointerType === "mouse" && wake());
+  addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse") return;
+    wake();
+    pointer = toDesign(e);
+  });
+  document.documentElement.addEventListener("pointerleave", () => (pointer = null));
   // Chạm vào sân khấu: thanh đang ẩn thì hiện, đang hiện thì ẩn.
   addEventListener("pointerup", (e) => {
     if (ui.contains(e.target)) return;
+    const h = canEdit() && P ? hit(toDesign(e)) : null;
+    if (h) {
+      wake();
+      edit(h);
+      return;
+    }
     if (root.classList.contains("sl-ui-on")) {
       clearTimeout(wakeT);
       root.classList.remove("sl-ui-on");
@@ -100,6 +118,7 @@
     root.classList.toggle("sl-music-on", Music.isOn());
     root.classList.toggle("sl-can-full", CAN_FS || EMBED);
     root.classList.toggle("sl-is-full", !!fsEl() || pseudoFull);
+    root.classList.toggle("sl-can-edit", canEdit());
   }
 
   // ── Đồng hồ + vẽ ──
@@ -134,6 +153,7 @@
         ctx.globalAlpha = 1;
       }
     }
+    drawEdit();
     if (i !== idx) {
       idx = i;
       bar();
@@ -213,6 +233,125 @@
       msg.music = Music.fileUrl() ? "file" : Music.isYouTube() ? "yt" : "";
     }
     post(msg);
+  }
+
+  // ── Sửa ngay trên slide ──
+  // Chỉ trong khung xem của trang /slide-cuoi/ (EMBED), không khi trình chiếu toàn màn hay đang
+  // xuất video: rê chuột lên chữ/ảnh của cảnh đang chiếu thì vẽ khung nét đứt + nhãn, bấm
+  // (hoặc chạm) thì dừng ở cảnh đó với chữ đã hiện đủ và báo trang cha mở đúng ô sửa
+  // (cx-slide-edit). Khung vẽ thẳng lên canvas xem trước, KHÔNG qua engine nên video xuất ra
+  // không dính. Vùng sửa lấy từ phần tử chữ có `key` và ảnh có `edit` (mẫu khai).
+  const EDIT_RGB = "225, 29, 72"; // hồng nhấn của trang Cưới Xinh (iframe không nạp bảng màu app)
+  const EDIT_LABEL = { text: "Sửa chữ", photo: "Đổi ảnh" };
+  // Kích thước khung/nhãn khai theo PIXEL MÀN HÌNH rồi nhân `u` (đơn vị mẫu / 1px CSS) lúc vẽ:
+  // khung xem nhỏ cỡ nào nhãn cũng đọc được, nét viền cũng đều.
+  const EDIT_PAD = 6;
+  const unit = () => W / (canvas.getBoundingClientRect().width || W);
+  let pointer = null; // vị trí chuột theo toạ độ mẫu; null = chuột ngoài khung
+  let hover = null;
+  let hintUntil = 0; // tới mốc này thì viền mọi vùng sửa được nhấp nháy (lần nạp đầu)
+  let hinted = false;
+  let picked = null; // vùng vừa bấm, sáng đậm thêm một nhịp
+
+  function canEdit() {
+    return EMBED && !fsEl() && !pseudoFull && !exporting;
+  }
+
+  function toDesign(e) {
+    const r = canvas.getBoundingClientRect();
+    if (!r.width || !r.height) return null;
+    return { x: ((e.clientX - r.left) / r.width) * W, y: ((e.clientY - r.top) / r.height) * H };
+  }
+
+  // Vùng sửa được của cảnh đang chiếu — bỏ phần tử chưa tới lượt hiện.
+  function editables() {
+    const { i, lt } = local();
+    const out = [];
+    const walk = (el) => {
+      if (el.anim && lt < (el.anim.d || 0)) return;
+      if (el.kids) return el.kids.forEach(walk);
+      if (el.type === "text" && el.key) out.push({ kind: "text", key: el.key, x: el.x, y: el.y, w: el.tw || el.w, h: el.h });
+      else if (el.type === "image" && el.edit) out.push({ kind: "photo", key: el.edit, x: el.x, y: el.y, w: el.w, h: el.h });
+    };
+    P.scenes[i].els.forEach(walk);
+    return out;
+  }
+
+  // Chữ ưu tiên hơn ảnh (chữ nhỏ, dễ trượt); trong cùng loại lấy vùng nhỏ nhất chứa điểm.
+  function hit(pt) {
+    if (!pt) return null;
+    const p = EDIT_PAD * unit();
+    const inside = (r) => pt.x >= r.x - p && pt.x <= r.x + r.w + p && pt.y >= r.y - p && pt.y <= r.y + r.h + p;
+    const all = editables().filter(inside);
+    const pick = (kind) =>
+      all.filter((r) => r.kind === kind).sort((a, b) => a.w * a.h - b.w * b.h)[0] || null;
+    return pick("text") || pick("photo");
+  }
+
+  function edit(h) {
+    const i = local().i;
+    show(i, true);
+    pause();
+    picked = { ...h, at: performance.now() };
+    post({ type: "cx-slide-edit", index: i, kind: h.kind, key: h.key });
+  }
+
+  function _box(r, alpha, label, solid) {
+    const u = unit();
+    const pad = EDIT_PAD * u;
+    const x = r.x - pad;
+    const y = r.y - pad;
+    const w = r.w + pad * 2;
+    const h = r.h + pad * 2;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, y, w, h, 6 * u);
+    else ctx.rect(x, y, w, h);
+    ctx.fillStyle = `rgba(${EDIT_RGB}, ${solid ? 0.14 : 0.06})`;
+    ctx.fill();
+    ctx.setLineDash(solid ? [] : [6 * u, 4 * u]);
+    ctx.lineWidth = 1.5 * u;
+    ctx.strokeStyle = `rgba(${EDIT_RGB}, 0.9)`;
+    ctx.stroke();
+    if (label) {
+      const text = `✎  ${EDIT_LABEL[r.kind]}`;
+      ctx.setLineDash([]);
+      ctx.font = `600 ${13 * u}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+      const tw = ctx.measureText(text).width;
+      const pw = tw + 20 * u;
+      const ph = 24 * u;
+      const gap = 4 * u;
+      // Nhãn đứng trên khung; sát mép trên thì xuống dưới, tràn phải thì dồn vào.
+      const lx = Math.min(Math.max(gap, x), W - pw - gap);
+      const ly = y - ph - gap >= gap ? y - ph - gap : Math.min(H - ph - gap, y + h + gap);
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(lx, ly, pw, ph, ph / 2);
+      else ctx.rect(lx, ly, pw, ph);
+      ctx.fillStyle = `rgb(${EDIT_RGB})`;
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "left";
+      ctx.fillText(text, lx + 10 * u, ly + ph / 2 + u);
+    }
+    ctx.restore();
+  }
+
+  function drawEdit() {
+    const on = canEdit() && P;
+    hover = on ? hit(pointer) : null;
+    canvas.style.cursor = hover ? "pointer" : "";
+    if (!on) return;
+    const now = performance.now();
+    const k = canvas.width / W;
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    if (now < hintUntil && !hover) {
+      const a = 0.35 + 0.35 * Math.sin(((now % 1300) / 1300) * Math.PI * 2);
+      editables().forEach((r) => _box(r, a, false, false));
+    }
+    if (picked && now - picked.at < 900) _box(picked, 1 - (now - picked.at) / 900, false, true);
+    if (hover) _box(hover, 1, true, false);
   }
 
   // ── Nhạc nền: link YouTube của thiệp (iframe API, ẩn) hoặc file nhạc tải lên ──
@@ -382,6 +521,7 @@
   async function exportVideo(height) {
     if (exporting || !P || !window.CXSlideExport) return;
     exporting = new AbortController();
+    sync();
     const wasPlaying = playing;
     Music.pause();
     post({ type: "cx-slide-export-state", state: "run", p: 0 });
@@ -403,6 +543,7 @@
       });
     } finally {
       exporting = null;
+      sync();
       if (wasPlaying) Music.play();
     }
   }
@@ -468,6 +609,10 @@
     fit();
     report(true);
     sync();
+    if (EMBED && !hinted) {
+      hinted = true;
+      hintUntil = performance.now() + 2600;
+    }
   }
 
   async function demo() {
