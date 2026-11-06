@@ -657,8 +657,11 @@ let _scPrevId = "";
 
 const _scMuKey = () => (_scS.real && _scS.wid ? _scS.wid : "demo");
 
-// Kho chưa dựng / lỗi mạng / file hỏng đều ra danh sách rỗng ("Thư viện nhạc hiện đang chưa có").
+// Kho chưa dựng / lỗi mạng / file hỏng / quá _SC_LIB_WAIT đều ra danh sách rỗng ("Thư viện nhạc
+// hiện đang chưa có") — kho là dịch vụ ngoài, không bao giờ được chặn slide.
+const _SC_LIB_WAIT = 6000;
 function _scLibLoad() {
+  if (_scLibReq) return _scLibReq;
   const base = CONFIG.slideMusic?.library || "";
   const abs = (f) => {
     try {
@@ -667,8 +670,11 @@ function _scLibLoad() {
       return "";
     }
   };
-  _scLibReq ||= (base ? fetch(base, { cache: "no-cache" }) : Promise.reject(new Error("no library")))
+  const ctl = typeof AbortController === "function" ? new AbortController() : null;
+  const timer = setTimeout(() => ctl?.abort(), _SC_LIB_WAIT);
+  _scLibReq = (base ? fetch(base, { cache: "no-cache", signal: ctl?.signal }) : Promise.reject(new Error("no library")))
     .then((r) => (r.ok ? r.json() : { tracks: [] }))
+    .finally(() => clearTimeout(timer))
     .catch(() => ({ tracks: [] }))
     .then((j) => {
       _scLib = (Array.isArray(j?.tracks) ? j.tracks : [])
@@ -694,7 +700,6 @@ async function _scMuLoad() {
   _scMu = { key, pick: null };
   let rec = null;
   try {
-    await _scLibLoad();
     rec = await _scDbDo("readonly", (st) => st.get(key), _SC_MU_STORE);
   } catch (e) {
     console.warn("Không đọc được nhạc slide đã lưu:", e);
@@ -702,9 +707,15 @@ async function _scMuLoad() {
   if (_scMu.key !== key) return;
   if (rec?.mode === "file" && rec.buf?.byteLength) {
     _scMu.pick = { mode: "file", id: rec.id, blob: new Blob([rec.buf], { type: rec.type || "audio/mpeg" }), name: rec.name || "", dur: rec.dur || 0 };
-  } else if (rec?.mode === "lib" && _scTrack(rec.id)) {
-    _scMu.pick = { mode: "lib", id: rec.id };
   }
+  // Bài thư viện: KHÔNG chờ kho (dịch vụ ngoài) — slide chạy ngay với nhạc của thiệp, kho tải
+  // xong mà còn bài đó thì mới chuyển sang; kho chết thì giữ nhạc của thiệp.
+  _scLibLoad().then(() => {
+    if (rec?.mode !== "lib" || _scMu.key !== key || _scMu.pick || !_scTrack(rec.id)) return;
+    _scMu.pick = { mode: "lib", id: rec.id };
+    _scMuRender();
+    _scMuSend();
+  });
   _scMuRender();
 }
 
@@ -1205,7 +1216,10 @@ function _scExportMsg(m) {
       ({
         yt: " Video không có tiếng vì nhạc đang dùng là YouTube.",
         codec: " Video không có tiếng vì trình duyệt này không ghép được tiếng. Hãy dùng Chrome hoặc Edge bản mới.",
-        decode: " Video không có tiếng vì không đọc được file nhạc. Hãy đổi sang MP3 rồi chọn lại.",
+        decode:
+          _scMu.pick?.mode === "lib"
+            ? " Video không có tiếng vì không tải được bài nhạc trong thư viện. Hãy thử lại sau hoặc chọn file từ máy."
+            : " Video không có tiếng vì không đọc được file nhạc. Hãy đổi sang MP3 rồi chọn lại.",
       }[m.mute] || "");
     _scExportState("done");
     scExportSave();

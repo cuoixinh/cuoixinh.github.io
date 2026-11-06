@@ -91,7 +91,9 @@ slide-cuoi/
   IndexedDB kho `music`, khoá = id thiệp hoặc `demo` — không theo mẫu) · bài trong thư viện
   `CONFIG.slideMusic.library` (`{tracks:[{id, title, artist, file, credit}]}`; `file` tính theo
   URL của file danh mục, `credit` hiện dưới danh sách khi bài cần ghi công). Kho chưa dựng /
-  rỗng / lỗi mạng → "Thư viện nhạc hiện đang chưa có". Gửi sang khung: `{id, blob}` · `{url}` ·
+  rỗng / lỗi mạng / treo quá 6 giây → "Thư viện nhạc hiện đang chưa có". Kho là dịch vụ NGOÀI
+  nên **không bao giờ chặn slide**: dữ liệu gửi sang khung không chờ kho; bài thư viện đã chọn
+  chỉ được áp khi kho trả lời, trước đó (hoặc kho chết) slide chạy nhạc của thiệp. Gửi sang khung: `{id, blob}` · `{url}` ·
   null qua `cx-slide-data` / `cx-slide-music`.
 - **Kho nhạc thư viện** = Worker CHỈ phục vụ file tĩnh `cuoixinh-media` ở `media.cuoixinh.com`
   (thư mục `cloudflare-media/`, `npm run deploy:media`) — không tính vào 10 GB miễn phí của R2,
