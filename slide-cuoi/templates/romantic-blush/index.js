@@ -1,7 +1,7 @@
 // Slide sân khấu "Mãi mãi về sau" (1280×720, tông be của romantic-blush): mỗi cảnh một bên
-// ảnh, một bên chữ, xen kẽ trái/phải. Từ thiệp chỉ lấy ảnh, họ tên, ngày cưới,
-// chuyện tình — lời văn là của mẫu. Chỉ KHAI cảnh dưới dạng dữ liệu (CX_SLIDE.scenes); vẽ là
-// việc của slide-cuoi/engine/slide-engine.js, chạy/xuất là runtime + slide-export.js.
+// ảnh, một bên chữ, xen kẽ trái/phải. Từ thiệp chỉ lấy ảnh, họ tên, ngày cưới, chuyện tình —
+// không tên cha mẹ, không địa chỉ (khách đã ở tiệc); lời văn là của mẫu. Chỉ KHAI cảnh dưới
+// dạng dữ liệu (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime + slide-export.js.
 
 (function () {
   const C = {
@@ -109,7 +109,6 @@
       rule(6),
       date && { text: date, font: F.date, color: C.heading, lh: 1.3, mt: 28, anim: { k: "up", d: d(7) } },
       w.ceremony_lunar && note(w.ceremony_lunar, 8),
-      w.ceremony_location && note(w.ceremony_location, 9),
     ], { dur: 9, label: "Mở đầu" });
 
     // --- Lời chú rể, lời cô dâu gửi quan khách ---
