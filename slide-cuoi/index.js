@@ -92,12 +92,23 @@ async function _scPush(force) {
   _scSent = key;
   _scSig = ""; // bộ dữ liệu khác → các ô chữ phải vẽ lại dù khoá trùng
   _scPhSig = "";
-  await Promise.all([_scPhLoad(), _scMuLoad()]);
+  // voice.js nạp sau và có thể hỏng riêng — thiếu nó slide vẫn chạy, chỉ không có giọng đọc.
+  const vo = typeof _scVoLoad === "function";
+  await Promise.all([_scPhLoad(), _scMuLoad(), vo ? _scVoLoad().catch(() => null) : null]);
   if (_scSent !== key) return; // trong lúc đọc ảnh / nhạc đã đổi sang bộ dữ liệu khác
   _scFrame.contentWindow?.postMessage(
-    { type: "cx-slide-data", wedding: w || null, texts: _scTexts(), photos: _scPhMsg(), music: _scMuMsg(), timing: _scTiming() },
+    {
+      type: "cx-slide-data",
+      wedding: w || null,
+      texts: _scTexts(),
+      photos: _scPhMsg(),
+      music: _scMuMsg(),
+      timing: _scTiming(),
+      voice: vo ? _scVoMsg() : null,
+    },
     location.origin,
   );
+  if (vo) _scVoOnCues();
 }
 
 addEventListener("message", (e) => {
@@ -109,6 +120,7 @@ addEventListener("message", (e) => {
   else if (t === "cx-slide-caps") _scCaps(e.data);
   else if (t === "cx-slide-export-state") _scExportMsg(e.data);
   else if (t === "cx-slide-edit") _scEditFromSlide(e.data);
+  else if (t === "cx-slide-time" && typeof _scVoTime === "function") _scVoTime(e.data);
 });
 
 // ── Chữ trong slide: mỗi cảnh một dòng (mốc giờ · tên · thời lượng), bấm là chiếu cảnh đó,
@@ -352,6 +364,7 @@ function _scCueState(m) {
     const sig = _scCues
       .map((c) => c.label + ":" + c.texts.map((x) => x.key).join(",") + ":" + c.photos.map((p) => p.key).join(","))
       .join("|");
+    if (typeof _scVoOnCues === "function") setTimeout(_scVoOnCues);
     if (sig === _scSig) {
       _scCueTimes();
       _scPhRender();
@@ -489,10 +502,11 @@ let _scDbP = null;
 
 function _scDB() {
   _scDbP ||= new Promise((resolve, reject) => {
-    // v2 thêm kho "music" (nhạc khách chọn theo thiệp); tạo kho nào còn thiếu.
-    const rq = indexedDB.open(_SC_PH_DB, 2);
+    // v2 thêm kho "music" (nhạc khách chọn theo thiệp), v3 kho "voice" (giọng đọc, voice.js);
+    // tạo kho nào còn thiếu.
+    const rq = indexedDB.open(_SC_PH_DB, 3);
     rq.onupgradeneeded = () => {
-      [_SC_PH_STORE, _SC_MU_STORE].forEach((n) => rq.result.objectStoreNames.contains(n) || rq.result.createObjectStore(n));
+      [_SC_PH_STORE, _SC_MU_STORE, "voice"].forEach((n) => rq.result.objectStoreNames.contains(n) || rq.result.createObjectStore(n));
     };
     rq.onsuccess = () => resolve(rq.result);
     rq.onerror = () => reject(rq.error);
@@ -1072,7 +1086,7 @@ _scEl("sc-mu-lib").addEventListener("click", (e) => {
 });
 
 // ── Các tab của bảng chỉnh (Cảnh · Thiệp · Nhạc · Mẫu): một dải .cx-seg, con trượt theo --i. ──
-const _SC_TABS = ["scenes", "data", "music", "tpl"];
+const _SC_TABS = ["scenes", "data", "music", "voice", "tpl"];
 function scTab(id) {
   const i = Math.max(0, _SC_TABS.indexOf(id));
   const seg = _scEl("sc-tabs");
@@ -1084,6 +1098,8 @@ function scTab(id) {
     b.tabIndex = on ? 0 : -1;
   });
   _SC_TABS.forEach((t, k) => _scToggle(`sc-tab-${t}`, k === i));
+  // Dòng thời gian đo theo bề ngang khung — chỉ vẽ được khi tab đã hiện.
+  if (_SC_TABS[i] === "voice" && typeof _scVoRender === "function") _scVoRender();
 }
 _scEl("sc-tabs").addEventListener("click", (e) => {
   const b = e.target.closest("[data-tab]");
@@ -1304,8 +1320,14 @@ function _scExportNote() {
   else {
     if (_scCapsOk && !_scCapsOk.h2160) notes.push("Máy này không mã hoá được 4K, chỉ xuất được 1080p.");
     if (_scExRes === 2160) notes.push("4K xuất lâu hơn và file nặng hơn khoảng 2,5 lần.");
-    if (_scMusic === "yt") notes.push("Nhạc YouTube không ghép được vào video, file xuất ra sẽ không có tiếng. Chọn nhạc ở tab Nhạc để video có tiếng.");
-    else if (_scMusic === "file" && _scCapsOk && !_scCapsOk.audio)
+    const voice = typeof _scVo !== "undefined" && _scVo.clips.some((c) => !c.mute);
+    if (_scMusic === "yt")
+      notes.push(
+        voice
+          ? "Nhạc YouTube không ghép được vào video, file xuất ra chỉ có giọng đọc. Chọn nhạc ở tab Nhạc để có cả nhạc nền."
+          : "Nhạc YouTube không ghép được vào video, file xuất ra sẽ không có tiếng. Chọn nhạc ở tab Nhạc để video có tiếng.",
+      );
+    if ((_scMusic === "file" || voice) && _scCapsOk && !_scCapsOk.audio)
       notes.push("Trình duyệt này không ghép được tiếng vào video, file xuất ra sẽ không có tiếng. Hãy dùng Chrome hoặc Edge bản mới.");
   }
   _scEl("sc-ex-note").textContent = notes.join(" ");
@@ -1384,6 +1406,9 @@ function _scExportMsg(m) {
       `File MP4 ${_scExRes === 2160 ? "4K" : "1080p"}, ${mb} MB.` +
       ({
         yt: " Video không có tiếng vì nhạc đang dùng là YouTube.",
+        "yt-voice": " Video chỉ có giọng đọc, không có nhạc nền vì nhạc đang dùng là YouTube.",
+        music: " Video có giọng đọc nhưng thiếu nhạc nền vì không đọc được file nhạc.",
+        voice: " Có lớp giọng đọc không đọc được nên bị bỏ khỏi video. Hãy đổi file đó sang MP3 rồi tải lại.",
         codec: " Video không có tiếng vì trình duyệt này không ghép được tiếng. Hãy dùng Chrome hoặc Edge bản mới.",
         decode:
           _scMu.pick?.mode === "lib"

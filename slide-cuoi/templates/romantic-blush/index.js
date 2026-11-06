@@ -1,7 +1,7 @@
 // Slide sân khấu "Mãi mãi về sau" (1280×720, tông be của romantic-blush): mỗi cảnh một bên
-// ảnh, một bên chữ, xen kẽ trái/phải. Từ thiệp chỉ lấy ảnh, họ tên, ngày cưới, cha mẹ,
-// chuyện tình — lời văn là của mẫu. Chỉ KHAI cảnh dưới dạng dữ liệu (CX_SLIDE.scenes); vẽ là
-// việc của slide-cuoi/engine/slide-engine.js, chạy/xuất là runtime + slide-export.js.
+// ảnh, một bên chữ, xen kẽ trái/phải. Từ thiệp chỉ lấy ảnh, họ tên, ngày cưới, chuyện tình —
+// không tên cha mẹ, không địa chỉ (khách đã ở tiệc); lời văn là của mẫu. Chỉ KHAI cảnh dưới
+// dạng dữ liệu (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime + slide-export.js.
 
 (function () {
   const C = {
@@ -28,18 +28,12 @@
     body: { family: CORM, size: 28 },
     bodyLong: { family: CORM, size: 26 },
     sign: { family: CORM, size: 34, style: "italic", weight: 500 },
-    fam: { family: CORM, size: 24 },
-    famRole: { family: CORM, size: 24, style: "italic" },
   };
   // Nhịp trễ hiệu ứng: 1 = 0.15 giây.
   const d = (n) => n * 0.15;
 
   const _day = (s) => (s ? new Date(s + "T00:00:00") : null);
   const _on = (v) => v !== false && v !== "false";
-  const _parent = (title, name) => {
-    const bare = String(name || "").trim().replace(/^(ông|bà)\s+/i, "");
-    return bare ? `${title} ${bare}` : "";
-  };
   const _WEEKDAYS = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
   const _QUOTES = [
     "Gặp được nhau đã là may mắn, đi cùng nhau là lựa chọn.",
@@ -115,7 +109,6 @@
       rule(6),
       date && { text: date, font: F.date, color: C.heading, lh: 1.3, mt: 28, anim: { k: "up", d: d(7) } },
       w.ceremony_lunar && note(w.ceremony_lunar, 8),
-      w.ceremony_location && note(w.ceremony_location, 9),
     ], { dur: 9, label: "Mở đầu" });
 
     // --- Lời chú rể, lời cô dâu gửi quan khách ---
@@ -172,23 +165,13 @@
       add(`album${i}`, next(), [title(q, 2, F.quote), rule(6)], { dur: 7, label: `Album ảnh ${i + 1}` });
     }
 
-    // --- Gửi cha mẹ hai bên (có tên cha mẹ mới hiện) ---
-    const fam = (role, father, mother) => {
-      const names = [_parent("Ông", father), _parent("Bà", mother)].filter(Boolean);
-      return names.length
-        ? [{ text: role, font: F.famRole, color: C.accent, lh: 1.4 }, ...names.map((n) => ({ text: n, font: F.fam, color: C.heading, lh: 1.4, mt: 4 }))]
-        : null;
-    };
-    const cols = [fam("Nhà trai", w.groom_father, w.groom_mother), fam("Nhà gái", w.bride_father, w.bride_mother)].filter(Boolean);
-    if (cols.length) {
-      add("parents", next(), [
-        kicker("Gửi cha mẹ"),
-        title("Công ơn sinh thành"),
-        rule(5),
-        say("Chúng con xin cảm ơn bố mẹ hai bên đã nuôi dưỡng, dạy dỗ và vun đắp cho chúng con có được ngày hôm nay. Chúng con xin hứa sẽ sống thật hạnh phúc để bố mẹ luôn yên lòng.", 6),
-        { cols, gap: 32, mt: 32, anim: { k: "up", d: d(8) } },
-      ], { dur: 11, label: "Gửi cha mẹ" });
-    }
+    // --- Gửi cha mẹ hai bên: chỉ lời cảm ơn, KHÔNG hiện tên cha mẹ ---
+    add("parents", next(), [
+      kicker("Gửi cha mẹ"),
+      title("Công ơn sinh thành"),
+      rule(5),
+      say("Chúng con xin cảm ơn bố mẹ hai bên đã nuôi dưỡng, dạy dỗ và vun đắp cho chúng con có được ngày hôm nay. Chúng con xin hứa sẽ sống thật hạnh phúc để bố mẹ luôn yên lòng.", 6),
+    ], { dur: 11, label: "Gửi cha mẹ" });
 
     // --- Lời cảm ơn (cảnh cuối) ---
     add("thanks", own(w.cover_image_url, fps.cover_image_url), [
@@ -226,7 +209,7 @@
     };
     blocks = blocks.map((b, k) => apply(b, `${sid}.${k}`)).filter(Boolean);
 
-    // Đánh chữ nối đuôi: đoạn sau chờ đoạn trước gõ xong, khối đứng sau (chữ ký, tên cha mẹ)
+    // Đánh chữ nối đuôi: đoạn sau chờ đoạn trước gõ xong, khối đứng sau (chữ ký)
     // chờ đoạn cuối. Thời điểm tính theo chữ ĐÃ SỬA nên đổi lời là nhịp tự giãn theo.
     let typedEnd = 0;
     blocks = blocks.map((b) => {

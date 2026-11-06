@@ -34,6 +34,10 @@
     small: { family: NS, size: 14, weight: 300 },
     smallL: { family: NS, size: 17, weight: 300 },
     name: { family: NS, size: 26, weight: 400 },
+    // Lời cô dâu: chữ thu dần theo độ dài (khách sửa dài hơn vẫn vừa khung).
+    speech: { family: NS, size: 19, weight: 300 },
+    speechM: { family: NS, size: 17, weight: 300 },
+    speechS: { family: NS, size: 15, weight: 300 },
   };
   // Nhịp trễ: 1 = 0.15 giây.
   const A = (k, n, o) => ({ k, d: n * 0.15, ...o });
@@ -57,10 +61,6 @@
   const _day = (s) => (s ? new Date(s + "T00:00:00") : null);
   const _on = (v) => v !== false && v !== "false";
   const _pad = (n) => String(n).padStart(2, "0");
-  const _parent = (title, name) => {
-    const bare = String(name || "").trim().replace(/^(ông|bà)\s+/i, "");
-    return bare ? `${title} ${bare}` : "";
-  };
   const _STORY_MAX = 4;
 
   // Kho ảnh: album của thiệp quay vòng (thiếu ảnh thì lặp lại); album rỗng thì lấy ảnh bìa,
@@ -236,6 +236,55 @@
       return { dur: 10, tr: "split", bg: C.taupe };
     });
 
+    // ── Lời cô dâu: ba lời dài (gửi quan khách · gửi bố mẹ hai bên · gửi chồng), viết để cô dâu
+    // đọc thu âm rồi lồng vào ở tab Giọng đọc. Nói với quan khách, bố mẹ xưng "con"; nói với chồng
+    // xưng "em". Không chèn họ tên, không nêu tên bố mẹ. Thời lượng theo độ dài lời (~14 ký tự/giây).
+    const speech = (S, def, color) => {
+      const b = S.t("say", def, P(F.speech, color || C.body, { lh: 1.95, ls: 0.5, mt: 24, anim: A("lines", 9, { step: 0.45, t: 1.4 }) }));
+      if (!b) return { block: null, dur: 10 };
+      const n = b.text.length;
+      b.font = n > 700 ? F.speechS : n > 480 ? F.speechM : F.speech;
+      return { block: b, dur: Math.max(12, Math.min(45, 6 + n / 14)) };
+    };
+    const speechHead = (S, title, sub, color) => [
+      S.t("title", title, T(F.titleS, color || C.ink, { ls: 7, anim: A("track", 3, { ls0: 30 }) })),
+      S.t("sub", sub, { font: F.role, color: C.body, lh: 1.4, mt: 10, anim: A("fade", 6) }),
+    ];
+
+    const guests = (S) => {
+      S.rect(0, 360, 476, 360, C.taupe, A("reveal", 0, { from: "bottom", t: 1.1 }));
+      S.img(0, { x: 110, y: 80, w: 600, h: 560 }, A("fly", 2, { from: "left" }), pool.own("bride_image_url"));
+      const sp = speech(
+        S,
+        "Kính thưa quý vị quan khách,\nHôm nay là ngày con khoác lên mình chiếc váy cưới, bước sang một chặng đường mới cùng người con thương. Con xin chân thành cảm ơn quý vị đã dành thời gian quý báu đến chung vui cùng gia đình hai bên. Sự có mặt của mọi người hôm nay là lời chúc phúc ý nghĩa nhất mà chúng con nhận được.",
+      );
+      S.col([...speechHead(S, "Dear guests", "Gửi quý vị quan khách"), sp.block], 768, 460, 56, 664);
+      return { dur: sp.dur, tr: "slide" };
+    };
+
+    const family = (S) => {
+      S.rect(640, 0, 640, 720, C.taupe, A("reveal", 0, { from: "right", t: 1.1 }));
+      S.img(0, { x: 712, y: 72, w: 504, h: 576 }, A("fly", 2, { from: "right" }));
+      const sp = speech(
+        S,
+        "Con xin gửi lời cảm ơn đến bố mẹ, những người đã sinh thành, nuôi nấng và dạy dỗ con nên người. Bao nhiêu năm qua, bố mẹ đã lặng lẽ hy sinh để con được lớn lên trong yêu thương. Hôm nay con đi lấy chồng, con biết bố mẹ vừa vui vừa có chút chạnh lòng. Con hứa sẽ sống thật hạnh phúc và thường xuyên về thăm nhà. Con cũng xin cảm ơn bố mẹ chồng đã đón nhận con như con gái trong nhà.",
+      );
+      S.col([...speechHead(S, "To my family", "Gửi bố mẹ hai bên"), sp.block], 72, 520, 56, 664);
+      return { dur: sp.dur, tr: "split" };
+    };
+
+    const husband = (S) => {
+      S.rect(0, 400, 300, 320, C.taupe, A("reveal", 0, { from: "left", t: 1.1 }));
+      S.img(0, { x: 72, y: 48, w: 520, h: 624 }, A("fly", 2, { from: "top" }));
+      S.col([S.t("deco", "Forever", T(F.title, C.white, { ls: 10, ...shadow, anim: A("track", 6, { ls0: 40 }) }))], 72, 520, 588);
+      const sp = speech(
+        S,
+        "Anh à, cảm ơn anh đã đến bên em, đã kiên nhẫn đi cùng em qua những ngày vui lẫn những lúc giận hờn. Em không hứa mọi ngày sau này đều dễ dàng, nhưng em hứa sẽ luôn nắm chặt tay anh. Mình sẽ cùng nhau vun đắp một mái nhà nhỏ, nơi có tiếng cười và bữa cơm chờ nhau mỗi tối. Khi anh mệt, em sẽ ở đây. Khi em yếu lòng, mong anh vẫn dịu dàng như hôm nay. Từ hôm nay, mình là một nhà, anh nhé.",
+      );
+      S.col([...speechHead(S, "To my husband", "Gửi anh, chồng của em"), sp.block], 656, 560, 48, 672);
+      return { dur: sp.dur, tr: "zoom" };
+    };
+
     // ── Bộ cảnh album (đủ bộ dù thiệp ít ảnh — ảnh lặp vòng) ──
     const albums = [
       // Khối nâu trên, ảnh lớn dưới, hai ảnh dọc phải.
@@ -357,47 +406,26 @@
     };
 
     // Thứ tự: album xen chuyện tình, cảnh hai bên đứng trước album cuối.
+    // Thứ tự: lời gửi quan khách ngay sau "My bride"; album xen chuyện tình; lời gửi bố mẹ ở
+    // khoảng hai phần ba; lời gửi chồng đứng ngay trước trái tim.
     let a = 0;
     const album = () => {
       const i = a++;
       add(`album${i}`, `Album ${i + 1}`, albums[i]);
     };
+    add("guests", "Cô dâu gửi quan khách", guests);
     album();
     album();
     story.forEach((ev, k) => {
       add(`story${k}`, ev.title || ev.date || `Chuyện tình ${k + 1}`, storyScene(ev, k));
-      if (a < albums.length - 2) album();
+      if (a < albums.length - 3) album();
     });
+    while (a < albums.length - 3) album();
+    add("family", "Cô dâu gửi bố mẹ", family);
     while (a < albums.length - 1) album();
     add("pair", "Hai bên", pair);
     album();
-
-    // ── Gửi cha mẹ (có tên cha mẹ mới hiện) ──
-    const fam = (S, side, role, father, mother) => {
-      const names = [_parent("Ông", father), _parent("Bà", mother)].filter(Boolean);
-      if (!names.length) return null;
-      return [
-        S.t(`${side}`, role, { font: F.role, color: C.body, lh: 1.5 }),
-        ...names.map((n, k) => S.t(`${side}${k}`, n, P(F.story, C.ink, { lh: 1.6, mt: 4 }))),
-      ].filter(Boolean);
-    };
-    const hasParents = [w.groom_father, w.groom_mother, w.bride_father, w.bride_mother].some((x) => String(x || "").trim());
-    if (hasParents) {
-      add("parents", "Gửi cha mẹ", (S) => {
-        S.rect(0, 360, 476, 360, C.taupe, A("reveal", 0, { from: "bottom", t: 1.1 }));
-        S.img(0, { x: 130, y: 86, w: 640, h: 520 }, A("fly", 2, { from: "bl" }));
-        const cols = [fam(S, "nt", "Nhà trai", w.groom_father, w.groom_mother), fam(S, "ng", "Nhà gái", w.bride_father, w.bride_mother)].filter((c) => c && c.length);
-        S.col(
-          [
-            S.t("title", "Our family", T(F.titleS, C.ink, { ls: 7, anim: A("track", 4, { ls0: 30 }) })),
-            S.t("say", "Chúng con xin cảm ơn bố mẹ hai bên đã nuôi dưỡng, dạy dỗ và vun đắp cho chúng con có được ngày hôm nay.", P(F.story, C.body, { lh: 1.9, mt: 20, anim: A("lines", 8) })),
-            cols.length && { cols, gap: 24, mt: 28, anim: A("up", 12) },
-          ],
-          820, 420, 70, 650,
-        );
-        return { dur: 11, tr: "split" };
-      });
-    }
+    add("husband", "Cô dâu gửi chồng", husband);
 
     // ── Trái tim: mười ảnh bay từ mọi hướng vào xếp thành hình trái tim, tên hai bạn ở hai bên ──
     add("heart", "Trái tim", (S) => {

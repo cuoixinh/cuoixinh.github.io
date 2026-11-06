@@ -1505,3 +1505,487 @@ html.sc-lock .cx-navmore-pop {
   font-size: 18px;
   color: rgb(var(--action-primary-rgb));
 }
+
+/* ── Tab Giọng đọc (slide-cuoi/voice.js) ── */
+/* Thanh trên: phát/tạm dừng · đồng hồ đầu phát / tổng · thu phóng. */
+.sc-vo-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.sc-vo-play {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  font-size: 18px;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 8px 20px -8px rgb(var(--action-primary-rgb) / 0.7);
+}
+.sc-vo-play:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+.sc-vo-i-pause,
+.sc-vo-bar.is-playing .sc-vo-i-play {
+  display: none;
+}
+.sc-vo-bar.is-playing .sc-vo-i-pause,
+.sc-vo-i-play {
+  display: inline-flex;
+}
+.sc-vo-clock {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-vo-clock output {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-vo-zoom {
+  display: inline-flex;
+  flex: none;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-vo-zoom button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: 15px;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.sc-vo-zoom button:hover {
+  background: rgb(var(--white-rgb));
+}
+.sc-vo-zoom button:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 1px;
+}
+
+/* Dòng thời gian: nền tối như bàn dựng phim; cột tên lớp dính trái, phần làn cuộn ngang. */
+.sc-vo-tl {
+  --vo-head: 132px;
+  --vo-bg: 40 24 32;
+  --vo-head-bg: 52 32 42;
+  --vo-ink: 255 240 245;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  background: rgb(var(--vo-bg));
+  box-shadow: 0 16px 32px -20px rgb(var(--vo-bg) / 0.9);
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--vo-ink) / 0.25) transparent;
+}
+/* Màn hẹp: cột lớp chỉ còn số + nút tiếng (tên đã hiện trên khối). */
+@media (max-width: 639px) {
+  .sc-vo-tl {
+    --vo-head: 96px;
+  }
+  .sc-vo-row.is-voice .sc-vo-name {
+    display: none;
+  }
+}
+.sc-vo-in {
+  position: relative;
+  width: calc(var(--vo-head) + var(--vo-w));
+  padding-bottom: 4px;
+}
+.sc-vo-row {
+  display: flex;
+  height: 44px;
+  border-bottom: 1px solid rgb(var(--vo-ink) / 0.06);
+}
+.sc-vo-row.is-ruler {
+  height: 24px;
+}
+.sc-vo-row.is-scenes,
+.sc-vo-row.is-music {
+  height: 28px;
+}
+.sc-vo-head {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  width: var(--vo-head);
+  padding: 0 4px 0 8px;
+  font-size: 12px;
+  color: rgb(var(--vo-ink) / 0.7);
+  background: rgb(var(--vo-head-bg));
+  box-shadow: 1px 0 0 rgb(var(--vo-ink) / 0.08);
+}
+.sc-vo-head.is-mute {
+  color: rgb(var(--vo-ink) / 0.35);
+}
+.sc-vo-n {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+}
+.sc-vo-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.sc-vo-mute {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: inherit;
+}
+.sc-vo-mute:hover {
+  background: rgb(var(--vo-ink) / 0.1);
+}
+.sc-vo-mute:focus-visible {
+  outline: 2px solid rgb(var(--vo-ink) / 0.8);
+}
+.sc-vo-lane {
+  position: relative;
+  flex: none;
+  width: var(--vo-w);
+}
+.sc-vo-lane[data-scrub] {
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+/* Thước giây + dải cảnh: kéo để tua. */
+.sc-vo-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding: 4px 0 0 4px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--vo-ink) / 0.5);
+  border-left: 1px solid rgb(var(--vo-ink) / 0.2);
+  pointer-events: none;
+}
+.sc-vo-seg {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  overflow: hidden;
+  padding: 0 8px;
+  font-size: 11px;
+  line-height: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-radius: 6px;
+  color: rgb(var(--vo-ink) / 0.75);
+  background: rgb(var(--vo-ink) / 0.1);
+  box-shadow: inset -1px 0 0 rgb(var(--vo-bg));
+  pointer-events: none;
+}
+.sc-vo-seg.is-alt {
+  background: rgb(var(--vo-ink) / 0.16);
+}
+.sc-vo-mbar {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  padding: 0 8px;
+  font-size: 11px;
+  line-height: 20px;
+  border-radius: 6px;
+  color: rgb(var(--vo-ink) / 0.8);
+  background: repeating-linear-gradient(90deg, rgb(214 170 120 / 0.35) 0 3px, rgb(214 170 120 / 0.2) 3px 6px);
+}
+.sc-vo-note {
+  position: sticky;
+  left: calc(var(--vo-head) + 8px);
+  display: inline-block;
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 28px;
+  color: rgb(var(--vo-ink) / 0.5);
+}
+.sc-vo-row.is-voice .sc-vo-note {
+  line-height: 44px;
+}
+
+/* Khối giọng đọc: kéo thân để dời, kéo hai mép để cắt. */
+.sc-vo-clip {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgb(var(--action-primary-rgb)), rgb(var(--action-primary-deep-rgb)));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.sc-vo-clip.is-drag {
+  cursor: grabbing;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.45);
+}
+.sc-vo-clip.is-sel {
+  box-shadow:
+    0 0 0 2px rgb(var(--white-rgb)),
+    0 8px 20px rgb(0 0 0 / 0.4);
+}
+.sc-vo-clip.is-mute {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+.sc-vo-clip:focus-visible {
+  outline: 2px solid rgb(var(--white-rgb));
+  outline-offset: 2px;
+}
+.sc-vo-clip canvas {
+  position: absolute;
+  inset: 4px 0;
+  width: 100%;
+  height: calc(100% - 8px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.sc-vo-cname {
+  position: absolute;
+  top: 4px;
+  left: 12px;
+  right: 12px;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgb(var(--white-rgb));
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  pointer-events: none;
+}
+.sc-vo-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  cursor: ew-resize;
+}
+.sc-vo-clip.is-narrow .sc-vo-edge {
+  display: none;
+}
+.sc-vo-edge.is-l {
+  left: 0;
+}
+.sc-vo-edge.is-r {
+  right: 0;
+}
+.sc-vo-edge::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 4px;
+  height: 16px;
+  margin-top: -8px;
+  border-radius: 2px;
+  background: rgb(var(--white-rgb) / 0.85);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.sc-vo-clip:hover .sc-vo-edge::after,
+.sc-vo-clip.is-sel .sc-vo-edge::after {
+  opacity: 1;
+}
+
+/* Đầu phát: vạch sáng xuyên mọi làn, mũi nhọn trên thước. */
+.sc-vo-ph {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--vo-head);
+  z-index: 2;
+  width: 2px;
+  margin-left: -1px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 0 8px rgb(var(--action-primary-rgb) / 0.8);
+  pointer-events: none;
+  will-change: transform;
+}
+.sc-vo-ph i {
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px 2px 6px 6px;
+  background: rgb(var(--white-rgb));
+}
+
+/* Bảng lớp đang chọn. */
+.sc-vo-sel {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 8px 12px 4px 16px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
+}
+.sc-vo-sel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sc-vo-sel-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-vo-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: 16px;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-vo-x:hover {
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-vo-vol-v {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.sc-vo-up {
+  margin-bottom: 12px;
+}
+.sc-vo-up:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.sc-vo-duck {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+}
+
+/* Thu âm thẳng: nút micro đầu lớp (đang thu thành nút dừng đỏ nhấp nháy), khối đỏ chạy dài theo
+   đầu phát, dòng trạng thái trên dòng thời gian. */
+.sc-vo-rec-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: 14px;
+  color: rgb(var(--vo-ink) / 0.85);
+  background: rgb(var(--vo-ink) / 0.08);
+}
+.sc-vo-rec-btn:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(239 68 68 / 0.85);
+}
+.sc-vo-rec-btn:focus-visible {
+  outline: 2px solid rgb(var(--vo-ink) / 0.8);
+}
+.sc-vo-rec-btn.is-on {
+  color: rgb(var(--white-rgb));
+  background: rgb(239 68 68);
+  animation: cx-vo-rec 1.2s ease-in-out infinite;
+}
+@keyframes cx-vo-rec {
+  50% {
+    box-shadow: 0 0 0 6px rgb(239 68 68 / 0.3);
+  }
+}
+.sc-vo-n.is-new {
+  font-size: 12px;
+  color: rgb(var(--vo-ink) / 0.8);
+  background: rgb(var(--vo-ink) / 0.12);
+}
+.sc-vo-row.is-rec .sc-vo-clip {
+  opacity: 0.25;
+}
+.sc-vo-live {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgb(239 68 68), rgb(185 28 28));
+  box-shadow: 0 0 12px rgb(239 68 68 / 0.5);
+}
+.sc-vo-rec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgb(185 28 28);
+  background: rgb(254 226 226);
+}
+.sc-vo-rec::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgb(239 68 68);
+  animation: cx-vo-rec 1.2s ease-in-out infinite;
+}
+.sc-vo-bar.is-rec .sc-vo-play {
+  background: rgb(239 68 68);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-vo-rec-btn.is-on,
+  .sc-vo-rec::before {
+    animation: none;
+  }
+}
