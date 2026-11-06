@@ -7,6 +7,9 @@
   --sc-spot: 255 255 255; /* quầng sáng sau slide */
   --sc-on: 76 29 46; /* chữ + viền nút trên nền sân khấu */
   --sc-well: 255 255 255 / 0.7; /* nền ô xuất video trên sân khấu */
+  --sc-glow-1: 244 114 160; /* quầng hồng */
+  --sc-glow-2: 255 196 168; /* quầng đào */
+  --sc-glow-3: 255 255 255; /* quầng trắng + vệt quét + bokeh */
   --sc-top: 0px; /* mép trên lúc ghim: dưới md không có navbar trên */
   --sc-ratio-n: 1.7778; /* tỉ lệ số của mẫu, index.js đặt theo --sc-ratio */
   display: grid;
@@ -55,15 +58,167 @@
   }
 }
 
+/* Ánh sáng động dưới slide: lớp phủ kín sân khấu, cắt theo góc bo, không bắt chuột. Mọi
+   chuyển động chỉ đổi transform/opacity (chạy trên GPU). Nội dung sân khấu nằm trên (z 1).
+   Không gắn transform/filter lên CHÍNH .sc-stage — xem .sc-screen.is-full. */
+.sc-lights {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.sc-glow {
+  position: absolute;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  will-change: transform;
+}
+.sc-glow--a {
+  top: -30%;
+  left: -20%;
+  background: radial-gradient(circle, rgb(var(--sc-glow-1) / 0.5) 0%, transparent 62%);
+  animation: cx-sc-drift-a 19s ease-in-out infinite alternate;
+}
+.sc-glow--b {
+  right: -25%;
+  bottom: -40%;
+  background: radial-gradient(circle, rgb(var(--sc-glow-2) / 0.7) 0%, transparent 62%);
+  animation: cx-sc-drift-b 23s ease-in-out infinite alternate;
+}
+.sc-glow--c {
+  top: 10%;
+  left: 30%;
+  width: 55%;
+  background: radial-gradient(circle, rgb(var(--sc-glow-3) / 0.9) 0%, transparent 60%);
+  animation: cx-sc-drift-c 29s ease-in-out infinite alternate;
+}
+@keyframes cx-sc-drift-a {
+  50% {
+    transform: translate(40%, 25%) scale(1.15);
+  }
+  100% {
+    transform: translate(85%, 5%) scale(0.95);
+  }
+}
+@keyframes cx-sc-drift-b {
+  50% {
+    transform: translate(-45%, -30%) scale(1.2);
+  }
+  100% {
+    transform: translate(-90%, -10%) scale(1);
+  }
+}
+@keyframes cx-sc-drift-c {
+  50% {
+    transform: translate(-40%, 30%) scale(1.25);
+  }
+  100% {
+    transform: translate(35%, -15%) scale(0.9);
+  }
+}
+/* Vệt sáng chéo quét từ trái sang phải trong ~4 giây, rồi nghỉ tới hết nhịp 11 giây. */
+.sc-sweep {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 34%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(var(--sc-glow-3) / 0.9) 50%,
+    transparent 100%
+  );
+  transform: translateX(-150%) skewX(-18deg);
+  animation: cx-sc-sweep 11s ease-in-out 1.5s infinite;
+  will-change: transform;
+}
+@keyframes cx-sc-sweep {
+  0% {
+    transform: translateX(-150%) skewX(-18deg);
+  }
+  36%,
+  100% {
+    transform: translateX(480%) skewX(-18deg);
+  }
+}
+/* Đốm bokeh: chấm sáng mờ, mỗi đốm một chỗ + một nhịp riêng, sáng lên rồi tắt. */
+.sc-bokeh {
+  position: absolute;
+  width: 20px;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgb(var(--sc-glow-3)) 0%, rgb(var(--sc-glow-1) / 0.35) 45%, transparent 70%);
+  opacity: 0;
+  animation: cx-sc-twinkle 6s ease-in-out infinite;
+}
+.sc-bokeh:nth-child(5) {
+  top: 12%;
+  left: 8%;
+}
+.sc-bokeh:nth-child(6) {
+  top: 78%;
+  left: 18%;
+  width: 32px;
+  animation-delay: 1.2s;
+  animation-duration: 7s;
+}
+.sc-bokeh:nth-child(7) {
+  top: 20%;
+  right: 6%;
+  width: 12px;
+  animation-delay: 2.6s;
+}
+.sc-bokeh:nth-child(8) {
+  bottom: 10%;
+  right: 22%;
+  width: 28px;
+  animation-delay: 3.8s;
+  animation-duration: 8s;
+}
+.sc-bokeh:nth-child(9) {
+  top: 46%;
+  left: 3%;
+  width: 12px;
+  animation-delay: 4.6s;
+}
+@keyframes cx-sc-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) translateY(-12px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-glow,
+  .sc-sweep,
+  .sc-bokeh,
+  .sc-screen::before,
+  .sc-screen::after {
+    animation: none;
+  }
+  .sc-sweep {
+    display: none;
+  }
+}
+
 /* Khung xem đúng tỉ lệ của mẫu (--sc-ratio, index.js đặt): lấy trọn bề ngang, nhưng không
    cao quá --sc-max-h. */
 .sc-screen {
   position: relative;
+  z-index: 1;
   width: min(100%, calc(var(--sc-max-h) * var(--sc-ratio-n)));
   margin-inline: auto;
   aspect-ratio: var(--sc-ratio, 16 / 9);
-  overflow: hidden;
-  border-radius: 8px;
+  --sc-r: 8px;
+  border-radius: var(--sc-r);
   background: rgb(0 0 0);
   box-shadow:
     0 0 0 1px rgb(var(--sc-on) / 0.08),
@@ -75,6 +230,47 @@
   width: 100%;
   height: 100%;
   border: 0;
+  border-radius: inherit;
+}
+/* Đèn chạy viền: hai dải sáng hồng–trắng chạy vòng quanh mép slide (::before, viền 3px) +
+   quầng toả ra (::after, nhoè). Góc xoay là biến --sc-orbit khai bằng @property để
+   conic-gradient chuyển động được; trình duyệt chưa hỗ trợ thì viền đứng yên. Hai lớp nằm
+   DƯỚI iframe (z -1 trong khung) nên chỉ lộ phần thò ra ngoài mép. */
+@property --sc-orbit {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+.sc-screen::before,
+.sc-screen::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: calc(var(--sc-r) + 3px);
+  background: conic-gradient(
+    from var(--sc-orbit),
+    transparent 0deg,
+    rgb(var(--sc-glow-1)) 50deg,
+    rgb(var(--sc-glow-3)) 80deg,
+    transparent 120deg,
+    transparent 180deg,
+    rgb(var(--sc-glow-2)) 230deg,
+    rgb(var(--sc-glow-3)) 260deg,
+    transparent 300deg
+  );
+  animation: cx-sc-orbit 7s linear infinite;
+}
+.sc-screen::after {
+  inset: -8px;
+  border-radius: calc(var(--sc-r) + 8px);
+  filter: blur(16px);
+  opacity: 0.85;
+}
+@keyframes cx-sc-orbit {
+  to {
+    --sc-orbit: 360deg;
+  }
 }
 /* Máy không có Fullscreen API (iPhone): phủ kín màn bằng CSS. Nền sân khấu không được có
    transform/filter, không thì khung `fixed` này bị nhốt trong nó. */
@@ -88,6 +284,10 @@
   border-radius: 0;
   box-shadow: none;
 }
+.sc-screen.is-full::before,
+.sc-screen.is-full::after {
+  display: none;
+}
 html.sc-lock,
 html.sc-lock body {
   overflow: hidden;
@@ -95,6 +295,8 @@ html.sc-lock body {
 
 /* Hàng dưới slide: Trình chiếu · Xuất video, tổng số cảnh + thời lượng đẩy sang phải. */
 .sc-bar {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -152,6 +354,8 @@ html.sc-lock body {
 /* Ô xuất video: mở ngay dưới hàng nút, trên nền sân khấu; bốn trạng thái (chọn · đang xuất ·
    xong · lỗi). Cao quá thì tự cuộn trong khung để sân khấu ghim không đè hết màn. */
 .sc-export {
+  position: relative;
+  z-index: 1;
   width: min(100%, calc(var(--sc-max-h) * var(--sc-ratio-n)));
   max-height: calc(var(--vh, 1svh) * 40);
   margin: 12px auto 0;
@@ -259,7 +463,7 @@ html.sc-lock body {
     box-shadow: none;
   }
   .sc-screen {
-    border-radius: 12px;
+    --sc-r: 12px;
   }
   .sc-head {
     padding: 16px 0 8px;
