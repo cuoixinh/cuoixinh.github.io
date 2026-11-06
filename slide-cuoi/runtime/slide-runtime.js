@@ -430,7 +430,7 @@
             } catch (e) {}
           }
           x.el.volume = c.vol;
-          if (x.el.paused) x.el.play().catch(() => {});
+          if (x.el.paused) x.el.play().catch(Music.refused);
         } else if (!x.el.paused) x.el.pause();
       });
       // Nhạc hạ / lên dần trong khoảng nửa giây.
@@ -450,17 +450,19 @@
   })();
 
   // ── Nhạc nền: CHỈ nhạc khách chọn ở tab Âm thanh (file từ máy hoặc bài thư viện) — không lấy nhạc
-  // của thiệp (thường là YouTube, không ghép được vào video). Trình duyệt chặn tự phát tiếng nên
-  // nhạc chỉ bật ở cú chạm/phím đầu tiên trong khung. Phát KHỚP đồng hồ slide trong đoạn `cut`
-  // {start, in, len|null} như giọng đọc (bài lặp; len null = tới hết slide).
+  // của thiệp (thường là YouTube, không ghép được vào video). Mặc định BẬT; trình duyệt chặn tự
+  // phát tiếng (chưa có cú chạm nào) thì cờ `blocked` giữ im, nút loa hiện tắt, và cú chạm/phím
+  // đầu tiên trong khung phát luôn. Phát KHỚP đồng hồ slide trong đoạn `cut` {start, in,
+  // len|null} như giọng đọc (bài lặp; len null = tới hết slide).
   const Music = (() => {
     let cut = { start: 0, in: 0, len: null };
     let audio = null;
     let fileUrl = "";
     let fileBlob = null; // file nhạc khách tải lên (trang cha gửi Blob) — bộ xuất đọc thẳng
     let loaded = null; // khoá nguồn đang nạp: nạp lại đúng nguồn đó thì giữ nguyên, nhạc không chạy lại từ đầu
-    let want = false;
+    let want = true;
     let touched = false;
+    let blocked = false; // trình duyệt từ chối phát (chưa có cú chạm) — chờ cú chạm đầu tiên
     let vol = 1; // mức nhạc hiện tại (Voice hạ xuống khi có giọng đọc)
 
     function reset() {
@@ -493,19 +495,27 @@
 
     function play() {
       if (!want || !playing || exporting) return;
-      audio?.play().catch(() => {});
+      audio?.play().catch(refused);
+    }
+
+    // play() bị từ chối vì chưa có cú chạm: thôi gọi lại mỗi khung hình, nút loa về trạng thái tắt.
+    function refused(e) {
+      if (e?.name !== "NotAllowedError" || blocked) return;
+      blocked = true;
+      sync();
     }
 
     function pause() {
       audio?.pause();
     }
 
-    // Cú chạm đầu tiên (trừ chính nút nhạc — nút đó tự quyết) là lúc bật tiếng.
+    // Cú chạm đầu tiên (trừ chính nút nhạc — nút đó tự quyết) mở khoá tiếng; khách đã tự tắt
+    // bằng nút loa thì giữ tắt.
     function first(e) {
       if (touched || (!audio && !Voice.has())) return;
       if (e.target?.closest?.('[data-sl="music"]')) return;
       touched = true;
-      want = true;
+      blocked = false;
       play();
       sync();
     }
@@ -531,7 +541,7 @@
           } catch (e) {}
         }
       }
-      if (audio.paused) audio.play().catch(() => {});
+      if (audio.paused && !blocked) audio.play().catch(refused);
     }
 
     return {
@@ -545,11 +555,13 @@
       },
       exportCut: () => ({ ...cut }),
       has: () => !!audio,
-      isOn: () => (!!audio || Voice.has()) && want,
-      wanted: () => want,
+      isOn: () => (!!audio || Voice.has()) && want && !blocked,
+      wanted: () => want && !blocked,
+      refused,
       // Bấm phát từ trang cha (dòng thời gian Giọng đọc) cũng là lúc bật tiếng.
       enable() {
         touched = true;
+        blocked = false;
         want = true;
         play();
         sync();
@@ -561,9 +573,11 @@
       },
       // Nguồn cho bộ xuất: Blob nếu là file tải lên (CSP chặn fetch URL blob:), không thì URL.
       exportSrc: () => fileBlob || fileUrl,
+      // Đang bị chặn thì nút loa (đang hiện tắt) là cú bật.
       toggle() {
         touched = true;
-        want = !want;
+        want = blocked || !want;
+        blocked = false;
         want ? play() : pause();
         sync();
       },
