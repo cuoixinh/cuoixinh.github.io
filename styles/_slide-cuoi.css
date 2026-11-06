@@ -6,7 +6,6 @@
   --sc-curtain: 253 240 244; /* nền sân khấu hồng phấn */
   --sc-spot: 255 255 255; /* quầng sáng sau slide */
   --sc-on: 76 29 46; /* chữ + viền nút trên nền sân khấu */
-  --sc-well: 255 255 255 / 0.7; /* nền ô xuất video trên sân khấu */
   --sc-glow-1: 244 114 160; /* quầng hồng */
   --sc-glow-2: 255 196 168; /* quầng đào */
   --sc-glow-3: 255 255 255; /* quầng trắng + vệt quét + bokeh */
@@ -38,10 +37,10 @@
    tách nó khỏi danh sách cuộn bên dưới. */
 .sc-stage {
   --sc-max-h: calc(var(--vh, 1svh) * 42);
-  /* Hàng nút + ô xuất video: rộng bằng slide, nhưng không hẹp hơn 560px (slide thu nhỏ trên
-     màn thấp thì hai thứ này vẫn đủ chỗ), không quá bề ngang sân khấu. */
-  --sc-row-w: min(100%, max(calc(var(--sc-max-h) * var(--sc-ratio-n)), 560px));
-  /* Cao tối đa một màn trừ navbar: ô xuất video mở mà vẫn dài quá thì cuộn trong khung. */
+  /* Hàng nút: rộng bằng slide, nhưng không hẹp hơn 480px (đủ chỗ hai nút + tổng thời lượng),
+     không quá bề ngang sân khấu. */
+  --sc-row-w: min(100%, max(calc(var(--sc-max-h) * var(--sc-ratio-n)), 480px));
+  /* Cao tối đa một màn trừ navbar, dư thì cuộn trong khung (màn ngang rất thấp). */
   max-height: calc(var(--vh, 1svh) * 100 - var(--sc-top));
   overflow-y: auto;
   grid-area: stage;
@@ -54,10 +53,6 @@
     radial-gradient(ellipse 70% 60% at 50% 38%, rgb(var(--sc-spot)) 0%, transparent 72%),
     rgb(var(--sc-curtain));
   box-shadow: 0 1px 0 rgb(var(--brand-primary-rgb) / 0.6);
-}
-/* Dưới lg đang mở ô xuất video: slide thu lại để ô đó còn chỗ dưới slide đang ghim. */
-.sc-stage.is-ex {
-  --sc-max-h: calc(var(--vh, 1svh) * 26);
 }
 @media (min-width: 640px) {
   .sc-stage {
@@ -361,38 +356,53 @@ html.sc-lock body {
   }
 }
 
-/* Ô xuất video: mở ngay dưới hàng nút, trên nền sân khấu; bốn trạng thái (chọn · đang xuất ·
-   xong · lỗi). Cao quá thì tự cuộn trong khung để sân khấu ghim không đè hết màn. */
-.sc-export {
+/* Nút "Xuất video" kiêm thanh tiến độ: lúc xuất, nền tô dần theo --p (0–1, index.js đặt). */
+.sc-ex-btn {
   position: relative;
-  z-index: 1;
-  width: var(--sc-row-w);
-  max-height: calc(var(--vh, 1svh) * 40);
-  margin: 12px auto 0;
+  overflow: hidden;
+  isolation: isolate;
+  font-variant-numeric: tabular-nums;
+}
+.sc-ex-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgb(var(--action-primary-rgb) / 0.18);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left;
+  transition: transform 0.2s linear;
+}
+.sc-ex-btn.is-run {
+  border-color: rgb(var(--action-primary-rgb) / 0.6);
+}
+
+/* Thẻ nổi xuất video (x-popover neo vào nút "Xuất video"): bốn trạng thái chọn khổ · đang
+   xuất · xong · lỗi. Thẻ nổi nên slide không đổi cỡ. */
+.sc-export {
+  max-width: calc(100vw - 16px);
   padding: 16px;
-  overflow-y: auto;
-  border-radius: 12px;
-  background: rgb(var(--sc-well));
-  border: 1px solid rgb(var(--sc-on) / 0.16);
+  border-radius: 20px;
 }
 .sc-export-h {
   font-size: 15px;
   font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
 }
 .sc-export-h span {
   font-variant-numeric: tabular-nums;
+  color: rgb(var(--action-primary-deep-rgb));
 }
 .sc-export-note {
   margin-top: 8px;
   font-size: 13px;
   line-height: 1.5;
-  color: rgb(var(--sc-on) / 0.75);
+  color: rgb(var(--text-caption-rgb));
 }
 .sc-export-note:empty {
   display: none;
 }
 .sc-ex-res {
-  max-width: 320px;
   margin-top: 12px;
 }
 .sc-ex-res .cx-seg-btn:disabled {
@@ -404,7 +414,7 @@ html.sc-lock body {
   margin-top: 12px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgb(var(--sc-on) / 0.2);
+  background: rgb(var(--brand-primary-rgb) / 0.4);
 }
 .sc-ex-track i {
   display: block;
@@ -413,6 +423,12 @@ html.sc-lock body {
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.2s linear;
+}
+.sc-ex-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 /* Bảng chỉnh: dải tab ba mục rồi nội dung tab. */
@@ -481,11 +497,6 @@ html.sc-lock body {
   }
   .sc-stage > * {
     flex-shrink: 0;
-  }
-  /* Đang mở ô xuất video: chừa chỗ cho ô đó (~ 210px gồm khe) để slide + ô cùng vừa màn.
-     Màn quá thấp thì slide dừng ở 120px và sân khấu tự cuộn trong khung. */
-  .sc-stage.is-ex {
-    --sc-max-h: max(120px, calc(var(--vh, 1vh) * 100 - var(--sc-top) - 360px));
   }
   .sc-screen {
     --sc-r: 12px;

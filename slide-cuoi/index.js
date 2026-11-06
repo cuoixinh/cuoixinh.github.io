@@ -873,6 +873,18 @@ function _scExportNote() {
   _scEl("sc-ex-note").textContent = notes.join(" ");
 }
 
+// Nút "Xuất video" kiêm thanh tiến độ: đang xuất thì nhãn thành phần trăm và nền tô dần
+// (--p), xong thì "Tải lại video" — đóng thẻ nổi vẫn theo dõi được.
+function _scExportBtn(p) {
+  const btn = _scEl("sc-export-open");
+  const label = _scEl("sc-ex-btn-label");
+  if (!btn || !label) return;
+  btn.classList.toggle("is-run", _scExState === "run");
+  btn.style.setProperty("--p", String(_scExState === "run" ? (p || 0) / 100 : 0));
+  label.textContent =
+    _scExState === "run" ? `Đang xuất ${p || 0}%` : _scExState === "done" ? "Tải lại video" : "Xuất video";
+}
+
 function _scExportState(state, note) {
   _scExState = state;
   ["pick", "run", "done", "error"].forEach((k) => _scToggle(`sc-ex-${k}`, k === state));
@@ -881,21 +893,23 @@ function _scExportState(state, note) {
     _scWake?.release?.().catch(() => {});
     _scWake = null;
   }
+  _scExportBtn(0);
+  _scEl("sc-export").place?.(); // nội dung đổi khổ → đặt lại thẻ theo nút
 }
 
+// Bấm nút: mở/đóng thẻ nổi. Đang xuất hoặc đã xong thì mở đúng trạng thái đó; còn lại về
+// bước chọn khổ. `again` (nút Thử lại) = về bước chọn khổ, giữ thẻ mở.
 function scExportOpen(again) {
-  const box = _scEl("sc-export");
-  const open = again || box.classList.contains("hidden");
-  if (_scExState === "run" && !again) return box.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  box.classList.toggle("hidden", !open);
-  // Sân khấu thu slide lại để ô xuất video vừa màn (.sc-stage.is-ex trong CSS).
-  box.closest(".sc-stage")?.classList.toggle("is-ex", open);
-  _scEl("sc-export-open").setAttribute("aria-expanded", String(open));
-  if (open) {
+  const pop = _scEl("sc-export");
+  if (again) {
     _scExportState("pick");
     _scExportNote();
-    box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return pop.open?.(_scEl("sc-export-open"));
   }
+  if (pop.isOpen) return pop.close();
+  if (_scExState !== "run" && _scExState !== "done") _scExportState("pick");
+  _scExportNote();
+  pop.open?.(_scEl("sc-export-open"));
 }
 
 async function scExportStart() {
@@ -921,6 +935,7 @@ function _scExportMsg(m) {
     const p = Math.round((Number(m.p) || 0) * 100);
     _scEl("sc-ex-pct").textContent = `${p}%`;
     _scEl("sc-ex-fill").style.transform = `scaleX(${p / 100})`;
+    _scExportBtn(p);
   } else if (m.state === "done" && m.blob) {
     _scExBlob = m.blob;
     const mb = Math.max(1, Math.round(m.blob.size / 1048576));
