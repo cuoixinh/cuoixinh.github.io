@@ -16,7 +16,9 @@
 > của mẫu thiệp romantic-blush. Mẫu thứ hai: `templates/mai-ben-nhau/` ("Mãi Bên Nhau") — bố
 > cục tạp chí (nền hồng xám, mảng nâu be lệch sau ảnh, tiêu đề tiếng Anh viết hoa dãn rộng,
 > chữ dọc sát mép), mỗi cảnh nhiều ảnh bay từ ngoài khung vào. **Thiệp ít ảnh hơn số khung thì
-> ảnh LẶP VÒNG cho đủ** — không bớt cảnh, không để khung trống.
+> ảnh LẶP VÒNG cho đủ** — không bớt cảnh, không để khung trống. Mẫu này theo LỜI CÔ DÂU: chú rể
+> chỉ có cảnh "My groom" ngắn; cô dâu có ba lời dài (gửi quan khách · gửi bố mẹ hai bên · gửi
+> chồng) viết để thu âm rồi lồng vào ở tab Giọng đọc. KHÔNG hiện tên bố mẹ.
 >
 > **Vẽ bằng canvas + xuất video bằng WebCodecs (chốt 2026-11-06)**, chạy trọn trên máy khách:
 > xem trước, trình chiếu và xuất video dùng CÙNG một bộ vẽ nên video ra y hệt bản xem.
@@ -82,12 +84,23 @@ slide-cuoi/
   mỗi cảnh trong [min, max]: min = lúc mọi hiệu ứng của cảnh chạy xong + 1 giây (`_end`), max
   30 giây; đổi thời lượng chỉ `retime` (đặt lại mốc), không dựng lại dự án. Cảnh phải có `id`
   ổn định (mẫu đặt = id cảnh), thiếu thì engine lấy vị trí — chèn cảnh là lệch thời lượng đã chỉnh.
+- Giọng đọc (`voice.js`, tab "Giọng"): tối đa 10 file ghi âm, mỗi file ≤ 50 MB, mỗi file một LỚP
+  trên dòng thời gian của slide (thước giây · dải cảnh · nhạc · các lớp). Kéo thân khối = đổi lúc
+  bắt đầu, kéo hai mép = cắt đầu/cuối, hút về đầu cảnh / đầu phát / mép lớp khác; bảng lớp đang
+  chọn có nhích ±0,1 giây, âm lượng, tắt tiếng, xoá. Byte file cất IndexedDB kho `voice` (BYTE,
+  không Blob, kèm đỉnh sóng âm) theo `<mẫu>|<id thiệp hoặc demo>|<id lớp>`, vị trí/cắt/âm lượng +
+  mức "nhạc nền khi có giọng" ở `localStorage.cx_slide_voice` — không lên server. Khung phát lớp
+  khớp đồng hồ slide (`Voice` ở runtime), hạ nhạc khi có giọng; bộ xuất trộn nhạc + giọng bằng
+  OfflineAudioContext (`_mix`). Vị trí lớp là giây TUYỆT ĐỐI của slide — đổi thời lượng cảnh
+  thì lớp không chạy theo.
 - Ảnh thiệp đi qua worker ảnh / Storage: lượt tải crossOrigin hỏng thì engine tải lại kèm
   `?cx-cors=1` — bản trong cache trình duyệt có thể là bản KHÔNG có header CORS (thẻ `<img>`
   thường, worker ảnh bản cũ cache 30 ngày) và canvas không nhận nó.
 - Tin nhắn iframe ↔ trang cha: `cx-slide-ready` · `cx-slide-data` (thiệp + chữ đã sửa + ảnh
   khách + thời lượng) · `cx-slide-texts` (chữ đã sửa, dựng lại tại cảnh đang mở) ·
-  `cx-slide-timing` (thời lượng, chỉ đặt lại mốc) · `cx-slide-photos` (ảnh
+  `cx-slide-timing` (thời lượng, chỉ đặt lại mốc) · `cx-slide-voice` (giọng đọc) · `cx-slide-time`
+  (khung báo vị trí đầu phát ~10 lần/giây) · `cx-slide-seek` / `cx-slide-play` (dòng thời gian tua,
+  phát/dừng — bấm phát từ trang cha cũng bật tiếng) · `cx-slide-photos` (ảnh
   khách, dựng lại tại cảnh vừa đổi) · `cx-slide-edit` (bấm thẳng lên slide: `{index, kind:
   "text"|"photo", key}` → trang cha mở cảnh, đặt con trỏ vào ô chữ / khối ảnh) · `cx-slide-state` (danh sách
   cảnh kèm chữ + cảnh đang chiếu + loại nhạc) · `cx-slide-go` (`pause` = dừng ở cảnh đó,

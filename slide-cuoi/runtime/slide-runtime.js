@@ -114,7 +114,7 @@
 
   function sync() {
     root.classList.toggle("sl-paused", !playing);
-    root.classList.toggle("sl-has-music", Music.has());
+    root.classList.toggle("sl-has-music", Music.has() || Voice.has());
     root.classList.toggle("sl-music-on", Music.isOn());
     root.classList.toggle("sl-can-full", CAN_FS || EMBED);
     root.classList.toggle("sl-is-full", !!fsEl() || pseudoFull);
@@ -163,11 +163,31 @@
     if (fill) fill.style.transform = `scaleX(${Math.min(1, lt / P.scenes[i].dur)})`;
   }
 
+  let sentAt = 0;
   function tick(now) {
     if (playing && P && !exporting) t += Math.min(0.25, (now - last) / 1000);
     last = now;
     draw();
+    if (P) {
+      const tt = ((t % P.total) + P.total) % P.total;
+      Voice.tick(tt, playing && !exporting && Music.wanted());
+      // Vị trí đang phát cho dòng thời gian của trang cha (~10 lần/giây).
+      if (EMBED && now - sentAt > 100) {
+        sentAt = now;
+        post({ type: "cx-slide-time", t: tt, total: P.total, playing });
+      }
+    }
     requestAnimationFrame(tick);
+  }
+
+  // Tua tới giây `at` của slide (dòng thời gian ở trang cha).
+  function seek(at, stop) {
+    if (!P) return;
+    if (stop) pause();
+    t = Math.min(Math.max(0, Number(at) || 0), P.total - 0.01);
+    snap = null;
+    idx = -1;
+    draw();
   }
   requestAnimationFrame((now) => {
     last = now;
@@ -363,6 +383,73 @@
     if (hover) _box(hover, 1, true, false);
   }
 
+  // ── Giọng đọc: đoạn ghi âm khách tải lên ở tab Giọng đọc của trang cha. Mỗi đoạn đặt ở một mốc
+  // của slide (start, giây), cắt đầu `in` + dài `len`, âm lượng `vol` (0..1), tắt `mute`; phát
+  // KHỚP đồng hồ slide (lệch quá 0,35 giây thì tua lại) và nhạc nền hạ còn `duck` khi có giọng.
+  // Bật/tắt tiếng dùng chung cờ của nhạc (nút loa, cú chạm đầu tiên).
+  const Voice = (() => {
+    let clips = [];
+    const els = new Map(); // id → {url, el}
+    let duck = 1;
+    let level = 1;
+    const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+    const unit = (v) => Math.min(1, Math.max(0, n(v)));
+    function set(list, d) {
+      const keep = new Set();
+      clips = (Array.isArray(list) ? list : [])
+        .filter((v) => v?.id && v.blob instanceof Blob)
+        .map((v) => {
+          const id = String(v.id);
+          keep.add(id);
+          if (!els.has(id)) {
+            const url = URL.createObjectURL(v.blob);
+            const el = new Audio(url);
+            el.preload = "auto";
+            els.set(id, { url, el });
+          }
+          return { id, blob: v.blob, start: Math.max(0, n(v.start)), in: Math.max(0, n(v.in)), len: Math.max(0, n(v.len)), vol: unit(v.vol ?? 1), mute: !!v.mute };
+        });
+      els.forEach((x, id) => {
+        if (keep.has(id)) return;
+        x.el.pause();
+        URL.revokeObjectURL(x.url);
+        els.delete(id);
+      });
+      duck = d == null ? 1 : unit(d);
+    }
+    // tt = giây trong slide; run = đang phát và đang bật tiếng.
+    function tick(tt, run) {
+      let any = false;
+      clips.forEach((c) => {
+        const x = els.get(c.id);
+        if (!x) return;
+        if (run && !c.mute && tt >= c.start && tt < c.start + c.len) {
+          any = true;
+          const want = c.in + (tt - c.start);
+          if (!x.el.seeking && Math.abs(x.el.currentTime - want) > 0.35) {
+            try {
+              x.el.currentTime = want;
+            } catch (e) {}
+          }
+          x.el.volume = c.vol;
+          if (x.el.paused) x.el.play().catch(() => {});
+        } else if (!x.el.paused) x.el.pause();
+      });
+      // Nhạc hạ / lên dần trong khoảng nửa giây.
+      const target = any ? duck : 1;
+      level += (target - level) * 0.12;
+      if (Math.abs(target - level) < 0.01) level = target;
+      Music.level(level);
+    }
+    return {
+      set,
+      tick,
+      has: () => clips.some((c) => !c.mute),
+      duck: () => duck,
+      exportList: () => clips.map((c) => ({ blob: c.blob, start: c.start, in: c.in, len: c.len, vol: c.vol, mute: c.mute })),
+    };
+  })();
+
   // ── Nhạc nền: link YouTube của thiệp (iframe API, ẩn) hoặc file nhạc tải lên ──
   // Trình duyệt chặn tự phát tiếng nên nhạc chỉ bật ở cú chạm/phím đầu tiên trong khung.
   const Music = (() => {
@@ -377,6 +464,7 @@
     let loaded = null; // khoá nguồn đang nạp: nạp lại đúng nguồn đó thì giữ nguyên, nhạc không chạy lại từ đầu
     let want = false;
     let touched = false;
+    let vol = 1; // mức nhạc hiện tại (Voice hạ xuống khi có giọng đọc)
 
     const ytId = (u) =>
       (/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{6,})/.exec(u) || [])[1] || "";
@@ -400,6 +488,7 @@
         events: {
           onReady: () => {
             ready = true;
+            yt.setVolume(Math.round(vol * 100));
             if (want && playing) yt.playVideo();
           },
           // Hết bài thì quay về đúng giây bắt đầu (loop của YouTube về giây 0).
@@ -453,6 +542,7 @@
         audio = new Audio(fileUrl);
         audio.loop = true;
         audio.preload = "auto";
+        audio.volume = vol;
       } else if (url) {
         vid = ytId(url);
         if (vid) {
@@ -484,7 +574,7 @@
 
     // Cú chạm đầu tiên (trừ chính nút nhạc — nút đó tự quyết) là lúc bật tiếng.
     function first(e) {
-      if (touched || !kind) return;
+      if (touched || (!kind && !Voice.has())) return;
       if (e.target?.closest?.('[data-sl="music"]')) return;
       touched = true;
       want = true;
@@ -499,7 +589,21 @@
       play,
       pause,
       has: () => !!kind,
-      isOn: () => !!kind && want,
+      isOn: () => (!!kind || Voice.has()) && want,
+      wanted: () => want,
+      // Bấm phát từ trang cha (dòng thời gian Giọng đọc) cũng là lúc bật tiếng.
+      enable() {
+        touched = true;
+        want = true;
+        play();
+        sync();
+      },
+      level(v) {
+        if (Math.abs(v - vol) < 0.005) return;
+        vol = v;
+        if (audio) audio.volume = vol;
+        if (ready) yt?.setVolume?.(Math.round(vol * 100));
+      },
       // Nhạc dạng file thì ghép được vào video xuất; YouTube thì không.
       fileUrl: () => (kind === "audio" ? fileUrl : ""),
       // Nguồn cho bộ xuất: Blob nếu là file tải lên (CSP chặn fetch URL blob:), không thì URL.
@@ -552,14 +656,23 @@
     post({ type: "cx-slide-export-state", state: "run", p: 0 });
     // Lý do video ra không tiếng: "yt" (nhạc YouTube) · "codec" (máy không mã hoá được tiếng) ·
     // "decode" (không đọc được file nhạc) · "" (có tiếng, hoặc slide không có nhạc).
-    let mute = Music.has() && !Music.fileUrl() ? "yt" : "";
+    // Có giọng đọc thì video vẫn có tiếng dù nhạc là YouTube ("yt-voice"); "music" = có giọng
+    // nhưng không đọc được file nhạc; "voice" = có đoạn giọng đọc hỏng bị bỏ.
+    let mute = Music.has() && !Music.fileUrl() ? (Voice.has() ? "yt-voice" : "yt") : "";
     try {
       const blob = await CXSlideExport.run(P, {
         height,
         audioUrl: Music.exportSrc(),
+        voices: Voice.exportList(),
+        duck: Voice.duck(),
         signal: exporting.signal,
         onProgress: (p) => post({ type: "cx-slide-export-state", state: "run", p }),
-        onAudio: (a) => (mute = a.ok ? "" : a.reason),
+        onAudio: (a) => {
+          if (!a.ok) mute = a.reason;
+          else if (a.lost) mute = "voice";
+          else if (Music.exportSrc() && !a.music) mute = "music";
+          else if (mute !== "yt-voice") mute = "";
+        },
       });
       post({ type: "cx-slide-export-state", state: "done", blob, mute });
       if (!EMBED) _download(blob, `slide-cuoi-${height}p.mp4`);
@@ -685,6 +798,7 @@
     if (m.type === "cx-slide-data") {
       texts = m.texts && typeof m.texts === "object" ? m.texts : {};
       timing = m.timing && typeof m.timing === "object" ? m.timing : {};
+      Voice.set(m.voice?.clips, m.voice?.duck);
       setPhotos(m.photos);
       setMusic(m.music);
       m.wedding ? load(m.wedding) : demo();
@@ -702,6 +816,18 @@
       if (exporting) return;
       setPhotos(m.photos);
       load(cur, Number.isInteger(m.index) ? m.index : idx);
+    } else if (m.type === "cx-slide-voice") {
+      if (exporting) return;
+      Voice.set(m.voice?.clips, m.voice?.duck);
+      sync();
+    } else if (m.type === "cx-slide-seek") {
+      if (!exporting) seek(m.t, !!m.pause);
+    } else if (m.type === "cx-slide-play") {
+      if (exporting || !P) return;
+      if (m.on) {
+        Music.enable();
+        play();
+      } else pause();
     } else if (m.type === "cx-slide-timing") {
       setTiming(m.timing);
     } else if (m.type === "cx-slide-go" && Number.isInteger(m.index)) {

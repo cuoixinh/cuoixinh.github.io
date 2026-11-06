@@ -130,10 +130,11 @@
       </x-popover>
 
       <div class="sc-panel">
-        <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 4; --i: 0">
+        <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 5; --i: 0">
           <button type="button" class="cx-seg-btn is-on" role="tab" id="sc-tabbtn-scenes" data-tab="scenes" aria-selected="true" aria-controls="sc-tab-scenes">Cảnh</button>
           <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-data" data-tab="data" aria-selected="false" aria-controls="sc-tab-data">Thiệp</button>
           <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-music" data-tab="music" aria-selected="false" aria-controls="sc-tab-music">Nhạc</button>
+          <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-voice" data-tab="voice" aria-selected="false" aria-controls="sc-tab-voice">Giọng</button>
           <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-tpl" data-tab="tpl" aria-selected="false" aria-controls="sc-tab-tpl">Mẫu</button>
         </div>
 
@@ -234,6 +235,41 @@
           <p class="sc-fine">Nhạc bạn chọn chỉ lưu trên máy này, không tải lên đâu cả.</p>
         </section>
 
+        <!-- Giọng đọc (slide-cuoi/voice.js): tối đa 10 file ghi âm, mỗi file một lớp trên dòng thời
+             gian của slide. Byte file ở IndexedDB, vị trí/cắt/âm lượng ở localStorage, không lên server. -->
+        <section id="sc-tab-voice" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-voice">
+          <p class="sc-lead">Thu âm giọng đọc theo chữ trên slide rồi tải lên. Mỗi file là một lớp: kéo khối để chọn lúc bắt đầu, kéo hai mép để cắt bớt đầu hoặc cuối.</p>
+          <div id="sc-vo-bar" class="sc-vo-bar">
+            <button type="button" id="sc-vo-play" class="sc-vo-play" aria-label="Phát hoặc tạm dừng slide">
+              <span class="sc-vo-i-play"><i data-lucide="play"></i></span>
+              <span class="sc-vo-i-pause"><i data-lucide="pause"></i></span>
+            </button>
+            <p class="sc-vo-clock"><output id="sc-vo-now">0:00.0</output> <span id="sc-vo-total"></span></p>
+            <div class="sc-vo-zoom" role="group" aria-label="Thu phóng dòng thời gian">
+              <button type="button" onclick="scVoiceZoom(1 / 1.6)" aria-label="Thu nhỏ" title="Thu nhỏ"><i data-lucide="zoom-out"></i></button>
+              <button type="button" onclick="scVoiceZoom(0)" aria-label="Vừa khung" title="Vừa khung"><i data-lucide="maximize-2"></i></button>
+              <button type="button" onclick="scVoiceZoom(1.6)" aria-label="Phóng to" title="Phóng to"><i data-lucide="zoom-in"></i></button>
+            </div>
+          </div>
+          <div id="sc-vo-tl" class="sc-vo-tl"></div>
+          <div id="sc-vo-sel" class="sc-vo-sel hidden"></div>
+          <button type="button" id="sc-vo-up" class="sc-mu-up sc-vo-up" onclick="scVoicePick()">
+            <i data-lucide="mic"></i>
+            <span class="sc-mu-up-t">Thêm file ghi âm</span>
+            <span id="sc-vo-up-d" class="sc-mu-up-d">MP3, M4A hoặc WAV, mỗi file tối đa 50 MB.</span>
+          </button>
+          <input id="sc-vo-file" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.webm" multiple class="hidden" />
+          <div class="sc-vo-duck">
+            <div class="sc-dur-row">
+              <label class="sc-dur-l" for="sc-vo-duck"><i data-lucide="music-2"></i>Nhạc nền khi có giọng đọc</label>
+              <output id="sc-vo-duck-v" class="sc-dur-v" for="sc-vo-duck">30%</output>
+            </div>
+            <input id="sc-vo-duck" type="range" class="sc-range" min="0" max="100" step="5" value="30" />
+            <div class="sc-range-ends"><span>Tắt hẳn</span><span>Giữ nguyên</span></div>
+          </div>
+          <p class="sc-fine">File ghi âm chỉ lưu trên máy này, không tải lên đâu cả. Video xuất ra có cả giọng đọc lẫn nhạc nền.</p>
+        </section>
+
         <section id="sc-tab-tpl" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-tpl">
           <p class="sc-lead">Chọn một mẫu, slide đổi theo ngay.</p>
           <div id="sc-tpls" class="sc-tpls"></div>
@@ -302,6 +338,8 @@
     <script src="../core/helpers/image-helper.js"></script>
     <script src="templates.js"></script>
     <script src="index.js"></script>
+    <!-- Tab Giọng đọc — nạp SAU index.js (dùng chung biến/hàm của nó). -->
+    <script src="voice.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="../core/helpers/nav-cart-count.js"></script>
   </body>
