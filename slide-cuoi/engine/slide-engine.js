@@ -267,7 +267,8 @@ window.CXSlideEngine = (() => {
       const j = (i - 1 + n) % n;
       _cross(ctx, P, j, i, local, local / P.fade);
     } else _scene(ctx, P, i, local, 1);
-    if (P.fx?.sparkle) _sparkle(ctx, { x: 0, y: 0, w: P.W, h: P.H, ...P.fx.sparkle }, t);
+    // Cảnh khai `nofx` (nhiều chữ cần đọc) thì bỏ lớp đốm sáng phủ slide.
+    if (P.fx?.sparkle && !P.scenes[i].nofx) _sparkle(ctx, { x: 0, y: 0, w: P.W, h: P.H, ...P.fx.sparkle }, t);
   }
 
   function _cross(ctx, P, j, i, local, p) {
