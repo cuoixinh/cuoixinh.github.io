@@ -128,9 +128,10 @@
       </x-popover>
 
       <div class="sc-panel">
-        <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 3; --i: 0">
+        <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 4; --i: 0">
           <button type="button" class="cx-seg-btn is-on" role="tab" id="sc-tabbtn-scenes" data-tab="scenes" aria-selected="true" aria-controls="sc-tab-scenes">Cảnh</button>
           <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-data" data-tab="data" aria-selected="false" aria-controls="sc-tab-data">Thiệp</button>
+          <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-music" data-tab="music" aria-selected="false" aria-controls="sc-tab-music">Nhạc</button>
           <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-tpl" data-tab="tpl" aria-selected="false" aria-controls="sc-tab-tpl">Mẫu</button>
         </div>
 
@@ -190,6 +191,36 @@
 
             <div id="sc-weddings" class="sc-wlist hidden" role="radiogroup" aria-label="Chọn thiệp"></div>
           </div>
+        </section>
+
+        <!-- Nhạc cho slide + video xuất ra: nhạc của thiệp (mặc định) · file từ máy · thư viện
+             (assets/music/library.json). Lựa chọn lưu IndexedDB theo thiệp, không lên server. -->
+        <section id="sc-tab-music" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-music">
+          <p class="sc-lead">Nhạc phát khi trình chiếu và được ghép vào video xuất ra.</p>
+
+          <div class="sc-mu-now">
+            <span class="sc-mu-ico" aria-hidden="true"><i data-lucide="music"></i></span>
+            <div class="sc-mu-now-text">
+              <p id="sc-mu-now-t" class="sc-mu-now-t">Nhạc của thiệp</p>
+              <p id="sc-mu-now-d" class="sc-mu-now-d"></p>
+            </div>
+            <x-button id="sc-mu-clear" variant="bare" icon="undo-2" onclick="scMusicClear()" class="sc-mu-clear hidden">
+              Dùng nhạc của thiệp
+            </x-button>
+          </div>
+
+          <h3 class="sc-mu-h">Tải file nhạc từ máy</h3>
+          <button type="button" id="sc-mu-up" class="sc-mu-up" onclick="scMusicPick()">
+            <i data-lucide="upload"></i>
+            <span class="sc-mu-up-t">Chọn file nhạc</span>
+            <span class="sc-mu-up-d">MP3, M4A hoặc WAV, tối đa 30 MB</span>
+          </button>
+          <input id="sc-mu-file" type="file" accept=".mp3,.m4a,.aac,.wav,audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/wav" class="hidden" />
+
+          <h3 class="sc-mu-h">Thư viện nhạc</h3>
+          <div id="sc-mu-lib" class="sc-mu-lib"></div>
+          <p id="sc-mu-credit" class="sc-fine hidden"></p>
+          <p class="sc-fine">Nhạc bạn chọn chỉ lưu trên máy này, không tải lên đâu cả.</p>
         </section>
 
         <section id="sc-tab-tpl" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-tpl">

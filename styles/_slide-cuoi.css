@@ -1074,3 +1074,173 @@ html.sc-lock body {
     box-shadow: 0 0 0 3px rgb(var(--action-primary-rgb) / 0.4);
   }
 }
+
+/* Tab Nhạc: thẻ "đang dùng" ở đầu · ô chọn file (khung nét đứt) · danh sách thư viện (mỗi
+   dòng: nút nghe thử · tên bài để chọn · dấu đang chọn). */
+.sc-mu-now {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-mu-ico {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  font-size: 18px;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+}
+.sc-mu-now-text {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.sc-mu-now-t {
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-mu-now-d {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-mu-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding-inline: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+}
+.sc-mu-clear:hover {
+  border-color: rgb(var(--action-primary-rgb));
+}
+.sc-mu-h {
+  margin: 24px 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-mu-up {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 12px;
+  width: 100%;
+  padding: 16px;
+  text-align: left;
+  border-radius: 16px;
+  border: 1.5px dashed rgb(var(--brand-primary-rgb));
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+.sc-mu-up:hover {
+  border-color: rgb(var(--action-primary-rgb));
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-mu-up:focus-visible,
+.sc-mu-play:focus-visible,
+.sc-mu-pick:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+.sc-mu-up svg {
+  grid-row: span 2;
+  width: 24px;
+  height: 24px;
+  color: rgb(var(--action-primary-rgb));
+}
+.sc-mu-up-t {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-mu-up-d {
+  font-size: 13px;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-mu-empty {
+  padding: 20px 16px;
+  text-align: center;
+  font-size: 14px;
+  border-radius: 16px;
+  color: rgb(var(--text-caption-rgb));
+  border: 1px dashed rgb(var(--brand-primary-rgb) / 0.6);
+}
+.sc-mu-lib {
+  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
+}
+.sc-mu-lib:has(.sc-mu-empty) {
+  border-top: 0;
+}
+.sc-mu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 12px 8px 8px;
+  border-bottom: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
+}
+.sc-mu-item.is-on {
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-mu-play {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  font-size: 16px;
+  color: rgb(var(--action-primary-deep-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.7);
+  background: rgb(var(--white-rgb));
+}
+.sc-mu-pick {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+.sc-mu-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 500;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-mu-item.is-on .sc-mu-name {
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.sc-mu-artist {
+  font-size: 13px;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-mu-check {
+  font-size: 18px;
+  color: rgb(var(--action-primary-rgb));
+}

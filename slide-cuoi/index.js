@@ -92,10 +92,10 @@ async function _scPush(force) {
   _scSent = key;
   _scSig = ""; // bộ dữ liệu khác → các ô chữ phải vẽ lại dù khoá trùng
   _scPhSig = "";
-  await _scPhLoad();
-  if (_scSent !== key) return; // trong lúc đọc ảnh đã đổi sang bộ dữ liệu khác
+  await Promise.all([_scPhLoad(), _scMuLoad()]);
+  if (_scSent !== key) return; // trong lúc đọc ảnh / nhạc đã đổi sang bộ dữ liệu khác
   _scFrame.contentWindow?.postMessage(
-    { type: "cx-slide-data", wedding: w || null, texts: _scTexts(), photos: _scPhMsg() },
+    { type: "cx-slide-data", wedding: w || null, texts: _scTexts(), photos: _scPhMsg(), music: _scMuMsg() },
     location.origin,
   );
 }
@@ -200,7 +200,9 @@ function _scCueState(m) {
   const ol = _scEl("sc-cues");
   if (Array.isArray(m.scenes)) {
     _scMusic = m.music || "";
+    _scCardMusic = m.cardMusic || "";
     _scExportNote();
+    _scMuRender();
     _scCues = m.scenes.map((c) => ({
       label: String(c.label || ""),
       dur: Number(c.dur) || 0,
@@ -342,6 +344,7 @@ _scEl("sc-cues").addEventListener("input", (e) => {
 // (openFocalPointPicker của core/utils.js, nạp lúc cần) với đúng khổ khung ảnh của cảnh.
 const _SC_PH_DB = "cx_slide";
 const _SC_PH_STORE = "photos";
+const _SC_MU_STORE = "music";
 const _SC_PH_LIMITS = { maxWidth: 2560, maxHeight: 2560, maxSizeMB: 2, quality: 0.9 };
 let _scPh = { key: null, map: {} }; // map: id cảnh → {id, blob, url, focal}
 let _scPhSig = "";
@@ -350,8 +353,11 @@ let _scDbP = null;
 
 function _scDB() {
   _scDbP ||= new Promise((resolve, reject) => {
-    const rq = indexedDB.open(_SC_PH_DB, 1);
-    rq.onupgradeneeded = () => rq.result.createObjectStore(_SC_PH_STORE);
+    // v2 thêm kho "music" (nhạc khách chọn theo thiệp); tạo kho nào còn thiếu.
+    const rq = indexedDB.open(_SC_PH_DB, 2);
+    rq.onupgradeneeded = () => {
+      [_SC_PH_STORE, _SC_MU_STORE].forEach((n) => rq.result.objectStoreNames.contains(n) || rq.result.createObjectStore(n));
+    };
     rq.onsuccess = () => resolve(rq.result);
     rq.onerror = () => reject(rq.error);
   }).catch((e) => {
@@ -361,11 +367,11 @@ function _scDB() {
   return _scDbP;
 }
 
-async function _scDbDo(mode, fn) {
+async function _scDbDo(mode, fn, store = _SC_PH_STORE) {
   const db = await _scDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(_SC_PH_STORE, mode);
-    const rq = fn(tx.objectStore(_SC_PH_STORE));
+    const tx = db.transaction(store, mode);
+    const rq = fn(tx.objectStore(store));
     tx.oncomplete = () => resolve(rq?.result);
     tx.onerror = () => reject(tx.error);
     tx.onabort = () => reject(tx.error);
@@ -635,8 +641,247 @@ async function scPhotosReset() {
   _scPhSend();
 }
 
-// ── Ba tab của bảng chỉnh (Cảnh · Thiệp · Mẫu): cùng một dải .cx-seg, con trượt theo --i. ──
-const _SC_TABS = ["scenes", "data", "tpl"];
+// ── Nhạc: nhạc của thiệp (mặc định) · file khách chọn từ máy · bài trong thư viện nhạc
+// (assets/music/library.json — {tracks:[{id, title, artist, file, license, credit}]}). Lựa
+// chọn cất ở IndexedDB kho "music" theo thiệp (`<id thiệp hoặc demo>`), file cất BYTE như
+// ảnh. Gửi sang khung: {id, blob} · {url} · null — khung phát + ghép vào video xuất ra.
+const _SC_MU_MAX = 30 * 1024 * 1024;
+const _SC_MU_EXT = /\.(mp3|m4a|aac|wav)$/i;
+let _scMu = { key: null, pick: null }; // pick: {mode:"file", id, blob, name, dur} | {mode:"lib", id} | null
+let _scCardMusic = ""; // nhạc riêng của thiệp: "yt" | "file" | "" (khung báo lên)
+let _scLib = null; // bài trong thư viện; null = chưa tải
+let _scLibReq = null;
+let _scPrev = null; // <audio> nghe thử bài thư viện
+let _scPrevId = "";
+
+const _scMuKey = () => (_scS.real && _scS.wid ? _scS.wid : "demo");
+
+function _scLibLoad() {
+  _scLibReq ||= fetch(`/assets/music/library.json?v=${encodeURIComponent(CONFIG.version || "")}`)
+    .then((r) => (r.ok ? r.json() : { tracks: [] }))
+    .catch(() => ({ tracks: [] }))
+    .then((j) => {
+      _scLib = (Array.isArray(j?.tracks) ? j.tracks : [])
+        .filter((t) => t && t.id && t.title && t.file)
+        .map((t) => ({
+          id: String(t.id),
+          title: String(t.title),
+          artist: String(t.artist || ""),
+          file: String(t.file),
+          credit: String(t.credit || ""),
+        }));
+      _scMuRender();
+      return _scLib;
+    });
+  return _scLibReq;
+}
+const _scTrack = (id) => _scLib?.find((t) => t.id === id) || null;
+
+async function _scMuLoad() {
+  const key = _scMuKey();
+  if (_scMu.key === key) return;
+  _scMu = { key, pick: null };
+  let rec = null;
+  try {
+    await _scLibLoad();
+    rec = await _scDbDo("readonly", (st) => st.get(key), _SC_MU_STORE);
+  } catch (e) {
+    console.warn("Không đọc được nhạc slide đã lưu:", e);
+  }
+  if (_scMu.key !== key) return;
+  if (rec?.mode === "file" && rec.buf?.byteLength) {
+    _scMu.pick = { mode: "file", id: rec.id, blob: new Blob([rec.buf], { type: rec.type || "audio/mpeg" }), name: rec.name || "", dur: rec.dur || 0 };
+  } else if (rec?.mode === "lib" && _scTrack(rec.id)) {
+    _scMu.pick = { mode: "lib", id: rec.id };
+  }
+  _scMuRender();
+}
+
+function _scMuMsg() {
+  const p = _scMu.pick;
+  if (p?.mode === "file") return { id: p.id, blob: p.blob };
+  if (p?.mode === "lib") return { url: _scTrack(p.id)?.file || "" };
+  return null;
+}
+
+function _scMuSend() {
+  _scFrame.contentWindow?.postMessage({ type: "cx-slide-music", music: _scMuMsg() }, location.origin);
+}
+
+function _scMuBusy() {
+  if (_scExState !== "run") return false;
+  window.showToast?.("Đang xuất video, đợi xong rồi hãy đổi nhạc", "warning");
+  return true;
+}
+
+async function _scMuSave(rec) {
+  const key = _scMuKey();
+  try {
+    await _scDbDo("readwrite", (st) => (rec ? st.put(rec, key) : st.delete(key)), _SC_MU_STORE);
+  } catch (e) {
+    console.warn("Không lưu được nhạc slide:", e);
+    if (rec) window.showToast?.("Máy không cho lưu nhạc (bộ nhớ trình duyệt đầy hoặc đang ở chế độ ẩn danh)", "warning");
+  }
+  return _scMuKey() === key;
+}
+
+function scMusicPick() {
+  if (_scMuBusy()) return;
+  const input = _scEl("sc-mu-file");
+  input.value = "";
+  input.click();
+}
+
+// Thời lượng file nhạc (giây); 0 khi trình duyệt không đọc được file.
+function _scAudioDur(blob) {
+  return new Promise((resolve) => {
+    const a = new Audio();
+    const url = URL.createObjectURL(blob);
+    const done = (d) => {
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(d) ? d : 0);
+    };
+    const t = setTimeout(() => done(0), 8000);
+    a.onloadedmetadata = () => (clearTimeout(t), done(a.duration));
+    a.onerror = () => (clearTimeout(t), done(0));
+    a.preload = "metadata";
+    a.src = url;
+  });
+}
+
+_scEl("sc-mu-file").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = "";
+  if (!file) return;
+  if (!_SC_MU_EXT.test(file.name) && !/^audio\//.test(file.type)) {
+    window.showToast?.("Hãy chọn file nhạc MP3, M4A hoặc WAV", "error");
+    return;
+  }
+  if (file.size > _SC_MU_MAX) {
+    window.showToast?.("File nhạc quá 30 MB, hãy chọn file nhỏ hơn", "error");
+    return;
+  }
+  let buf;
+  try {
+    buf = await file.arrayBuffer();
+    if (!buf.byteLength) throw new Error("empty");
+  } catch (err) {
+    window.showToast?.("Không đọc được file nhạc này, bạn chọn lại nhé", "error");
+    return;
+  }
+  const type = file.type || "audio/mpeg";
+  const blob = new Blob([buf], { type });
+  const dur = await _scAudioDur(blob);
+  if (!dur) {
+    window.showToast?.("Trình duyệt không phát được file này. Hãy đổi sang MP3 rồi chọn lại.", "error");
+    return;
+  }
+  const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  if (!(await _scMuSave({ mode: "file", id, buf, type, name: file.name, dur }))) return;
+  _scMu.pick = { mode: "file", id, blob, name: file.name, dur };
+  _scPreviewStop();
+  _scMuRender();
+  _scMuSend();
+  window.showToast?.("Đã dùng file nhạc của bạn", "success");
+});
+
+async function scMusicLib(id) {
+  if (_scMuBusy() || !_scTrack(id)) return;
+  if (!(await _scMuSave({ mode: "lib", id }))) return;
+  _scMu.pick = { mode: "lib", id };
+  _scPreviewStop();
+  _scMuRender();
+  _scMuSend();
+}
+
+async function scMusicClear() {
+  if (_scMuBusy()) return;
+  if (!(await _scMuSave(null))) return;
+  _scMu.pick = null;
+  _scMuRender();
+  _scMuSend();
+}
+
+// Nghe thử một bài thư viện ngay trên trang (không đổi nhạc của slide).
+function scMusicPreview(id) {
+  const t = _scTrack(id);
+  if (!t) return;
+  if (_scPrevId === id) return _scPreviewStop();
+  _scPreviewStop();
+  _scPrev = new Audio(t.file);
+  _scPrevId = id;
+  _scPrev.onended = _scPreviewStop;
+  _scPrev.play().catch(_scPreviewStop);
+  _scMuRender();
+}
+function _scPreviewStop() {
+  _scPrev?.pause();
+  _scPrev = null;
+  _scPrevId = "";
+  _scMuRender();
+}
+
+function _scMuRender() {
+  const p = _scMu.pick;
+  const track = p?.mode === "lib" ? _scTrack(p.id) : null;
+  let title;
+  let desc;
+  if (p?.mode === "file") {
+    title = "File nhạc của bạn";
+    desc = `${p.name}${p.dur ? `, dài ${_scClock(p.dur * 1000)}` : ""}. Có trong video xuất ra.`;
+  } else if (track) {
+    title = track.title;
+    desc = `${track.artist ? track.artist + ". " : ""}Từ thư viện nhạc, có trong video xuất ra.`;
+  } else if (_scCardMusic === "yt") {
+    title = "Nhạc YouTube của thiệp";
+    desc = "Chỉ phát khi trình chiếu, video xuất ra sẽ không có tiếng. Chọn file hoặc nhạc trong thư viện để video có tiếng.";
+  } else if (_scCardMusic === "file") {
+    title = "Nhạc của thiệp";
+    desc = "Phát khi trình chiếu và có trong video xuất ra.";
+  } else {
+    title = "Chưa có nhạc";
+    desc = "Chọn file nhạc từ máy hoặc một bài trong thư viện bên dưới.";
+  }
+  _scEl("sc-mu-now-t").textContent = title;
+  _scEl("sc-mu-now-d").textContent = desc;
+  _scToggle("sc-mu-clear", !!p);
+
+  const box = _scEl("sc-mu-lib");
+  if (_scLib === null) {
+    box.innerHTML = `<p class="sc-mu-empty">Đang tải thư viện nhạc…</p>`;
+  } else if (!_scLib.length) {
+    box.innerHTML = `<p class="sc-mu-empty">Thư viện nhạc hiện đang chưa có</p>`;
+  } else {
+    box.innerHTML = _scLib
+      .map((t) => {
+        const on = track?.id === t.id;
+        const playing = _scPrevId === t.id;
+        return `<div class="sc-mu-item${on ? " is-on" : ""}">
+          <button type="button" class="sc-mu-play" data-mu-prev="${_scEsc(t.id)}" aria-label="${playing ? "Dừng nghe thử" : "Nghe thử"} ${_scEsc(t.title)}">${_scIco(playing ? "pause" : "play")}</button>
+          <button type="button" class="sc-mu-pick" data-mu-lib="${_scEsc(t.id)}" role="radio" aria-checked="${on}">
+            <span class="sc-mu-name">${_scEsc(t.title)}</span>
+            ${t.artist ? `<span class="sc-mu-artist">${_scEsc(t.artist)}</span>` : ""}
+          </button>
+          ${on ? `<span class="sc-mu-check" aria-hidden="true">${_scIco("check")}</span>` : ""}
+        </div>`;
+      })
+      .join("");
+    window.lucide?.createIcons({ root: box });
+  }
+  const credit = _scEl("sc-mu-credit");
+  credit.textContent = track?.credit || "";
+  credit.classList.toggle("hidden", !track?.credit);
+}
+
+_scEl("sc-mu-lib").addEventListener("click", (e) => {
+  const prev = e.target.closest("[data-mu-prev]");
+  if (prev) return scMusicPreview(prev.dataset.muPrev);
+  const pick = e.target.closest("[data-mu-lib]");
+  if (pick) scMusicLib(pick.dataset.muLib);
+});
+
+// ── Các tab của bảng chỉnh (Cảnh · Thiệp · Nhạc · Mẫu): một dải .cx-seg, con trượt theo --i. ──
+const _SC_TABS = ["scenes", "data", "music", "tpl"];
 function scTab(id) {
   const i = Math.max(0, _SC_TABS.indexOf(id));
   const seg = _scEl("sc-tabs");
@@ -837,7 +1082,7 @@ function scLogin() {
 // ── Xuất video: chạy TRONG khung slide (CXSlideExport), trang này chỉ chọn khổ + báo tiến độ ──
 
 function _scCaps(m) {
-  _scCapsOk = { h1080: !!m.h1080, h2160: !!m.h2160 };
+  _scCapsOk = { h1080: !!m.h1080, h2160: !!m.h2160, audio: String(m.audio || "") };
   // Máy không mã hoá nổi 4K thì khoá ô 4K, tự về 1080p.
   const b4k = _scEl("sc-ex-res").querySelector('[data-res="2160"]');
   b4k.disabled = !_scCapsOk.h2160;
@@ -868,7 +1113,9 @@ function _scExportNote() {
   else {
     if (_scCapsOk && !_scCapsOk.h2160) notes.push("Máy này không mã hoá được 4K, chỉ xuất được 1080p.");
     if (_scExRes === 2160) notes.push("4K xuất lâu hơn và file nặng hơn khoảng 2,5 lần.");
-    if (_scMusic === "yt") notes.push("Nhạc YouTube không ghép được vào video, file xuất ra sẽ không có tiếng.");
+    if (_scMusic === "yt") notes.push("Nhạc YouTube không ghép được vào video, file xuất ra sẽ không có tiếng. Chọn nhạc ở tab Nhạc để video có tiếng.");
+    else if (_scMusic === "file" && _scCapsOk && !_scCapsOk.audio)
+      notes.push("Trình duyệt này không ghép được tiếng vào video, file xuất ra sẽ không có tiếng. Hãy dùng Chrome hoặc Edge bản mới.");
   }
   _scEl("sc-ex-note").textContent = notes.join(" ");
 }
@@ -943,7 +1190,12 @@ function _scExportMsg(m) {
     _scExBlob = m.blob;
     const mb = Math.max(1, Math.round(m.blob.size / 1048576));
     _scEl("sc-ex-done-note").textContent =
-      `File MP4 ${_scExRes === 2160 ? "4K" : "1080p"}, ${mb} MB.` + (m.silent ? " Video không có tiếng vì nhạc của thiệp là YouTube." : "");
+      `File MP4 ${_scExRes === 2160 ? "4K" : "1080p"}, ${mb} MB.` +
+      ({
+        yt: " Video không có tiếng vì nhạc đang dùng là YouTube.",
+        codec: " Video không có tiếng vì trình duyệt này không ghép được tiếng. Hãy dùng Chrome hoặc Edge bản mới.",
+        decode: " Video không có tiếng vì không đọc được file nhạc. Hãy đổi sang MP3 rồi chọn lại.",
+      }[m.mute] || "");
     _scExportState("done");
     scExportSave();
   } else if (m.state === "cancel") {
