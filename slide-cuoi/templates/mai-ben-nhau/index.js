@@ -141,7 +141,7 @@
       },
       done(opt = {}) {
         const dur = Math.max(opt.dur || 8, Math.min(14, 5 + len * 0.022));
-        return { dur, label, tr: opt.tr, bg: opt.bg, texts, photos, els };
+        return { id: sid, dur, label, tr: opt.tr, bg: opt.bg, texts, photos, els };
       },
     };
     return S;

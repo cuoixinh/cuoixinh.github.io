@@ -95,7 +95,7 @@ async function _scPush(force) {
   await Promise.all([_scPhLoad(), _scMuLoad()]);
   if (_scSent !== key) return; // trong lúc đọc ảnh / nhạc đã đổi sang bộ dữ liệu khác
   _scFrame.contentWindow?.postMessage(
-    { type: "cx-slide-data", wedding: w || null, texts: _scTexts(), photos: _scPhMsg(), music: _scMuMsg() },
+    { type: "cx-slide-data", wedding: w || null, texts: _scTexts(), photos: _scPhMsg(), music: _scMuMsg(), timing: _scTiming() },
     location.origin,
   );
 }
@@ -144,6 +144,124 @@ function _scTextsSave(own) {
   } catch (e) {}
 }
 
+// ── Thời lượng: thanh "cả slide" (hệ số nhân thời lượng mẫu, 0,5×–2×) + thanh riêng từng cảnh
+// (giây, đè hệ số). Lưu trên máy như chữ sửa — localStorage `cx_slide_timing` theo mẫu + thiệp,
+// dạng {scale, scenes: {id cảnh: giây}} — gửi khung bằng cx-slide-timing; khung chỉ đặt lại mốc,
+// tự kẹp mỗi cảnh trong [min, max] (min = đủ cho mọi hiệu ứng chạy xong) rồi báo cảnh lên lại.
+const _SC_TIMING = "cx_slide_timing";
+let _scTmT = 0;
+function _scTiming() {
+  try {
+    const own = JSON.parse(localStorage.getItem(_SC_TIMING) || "{}")?.[_scTxKey()];
+    return own && typeof own === "object" ? own : {};
+  } catch (e) {
+    return {};
+  }
+}
+function _scTimingSave(own) {
+  if (own.scenes && !Object.keys(own.scenes).length) delete own.scenes;
+  if (own.scale === 1) delete own.scale;
+  try {
+    const all = JSON.parse(localStorage.getItem(_SC_TIMING) || "{}") || {};
+    if (Object.keys(own).length) all[_scTxKey()] = own;
+    else delete all[_scTxKey()];
+    localStorage.setItem(_SC_TIMING, JSON.stringify(all));
+  } catch (e) {}
+  // Gom các nấc kéo liền nhau thành một lần gửi.
+  clearTimeout(_scTmT);
+  _scTmT = setTimeout(() => _scFrame.contentWindow?.postMessage({ type: "cx-slide-timing", timing: _scTiming() }, location.origin), 120);
+}
+const _scSec = (s) => `${(Math.round(s * 2) / 2).toLocaleString("vi-VN")} giây`;
+// Phần đã kéo của thanh (tô màu nhấn), CSS đọc qua --p.
+function _scRangeFill(r) {
+  const min = Number(r.min);
+  const max = Number(r.max);
+  r.style.setProperty("--p", `${max > min ? ((Number(r.value) - min) / (max - min)) * 100 : 0}%`);
+}
+// Đang xuất thì khung không nhận thời lượng mới — chặn và kéo thanh về chỗ cũ.
+function _scTimeBusy() {
+  if (_scExState !== "run") return false;
+  window.showToast?.("Đang xuất video, đợi xong rồi hãy chỉnh thời gian", "warning");
+  _scCueTimes();
+  return true;
+}
+
+// Đồng bộ thẻ "cả slide" + thanh từng cảnh theo bản khung vừa báo; thanh đang kéo thì để yên.
+function _scTimeSync() {
+  const own = _scTiming();
+  const sp = _scEl("sc-speed");
+  const live = document.activeElement;
+  if (sp && live !== sp) sp.value = String(own.scale || 1);
+  if (sp) _scRangeFill(sp);
+  const total = _scCues.reduce((n, c) => n + c.dur, 0);
+  const base = _scCues.reduce((n, c) => n + Math.min(c.max, Math.max(c.min, c.base)), 0);
+  const tv = _scEl("sc-time-total");
+  if (tv) tv.textContent = _scCues.length ? _scClock(total) : "–:––";
+  const changed = Object.keys(own).length > 0;
+  _scToggle("sc-time-reset", changed);
+  const def = _scEl("sc-time-def");
+  if (def) def.textContent = changed && _scCues.length ? `Mặc định ${_scClock(base)}` : "";
+  _scEl("sc-cues").querySelectorAll("[data-dur]").forEach((r) => {
+    const c = _scCues[Number(r.dataset.dur)];
+    if (!c) return;
+    r.min = String(c.min / 1000);
+    r.max = String(c.max / 1000);
+    if (r !== live) r.value = String(c.dur / 1000);
+    _scRangeFill(r);
+    const box = r.closest(".sc-dur");
+    box.querySelector(".sc-dur-v").textContent = _scSec(Number(r.value));
+    box.querySelector(".sc-dur-min").textContent = _scSec(c.min / 1000);
+    box.querySelector(".sc-dur-max").textContent = _scSec(c.max / 1000);
+    box.querySelector(".sc-dur-undo").classList.toggle("is-off", !(own.scenes && c.id in own.scenes));
+  });
+}
+
+_scEl("sc-speed")?.addEventListener("input", (e) => {
+  if (_scTimeBusy()) return;
+  const own = _scTiming();
+  own.scale = Number(e.target.value);
+  _scRangeFill(e.target);
+  // Hiện ngay tổng mới (ước lượng theo hệ số), khung báo lại số chính xác sau một nhịp.
+  const total = _scCues.reduce((n, c) => {
+    const s = own.scenes?.[c.id];
+    return n + Math.min(c.max, Math.max(c.min, s ? s * 1000 : c.base * own.scale));
+  }, 0);
+  _scEl("sc-time-total").textContent = _scClock(total);
+  _scTimingSave(own);
+});
+
+function scTimingReset() {
+  if (_scTimeBusy()) return;
+  _scTimingSave({});
+  _scEl("sc-speed").value = "1";
+  _scRangeFill(_scEl("sc-speed"));
+}
+
+_scEl("sc-cues").addEventListener("input", (e) => {
+  const r = e.target.closest("[data-dur]");
+  if (!r || _scTimeBusy()) return;
+  const c = _scCues[Number(r.dataset.dur)];
+  if (!c) return;
+  const own = _scTiming();
+  own.scenes = { ...(own.scenes || {}), [c.id]: Number(r.value) };
+  _scRangeFill(r);
+  const box = r.closest(".sc-dur");
+  box.querySelector(".sc-dur-v").textContent = _scSec(Number(r.value));
+  box.querySelector(".sc-dur-undo").classList.remove("is-off");
+  _scTimingSave(own);
+});
+
+_scEl("sc-cues").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-dur-undo]");
+  if (!b || _scTimeBusy()) return;
+  const c = _scCues[Number(b.dataset.durUndo)];
+  const own = _scTiming();
+  if (!c || !own.scenes) return;
+  delete own.scenes[c.id];
+  b.classList.add("is-off");
+  _scTimingSave(own);
+});
+
 function _scFieldHTML(x) {
   return `<label class="sc-tx">
     <textarea class="sc-tx-in" data-key="${_scEsc(x.key)}" data-def="${_scEsc(x.def)}" rows="1" spellcheck="false">${_scEsc(x.text)}</textarea>
@@ -157,9 +275,10 @@ function _scCueTimes() {
     const c = _scCues[i];
     if (!c) return;
     b.querySelector(".sc-cue-t").textContent = _scClock(t);
-    b.querySelector(".sc-cue-d").textContent = `${Math.round(c.dur / 1000)} giây`;
+    b.querySelector(".sc-cue-d").textContent = _scSec(c.dur / 1000);
     t += c.dur;
   });
+  _scTimeSync();
   // Màn hẹp chỉ còn chỗ cho thời lượng: phần số cảnh nằm trong .sc-total-n để CSS giấu.
   _scEl("sc-total").innerHTML = _scCues.length
     ? `<span class="sc-total-n">${_scCues.length} cảnh, dài </span>${_scClock(t)}`
@@ -184,7 +303,18 @@ function _scCueRender() {
           </span>
           <span class="sc-cue-d"></span>
         </button>
-        <div class="sc-tx-list${open ? "" : " hidden"}">${c.photos.length ? `<div class="sc-phbox"></div>` : ""}${fields}</div>
+        <div class="sc-tx-list${open ? "" : " hidden"}">
+          <div class="sc-dur">
+            <div class="sc-dur-row">
+              <label class="sc-dur-l" for="sc-dur-${i}">${_scIco("timer")}Thời gian cảnh</label>
+              <output class="sc-dur-v" for="sc-dur-${i}"></output>
+              <button type="button" class="sc-dur-undo is-off" data-dur-undo="${i}" aria-label="Trả thời gian cảnh về mặc định" title="Về mặc định">${_scIco("undo-2")}</button>
+            </div>
+            <input id="sc-dur-${i}" type="range" class="sc-range" data-dur="${i}" step="0.5" />
+            <div class="sc-range-ends"><span class="sc-dur-min"></span><span class="sc-dur-max"></span></div>
+          </div>
+          ${c.photos.length ? `<div class="sc-phbox"></div>` : ""}${fields}
+        </div>
       </li>`;
     })
     .join("");
@@ -203,9 +333,13 @@ function _scCueState(m) {
     _scCardMusic = m.cardMusic || "";
     _scExportNote();
     _scMuRender();
-    _scCues = m.scenes.map((c) => ({
+    _scCues = m.scenes.map((c, k) => ({
+      id: String(c.id ?? k),
       label: String(c.label || ""),
       dur: Number(c.dur) || 0,
+      base: Number(c.base) || Number(c.dur) || 0,
+      min: Number(c.min) || 1000,
+      max: Number(c.max) || 30000,
       texts: (Array.isArray(c.texts) ? c.texts : []).map((x) => ({
         key: String(x.key),
         text: String(x.text ?? ""),

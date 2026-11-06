@@ -144,11 +144,12 @@ window.CXSlideEngine = (() => {
   }
 
   // ── Dựng dự án ──
-  // tpl = CX_SLIDE của mẫu; tpl.scenes(w, api) trả [{dur (giây), label, els, texts, photo}].
+  // tpl = CX_SLIDE của mẫu; tpl.scenes(w, api) trả [{id, dur (giây), label, els, texts, photo}]
+  // (id = mã cảnh ổn định, khoá thời lượng khách chỉnh; thiếu thì lấy vị trí).
   // texts = {khoá: chữ} người dùng sửa ở trang cha, mẫu tự áp vào khối cùng khoá; photos =
   // {id cảnh: {src: blob URL, focal}} ảnh khách tải lên, đè ảnh thiệp của cảnh đó. Cảnh khai
   // photo = {key, def, w, h}: id cảnh, ảnh mặc định, khổ khung ảnh (cho bảng lấy nét).
-  async function build(tpl, wedding, texts, photos) {
+  async function build(tpl, wedding, texts, photos, timing) {
     await loadFonts(tpl.fonts);
     const scenes = tpl.scenes(wedding, { column, wrap, typeTime, texts: texts || {}, photos: photos || {} }) || [];
     const srcs = new Set();
@@ -162,13 +163,51 @@ window.CXSlideEngine = (() => {
       [...srcs].map(async (src) => images.set(src, await loadImage(src))),
     );
     _shrink(scenes, images, tpl.w);
-    const starts = [];
-    let total = 0;
-    scenes.forEach((s) => {
-      starts.push(total);
-      total += s.dur;
+    const fade = tpl.fade ?? 0.9;
+    scenes.forEach((s, k) => {
+      s.id = String(s.id ?? k);
+      s.base = s.dur;
+      s.min = Math.min(s.base, Math.max(3, fade + 1, Math.ceil((Math.max(0, ...s.els.map(_end)) + 1) * 2) / 2));
+      s.max = Math.max(SCENE_MAX, s.base);
     });
-    return { W: tpl.w, H: tpl.h, bg: tpl.bg || "#000", fade: tpl.fade ?? 0.9, tr: tpl.tr, fx: tpl.fx, scenes, starts, total, images };
+    const P = { W: tpl.w, H: tpl.h, bg: tpl.bg || "#000", fade, tr: tpl.tr, fx: tpl.fx, scenes, images };
+    return retime(P, timing);
+  }
+
+  // ── Thời lượng ──
+  // Mỗi cảnh: base = thời lượng mẫu tính · min = lúc mọi hiệu ứng chạy xong + 1 giây (ngắn hơn là
+  // chữ chưa hiện hết đã sang cảnh) · max = SCENE_MAX. timing = {scale, scenes: {id cảnh: giây}}
+  // do khách kéo ở trang cha: cảnh có số riêng dùng số đó, còn lại base × scale; luôn kẹp
+  // trong [min, max]. Đổi timing chỉ cần retime — không dựng lại dự án.
+  const SCENE_MAX = 30;
+  function retime(P, timing) {
+    const k = Number(timing?.scale) > 0 ? Number(timing.scale) : 1;
+    const own = (timing && typeof timing.scenes === "object" && timing.scenes) || {};
+    P.starts = [];
+    P.total = 0;
+    P.scenes.forEach((s) => {
+      const want = Number(own[s.id]) > 0 ? Number(own[s.id]) : s.base * k;
+      s.dur = Math.min(s.max, Math.max(s.min, want));
+      P.starts.push(P.total);
+      P.total += s.dur;
+    });
+    return P;
+  }
+
+  // Giây (tính từ đầu cảnh) mà hiệu ứng của phần tử — và mọi phần tử con — chạy xong.
+  function _end(el) {
+    const a = el.anim;
+    let e = 0;
+    if (a) {
+      const d = a.d || 0;
+      const n = el.lines ? el.lines.reduce((c, l) => c + Array.from(l).length, 0) : 0;
+      if (a.k === "type" && el.lines) e = d + n / (a.cps || TYPE_CPS) + 1.2;
+      else if (a.k === "letters" && el.lines) e = d + n * (a.step ?? 0.045) + (a.t ?? 0.9);
+      else if (a.k === "lines" && el.lines) e = d + (el.lines.length - 1) * (a.step ?? 0.22) + (a.t ?? 1.1);
+      else e = d + (a.t ?? _ANIM_T[a.k] ?? 1.4);
+    }
+    (el.kids || []).forEach((kid) => (e = Math.max(e, _end(kid))));
+    return e;
   }
 
   // Ảnh gốc to hơn nhiều so với khung (ảnh 2000×2600 trong ô 176×176) thì thu MỘT lần về đúng cỡ
@@ -615,5 +654,5 @@ window.CXSlideEngine = (() => {
     ctx.restore();
   }
 
-  return { build, frame, indexAt, column, wrap, fontStr, typeTime, bounds };
+  return { build, retime, frame, indexAt, column, wrap, fontStr, typeTime, bounds };
 })();

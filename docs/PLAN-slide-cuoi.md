@@ -76,11 +76,18 @@ slide-cuoi/
   `L.photos`; mẫu đè ảnh của ô bằng `L.photos[khoá ô]` = `{src, focal}`. Chọn ảnh xong là mở
   bảng lấy nét (`openFocalPointPicker`, `core/utils.js` nạp lúc cần) xem trước đúng khổ khung ô
   (`w/h`); huỷ bảng = bỏ ảnh vừa chọn. Ô đã thay có nút "Lấy nét" để chỉnh lại.
+- Thời lượng: thẻ "Thời lượng cả slide" (hệ số 0,5×–2× nhân thời lượng mẫu) + thanh "Thời gian
+  cảnh" trong từng cảnh (giây, đè hệ số). Lưu `localStorage.cx_slide_timing` theo
+  `<mẫu>|<id thiệp hoặc demo>` = `{scale, scenes: {id cảnh: giây}}` — chỉ trên máy. Engine kẹp
+  mỗi cảnh trong [min, max]: min = lúc mọi hiệu ứng của cảnh chạy xong + 1 giây (`_end`), max
+  30 giây; đổi thời lượng chỉ `retime` (đặt lại mốc), không dựng lại dự án. Cảnh phải có `id`
+  ổn định (mẫu đặt = id cảnh), thiếu thì engine lấy vị trí — chèn cảnh là lệch thời lượng đã chỉnh.
 - Ảnh thiệp đi qua worker ảnh / Storage: lượt tải crossOrigin hỏng thì engine tải lại kèm
   `?cx-cors=1` — bản trong cache trình duyệt có thể là bản KHÔNG có header CORS (thẻ `<img>`
   thường, worker ảnh bản cũ cache 30 ngày) và canvas không nhận nó.
 - Tin nhắn iframe ↔ trang cha: `cx-slide-ready` · `cx-slide-data` (thiệp + chữ đã sửa + ảnh
-  khách) · `cx-slide-texts` (chữ đã sửa, dựng lại tại cảnh đang mở) · `cx-slide-photos` (ảnh
+  khách + thời lượng) · `cx-slide-texts` (chữ đã sửa, dựng lại tại cảnh đang mở) ·
+  `cx-slide-timing` (thời lượng, chỉ đặt lại mốc) · `cx-slide-photos` (ảnh
   khách, dựng lại tại cảnh vừa đổi) · `cx-slide-edit` (bấm thẳng lên slide: `{index, kind:
   "text"|"photo", key}` → trang cha mở cảnh, đặt con trỏ vào ô chữ / khối ảnh) · `cx-slide-state` (danh sách
   cảnh kèm chữ + cảnh đang chiếu + loại nhạc) · `cx-slide-go` (`pause` = dừng ở cảnh đó,
