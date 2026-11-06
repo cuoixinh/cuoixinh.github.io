@@ -1,0 +1,14 @@
+# Kho nhạc thư viện của trang Slide cưới — Worker file tĩnh "cuoixinh-media" (wrangler.jsonc cạnh thư mục này),
+# tên miền media.cuoixinh.com, đẩy bằng `npm run deploy:media`. Trang /slide-cuoi/ nghe thử
+# và bộ xuất video fetch file nhạc từ miền khác nên MỌI file phải có CORS.
+/*
+  Access-Control-Allow-Origin: *
+  X-Content-Type-Options: nosniff
+
+# File nhạc không bao giờ sửa tại chỗ: đổi bài thì đặt tên file mới.
+/songs/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Danh mục đổi mỗi lần thêm bài — cache ngắn để bài mới hiện nhanh.
+/library.json
+  Cache-Control: public, max-age=300

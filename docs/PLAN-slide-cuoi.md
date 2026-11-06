@@ -89,11 +89,20 @@ slide-cuoi/
   video xuất ra không tiếng, trang báo trước. Nhạc file thì ghép, lặp + mờ vào/ra.
 - Tab **Nhạc**: nhạc của thiệp (mặc định) · file từ máy (MP3/M4A/WAV ≤ 30 MB, cất BYTE ở
   IndexedDB kho `music`, khoá = id thiệp hoặc `demo` — không theo mẫu) · bài trong thư viện
-  `assets/music/library.json` (`{tracks:[{id, title, artist, file, credit}]}`; `file` là URL,
-  `credit` hiện dưới danh sách khi bài cần ghi công). Kho rỗng → "Thư viện nhạc hiện đang chưa
-  có". Gửi sang khung: `{id, blob}` · `{url}` · null qua `cx-slide-data` / `cx-slide-music`.
-  Bài thư viện đặt ở host khác thì host đó phải trả CORS và có trong `connect-src` của
-  `_headers` (bộ xuất `fetch` file nhạc).
+  `CONFIG.slideMusic.library` (`{tracks:[{id, title, artist, file, credit}]}`; `file` tính theo
+  URL của file danh mục, `credit` hiện dưới danh sách khi bài cần ghi công). Kho chưa dựng /
+  rỗng / lỗi mạng / treo quá 6 giây → "Thư viện nhạc hiện đang chưa có". Kho là dịch vụ NGOÀI
+  nên **không bao giờ chặn slide**: dữ liệu gửi sang khung không chờ kho; bài thư viện đã chọn
+  chỉ được áp khi kho trả lời, trước đó (hoặc kho chết) slide chạy nhạc của thiệp. Gửi sang khung: `{id, blob}` · `{url}` ·
+  null qua `cx-slide-data` / `cx-slide-music`.
+- **Kho nhạc thư viện** = Worker CHỈ phục vụ file tĩnh `cuoixinh-media` ở `media.cuoixinh.com`
+  (thư mục `cloudflare-media/`, `npm run deploy:media`) — không tính vào 10 GB miễn phí của R2,
+  file nhạc không vào git (`public/songs/` bị .gitignore, wrangler đọc file trên máy). Thêm bài:
+  chép file vào `cloudflare-media/public/songs/`, thêm mục vào `public/library.json`, deploy.
+  Chỉ đưa bài có giấy phép dùng thương mại (CC0, hoặc CC BY kèm `credit`). Mọi file có CORS
+  (`public/_headers`); đổi tên miền thì đổi cả `CONFIG.slideMusic` lẫn `connect-src` của
+  `_headers` site chính (bộ xuất `fetch` file nhạc). Đừng chạy wrangler trần ở gốc repo cho
+  kho này: nó đọc `wrangler.jsonc` của site chính.
 - Mã tiếng khi xuất: AAC nếu máy có bộ mã, không thì Opus (Chromium mã nguồn mở, Firefox, Chrome
   Linux không có AAC). Khung báo `audio` trong `cx-slide-caps` và lý do video không tiếng
   (`mute`: yt · codec · decode) khi xong, trang ghi đúng lý do. File nhạc khách tải lên đưa

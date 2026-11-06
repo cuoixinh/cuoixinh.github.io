@@ -13,7 +13,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.11.06-8";
+const CX_VERSION = "2026.11.06-9";
  
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -215,6 +215,14 @@ const CONFIG = {
   // trang vẫn mở được bằng URL. Mục navbar khai `feature: "<khoá>"` để đi theo cờ này.
   features: {
     slides: false, // "Slide cưới" (/slide-cuoi/)
+  },
+
+  // Thư viện nhạc của trang Slide cưới — Worker file tĩnh RIÊNG (thư mục
+  // cloudflare-media/, `npm run deploy:media`), dùng chung cho mọi môi trường. Đường dẫn
+  // bài trong file danh mục tính theo chính file đó. Đổi tên miền thì đổi cả connect-src
+  // trong `_headers` (bộ xuất video fetch file nhạc).
+  slideMusic: {
+    library: "https://media.cuoixinh.com/library.json",
   },
 
   // Love Story
