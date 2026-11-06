@@ -163,10 +163,10 @@
     // ── Mở đầu: ghép 5 ảnh, ảnh giữa phóng xuống, bốn ảnh bay từ bốn góc vào ──
     add("open", "Mở đầu", (S) => {
       S.img(2, { x: 380, y: 0, w: 520, h: 720, kb: "in" }, A("zoom", 0, { s0: 1.6, t: 2.2 }), pool.own("cover_image_url"));
-      S.img(1, { x: 0, y: 244, w: 372, h: 476 }, A("fly", 2, { from: "left", rot: -14 }));
-      S.img(0, { x: 0, y: 0, w: 372, h: 236 }, A("fly", 3, { from: "tl", rot: -10 }));
-      S.img(3, { x: 908, y: 0, w: 372, h: 496 }, A("fly", 4, { from: "right", rot: 14 }));
-      S.img(4, { x: 908, y: 504, w: 372, h: 216 }, A("fly", 5, { from: "br", rot: 10 }));
+      S.img(1, { x: 0, y: 244, w: 372, h: 476 }, A("fly", 2, { from: "left" }));
+      S.img(0, { x: 0, y: 0, w: 372, h: 236 }, A("fly", 3, { from: "tl" }));
+      S.img(3, { x: 908, y: 0, w: 372, h: 496 }, A("fly", 4, { from: "right" }));
+      S.img(4, { x: 908, y: 504, w: 372, h: 216 }, A("fly", 5, { from: "br" }));
       S.grad(380, 0, 520, 220, "rgba(60,42,38,0.35)", "rgba(60,42,38,0)", A("fade", 7));
       S.grad(380, 360, 520, 360, "rgba(60,42,38,0)", "rgba(60,42,38,0.6)", A("fade", 7));
       S.rail(S.t("rail1", w.ceremony_name || "Lễ Thành Hôn", T(F.rail, C.white, { ls: 6, ...shadow, anim: A("reveal", 9, { from: "top" }) })), 420, 170);
@@ -209,7 +209,7 @@
     // ── Chú rể: chữ trái, ảnh vuông phải đè mảng nâu ──
     add("groom", "Chú rể", (S) => {
       S.rect(476, 264, 804, 456, C.taupe, A("reveal", 0, { from: "bottom", t: 1.2 }));
-      S.img(0, { x: 672, y: 84, w: 482, h: 482 }, A("fly", 3, { from: "right", rot: 16, s0: 0.85 }), pool.own("groom_image_url"));
+      S.img(0, { x: 672, y: 84, w: 482, h: 482 }, A("fly", 3, { from: "right", s0: 0.85 }), pool.own("groom_image_url"));
       S.col(
         [
           S.t("title", "My groom", T(F.title, C.ink, { ls: 9, anim: A("track", 5, { ls0: 40 }) })),
@@ -227,7 +227,7 @@
       S.rect(0, 0, 330, 720, C.paper, A("reveal", 0, { from: "top", t: 1 }));
       S.rail(S.t("rail", "Forever and ever", T(F.rail, C.ink, { ls: 6, anim: A("reveal", 5, { from: "top" }) })), 92, 230);
       S.vline(91, 380, 270, A("reveal", 8, { from: "top", t: 1.4 }));
-      S.img(0, { x: 232, y: 78, w: 576, h: 576 }, A("fly", 2, { from: "left", rot: -14, s0: 0.85 }), pool.own("bride_image_url"));
+      S.img(0, { x: 232, y: 78, w: 576, h: 576 }, A("fly", 2, { from: "left", s0: 0.85 }), pool.own("bride_image_url"));
       S.col([S.t("title", "My bride", T(F.title, C.white, { align: "center", ls: 9, ...shadow, anim: A("track", 9, { ls0: 40 }) }))], 232, 576, 560);
       S.col(
         [S.t("poem", "Em đã gặp được người\nhiểu em hơn cả chính em.\n\nĐường còn dài, mình đi chậm thôi,\nmiễn là có nhau, anh nhé.", P(F.poem, C.white, { lh: 2.3, ls: 2, anim: A("lines", 12) }))],
@@ -245,8 +245,8 @@
         S.rail(S.t("rail", "Wedding", T(F.rail, C.ink, { ls: 8, anim: A("reveal", 7, { from: "top" }) })), 69, 610);
         S.rect(166, 0, 846, 270, C.taupe, A("reveal", 0, { from: "left", t: 1.2 }));
         S.img(0, { x: 166, y: 270, w: 816, h: 450 }, A("fly", 2, { from: "bottom", s0: 0.9 }));
-        S.img(1, { x: 1012, y: 0, w: 268, h: 396 }, A("fly", 4, { from: "right", rot: 14 }));
-        S.img(2, { x: 1012, y: 404, w: 268, h: 186 }, A("fly", 6, { from: "br", rot: -12 }));
+        S.img(1, { x: 1012, y: 0, w: 268, h: 396 }, A("fly", 4, { from: "right" }));
+        S.img(2, { x: 1012, y: 404, w: 268, h: 186 }, A("fly", 6, { from: "br" }));
         S.col([S.t("title", "My love", T(F.title, C.white, { ls: 10, anim: A("track", 4, { ls0: 50 }) }))], 202, 760, 26);
         S.col([S.t("lines", "Gió hôm nay ngọt ngào đến lạ,\nnắng hôm nay cũng dịu dàng hơn.\nXin nhận lời chúc phúc của mọi người\nđể cùng nhau đi tới bạc đầu.", P(F.small, C.white, { lh: 2.1, ls: 1, anim: A("lines", 8) }))], 204, 760, 112);
         return { dur: 8, tr: "slide" };
@@ -265,17 +265,17 @@
       // Ảnh dọc + ảnh ngang trên dải nâu, WITH YOU canh phải.
       (S) => {
         S.rect(66, 462, 1188, 232, C.taupe, A("reveal", 0, { from: "right", t: 1.2 }));
-        S.img(0, { x: 108, y: 64, w: 462, h: 614 }, A("fly", 2, { from: "bottom", rot: -10 }));
-        S.img(1, { x: 586, y: 64, w: 624, h: 466 }, A("fly", 4, { from: "top", rot: 8 }));
+        S.img(0, { x: 108, y: 64, w: 462, h: 614 }, A("fly", 2, { from: "bottom" }));
+        S.img(1, { x: 586, y: 64, w: 624, h: 466 }, A("fly", 4, { from: "top" }));
         S.col([S.t("title", "With you", T(F.title, C.white, { align: "right", ls: 9, anim: A("track", 8, { ls0: 40 }) }))], 586, 624, 534);
         S.col([S.t("lines", "Through every season, side by side,\nwe will always find our way home.", P(F.small, C.white, { align: "right", lh: 1.7, anim: A("lines", 12) }))], 586, 624, 616);
         return { dur: 8, tr: "split" };
       },
-      // Ba ảnh: hai ảnh cao bay/lật vào, ảnh nhỏ phải, MY LOVE dưới ảnh nhỏ.
+      // Ba ảnh: hai ảnh cao bay vào, ảnh nhỏ phải, MY LOVE dưới ảnh nhỏ.
       (S) => {
-        S.img(0, { x: 30, y: 64, w: 444, h: 592 }, A("fly", 1, { from: "left", rot: -12 }));
-        S.img(1, { x: 484, y: 64, w: 444, h: 592 }, A("flip", 4));
-        S.img(2, { x: 938, y: 64, w: 312, h: 346 }, A("fly", 6, { from: "right", rot: 12 }));
+        S.img(0, { x: 30, y: 64, w: 444, h: 592 }, A("fly", 1, { from: "left" }));
+        S.img(1, { x: 484, y: 64, w: 444, h: 592 }, A("fly", 4, { from: "bottom" }));
+        S.img(2, { x: 938, y: 64, w: 312, h: 346 }, A("fly", 6, { from: "right" }));
         S.col([S.t("title", "My love", T(F.titleS, C.ink, { align: "center", ls: 7, anim: A("track", 9, { ls0: 30 }) }))], 920, 348, 446);
         S.col([S.t("lines", "Ta đợi nhau qua bao mùa nắng\nđể hỏi một câu thật khẽ:\nmình về chung một nhà, em nhé?", P(F.small, C.body, { align: "center", lh: 1.9, anim: A("lines", 12) }))], 920, 348, 526);
         return { dur: 8, tr: "slide" };
@@ -283,8 +283,8 @@
       // Ảnh dọc lớn + ảnh dọc nhỏ, thơ phải, WITH YOU trên dải nâu.
       (S) => {
         S.rect(66, 462, 1188, 232, C.taupe, A("reveal", 0, { from: "left", t: 1.2 }));
-        S.img(0, { x: 140, y: 66, w: 456, h: 608 }, A("fly", 1, { from: "left", rot: -10 }));
-        S.img(1, { x: 604, y: 66, w: 244, h: 438 }, A("fly", 4, { from: "top", rot: 10 }));
+        S.img(0, { x: 140, y: 66, w: 456, h: 608 }, A("fly", 1, { from: "left" }));
+        S.img(1, { x: 604, y: 66, w: 244, h: 438 }, A("fly", 4, { from: "top" }));
         S.col([S.t("poem", "Ngày xưa, người trước mặt\nlà người trong lòng.\nMai sau, người trong lòng\nlà người kề bên.\nTay nhỏ nắm tay to,\ncùng nhau đi hết đời.", P(F.story, C.ink, { lh: 2.3, ls: 1.5, anim: A("lines", 7) }))], 880, 380, 80, 420);
         S.col([S.t("title", "With you", T(F.title, C.white, { align: "right", ls: 9, anim: A("track", 10, { ls0: 40 }) }))], 760, 480, 524);
         S.col([S.t("lines", "I love you more than yesterday,\nand a little less than tomorrow.", P(F.small, C.white, { align: "right", lh: 1.7, anim: A("lines", 14) }))], 760, 480, 608);
@@ -295,8 +295,8 @@
         S.rect(0, 640, 454, 80, C.taupe, A("reveal", 0, { from: "left", t: 1 }));
         S.vline(68, 26, 420, A("reveal", 2, { from: "top", t: 1.4 }));
         S.rail(S.t("rail", "Wedding", T(F.rail, C.ink, { ls: 8, anim: A("reveal", 6, { from: "top" }) })), 69, 540);
-        S.img(0, { x: 220, y: 26, w: 500, h: 666 }, A("fly", 1, { from: "left", rot: -12 }));
-        S.img(1, { x: 726, y: 26, w: 500, h: 666 }, A("fly", 3, { from: "right", rot: 12 }));
+        S.img(0, { x: 220, y: 26, w: 500, h: 666 }, A("fly", 1, { from: "left" }));
+        S.img(1, { x: 726, y: 26, w: 500, h: 666 }, A("fly", 3, { from: "right" }));
         S.col([S.t("title", "Our wedding", T(F.hero, C.white, { align: "center", ls: 14, ...shadow, anim: A("track", 8, { ls0: 70, t: 2.4 }) }))], 220, 1006, 312);
         return { dur: 8, tr: "zoom" };
       },
@@ -305,8 +305,8 @@
         S.vline(96, 70, 320, A("reveal", 2, { from: "top", t: 1.2 }));
         S.rail(S.t("rail", "Wedding", T(F.rail, C.ink, { ls: 8, anim: A("reveal", 6, { from: "top" }) })), 97, 466);
         S.rect(0, 558, 318, 162, C.taupe, A("reveal", 0, { from: "bottom", t: 1 }));
-        S.img(0, { x: 206, y: 98, w: 398, h: 532 }, A("fly", 1, { from: "bl", rot: -14 }));
-        S.img(1, { x: 612, y: 98, w: 668, h: 532 }, A("fly", 3, { from: "tr", rot: 10 }));
+        S.img(0, { x: 206, y: 98, w: 398, h: 532 }, A("fly", 1, { from: "bl" }));
+        S.img(1, { x: 612, y: 98, w: 668, h: 532 }, A("fly", 3, { from: "tr" }));
         S.col([S.t("title", "Our wedding", T(F.hero, C.white, { align: "center", ls: 14, ...shadow, anim: A("track", 8, { ls0: 70, t: 2.4 }) }))], 240, 1000, 530);
         return { dur: 8, tr: "split" };
       },
@@ -332,7 +332,7 @@
       const ph = ev.image_url ? { file: ev.image_url, fp: ev.focal_point } : null;
       if (k % 2 === 0) {
         S.rect(0, 360, 476, 360, C.taupe, A("reveal", 0, { from: "bottom", t: 1.1 }));
-        S.img(0, { x: 130, y: 86, w: 692, h: 520 }, A("fly", 2, { from: "left", rot: -8 }), ph);
+        S.img(0, { x: 130, y: 86, w: 692, h: 520 }, A("fly", 2, { from: "left" }), ph);
         S.col([S.t("deco", "Happy days", T(F.titleS, C.white, { ls: 8, alpha: 0.9, ...shadow, anim: A("track", 8, { ls0: 30 }) }))], 130, 700, 590);
         storyCol(S, ev, 868, 380, C.mute);
       } else {
@@ -347,8 +347,8 @@
     // ── Hai bên: MY BRIDE / MY GROOM, thơ ở giữa trên nền xẻ đôi ──
     const pair = (S) => {
       S.rect(0, 426, W, 294, C.taupe, A("reveal", 0, { from: "bottom", t: 1.1 }));
-      S.img(0, { x: 60, y: 164, w: 400, h: 400 }, A("fly", 2, { from: "left", rot: -16 }), pool.own("bride_image_url"));
-      S.img(1, { x: 820, y: 164, w: 400, h: 400 }, A("fly", 4, { from: "right", rot: 16 }), pool.own("groom_image_url"));
+      S.img(0, { x: 60, y: 164, w: 400, h: 400 }, A("fly", 2, { from: "left" }), pool.own("bride_image_url"));
+      S.img(1, { x: 820, y: 164, w: 400, h: 400 }, A("fly", 4, { from: "right" }), pool.own("groom_image_url"));
       S.col([S.t("bride", "My bride", T({ family: PF, size: 44 }, C.white, { align: "center", ls: 6, ...shadow, anim: A("track", 8, { ls0: 30 }) }))], 60, 400, 494);
       S.col([S.t("groom", "My groom", T({ family: PF, size: 44 }, C.white, { align: "center", ls: 6, ...shadow, anim: A("track", 10, { ls0: 30 }) }))], 820, 400, 494);
       S.col([S.t("poem", "Lần đầu gặp, đã thấy rung động\nGặp lại rồi, đã thấy thương\nNăm tháng đưa hai trái tim lại gần\nthành một nửa vẹn tròn của nhau", P(F.story, C.ink, { align: "center", lh: 2.2, ls: 1.5, anim: A("lines", 9) }))], 470, 340, 200, 420);
@@ -385,7 +385,7 @@
     if (hasParents) {
       add("parents", "Gửi cha mẹ", (S) => {
         S.rect(0, 360, 476, 360, C.taupe, A("reveal", 0, { from: "bottom", t: 1.1 }));
-        S.img(0, { x: 130, y: 86, w: 640, h: 520 }, A("fly", 2, { from: "bl", rot: -10 }));
+        S.img(0, { x: 130, y: 86, w: 640, h: 520 }, A("fly", 2, { from: "bl" }));
         const cols = [fam(S, "nt", "Nhà trai", w.groom_father, w.groom_mother), fam(S, "ng", "Nhà gái", w.bride_father, w.bride_mother)].filter((c) => c && c.length);
         S.col(
           [
@@ -419,9 +419,9 @@
         { x: 344, y: 352, w: 128, h: 136 },
       ];
       cells.forEach((c, k) => {
-        if (!k) return S.img(0, c, A("zoom", 1, { s0: 0.2, back: 1.4, t: 1.4 }), pool.own("cover_image_url"));
+        if (!k) return S.img(0, c, A("fly", 1, { from: "top" }), pool.own("cover_image_url"));
         const ang = (Math.atan2(c.y + c.h / 2 - 360, c.x + c.w / 2 - 640) * 180) / Math.PI;
-        S.img(k, c, A("fly", 3 + k * 1.3, { from: ang, rot: (k % 2 ? -1 : 1) * (10 + (k % 3) * 6), s0: 0.6, t: 1.3 }));
+        S.img(k, c, A("fly", 3 + k * 1.3, { from: ang, s0: 0.6, t: 1.3 }));
       });
       const side = (n, role, name, x) =>
         S.col(

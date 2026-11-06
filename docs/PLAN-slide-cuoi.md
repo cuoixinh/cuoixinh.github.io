@@ -43,7 +43,7 @@ slide-cuoi/
                            ls dãn chữ · align · shadow · rot xoay) · sparkle (đốm sáng) · group;
                            hiệu ứng fade · up · left · right · spread · wipe · type (đánh chữ
                            cho LỜI NÓI, mẫu tự xếp các đoạn gõ nối đuôi) · fly (bay từ ngoài
-                           khung vào, xoay + nảy) · zoom · flip · reveal (mở từ một mép) ·
+                           khung vào, phanh êm; `rot` xoay / `back` nảy chỉ khi mẫu khai) · zoom · flip · reveal (mở từ một mép) ·
                            track (chữ dãn rồi khép) · letters · lines; chuyển cảnh `tr` của
                            cảnh/mẫu: fade · slide · slide-up · zoom · split; `CX_SLIDE.fx.sparkle`
                            = lớp đốm sáng phủ suốt slide. Ảnh to hơn khung thu nhỏ MỘT lần lúc

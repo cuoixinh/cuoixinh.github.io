@@ -7,7 +7,9 @@ window.CXSlideEngine = (() => {
   const _ease = (p) => 1 - Math.pow(1 - p, 3);
   const _easeIO = (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
   const _clamp = (p) => (p < 0 ? 0 : p > 1 ? 1 : p);
-  // Vượt quá đích một chút rồi lùi về (ảnh bay vào "đáp" xuống).
+  // Lao nhanh rồi phanh êm đến đúng đích (bay vào) · _back: vượt quá đích rồi lùi về — chỉ dùng
+  // khi mẫu khai `back` (nảy), mặc định không nảy.
+  const _glide = (p) => 1 - Math.pow(1 - p, 5);
   const _back = (p, s = 1.3) => 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2);
 
   // Thời lượng mặc định (giây) của từng kiểu hiệu ứng. Nhóm sau dành cho mẫu cần chuyển động
@@ -328,7 +330,8 @@ window.CXSlideEngine = (() => {
         const raw = _clamp(at / T);
         const k = a.k;
         if (k === "wipe" || k === "reveal") p = _easeIO(raw);
-        else if (k === "fly" || k === "flip" || (k === "zoom" && a.back)) p = raw >= 1 ? 1 : _back(raw, a.back ?? 1.3);
+        else if (a.back) p = raw >= 1 ? 1 : _back(raw, a.back);
+        else if (k === "fly" || k === "flip") p = _glide(raw);
         else p = _ease(raw);
         if (k === "fly" || k === "flip") ctx.globalAlpha *= _clamp(raw * 4);
         else if (k === "zoom") ctx.globalAlpha *= a.keep ? 1 : _clamp(raw * 2.5);
@@ -497,7 +500,7 @@ window.CXSlideEngine = (() => {
       g.ch.forEach((c, j) => {
         const p = _clamp((at - n++ * step) / T);
         if (p > 0) {
-          const q = _back(p, 1.6);
+          const q = _ease(p);
           ctx.globalAlpha = base * _clamp(p * 2);
           ctx.fillText(c, x, y + (1 - q) * dy);
         }
