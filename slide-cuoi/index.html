@@ -64,15 +64,25 @@
           <x-button variant="bare" icon="maximize" onclick="scFullscreen()" class="sc-play">
             Trình chiếu
           </x-button>
-          <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="sc-ghost" aria-expanded="false" aria-controls="sc-export">
-            Xuất video
+          <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="sc-ghost sc-ex-btn" aria-expanded="false" aria-controls="sc-export">
+            <span id="sc-ex-btn-label">Xuất video</span>
+          </x-button>
+          <!-- Chỉ hiện khi đang xuất (_scExportBtn), để huỷ được cả khi thẻ nổi đã đóng. -->
+          <x-button id="sc-ex-stop" variant="bare" icon="x" onclick="scExportCancel()" class="sc-ghost sc-ex-stop hidden" aria-label="Huỷ xuất video">
+            <span class="sc-ex-stop-t">Huỷ</span>
           </x-button>
           <p id="sc-total" class="sc-total"></p>
         </div>
 
-        <!-- Xuất video MP4 ngay trên máy (CXSlideExport trong khung slide). Bốn trạng thái loại
-             trừ nhau: chọn khổ · đang xuất · xong · lỗi — _scExportState bật/tắt. -->
-        <div id="sc-export" class="sc-export hidden" aria-live="polite">
+      </section>
+
+
+      <!-- Xuất video MP4 ngay trên máy (CXSlideExport trong khung slide): thẻ nổi neo vào nút
+           "Xuất video" nên slide giữ nguyên cỡ. Bốn trạng thái loại trừ nhau: chọn khổ · đang
+           xuất · xong · lỗi — _scExportState bật/tắt. Để NGOÀI sân khấu (sân khấu là khung
+           cuộn + lớp xếp chồng riêng, thẻ nằm trong đó sẽ bị navbar đè). -->
+      <x-popover id="sc-export" anchor="#sc-export-open" placement="bottom" align="start" arrow keep-open width="360" role="dialog" aria-label="Xuất video" class="sc-export">
+        <div aria-live="polite">
           <div id="sc-ex-pick">
             <p class="sc-export-h">Chọn chất lượng video</p>
             <div id="sc-ex-res" class="cx-seg sc-ex-res" style="--n: 2; --i: 1">
@@ -80,7 +90,7 @@
               <button type="button" class="cx-seg-btn is-on" data-res="2160">4K</button>
             </div>
             <p id="sc-ex-note" class="sc-export-note"></p>
-            <x-button variant="bare" icon="download" onclick="scExportStart()" class="sc-play mt-4">
+            <x-button variant="bare" icon="download" onclick="scExportStart()" class="mi-btn mi-btn--primary mt-4">
               Bắt đầu xuất
             </x-button>
           </div>
@@ -89,7 +99,7 @@
             <p class="sc-export-h">Đang xuất video <span id="sc-ex-pct">0%</span></p>
             <div class="sc-ex-track"><i id="sc-ex-fill"></i></div>
             <p class="sc-export-note">Giữ tab này mở cho tới khi xong.</p>
-            <x-button variant="bare" icon="x" onclick="scExportCancel()" class="sc-ghost mt-4">
+            <x-button variant="bare" icon="x" onclick="scExportCancel()" class="mi-btn mi-btn--soft mt-4">
               Huỷ
             </x-button>
           </div>
@@ -97,20 +107,25 @@
           <div id="sc-ex-done" class="hidden">
             <p class="sc-export-h">Đã xuất xong</p>
             <p id="sc-ex-done-note" class="sc-export-note"></p>
-            <x-button variant="bare" icon="download" onclick="scExportSave()" class="sc-play mt-4">
-              Tải video
-            </x-button>
+            <div class="sc-ex-acts">
+              <x-button variant="bare" icon="download" onclick="scExportSave()" class="mi-btn mi-btn--primary">
+                Tải video
+              </x-button>
+              <x-button variant="bare" icon="refresh-cw" onclick="scExportOpen(true)" class="mi-btn mi-btn--soft">
+                Xuất lại
+              </x-button>
+            </div>
           </div>
 
           <div id="sc-ex-error" class="hidden">
             <p class="sc-export-h">Chưa xuất được video</p>
             <p id="sc-ex-error-note" class="sc-export-note"></p>
-            <x-button variant="bare" icon="refresh-cw" onclick="scExportOpen(true)" class="sc-ghost mt-4">
+            <x-button variant="bare" icon="refresh-cw" onclick="scExportOpen(true)" class="mi-btn mi-btn--soft mt-4">
               Thử lại
             </x-button>
           </div>
         </div>
-      </section>
+      </x-popover>
 
       <div class="sc-panel">
         <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 3; --i: 0">
