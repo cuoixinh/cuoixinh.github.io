@@ -392,6 +392,7 @@
     const els = new Map(); // id → {url, el}
     let duck = 1;
     let level = 1;
+    let quiet = false; // trang cha đang thu âm: im cả giọng lẫn nhạc cho micro khỏi thu lẫn
     const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
     const unit = (v) => Math.min(1, Math.max(0, n(v)));
     function set(list, d) {
@@ -423,7 +424,7 @@
       clips.forEach((c) => {
         const x = els.get(c.id);
         if (!x) return;
-        if (run && !c.mute && tt >= c.start && tt < c.start + c.len) {
+        if (run && !quiet && !c.mute && tt >= c.start && tt < c.start + c.len) {
           any = true;
           const want = c.in + (tt - c.start);
           if (!x.el.seeking && Math.abs(x.el.currentTime - want) > 0.35) {
@@ -436,7 +437,7 @@
         } else if (!x.el.paused) x.el.pause();
       });
       // Nhạc hạ / lên dần trong khoảng nửa giây.
-      const target = any ? duck : 1;
+      const target = quiet ? 0 : any ? duck : 1;
       level += (target - level) * 0.12;
       if (Math.abs(target - level) < 0.01) level = target;
       Music.level(level);
@@ -444,6 +445,7 @@
     return {
       set,
       tick,
+      quiet: (on) => (quiet = !!on),
       has: () => clips.some((c) => !c.mute),
       duck: () => duck,
       exportList: () => clips.map((c) => ({ blob: c.blob, start: c.start, in: c.in, len: c.len, vol: c.vol, mute: c.mute })),
@@ -820,6 +822,8 @@
       if (exporting) return;
       Voice.set(m.voice?.clips, m.voice?.duck);
       sync();
+    } else if (m.type === "cx-slide-quiet") {
+      Voice.quiet(m.on);
     } else if (m.type === "cx-slide-seek") {
       if (!exporting) seek(m.t, !!m.pause);
     } else if (m.type === "cx-slide-play") {

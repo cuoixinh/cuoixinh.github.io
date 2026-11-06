@@ -238,7 +238,7 @@
         <!-- Giọng đọc (slide-cuoi/voice.js): tối đa 10 file ghi âm, mỗi file một lớp trên dòng thời
              gian của slide. Byte file ở IndexedDB, vị trí/cắt/âm lượng ở localStorage, không lên server. -->
         <section id="sc-tab-voice" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-voice">
-          <p class="sc-lead">Thu âm giọng đọc theo chữ trên slide rồi tải lên. Mỗi file là một lớp: kéo khối để chọn lúc bắt đầu, kéo hai mép để cắt bớt đầu hoặc cuối.</p>
+          <p class="sc-lead">Bấm micro ở một lớp để thu âm ngay theo chữ trên slide, hoặc tải file ghi âm lên. Kéo khối để chọn lúc bắt đầu, kéo hai mép để cắt bớt đầu hoặc cuối.</p>
           <div id="sc-vo-bar" class="sc-vo-bar">
             <button type="button" id="sc-vo-play" class="sc-vo-play" aria-label="Phát hoặc tạm dừng slide">
               <span class="sc-vo-i-play"><i data-lucide="play"></i></span>
@@ -251,6 +251,7 @@
               <button type="button" onclick="scVoiceZoom(1.6)" aria-label="Phóng to" title="Phóng to"><i data-lucide="zoom-in"></i></button>
             </div>
           </div>
+          <p id="sc-vo-rec" class="sc-vo-rec hidden" role="status" aria-live="polite"></p>
           <div id="sc-vo-tl" class="sc-vo-tl"></div>
           <div id="sc-vo-sel" class="sc-vo-sel hidden"></div>
           <button type="button" id="sc-vo-up" class="sc-mu-up sc-vo-up" onclick="scVoicePick()">

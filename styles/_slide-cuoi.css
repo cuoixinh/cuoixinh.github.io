@@ -1578,7 +1578,7 @@ html.sc-lock .cx-navmore-pop {
 
 /* Dòng thời gian: nền tối như bàn dựng phim; cột tên lớp dính trái, phần làn cuộn ngang. */
 .sc-vo-tl {
-  --vo-head: 96px;
+  --vo-head: 132px;
   --vo-bg: 40 24 32;
   --vo-head-bg: 52 32 42;
   --vo-ink: 255 240 245;
@@ -1596,7 +1596,7 @@ html.sc-lock .cx-navmore-pop {
 /* Màn hẹp: cột lớp chỉ còn số + nút tiếng (tên đã hiện trên khối). */
 @media (max-width: 639px) {
   .sc-vo-tl {
-    --vo-head: 64px;
+    --vo-head: 96px;
   }
   .sc-vo-row.is-voice .sc-vo-name {
     display: none;
@@ -1853,9 +1853,9 @@ html.sc-lock .cx-navmore-pop {
 /* Bảng lớp đang chọn. */
 .sc-vo-sel {
   display: grid;
-  gap: 12px;
+  gap: 4px;
   margin-bottom: 12px;
-  padding: 12px 16px 16px;
+  padding: 8px 12px 4px 16px;
   border-radius: 16px;
   background: rgb(var(--white-rgb));
   border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
@@ -1888,71 +1888,12 @@ html.sc-lock .cx-navmore-pop {
 .sc-vo-x:hover {
   background: rgb(var(--surface-brand-subtle-rgb));
 }
-.sc-vo-field {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-}
-.sc-vo-field.is-vol {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0 12px;
-}
-.sc-vo-field.is-vol .sc-range {
-  grid-column: 1 / -1;
-}
-.sc-vo-lab {
-  font-size: 14px;
-  font-weight: 500;
-  color: rgb(var(--text-heading-rgb));
-}
-.sc-vo-step {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px;
-  border-radius: 999px;
-  background: rgb(var(--surface-brand-subtle-rgb));
-}
-.sc-vo-step button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  font-size: 15px;
-  color: rgb(var(--action-primary-deep-rgb));
-}
-.sc-vo-step button:hover {
-  background: rgb(var(--white-rgb));
-}
-.sc-vo-start {
-  min-width: 64px;
-  text-align: center;
-  font-size: 15px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: rgb(var(--action-primary-deep-rgb));
-}
 .sc-vo-vol-v {
-  font-size: 14px;
+  flex: none;
+  font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: rgb(var(--action-primary-deep-rgb));
-}
-.sc-vo-cut {
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  color: rgb(var(--text-caption-rgb));
-}
-.sc-vo-acts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.sc-ph-act.is-danger {
-  color: rgb(var(--danger-rgb, 220 38 38));
 }
 .sc-vo-up {
   margin-bottom: 12px;
@@ -1967,4 +1908,84 @@ html.sc-lock .cx-navmore-pop {
   border-radius: 12px;
   background: rgb(var(--white-rgb));
   border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+}
+
+/* Thu âm thẳng: nút micro đầu lớp (đang thu thành nút dừng đỏ nhấp nháy), khối đỏ chạy dài theo
+   đầu phát, dòng trạng thái trên dòng thời gian. */
+.sc-vo-rec-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: 14px;
+  color: rgb(var(--vo-ink) / 0.85);
+  background: rgb(var(--vo-ink) / 0.08);
+}
+.sc-vo-rec-btn:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(239 68 68 / 0.85);
+}
+.sc-vo-rec-btn:focus-visible {
+  outline: 2px solid rgb(var(--vo-ink) / 0.8);
+}
+.sc-vo-rec-btn.is-on {
+  color: rgb(var(--white-rgb));
+  background: rgb(239 68 68);
+  animation: cx-vo-rec 1.2s ease-in-out infinite;
+}
+@keyframes cx-vo-rec {
+  50% {
+    box-shadow: 0 0 0 6px rgb(239 68 68 / 0.3);
+  }
+}
+.sc-vo-n.is-new {
+  font-size: 12px;
+  color: rgb(var(--vo-ink) / 0.8);
+  background: rgb(var(--vo-ink) / 0.12);
+}
+.sc-vo-row.is-rec .sc-vo-clip {
+  opacity: 0.25;
+}
+.sc-vo-live {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgb(239 68 68), rgb(185 28 28));
+  box-shadow: 0 0 12px rgb(239 68 68 / 0.5);
+}
+.sc-vo-rec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgb(185 28 28);
+  background: rgb(254 226 226);
+}
+.sc-vo-rec::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgb(239 68 68);
+  animation: cx-vo-rec 1.2s ease-in-out infinite;
+}
+.sc-vo-bar.is-rec .sc-vo-play {
+  background: rgb(239 68 68);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-vo-rec-btn.is-on,
+  .sc-vo-rec::before {
+    animation: none;
+  }
 }

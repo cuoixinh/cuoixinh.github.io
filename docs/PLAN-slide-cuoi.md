@@ -87,7 +87,9 @@ slide-cuoi/
 - Giọng đọc (`voice.js`, tab "Giọng"): tối đa 10 file ghi âm, mỗi file ≤ 50 MB, mỗi file một LỚP
   trên dòng thời gian của slide (thước giây · dải cảnh · nhạc · các lớp). Kéo thân khối = đổi lúc
   bắt đầu, kéo hai mép = cắt đầu/cuối, hút về đầu cảnh / đầu phát / mép lớp khác; bảng lớp đang
-  chọn có nhích ±0,1 giây, âm lượng, tắt tiếng, xoá. Byte file cất IndexedDB kho `voice` (BYTE,
+  chọn chỉ có âm lượng + dấu x (xoá lớp, có hỏi lại). Nút micro ở đầu mỗi lớp (thu lại, giữ chỗ
+  bắt đầu) và hàng "Lớp mới": đếm ngược 3 giây, slide chạy từ mốc đó và TẮT TIẾNG trong lúc thu
+  (`cx-slide-quiet`), bấm lại / slide hết là dừng; bản thu đi chung đường cất với file tải lên. Byte file cất IndexedDB kho `voice` (BYTE,
   không Blob, kèm đỉnh sóng âm) theo `<mẫu>|<id thiệp hoặc demo>|<id lớp>`, vị trí/cắt/âm lượng +
   mức "nhạc nền khi có giọng" ở `localStorage.cx_slide_voice` — không lên server. Khung phát lớp
   khớp đồng hồ slide (`Voice` ở runtime), hạ nhạc khi có giọng; bộ xuất trộn nhạc + giọng bằng
