@@ -28,7 +28,7 @@
 
 ```
 slide-cuoi/
-  index.html, index.js     Sân khấu (khung xem iframe trên nền nhung + Trình chiếu / Xuất
+  index.html, index.js     Sân khấu (khung xem iframe trên nền hồng phấn + Trình chiếu / Xuất
                            video, GHIM khi cuộn: từ lg là cột trái, dưới lg ghim đầu màn) +
                            bảng chỉnh ba tab: Cảnh (mỗi dòng một cảnh — ảnh nhỏ, tên, mốc giờ;
                            bấm là chiếu cảnh đó + mở phần đổi ảnh/lấy nét và sửa chữ) ·
