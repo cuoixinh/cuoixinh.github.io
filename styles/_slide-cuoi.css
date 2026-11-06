@@ -204,9 +204,7 @@
 @media (prefers-reduced-motion: reduce) {
   .sc-glow,
   .sc-sweep,
-  .sc-bokeh,
-  .sc-screen::before,
-  .sc-screen::after {
+  .sc-bokeh {
     animation: none;
   }
   .sc-sweep {
@@ -237,46 +235,6 @@
   border: 0;
   border-radius: inherit;
 }
-/* Đèn chạy viền: hai dải sáng hồng–trắng chạy vòng quanh mép slide (::before, viền 3px) +
-   quầng toả ra (::after, nhoè). Góc xoay là biến --sc-orbit khai bằng @property để
-   conic-gradient chuyển động được; trình duyệt chưa hỗ trợ thì viền đứng yên. Hai lớp nằm
-   DƯỚI iframe (z -1 trong khung) nên chỉ lộ phần thò ra ngoài mép. */
-@property --sc-orbit {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-.sc-screen::before,
-.sc-screen::after {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  z-index: -1;
-  border-radius: calc(var(--sc-r) + 3px);
-  background: conic-gradient(
-    from var(--sc-orbit),
-    transparent 0deg,
-    rgb(var(--sc-glow-1)) 50deg,
-    rgb(var(--sc-glow-3)) 80deg,
-    transparent 120deg,
-    transparent 180deg,
-    rgb(var(--sc-glow-2)) 230deg,
-    rgb(var(--sc-glow-3)) 260deg,
-    transparent 300deg
-  );
-  animation: cx-sc-orbit 7s linear infinite;
-}
-.sc-screen::after {
-  inset: -8px;
-  border-radius: calc(var(--sc-r) + 8px);
-  filter: blur(16px);
-  opacity: 0.85;
-}
-@keyframes cx-sc-orbit {
-  to {
-    --sc-orbit: 360deg;
-  }
-}
 /* Máy không có Fullscreen API (iPhone): phủ kín màn bằng CSS. Nền sân khấu không được có
    transform/filter, không thì khung `fixed` này bị nhốt trong nó. */
 .sc-screen.is-full {
@@ -288,10 +246,6 @@
   aspect-ratio: auto;
   border-radius: 0;
   box-shadow: none;
-}
-.sc-screen.is-full::before,
-.sc-screen.is-full::after {
-  display: none;
 }
 html.sc-lock,
 html.sc-lock body {
