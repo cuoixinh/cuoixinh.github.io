@@ -38,6 +38,12 @@
    tách nó khỏi danh sách cuộn bên dưới. */
 .sc-stage {
   --sc-max-h: calc(var(--vh, 1svh) * 42);
+  /* Hàng nút + ô xuất video: rộng bằng slide, nhưng không hẹp hơn 560px (slide thu nhỏ trên
+     màn thấp thì hai thứ này vẫn đủ chỗ), không quá bề ngang sân khấu. */
+  --sc-row-w: min(100%, max(calc(var(--sc-max-h) * var(--sc-ratio-n)), 560px));
+  /* Cao tối đa một màn trừ navbar: ô xuất video mở mà vẫn dài quá thì cuộn trong khung. */
+  max-height: calc(var(--vh, 1svh) * 100 - var(--sc-top));
+  overflow-y: auto;
   grid-area: stage;
   position: sticky;
   top: var(--sc-top);
@@ -48,6 +54,10 @@
     radial-gradient(ellipse 70% 60% at 50% 38%, rgb(var(--sc-spot)) 0%, transparent 72%),
     rgb(var(--sc-curtain));
   box-shadow: 0 1px 0 rgb(var(--brand-primary-rgb) / 0.6);
+}
+/* Dưới lg đang mở ô xuất video: slide thu lại để ô đó còn chỗ dưới slide đang ghim. */
+.sc-stage.is-ex {
+  --sc-max-h: calc(var(--vh, 1svh) * 26);
 }
 @media (min-width: 640px) {
   .sc-stage {
@@ -300,7 +310,7 @@ html.sc-lock body {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: min(100%, calc(var(--sc-max-h) * var(--sc-ratio-n)));
+  width: var(--sc-row-w);
   margin: 12px auto 0;
 }
 .sc-play,
@@ -356,7 +366,7 @@ html.sc-lock body {
 .sc-export {
   position: relative;
   z-index: 1;
-  width: min(100%, calc(var(--sc-max-h) * var(--sc-ratio-n)));
+  width: var(--sc-row-w);
   max-height: calc(var(--vh, 1svh) * 40);
   margin: 12px auto 0;
   padding: 16px;
@@ -450,17 +460,32 @@ html.sc-lock body {
     margin-inline: auto;
     padding: 8px 24px 48px;
   }
+  /* Canh giữa dọc bằng hai đệm co giãn (::before/::after) thay vì justify-content: center —
+     cái sau đẩy nội dung cao quá khung tràn LÊN TRÊN (đè navbar, không cuộn tới được). Đệm co
+     về 0 khi chật nên nội dung bám từ trên xuống; con không bị ép (flex-shrink: 0). */
   .sc-stage {
-    --sc-max-h: calc(var(--vh, 1vh) * 100 - var(--sc-top) - 160px);
+    --sc-max-h: max(160px, calc(var(--vh, 1vh) * 100 - var(--sc-top) - 160px));
     align-self: start;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     max-height: calc(var(--vh, 1vh) * 100 - var(--sc-top) - 24px);
     padding: 32px;
     overflow-y: auto;
     border-radius: 24px;
     box-shadow: none;
+  }
+  .sc-stage::before,
+  .sc-stage::after {
+    content: "";
+    flex: 1 1 0;
+  }
+  .sc-stage > * {
+    flex-shrink: 0;
+  }
+  /* Đang mở ô xuất video: chừa chỗ cho ô đó (~ 210px gồm khe) để slide + ô cùng vừa màn.
+     Màn quá thấp thì slide dừng ở 120px và sân khấu tự cuộn trong khung. */
+  .sc-stage.is-ex {
+    --sc-max-h: max(120px, calc(var(--vh, 1vh) * 100 - var(--sc-top) - 360px));
   }
   .sc-screen {
     --sc-r: 12px;
@@ -475,6 +500,12 @@ html.sc-lock body {
 @media (min-width: 1280px) {
   .sc-app {
     grid-template-columns: minmax(0, 1fr) 420px;
+  }
+}
+/* Desktop thấp (cửa sổ thu nhỏ, laptop màn ngắn): bớt lề sân khấu để slide được to hơn. */
+@media (min-width: 1024px) and (max-height: 640px) {
+  .sc-stage {
+    padding: 16px 24px;
   }
 }
 @media (min-width: 1536px) {

@@ -888,6 +888,8 @@ function scExportOpen(again) {
   const open = again || box.classList.contains("hidden");
   if (_scExState === "run" && !again) return box.scrollIntoView({ block: "nearest", behavior: "smooth" });
   box.classList.toggle("hidden", !open);
+  // Sân khấu thu slide lại để ô xuất video vừa màn (.sc-stage.is-ex trong CSS).
+  box.closest(".sc-stage")?.classList.toggle("is-ex", open);
   _scEl("sc-export-open").setAttribute("aria-expanded", String(open));
   if (open) {
     _scExportState("pick");
