@@ -69,6 +69,10 @@
           <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="sc-ghost sc-ex-btn" aria-expanded="false" aria-controls="sc-export">
             <span id="sc-ex-btn-label">Xuất video</span>
           </x-button>
+          <!-- Đặt slide lên màn chiếu của ảnh hội trường — đúng khung của video "Xem thử". -->
+          <x-button id="sc-hall-btn" variant="bare" icon="projector" onclick="scHall()" class="sc-ghost sc-hall-btn" aria-pressed="false" aria-label="Xem trên màn chiếu hội trường">
+            <span class="sc-hall-t">Màn chiếu</span>
+          </x-button>
           <!-- Chỉ hiện khi đang xuất (_scExportBtn), để huỷ được cả khi thẻ nổi đã đóng. -->
           <x-button id="sc-ex-stop" variant="bare" icon="x" onclick="scExportCancel()" class="sc-ghost sc-ex-stop hidden" aria-label="Huỷ xuất video">
             <span class="sc-ex-stop-t">Huỷ</span>
@@ -86,10 +90,13 @@
       <x-popover id="sc-export" anchor="#sc-export-open" placement="bottom" align="start" arrow keep-open width="360" role="dialog" aria-label="Xuất video" class="sc-export">
         <div aria-live="polite">
           <div id="sc-ex-pick">
-            <p class="sc-export-h">Chọn chất lượng video</p>
-            <div id="sc-ex-res" class="cx-seg sc-ex-res" style="--n: 2; --i: 1">
-              <button type="button" class="cx-seg-btn" data-res="1080">Full HD 1080p</button>
-              <button type="button" class="cx-seg-btn is-on" data-res="2160">4K</button>
+            <p class="sc-export-h">Chọn loại video</p>
+            <!-- "Xem thử" = video dọc nhẹ, slide nằm trên màn chiếu hội trường, có dấu "Bản xem
+                 thử" — để gửi khách duyệt trước khi thanh toán. 1080p/4K là bản chiếu thật. -->
+            <div id="sc-ex-res" class="cx-seg sc-ex-res" style="--n: 3; --i: 0">
+              <button type="button" class="cx-seg-btn is-on" data-res="demo">Xem thử</button>
+              <button type="button" class="cx-seg-btn" data-res="1080">1080p</button>
+              <button type="button" class="cx-seg-btn" data-res="2160">4K</button>
             </div>
             <p id="sc-ex-note" class="sc-export-note"></p>
             <x-button variant="bare" icon="download" onclick="scExportStart()" class="mi-btn mi-btn--primary mt-4">

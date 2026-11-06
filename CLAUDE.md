@@ -627,7 +627,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   viết `onclick` vào markup.
 - **Slide cưới (`slide-cuoi/`):** mẫu slide ở `templates/<id>/` chỉ KHAI cảnh dưới dạng dữ
   liệu (`CX_SLIDE.scenes`); vẽ bằng canvas ở `engine/slide-engine.js` — xem trước, trình chiếu
-  và xuất MP4 1080p/4K (`engine/slide-export.js`, WebCodecs, chạy trên máy khách) dùng CHUNG
+  và xuất MP4 1080p/4K + bản "Xem thử" dọc đặt trên ảnh hội trường (gửi khách chưa thanh toán;
+  ô màn chiếu khai ở `HALL`, CSS `.sc-stage.is-hall` theo cùng số) (`engine/slide-export.js`, WebCodecs, chạy trên máy khách) dùng CHUNG
   bộ vẽ đó, đừng vẽ riêng cho một bên. Trang cha lấy thiệp (mọi thiệp của tài khoản) rồi
   `postMessage` vào iframe — mẫu không tự gọi API. Mọi chữ trên slide phải sửa được ở mục
   "Chữ trong slide" (khoá gán ở `_scene` của mẫu), chữ sửa và thời lượng khách kéo CHỈ lưu
