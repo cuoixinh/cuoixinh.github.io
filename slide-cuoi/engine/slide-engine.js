@@ -126,7 +126,8 @@ window.CXSlideEngine = (() => {
   // ── Dựng dự án ──
   // tpl = CX_SLIDE của mẫu; tpl.scenes(w, api) trả [{dur (giây), label, els, texts, photo}].
   // texts = {khoá: chữ} người dùng sửa ở trang cha, mẫu tự áp vào khối cùng khoá; photos =
-  // {id cảnh: blob URL} ảnh khách tải lên, đè ảnh thiệp của cảnh đó (photo = {key, def}).
+  // {id cảnh: {src: blob URL, focal}} ảnh khách tải lên, đè ảnh thiệp của cảnh đó. Cảnh khai
+  // photo = {key, def, w, h}: id cảnh, ảnh mặc định, khổ khung ảnh (cho bảng lấy nét).
   async function build(tpl, wedding, texts, photos) {
     await loadFonts(tpl.fonts);
     const scenes = tpl.scenes(wedding, { column, wrap, typeTime, texts: texts || {}, photos: photos || {} }) || [];

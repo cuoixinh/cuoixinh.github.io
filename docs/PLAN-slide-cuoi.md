@@ -59,11 +59,13 @@ slide-cuoi/
   `<mẫu>|<id thiệp hoặc demo>` — **chỉ localStorage, cố ý không lưu lên server**. Sửa thành
   rỗng là bỏ khối.
 - Ảnh từng cảnh: mục "Ảnh trong slide" hiện một ô cho mỗi cảnh có ảnh, mặc định là ảnh mẫu
-  báo lên (`photo: {key: <id cảnh>, def}` của cảnh — ảnh thiệp, hoặc ảnh mẫu khi chưa chọn
+  báo lên (`photo: {key: <id cảnh>, def, w, h}` của cảnh — ảnh thiệp, hoặc ảnh mẫu khi chưa chọn
   thiệp). Khách bấm ô để thay bằng ảnh trong máy: nén (cạnh dài ≤ 2560px) rồi cất BYTE vào
   IndexedDB `cx_slide/photos` theo `<mẫu>|<id thiệp hoặc demo>|<id cảnh>` — không lên server.
-  Trang cha gửi `{id cảnh: {id, blob}}`, khung đổi thành blob URL và đưa vào `L.photos`; mẫu đè
-  ảnh của cảnh bằng `L.photos[id cảnh]` (ảnh khách thì lấy nét ở giữa).
+  Trang cha gửi `{id cảnh: {id, blob, focal}}`, khung đổi thành blob URL và đưa vào `L.photos`; mẫu đè
+  ảnh của cảnh bằng `L.photos[id cảnh]` = `{src, focal}`. Chọn ảnh xong là mở bảng lấy nét
+  (`openFocalPointPicker`, `core/utils.js` nạp lúc cần) xem trước đúng khổ khung ảnh mẫu khai
+  ở `photo.w/h`; huỷ bảng = bỏ ảnh vừa chọn. Ô đã thay có nút "Lấy nét" để chỉnh lại.
 - Ảnh thiệp đi qua worker ảnh / Storage: lượt tải crossOrigin hỏng thì engine tải lại kèm
   `?cx-cors=1` — bản trong cache trình duyệt có thể là bản KHÔNG có header CORS (thẻ `<img>`
   thường, worker ảnh bản cũ cache 30 ngày) và canvas không nhận nó.

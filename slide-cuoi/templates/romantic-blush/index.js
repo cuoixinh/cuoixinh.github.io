@@ -245,8 +245,8 @@
     const px = rev ? 1280 - PW : 0;
     const def = photo.file ? getImageUrl(photo.file) : "";
     const mine = L.photos?.[sid];
-    const src = mine || getImageUrl(photo.file);
-    const fp = mine ? null : photo.fp;
+    const src = mine?.src || getImageUrl(photo.file);
+    const fp = mine ? mine.focal : photo.fp;
     const photoEls = rev
       ? [
           { type: "rect", x: 1280 - 320, y: 360, w: 320, h: 360, fill: C.accent },
@@ -264,6 +264,6 @@
     const tx = rev ? 72 : PW + 96;
     const text = L.column(blocks, { x: tx, w: 592, top: 56, bottom: 720 - 56 });
     blocks.forEach((b, k) => b.indent && text[k] && (text[k].x += b.indent));
-    return { dur, label: opt.label || "", texts, photo: { key: sid, def }, els: [group, ...text] };
+    return { dur, label: opt.label || "", texts, photo: { key: sid, def, w: PW - 48, h: 624 }, els: [group, ...text] };
   }
 })();

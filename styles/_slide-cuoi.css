@@ -604,7 +604,7 @@ html.sc-lock body {
 }
 
 /* Ảnh trong slide: lưới ô ảnh khổ dọc 3:4 (gần khung ảnh của cảnh), mỗi ô một cảnh. Ô đã
-   thay bằng ảnh của khách viền màu nhấn + nút trả về ảnh thiệp bên dưới. */
+   thay bằng ảnh của khách viền màu nhấn + hai nút bên dưới. */
 .sc-photos {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
@@ -698,17 +698,23 @@ html.sc-lock body {
   font-weight: 600;
   color: rgb(var(--text-heading-rgb));
 }
-.sc-ph-undo {
+/* Hai nút của ô đã thay ảnh: chỉnh điểm lấy nét · trả về ảnh thiệp. */
+.sc-ph-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: -4px;
+}
+.sc-ph-act {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  align-self: flex-start;
   padding: 4px 8px;
-  margin-top: -4px;
   border-radius: 999px;
   font-size: 12px;
+  white-space: nowrap;
   color: rgb(var(--action-primary-deep-rgb));
 }
-.sc-ph-undo:hover {
+.sc-ph-act:hover {
   background: rgb(var(--surface-brand-subtle-rgb));
 }
