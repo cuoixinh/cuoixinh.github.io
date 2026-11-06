@@ -141,8 +141,8 @@ slide-cuoi/
   Linux không có AAC). Khung báo `audio` trong `cx-slide-caps` và lý do video không tiếng
   (`mute`: yt · codec · decode) khi xong, trang ghi đúng lý do. File nhạc khách tải lên đưa
   thẳng Blob cho bộ xuất: CSP chặn `fetch` URL `blob:`.
-- **Bản xem thử gửi khách** (lựa chọn "Xem thử" trong ô Xuất video, mặc định): video DỌC 720×1280
-  ~1,5 Mbps, slide vẽ nhỏ rồi đặt vào ô màn chiếu của ảnh hội trường `slide-cuoi/assets/hall.jpg`,
+- **Bản xem thử gửi khách** (lựa chọn "Xem thử" trong ô Xuất video, mặc định): video DỌC 1080×1920
+  ~3 Mbps, slide vẽ nhỏ rồi đặt vào ô màn chiếu của ảnh hội trường `slide-cuoi/assets/hall.jpg`,
   có dấu "Bản xem thử" góc màn + `cuoixinh.com` ở đáy — để gửi Zalo cho khách duyệt TRƯỚC khi
   thanh toán, thay vì đưa file 1080p/4K chiếu được thật. Ô màn chiếu khai MỘT chỗ (`HALL` ở
   `engine/slide-export.js`); nút "Màn chiếu" dưới slide dựng đúng bố cục đó bằng CSS

@@ -9,7 +9,7 @@ window.CXSlideExport = (() => {
     2160: { w: 3840, h: 2160, bitrate: 16e6, codecs: ["avc1.640033", "avc1.4d0033", "avc1.640034"] },
     // Bản xem thử gửi khách chưa thanh toán: video dọc, slide nhỏ nằm trên màn chiếu của ảnh
     // hội trường (HALL), có dấu "Bản xem thử" — xem được trên điện thoại, không đem chiếu thật được.
-    demo: { w: 720, h: 1280, bitrate: 1.5e6, codecs: ["avc1.640028", "avc1.4d0028", "avc1.42e01f"] },
+    demo: { w: 1080, h: 1920, bitrate: 3e6, codecs: ["avc1.640028", "avc1.4d0028", "avc1.42e028"] },
   };
   // Ảnh hội trường 941×1672 + ô màn chiếu (tỉ lệ 0–1 của ảnh, đúng 16:9, tràn hết bề ngang ảnh) — trang /slide-cuoi/
   // dựng khung "Màn chiếu" theo CÙNG số này (.sc-stage.is-hall ở styles/_slide-cuoi.css).
