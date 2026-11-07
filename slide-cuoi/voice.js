@@ -211,8 +211,11 @@ async function _scVoPut(key, buf, type, name, start, replace) {
 _scEl("sc-vo-file")?.addEventListener("change", async (e) => {
   const files = Array.from(e.target.files || []);
   e.target.value = "";
+  const rep = _scVoReplace;
+  _scVoReplace = "";
   if (!files.length) return;
   const key = _scVo.key || _scTxKey();
+  if (rep) return _scVoReplaceFile(key, rep, files[0]);
   const room = _SC_VO_MAX - _scVo.clips.length;
   if (files.length > room) window.showToast?.(`Chỉ thêm được ${room} file nữa (tối đa ${_SC_VO_MAX} lớp).`, "warning");
   let added = null;
@@ -245,6 +248,33 @@ _scEl("sc-vo-file")?.addEventListener("change", async (e) => {
   _scVoSend();
   _scVoRender();
 });
+
+// Thay file của một lớp đã có: giữ chỗ bắt đầu + âm lượng, tên lớp theo file mới.
+async function _scVoReplaceFile(key, id, f) {
+  if (f.size > _SC_VO_MB * 1024 * 1024) {
+    window.showToast?.(`"${f.name}" nặng hơn ${_SC_VO_MB} MB, bạn nén lại hoặc cắt ngắn rồi chọn lại nhé.`, "error");
+    return;
+  }
+  const old = _scVoClip(id);
+  if (!old) return;
+  window.showLoading?.(true, "Đang đọc file ghi âm...");
+  let clip = null;
+  try {
+    clip = await _scVoPut(key, await f.arrayBuffer(), f.type || "audio/mpeg", old.name, old.start, id);
+  } finally {
+    window.showLoading?.(false);
+  }
+  if (_scVo.key !== key) return;
+  if (!clip) {
+    window.showToast?.(`Không đọc được "${f.name}". Hãy dùng file MP3, M4A hoặc WAV.`, "error");
+    return;
+  }
+  clip.name = f.name.replace(/\.[^.]+$/, "") || clip.name;
+  _scVoSel = clip.id;
+  _scVoSave();
+  _scVoSend();
+  _scVoRender();
+}
 
 // ── Thu âm thẳng vào một lớp ──
 // Nút micro ở đầu mỗi lớp (thu lại lớp đó, giữ chỗ bắt đầu) và ở hàng "Lớp mới" (thu từ đầu cảnh
@@ -413,6 +443,7 @@ function _scVoPx() {
 
 function _scVoRender() {
   const box = _scEl("sc-vo-tl");
+  _scEl("sc-vo-act")?.close?.(); // khối neo sắp bị vẽ lại
   if (!box || _scEl("sc-tab-audio")?.classList.contains("hidden")) return;
   const total = _scVoTotal();
   const pps = _scVoPx();
@@ -545,60 +576,49 @@ function _scVoPlace(c) {
   }
 }
 
-// Bảng của lớp đang chọn: tên · âm lượng · dấu x (xoá lớp, có hỏi lại). Dời / cắt làm thẳng trên
-// dòng thời gian; bấm ra chỗ trống của làn là bỏ chọn.
+// ── Thanh tuỳ chọn của khối âm thanh (bấm vào khối giọng đọc / nhạc nền): Thay thế · Xoá ──
+// Neo vào một chấm vô hình đặt đúng chỗ bấm trên khối (khối nhạc trải cả slide, neo giữa khối
+// là thanh nằm tít ngoài khung nhìn). Kéo dời / cắt khối thì không mở.
+let _scVoActId = "";
+let _scVoDragged = false; // lượt bấm vừa rồi là kéo → click sau đó không mở thanh
+function _scVoActOpen(clipEl, clientX) {
+  const pop = _scEl("sc-vo-act");
+  if (!pop?.open) return;
+  clipEl.querySelector(".sc-vo-pin")?.remove();
+  const pin = document.createElement("i");
+  pin.className = "sc-vo-pin";
+  const r = clipEl.getBoundingClientRect();
+  pin.style.left = `${Math.max(8, Math.min(r.width - 8, clientX - r.left))}px`;
+  clipEl.appendChild(pin);
+  _scVoActId = clipEl.dataset.clip;
+  pop.open(pin);
+}
+// Thanh đi theo khối khi khối dời; vẽ lại dòng thời gian (khối cũ bị thay) thì đóng.
 function _scVoInspect() {
-  const box = _scEl("sc-vo-sel");
-  if (!box) return;
-  if (_scVoSel === _SC_VO_MU) {
-    const mi = _scMuInfo();
-    const c = _scVoMuClip();
-    if (mi && c) return _scVoInspectMusic(box, mi, c);
-    _scVoSel = "";
-  }
-  const c = _scVoClip(_scVoSel);
-  _scToggle("sc-vo-sel", !!c);
-  if (!c) {
-    box.dataset.sig = "";
-    return (box.innerHTML = "");
-  }
-  if (box.dataset.sig !== c.id) {
-    box.dataset.sig = c.id;
-    box.innerHTML = `
-      <div class="sc-vo-sel-head">
-        <span class="sc-vo-n">${_scVo.clips.indexOf(c) + 1}</span>
-        <p class="sc-vo-sel-name" title="${_scEsc(c.name)}">${_scEsc(c.name)}</p>
-        <output class="sc-vo-vol-v" for="sc-vo-vol"></output>
-        <button type="button" class="sc-vo-x" data-vo-del aria-label="Xoá lớp này" title="Xoá lớp">${_scIco("x")}</button>
-      </div>
-      <input id="sc-vo-vol" type="range" class="sc-range" data-vo-vol min="0" max="100" step="1" aria-label="Âm lượng lớp" />`;
-    window.lucide?.createIcons({ root: box });
-  }
-  const vol = box.querySelector("[data-vo-vol]");
-  if (document.activeElement !== vol) vol.value = String(Math.round(c.vol * 100));
-  _scRangeFill(vol);
-  box.querySelector(".sc-vo-vol-v").textContent = `Âm lượng ${Math.round(c.vol * 100)}%`;
+  _scEl("sc-vo-act")?.place?.();
 }
 
-// Bảng của khối Nhạc nền: tên bài · quãng phát trên slide · nguồn/độ dài · ghi công · dấu x (bỏ nhạc).
-function _scVoInspectMusic(box, mi, c) {
-  _scToggle("sc-vo-sel", true);
-  const sig = `${_SC_VO_MU}:${mi.name}:${mi.desc}`;
-  if (box.dataset.sig !== sig) {
-    box.dataset.sig = sig;
-    box.innerHTML = `
-      <div class="sc-vo-sel-head">
-        <span class="sc-vo-n is-music" aria-hidden="true">${_scIco("music")}</span>
-        <p class="sc-vo-sel-name" title="${_scEsc(mi.name)}">${_scEsc(mi.name)}</p>
-        <output class="sc-vo-vol-v"></output>
-        <button type="button" class="sc-vo-x" data-mu-clear aria-label="Bỏ nhạc nền" title="Bỏ nhạc nền">${_scIco("x")}</button>
-      </div>
-      <p class="sc-vo-sel-sub">${_scEsc(mi.desc)} Kéo hai mép khối để cắt ngắn, kéo thân khối để dời.</p>
-      ${mi.credit ? `<p class="sc-vo-sel-sub">${_scEsc(mi.credit)}</p>` : ""}`;
-    window.lucide?.createIcons({ root: box });
+// "Thay thế": giọng đọc → chọn file mới cho đúng lớp đó (giữ chỗ bắt đầu, âm lượng); nhạc nền →
+// chọn file nhạc khác. "Xoá": xoá lớp (có hỏi lại) / bỏ nhạc nền.
+let _scVoReplace = "";
+_scEl("sc-vo-act")?.addEventListener("click", (e) => {
+  const act = e.target.closest("[data-act]")?.dataset.act;
+  const id = _scVoActId;
+  if (!act || !id || _scVoBusy() || _scVoRec) return;
+  if (id === _SC_VO_MU) {
+    if (act === "replace") scMusicPick();
+    else {
+      _scVoSelect("");
+      scMusicClear();
+    }
+    return;
   }
-  box.querySelector(".sc-vo-vol-v").textContent = `${_scVoFmt(c.start)} → ${_scVoFmt(c.start + c.len)}`;
-}
+  if (act === "delete") return scVoiceRemove(id);
+  _scVoReplace = id;
+  const input = _scEl("sc-vo-file");
+  input.value = "";
+  input.click();
+});
 
 function _scVoSelect(id) {
   _scVoSel = id;
@@ -685,6 +705,7 @@ _scEl("sc-vo-tl")?.addEventListener("pointerdown", (e) => {
   const clipEl = e.target.closest("[data-clip]");
   if (_scVoRec) return; // đang thu: slide tự chạy, không cho dời lớp hay tua
   if (!clipEl && e.target.closest("[data-lane]") && _scVoSel) _scVoSelect("");
+  _scVoDragged = false;
   if (clipEl) {
     if (e.button > 0 || _scVoBusy()) return;
     const c = _scVoClip(clipEl.dataset.clip);
@@ -782,6 +803,7 @@ const _scVoEnd = () => {
   _scVoDrag = null;
   _scVoEdge = null;
   _scEl("sc-vo-tl")?.querySelector(".is-drag")?.classList.remove("is-drag");
+  _scVoDragged = D.moved;
   if (!D.moved) return;
   _scVoSave();
   // Khối nhạc "chạy tới cuối" kéo xong thì co / giãn lại cho vừa hết slide.
@@ -797,6 +819,11 @@ _scEl("sc-vo-tl")?.addEventListener("pointercancel", _scVoEnd);
 // Phím trên khối đang chọn: ← → nhích 0,1 giây (Shift: 1 giây).
 _scEl("sc-vo-tl")?.addEventListener("keydown", (e) => {
   const el = e.target.closest("[data-clip]");
+  if (el && (e.key === "Enter" || e.key === " ") && !_scVoRec) {
+    e.preventDefault();
+    const r = el.getBoundingClientRect();
+    return _scVoActOpen(el, Math.max(r.left, Math.min(r.right, r.left + 40)));
+  }
   const d = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
   if (!el || !d || _scVoRec) return;
   e.preventDefault();
@@ -808,6 +835,11 @@ _scEl("sc-vo-tl")?.addEventListener("keydown", (e) => {
 
 // Nút trong dòng thời gian (tắt tiếng, micro) và dấu x của bảng lớp đang chọn.
 function _scVoClick(e) {
+  const clipEl = e.target.closest("[data-clip]");
+  if (clipEl && e.currentTarget === _scEl("sc-vo-tl")) {
+    if (_scVoDragged || _scVoRec) return (_scVoDragged = false);
+    return _scVoActOpen(clipEl, e.clientX);
+  }
   if (e.target.closest("[data-mu-add]")) return scMusicPick();
   if (e.target.closest("[data-mu-lib]")) return scMusicLibOpen(_scEl("sc-mu-libbox").classList.contains("hidden"));
   if (e.target.closest("[data-mu-clear]")) {
@@ -825,16 +857,8 @@ function _scVoClick(e) {
     if (c) _scVoSet(c.id, { mute: !c.mute }, true);
     return;
   }
-  if (e.target.closest("[data-vo-del]") && _scVoSel) scVoiceRemove(_scVoSel);
 }
 _scEl("sc-vo-tl")?.addEventListener("click", _scVoClick);
-_scEl("sc-vo-sel")?.addEventListener("click", _scVoClick);
-_scEl("sc-vo-sel")?.addEventListener("input", (e) => {
-  const r = e.target.closest("[data-vo-vol]");
-  const c = _scVoClip(_scVoSel);
-  if (!r || !c) return;
-  _scVoSet(c.id, { vol: Number(r.value) / 100 });
-});
 
 _scEl("sc-vo-duck")?.addEventListener("input", (e) => {
   if (_scVoBusy()) return;
