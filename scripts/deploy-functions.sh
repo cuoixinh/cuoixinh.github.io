@@ -83,6 +83,7 @@ else
   TARGETS=("${VERIFY[@]}" "${NO_VERIFY[@]}")
 fi
 
+# --yes: CLI ≥ 3.0 hỏi xác nhận từng lần deploy; môi trường đã chọn bằng cờ ở trên.
 for PROJECT_REF in "${REFS[@]}"; do
   case "$PROJECT_REF" in
     "$PROD_REF")    echo "▶ Project: $PROJECT_REF  (PRODUCTION)" ;;
@@ -93,10 +94,10 @@ for PROJECT_REF in "${REFS[@]}"; do
   for fn in "${TARGETS[@]}"; do
     if in_list "$fn" "${NO_VERIFY[@]}"; then
       echo "▶ $fn (--no-verify-jwt)"
-      npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF" --no-verify-jwt
+      npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF" --no-verify-jwt --yes
     else
       echo "▶ $fn"
-      npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
+      npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF" --yes
     fi
   done
 done

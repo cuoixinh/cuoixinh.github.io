@@ -10,10 +10,10 @@ let _scSeq = 0; // đổi phiên làm scLoadList chạy chồng; chỉ lần M�
 let _scSent = ""; // bộ dữ liệu khung đang chiếu — trùng thì khỏi gửi lại (gửi là chạy lại từ đầu)
 const _scData = new Map(); // id → hàng thiệp đầy đủ
 // Xuất video — khai ở đầu file vì _scFrameLoad (chạy ngay lúc khởi động) đọc tới.
-let _scCapsOk = null; // {h1080, h2160, demo} khung báo lên; null = chưa biết
+let _scCapsOk = null; // {h1080, h2160, tiktok} khung báo lên; null = chưa biết
 let _scMusic = ""; // "file" có nhạc nền (ghép vào video) · "" không có nhạc
 let _scExState = "";
-let _scExRes = "demo"; // "demo" (bản xem thử gửi khách) · 1080 · 2160
+let _scExRes = "tiktok"; // "tiktok" (video dọc 2K đăng TikTok) · 1080 · 2160
 let _scExBlob = null;
 let _scWake = null;
 
@@ -73,7 +73,9 @@ function _scFrameLoad() {
   _scSig = "";
   _scOpen = -1;
   _scPhSig = "";
-  _scEl("sc-total").textContent = "";
+  _scEl("sc-total").textContent = "–:––";
+  _scEl("sc-now").textContent = "0:00";
+  _scEl("sc-track").innerHTML = "";
   const t = CX_SLIDE_TEMPLATES.find((x) => x.id === _scS.tpl);
   // Tỉ lệ dạng chữ cho aspect-ratio của khung, dạng số cho phép tính bề ngang (hàng nút, ô xuất
   // video canh theo bề ngang slide) — đặt ở .sc-app để cả sân khấu cùng đọc.
@@ -120,7 +122,63 @@ addEventListener("message", (e) => {
   else if (t === "cx-slide-caps") _scCaps(e.data);
   else if (t === "cx-slide-export-state") _scExportMsg(e.data);
   else if (t === "cx-slide-edit") _scEditFromSlide(e.data);
-  else if (t === "cx-slide-time" && typeof _scVoTime === "function") _scVoTime(e.data);
+  else if (t === "cx-slide-ui") _scCtlUi(e.data);
+  else if (t === "cx-slide-time") {
+    _scCtlTime(e.data);
+    if (typeof _scVoTime === "function") _scVoTime(e.data);
+  }
+});
+
+// ── Cụm điều khiển ở hàng nút dưới slide: lệnh vào khung, trạng thái khung báo về ──
+const _scCtl = _scEl("sc-ctl");
+let _scCtlPlaying = true;
+function _scCtlUi(m) {
+  _scCtlPlaying = !!m.playing;
+  _scCtl.classList.toggle("is-playing", _scCtlPlaying);
+  _scCtl.classList.toggle("has-music", !!m.music);
+  _scCtl.classList.toggle("is-music-on", !!m.musicOn);
+  _scCtl.querySelector('[data-ctl="music"]')?.setAttribute("aria-pressed", String(!!m.musicOn));
+}
+function _scCtlTime(m) {
+  if (!!m.playing !== _scCtlPlaying) _scCtlUi({ ...m, music: _scCtl.classList.contains("has-music"), musicOn: _scCtl.classList.contains("is-music-on") });
+  _scEl("sc-now").textContent = _scClock(Math.floor(m.t || 0) * 1000);
+  _scTrackAt(m.t || 0);
+}
+
+// Dải cảnh của bàn điều khiển: mỗi cảnh một đoạn dài theo thời lượng, --p (0–1) là phần đã chiếu
+// của đoạn, đoạn đang chiếu thêm .is-on. Bấm một đoạn là chiếu từ đầu cảnh đó.
+let _scTrackT = 0;
+function _scTrackRender() {
+  _scEl("sc-track").innerHTML = _scCues
+    .map(
+      (c, i) =>
+        `<button type="button" class="sc-seg" data-seg="${i}" style="flex-grow: ${Math.max(1, Math.round(c.dur))}" aria-label="Chiếu cảnh ${i + 1}: ${_scEsc(c.label)}" title="${_scEsc(c.label)}"><i></i></button>`,
+    )
+    .join("");
+  _scTrackAt(_scTrackT);
+}
+function _scTrackAt(t) {
+  _scTrackT = t;
+  let at = 0;
+  _scEl("sc-track").querySelectorAll("[data-seg]").forEach((b, i) => {
+    const d = (_scCues[i]?.dur || 0) / 1000;
+    const p = d ? Math.min(1, Math.max(0, (t - at) / d)) : 0;
+    at += d;
+    b.style.setProperty("--p", p.toFixed(4));
+    b.classList.toggle("is-on", p > 0 && p < 1);
+  });
+}
+_scEl("sc-track").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-seg]");
+  if (b) _scFrame.contentWindow?.postMessage({ type: "cx-slide-go", index: Number(b.dataset.seg), pause: false }, location.origin);
+});
+_scCtl.addEventListener("click", (e) => {
+  const k = e.target.closest("[data-ctl]")?.dataset.ctl;
+  if (!k) return;
+  const win = _scFrame.contentWindow;
+  // Phát qua cx-slide-play (cũng là lúc bật tiếng — trình duyệt cần một cú bấm của người dùng).
+  if (k === "play") win?.postMessage({ type: "cx-slide-play", on: !_scCtlPlaying }, location.origin);
+  else win?.postMessage({ type: "cx-slide-act", k }, location.origin);
 });
 
 // ── Chữ trong slide: mỗi cảnh một dòng (mốc giờ · tên · thời lượng), bấm là chiếu cảnh đó,
@@ -291,10 +349,8 @@ function _scCueTimes() {
     t += c.dur;
   });
   _scTimeSync();
-  // Màn hẹp chỉ còn chỗ cho thời lượng: phần số cảnh nằm trong .sc-total-n để CSS giấu.
-  _scEl("sc-total").innerHTML = _scCues.length
-    ? `<span class="sc-total-n">${_scCues.length} cảnh, dài </span>${_scClock(t)}`
-    : "";
+  _scEl("sc-total").textContent = _scCues.length ? _scClock(t) : "–:––";
+  _scTrackRender();
 }
 
 function _scCueRender() {
@@ -1238,7 +1294,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && _scBox.classList.contains("is-full")) _scPseudo(false);
 });
 
-// ── Màn chiếu: đặt khung slide lên ảnh hội trường (đúng bố cục video "Xem thử") để xem slide
+// ── Màn chiếu: đặt khung slide lên ảnh hội trường (đúng bố cục video TikTok) để xem slide
 // trông ra sao trên sân khấu. Chỉ đổi CSS của khung — iframe không nạp lại, không mất cảnh đang chiếu.
 function scHall(on) {
   const stage = _scBox.closest(".sc-stage");
@@ -1390,18 +1446,18 @@ function scLogin() {
 // ── Xuất video: chạy TRONG khung slide (CXSlideExport), trang này chỉ chọn khổ + báo tiến độ ──
 
 function _scCaps(m) {
-  _scCapsOk = { h1080: !!m.h1080, h2160: !!m.h2160, demo: !!m.demo, audio: String(m.audio || "") };
+  _scCapsOk = { h1080: !!m.h1080, h2160: !!m.h2160, tiktok: !!m.tiktok, audio: String(m.audio || "") };
   // Máy không mã hoá nổi 4K thì khoá ô 4K, tự về 1080p.
   const b4k = _scEl("sc-ex-res").querySelector('[data-res="2160"]');
   b4k.disabled = !_scCapsOk.h2160;
   if (!_scCapsOk.h2160 && _scExRes === 2160) _scPickRes(1080);
-  else if (!_scCapsOk.demo && _scExRes === "demo" && _scCapsOk.h1080) _scPickRes(1080);
-  _scEl("sc-ex-res").querySelector('[data-res="demo"]').disabled = !_scCapsOk.demo;
+  else if (!_scCapsOk.tiktok && _scExRes === "tiktok" && _scCapsOk.h1080) _scPickRes(1080);
+  _scEl("sc-ex-res").querySelector('[data-res="tiktok"]').disabled = !_scCapsOk.tiktok;
   _scExportNote();
 }
 
-const _scResOf = (b) => (b.dataset.res === "demo" ? "demo" : Number(b.dataset.res));
-const _scResName = (r) => (r === "demo" ? "bản xem thử" : r === 2160 ? "4K" : "1080p");
+const _scResOf = (b) => (b.dataset.res === "tiktok" ? "tiktok" : Number(b.dataset.res));
+const _scResName = (r) => (r === "tiktok" ? "TikTok" : r === 2160 ? "4K" : "1080p");
 
 function _scPickRes(res) {
   _scExRes = res;
@@ -1425,8 +1481,8 @@ function _scExportNote() {
   if (_scCapsOk && !_scCapsOk.h1080) notes.push("Trình duyệt này chưa xuất được video. Hãy mở bằng Chrome hoặc Edge bản mới trên máy tính.");
   else {
     if (_scCapsOk && !_scCapsOk.h2160) notes.push("Máy này không mã hoá được 4K, chỉ xuất được 1080p.");
-    if (_scExRes === "demo")
-      notes.push("Video dọc, slide nằm trên màn chiếu hội trường và có dấu Bản xem thử. File nhẹ, gửi qua Zalo hay Messenger để khách duyệt trước khi thanh toán.");
+    if (_scExRes === "tiktok")
+      notes.push("Video dọc 2K (1440×2560) để đăng TikTok, slide đặt trên màn chiếu hội trường.");
     if (_scExRes === 2160) notes.push("4K xuất lâu hơn và file nặng hơn khoảng 2,5 lần.");
     const voice = typeof _scVo !== "undefined" && _scVo.clips.some((c) => !c.mute);
     if (!_scMusic && !voice) notes.push("Slide chưa có nhạc nên video xuất ra sẽ không có tiếng. Chọn nhạc hoặc thêm giọng đọc ở tab Âm thanh.");
@@ -1534,7 +1590,7 @@ function scExportSave() {
   if (!_scExBlob) return;
   const a = document.createElement("a");
   a.href = URL.createObjectURL(_scExBlob);
-  a.download = `slide-cuoi-${_scExRes === "demo" ? "xem-thu" : _scExRes === 2160 ? "4k" : "1080p"}.mp4`;
+  a.download = `slide-cuoi-${_scExRes === "tiktok" ? "tiktok" : _scExRes === 2160 ? "4k" : "1080p"}.mp4`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }

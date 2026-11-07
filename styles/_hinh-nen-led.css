@@ -1,243 +1,50 @@
 /* ── Trang "Hình nền LED" (hinh-nen-led/) ─────────────────────────────────────
-   Dải sân khấu tối tràn bề ngang (hội trường tắt đèn): tiêu đề + nút chọn thiệp · màn LED to phát
-   sáng, có bóng phản chiếu xuống "sàn" · tên mẫu + toàn màn + tải xuống. Dưới là dải mẫu trên nền
-   trắng của ứng dụng. Điểm nhấn duy nhất là màn phát sáng — mọi thứ khác giữ im. */
-.led-app {
-  --led-r: 1.7778; /* tỉ lệ mẫu đang chọn, index.js đặt lại */
-  --led-night: 20 13 26; /* nền sân khấu */
-  --led-spill: 42 24 48; /* quầng sáng màn hắt ra */
-  --led-champ: 241 222 180; /* chữ tiêu đề trên sân khấu */
-  --led-ivory: 251 244 232; /* chữ phụ trên sân khấu */
-  padding-bottom: 48px;
-}
-.led-wrap {
-  max-width: 1152px;
-  margin: 0 auto;
-  padding-inline: 16px;
-}
-@media (min-width: 640px) {
-  .led-wrap {
-    padding-inline: 24px;
-  }
-}
-
-.led-stage {
-  padding: 20px 0 24px;
-  color: rgb(var(--led-ivory));
-  background:
-    radial-gradient(ellipse 60% 55% at 50% 45%, rgb(var(--led-spill)) 0%, transparent 70%),
-    rgb(var(--led-night));
-}
-@media (min-width: 768px) {
-  .led-stage {
-    padding: 32px 0 36px;
-  }
-  /* Cả sân khấu (tiêu đề · màn · thanh tải) nằm gọn một màn hình: màn rộng theo chỗ còn lại của
-     chiều cao (trừ navbar, tiêu đề, thanh dưới, lề ≈ 340px), không hẹp hơn 560px. Dải mẫu dùng
-     cùng khổ để hai mép thẳng hàng. */
-  .led-app .led-wrap {
-    max-width: min(1152px, max(560px, calc((var(--vh, 1svh) * 100 - 340px) * var(--led-r) + 48px)));
-  }
-}
-.led-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-/* .tg-title tô màu chữ tiêu đề của ứng dụng (nâu hồng) — trên nền tối phải đổi. */
-.led-top .led-title {
-  white-space: nowrap;
-  color: rgb(var(--led-champ));
-}
-@media (max-width: 639px) {
-  .led-top {
-    flex-wrap: wrap;
-  }
-  .led-top .led-title {
-    font-size: 28px;
-  }
-  .led-bar .led-name {
-    font-size: 18px;
-  }
-}
-
-/* Nút chọn thiệp: viên thuốc mờ trên nền tối, ảnh bìa tròn bên trái. */
-.led-src {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px 4px 4px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
-  color: rgb(var(--led-ivory));
-  background: rgb(255 255 255 / 0.08);
-  border: 1px solid rgb(255 255 255 / 0.16);
-  transition: background-color 0.2s ease;
-}
-.led-src:hover,
-.led-src[aria-expanded="true"] {
-  background: rgb(255 255 255 / 0.16);
-}
-.led-src:focus-visible {
-  outline: 2px solid rgb(var(--led-champ));
-  outline-offset: 2px;
-}
-.led-src-av {
-  display: flex;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  overflow: hidden;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  font-size: 14px;
-  color: rgb(var(--led-champ));
-  background: rgb(255 255 255 / 0.12);
-}
-.led-src-av img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.led-src-t {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.led-src-chev {
-  flex: none;
-  opacity: 0.7;
-}
-/* Ảnh bìa thiệp trong popover chọn thiệp: phủ kín ô icon. */
-.x-pop-ico .led-pop-av {
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  object-fit: cover;
-}
-
-/* Màn LED: viền tối như khung màn, quầng sáng hắt ra quanh màn + bóng phản chiếu xuống sàn
-   (box-reflect — trình duyệt không có thì chỉ mất bóng). */
+   Bố cục + tông màu là của Slide cưới (lớp .sc-* ở _slide-cuoi.css — file này nạp SAU nó). Ở đây
+   chỉ có phần riêng: màn là canvas thay vì iframe, và chế độ toàn màn tự làm. */
 .led-screen {
-  position: relative;
-  width: 100%;
-  aspect-ratio: var(--led-r, 1.7778);
   cursor: zoom-in;
-  border-radius: 8px;
-  background: rgb(0 0 0);
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 0.06),
-    0 24px 96px -24px rgb(var(--led-champ) / 0.28);
-  -webkit-box-reflect: below 8px linear-gradient(transparent 80%, rgb(255 255 255 / 0.14));
 }
 .led-screen canvas {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   border-radius: inherit;
 }
 
-.led-bar {
-  display: flex;
+/* Chip gợi ý sửa chữ / đổi ảnh: góc trên trái, cùng kiểu #sl-hint của Slide cưới; chỉ hiện khi rê chuột lên
+   màn (máy có chuột) và không ở toàn màn. Không bắt chuột: bấm xuyên xuống màn. */
+.led-hint {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  display: none;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px 16px;
-  margin-top: 24px;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--white-rgb) / 0.92);
+  box-shadow: 0 4px 16px -4px rgb(0 0 0 / 0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
-/* Chừa chỗ cho bóng phản chiếu: có bóng thì thanh dưới đứng xa màn hơn. */
-@supports (-webkit-box-reflect: below 0) {
-  .led-bar {
-    margin-top: 40px;
+@media (hover: hover) {
+  .led-hint {
+    display: inline-flex;
+  }
+  .led-screen:hover .led-hint {
+    opacity: 1;
   }
 }
-.led-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: "Playfair Display", serif;
-  font-size: 20px;
-  font-style: italic;
-  color: rgb(var(--led-ivory));
-}
-.led-acts {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-}
-.led-icon-btn {
-  display: flex;
-  width: 44px;
-  height: 44px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  font-size: 18px;
-  color: rgb(var(--led-ivory));
-  border: 1px solid rgb(255 255 255 / 0.2);
-  transition: background-color 0.2s ease;
-}
-.led-icon-btn:hover {
-  background: rgb(255 255 255 / 0.1);
-}
-.led-icon-btn:focus-visible,
-.led-prog-x:focus-visible {
-  outline: 2px solid rgb(var(--led-champ));
-  outline-offset: 2px;
-}
-.led-dl.hidden,
-.led-prog.hidden {
+.led-screen.is-full .led-hint {
   display: none;
-}
-
-/* Đang tạo video: viên thuốc cùng khổ nút Tải xuống, nền tự đầy dần theo tiến độ. */
-.led-prog {
-  position: relative;
-  display: flex;
-  height: 44px;
-  overflow: hidden;
-  align-items: center;
-  gap: 8px;
-  padding: 0 4px 0 16px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb) / 0.35);
-}
-.led-prog-fill {
-  position: absolute;
-  inset: 0;
-  transform: scaleX(0);
-  transform-origin: left;
-  background: rgb(var(--action-primary-rgb));
-  transition: transform 0.2s linear;
-}
-/* Chữ + nút huỷ nổi trên dải tiến độ (dải đứng sau trong DOM nên mặc định vẽ đè lên). */
-.led-prog-t,
-.led-prog-x {
-  position: relative;
-  z-index: 1;
-}
-.led-prog-t output {
-  font-variant-numeric: tabular-nums;
-}
-.led-prog-x {
-  display: flex;
-  width: 36px;
-  height: 36px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  font-size: 16px;
-  background: rgb(0 0 0 / 0.2);
 }
 
 /* Nút thoát toàn màn: chỉ có khi đang toàn màn. */
@@ -245,6 +52,7 @@
   position: absolute;
   top: 16px;
   right: 16px;
+  z-index: 1;
   display: none;
   width: 44px;
   height: 44px;
@@ -262,26 +70,20 @@
 }
 
 /* Toàn màn (Fullscreen API hoặc phủ kín bằng CSS khi máy không có): nền đen, hình giữ đúng tỉ lệ
-   canh giữa. Đứng yên thì .is-idle ẩn nút thoát + con trỏ. */
+   canh giữa. Đứng yên thì .is-idle ẩn nút thoát + con trỏ. Đè lại .sc-screen.is-full của Slide. */
 .led-screen.is-full {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
-  aspect-ratio: auto;
   cursor: default;
-  border-radius: 0;
-  box-shadow: none;
-  -webkit-box-reflect: none;
 }
 .led-screen.is-full canvas {
-  width: min(100%, calc(100vh * var(--led-r, 1.7778)));
+  position: static;
+  width: min(100%, calc(100vh * var(--sc-ratio-n, 1.7778)));
   height: auto;
-  aspect-ratio: var(--led-r, 1.7778);
+  aspect-ratio: var(--sc-ratio, 16 / 9);
   border-radius: 0;
 }
 .led-screen.is-full .led-full-x {
@@ -293,74 +95,28 @@
 .led-screen.is-full.is-idle .led-full-x {
   opacity: 0;
 }
+/* Sân khấu ghim có z-index riêng → khung `fixed` bên trong không vượt navbar: đưa sân khấu lên
+   trên và ẩn navbar trong lúc phủ kín (giống html.sc-lock của Slide). */
 html.led-locked,
 html.led-locked body {
   overflow: hidden;
 }
+html.led-locked .sc-stage {
+  z-index: 200;
+}
+html.led-locked #main-nav,
+html.led-locked .cx-tabbar,
+html.led-locked .cx-navmore-pop {
+  display: none;
+}
 
-/* Dải mẫu: ảnh nhỏ 16:9 + tên; mẫu đang chọn viền màu nhấn. */
-.led-tpls {
-  margin-top: 28px;
-}
-.led-h2 {
-  margin-bottom: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  color: rgb(var(--text-heading-rgb));
-}
-.led-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
-}
-.led-tpl {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0;
-  text-align: left;
-  border-radius: 12px;
-}
-.led-tpl-img {
-  display: block;
-  overflow: hidden;
-  border-radius: 12px;
-  background: rgb(var(--led-night));
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  transition: outline-color 0.2s ease;
-}
-.led-tpl-img img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.led-tpl:hover .led-tpl-img {
-  outline-color: rgb(var(--brand-primary-rgb));
-}
-.led-tpl[aria-checked="true"] .led-tpl-img {
-  outline-color: rgb(var(--action-primary-rgb));
-}
-.led-tpl:focus-visible {
-  outline: none;
-}
-.led-tpl:focus-visible .led-tpl-img {
-  outline-color: rgb(var(--action-primary-rgb));
-}
-.led-tpl-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: rgb(var(--text-heading-rgb));
-}
-.led-tpl[aria-checked="true"] .led-tpl-name {
-  color: rgb(var(--action-primary-rgb));
+.led-tabs {
+  max-width: 320px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .led-prog-fill,
-  .led-src,
-  .led-tpl-img {
+  .led-full-x,
+  .led-hint {
     transition: none;
   }
 }

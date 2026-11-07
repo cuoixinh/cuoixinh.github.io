@@ -475,6 +475,9 @@ tên thư mục là `weddings.theme` + khoá của `template_pricing`, đổi l�
 - Trong `_common.css`, **`.cx-a` phải đứng SAU `.cx-h`/`.cx-t`**: mẫu gắn cả `cx-h cx-a`
   lên một thẻ (tiêu đề tô màu nhấn), cùng độ đặc hiệu nên rule dưới thắng. `theme.css`
   của mẫu **chỉ khai `font-family`** cho `.cx-h`/`.cx-t`, khai thêm `color` là đè mất.
+- `.hidden` của bản build thiệp là `.hidden[class]` (`styles/themes-src.css`) nên lớp mục
+  của mẫu khai `display` không đè được — đừng viết thêm `.x.hidden` ở `theme.css`. Kéo
+  theo: markup thiệp không dùng được `hidden md:block`, viết `max-md:hidden`.
 - **Helper không được nhắc token của một theme cụ thể.**
 - Có **`#main-card`**; container các mục là **flex-column** (để chèn khối văn bản xen giữa).
 - Bind dữ liệu qua **`setText(id, value)`** (`core/utils.js`) — `el.textContent =` sẽ không
@@ -632,7 +635,7 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   viết `onclick` vào markup.
 - **Slide cưới (`slide-cuoi/`):** mẫu slide ở `templates/<id>/` chỉ KHAI cảnh dưới dạng dữ
   liệu (`CX_SLIDE.scenes`); vẽ bằng canvas ở `engine/slide-engine.js` — xem trước, trình chiếu
-  và xuất MP4 1080p/4K + bản "Xem thử" dọc đặt trên ảnh hội trường (gửi khách chưa thanh toán;
+  và xuất MP4 1080p/4K + bản "TikTok" dọc 2K đặt trên ảnh hội trường (đăng mạng xã hội;
   ô màn chiếu khai ở `HALL`, CSS `.sc-stage.is-hall` theo cùng số) (`engine/slide-export.js`, WebCodecs, chạy trên máy khách) dùng CHUNG
   bộ vẽ đó, đừng vẽ riêng cho một bên. Trang cha lấy thiệp (mọi thiệp của tài khoản) rồi
   `postMessage` vào iframe — mẫu không tự gọi API. Mọi chữ trên slide phải sửa được ở mục

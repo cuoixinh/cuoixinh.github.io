@@ -46,14 +46,6 @@
       </header>
 
       <section class="sc-stage" aria-label="Khung chiếu">
-        <!-- Ánh sáng động của nền sân khấu (chỉ CSS): 3 quầng trôi · 1 vệt quét · 5 đốm bokeh. -->
-        <div class="sc-lights" aria-hidden="true">
-          <i class="sc-glow sc-glow--a"></i>
-          <i class="sc-glow sc-glow--b"></i>
-          <i class="sc-glow sc-glow--c"></i>
-          <i class="sc-sweep"></i>
-          <i class="sc-bokeh"></i><i class="sc-bokeh"></i><i class="sc-bokeh"></i><i class="sc-bokeh"></i><i class="sc-bokeh"></i>
-        </div>
         <div id="sc-stagebox" class="sc-screen">
           <iframe
             id="sc-frame"
@@ -62,22 +54,40 @@
             allowfullscreen
           ></iframe>
         </div>
+        <!-- Bàn điều khiển dưới slide: dải cảnh (mỗi đoạn một cảnh, dài theo thời lượng, tô theo giờ
+             đang chiếu, bấm là chiếu cảnh đó) · cụm phát (lệnh vào khung, trạng thái khung báo về qua
+             cx-slide-ui / cx-slide-time) · các nút hành động, "Trình chiếu" là nút chính ở cuối. -->
         <div class="sc-bar">
-          <x-button variant="bare" icon="maximize" onclick="scFullscreen()" class="sc-play">
-            Trình chiếu
-          </x-button>
-          <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="sc-ghost sc-ex-btn" aria-expanded="false" aria-controls="sc-export">
-            <span id="sc-ex-btn-label">Xuất video</span>
-          </x-button>
-          <!-- Đặt slide lên màn chiếu của ảnh hội trường — đúng khung của video "Xem thử". -->
-          <x-button id="sc-hall-btn" variant="bare" icon="projector" onclick="scHall()" class="sc-ghost sc-hall-btn" aria-pressed="false" aria-label="Xem trên màn chiếu hội trường">
-            <span class="sc-hall-t">Màn chiếu</span>
-          </x-button>
-          <!-- Chỉ hiện khi đang xuất (_scExportBtn), để huỷ được cả khi thẻ nổi đã đóng. -->
-          <x-button id="sc-ex-stop" variant="bare" icon="x" onclick="scExportCancel()" class="sc-ghost sc-ex-stop hidden" aria-label="Huỷ xuất video">
-            <span class="sc-ex-stop-t">Huỷ</span>
-          </x-button>
-          <p id="sc-total" class="sc-total"></p>
+          <div class="sc-line">
+            <div id="sc-track" class="sc-track" role="group" aria-label="Các cảnh"></div>
+            <p class="sc-ctl-time"><output id="sc-now">0:00</output><span class="sc-ctl-sep">/</span><span id="sc-total">–:––</span></p>
+          </div>
+          <div id="sc-ctl" class="sc-ctl is-playing" role="group" aria-label="Điều khiển trình chiếu">
+            <x-button variant="bare" icon-only icon="skip-back" class="sc-ctl-btn" data-ctl="prev" aria-label="Cảnh trước" title="Cảnh trước"></x-button>
+            <x-button variant="bare" icon-only class="sc-ctl-btn sc-ctl-play" data-ctl="play" aria-label="Phát / tạm dừng" title="Phát / tạm dừng">
+              <span class="sc-ctl-i-pause"><i data-lucide="pause"></i></span><span class="sc-ctl-i-play"><i data-lucide="play"></i></span>
+            </x-button>
+            <x-button variant="bare" icon-only icon="skip-forward" class="sc-ctl-btn" data-ctl="next" aria-label="Cảnh sau" title="Cảnh sau"></x-button>
+            <x-button variant="bare" icon-only class="sc-ctl-btn sc-ctl-music" data-ctl="music" aria-label="Bật / tắt nhạc" title="Bật / tắt nhạc" aria-pressed="false">
+              <span class="sc-ctl-i-on"><i data-lucide="volume-2"></i></span><span class="sc-ctl-i-off"><i data-lucide="volume-x"></i></span>
+            </x-button>
+          </div>
+          <div class="sc-acts">
+            <!-- Đặt slide lên màn chiếu của ảnh hội trường — đúng khung của video TikTok. -->
+            <x-button id="sc-hall-btn" variant="bare" icon="projector" onclick="scHall()" class="sc-ghost sc-hall-btn" aria-pressed="false" aria-label="Xem trên màn chiếu hội trường">
+              <span class="sc-act-t">Màn chiếu</span>
+            </x-button>
+            <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="sc-ghost sc-ex-btn" aria-expanded="false" aria-controls="sc-export">
+              <span id="sc-ex-btn-label" class="sc-act-t">Xuất video</span>
+            </x-button>
+            <!-- Chỉ hiện khi đang xuất (_scExportBtn), để huỷ được cả khi thẻ nổi đã đóng. -->
+            <x-button id="sc-ex-stop" variant="bare" icon="x" onclick="scExportCancel()" class="sc-ghost sc-ex-stop hidden" aria-label="Huỷ xuất video">
+              <span class="sc-act-t">Huỷ</span>
+            </x-button>
+            <x-button variant="bare" icon="maximize" onclick="scFullscreen()" class="sc-play">
+              <span class="sc-act-t">Trình chiếu</span>
+            </x-button>
+          </div>
         </div>
 
       </section>
@@ -91,10 +101,10 @@
         <div aria-live="polite">
           <div id="sc-ex-pick">
             <p class="sc-export-h">Chọn loại video</p>
-            <!-- "Xem thử" = video dọc nhẹ, slide nằm trên màn chiếu hội trường, có dấu "Bản xem
-                 thử" — để gửi khách duyệt trước khi thanh toán. 1080p/4K là bản chiếu thật. -->
+            <!-- "TikTok" = video dọc 2K, slide nằm trên màn chiếu hội trường — để đăng mạng xã hội.
+                 1080p/4K là bản chiếu lên màn sân khấu. -->
             <div id="sc-ex-res" class="cx-seg sc-ex-res" style="--n: 3; --i: 0">
-              <button type="button" class="cx-seg-btn is-on" data-res="demo">Xem thử</button>
+              <button type="button" class="cx-seg-btn is-on" data-res="tiktok">TikTok</button>
               <button type="button" class="cx-seg-btn" data-res="1080">1080p</button>
               <button type="button" class="cx-seg-btn" data-res="2160">4K</button>
             </div>

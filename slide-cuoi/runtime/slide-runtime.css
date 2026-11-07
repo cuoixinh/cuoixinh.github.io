@@ -71,7 +71,12 @@ html.sl-paused body {
   pointer-events: auto;
 }
 
+/* Dải cảnh trên slide: như .sl-ctrl, chỉ có khi khung tự lo điều khiển (.sl-own-ctrl) — trong trang
+   /slide-cuoi/ dải cảnh nằm ở bàn điều khiển dưới slide. */
 .sl-segs {
+  display: none;
+}
+.sl-own-ctrl .sl-segs {
   display: flex;
   gap: 4px;
   width: 100%;
@@ -98,7 +103,12 @@ html.sl-paused body {
   transform: scaleX(1);
 }
 
+/* Chỉ hiện khi khung tự lo điều khiển (cờ .sl-own-ctrl: mở thẳng hoặc đang toàn màn) — trong
+   trang /slide-cuoi/ cụm điều khiển nằm ở hàng nút dưới slide. */
 .sl-ctrl {
+  display: none;
+}
+.sl-own-ctrl .sl-ctrl {
   display: flex;
   align-items: center;
   gap: 4px;
