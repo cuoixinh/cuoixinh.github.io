@@ -199,8 +199,10 @@ function cleanLoveStory(raw: unknown): Record<string, unknown>[] | null {
 function cleanTimeline(raw: unknown): Record<string, unknown>[] | null {
   const arr = typeof raw === 'string' ? safeParse(raw) : raw
   if (!Array.isArray(arr)) return null
-  const TYPES = ['ceremony', 'party', 'bride-party']
-  return arr.slice(0, 10).map((it) => {
+  // 'vu-quy' = lịch lễ vu quy riêng của link nhà gái (cxVuQuyAsCeremony ở core/helpers/wedding-helper.js).
+  const TYPES = ['ceremony', 'party', 'bride-party', 'vu-quy']
+  // Trang Thiết lập cho mỗi loại tối đa 10 mốc (maxLoveStoryItems) → trần tổng = 10 × số loại.
+  return arr.slice(0, 10 * TYPES.length).map((it) => {
     const o = (it && typeof it === 'object' ? it : {}) as Record<string, unknown>
     const type = cleanText(o.type, 20)
     return {

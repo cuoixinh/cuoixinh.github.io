@@ -18,7 +18,7 @@
     </div>
   </div>
   <div id="section-timeline-body">
-    <!-- Tab bar — chỉ toggle phần Tiệc cưới. Dải segmented có con trượt chạy
+    <!-- Tab bar — chỉ toggle phần riêng từng nhà (tiệc, lễ vu quy). Dải segmented có con trượt chạy
          (.cx-seg ở styles/_common.css). -->
     <div class="px-4 pt-4">
       <div id="timeline-seg" class="cx-seg" style="--n: 2" role="tablist">
@@ -129,11 +129,41 @@
           <i data-lucide="plus"></i> Thêm sự kiện
         </x-button>
       </div>
+
+      <!-- Lễ vu quy — chỉ link nhà gái thấy, chỉ hiện khi bật vu quy (_updateTimelineVuQuySection). -->
+      <div id="timeline-vu-quy-sub" class="hidden space-y-3 pt-2">
+        <p
+          class="text-xs font-semibold text-cyan-600 uppercase tracking-wide"
+        >
+          Lễ vu quy
+        </p>
+        <div
+          id="timeline-vu-quy-date-badge"
+          class="hidden flex items-center gap-2 px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-xl"
+        >
+          <i
+            data-lucide="calendar-days"
+            class="w-4 h-4 text-cyan-500 flex-shrink-0"
+          ></i>
+          <span
+            id="timeline-vu-quy-date-text"
+            class="text-sm font-medium text-cyan-700"
+          ></span>
+        </div>
+        <div id="timeline-vu-quy-list" class="space-y-3"></div>
+        <p class="text-sm text-gray-400 italic">
+          Bỏ trống thì link nhà gái dùng lịch trình lễ thành hôn bên dưới
+        </p>
+        <x-button variant="outline" type="button" onclick="addTimelineItem('vu-quy')" class="mt-1">
+          <i data-lucide="plus"></i> Thêm sự kiện
+        </x-button>
+      </div>
     </div>
 
-    <!-- Lễ cưới — dùng chung, luôn hiển thị -->
+    <!-- Lễ cưới — dùng chung, luôn hiển thị (nhà gái có lịch vu quy riêng thì chỉ còn nhà trai dùng) -->
     <div class="px-6 pt-2 pb-6 space-y-4 border-t border-gray-100">
       <p
+        id="timeline-ceremony-label"
         class="text-xs font-semibold text-cyan-600 uppercase tracking-wide pt-2"
       >
         Lễ cưới
