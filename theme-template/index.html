@@ -624,6 +624,8 @@
       crossorigin="anonymous"
     ></script>
     <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
+    <!-- config.js TRƯỚC navbar: mục khai `feature` đọc cờ CONFIG.features lúc mount. -->
+    <script src="../core/config.js"></script>
     <script src="../core/auth.js"></script>
     <script src="../core/components/navbar.js"></script>
     <script>
@@ -686,7 +688,6 @@
     </script>
     <script src="../core/cache-util.js"></script>
     <script src="../core/dal/templates-dal.js"></script>
-    <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/helpers/draft-start.js"></script>
     <script src="../core/auth-ui.js"></script>
