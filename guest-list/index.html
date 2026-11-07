@@ -173,6 +173,8 @@
     <script src="../core/helpers/account-menu.js"></script>
     <!-- Navbar dùng chung: khai mảng mục một lần, dựng cả thanh trên lẫn thanh tab dưới. -->
     <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
+    <!-- config.js TRƯỚC navbar: mục khai `feature` đọc cờ CONFIG.features lúc mount. -->
+    <script src="../core/config.js"></script>
     <script src="../core/auth.js"></script>
     <script src="../core/components/navbar.js"></script>
     <script>
@@ -207,7 +209,6 @@
       CXAccount.mountChip();
     </script>
     <script src="../core/cache-util.js"></script>
-    <script src="../core/config.js"></script>
     <!-- openBottomSheet / escapeHtml cho bảng Thành viên (core/helpers/member-sheet.js). -->
     <script src="../core/utils.js"></script>
     <script src="../core/helpers/alert.js"></script>
