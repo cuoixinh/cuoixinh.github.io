@@ -216,7 +216,7 @@
     // ở tờ lịch) để ba chỗ không lặp ảnh; hết thì lùi dần rồi về ảnh bìa.
     // Bật mà không có mốc nào cho bên đang xem → ẩn trang, khỏi một trang chỉ có tiêu đề.
     const tlOn = cxEnabled(w.enable_timeline);
-    if (tlOn) renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
+    if (tlOn) renderTimeline(w.timeline, side, partyDate, ...cxTimelineCeremony(w, ceremonyName));
     cxToggle(
       "section-timeline",
       tlOn && !!document.getElementById("timeline-list-render")?.children.length,

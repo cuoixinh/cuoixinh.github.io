@@ -207,8 +207,7 @@
         w.timeline,
         side,
         partyDate,
-        w.ceremony_date,
-        ceremonyName,
+        ...cxTimelineCeremony(w, ceremonyName),
       );
       cxToggle("section-timeline", true);
     }

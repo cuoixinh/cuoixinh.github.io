@@ -293,7 +293,7 @@
 
     // --- Lịch trình ngày cưới ---
     if (cxEnabled(w.enable_timeline)) {
-      renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
+      renderTimeline(w.timeline, side, partyDate, ...cxTimelineCeremony(w, ceremonyName));
       cxToggle("section-timeline", true);
     }
 

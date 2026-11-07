@@ -191,7 +191,7 @@
     // chung — mẫu đó vẽ dòng dọc có chấm, đã dùng cho chuyện tình yêu ngay bên
     // dưới rồi, hai mục liền nhau mà cùng một kiểu thì nhìn lặp.
     if (cxEnabled(w.enable_timeline)) {
-      _renderSchedule(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
+      _renderSchedule(w.timeline, side, partyDate, ...cxTimelineCeremony(w, ceremonyName));
       cxToggle("section-timeline", true);
     }
 
