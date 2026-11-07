@@ -479,7 +479,7 @@ function _scVoRender() {
               </div>
             </div>`
           : `<div class="sc-vo-lane is-add" data-lane data-mu-add title="Bấm để chọn file nhạc nền">
-              <span class="sc-vo-note">Bấm vào làn này để chọn file nhạc, hoặc nút thư viện để chọn bài có sẵn.</span>
+              <span class="sc-vo-note">Chạm để thêm nhạc nền</span>
             </div>`
       }
     </div>`;
@@ -521,7 +521,7 @@ function _scVoRender() {
             ${recBtn("", "Thu âm lớp mới từ đầu phát")}
           </div>
           <div class="sc-vo-lane${R ? "" : " is-add"}" data-lane ${R ? "" : 'data-vo-addlane title="Bấm để thêm file ghi âm bắt đầu từ chỗ này"'}>
-            ${R && !R.id ? live("") : `<span class="sc-vo-note">Bấm vào làn này để thêm file ghi âm đúng chỗ đó, hoặc micro để thu.</span><i class="sc-vo-ghost" aria-hidden="true"></i>`}
+            ${R && !R.id ? live("") : `<span class="sc-vo-note">Chạm để thêm âm thanh</span><i class="sc-vo-ghost" aria-hidden="true"></i>`}
           </div>
         </div>`
       : "");
