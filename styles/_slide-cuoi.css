@@ -960,6 +960,19 @@ html.sc-lock .cx-navmore-pop {
   position: relative;
   display: block;
 }
+/* Đang gõ trên điện thoại (cờ JS, xem _scTypeFit): khung chiếu thôi dính đầu trang, thanh tab
+   dưới ẩn, ô gõ cao tối đa bằng phần màn còn nhìn thấy trên bàn phím (dài hơn thì cuộn trong ô). */
+html.sc-typing .sc-stage {
+  position: relative;
+  top: auto;
+}
+html.sc-typing .cx-tabbar {
+  display: none;
+}
+html.sc-typing .sc-tx-in {
+  max-height: calc(var(--sc-kb-h, 320px) - 96px);
+  overflow-y: auto;
+}
 .sc-tx-in {
   display: block;
   width: 100%;
@@ -1990,4 +2003,58 @@ html.sc-lock .cx-navmore-pop {
   .sc-vo-rec::before {
     animation: none;
   }
+}
+
+/* iPhone tự phóng to trang khi ô gõ có chữ nhỏ hơn 16px — trên điện thoại giữ đúng 16px. */
+@media (max-width: 1023px) {
+  .sc-tx-in {
+    font-size: 16px;
+  }
+}
+
+/* Thanh tuỳ chọn nổi trên khối âm thanh (x-popover #sc-vo-act): nền màu nhấn, nút icon + nhãn
+   xếp dọc, mũi tên chỉ đúng chỗ bấm (.sc-vo-pin — chấm vô hình JS đặt trong khối). */
+.x-pop.sc-vo-act {
+  flex-direction: row;
+  gap: 4px;
+  padding: 8px;
+  border: 0;
+  border-radius: 20px;
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 16px 32px -12px rgb(var(--action-primary-rgb) / 0.65);
+}
+.x-pop.sc-vo-act.has-arrow.is-top::after,
+.x-pop.sc-vo-act.has-arrow.is-bottom::after {
+  border: 0;
+}
+.sc-vo-act-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 76px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgb(var(--white-rgb));
+}
+.sc-vo-act-btn:hover {
+  background: rgb(var(--white-rgb) / 0.16);
+}
+.sc-vo-act-btn:focus-visible {
+  outline: 2px solid rgb(var(--white-rgb));
+  outline-offset: -2px;
+}
+.sc-vo-act-ico {
+  display: inline-flex;
+  font-size: 24px;
+}
+.sc-vo-pin {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
 }

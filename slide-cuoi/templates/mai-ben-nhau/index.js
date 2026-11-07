@@ -216,19 +216,19 @@
         id: "guests",
         title: "Dear guests",
         sub: "Gửi quý vị quan khách",
-        text: "Kính thưa quý vị quan khách, con xin chân thành cảm ơn mọi người đã dành thời gian quý báu đến chung vui cùng gia đình hai bên trong ngày trọng đại hôm nay. Sự có mặt của quý vị là món quà ý nghĩa nhất, là lời chúc phúc mà chúng con sẽ luôn trân trọng trên chặng đường mới.",
+        text: "Kính thưa quý vị quan khách, trước tiên con xin chân thành cảm ơn mọi người đã dành thời gian quý báu đến chung vui cùng gia đình hai bên trong ngày trọng đại hôm nay. Sự có mặt của quý vị là món quà ý nghĩa nhất, là lời chúc phúc mà chúng con sẽ luôn trân trọng trên chặng đường mới.",
       },
       {
         id: "family",
         title: "To my parents",
         sub: "Gửi bố mẹ hai bên",
-        text: "Con xin gửi lời cảm ơn đến bố mẹ, những người đã sinh thành, nuôi nấng và dạy dỗ con nên người. Hôm nay con đi lấy chồng, con biết bố mẹ vừa mừng vừa có chút chạnh lòng. Con hứa sẽ sống thật hạnh phúc và mãi là đứa con ngoan của bố mẹ. Con cũng xin cảm ơn bố mẹ chồng đã đón nhận con như con gái trong nhà.",
+        text: "Tiếp theo, con xin gửi lời cảm ơn đến bố mẹ con, những người đã sinh thành, nuôi nấng và dạy dỗ con nên người. Hôm nay con đi lấy chồng, con biết bố mẹ vừa mừng vừa có chút chạnh lòng. Con hứa sẽ sống thật hạnh phúc và mãi là đứa con ngoan của bố mẹ. Con cũng xin cảm ơn bố mẹ chồng đã đón nhận con như con gái trong nhà.",
       },
       {
         id: "husband",
         title: "To my husband",
         sub: "Gửi anh, chồng của em",
-        text: "Còn anh, người em thương nhất, cảm ơn anh đã đến bên em, đã kiên nhẫn đi cùng em qua những ngày vui lẫn những lúc giận hờn. Cảm ơn anh đã luôn lắng nghe, nhường nhịn và che chở cho em, kể cả những khi em bướng bỉnh nhất. Em không hứa mọi ngày sau này đều dễ dàng, nhưng em hứa sẽ luôn nắm chặt tay anh, cùng anh đi qua mọi vui buồn của cuộc sống. Mình sẽ cùng nhau vun đắp một mái nhà nhỏ, nơi có tiếng cười, có bữa cơm chờ nhau mỗi tối và có những đứa trẻ đáng yêu sau này. Khi anh mệt, em sẽ ở đây. Khi em yếu lòng, mong anh vẫn dịu dàng như ngày hôm nay. Từ hôm nay, mình là một nhà. Em yêu anh, anh nhé.",
+        text: "Và cuối cùng là gửi anh, chồng của em, người em thương nhất. Cảm ơn anh đã đến bên em, đã kiên nhẫn đi cùng em qua những ngày vui lẫn những lúc giận hờn. Cảm ơn anh đã luôn lắng nghe, nhường nhịn và che chở cho em, kể cả những khi em bướng bỉnh nhất. Em không hứa mọi ngày sau này đều dễ dàng, nhưng em hứa sẽ luôn nắm chặt tay anh, cùng anh đi qua mọi vui buồn của cuộc sống. Mình sẽ cùng nhau vun đắp một mái nhà nhỏ, nơi có tiếng cười, có bữa cơm chờ nhau mỗi tối và có những đứa trẻ đáng yêu sau này. Khi anh mệt, em sẽ ở đây. Khi em yếu lòng, mong anh vẫn dịu dàng như ngày hôm nay. Từ hôm nay, mình là một nhà. Em yêu anh, anh nhé.",
       },
     ];
     const SAY_CPS = 15;

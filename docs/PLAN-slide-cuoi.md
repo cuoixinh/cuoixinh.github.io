@@ -88,8 +88,10 @@ slide-cuoi/
 - Tab "Âm thanh" gộp nhạc nền + giọng đọc: một dòng thời gian (`voice.js`) có làn Nhạc nền (dấu + chọn file nhạc, bấm khối là xuống phần chọn nhạc), các lớp giọng, và hàng "Lớp mới" — dấu + thêm file ở đầu phát, bấm thẳng vào làn thêm file BẮT ĐẦU đúng mốc đó (vạch + chạy theo chuột), micro thu âm. Dưới là phần Nhạc nền (file · thư viện).
 - Giọng đọc (`voice.js`): tối đa 10 file ghi âm, mỗi file ≤ 50 MB, mỗi file một LỚP
   trên dòng thời gian của slide (thước giây · dải cảnh · nhạc · các lớp). Kéo thân khối = đổi lúc
-  bắt đầu, kéo hai mép = cắt đầu/cuối, hút về đầu cảnh / đầu phát / mép lớp khác; bảng lớp đang
-  chọn chỉ có âm lượng + dấu x (xoá lớp, có hỏi lại). Nút micro ở đầu mỗi lớp (thu lại, giữ chỗ
+  bắt đầu, kéo hai mép = cắt đầu/cuối, hút về đầu cảnh / đầu phát / mép lớp khác; bấm vào một
+  khối (giọng hay nhạc nền) là hiện thanh tuỳ chọn nổi ngay chỗ bấm (`#sc-vo-act`, x-popover):
+  Thay thế (giọng: file mới cho đúng lớp, giữ chỗ bắt đầu; nhạc: chọn file khác) · Xoá (giọng:
+  xoá lớp, có hỏi lại; nhạc: bỏ nhạc). Nút micro ở đầu mỗi lớp (thu lại, giữ chỗ
   bắt đầu) và hàng "Lớp mới": đếm ngược 3 giây, slide chạy từ mốc đó và TẮT TIẾNG trong lúc thu
   (`cx-slide-quiet`), bấm lại / slide hết là dừng; bản thu đi chung đường cất với file tải lên. Byte file cất IndexedDB kho `voice` (BYTE,
   không Blob, kèm đỉnh sóng âm) theo `<mẫu>|<id thiệp hoặc demo>|<id lớp>`, vị trí/cắt/âm lượng +

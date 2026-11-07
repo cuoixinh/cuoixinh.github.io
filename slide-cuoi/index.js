@@ -1156,6 +1156,58 @@ _scEl("sc-tabs").addEventListener("keydown", (e) => {
   _scEl(`sc-tabbtn-${next}`).focus();
 });
 
+// ── Gõ chữ trên điện thoại: bàn phím ảo chiếm nửa dưới màn, khung chiếu dính đầu trang chiếm phần
+// trên → ô đang gõ hết chỗ. Lúc gõ (dưới lg) đặt cờ html.sc-typing: khung chiếu thôi dính, thanh
+// tab dưới ẩn, ô gõ cao tối đa bằng phần còn nhìn thấy (--sc-kb-h). Chỉ cuộn ô vào giữa ĐÚNG lúc
+// bàn phím mọc lên — vuốt trang làm thanh địa chỉ ẩn/hiện cũng đổi khổ visualViewport, cuộn theo
+// đó là kéo trang về ô mãi. Bàn phím cụp xuống (ô vẫn focus — nút Back của Android) = gõ xong:
+// bỏ chọn ô, trả khung chiếu về chỗ.
+const _SC_TYPE_SEL = "textarea, input[type=text], input[type=search], input:not([type])";
+const _SC_KB_MIN = 120; // vùng nhìn thấy hụt hơn chừng này px so với cửa sổ = đang có bàn phím
+let _scTypeT = 0;
+let _scKbOn = false;
+let _scTypeScroll = false; // còn nợ một lần cuộn ô vào giữa (đặt khi focus)
+const _scTyping = () => document.documentElement.classList.contains("sc-typing");
+const _scKbNow = () => !!window.visualViewport && innerHeight - visualViewport.height > _SC_KB_MIN;
+
+function _scTypeFit() {
+  const el = document.activeElement;
+  if (!_scTyping() || !el?.matches?.(_SC_TYPE_SEL)) return;
+  const vv = window.visualViewport;
+  document.documentElement.style.setProperty("--sc-kb-h", `${Math.round(vv ? vv.height : innerHeight)}px`);
+  const kb = _scKbNow();
+  if (_scKbOn && !kb) {
+    _scKbOn = false;
+    el.blur();
+    return;
+  }
+  // Cuộn MỘT lần: lúc bàn phím vừa mọc (hoặc máy không đo được bàn phím — ngay sau focus).
+  if (kb && !_scKbOn) _scTypeScroll = true;
+  _scKbOn = kb;
+  if (!_scTypeScroll || (window.visualViewport && !kb)) return;
+  _scTypeScroll = false;
+  el.scrollIntoView({ block: "center" });
+}
+document.addEventListener("focusin", (e) => {
+  if (!e.target.matches?.(_SC_TYPE_SEL) || !e.target.closest(".sc-panel")) return;
+  if (!matchMedia("(max-width: 1023px)").matches) return;
+  clearTimeout(_scTypeT);
+  document.documentElement.classList.add("sc-typing");
+  _scTypeScroll = true;
+  // Bàn phím mọc lên sau focus một nhịp (iPhone còn trượt trang) — đo lại vài lần.
+  [60, 350, 700].forEach((ms) => setTimeout(_scTypeFit, ms));
+});
+document.addEventListener("focusout", () => {
+  clearTimeout(_scTypeT);
+  // Chuyển sang ô kế tiếp thì giữ nguyên cờ, khỏi nhảy khung chiếu.
+  _scTypeT = setTimeout(() => {
+    if (document.activeElement?.matches?.(_SC_TYPE_SEL)) return;
+    document.documentElement.classList.remove("sc-typing");
+    _scKbOn = _scTypeScroll = false;
+  }, 200);
+});
+window.visualViewport?.addEventListener("resize", _scTypeFit);
+
 // ── Toàn màn hình: phóng cả iframe; máy không có Fullscreen API (iPhone) thì phủ kín bằng CSS ──
 const _scFsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
 function _scFullSync() {

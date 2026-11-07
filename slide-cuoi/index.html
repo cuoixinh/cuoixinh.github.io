@@ -232,7 +232,11 @@
           </div>
           <p id="sc-vo-rec" class="sc-vo-rec hidden" role="status" aria-live="polite"></p>
           <div id="sc-vo-tl" class="sc-vo-tl"></div>
-          <div id="sc-vo-sel" class="sc-vo-sel hidden"></div>
+          <!-- Thanh tuỳ chọn của khối âm thanh vừa bấm (voice.js neo ngay chỗ bấm trên khối). -->
+          <x-popover id="sc-vo-act" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn âm thanh">
+            <button type="button" class="sc-vo-act-btn" data-act="replace"><span class="sc-vo-act-ico"><i data-lucide="replace"></i></span>Thay thế</button>
+            <button type="button" class="sc-vo-act-btn" data-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá</button>
+          </x-popover>
           <!-- Thư viện nhạc: mở từ nút ở đầu làn Nhạc nền (voice.js), danh sách do _scMuRender vẽ. -->
           <div id="sc-mu-libbox" class="sc-vo-sel sc-mu-libbox hidden">
             <div class="sc-vo-sel-head">
