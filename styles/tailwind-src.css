@@ -2951,6 +2951,55 @@ html.cx-landing {
   color: rgb(var(--text-caption-rgb));
 }
 
+/* ══ HỎI ĐÁP (#faq) ═══════════════════════════════════════════════════════
+   Danh sách <details> gập/mở bằng trình duyệt (không JS). Nền cùng màu #pricing
+   phía trên để #contact phía dưới vẫn hoà mép như cũ. */
+#faq {
+  background-color: rgb(var(--surface-section-rgb));
+}
+.faq-list {
+  @apply mt-8 flex flex-col;
+  gap: 12px;
+}
+.faq-item {
+  border-radius: 20px;
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 12px 32px -24px rgb(var(--shadow-brand-rgb) / 0.5);
+}
+.faq-q {
+  @apply flex cursor-pointer items-center justify-between font-semibold;
+  gap: 16px;
+  padding: 16px 20px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: rgb(var(--text-heading-rgb));
+  list-style: none;
+}
+.faq-q::-webkit-details-marker {
+  display: none;
+}
+.faq-q svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: rgb(var(--brand-accent-rgb));
+  transition: transform 0.2s ease;
+}
+.faq-item[open] .faq-q svg {
+  transform: rotate(180deg);
+}
+.faq-a {
+  padding: 0 20px 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(var(--text-caption-rgb));
+}
+.faq-link {
+  @apply font-semibold underline;
+  color: rgb(var(--brand-accent-rgb));
+}
+
 /* ══ KHỐI KÊU GỌI CUỐI TRANG (#contact) ═══════════════════════════════════
    Thẻ sáng hai cột từ lg: lời mời + nút bên trái, ba bước tạo thiệp bên phải
    (dưới lg xếp chồng). Nền mục hoà mép với nền hồng của #testimonials phía trên. */
