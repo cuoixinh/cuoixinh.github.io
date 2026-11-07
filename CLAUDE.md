@@ -49,6 +49,7 @@ assets/background/       Ảnh nền WebP do tab "Ảnh nền" của admin chụ
 supabase/functions/      Edge Functions
 changelogs/              Lịch sử thay đổi DB
 cloudflare-worker/       Workers proxy/cache
+hinh-nen-led/            "Hình nền LED" — mẫu màn chờ chiếu lặp lên LED sân khấu, tải video/ảnh (vẽ bằng bộ vẽ của slide-cuoi/)
 cloudflare-media/        Kho nhạc thư viện của Slide cưới (Worker file tĩnh, media.cuoixinh.com) — file nhạc KHÔNG vào git
 worker/                  Worker của site chính — trả trang thiệp tại /<slug> + thẻ og:*
 ```
@@ -608,6 +609,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   sách bằng `setItems()`, hoặc appendChild phần tử thật (navbar Thiết lập làm vậy). Thẻ
   là `position: fixed` → cha có `transform/filter` sẽ kéo nó lệch. Nút mở đã có `onclick`
   riêng thì component KHÔNG gắn thêm click.
+- **Công tắc gạt — một kiểu cho cả chương trình `.cx-switch`** (`styles/_common.css`): tắt xám
+  (`--switch-off-rgb`), bật màu nhấn, `disabled` thì mờ. `<x-switch>` tự dựng ra nó; trang tự viết
+  thì `<input type="checkbox" role="switch" class="cx-switch">`. Trạng thái đọc từ `aria-checked` /
+  `:checked` — JS chỉ đổi thuộc tính đó, **đừng gắn class màu** (`bg-rose-*`/`bg-gray-*`).
 - **Dải segmented `.cx-seg`** (`styles/_common.css`): con trượt chạy theo hai biến `--n`
   (số nút) và `--i` (nút đang chọn), nút đang chọn thêm `.is-on` — JS chỉ đặt bấy nhiêu.
   Dùng cho vùng miền ở popup AI và các tab Nhà trai/Nhà gái.
@@ -640,6 +645,18 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   phải nạp `config.js` TRƯỚC navbar) — chỉ ẩn lối vào, URL vẫn mở được. Ảnh phải tải `crossOrigin="anonymous"`,
   thiếu là không xuất được video. Slide là màn SÂN KHẤU, không phải bản sao thiệp. Xem
   `docs/PLAN-slide-cuoi.md`.
+- **Hình nền LED (`hinh-nen-led/`):** phân hệ RIÊNG (mục navbar `feature: "led"`), chỉ có lấy
+  thông tin từ thiệp + màn xem to + dải mẫu, tải video MP4 4K NỐI VÒNG (máy không mã hoá nổi 4K thì 1080p) (`loop` của `CXSlideExport.run`:
+  khung đầu là lúc cảnh cuối chuyển sang cảnh đầu) hoặc ảnh PNG 4K. Mẫu là MỘT file
+  `templates/<id>.js` tự đăng ký vào `CX_LED_TEMPLATES` + một thẻ `<script>` ở `index.html`;
+  vẽ bằng bộ vẽ của `slide-cuoi/engine/` (cùng định dạng cảnh) — đừng chép bộ vẽ sang đây.
+- **Video quảng cáo (tab admin "Tạo Video Quảng Cáo"):** quay bằng Chrome không giao diện
+  ở `scripts/promo-video.mjs`, gắn vào `npm run dev` (đường `/__promo-video/*`) — mở admin
+  bằng server khác là không có bộ quay. Sân khấu 9:16 + kịch bản cuộn ở
+  `admin/promo-video/stage.*` (xem trước ở tab cũng chính là trang đó); thời gian do
+  `clock.js` tiêm vào từng frame giữ, nên hiệu ứng mới của thiệp tự đúng nếu chạy bằng
+  timer/rAF/CSS animation. Thứ không được lên video thì đánh dấu `data-no-scan` như ảnh mẫu.
+  Video ra `.promo-videos/` (không vào git); ffmpeg lấy từ gói `ffmpeg-static`.
 - **Trình phát nhạc:** markup ở `core/components/music-player.js`, logic ở
   `music-player-helper.js` — theme chỉ đánh dấu vai trò bằng `data-cx-music="…"`.
   Có 6 dạng (`bar` · `mini` · `pill` · `square` · `disc` · `ring`); mẫu KHAI dạng

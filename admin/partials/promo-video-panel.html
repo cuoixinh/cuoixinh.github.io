@@ -1,0 +1,155 @@
+<!-- Tab Content: Tạo Video Quảng Cáo (logic ở js/11-promo-video.js, quay ở scripts/promo-video.mjs) -->
+<div id="content-promo-video" class="hidden space-y-4">
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
+      <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo Video Quảng Cáo</h2>
+      <p class="text-xs text-gray-500 mt-1">
+        Chọn mẫu → máy tự mở thiệp trong khung iPhone, mở bìa, cuộn qua từng mục rồi xuất video
+        dọc 9:16 (1080×1920) đúng chuẩn đăng TikTok/Reels — chữ đã chừa vùng bị giao diện
+        TikTok che. Video lưu ở
+        <code class="text-[11px] bg-gray-100 px-1 py-0.5 rounded">.promo-videos/</code>
+        trong thư mục dự án.
+      </p>
+      <div
+        id="pv-server-warn"
+        class="hidden mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800"
+      ></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 p-3 sm:p-4 md:p-6">
+      <div class="space-y-5 min-w-0">
+        <!-- Danh sách mẫu -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-medium text-gray-600">
+              Mẫu thiệp <span id="pv-count" class="text-gray-400"></span>
+            </label>
+            <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+              <input id="pv-all" type="checkbox" class="w-3.5 h-3.5 accent-rose-500" />
+              Chọn tất cả
+            </label>
+          </div>
+          <div
+            id="pv-templates"
+            class="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 gap-3 max-h-[440px] overflow-y-auto pr-1"
+          >
+            <div class="col-span-full text-center text-sm text-gray-400 py-8">Đang tải mẫu…</div>
+          </div>
+        </div>
+
+        <!-- Thời lượng -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label for="pv-duration" class="text-xs font-medium text-gray-600">Thời lượng</label>
+            <span id="pv-duration-label" class="text-sm font-semibold text-rose-600">20 giây</span>
+          </div>
+          <input id="pv-duration" type="range" min="8" max="60" step="1" value="20" class="w-full accent-rose-500" />
+          <div class="flex justify-between text-[11px] text-gray-400 mt-1">
+            <span>8s</span><span>15s</span><span>30s</span><span>60s</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="pv-title" class="block text-xs font-medium text-gray-600 mb-1">Dòng chữ trên</label>
+            <input
+              id="pv-title"
+              type="text"
+              value="Thiệp cưới online"
+              maxlength="80"
+              class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400"
+            />
+          </div>
+          <div>
+            <label for="pv-foot" class="block text-xs font-medium text-gray-600 mb-1">Dòng chữ dưới</label>
+            <input
+              id="pv-foot"
+              type="text"
+              value="cuoixinh.com"
+              maxlength="80"
+              class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <input id="pv-show-name" type="checkbox" role="switch" class="cx-switch" checked />
+            Hiện tên mẫu
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <input id="pv-music-btn" type="checkbox" role="switch" class="cx-switch" checked />
+            Hiện nút nhạc trên thiệp
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            Chất lượng
+            <select id="pv-quality" class="px-2 py-1 rounded-lg border border-gray-200 text-sm">
+              <option value="tiktok" selected>Cao — đăng TikTok</option>
+              <option value="draft">Nháp — quay nhanh để duyệt</option>
+            </select>
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            Khung hình
+            <select id="pv-fps" class="px-2 py-1 rounded-lg border border-gray-200 text-sm">
+              <option value="30" selected>30 fps</option>
+              <option value="60">60 fps (mượt hơn, quay lâu gấp đôi)</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- Nhạc nền -->
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Nhạc nền (tuỳ chọn)</label>
+          <div class="flex flex-wrap items-center gap-3">
+            <input id="pv-audio" type="file" accept="audio/*" class="hidden" />
+            <x-button variant="outline" tone="neutral" size="sm" icon="music" onclick="document.getElementById('pv-audio').click()">
+              Chọn tệp nhạc
+            </x-button>
+            <span id="pv-audio-name" class="text-xs text-gray-500">Không có — video câm</span>
+            <x-button id="pv-audio-clear" variant="ghost" tone="danger" size="xs" icon="x" class="hidden" onclick="pvClearAudio()">
+              Bỏ nhạc
+            </x-button>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-1">Nhạc ngắn hơn video thì tự lặp lại, cuối video nhỏ dần.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 pt-1">
+          <x-button id="pv-start" variant="fill" tone="brand" icon="clapperboard" onclick="pvStart()" disabled>
+            Tạo video
+          </x-button>
+          <x-button id="pv-cancel" variant="outline" tone="danger" icon="square" class="hidden" onclick="pvCancel()">
+            Dừng
+          </x-button>
+          <span id="pv-estimate" class="text-xs text-gray-400"></span>
+        </div>
+      </div>
+
+      <!-- Xem trước sân khấu (giờ thật, có thể hơi giật — video xuất ra luôn mượt) -->
+      <div class="lg:sticky lg:top-4 self-start">
+        <div class="text-xs font-medium text-gray-600 mb-2">Xem trước</div>
+        <div class="relative w-[270px] h-[480px] mx-auto rounded-2xl overflow-hidden bg-gray-100 shadow-inner">
+          <iframe
+            id="pv-preview"
+            title="Xem trước video"
+            class="absolute left-0 top-0 w-[540px] h-[960px] border-0 origin-top-left scale-50"
+          ></iframe>
+          <div id="pv-preview-empty" class="absolute inset-0 flex items-center justify-center text-xs text-gray-400 px-6 text-center">
+            Bấm vào một mẫu để xem trước
+          </div>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-2 text-center">
+          Bản xem trước chạy theo giờ thật nên có thể hơi giật; video xuất ra luôn mượt.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kết quả -->
+  <div id="pv-results-card" class="hidden bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="text-sm font-semibold text-gray-800">Kết quả</h3>
+      <span id="pv-results-status" class="text-xs text-gray-500"></span>
+    </div>
+    <div id="pv-results" class="p-3 sm:p-4 md:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+  </div>
+</div>

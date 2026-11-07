@@ -248,14 +248,8 @@ async function _locateSavedQuery(q) {
 
 // Công tắc <x-switch key="map-name"> dựng sẵn ở trạng thái BẬT → đồng bộ lại theo ô tên.
 function _syncMapNameSwitch(on) {
-  const btn = document.getElementById("vis-btn-map-name");
-  const knob = document.getElementById("vis-knob-map-name");
-  if (!btn || !knob) return;
-  btn.setAttribute("aria-checked", String(on));
-  btn.classList.toggle("bg-rose-400", on);
-  btn.classList.toggle("bg-gray-300", !on);
-  knob.classList.toggle("translate-x-6", on);
-  knob.classList.toggle("translate-x-1", !on);
+  // Màu + vị trí núm do .cx-switch đọc từ aria-checked.
+  document.getElementById("vis-btn-map-name")?.setAttribute("aria-checked", String(on));
 }
 
 function _toggleMapDisplayName() {

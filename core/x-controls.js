@@ -101,8 +101,10 @@ class XTime extends HTMLElement {
   }
 }
 
-// ── <x-switch> → button+knob với id vis-btn-{key}/vis-knob-{key} (logic vis giữ nguyên) ──
-// Trạng thái bật/tắt vẫn do hidden input enable_* + _updateVisUI/_initVisToggles quản lý.
+// ── <x-switch> → <button class="cx-switch"> (id vis-btn-{key}) + núm (id vis-knob-{key}) ──
+// Trạng thái bật/tắt vẫn do hidden input enable_* + _updateVisUI/_initVisToggles quản lý; nơi gọi
+// CHỈ đặt aria-checked — màu (tắt xám, bật màu nhấn) và vị trí núm là việc của .cx-switch
+// (styles/_common.css), đừng gắn class màu ở JS.
 class XSwitch extends HTMLElement {
   connectedCallback() {
     const key = this.getAttribute("key") || "";
@@ -119,10 +121,7 @@ class XSwitch extends HTMLElement {
     this.innerHTML = `
       <button type="button" id="vis-btn-${key}" role="switch" aria-checked="true"
         ${label ? `aria-label="${label}"` : ""} ${onclick ? `onclick="${onclick}"` : ""}
-        class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400">
-        <span id="vis-knob-${key}"
-          class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"></span>
-      </button>`;
+        class="cx-switch"><span id="vis-knob-${key}" class="cx-switch-knob"></span></button>`;
   }
 }
 

@@ -268,7 +268,8 @@ window.CXSlideEngine = (() => {
       _cross(ctx, P, j, i, local, local / P.fade);
     } else _scene(ctx, P, i, local, 1);
     // Cảnh khai `nofx` (nhiều chữ cần đọc) thì bỏ lớp đốm sáng phủ slide.
-    if (P.fx?.sparkle && !P.scenes[i].nofx) _sparkle(ctx, { x: 0, y: 0, w: P.W, h: P.H, ...P.fx.sparkle }, t);
+    // Chạy vòng: đốm sáng tuần hoàn đúng theo cả vòng, chỗ nối vòng không giật.
+    if (P.fx?.sparkle && !P.scenes[i].nofx) _sparkle(ctx, { x: 0, y: 0, w: P.W, h: P.H, ...P.fx.sparkle }, t, o.loop ? P.total : 0);
   }
 
   function _cross(ctx, P, j, i, local, p) {
@@ -459,6 +460,9 @@ window.CXSlideEngine = (() => {
       case "sparkle":
         _sparkle(ctx, el, lt);
         break;
+      case "orb":
+        _orb(ctx, el, lt, dur);
+        break;
       case "text":
         _text(ctx, el, (el.ls || 0) + (lsAdd || 0));
         break;
@@ -607,6 +611,24 @@ window.CXSlideEngine = (() => {
     ctx.drawImage(img, cx, cy, cw, ch, el.x, el.y, el.w, el.h);
   }
 
+  // Quầng sáng mềm (tâm x, y, bán kính r, màu color) trôi chậm theo vòng elip dx/dy (px), thở nhẹ
+  // theo `pulse`. Chu kỳ mặc định = thời lượng cảnh nên cuối cảnh quầng về đúng chỗ cũ — cảnh kế
+  // dùng cùng quầng thì lúc chuyển cảnh không thấy hai quầng.
+  function _orb(ctx, el, t, dur) {
+    const a = (t / (el.period || dur || 18)) * Math.PI * 2 + (el.phase || 0);
+    const x = el.x + Math.cos(a) * (el.dx ?? 60);
+    const y = el.y + Math.sin(a) * (el.dy ?? 30);
+    const r = el.r * (1 + (el.pulse ?? 0.06) * Math.sin(a * 2));
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, el.color);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    ctx.restore();
+  }
+
   // Đốm sáng lấp lánh trôi lên trong khung {x, y, w, h}: n đốm, size (px), alpha, seed; thuần
   // theo t nên xuất video ra y hệt. Một phần đốm có thêm tia sao bốn cánh.
   let _dot = null;
@@ -628,7 +650,9 @@ window.CXSlideEngine = (() => {
     const s = Math.sin(n * 12.9898 + 78.233) * 43758.5453;
     return s - Math.floor(s);
   };
-  function _sparkle(ctx, el, t) {
+  // period > 0: làm tròn mọi nhịp (trôi, lắc, nhấp nháy) cho khớp đúng chu kỳ đó.
+  function _sparkle(ctx, el, t, period) {
+    const lap = (f, span) => (period ? (span * Math.max(1, Math.round((f * period) / span))) / period : f);
     const dot = _glow();
     const n = el.n || 30;
     const seed = (el.seed || 1) * 1000;
@@ -639,11 +663,11 @@ window.CXSlideEngine = (() => {
     for (let k = 0; k < n; k++) {
       const r = (m) => _rnd(seed + k * 17 + m);
       const s = size * (0.35 + r(1) * 1.3);
-      const speed = 6 + r(2) * 22;
+      const speed = lap(6 + r(2) * 22, el.h);
       const ph = r(3) * Math.PI * 2;
       const y = el.y + ((((r(4) * el.h - t * speed) % el.h) + el.h) % el.h);
-      const x = el.x + r(5) * el.w + Math.sin(t * 0.6 + ph) * 14;
-      const tw = 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(t * (1.2 + r(6) * 2.4) + ph));
+      const x = el.x + r(5) * el.w + Math.sin(t * lap(0.6, Math.PI * 2) + ph) * 14;
+      const tw = 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(t * lap(1.2 + r(6) * 2.4, Math.PI * 2) + ph));
       ctx.globalAlpha = base * tw;
       ctx.drawImage(dot, x - s, y - s, s * 2, s * 2);
       if (r(7) > 0.8) {

@@ -182,7 +182,7 @@ window.CXSlideExport = (() => {
   }
 
   // opts: { height: 1080|2160|"demo" (bản xem thử dọc trên màn chiếu), audioUrl (URL hoặc Blob nhạc), voices (đoạn giọng đọc, xem _mix),
-  // duck, signal, onProgress(p 0..1), onAudio({ok, reason: "codec"|"decode"|"", music, voices, lost})
+  // duck, loop (video nối vòng liền mạch — Hình nền LED), signal, onProgress(p 0..1), onAudio({ok, reason: "codec"|"decode"|"", music, voices, lost})
   // — báo trước khi mã hoá: ghép được những tiếng nào } → Blob MP4.
   async function run(P, opts) {
     const vcfg = await pickCodec(opts.height);
@@ -244,7 +244,8 @@ window.CXSlideExport = (() => {
       for (let i = 0; i < frames; i++) {
         if (opts.signal?.aborted) throw Object.assign(new Error("Đã huỷ"), { code: "ABORTED" });
         if (fail) throw fail;
-        CXSlideEngine.frame(sctx, P, i / FPS);
+        // loop: khung đầu là lúc cảnh cuối chuyển sang cảnh đầu → phát lặp file không thấy chỗ nối.
+        CXSlideEngine.frame(sctx, P, i / FPS, { loop: !!opts.loop });
         if (demo) _hallFrame(ctx, hall, sctx.canvas);
         const vf = new VideoFrame(canvas, { timestamp: Math.round(i * step), duration: Math.round(step) });
         venc.encode(vf, { keyFrame: i % (FPS * 2) === 0 });

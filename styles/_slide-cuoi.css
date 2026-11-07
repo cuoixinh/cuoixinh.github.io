@@ -627,41 +627,6 @@ html.sc-lock .cx-navmore-pop {
 .sc-check-text {
   min-width: 0;
 }
-.sc-switch {
-  position: relative;
-  flex: none;
-  width: 44px;
-  height: 24px;
-  margin: 0;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  border-radius: 999px;
-  background: rgb(var(--brand-primary-rgb));
-  transition: background-color 0.2s ease;
-}
-.sc-switch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: rgb(var(--white-rgb));
-  box-shadow: 0 1px 3px rgb(var(--scrim-rgb) / 0.3);
-  transition: transform 0.2s ease;
-}
-.sc-switch:checked {
-  background: rgb(var(--action-primary-rgb));
-}
-.sc-switch:checked::after {
-  transform: translateX(20px);
-}
-.sc-switch:focus-visible {
-  outline: 2px solid rgb(var(--action-primary-rgb));
-  outline-offset: 2px;
-}
 .sc-check-title {
   display: block;
   font-size: 14px;

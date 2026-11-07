@@ -54,9 +54,12 @@ function cxHeroMenu(btn) {
       ...(typeof CONFIG === "undefined" || CONFIG.features?.slides !== false
         ? [{ icon: _cxHeroMenuIcon("film"), label: "Slide cưới", onClick: go("/slide-cuoi/") }]
         : []),
+      ...(typeof CONFIG === "undefined" || CONFIG.features?.led !== false
+        ? [{ icon: _cxHeroMenuIcon("monitor"), label: "Hình nền LED", onClick: go("/hinh-nen-led/") }]
+        : []),
     ];
-    // 4 trang thì 2 + 2, 5 thì 3 + 2, 6 thì 3 + 3 — không để ô lẻ trơ một mình.
-    pop.style.setProperty("--hm-cols", pages.length === 4 ? "2" : "3");
+    // 4 trang thì 2 + 2, 5 thì 3 + 2, 6 thì 3 + 3, 7 thì 4 + 3 — không để ô lẻ trơ một mình.
+    pop.style.setProperty("--hm-cols", pages.length === 4 ? "2" : pages.length >= 7 ? "4" : "3");
     pop.setItems([
       ...pages,
       { sep: true },

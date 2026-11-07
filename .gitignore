@@ -26,3 +26,6 @@ changelogs/*.final.sql
 
 # Kho nhạc slide: file nhạc chỉ nằm trên máy rồi đẩy thẳng lên Cloudflare (npm run deploy:media), không vào git.
 cloudflare-media/public/songs/
+
+# Video quảng cáo do tab "Tạo Video Quảng Cáo" của admin quay ra (scripts/promo-video.mjs)
+.promo-videos/
