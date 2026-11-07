@@ -14,8 +14,9 @@ window.CXSlideEngine = (() => {
 
   // Thời lượng mặc định (giây) của từng kiểu hiệu ứng. Nhóm sau dành cho mẫu cần chuyển động
   // mạnh: fly (bay từ ngoài khung vào) · zoom · flip (lật thẻ) · reveal (mở dần từ một mép) ·
-  // track (chữ dãn rộng rồi khép lại) · letters (từng ký tự trồi lên) · lines (từng dòng).
-  const _ANIM_T = { fade: 1.4, up: 1.4, left: 1.6, right: 1.6, spread: 1.2, wipe: 1.8, fly: 1.5, zoom: 1.8, flip: 1.2, reveal: 1.4, track: 2.2 };
+  // track (chữ dãn rộng rồi khép lại) · letters (từng ký tự trồi lên) · lines (từng dòng) ·
+  // draw (nét `stroke` tự vẽ dần theo đường).
+  const _ANIM_T = { fade: 1.4, up: 1.4, left: 1.6, right: 1.6, spread: 1.2, wipe: 1.8, fly: 1.5, zoom: 1.8, flip: 1.2, reveal: 1.4, track: 2.2, draw: 2.4 };
   // Hiệu ứng "type" (đánh chữ): số ký tự mỗi giây mặc định, thời lượng = số ký tự / tốc độ.
   const TYPE_CPS = 24;
   const typeTime = (text, cps) => Array.from(String(text || "")).length / (cps || TYPE_CPS);
@@ -306,6 +307,8 @@ window.CXSlideEngine = (() => {
 
   function _scene(ctx, P, i, lt, alpha, pre) {
     const s = P.scenes[i];
+    // Mốc đầu cảnh đang vẽ: phần tử cần giờ chung của cả vòng (bầu trời `sky`) cộng với lt.
+    P._t0 = P.starts[i];
     ctx.save();
     pre?.(ctx);
     ctx.globalAlpha = alpha;
@@ -370,13 +373,13 @@ window.CXSlideEngine = (() => {
         const T = a.t ?? _ANIM_T[a.k] ?? 1.4;
         const raw = _clamp(at / T);
         const k = a.k;
-        if (k === "wipe" || k === "reveal") p = _easeIO(raw);
+        if (k === "wipe" || k === "reveal" || k === "draw") p = _easeIO(raw);
         else if (a.back) p = raw >= 1 ? 1 : _back(raw, a.back);
         else if (k === "fly" || k === "flip") p = _glide(raw);
         else p = _ease(raw);
         if (k === "fly" || k === "flip") ctx.globalAlpha *= _clamp(raw * 4);
         else if (k === "zoom") ctx.globalAlpha *= a.keep ? 1 : _clamp(raw * 2.5);
-        else if (k !== "wipe" && k !== "reveal") ctx.globalAlpha *= p;
+        else if (k !== "wipe" && k !== "reveal" && k !== "draw") ctx.globalAlpha *= p;
         const b = _box(el);
         const cx = b.x + b.w / 2;
         const cy = b.y + b.h / 2;
@@ -423,12 +426,12 @@ window.CXSlideEngine = (() => {
           ctx.translate(f === "left" ? -dr : f === "right" ? dr : 0, f === "top" ? -dr : f === "bottom" ? dr : 0);
         } else if (k === "track") lsAdd = (a.ls0 ?? 32) * (1 - p);
       }
-      _draw(ctx, P, el, lt, dur, lsAdd);
+      _draw(ctx, P, el, lt, dur, lsAdd, a?.k === "draw" ? p : 1);
     }
     ctx.restore();
   }
 
-  function _draw(ctx, P, el, lt, dur, lsAdd) {
+  function _draw(ctx, P, el, lt, dur, lsAdd, prog) {
     switch (el.type) {
       case "rect":
         ctx.fillStyle = el.fill;
@@ -463,6 +466,12 @@ window.CXSlideEngine = (() => {
       case "orb":
         _orb(ctx, el, lt, dur);
         break;
+      case "stroke":
+        _stroke(ctx, el, prog ?? 1);
+        break;
+      case "sky":
+        _sky(ctx, P, el, lt, dur);
+        break;
       case "text":
         _text(ctx, el, (el.ls || 0) + (lsAdd || 0));
         break;
@@ -492,9 +501,11 @@ window.CXSlideEngine = (() => {
     ctx.fillStyle = el.color;
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
+    // shadowBlur tính theo điểm ảnh canvas, không ăn theo phép phóng → nhân tỉ lệ cho bản 4K
+    // ra đúng như bản xem.
     if (el.shadow) {
       ctx.shadowColor = el.shadow;
-      ctx.shadowBlur = el.font.size * 0.5;
+      ctx.shadowBlur = el.font.size * 0.5 * ctx.getTransform().a;
     }
   }
 
@@ -677,6 +688,219 @@ window.CXSlideEngine = (() => {
       }
     }
     ctx.restore();
+  }
+
+  // Nét vẽ: paths = [[[x, y], …], …] (toạ độ mẫu), color, lw, glow (màu quầng sáng quanh nét).
+  // p < 1 (hiệu ứng "draw") thì mỗi đường mới vẽ tới p độ dài của nó, đầu bút có đốm sáng.
+  function _stroke(ctx, el, p) {
+    const lens = (el._len ||= el.paths.map((pts) => pts.slice(1).reduce((n, q, i) => n + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0)));
+    ctx.save();
+    ctx.strokeStyle = el.color;
+    ctx.lineWidth = el.lw || 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    if (el.glow) {
+      ctx.shadowColor = el.glow;
+      ctx.shadowBlur = (el.blur ?? 12) * ctx.getTransform().a;
+    }
+    const heads = [];
+    el.paths.forEach((pts, k) => {
+      let left = lens[k] * p;
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length && left > 0; i++) {
+        const [x0, y0] = pts[i - 1];
+        const seg = Math.hypot(pts[i][0] - x0, pts[i][1] - y0);
+        const f = seg > left ? left / seg : 1;
+        const x = x0 + (pts[i][0] - x0) * f;
+        const y = y0 + (pts[i][1] - y0) * f;
+        ctx.lineTo(x, y);
+        left -= seg;
+        if (left <= 0) heads.push([x, y]);
+      }
+      ctx.stroke();
+    });
+    if (p < 1) {
+      ctx.shadowBlur = 0;
+      const r = (el.lw || 2) * 5;
+      heads.forEach(([x, y]) => ctx.drawImage(_glow(), x - r, y - r, r * 2, r * 2));
+    }
+    ctx.restore();
+  }
+
+  // Bầu trời đêm có dải ngân hà, phủ khung {x, y, w, h} (mặc định cả slide). Lớp TĨNH (nền, mây
+  // sáng dọc dải, vệt bụi tối, sao li ti) vẽ một lần ra canvas riêng theo cỡ canvas đang vẽ; mỗi
+  // khung chỉ vẽ thêm `n` sao sáng lấp lánh. Nhịp lấp lánh làm tròn theo thời lượng cảnh nên các
+  // cảnh dùng chung một bầu trời thì lúc chuyển cảnh nền đứng yên. base: false = chỉ lớp sao sáng.
+  // band = {x, y, angle (độ), width, core (0–1 dọc dải: chỗ sáng nhất)}; tint = {warm, cool, rose}.
+  const _skies = new Map();
+  function _skyLayer(P, el, k) {
+    const key = `${k}|${JSON.stringify([el.seed, el.x, el.y, el.w, el.h, el.bg, el.dust, el.band, el.tint, el.nebula, el.bulge])}`;
+    if (_skies.has(key)) return _skies.get(key);
+    const X = el.x || 0;
+    const Y = el.y || 0;
+    const w = el.w || P.W;
+    const h = el.h || P.H;
+    const cv = document.createElement("canvas");
+    cv.width = Math.max(1, Math.round(w * k));
+    cv.height = Math.max(1, Math.round(h * k));
+    const c = cv.getContext("2d");
+    c.scale(k, k);
+    c.fillStyle = el.bg || "#000";
+    c.fillRect(0, 0, w, h);
+    const seed = (el.seed || 1) * 7919;
+    let n = 0;
+    const r = () => _rnd(seed + n++ * 1.618);
+    const gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-6, r()))) * Math.cos(2 * Math.PI * r());
+    const B = { x: X + w / 2, y: Y + h / 2, angle: -24, width: 110, core: 0.6, ...el.band };
+    const ux = Math.cos((B.angle * Math.PI) / 180);
+    const uy = Math.sin((B.angle * Math.PI) / 180);
+    const span = Math.hypot(w, h) * 1.2;
+    const uc = (B.core - 0.5) * span;
+    const at = (u, v) => [B.x - X + ux * u - uy * v, B.y - Y + uy * u + ux * v];
+    const T = { warm: "236, 216, 184", cool: "122, 144, 206", rose: "206, 142, 172", ...el.tint };
+    const blob = (x, y, rad, rgb, a) => {
+      const g = c.createRadialGradient(x, y, 0, x, y, rad);
+      g.addColorStop(0, `rgba(${rgb}, ${a})`);
+      g.addColorStop(1, `rgba(${rgb}, 0)`);
+      c.fillStyle = g;
+      c.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    };
+    const W0 = B.width;
+    // Mây sáng dọc dải: lõi ấm, rìa lạnh, điểm hồng; càng gần lõi càng sáng. nebula: false = bỏ
+    // mây + vệt bụi, dải chỉ còn là sao dồn dày · bulge: false = bỏ cụm sáng to ở lõi, mây sáng
+    // đều dọc dải (chỉ còn các mảng nhỏ).
+    const neb = el.nebula !== false;
+    const bulge = el.bulge !== false;
+    c.globalCompositeOperation = "lighter";
+    for (let i = 0; neb && i < 120; i++) {
+      const u = (r() - 0.5) * span;
+      const v = gauss() * W0 * 0.55;
+      const lit = bulge ? 0.45 + 0.55 * Math.exp(-(((u - uc) / (span * 0.2)) ** 2)) : 0.6;
+      const pick = r();
+      const rgb = Math.abs(v) < W0 * 0.4 && pick < 0.7 ? T.warm : pick < 0.85 ? T.cool : T.rose;
+      const [x, y] = at(u, v);
+      blob(x, y, W0 * (0.5 + r() * 1.1), rgb, (0.03 + r() * 0.035) * lit);
+    }
+    for (let i = 0; neb && bulge && i < 22; i++) {
+      const [x, y] = at(uc + gauss() * span * 0.06, gauss() * W0 * 0.3);
+      blob(x, y, W0 * (0.5 + r() * 0.8), T.warm, 0.045 + r() * 0.04);
+    }
+    // Sao li ti: phần lớn dồn theo dải, phần còn lại rải khắp trời.
+    const tiny = (cnt, inBand) => {
+      for (let i = 0; i < cnt; i++) {
+        const [x, y] = inBand ? at((r() - 0.5) * span, gauss() * W0 * 0.7) : [r() * w, r() * h];
+        const rad = 0.25 + r() ** 3 * 0.85;
+        const tone = r();
+        const rgb = tone < 0.7 ? "255, 255, 255" : tone < 0.86 ? "255, 236, 212" : "206, 220, 255";
+        c.fillStyle = `rgba(${rgb}, ${0.25 + r() * 0.65})`;
+        c.beginPath();
+        c.arc(x, y, rad, 0, Math.PI * 2);
+        c.fill();
+      }
+    };
+    c.globalCompositeOperation = "source-over";
+    const dust = el.dust ?? 2600;
+    tiny(Math.round(dust * 0.62), true);
+    tiny(Math.round(dust * 0.3), false);
+    // Vệt bụi tối uốn lượn dọc giữa dải (che bớt mây + sao phía sau).
+    const s1 = r() * 6;
+    const s2 = r() * 6;
+    for (let i = 0; neb && i < 170; i++) {
+      const u = (r() - 0.5) * span;
+      if (r() < 0.3) continue;
+      const v = W0 * (0.12 * Math.sin(u / 170 + s1) + 0.07 * Math.sin(u / 61 + s2)) + gauss() * W0 * 0.06;
+      const [x, y] = at(u, v);
+      blob(x, y, W0 * (0.08 + r() * 0.22), "0, 0, 0", 0.5);
+    }
+    tiny(Math.round(dust * 0.08), false);
+    if (_skies.size >= 4) _skies.delete(_skies.keys().next().value);
+    _skies.set(key, cv);
+    return cv;
+  }
+  // Lớp động tính theo giờ CHUNG của cả vòng (mốc cảnh + t, lấy dư theo P.total) chứ không theo
+  // giờ trong cảnh: sao trôi + sao băng chạy liền qua mọi cảnh, cảnh trước và cảnh sau lúc chuyển
+  // cảnh vẽ trùng khít, chỗ nối vòng cũng vậy. Mọi chuyển động tròn đúng số vòng trong P.total.
+  // drift = số px/giây sao sáng trôi sang trái (tầng gần trôi gấp đôi) · meteors = số giây trung
+  // bình giữa hai sao băng (0 = không có).
+  function _sky(ctx, P, el, t, dur) {
+    const X = el.x || 0;
+    const Y = el.y || 0;
+    const w = el.w || P.W;
+    const h = el.h || P.H;
+    if (el.base !== false) ctx.drawImage(_skyLayer(P, el, ctx.canvas.width / P.W), X, Y, w, h);
+    const T = P.total || el.period || dur || 16;
+    const gt = ((((P._t0 || 0) + t) % T) + T) % T;
+    const seed = (el.seed || 1) * 104729;
+    const dot = _glow();
+    const base = ctx.globalAlpha;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(X, Y, w, h);
+    ctx.clip();
+    // Sao sáng: rải đều, trôi ngang rồi quay vòng ngoài mép (lề m nên không thấy lúc nhảy).
+    const m = 40;
+    const lapW = w + m * 2;
+    const laps = Math.max(1, Math.round(((el.drift ?? 18) * T) / lapW));
+    for (let k = 0; k < (el.n ?? 160); k++) {
+      const q = (n) => _rnd(seed + k * 31 + n);
+      const near = q(10) > 0.7;
+      const dx = (gt / T) * lapW * laps * (near ? 2 : 1);
+      const x = X - m + ((((q(2) * lapW - dx) % lapW) + lapW) % lapW);
+      const y = Y + q(3) * h;
+      const s = (0.9 + q(4) ** 3 * 2.6) * (near ? 1.2 : 1);
+      const cyc = Math.max(1, Math.round((0.15 + q(5) * 0.5) * T));
+      const tw = 1 - (0.25 + q(6) * 0.4) * (0.5 + 0.5 * Math.sin((gt / T) * cyc * Math.PI * 2 + q(7) * 6.283));
+      ctx.globalAlpha = base * (0.5 + 0.5 * q(8)) * tw;
+      const R = s * 2.6;
+      ctx.drawImage(dot, x - R, y - R, R * 2, R * 2);
+      // Vài sao sáng nhất có tia mảnh hai trục.
+      if (q(9) > 0.95) {
+        const L = s * 7 * tw;
+        const th = s * 0.5;
+        ctx.drawImage(dot, x - L, y - th / 2, L * 2, th);
+        ctx.drawImage(dot, x - th / 2, y - L, th, L * 2);
+      }
+    }
+    // Sao băng: chia vòng thành từng ô thời gian, mỗi ô một vệt ở thời điểm + chỗ + hướng ngẫu
+    // nhiên (theo seed). Vệt thuôn nhọn về đuôi, đầu có đốm sáng, lao nhanh rồi chậm dần và tắt.
+    const gap = el.meteors ?? 0;
+    const cnt = gap > 0 ? Math.max(1, Math.round(T / gap)) : 0;
+    for (let k = 0; k < cnt; k++) {
+      const q = (n) => _rnd(seed + 7 + k * 53 + n);
+      const life = 0.9 + q(1) * 0.6;
+      const slot = T / cnt;
+      const at = gt - (k * slot + q(2) * Math.max(0, slot - life));
+      if (at < 0 || at > life) continue;
+      const p = at / life;
+      const ang = ((q(3) < 0.5 ? 150 : 30) + (q(4) - 0.5) * 30) * (Math.PI / 180);
+      const vx = Math.cos(ang);
+      const vy = Math.sin(ang);
+      const travel = 260 + q(5) * 220;
+      const go = 1 - Math.pow(1 - p, 2);
+      const hx = X + w * (0.12 + q(6) * 0.76) + vx * travel * go;
+      const hy = Y + h * (0.05 + q(7) * 0.4) + vy * travel * go;
+      const tail = (120 + q(8) * 160) * Math.min(1, p * 4) * (1 - p * 0.5);
+      const a = Math.min(1, p * 6) * (1 - p) ** 1.5;
+      const tx = hx - vx * tail;
+      const ty = hy - vy * tail;
+      const g = ctx.createLinearGradient(tx, ty, hx, hy);
+      g.addColorStop(0, "rgba(255, 255, 255, 0)");
+      g.addColorStop(1, `rgba(255, 246, 228, ${0.9 * a})`);
+      const wd = 1.6;
+      ctx.globalAlpha = base;
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(hx - vy * wd, hy + vx * wd);
+      ctx.lineTo(hx + vy * wd, hy - vx * wd);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = base * a;
+      ctx.drawImage(dot, hx - 7, hy - 7, 14, 14);
+    }
+    ctx.restore();
+    ctx.globalAlpha = base;
   }
 
   return { build, retime, frame, indexAt, column, wrap, fontStr, typeTime, bounds };

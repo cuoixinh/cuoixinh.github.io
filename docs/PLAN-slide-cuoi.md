@@ -143,10 +143,9 @@ slide-cuoi/
   Linux không có AAC). Khung báo `audio` trong `cx-slide-caps` và lý do video không tiếng
   (`mute`: yt · codec · decode) khi xong, trang ghi đúng lý do. File nhạc khách tải lên đưa
   thẳng Blob cho bộ xuất: CSP chặn `fetch` URL `blob:`.
-- **Bản xem thử gửi khách** (lựa chọn "Xem thử" trong ô Xuất video, mặc định): video DỌC 1080×1920
-  ~3 Mbps, slide vẽ nhỏ rồi đặt vào ô màn chiếu của ảnh hội trường `slide-cuoi/assets/hall.jpg`,
-  có dấu "Bản xem thử" góc màn + `cuoixinh.com` ở đáy — để gửi Zalo cho khách duyệt TRƯỚC khi
-  thanh toán, thay vì đưa file 1080p/4K chiếu được thật. Ô màn chiếu khai MỘT chỗ (`HALL` ở
+- **Bản TikTok** (lựa chọn "TikTok" trong ô Xuất video, mặc định): video DỌC 2K 1440×2560
+  ~12 Mbps (H.264 level 5.0+), slide vẽ riêng rồi đặt vào ô màn chiếu của ảnh hội trường
+  `slide-cuoi/assets/hall.jpg`, `cuoixinh.com` ở đáy — để đăng TikTok/mạng xã hội. Ô màn chiếu khai MỘT chỗ (`HALL` ở
   `engine/slide-export.js`); nút "Màn chiếu" dưới slide dựng đúng bố cục đó bằng CSS
   (`.sc-stage.is-hall`) — đổi ảnh hội trường thì sửa cả hai bộ số. 1080p/4K hiện CHƯA khoá theo
   thanh toán (xem dòng dưới).
