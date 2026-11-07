@@ -650,6 +650,13 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   khung đầu là lúc cảnh cuối chuyển sang cảnh đầu) hoặc ảnh PNG 4K. Mẫu là MỘT file
   `templates/<id>.js` tự đăng ký vào `CX_LED_TEMPLATES` + một thẻ `<script>` ở `index.html`;
   vẽ bằng bộ vẽ của `slide-cuoi/engine/` (cùng định dạng cảnh) — đừng chép bộ vẽ sang đây.
+- **Video quảng cáo (tab admin "Tạo Video Quảng Cáo"):** quay bằng Chrome không giao diện
+  ở `scripts/promo-video.mjs`, gắn vào `npm run dev` (đường `/__promo-video/*`) — mở admin
+  bằng server khác là không có bộ quay. Sân khấu 9:16 + kịch bản cuộn ở
+  `admin/promo-video/stage.*` (xem trước ở tab cũng chính là trang đó); thời gian do
+  `clock.js` tiêm vào từng frame giữ, nên hiệu ứng mới của thiệp tự đúng nếu chạy bằng
+  timer/rAF/CSS animation. Thứ không được lên video thì đánh dấu `data-no-scan` như ảnh mẫu.
+  Video ra `.promo-videos/` (không vào git); ffmpeg lấy từ gói `ffmpeg-static`.
 - **Trình phát nhạc:** markup ở `core/components/music-player.js`, logic ở
   `music-player-helper.js` — theme chỉ đánh dấu vai trò bằng `data-cx-music="…"`.
   Có 6 dạng (`bar` · `mini` · `pill` · `square` · `disc` · `ring`); mẫu KHAI dạng

@@ -32,6 +32,7 @@ import {
   slugSegment,
   themeDir,
 } from "../worker/route-html.mjs";
+import { promoVideoRoutes } from "./promo-video.mjs";
 
 const ROOT = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -84,7 +85,7 @@ const RELOAD_EXT =
   /\.(html?|css|m?js|json|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|mp3|mp4|xml|txt)$/i;
 
 function watchRepo() {
-  const skip = /(^|[\\/])(\.git|node_modules|dist|\.vscode)([\\/]|$)/;
+  const skip = /(^|[\\/])(\.git|node_modules|dist|\.vscode|\.promo-videos)([\\/]|$)/;
   // Ảnh mẫu: tab "Dữ liệu mẫu" của admin ghi hàng chục MB xuống đây, mỗi file
   // là một lượt tải lại cắt ngang chính vòng lưu đó (xem assets/data-template/
   // README.md). Phần chữ (data.json) vẫn theo dõi bình thường.
@@ -250,8 +251,13 @@ async function readTarget(file) {
     : { file, body: await readFile(file) };
 }
 
+// Tab "Tạo Video Quảng Cáo" của admin: quay video bằng Chrome không giao diện.
+const promoVideo = promoVideoRoutes({ root: ROOT, port: PORT });
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
+
+  if (await promoVideo(req, res, url)) return;
 
   if (url.pathname === "/__reload") {
     res.writeHead(200, {
