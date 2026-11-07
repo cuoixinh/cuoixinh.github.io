@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Hình nền LED - Cưới Xinh</title>
+    <!-- Trang ứng dụng (lấy thiệp của tài khoản): không đưa lên kết quả tìm kiếm. -->
+    <meta name="robots" content="noindex" />
+    <meta
+      name="description"
+      content="Hình nền chiếu lặp lên màn LED sân khấu trong lúc chờ làm lễ, điền sẵn tên, ngày cưới và ảnh từ thiệp đã tạo trên Cưới Xinh."
+    />
+    <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Playfair + Inter cho trang; Cormorant + Playfair nghiêng cho chữ vẽ trên hình nền (canvas
+         chỉ vẽ được font trang đã khai). Font viết tay của mẫu tự host trong build.css. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Infant:ital,wght@0,400;0,500;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/build.css" />
+    <script src="../core/helpers/no-zoom.js"></script>
+    <script src="../core/helpers/no-inspect.js"></script>
+  </head>
+  <body class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20">
+    <!-- "Hình nền LED": dải sân khấu tối (màn LED to chạy mẫu đang chọn + chọn thiệp + tải xuống)
+         rồi dải mẫu bên dưới. Logic ở index.js. -->
+    <main id="led-app" class="led-app">
+      <section class="led-stage" aria-label="Màn LED">
+        <div class="led-wrap">
+          <div class="led-top">
+            <h1 class="tg-title led-title">Hình nền LED</h1>
+            <!-- Thiệp lấy tên, ngày, ảnh. Danh sách trong popover do index.js nạp. -->
+            <button type="button" id="led-src" class="led-src" aria-haspopup="menu">
+              <span class="led-src-av" id="led-src-av"><i data-lucide="heart"></i></span>
+              <span class="led-src-t" id="led-src-t">Thông tin mẫu</span>
+              <i data-lucide="chevron-down" class="led-src-chev"></i>
+            </button>
+          </div>
+
+          <div id="led-screen" class="led-screen" data-screen>
+            <canvas id="led-canvas" role="img" aria-label="Xem trước hình nền"></canvas>
+            <button type="button" class="led-full-x" onclick="ledFull(false)" aria-label="Thoát toàn màn hình" title="Thoát (Esc)">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <div class="led-bar">
+            <p id="led-name" class="led-name"></p>
+            <div class="led-acts">
+              <button type="button" class="led-icon-btn" onclick="ledFull(true)" aria-label="Xem toàn màn hình" title="Xem toàn màn hình">
+                <i data-lucide="maximize"></i>
+              </button>
+              <div id="led-prog" class="led-prog hidden" role="status" aria-live="polite">
+                <span class="led-prog-t">Đang tạo video <output id="led-pct">0%</output></span>
+                <i class="led-prog-fill" id="led-fill"></i>
+                <button type="button" class="led-prog-x" onclick="ledCancel()" aria-label="Huỷ tạo video" title="Huỷ">
+                  <i data-lucide="x"></i>
+                </button>
+              </div>
+              <x-button id="led-dl" variant="bare" icon="download" class="mi-btn mi-btn--primary led-dl" aria-haspopup="menu">
+                Tải xuống
+              </x-button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="led-wrap led-tpls" aria-labelledby="led-tpls-h">
+        <h2 id="led-tpls-h" class="led-h2">Mẫu</h2>
+        <div id="led-grid" class="led-grid" role="radiogroup" aria-labelledby="led-tpls-h"></div>
+      </section>
+
+      <x-popover id="led-src-pop" anchor="#led-src" placement="bottom" align="end" width="280"></x-popover>
+      <x-popover id="led-dl-pop" anchor="#led-dl" placement="top" align="end" width="220"></x-popover>
+    </main>
+
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../core/x-button.js"></script>
+    <script src="../core/x-logo.js"></script>
+    <script src="../core/x-popover.js"></script>
+    <script src="../core/helpers/account-menu.js"></script>
+    <!-- config.js TRƯỚC navbar: mục có `feature` đọc CONFIG.features lúc mount. -->
+    <script src="../core/config.js"></script>
+    <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
+    <script src="../core/auth.js"></script>
+    <script src="../core/components/navbar.js"></script>
+    <script>
+      CXNavbar.mount({
+        active: "led",
+        items: [
+          { id: "home", label: "Trang chủ", icon: "home", href: "/" },
+          { id: "templates", label: "Mẫu thiệp", icon: "layers", href: "/theme-template/" },
+          { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
+          { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/", feature: "slides" },
+          { id: "led", label: "Hình nền LED", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
+          {
+            id: "cart",
+            label: "Đã chọn",
+            loginLabel: "Thiệp của tôi",
+            icon: "cart",
+            href: "/my-invitations/",
+            count: true,
+          },
+          { id: "guests", label: "Khách mời", icon: "users", href: "/guest-list/", login: true },
+          { id: "account", label: "Tài khoản", icon: "user", onClick: "CXAccount.open(this)" },
+        ],
+      });
+      CXAccount.mountChip();
+    </script>
+    <script src="../core/cache-util.js"></script>
+    <script src="../core/helpers/alert.js"></script>
+    <script src="../core/auth-ui.js"></script>
+    <script src="../core/dal/wedding-dal.js"></script>
+    <script src="../core/dal/storage-dal.js"></script>
+    <!-- core/supabase.js dựng sẵn cả WeddingBL/ImageBL — thiếu hai file này là
+         ReferenceError dù trang chỉ đọc. -->
+    <script src="../core/bl/wedding-bl.js"></script>
+    <script src="../core/bl/image-bl.js"></script>
+    <script src="../core/supabase.js"></script>
+    <!-- getImageUrl (đường dẫn ảnh thiệp) + dữ liệu mẫu khi chưa chọn thiệp (cxPreviewWedding). -->
+    <script src="../core/utils.js"></script>
+    <script src="../public/themes/preview-data.js"></script>
+    <!-- Bộ vẽ canvas + bộ xuất MP4 dùng CHUNG với Slide cưới (đừng chép riêng một bản). -->
+    <script src="../slide-cuoi/engine/slide-engine.js"></script>
+    <script src="../slide-cuoi/vendor/mp4-muxer.js"></script>
+    <script src="../slide-cuoi/engine/slide-export.js"></script>
+    <!-- Danh mục mẫu: mỗi file tự đăng ký vào CX_LED_TEMPLATES. Thêm mẫu = thêm một thẻ ở đây. -->
+    <script src="templates/hen-uoc-tram-nam.js"></script>
+    <script src="index.js"></script>
+    <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
+    <script src="../core/helpers/nav-cart-count.js"></script>
+  </body>
+</html>

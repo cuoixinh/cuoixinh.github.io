@@ -25,24 +25,11 @@ const SECTION_VIS_COLUMNS = new Set(Object.values(SECTION_VIS_FIELDS));
 
 function _updateVisUI(section, enabled) {
   const btn = document.getElementById(`vis-btn-${section}`);
-  const knob = document.getElementById(`vis-knob-${section}`);
-  if (!btn || !knob) return;
+  if (!btn) return;
+  // Màu + vị trí núm do .cx-switch đọc từ aria-checked.
   btn.setAttribute("aria-checked", String(enabled));
   // Mục ở tab Cấu hình (nhạc nền) mờ phần thân khi tắt — xem .cx-cfg-sec.
   document.getElementById(`cfg-${section}`)?.classList.toggle("is-off", !enabled);
-  if (enabled) {
-    btn.classList.remove("bg-gray-300");
-    btn.classList.add("bg-rose-400");
-    knob.classList.remove("translate-x-1");
-    knob.classList.add("translate-x-6");
-  } else {
-    // Gỡ CẢ HAI sắc hồng: markup gốc của <x-switch> có thể dựng bằng lớp khác
-    // với lớp hàm này gắn vào — sót một lớp là công tắc tắt mà vẫn đỏ.
-    btn.classList.remove("bg-rose-400", "bg-rose-500");
-    btn.classList.add("bg-gray-300");
-    knob.classList.remove("translate-x-6");
-    knob.classList.add("translate-x-1");
-  }
 }
 
 function toggleSectionVis(section, event) {

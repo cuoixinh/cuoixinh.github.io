@@ -13,22 +13,8 @@ function toggleVuQuy(event) {
   hidden.value = newVal ? "true" : "false";
   // Phát "input" để autosave lưu trạng thái (gán .value không tự phát sự kiện)
   hidden.dispatchEvent(new Event("input", { bubbles: true }));
-  const btn = document.getElementById("vis-btn-vu-quy");
-  const knob = document.getElementById("vis-knob-vu-quy");
-  if (btn && knob) {
-    btn.setAttribute("aria-checked", String(newVal));
-    if (newVal) {
-      btn.classList.remove("bg-gray-300");
-      btn.classList.add("bg-rose-400");
-      knob.classList.remove("translate-x-1");
-      knob.classList.add("translate-x-6");
-    } else {
-      btn.classList.remove("bg-rose-400", "bg-rose-500");
-      btn.classList.add("bg-gray-300");
-      knob.classList.remove("translate-x-6");
-      knob.classList.add("translate-x-1");
-    }
-  }
+  // Màu + vị trí núm do .cx-switch đọc từ aria-checked.
+  document.getElementById("vis-btn-vu-quy")?.setAttribute("aria-checked", String(newVal));
   if (fields) fields.classList.toggle("hidden", !newVal);
   // Nguồn "trùng địa điểm" của tiệc nhà gái đổi theo lễ vu quy.
   _syncPartySameLabel();
@@ -162,20 +148,9 @@ function initCeremonySection(data) {
   const vuQuyEnabled =
     data?.vu_quy_enabled !== false && data?.vu_quy_enabled !== "false";
   const hidden = document.getElementById("vu_quy_enabled");
-  const btn = document.getElementById("vis-btn-vu-quy");
-  const knob = document.getElementById("vis-knob-vu-quy");
   const fields = document.getElementById("vu-quy-fields");
   if (hidden) hidden.value = vuQuyEnabled ? "true" : "false";
-  if (btn) {
-    btn.setAttribute("aria-checked", String(vuQuyEnabled));
-    btn.classList.toggle("bg-rose-400", vuQuyEnabled);
-    btn.classList.toggle("bg-rose-500", false);
-    btn.classList.toggle("bg-gray-300", !vuQuyEnabled);
-  }
-  if (knob) {
-    knob.classList.toggle("translate-x-6", vuQuyEnabled);
-    knob.classList.toggle("translate-x-1", !vuQuyEnabled);
-  }
+  document.getElementById("vis-btn-vu-quy")?.setAttribute("aria-checked", String(vuQuyEnabled));
   if (fields) fields.classList.toggle("hidden", !vuQuyEnabled);
   _syncPartySameLabel();
 

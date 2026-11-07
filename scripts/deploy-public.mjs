@@ -47,6 +47,7 @@ const INCLUDE = [
   "my-invitations/",
   "guest-list/",
   "slide-cuoi/",
+  "hinh-nen-led/",
   "invitation-setup/",
   "policy/",
   // Trang nhân viên hỗ trợ — vào bằng Google, quyền kiểm ở wedding-admin (SUPPORT_EMAILS).

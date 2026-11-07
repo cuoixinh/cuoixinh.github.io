@@ -2612,7 +2612,7 @@ x-button {
   width: 44px;
   height: 24px;
   border-radius: 999px;
-  background: #cfd4dc;
+  background: rgb(var(--switch-off-rgb));
   transition: background-color 0.2s ease;
 }
 
@@ -6689,4 +6689,54 @@ fieldset.cx-mem-field > .cx-mem-label {
 }
 .cx-auth-short [data-auth-login] {
   margin-top: 16px;
+}
+
+/* Công tắc gạt dùng CHUNG toàn chương trình — tắt = xám, bật = màu nhấn, bị khoá (disabled) = mờ.
+   Hai dạng cùng một hình: <x-switch> (core/x-controls.js) dựng <button role="switch" aria-checked>
+   + núm .cx-switch-knob; trang tự viết thì <input type="checkbox" role="switch" class="cx-switch">
+   (núm là ::after). Trạng thái đọc từ aria-checked / :checked — JS chỉ đổi thuộc tính đó. */
+.cx-switch {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 44px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(var(--switch-off-rgb));
+  transition: background-color 0.2s ease;
+}
+.cx-switch-knob,
+input.cx-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 1px 3px rgb(var(--scrim-rgb) / 0.3);
+  transition: transform 0.2s ease;
+}
+.cx-switch:checked,
+.cx-switch[aria-checked="true"] {
+  background: rgb(var(--action-primary-rgb));
+}
+input.cx-switch:checked::after,
+.cx-switch[aria-checked="true"] .cx-switch-knob {
+  transform: translateX(20px);
+}
+.cx-switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.cx-switch:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
 }
