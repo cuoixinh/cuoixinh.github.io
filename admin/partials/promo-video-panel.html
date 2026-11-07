@@ -5,7 +5,8 @@
       <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo Video Quảng Cáo</h2>
       <p class="text-xs text-gray-500 mt-1">
         Chọn mẫu → máy tự mở thiệp trong khung iPhone, mở bìa, cuộn qua từng mục rồi xuất video
-        dọc 9:16 (1080×1920). Video lưu ở
+        dọc 9:16 (1080×1920) đúng chuẩn đăng TikTok/Reels — chữ đã chừa vùng bị giao diện
+        TikTok che. Video lưu ở
         <code class="text-[11px] bg-gray-100 px-1 py-0.5 rounded">.promo-videos/</code>
         trong thư mục dự án.
       </p>
@@ -79,6 +80,13 @@
           <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
             <input id="pv-music-btn" type="checkbox" role="switch" class="cx-switch" checked />
             Hiện nút nhạc trên thiệp
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            Chất lượng
+            <select id="pv-quality" class="px-2 py-1 rounded-lg border border-gray-200 text-sm">
+              <option value="tiktok" selected>Cao — đăng TikTok</option>
+              <option value="draft">Nháp — quay nhanh để duyệt</option>
+            </select>
           </label>
           <label class="flex items-center gap-2 text-sm text-gray-700">
             Khung hình

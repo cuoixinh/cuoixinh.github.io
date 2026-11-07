@@ -26,6 +26,7 @@ function initPromoVideoPanel() {
       document.getElementById(id).addEventListener("change", pvSchedulePreview),
     );
     document.getElementById("pv-fps").addEventListener("change", pvSyncEstimate);
+    document.getElementById("pv-quality").addEventListener("change", pvSyncEstimate);
     document.getElementById("pv-all").addEventListener("change", (e) => {
       document
         .querySelectorAll("input[name='pv-tpl']")
@@ -122,13 +123,15 @@ function pvSyncDuration() {
   pvSyncEstimate();
 }
 
-// Ước chừng: mỗi khung 1080×1920 tốn khoảng 0,35 giây chụp + mã hoá (tuỳ máy).
+// Ước chừng thời gian chụp + mã hoá mỗi khung 1080×1920 (tuỳ máy): bản cao chụp PNG
+// và mã hoá kỹ nên chậm hơn bản nháp.
 function pvSyncEstimate() {
   const n = pvSelected().length;
   const el = document.getElementById("pv-estimate");
   if (!n) return (el.textContent = "");
   const frames = Number(document.getElementById("pv-duration").value) * Number(document.getElementById("pv-fps").value);
-  const min = Math.max(1, Math.round((n * (frames * 0.35 + 10)) / 60));
+  const perFrame = document.getElementById("pv-quality").value === "draft" ? 0.3 : 0.5;
+  const min = Math.max(1, Math.round((n * (frames * perFrame + 10)) / 60));
   el.textContent = `${n} video · ước chừng ${min} phút`;
 }
 
@@ -139,6 +142,7 @@ function pvOpts() {
   return {
     duration: Number(document.getElementById("pv-duration").value),
     fps: Number(document.getElementById("pv-fps").value),
+    quality: document.getElementById("pv-quality").value,
     title: document.getElementById("pv-title").value.trim(),
     foot: document.getElementById("pv-foot").value.trim(),
     music: document.getElementById("pv-music-btn").checked,

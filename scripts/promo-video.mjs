@@ -13,6 +13,27 @@ const STAGE_W = 540;
 const STAGE_H = 960;
 const SCALE = 2; // → 1080×1920
 const FPS_ALLOWED = [24, 30, 60];
+
+// "tiktok": khung PNG (không nén mất, tránh nén JPEG rồi nén H.264 lần nữa) → H.264
+// High@4.2 CRF 16 (đủ cho 1080×1920 tới 60fps), AAC 256k 48kHz. "draft": JPEG + mã hoá
+// nhanh, chỉ để duyệt kịch bản. Màu khai rõ BT.709 ở cả hai — thiếu tag thì điện thoại
+// đọc theo BT.601, tông hồng/da lệch hẳn so với thiệp thật.
+const QUALITY = {
+  tiktok: {
+    shot: { format: "png" },
+    decoder: "png",
+    x264: ["-preset", "slow", "-crf", "16", "-profile:v", "high", "-level:v", "4.2"],
+    audio: "256k",
+    suffix: "",
+  },
+  draft: {
+    shot: { format: "jpeg", quality: 85 },
+    decoder: "mjpeg",
+    x264: ["-preset", "veryfast", "-crf", "23"],
+    audio: "160k",
+    suffix: "-nhap",
+  },
+};
 const THEME_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 function ffmpegPath() {
@@ -45,6 +66,7 @@ async function launchChrome() {
 /** Quay một mẫu; onFrame(i, total) báo tiến độ. Trả về đường dẫn file MP4. */
 async function renderOne(browser, { origin, root, theme, opts, outFile, audioFile, ffmpeg, onFrame, signal }) {
   const fps = opts.fps;
+  const Q = QUALITY[opts.quality];
   const total = Math.round(opts.duration * fps);
   const page = await browser.newPage();
   let ff;
@@ -68,14 +90,29 @@ async function renderOne(browser, { origin, root, theme, opts, outFile, audioFil
     await page.evaluate("window.CXPromo.ready");
     await page.evaluate("window.CXPromo.startClock()");
 
-    const args = ["-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", String(fps), "-c:v", "mjpeg", "-i", "-"];
-    if (audioFile) args.push("-stream_loop", "-1", "-i", audioFile);
-    args.push("-map", "0:v", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-r", String(fps));
+    const args = ["-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", String(fps), "-c:v", Q.decoder, "-i", "-"];
+    // Độ dài video = đúng số khung gửi vào. Đừng đặt -t cho ĐẦU RA: ffmpeg đủ giờ là
+    // thôi đọc ống vào trong khi vẫn chờ nó đóng, còn Node chờ "drain" → treo cả hai.
+    // Nhạc lặp bằng bộ lọc aloop, KHÔNG dùng -stream_loop: với ống vào ffmpeg 6 (bản
+    // ffmpeg-static) không bao giờ thoát dù đã nhận đủ khung.
+    if (audioFile) args.push("-t", String(opts.duration), "-i", audioFile);
+    args.push(
+      "-map", "0:v",
+      "-vf", "scale=out_color_matrix=bt709:out_range=tv,format=yuv420p",
+      "-c:v", "libx264", ...Q.x264,
+      "-g", String(fps * 2), "-r", String(fps),
+      "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv",
+    );
     if (audioFile) {
       const fadeAt = Math.max(0, opts.duration - 1.5).toFixed(2);
-      args.push("-map", "1:a", "-c:a", "aac", "-b:a", "192k", "-af", `afade=t=in:d=0.4,afade=t=out:st=${fadeAt}:d=1.5`);
+      args.push(
+        "-map", "1:a", "-c:a", "aac", "-b:a", Q.audio, "-ar", "48000", "-ac", "2",
+        "-af",
+        `aloop=loop=-1:size=2147483647,atrim=0:${opts.duration},` +
+          `afade=t=in:d=0.4,afade=t=out:st=${fadeAt}:d=1.5`,
+      );
     }
-    args.push("-t", String(opts.duration), "-movflags", "+faststart", outFile);
+    args.push("-movflags", "+faststart", outFile);
 
     ff = spawn(ffmpeg, args, { stdio: ["pipe", "ignore", "pipe"] });
     let ffErr = "";
@@ -84,21 +121,24 @@ async function renderOne(browser, { origin, root, theme, opts, outFile, audioFil
       ff.on("error", reject);
       ff.on("exit", (code) => (code === 0 ? resolve() : reject(new Error("ffmpeg: " + (ffErr.trim() || "mã " + code)))));
     });
+    // ffmpeg chết giữa chừng: lỗi thật đi qua ffDone; EPIPE của ống vào và lời từ chối
+    // chưa ai await (lúc đang chụp khung) không được làm sập cả npm run dev.
+    ff.stdin.on("error", () => {});
+    ffDone.catch(() => {});
 
     const cdp = await page.createCDPSession();
     for (let i = 0; i < total; i++) {
       if (signal.aborted) throw new Error("Đã huỷ");
       await page.evaluate((t) => window.CXPromo.frame(t), i / fps);
       const { data } = await cdp.send("Page.captureScreenshot", {
-        format: "jpeg",
-        quality: 92,
+        ...Q.shot,
         optimizeForSpeed: true,
         // Chrome không giao diện trả ảnh theo px CSS (540×960) dù đã đặt
         // deviceScaleFactor — phải nhân bằng clip.scale mới ra 1080×1920.
         clip: { x: 0, y: 0, width: STAGE_W, height: STAGE_H, scale: SCALE },
       });
       if (!ff.stdin.write(Buffer.from(data, "base64"))) {
-        await new Promise((r) => ff.stdin.once("drain", r));
+        await Promise.race([new Promise((r) => ff.stdin.once("drain", r)), ffDone]);
       }
       onFrame(i + 1, total);
     }
@@ -117,7 +157,7 @@ async function renderOne(browser, { origin, root, theme, opts, outFile, audioFil
  * Bộ định tuyến /__promo-video/* cho dev-server. Trả về true nếu đã xử lý request.
  *   GET  status                → { ffmpeg, outDir }
  *   POST audio  (thân = file)  → { id }  nhạc nền tạm cho các lượt quay sau
- *   POST jobs   (JSON)         → { id }  {themes[], duration, fps, title, foot, music, subs{}, audio?}
+ *   POST jobs   (JSON)         → { id }  {themes[], duration, fps, quality, title, foot, music, subs{}, audio?}
  *   GET  events?id=            → SSE tiến độ (phát lại từ đầu khi nối lại)
  *   POST cancel?id=
  *   GET  file/<tên>.mp4        → video đã quay
@@ -144,7 +184,7 @@ export function promoVideoRoutes({ root, port }) {
       browser = await launchChrome();
       for (const theme of job.opts.themes) {
         if (ac.signal.aborted) break;
-        const name = `${theme}-${job.opts.duration}s.mp4`;
+        const name = `${theme}-${job.opts.duration}s${QUALITY[job.opts.quality].suffix}.mp4`;
         emit(job, { type: "start", theme });
         let last = 0;
         try {
@@ -223,6 +263,7 @@ export function promoVideoRoutes({ root, port }) {
           themes,
           duration: Math.round(Math.min(120, Math.max(5, Number(b.duration) || 20))),
           fps: FPS_ALLOWED.includes(Number(b.fps)) ? Number(b.fps) : 30,
+          quality: b.quality === "draft" ? "draft" : "tiktok",
           title: String(b.title ?? "").slice(0, 80),
           foot: String(b.foot ?? "").slice(0, 80),
           music: b.music !== false,

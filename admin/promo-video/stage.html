@@ -9,6 +9,8 @@
       khung iPhone. Khổ CỐ ĐỊNH 540×960 — bộ quay (scripts/promo-video.mjs) chụp ở
       deviceScaleFactor 2 ra 1080×1920; tab admin thu nhỏ trang này để xem trước.
       Tham số URL: theme, dur, title, sub, foot, music (0 = giấu nút nhạc), play.
+      Chữ chỉ nằm ở phần đầu, dưới 64px trên cùng: TikTok phủ thanh tab lên đỉnh màn và
+      phủ tên tài khoản + chú thích lên khoảng 1/4 dưới — chữ để ở đó là bị che.
     -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -64,7 +66,8 @@
       .pv-head {
         position: relative;
         z-index: 1;
-        height: 124px;
+        margin-top: 64px;
+        padding-bottom: 12px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -79,6 +82,11 @@
         letter-spacing: 4px;
         text-transform: uppercase;
         color: #b4566d;
+      }
+      .pv-kicker:empty,
+      .pv-name:empty,
+      .pv-foot:empty {
+        display: none;
       }
       .pv-name {
         font-family: "Playfair Display", Georgia, serif;
@@ -100,20 +108,17 @@
         filter: drop-shadow(0 24px 40px rgb(60 20 30 / 0.28));
       }
       .pv-foot {
-        position: relative;
-        z-index: 1;
-        flex: 1;
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
         gap: 8px;
-        font-size: 20px;
+        margin-top: 8px;
+        padding: 4px 16px;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.72);
+        font-size: 16px;
         font-weight: 600;
         letter-spacing: 1px;
         color: #3b2a2f;
-      }
-      .pv-foot:empty {
-        display: none;
       }
       .pv-dot {
         width: 8px;
@@ -129,6 +134,7 @@
       <header class="pv-head">
         <div class="pv-kicker" id="pv-title"></div>
         <div class="pv-name" id="pv-sub"></div>
+        <div class="pv-foot" id="pv-foot"></div>
       </header>
       <div class="pv-phone" id="pv-phone">
         <div class="cx-pshell-screen">
@@ -140,7 +146,6 @@
         </div>
         <img src="../../assets/images/iphone_mockup.svg" alt="" class="cx-pshell-frame" />
       </div>
-      <div class="pv-foot" id="pv-foot"></div>
     </div>
     <script src="../../core/helpers/phone-chrome.js"></script>
     <script src="stage.js"></script>
