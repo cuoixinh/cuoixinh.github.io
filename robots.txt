@@ -6,8 +6,8 @@
 # không đọc được thẻ noindex — rốt cuộc URL vẫn có thể xuất hiện trong kết quả tìm
 # kiếm. Muốn chắc chắn biến mất thì phải để bot vào đọc rồi thấy noindex.
 #
-# Link khách gửi cho quan khách (cuoixinh.com/<slug>) trả HTTP 404 nên không bao
-# giờ được lập chỉ mục — không cần khai gì thêm ở đây.
+# Link khách gửi cho quan khách (cuoixinh.com/<slug>) do worker dựng, viết sẵn thẻ
+# noindex ở phía server — không cần khai gì thêm ở đây.
 
 User-agent: *
 Allow: /
@@ -19,26 +19,14 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-# Crawler gom dữ liệu huấn luyện AI — chặn toàn bộ, kể cả bản mẫu.
-# KHÔNG ảnh hưởng thứ hạng tìm kiếm: không cái nào trong đây là Googlebot/Bingbot.
-# Riêng ChatGPT-User và Claude-User là lượt truy cập do NGƯỜI DÙNG yêu cầu ("mở
-# giúp link này") — bỏ hai dòng đó ra nếu muốn khách nhờ AI xem thiệp hộ.
-User-agent: GPTBot
-User-agent: OAI-SearchBot
-User-agent: ChatGPT-User
+# Claude (Anthropic) — chặn toàn bộ, kể cả bản mẫu: không cho đọc site, mã nguồn
+# lẫn thiệp. Claude-User là lượt người dùng nhờ Claude mở link, cũng chặn.
+# Các bot AI khác (ChatGPT, Perplexity, Gemini…) được vào như crawler thường:
+# trang cần đăng nhập và thiệp thật đã có noindex nên không lên kết quả của chúng.
 User-agent: ClaudeBot
 User-agent: Claude-User
+User-agent: Claude-SearchBot
 User-agent: anthropic-ai
-User-agent: CCBot
-User-agent: Google-Extended
-User-agent: PerplexityBot
-User-agent: Bytespider
-User-agent: Amazonbot
-User-agent: Applebot-Extended
-User-agent: meta-externalagent
-User-agent: Diffbot
-User-agent: Omgilibot
-User-agent: ImagesiftBot
 Disallow: /
 
 Sitemap: https://cuoixinh.com/sitemap.xml
