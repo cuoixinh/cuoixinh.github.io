@@ -38,7 +38,7 @@ function buildMobileQRWidget() {
 
   const wrapper = document.createElement("div");
   wrapper.id = "qr-mobile-fab";
-  wrapper.className = "hidden lg:block fixed bottom-20 right-4 z-[60]";
+  wrapper.className = "max-lg:hidden fixed bottom-20 right-4 z-[60]";
   wrapper.innerHTML = `
     <div id="qr-mobile-card" class="w-[200px] bg-white rounded-2xl shadow-xl p-4 text-center relative">
       <x-button variant="soft" tone="neutral" size="xs" icon-only id="qr-mobile-collapse" type="button" aria-label="Ẩn gợi ý QR" class="absolute top-2 right-2"><i data-lucide="x" class="text-[10px]" style="width:16px;height:16px"></i></x-button>

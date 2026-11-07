@@ -475,6 +475,9 @@ tên thư mục là `weddings.theme` + khoá của `template_pricing`, đổi l�
 - Trong `_common.css`, **`.cx-a` phải đứng SAU `.cx-h`/`.cx-t`**: mẫu gắn cả `cx-h cx-a`
   lên một thẻ (tiêu đề tô màu nhấn), cùng độ đặc hiệu nên rule dưới thắng. `theme.css`
   của mẫu **chỉ khai `font-family`** cho `.cx-h`/`.cx-t`, khai thêm `color` là đè mất.
+- `.hidden` của bản build thiệp là `.hidden[class]` (`styles/themes-src.css`) nên lớp mục
+  của mẫu khai `display` không đè được — đừng viết thêm `.x.hidden` ở `theme.css`. Kéo
+  theo: markup thiệp không dùng được `hidden md:block`, viết `max-md:hidden`.
 - **Helper không được nhắc token của một theme cụ thể.**
 - Có **`#main-card`**; container các mục là **flex-column** (để chèn khối văn bản xen giữa).
 - Bind dữ liệu qua **`setText(id, value)`** (`core/utils.js`) — `el.textContent =` sẽ không

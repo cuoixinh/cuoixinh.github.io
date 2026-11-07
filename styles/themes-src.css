@@ -21,3 +21,10 @@
 
 @tailwind components;
 @tailwind utilities;
+
+/* `.hidden` thắng mọi lớp đơn của mẫu: theme.css nạp SAU file này nên `.x-page { display: flex }`
+   cùng độ đặc hiệu sẽ đè mất, cxToggle ẩn không được. Kéo theo `hidden md:block` không chạy
+   trong thiệp — viết `max-md:hidden`. */
+.hidden[class] {
+  display: none;
+}
