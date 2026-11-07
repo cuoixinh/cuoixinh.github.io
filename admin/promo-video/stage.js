@@ -1,5 +1,5 @@
 // Đạo diễn của sân khấu video quảng cáo: nạp mẫu vào iframe, chờ ảnh/font xong, rồi
-// dựng kịch bản theo thời lượng — giữ màn bìa → mở thiệp → cuộn qua từng mục (dừng
+// dựng kịch bản theo thời lượng — giữ màn bìa → mở thiệp → giữ hero → cuộn qua từng mục (dừng
 // một nhịp ở đầu mỗi mục) → giữ cuối. seek(t) chỉ phụ thuộc t nên bộ quay gọi theo
 // từng khung (window.CXPromo.frame), còn tab admin xem trước bằng ?play=1 (giờ thật).
 (function () {
@@ -7,6 +7,7 @@
   const THEME = (q.get("theme") || "").replace(/[^a-z0-9-]/gi, "");
   const DUR = Math.min(120, Math.max(5, Number(q.get("dur")) || 20));
   const SHOW_MUSIC = q.get("music") !== "0";
+  const EVEN = q.get("scroll") === "even";
   const RENDER = !!window.__cxClock;
 
   const $ = (id) => document.getElementById(id);
@@ -14,6 +15,18 @@
   const phone = $("pv-phone");
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  // Vuốt đều: tốc độ không đổi, chỉ tăng/giảm tốc ở RAMP đầu và cuối chặng.
+  const RAMP = 0.08;
+  // Dừng ở từng mục: mỗi lần vuốt đi PAGE màn (chừa phần chồng để mắt nối được); đầu mục
+  // cách chỗ đang đứng từ SNAP màn trở lên thì dừng đúng đầu mục đó.
+  const PAGE = 0.8;
+  const SNAP = 0.6;
+  const glide = (x) => {
+    const v = 1 / (1 - RAMP);
+    if (x < RAMP) return (v * x * x) / (2 * RAMP);
+    if (x > 1 - RAMP) return 1 - (v * (1 - x) * (1 - x)) / (2 * RAMP);
+    return v * (x - RAMP / 2);
+  };
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   $("pv-title").textContent = q.get("title") ?? "Thiệp cưới online";
@@ -118,7 +131,9 @@
     const main = d.getElementById("main-card");
     hasCover = !!(cover && main && cover.offsetHeight > 0 && main.offsetHeight === 0);
     tCover = hasCover ? clamp(DUR * 0.12, 1.2, 2.5) : 0;
-    tScroll = tCover + (hasCover ? 1.4 : 0.4);
+    // Màn hero đứng yên một nhịp rồi mới cuộn; có bìa thì cộng thêm ~1s cho hiệu ứng mở.
+    const tHero = clamp(DUR * 0.12, 1.8, 3);
+    tScroll = tCover + (hasCover ? 1 : 0) + tHero;
     tEnd = DUR - clamp(DUR * 0.08, 0.8, 2);
   }
 
@@ -141,56 +156,85 @@
     return best;
   }
 
-  // Các điểm dừng = đầu mỗi mục của thiệp; quá gần nhau thì gộp, quá nhiều so với
-  // thời lượng thì lấy rải đều.
+  // Toạ độ Y của phần tử trong nội dung khung cuộn, theo layout chứ không theo
+  // getBoundingClientRect — hiệu ứng .reveal còn đang trượt (transform) thì vẫn đo đúng.
+  function docY(n) {
+    let y = 0;
+    for (; n; n = n.offsetParent) y += n.offsetTop;
+    return y;
+  }
+  const maxOf = (P) => Math.max(0, P.sc.scrollHeight - P.sc.clientHeight);
+  const yIn = (P, el) => docY(el) - (P.isRoot ? 0 : docY(P.sc) + P.sc.clientTop);
+  // Đích của chặng đo lại MỖI khung: ảnh tải xong / mục hiện ra làm nội dung phía trên
+  // đổi cao thì đích đi theo mục, không dừng lệch vào giữa mục.
+  const targetOf = (P, L) => Math.min(maxOf(P), L.el ? yIn(P, L.el) + L.off : (L.abs ?? Infinity));
+  const curY = (P) => (P.isRoot ? win().scrollY : P.sc.scrollTop);
+
+  // Vuốt từng màn từ đầu tới đáy, ưu tiên dừng ở đầu mục. Chế độ vuốt đều không có
+  // điểm dừng: một chặng từ đầu tới cuối.
+  // Thời gian chia theo quãng đường đo lúc dựng; toạ độ thật đo lại lúc chạy (targetOf).
   function buildPlan() {
     const d = doc();
     const sc = scroller(d);
-    const isRoot = sc === d.scrollingElement || sc === d.documentElement;
-    const vh = isRoot ? win().innerHeight : sc.clientHeight;
-    const max = Math.max(0, sc.scrollHeight - sc.clientHeight);
-    const top0 = isRoot ? 0 : sc.getBoundingClientRect().top;
+    const P = { sc, isRoot: sc === d.scrollingElement || sc === d.documentElement };
+    const vh = P.isRoot ? win().innerHeight : sc.clientHeight;
+    const max = maxOf(P);
     const span = Math.max(0.1, tEnd - tScroll);
 
     const scope = d.getElementById("main-card") || d.body;
-    let stops = [...scope.querySelectorAll("[id^='section-'], section")]
-      .filter((el) => el.offsetHeight > vh * 0.25)
-      .map((el) => Math.round(el.getBoundingClientRect().top - top0 + sc.scrollTop))
-      .filter((y) => y > vh * 0.3 && y < max - 4)
-      .sort((a, b) => a - b)
-      .filter((y, i, a) => i === 0 || y - a[i - 1] > vh * 0.6);
-    const cap = Math.max(0, Math.floor(span / 1.6) - 1);
-    if (stops.length > cap) {
-      const pick = [];
-      for (let i = 0; i < cap; i++) pick.push(stops[Math.round(((i + 0.5) * stops.length) / cap - 0.5)]);
-      stops = pick;
+    const secs = [...scope.querySelectorAll("[id^='section-'], section")]
+      .filter((el) => el.offsetHeight > 0)
+      .map((el) => ({ el, y: yIn(P, el) }))
+      .filter((s) => s.y > 0 && s.y < max - 4)
+      .sort((a, b) => a.y - b.y);
+
+    // Điểm dừng: el + off (bám theo mục), hoặc abs (toạ độ cố định), không có cả hai = đáy.
+    // Mỗi bước vuốt đúng PAGE màn; đầu mục nào rơi vào [SNAP, PAGE] màn phía trước thì
+    // dừng ngay đầu mục đó (bước ngắn hơn chút, không bao giờ dài hơn PAGE).
+    const anchor = (y, w) => {
+      let s = null;
+      for (const x of secs) if (x.y <= y) s = x;
+      return s ? { el: s.el, off: y - s.y, y, w } : { abs: y, y, w };
+    };
+    const pts = [{ abs: 0, y: 0 }];
+    for (let y = 0; !EVEN && max - y > vh * PAGE; ) {
+      const snap = secs.find((s) => s.y >= y + vh * SNAP && s.y <= y + vh * PAGE);
+      y = snap ? snap.y : y + vh * PAGE;
+      pts.push(snap ? { el: snap.el, off: 0, y, w: 1 } : anchor(y, 0.6));
     }
+    pts.push({ y: max });
 
-    const pts = [0, ...stops, max];
-    const dwellTotal = Math.min(span * 0.35, stops.length * 1.1);
-    const dwell = stops.length ? dwellTotal / stops.length : 0;
+    const wSum = pts.reduce((s, p) => s + (p.w || 0), 0);
+    const dwellTotal = Math.min(span * 0.35, wSum * 1.1);
     const travel = span - dwellTotal;
-    const dist = pts.reduce((s, y, i) => (i ? s + Math.abs(y - pts[i - 1]) : 0), 0) || 1;
+    const dist = pts.reduce((s, p, i) => (i ? s + Math.abs(p.y - pts[i - 1].y) : 0), 0) || 1;
 
-    const legs = [];
+    P.legs = [];
     let t = tScroll;
     for (let i = 1; i < pts.length; i++) {
-      const dt = (travel * Math.abs(pts[i] - pts[i - 1])) / dist;
-      legs.push({ t0: t, t1: t + dt, y0: pts[i - 1], y1: pts[i] });
+      const p = pts[i];
+      const dt = (travel * Math.abs(p.y - pts[i - 1].y)) / dist;
+      P.legs.push({ t0: t, t1: t + dt, el: p.el || null, off: p.off || 0, abs: p.abs, y0: null });
       t += dt;
-      if (i < pts.length - 1) t += dwell;
+      if (wSum) t += (dwellTotal * (p.w || 0)) / wSum;
     }
-    return { sc, isRoot, max, legs };
+    return P;
   }
 
+  // Chặng đang chạy bắt đầu từ ĐÚNG chỗ đang đứng (y0 chốt ở khung đầu của chặng), nên
+  // các chặng nối liền nhau; hết chặng thì bám đích cho tới chặng sau.
   function scrollAt(t) {
-    if (!plan || t < tScroll) return 0;
-    let y = 0;
-    for (const L of plan.legs) {
-      if (t < L.t0) break;
-      y = t >= L.t1 ? L.y1 : L.y0 + (L.y1 - L.y0) * ease((t - L.t0) / Math.max(0.001, L.t1 - L.t0));
+    let L = null;
+    for (const x of plan.legs) {
+      if (t < x.t0) break;
+      L = x;
     }
-    return y;
+    if (!L) return 0;
+    const y1 = targetOf(plan, L);
+    if (t >= L.t1) return y1;
+    if (L.y0 == null) L.y0 = curY(plan);
+    const f = EVEN ? glide : ease;
+    return L.y0 + (y1 - L.y0) * f((t - L.t0) / Math.max(0.001, L.t1 - L.t0));
   }
 
   function seek(t) {
