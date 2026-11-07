@@ -11,6 +11,58 @@ let pvJob = null; // { id, es }
 let pvAudioId = null;
 let pvPreviewTimer = null;
 
+// Thiết lập của tab nhớ ở localStorage (qua F5 và lần mở sau): các ô ở PV_FIELDS, mẫu đã
+// chọn, mẫu đang xem trước, nhạc nền (id tệp tạm trên dev-server — hết hạn thì lúc quay báo).
+const PV_STORE_KEY = "pv_settings";
+const PV_FIELDS = ["pv-duration", "pv-title", "pv-foot", "pv-show-name", "pv-music-btn", "pv-scroll", "pv-quality", "pv-fps"];
+let pvSaved = null; // bản đã nạp lúc mở tab — dùng một lần cho lần vẽ lưới mẫu đầu tiên
+
+function pvLoadSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(PV_STORE_KEY)) || {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function pvSaveSettings() {
+  if (pvSaved) return; // lưới mẫu chưa vẽ xong — lưu lúc này là xoá mất danh sách mẫu đã chọn
+  const fields = {};
+  PV_FIELDS.forEach((id) => {
+    const el = document.getElementById(id);
+    fields[id] = el.type === "checkbox" ? el.checked : el.value;
+  });
+  const audioName = document.getElementById("pv-audio-name").textContent;
+  try {
+    localStorage.setItem(
+      PV_STORE_KEY,
+      JSON.stringify({
+        fields,
+        themes: pvSelected(),
+        focus: pvFocus,
+        audio: pvAudioId ? { id: pvAudioId, name: audioName } : null,
+      }),
+    );
+  } catch (_) {}
+}
+
+function pvRestoreSettings() {
+  const st = pvLoadSettings();
+  Object.entries(st.fields || {}).forEach(([id, v]) => {
+    const el = PV_FIELDS.includes(id) && document.getElementById(id);
+    if (!el) return;
+    if (el.type === "checkbox") el.checked = !!v;
+    else if ([...(el.options || [])].length && ![...el.options].some((o) => o.value === v)) return;
+    else el.value = v;
+  });
+  if (st.audio?.id) {
+    pvAudioId = st.audio.id;
+    document.getElementById("pv-audio-name").textContent = st.audio.name || "Nhạc đã chọn";
+    document.getElementById("pv-audio-clear").classList.remove("hidden");
+  }
+  pvSaved = st;
+}
+
 function initPromoVideoPanel() {
   if (!pvInited) {
     pvInited = true;
@@ -25,6 +77,7 @@ function initPromoVideoPanel() {
     ["pv-show-name", "pv-music-btn"].forEach((id) =>
       document.getElementById(id).addEventListener("change", pvSchedulePreview),
     );
+    document.getElementById("pv-scroll").addEventListener("change", pvSchedulePreview);
     document.getElementById("pv-fps").addEventListener("change", pvSyncEstimate);
     document.getElementById("pv-quality").addEventListener("change", pvSyncEstimate);
     document.getElementById("pv-all").addEventListener("change", (e) => {
@@ -34,6 +87,12 @@ function initPromoVideoPanel() {
       pvSyncSelection();
     });
     document.getElementById("pv-audio").addEventListener("change", pvUploadAudio);
+    PV_FIELDS.forEach((id) => {
+      const el = document.getElementById(id);
+      el.addEventListener("input", pvSaveSettings);
+      el.addEventListener("change", pvSaveSettings);
+    });
+    pvRestoreSettings();
     pvSyncDuration();
   }
   pvCheckServer();
@@ -71,7 +130,9 @@ async function pvLoadTemplates() {
     box.innerHTML = `<div class="col-span-full text-center text-sm text-red-500 py-8">${escapeHtml(e.message)}</div>`;
     return;
   }
-  const keep = new Set(pvSelected());
+  const first = pvSaved;
+  pvSaved = null;
+  const keep = new Set(first ? first.themes || [] : pvSelected());
   box.innerHTML = pvTemplates
     .map(
       (t) => `
@@ -100,6 +161,8 @@ async function pvLoadTemplates() {
     }),
   );
   pvSyncSelection();
+  if (first?.focus && pvTemplates.some((t) => t.template_name === first.focus)) pvPreview(first.focus);
+  pvSaveSettings();
 }
 
 function pvSelected() {
@@ -115,6 +178,7 @@ function pvSyncSelection() {
   allCb.indeterminate = n > 0 && n < all;
   document.getElementById("pv-start").disabled = !n || !!pvJob;
   pvSyncEstimate();
+  pvSaveSettings();
 }
 
 function pvSyncDuration() {
@@ -146,6 +210,7 @@ function pvOpts() {
     title: document.getElementById("pv-title").value.trim(),
     foot: document.getElementById("pv-foot").value.trim(),
     music: document.getElementById("pv-music-btn").checked,
+    scroll: document.getElementById("pv-scroll").value,
     subs,
   };
 }
@@ -165,10 +230,12 @@ function pvPreview(theme) {
     sub: o.subs[theme] ?? "",
     foot: o.foot,
     music: o.music ? "1" : "0",
+    scroll: o.scroll,
     play: "1",
   });
   document.getElementById("pv-preview").src = `promo-video/stage.html?${q}`;
   document.getElementById("pv-preview-empty").classList.add("hidden");
+  pvSaveSettings();
 }
 
 async function pvUploadAudio(e) {
@@ -184,6 +251,7 @@ async function pvUploadAudio(e) {
     pvAudioId = d.id;
     label.textContent = file.name;
     document.getElementById("pv-audio-clear").classList.remove("hidden");
+    pvSaveSettings();
   } catch (err) {
     pvClearAudio();
     showToast(err.message, "error");
@@ -194,6 +262,7 @@ function pvClearAudio() {
   pvAudioId = null;
   document.getElementById("pv-audio-name").textContent = "Không có — video câm";
   document.getElementById("pv-audio-clear").classList.add("hidden");
+  pvSaveSettings();
 }
 
 function pvSetBusy(busy) {

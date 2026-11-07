@@ -84,6 +84,7 @@ async function renderOne(browser, { origin, root, theme, opts, outFile, audioFil
       sub: opts.subs[theme] ?? "",
       foot: opts.foot,
       music: opts.music ? "1" : "0",
+      scroll: opts.scroll,
     });
     await page.goto(`${origin}/admin/promo-video/stage.html?${q}`, { waitUntil: "load", timeout: 60000 });
     await page.waitForFunction("window.CXPromo", { timeout: 20000 });
@@ -157,7 +158,7 @@ async function renderOne(browser, { origin, root, theme, opts, outFile, audioFil
  * Bộ định tuyến /__promo-video/* cho dev-server. Trả về true nếu đã xử lý request.
  *   GET  status                → { ffmpeg, outDir }
  *   POST audio  (thân = file)  → { id }  nhạc nền tạm cho các lượt quay sau
- *   POST jobs   (JSON)         → { id }  {themes[], duration, fps, quality, title, foot, music, subs{}, audio?}
+ *   POST jobs   (JSON)         → { id }  {themes[], duration, fps, quality, title, foot, music, scroll, subs{}, audio?}
  *   GET  events?id=            → SSE tiến độ (phát lại từ đầu khi nối lại)
  *   POST cancel?id=
  *   GET  file/<tên>.mp4        → video đã quay
@@ -246,7 +247,7 @@ export function promoVideoRoutes({ root, port }) {
       if (route === "status" && req.method === "GET") {
         json(res, 200, { ffmpeg: await hasFfmpeg(ffmpeg), outDir: ".promo-videos/", busy: !!running });
       } else if (route === "audio" && req.method === "POST") {
-        const buf = await readBody(req, 40 * 1024 * 1024);
+        const buf = await readBody(req, 1024 * 1024 * 1024);
         if (!buf.length) return json(res, 400, { error: "Tệp rỗng" }), true;
         mkdirSync(audioDir, { recursive: true });
         const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -267,6 +268,7 @@ export function promoVideoRoutes({ root, port }) {
           title: String(b.title ?? "").slice(0, 80),
           foot: String(b.foot ?? "").slice(0, 80),
           music: b.music !== false,
+          scroll: b.scroll === "even" ? "even" : "stops",
           subs: b.subs && typeof b.subs === "object" ? b.subs : {},
         };
         const id = Date.now().toString(36);
