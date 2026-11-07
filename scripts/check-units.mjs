@@ -214,9 +214,11 @@ await tc("UNIT-09", "cleanTimeline: type lạ → ceremony, cắt time, JSON h�
     { time: "08:00-09:00-10:00-11:00", title: "Lễ", type: "<script>" },
     { time: "18:00", title: "Tiệc", type: "party" },
     { time: "19:00", title: "Tiệc nhà gái", type: "bride-party", x: 1 },
+    { time: "07:00", title: "Lễ vu quy", type: "vu-quy" },
   ]);
   const ok = out[0].type === "ceremony" && out[0].time.length === 20 && out[1].type === "party" &&
-    out[2].type === "bride-party" && !("x" in out[2]) && wa.cleanTimeline("{hỏng") === null;
+    out[2].type === "bride-party" && !("x" in out[2]) && out[3].type === "vu-quy" &&
+    wa.cleanTimeline("{hỏng") === null;
   return { pass: ok, got: J(out) };
 });
 

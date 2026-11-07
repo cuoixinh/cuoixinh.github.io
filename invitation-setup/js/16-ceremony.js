@@ -19,6 +19,7 @@ function toggleVuQuy(event) {
   // Nguồn "trùng địa điểm" của tiệc nhà gái đổi theo lễ vu quy.
   _syncPartySameLabel();
   _syncPartyIfSame();
+  _updateTimelineVuQuySection();
 }
 
 // Khi địa điểm nguồn (ceremony/vu_quy) thay đổi, re-sync tất cả party đang bật "Trùng địa điểm"
@@ -153,6 +154,7 @@ function initCeremonySection(data) {
   document.getElementById("vis-btn-vu-quy")?.setAttribute("aria-checked", String(vuQuyEnabled));
   if (fields) fields.classList.toggle("hidden", !vuQuyEnabled);
   _syncPartySameLabel();
+  _updateTimelineVuQuySection();
 
   // Ô "Trùng địa điểm" không có cột DB: suy lại từ dữ liệu — tiệc chưa có nơi riêng
   // hoặc nơi tiệc bằng đúng nơi nguồn thì coi là đang trùng.

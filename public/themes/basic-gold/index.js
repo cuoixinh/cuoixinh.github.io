@@ -200,7 +200,7 @@ function renderWedding(w) {
   cxToggle(
     "section-timeline",
     cxEnabled(w.enable_timeline) &&
-      _renderSchedule(w.timeline, side, partyDate, w.ceremony_date, ceremonyName),
+      _renderSchedule(w.timeline, side, partyDate, ...cxTimelineCeremony(w, ceremonyName)),
   );
 
   // --- STORY QUOTE ---

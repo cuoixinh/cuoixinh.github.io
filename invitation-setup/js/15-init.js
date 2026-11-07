@@ -333,6 +333,14 @@ function initializePage() {
     ceremonyDateInput.addEventListener("input", _updateTimelineDateBadge);
   }
 
+  // Lịch lễ vu quy (tab Nhà gái): ngày theo ngày vu quy, trống thì ngày lễ
+  _updateTimelineVuQuySection();
+  ["ceremony_date", "vu_quy_date"].forEach((n) => {
+    const el = document.querySelector(`input[name="${n}"]`);
+    el?.addEventListener("change", _updateTimelineVuQuySection);
+    el?.addEventListener("input", _updateTimelineVuQuySection);
+  });
+
   // Party sub-section visibility + date badge
   _updateTimelinePartySection();
   const groomPartyDateEl = document.querySelector(

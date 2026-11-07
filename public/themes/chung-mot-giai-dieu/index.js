@@ -373,7 +373,7 @@
     const list = document.getElementById("cm-tracks");
     if (!list) return;
     const on = cxEnabled(w.enable_timeline) && Array.isArray(w.timeline);
-    const dateOf = { ceremony: w.ceremony_date, party: w.groom_party_date, "bride-party": w.bride_party_date };
+    const dateOf = { ceremony: cxTimelineCeremony(w)[0], party: w.groom_party_date, "bride-party": w.bride_party_date };
     const partyOn = cxEnabled(w.enable_party);
     const items = !on
       ? []

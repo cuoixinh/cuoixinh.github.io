@@ -3,8 +3,9 @@
 // Tách từ index.js (dòng 3889–4239 bản gốc). Thứ tự nạp khai báo ở loader.js.
 
 // ============= TIMELINE =============
-// Mỗi item: { time, title, type }  type = "ceremony" | "party"
-// Backward compat: item không có type → coi là "ceremony"
+// Mỗi item: { time, title, type }  type = "ceremony" | "party" | "bride-party" | "vu-quy"
+// ("vu-quy" chỉ link nhà gái thấy, thay nhóm "ceremony" — cxVuQuyAsCeremony ở
+// core/helpers/wedding-helper.js). Item không có type → coi là "ceremony".
 
 let _timelineItems = [];
 
@@ -84,6 +85,9 @@ function renderTimelineList() {
   const bpList = document.getElementById("timeline-bride-party-list");
   if (bpList)
     _renderTimelineRows(bpList, "bride-party", "bg-amber-50 border-amber-100");
+  const vqList = document.getElementById("timeline-vu-quy-list");
+  if (vqList)
+    _renderTimelineRows(vqList, "vu-quy", "bg-cyan-50 border-cyan-100");
   if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
@@ -102,11 +106,11 @@ function addTimelineItem(type = "ceremony") {
   _syncTimelineHidden();
   renderTimelineList();
   const listId =
-    type === "bride-party"
-      ? "timeline-bride-party-list"
-      : type === "party"
-        ? "timeline-party-list"
-        : "timeline-list";
+    {
+      "bride-party": "timeline-bride-party-list",
+      party: "timeline-party-list",
+      "vu-quy": "timeline-vu-quy-list",
+    }[type] || "timeline-list";
   const list = document.getElementById(listId);
   if (list) {
     const inputs = list.querySelectorAll("input[type=text]");
@@ -175,6 +179,27 @@ function _updateTimelineBridePartyDateBadge() {
   if (btn) btn.style.display = "";
   if (noDate) noDate.classList.add("hidden");
   _ensureTimelineDefault("bride-party");
+  if (typeof lucide !== "undefined") lucide.createIcons();
+}
+
+// Lịch lễ vu quy chỉ có khi bật vu quy; ngày = ngày vu quy, trống thì ngày lễ thành hôn.
+// Gọi lại khi công tắc vu quy, ngày vu quy hoặc ngày lễ đổi.
+function _updateTimelineVuQuySection() {
+  const on = document.getElementById("vu_quy_enabled")?.value === "true";
+  document.getElementById("timeline-vu-quy-sub")?.classList.toggle("hidden", !on);
+  const head = document.getElementById("timeline-ceremony-label");
+  if (head) head.textContent = on ? "Lễ thành hôn" : "Lễ cưới";
+  if (!on) return;
+  const val = (n) => document.querySelector(`input[name="${n}"]`)?.value || "";
+  const date = val("vu_quy_date") || val("ceremony_date");
+  const badge = document.getElementById("timeline-vu-quy-date-badge");
+  const text = document.getElementById("timeline-vu-quy-date-text");
+  if (badge) badge.classList.toggle("hidden", !date);
+  if (date && text) {
+    const d = new Date(date + "T00:00:00");
+    text.textContent = `${WEEKDAYS_VI[d.getDay()]}, ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+  }
+  _ensureTimelineDefault("vu-quy");
   if (typeof lucide !== "undefined") lucide.createIcons();
 }
 

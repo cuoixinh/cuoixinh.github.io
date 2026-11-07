@@ -208,7 +208,7 @@
 
     // --- Lịch trình ---
     if (cxEnabled(w.enable_timeline)) {
-      shRenderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
+      shRenderTimeline(w.timeline, side, partyDate, ...cxTimelineCeremony(w, ceremonyName));
     }
 
     // --- Chuyện tình yêu ---

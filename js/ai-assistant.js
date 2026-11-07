@@ -1400,7 +1400,11 @@
       infoSteps(b, (card.love_story || []).map((s) => [fmtDate(s.date), s.title, s.content])),
     );
     // Mốc lịch trình không mang ngày: suy từ `type` (tiệc khác ngày thì theo ngày tiệc bên đó).
-    const tlDay = { party: f.groom_party_date, "bride-party": f.bride_party_date };
+    const tlDay = {
+      party: f.groom_party_date,
+      "bride-party": f.bride_party_date,
+      "vu-quy": f.vu_quy_date,
+    };
     // Gom theo ngày: mỗi ngày một dòng tiêu đề + dải mốc giờ của ngày đó.
     infoSection(wrap, "clock", "Lịch trình ngày cưới", (b) => {
       const groups = new Map();

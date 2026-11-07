@@ -161,7 +161,7 @@
 
     // --- Lịch trình ngày cưới ---
     if (cxEnabled(w.enable_timeline)) {
-      huRenderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
+      huRenderTimeline(w.timeline, side, partyDate, ...cxTimelineCeremony(w, ceremonyName));
     }
 
     // --- Chuyện tình yêu ---

@@ -4,10 +4,41 @@
 // Thiệp nhà gái bật vu quy: lễ vu quy THAY lễ thành hôn, nên mọi chỗ mẫu đọc ngày lễ
 // (thư mời, đếm ngược, lịch, bản đồ…) phải ra ngày vu quy. Mẫu chỉ đọc ceremony_date
 // nên đổi ở đây một lần; ngày vu quy trống = cùng ngày lễ thành hôn, giữ nguyên.
+// Lịch trình cũng vậy: mốc "vu-quy" (nếu có) thay mốc "ceremony" dùng chung, mẫu chỉ
+// biết "ceremony" nên mốc vu quy đổi type ở đây; link nhà trai không bao giờ thấy chúng.
+// Không có mốc vu quy mà hai lễ khác ngày thì lịch chung là của lễ thành hôn → ghi lại
+// tên + ngày thật vào cx_timeline_ceremony cho cxTimelineCeremony.
 function cxVuQuyAsCeremony(w) {
-  const on = w?.vu_quy_enabled === true || w?.vu_quy_enabled === "true";
-  if (!on || !w.vu_quy_date || isGroomSide()) return w;
-  return { ...w, ceremony_date: w.vu_quy_date, ceremony_lunar: w.vu_quy_lunar || "" };
+  if (!w) return w;
+  const on = w.vu_quy_enabled === true || w.vu_quy_enabled === "true";
+  const bride = on && !isGroomSide();
+  const out = { ...w };
+  if (Array.isArray(w.timeline)) {
+    const own = bride && w.timeline.some((i) => i?.type === "vu-quy");
+    out.timeline = own
+      ? w.timeline
+          .filter((i) => (i?.type || "ceremony") !== "ceremony")
+          .map((i) => (i.type === "vu-quy" ? { ...i, type: "ceremony" } : i))
+      : w.timeline.filter((i) => i?.type !== "vu-quy");
+    if (bride && !own && w.vu_quy_date && w.vu_quy_date !== w.ceremony_date) {
+      out.cx_timeline_ceremony = {
+        date: w.ceremony_date,
+        name: w.ceremony_name || "Lễ Thành Hôn",
+      };
+    }
+  }
+  if (bride && w.vu_quy_date) {
+    out.ceremony_date = w.vu_quy_date;
+    out.ceremony_lunar = w.vu_quy_lunar || "";
+  }
+  return out;
+}
+
+// [ngày, tên] của nhóm mốc "ceremony" trong lịch trình — mẫu truyền tên lễ đang hiện ở
+// thư mời, chỉ ca lịch chung khác ngày vu quy (cxVuQuyAsCeremony) mới đổi đi.
+function cxTimelineCeremony(w, ceremonyName) {
+  const t = w.cx_timeline_ceremony;
+  return t ? [t.date, t.name] : [w.ceremony_date, ceremonyName];
 }
 
 // Link mã ngắn (?g=): tên + xưng hô nằm ở server. Tra MỘT lần, dùng chung cho
