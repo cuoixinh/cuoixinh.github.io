@@ -1,6 +1,6 @@
 // Hình nền LED "Kết Tóc Xe Tơ" (1280×720): màn chờ dàn trang kiểu tạp chí — nền than đậm, một màu
 // nhấn đỏ son, chữ serif cao + nhãn không chân in hoa, đường kẻ mảnh; ảnh mở dần từ mép rồi phóng
-// chậm (Ken Burns). Bốn cảnh nối vòng (trang bìa · ảnh chính có dải đỏ · ảnh ghép · ngày cưới số
+// chậm (Ken Burns). Bốn cảnh nối vòng (trang bìa · ảnh chính có dải than · ảnh ghép · ngày cưới số
 // lớn), chuyển cảnh trượt ngang. Chỉ KHAI cảnh (đăng ký vào CX_LED_TEMPLATES).
 
 (function () {
@@ -80,20 +80,23 @@
       done("cover", "Trang bìa", S);
     }
 
-    // --- Ảnh chính phủ kín, dải đỏ son buông từ trên xuống mang tên + ngày ---
+    // --- Ảnh chính phủ kín, dải than mờ viền đỏ son buông từ trên xuống mang tên + ngày ---
     {
       const S = K.stage(L, "feature", C.empty);
       S.img({ x: 0, y: 0, w: W, h: H }, pool.next(), { kb: true, anim: A("fade", 0, { t: 1.2 }) }, "feature");
-      S.add({ type: "rect", x: 88, y: 0, w: 500, h: H, fill: "rgba(224, 74, 51, 0.94)", anim: A("reveal", 2, { from: "top", t: 1.4 }) });
+      S.add(
+        { type: "rect", x: 88, y: 0, w: 500, h: H, fill: "rgba(20, 17, 16, 0.86)", anim: A("reveal", 2, { from: "top", t: 1.4 }) },
+        { type: "rect", x: 88, y: 0, w: 4, h: H, fill: C.red, anim: A("reveal", 4, { from: "top", t: 1.6 }) },
+      );
       S.col(
         [
-          { text: w.ceremony_name || "Lễ Thành Hôn", font: F.label, color: C.cream, caps: true, ls: 6, lh: 1.2, anim: A("fade", 9) },
+          { text: w.ceremony_name || "Lễ Thành Hôn", font: F.label, color: C.red, caps: true, ls: 6, lh: 1.2, anim: A("fade", 9) },
           { text: G, font: F.bandName, fit: true, color: C.cream, lh: 1.1, mt: 28, anim: A("up", 10) },
-          K.heartRow(38, { color: C.bg, fill: C.bg, lw: 2, anim: A("draw", 11, { t: 1.2 }) }, 10, "left"),
+          K.heartRow(38, { color: C.red, fill: C.red, lw: 2, anim: A("draw", 11, { t: 1.2 }) }, 10, "left"),
           { text: B, font: F.bandName, fit: true, color: C.cream, lh: 1.1, mt: 2, anim: A("up", 12) },
-          { line: true, w: 64, color: C.cream, mt: 30, anim: A("spread", 14) },
+          { line: true, w: 64, color: C.hair, mt: 30, anim: A("spread", 14) },
           d && { text: d.long, font: F.body, fit: true, color: C.cream, lh: 1.45, mt: 24, anim: A("up", 15) },
-          time && { text: `Lúc ${time}`, font: F.meta, color: C.bg, lh: 1.3, mt: 8, anim: A("up", 16) },
+          time && { text: `Lúc ${time}`, font: F.meta, color: C.red, lh: 1.3, mt: 8, anim: A("up", 16) },
         ],
         132, 412, 64, H - 64,
       );
@@ -121,7 +124,8 @@
     {
       const S = K.stage(L, "date", C.empty);
       S.img({ x: 1010, y: 0, w: 270, h: H }, pool.next(), { kb: true, anim: A("reveal", 0, { from: "right", drift: 30 }) }, "date");
-      S.col([{ text: d ? d.dd : "--", font: F.day, color: C.red, lh: 0.95, align: "center", anim: A("reveal", 2, { from: "bottom", drift: 50, t: 1.6 }) }], 56, 460, 40, H - 40, "day");
+      // lh rộng: `reveal` cắt theo khung dòng kể cả khi đã hiện xong, chữ số Prata nhô quá khung thấp.
+      S.col([{ text: d ? d.dd : "--", font: F.day, color: C.red, lh: 1.3, align: "center", anim: A("reveal", 2, { from: "bottom", drift: 50, t: 1.6 }) }], 56, 460, 40, H - 40, "day");
       S.add({ type: "rect", x: 556, y: 150, w: 1, h: 420, fill: C.hair, anim: A("reveal", 5, { from: "top" }) });
       S.col(
         [
