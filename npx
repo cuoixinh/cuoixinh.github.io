@@ -1,0 +1,44 @@
+
+ ⛅️ wrangler 4.85.0
+───────────────────
+
+Getting User settings...
+👋 You are logged in with an OAuth Token, associated with the email vectovinh14@gmail.com.
+┌─────────────────────────────────┬──────────────────────────────────┐
+│ Account Name                    │ Account ID                       │
+├─────────────────────────────────┼──────────────────────────────────┤
+│ Vectovinh14@gmail.com's Account │ b900b06e5901b6671ed9b388e6143fd1 │
+└─────────────────────────────────┴──────────────────────────────────┘
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe `account_id` in your Wrangler configuration (4af4c2fc27b537f6094aed7f10341626) does not match any of your authenticated accounts.[0m
+
+  This may be causing the authentication error. Check your Wrangler configuration file and ensure the `account_id` is correct for your account.
+
+
+🔓 Token Permissions:
+Scope (Access)
+- user (read)
+- offline_access 
+- account (read)
+- workers (write)
+- workers_kv (write)
+- workers_routes (write)
+- workers_scripts (write)
+- workers_tail (read)
+- d1 (write)
+- pages (write)
+- zone (read)
+- ssl_certs (write)
+- ai (write)
+- ai-search (write)
+- ai-search (run)
+- queues (write)
+- pipelines (write)
+- secrets_store (write)
+- artifacts (write)
+- flagship (write)
+- containers (write)
+- cloudchamber (write)
+- connectivity (admin)
+- email_routing (write)
+- email_sending (write)
+- browser (write)

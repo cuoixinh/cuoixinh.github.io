@@ -1,17 +1,20 @@
-// Kho nhạc thư viện của trang Slide cưới: Worker CHỈ phục vụ file tĩnh (không có `main`) ở
-// media.cuoixinh.com, dùng chung cho mọi môi trường. Đẩy bằng `npm run deploy:media` — luôn
-// chỉ rõ file này: chạy wrangler trần ở gốc repo là nó đọc wrangler.jsonc của SITE CHÍNH.
-// File nhạc nằm ở public/songs/ trên máy (git bỏ qua), wrangler đọc file trên máy.
+// Kho nhạc thư viện: Worker CHỈ phục vụ file tĩnh (không có `main`) ở TÀI KHOẢN CLOUDFLARE PHỤ
+// (cuoixinh-media.cx-music.workers.dev) — tách khỏi tài khoản của cuoixinh.com để khiếu nại bản
+// quyền nhạc không kéo sập site chính. `npm run deploy:media` chạy trong thư mục này, token của
+// tài khoản phụ đặt ở `.env` cạnh file này (CLOUDFLARE_API_TOKEN=…, git bỏ qua) — KHÔNG dùng
+// wrangler login. `account_id` chặn đẩy nhầm sang tài khoản chính khi thiếu token. File nhạc ở public/songs/ trên máy
+// (git bỏ qua) và mỗi lần deploy THAY TRỌN bộ file — thiếu file trên máy là bài đó mất trên mạng.
+// `deploy:media` chạy scripts/media-guard.mjs trước: thiếu file / mất id so với kho đang chạy là DỪNG.
 // Thêm bài: chép file vào public/songs/, thêm một mục vào public/library.json, deploy.
 {
   "$schema": "../cloudflare-worker/node_modules/wrangler/config-schema.json",
   "name": "cuoixinh-media",
+  "account_id": "4af4c2fc27b537f6094aed7f10341626",
   "compatibility_date": "2025-09-01",
   "assets": {
     "directory": "./public",
     "not_found_handling": "none"
   },
-  "routes": [{ "pattern": "media.cuoixinh.com", "custom_domain": true }],
-  "workers_dev": false,
+  "workers_dev": true,
   "preview_urls": false
 }

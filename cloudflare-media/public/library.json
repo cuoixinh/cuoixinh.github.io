@@ -1,3 +1,11 @@
 {
-  "tracks": []
+  "tracks": [
+    {
+      "id": "lover-taylor-swift",
+      "title": "Lover",
+      "artist": "Taylor Swift",
+      "file": "songs/Lover_Taylor_Swift.mp3",
+      "credit": ""
+    }
+  ]
 }
