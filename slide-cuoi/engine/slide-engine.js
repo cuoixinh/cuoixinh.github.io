@@ -168,7 +168,9 @@ window.CXSlideEngine = (() => {
     scenes.forEach((s, k) => {
       s.id = String(s.id ?? k);
       s.base = s.dur;
-      s.min = Math.min(s.base, Math.max(3, fade + 1, Math.ceil((Math.max(0, ...s.els.map(_end)) + 1) * 2) / 2));
+      // out = quãng mờ dần cuối cảnh dài nhất (anim.out) — cảnh phải đủ dài cho cả hiệu ứng vào lẫn ra.
+      s.out = Math.max(0, ...s.els.map(_outOf));
+      s.min = Math.min(s.base, Math.max(3, fade + 1, Math.ceil((Math.max(0, ...s.els.map(_end)) + s.out + 1) * 2) / 2));
       s.max = Math.max(SCENE_MAX, s.base);
     });
     const P = { W: tpl.w, H: tpl.h, bg: tpl.bg || "#000", fade, tr: tpl.tr, fx: tpl.fx, scenes, images };
@@ -189,12 +191,15 @@ window.CXSlideEngine = (() => {
     P.scenes.forEach((s) => {
       const want = Number(own[s.id]) > 0 ? Number(own[s.id]) : s.base * k;
       s.dur = Math.min(s.max, Math.max(s.min, want));
+      // still = giây (trong cảnh) muộn nhất mà mọi thứ còn hiện đủ — chỗ đứng khi dừng để sửa/chụp ảnh.
+      s.still = Math.max(0, s.dur - s.out - 0.05);
       P.starts.push(P.total);
       P.total += s.dur;
     });
     return P;
   }
 
+  const _outOf = (el) => Math.max(el.anim?.out || 0, ...(el.kids || []).map(_outOf));
   // Giây (tính từ đầu cảnh) mà hiệu ứng của phần tử — và mọi phần tử con — chạy xong.
   function _end(el) {
     const a = el.anim;
@@ -365,6 +370,9 @@ window.CXSlideEngine = (() => {
     if (a && at <= 0) return;
     ctx.save();
     if (el.alpha != null) ctx.globalAlpha *= el.alpha;
+    // anim.out (giây): mờ dần trong quãng cuối cảnh — mẫu một cảnh chạy vòng thì chữ tan đi rồi mới
+    // hiện lại từ đầu, không biến mất đột ngột ở chỗ nối vòng.
+    if (a?.out && dur) ctx.globalAlpha *= _ease(_clamp((dur - lt) / a.out));
     if (el.rot) {
       const b = _box(el);
       ctx.translate(b.x + b.w / 2, b.y + b.h / 2);

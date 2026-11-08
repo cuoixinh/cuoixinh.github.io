@@ -47,7 +47,7 @@
     bg: C.bg,
     fade: 1.6,
     tr: "split",
-    demo: "vintage-forest",
+    demo: "red-carpet",
     fonts: [`600 76px ${JS}`, `300 22px ${JS}`],
     scenes: buildScenes,
   });
