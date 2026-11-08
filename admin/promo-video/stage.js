@@ -130,7 +130,7 @@
     const cover = d.getElementById("cover-screen");
     const main = d.getElementById("main-card");
     hasCover = !!(cover && main && cover.offsetHeight > 0 && main.offsetHeight === 0);
-    tCover = hasCover ? clamp(DUR * 0.12, 1.2, 2.5) : 0;
+    tCover = hasCover ? clamp(DUR * 0.05, 0.8, 1.2) : 0;
     // Màn hero đứng yên một nhịp rồi mới cuộn; có bìa thì cộng thêm ~1s cho hiệu ứng mở.
     const tHero = clamp(DUR * 0.12, 1.8, 3);
     tScroll = tCover + (hasCover ? 1 : 0) + tHero;

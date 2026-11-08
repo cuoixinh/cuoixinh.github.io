@@ -25,8 +25,9 @@ function _tplCardStep(row) {
   return cards[0]?.offsetWidth || row.clientWidth;
 }
 
-function scrollTemplates(dir) {
-  const row = document.getElementById("templatesRow");
+// rowId: dải khác cùng kiểu thẻ (mục "Thiệp của khách" dùng #showcaseRow).
+function scrollTemplates(dir, rowId = "templatesRow") {
+  const row = document.getElementById(rowId);
   if (!row) return;
   row.scrollBy({
     left: dir * _tplCardStep(row) * TPL_STEP_CARDS,

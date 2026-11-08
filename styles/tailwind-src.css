@@ -2333,6 +2333,28 @@ html.cx-landing {
   opacity: 1;
 }
 
+/* Thẻ "Thiệp của khách" ở trang chủ (js/section-showcase.js): cả thẻ là link mở
+   thiệp; ảnh là ảnh bìa của khách (3:4, canh giữa theo điểm nhìn) chứ không phải
+   ảnh chụp màn điện thoại như thẻ mẫu. */
+.cx-showcard {
+  text-decoration: none;
+}
+.cx-showcard .tt-media {
+  aspect-ratio: 3 / 4;
+}
+.cx-showcard .tt-media > img {
+  object-position: center;
+}
+.cx-showmeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgb(var(--text-body-rgb) / 0.7);
+}
+
 /* Khung xương lúc chờ dữ liệu vẫn giữ hình thẻ cũ. */
 .art-template-card {
   @apply relative h-full w-full overflow-hidden rounded-3xl border-none

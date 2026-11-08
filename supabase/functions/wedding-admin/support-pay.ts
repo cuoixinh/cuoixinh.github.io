@@ -2,6 +2,7 @@
 // viên, nhân viên (SUPPORT_EMAILS, kiểm ở index.ts) xác nhận "đã nhận tiền" để thiệp lên gói.
 // Không qua PayOS nên KHÔNG có đối soát tự động: mọi lượt ghi payment_logs kèm email nhân viên.
 // Giá, gói được nâng và hạn gói tính bằng đúng luật của payment-handler + payos-webhook (_shared/plans.ts).
+// PATCH: bật/tắt showcase_consent (hiện thiệp ở trang chủ) khi khách xin đổi.
 
 import type { Logger } from '../_shared/axiom.ts'
 import { currentPlan, isPlanId, planExpiry, quotePlans } from '../_shared/plans.ts'
@@ -10,9 +11,12 @@ import { currentPlan, isPlanId, planExpiry, quotePlans } from '../_shared/plans.
 type Db = any
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,99}$/
+// id sai dạng mà đưa thẳng vào .eq() là Postgres ném 22P02 → thành 500 + log lỗi giả.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const WEDDING_COLS =
   'id, slug, user_id, theme, groom_name, bride_name, is_published, payment_status, payment_amount, ' +
-  'plan, plan_expires_at, pending_plan, pending_amount, free_side, expires_at, transaction_id, payment_time'
+  'plan, plan_expires_at, pending_plan, pending_amount, free_side, expires_at, transaction_id, payment_time, ' +
+  'showcase_consent'
 
 // Nhân viên dán cả link (cuoixinh.com/<slug>?g=…) hoặc chỉ slug.
 function slugFrom(input: unknown): string {
@@ -87,13 +91,15 @@ export async function handleSupportPay(
       // Đơn PayOS đang treo: khách trả đơn đó SAU khi nhân viên xác nhận thì tiền vào mà
       // webhook không khớp payment_order_id nữa — nhân viên phải biết để hỏi lại khách.
       pending_payos: !!w.pending_plan,
+      showcase_consent: !!w.showcase_consent,
       plans: pricing && pricing.price > 0
         ? quotePlans(pricing.price, pricing.original_price, from, w.plan_expires_at)
         : [],
     })
   }
 
-  // POST { id, plan, amount, note } — chốt "đã nhận tiền".
+  // POST { id, plan, amount, note, showcase_consent } — chốt "đã nhận tiền". showcase_consent
+  // chỉ ghi khi mua lần đầu, cùng luật màn thanh toán (nâng gói giữ lựa chọn cũ).
   if (req.method === 'POST') {
     const body = await req.json().catch(() => ({}))
     const id = String(body.id ?? '')
@@ -147,6 +153,7 @@ export async function handleSupportPay(
       pending_theme: null,
       expires_at: null,
     }
+    if (!from) fields.showcase_consent = body.showcase_consent === true
     // Khoá theo trạng thái vừa đọc: hai nhân viên bấm cùng lúc (hoặc webhook PayOS chen
     // vào giữa) thì lượt sau không khớp, không áp gói hai lần.
     let q = db.from('weddings').update(fields).eq('id', id)
@@ -174,12 +181,32 @@ export async function handleSupportPay(
         upgrade_from: from,
         theme: w.theme,
         note,
+        showcase_consent: fields.showcase_consent ?? null,
       },
     })
     if (logErr) log.error('support_pay.log_failed', { manage_id: id, order_id: orderId, code: logErr.code, message: logErr.message })
 
     log.info('support_pay.confirmed', { manage_id: id, slug: w.slug, plan, amount, by: staffEmail })
     return json({ ok: true, order_id: orderId, plan, plan_expires_at: fields.plan_expires_at })
+  }
+
+  // PATCH { id, showcase_consent } — bật/tắt hiện thiệp ở trang chủ theo yêu cầu của
+  // khách (đã thanh toán thì khách không tự đổi được nữa). Ghi log kèm email nhân viên.
+  if (req.method === 'PATCH') {
+    const body = await req.json().catch(() => ({}))
+    const id = String(body.id ?? '')
+    if (!UUID_RE.test(id) || typeof body.showcase_consent !== 'boolean') {
+      return json({ error: 'Thiếu thiệp hoặc giá trị' }, 400)
+    }
+    const { data: updated, error: upErr } = await db
+      .from('weddings').update({ showcase_consent: body.showcase_consent }).eq('id', id).select('id, slug')
+    if (upErr) {
+      log.error('support_pay.showcase_update_failed', { manage_id: id, code: upErr.code, message: upErr.message })
+      return json({ error: 'Không ghi được' }, 500)
+    }
+    if (!updated?.length) return json({ error: 'Không tìm thấy thiệp' }, 404)
+    log.info('support_pay.showcase_set', { manage_id: id, slug: updated[0].slug, value: body.showcase_consent, by: staffEmail })
+    return json({ ok: true, showcase_consent: body.showcase_consent })
   }
 
   return json({ error: 'Method not allowed' }, 405)
