@@ -120,7 +120,14 @@
     setText("rb-hero-d", cd ? _pad(cd.getDate()) : "", "--");
     setText("rb-hero-m", cd ? _pad(cd.getMonth() + 1) : "", "--");
     setText("rb-hero-y", cd ? String(cd.getFullYear()) : "", "----");
-    setText("rb-hero-place", partyLocation || ceremonyLoc, "");
+    // Nơi làm lễ của đúng bên (nhà gái bật Vu Quy → nơi vu quy); trống thì lùi về nơi tiệc.
+    setText("rb-hero-place", ceremonyLoc || partyLocation, "");
+    // Giờ lễ · thứ dưới ngày của bìa + màn 1; chưa có cả hai thì ẩn hẳn dòng.
+    const when = [ceremonyTime, cd ? WEEKDAYS[cd.getDay()] : ""].filter(Boolean).join(" · ");
+    ["rb-cover-time", "rb-hero-time"].forEach((id) => {
+      setText(id, when, "");
+      cxToggle(id, !!when);
+    });
 
     // Ảnh trang trí của mọi màn lấy từ album
     _fillPhotos(w);

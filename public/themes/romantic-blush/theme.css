@@ -699,6 +699,18 @@ html.cx-pshell-host.rb-stack body {
   transform: rotate(20deg);
 }
 
+/* Giờ lễ · thứ: dòng phụ dưới ngày, in hoa giãn chữ như kicker. */
+.rb-hero-time {
+  margin-top: 16px;
+  font-family: var(--rb-sans);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  padding-left: 0.32em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 12px rgb(var(--cx-scrim-rgb) / 0.4);
+}
+
 .rb-hero-bottom {
   position: relative;
   z-index: 2;
@@ -2167,6 +2179,10 @@ html.cx-pshell-host.rb-stack body {
 
 .rb-cover .rb-hero-date {
   animation: cx-rb-cv-in 1s ease-out 0.6s both;
+}
+
+.rb-cover .rb-hero-time {
+  animation: cx-rb-cv-in 1s ease-out 0.75s both;
 }
 
 /* Chữ ký đã xoay bằng transform → chỉ mờ dần, đụng transform là mất góc nghiêng. */
