@@ -829,7 +829,7 @@
       acts.append(xbtn("Chọn vị trí khác", "other", "ghost"));
 
       // Bản đồ tự ghim theo địa chỉ (autoPin); nút này mở ĐÚNG bảng chọn openMapPicker của
-      // form Thiết lập (kéo ghim, gợi ý lúc gõ, sửa tên hiển thị) khi khách thấy sai chỗ.
+      // form Thiết lập (chạm/kéo ghim theo toạ độ, giữ nguyên tên) khi khách thấy sai chỗ.
       acts.addEventListener("click", async (e) => {
         if (e.target.closest("[data-act]")?.dataset.act !== "other") return;
         try {

@@ -1,12 +1,11 @@
-// Bảng chọn địa điểm (Leaflet + Nominatim) dùng CHUNG cho form trang Thiết lập và ô bản đồ
-// trong khung chat XuXi (js/ai-chat-media.js, tự nạp file này + Leaflet + core/utils.js
-// ở trang chủ). Cần openBottomSheet/escapeHtml (core/utils.js) và Leaflet.
-let _mapPickerSelected = null;
-let _mapSuggestions = [];
+// Bảng chọn địa điểm (Leaflet/OSM) dùng CHUNG cho form trang Thiết lập và ô bản đồ trong
+// khung chat XuXi (js/ai-chat-media.js, tự nạp file này + Leaflet + core/utils.js ở trang
+// chủ). Bảng CHỈ để ghim toạ độ — tìm theo chữ là việc của Google ở ô "Vị trí trên bản đồ"
+// ngoài form, tên hiện trên thiệp cũng sửa ở ngoài. Cần openBottomSheet/escapeHtml và Leaflet.
+let _mapPickerSelected = null; // {lat, lon} điểm đang ghim
 let _leafletMap = null;
 let _leafletMarker = null;
 let _mapPickerOpts = null; // {onApply} khi bên gọi tự lưu kết quả (khung chat), null = form
-let _mapPickerGmap = ""; // chữ lớp Google đang phủ theo (_showGmap), rỗng = đang ở OSM
 
 function _markerIcon() {
   return L.divIcon({
@@ -17,9 +16,10 @@ function _markerIcon() {
   });
 }
 
-// Chip nhắc trên bản đồ: "Chạm để ghim" ↔ "Đã ghim", và cho ghim rơi lại một nhịp.
-function _markPinned() {
-  document.getElementById("map-picker-hint")?.classList.add("is-set");
+// Ghi điểm ghim + vẽ lại chip trạng thái, toạ độ và nút áp dụng; ghim rơi lại một nhịp.
+function _setPin(lat, lon) {
+  _mapPickerSelected = { lat, lon };
+  _mpSync();
   const pin = _leafletMarker?.getElement()?.querySelector(".cx-mp-pin");
   if (!pin) return;
   pin.classList.remove("is-drop");
@@ -35,46 +35,33 @@ function _placeMarker(lat, lon) {
     _leafletMarker = L.marker([lat, lon], { icon: _markerIcon(), draggable: true }).addTo(_leafletMap);
     _leafletMarker.on("dragend", (e) => {
       const p = e.target.getLatLng();
-      _reverseGeocode(p.lat, p.lng);
-      _markPinned();
+      _setPin(p.lat, p.lng);
     });
   }
-  _markPinned();
+  _setPin(lat, lon);
 }
 
-async function _reverseGeocode(lat, lon) {
-  const picked = { lat, lon, name: `${lat.toFixed(5)}, ${lon.toFixed(5)}` };
-  _mapPickerSelected = picked;
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=vi`,
-      { headers: { "Accept-Language": "vi" } }
-    );
-    const data = await res.json();
-    // Khách đã chọn chỗ khác (hoặc đóng sheet) trong lúc chờ → bỏ kết quả cũ.
-    if (_mapPickerSelected !== picked) return;
-    if (data.display_name) {
-      picked.name = data.display_name;
-      const input = document.getElementById("map-picker-search");
-      if (input) input.value = data.display_name;
-      _syncDisplayName(data.display_name);
-    }
-  } catch (e) {}
-}
-
-function _syncDisplayName(name) {
-  const dn = document.getElementById("map-picker-display-name");
-  if (dn && dn.disabled) dn.value = name;
+function _mpSync() {
+  const p = _mapPickerSelected;
+  const hint = document.getElementById("map-picker-hint");
+  if (hint) {
+    const [ic, txt] = p
+      ? ["circle-check", `${p.lat.toFixed(5)}, ${p.lon.toFixed(5)} · kéo ghim để chỉnh`]
+      : ["pointer", "Chạm vào bản đồ để ghim vị trí"];
+    hint.classList.toggle("is-set", !!p);
+    hint.innerHTML = `<i data-lucide="${ic}" style="width:14px;height:14px"></i><span>${txt}</span>`;
+    window.lucide?.createIcons({ root: hint });
+  }
+  const apply = document.getElementById("map-picker-apply");
+  if (apply) apply.disabled = !p;
 }
 
 // opts.onApply(embedUrl, displayName): trả kết quả cho bên gọi thay vì ghi vào form; khi đó
-// giá trị đang có lấy từ opts.embed / opts.name, và opts.query (địa chỉ gợi ý) được tìm
-// sẵn để ghim nằm đúng chỗ ngay khi mở.
+// giá trị đang có lấy từ opts.embed / opts.name, và opts.query (địa chỉ gợi ý) chỉ để dời
+// bản đồ tới gần chỗ đó khi mở.
 function openMapPicker(side, opts = {}) {
   if (document.getElementById("map-picker-modal")) return;
   _mapPickerSelected = null;
-  _mapSuggestions = [];
-  _mapPickerGmap = "";
   _leafletMap = null;
   _leafletMarker = null;
   _mapPickerOpts = typeof opts.onApply === "function" ? opts : null;
@@ -91,32 +78,24 @@ function openMapPicker(side, opts = {}) {
       const latLon = q.match(/^(-?\d+\.?\d*),(-?\d+\.?\d*)$/);
       if (latLon) {
         initLat = parseFloat(latLon[1]); initLon = parseFloat(latLon[2]);
-        initZoom = 15; hasCoords = true;
+        initZoom = 16; hasCoords = true;
       } else {
         currentQuery = q;
       }
     }
   } catch (e) {}
-  const autoSearch = !!_mapPickerOpts && !currentVal && !!opts.query;
-  if (autoSearch) currentQuery = String(opts.query);
-
-  const currentDisplayName = _mapPickerOpts
-    ? String(opts.name || currentQuery)
-    : document.getElementById(`${side}-map-address`)?.textContent?.trim() || currentQuery;
+  if (_mapPickerOpts && !currentVal && opts.query) currentQuery = String(opts.query);
 
   const sideLabelMap = { ceremony: "Lễ thành hôn", vu_quy: "Lễ vu quy", groom_party: "Tiệc nhà trai", bride_party: "Tiệc nhà gái", groom: "Nhà trai", bride: "Nhà gái" };
   const sideLabel = sideLabelMap[side] || side;
 
   const sheet = openBottomSheet({
     id: 'map-picker-modal',
-    title: `<span class="cx-mp-title-ic"><i data-lucide="map-pin" style="width:16px;height:16px"></i></span>Chọn địa điểm<span class="cx-mp-side">${escapeHtml(sideLabel)}</span>`,
+    title: `<span class="cx-mp-title-ic"><i data-lucide="map-pin" style="width:16px;height:16px"></i></span>Ghim vị trí<span class="cx-mp-side">${escapeHtml(sideLabel)}</span>`,
     cardClass: 'sm:max-w-5xl',
     onClose: () => {
-      document.removeEventListener("click", _onClickOutsideSuggestions);
       if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; _leafletMarker = null; }
       _mapPickerSelected = null;
-      _mapSuggestions = [];
-      _mapPickerGmap = "";
       _mapPickerOpts = null;
       window._closeMapPickerSheet = null;
     },
@@ -124,72 +103,21 @@ function openMapPicker(side, opts = {}) {
   if (!sheet) return;
   window._closeMapPickerSheet = sheet.close;
 
-  // Bố cục ở .cx-mp (_common.css): mobile xếp dọc ô gõ · bản đồ · nút; từ sm là hai
-  // cột, bản đồ chiếm trọn cột phải. Hai ô gõ luôn đứng ĐẦU: ô nằm dưới mép bàn phím
-  // là iOS trượt cả khung nhìn lên (JS không chặn được), kéo theo UI phía sau.
-  // Gợi ý địa điểm là `absolute` trong ô tìm, không `fixed`: vuốt-để-đóng đặt
-  // transform lên thẻ sheet, thẻ `fixed` bên trong sẽ lệch khỏi ô.
+  // Bố cục ở .cx-mp (_common.css): bản đồ chiếm trọn thân sheet, dải nút ở đáy.
   sheet.body.innerHTML = `
     <div class="cx-mp">
-      <div class="cx-mp-ctrl">
-        <div id="map-picker-search-wrap" class="relative z-10">
-          <i data-lucide="search" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" style="width:16px;height:16px"></i>
-          <input id="map-picker-search" type="text" enterkeyhint="search" value="${escapeHtml(currentQuery || (hasCoords ? currentDisplayName : ""))}"
-            placeholder="Tìm nhà hàng, trung tâm tiệc, địa chỉ…"
-            autocomplete="off" aria-label="Tìm địa điểm"
-            class="cx-mp-search"
-          />
-          <button type="button" class="cx-mp-clear" aria-label="Xoá" onclick="_clearMapInput('map-picker-search')"><i data-lucide="x" style="width:14px;height:14px"></i></button>
-          <x-button size="sm" variant="soft" onclick="searchMapPicker()" class="absolute right-1.5 top-1/2 -translate-y-1/2">Tìm</x-button>
-          <div id="map-picker-suggestions" class="cx-mp-sugs hidden" role="listbox"></div>
-        </div>
-
-        <div>
-          <div class="mb-2 flex items-center justify-between gap-3">
-            <label for="map-picker-display-name" class="text-sm font-semibold text-gray-800">Tên hiện trên thiệp</label>
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-gray-500">Sửa tên</span>
-              <x-switch key="map-name" label="Sửa tên" onclick="_toggleMapDisplayName()"></x-switch>
-            </div>
-          </div>
-          <div class="relative">
-            <input id="map-picker-display-name" type="text" disabled value="${escapeHtml(currentDisplayName)}"
-              placeholder="Ghim một vị trí để tự điền tên"
-              class="cx-mp-name"
-            />
-            <button type="button" class="cx-mp-clear" aria-label="Xoá" onclick="_clearMapInput('map-picker-display-name')"><i data-lucide="x" style="width:14px;height:14px"></i></button>
-          </div>
-          <p id="map-picker-name-note" class="mt-1.5 text-xs text-gray-400">Tự lấy theo vị trí đã ghim.</p>
-        </div>
-      </div>
-
       <div class="cx-mp-map">
         <div id="map-picker-map" class="h-full w-full"></div>
-        <div id="map-picker-gmap" class="cx-mp-gmap" hidden>
-          <iframe title="Bản đồ Google" referrerpolicy="no-referrer-when-downgrade"></iframe>
-          <div class="cx-mp-gmap-card">
-            <div class="cx-mp-gmap-txt">
-              <p class="cx-mp-gmap-title"><i data-lucide="eye" style="width:16px;height:16px"></i><span>Bản đồ này sẽ hiện trên thiệp</span></p>
-              <p class="cx-mp-gmap-sub">Bản đồ Google chỉ để xem trước, chạm vào không đổi được vị trí. Chưa đúng chỗ thì tự ghim lại nhé.</p>
-            </div>
-            <x-button size="sm" icon="hand" class="cx-mp-gmap-pin" onclick="_pinOnOsm()"><span class="cx-mp-gmap-short">Tự ghim</span><span class="cx-mp-gmap-wide">Tự ghim trên bản đồ</span></x-button>
-          </div>
-        </div>
-        <p id="map-picker-hint" class="cx-mp-hint${hasCoords ? " is-set" : ""}">
-          <span class="cx-mp-hint-idle"><i data-lucide="pointer" style="width:14px;height:14px"></i>Chạm vào bản đồ để ghim</span>
-          <span class="cx-mp-hint-set"><i data-lucide="circle-check" style="width:14px;height:14px"></i>Đã ghim · kéo để chỉnh</span>
-        </p>
+        <p id="map-picker-hint" class="cx-mp-hint"></p>
       </div>
-
       <div class="cx-mp-act">
         <x-button variant="outline" tone="neutral" onclick="closeMapPicker()" class="flex-1">Hủy</x-button>
-        <x-button icon="check" onclick="applyMapPicker('${side}')" class="flex-1">Dùng vị trí này</x-button>
+        <x-button id="map-picker-apply" icon="locate-fixed" onclick="applyMapPicker('${side}')" class="flex-1">Dùng vị trí này</x-button>
       </div>
     </div>
   `;
   window.lucide?.createIcons({ root: sheet.body.closest(".cx-sheet-card") });
-
-  _syncMapNameSwitch(false);
+  _mpSync();
 
   setTimeout(() => {
     const mapEl = document.getElementById("map-picker-map");
@@ -208,29 +136,16 @@ function openMapPicker(side, opts = {}) {
       maxZoom: 19,
     }).addTo(_leafletMap);
 
-    if (hasCoords) {
-      _placeMarker(initLat, initLon);
-      _mapPickerSelected = { lat: initLat, lon: initLon, name: currentDisplayName };
-    }
+    if (hasCoords) _placeMarker(initLat, initLon);
+    else if (currentQuery) _centerNear(currentQuery);
 
-    _leafletMap.on("click", (e) => {
-      _placeMarker(e.latlng.lat, e.latlng.lng);
-      _reverseGeocode(e.latlng.lat, e.latlng.lng);
-    });
-    if (autoSearch) searchMapPicker();
-    else if (currentQuery) {
-      _showGmap(currentQuery);
-      _locateSavedQuery(currentQuery);
-    }
+    _leafletMap.on("click", (e) => _placeMarker(e.latlng.lat, e.latlng.lng));
   }, 80);
-
-  _setupMapPickerAutocomplete();
 }
 
-// Bản đồ đã lưu dạng CHỮ (gõ rồi dùng luôn, hoặc XuXi điền): tra để mở sẵn đúng chỗ
-// và cắm ghim. Chỉ để NHÌN — không đặt _mapPickerSelected, không đổi ô tìm/tên, nên
-// "Dùng vị trí này" mà không chỉnh gì thì link nhúng giữ nguyên chuỗi cũ.
-async function _locateSavedQuery(q) {
+// Bản đồ đang lưu dạng CHỮ: dời khung tới gần chỗ đó cho khách đỡ phải kéo từ toàn quốc.
+// KHÔNG cắm ghim — kết quả của OSM có thể lệch với Google, ghim là việc khách tự chạm.
+async function _centerNear(q) {
   const map = _leafletMap;
   try {
     const res = await fetch(
@@ -238,169 +153,10 @@ async function _locateSavedQuery(q) {
       { headers: { "Accept-Language": "vi" } }
     );
     const r = (await res.json())[0];
-    // Sheet đã đóng/mở lại, hoặc khách đã tự ghim/tìm trong lúc chờ → bỏ.
-    if (!r || map !== _leafletMap || _mapPickerSelected || _leafletMarker) return;
-    const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
-    map.setView([lat, lon], 16);
-    _placeMarker(lat, lon);
+    // Sheet đã đóng/mở lại, hoặc khách đã tự ghim trong lúc chờ → bỏ.
+    if (!r || map !== _leafletMap || _leafletMarker) return;
+    map.setView([parseFloat(r.lat), parseFloat(r.lon)], 16);
   } catch (e) {}
-}
-
-// Công tắc <x-switch key="map-name"> dựng sẵn ở trạng thái BẬT → đồng bộ lại theo ô tên.
-function _syncMapNameSwitch(on) {
-  // Màu + vị trí núm do .cx-switch đọc từ aria-checked.
-  document.getElementById("vis-btn-map-name")?.setAttribute("aria-checked", String(on));
-}
-
-function _toggleMapDisplayName() {
-  const input = document.getElementById("map-picker-display-name");
-  if (!input) return;
-  const willEnable = input.disabled;
-  input.disabled = !willEnable;
-  _syncMapNameSwitch(willEnable);
-  const note = document.getElementById("map-picker-name-note");
-  if (note) note.textContent = willEnable ? "Khách sẽ thấy đúng dòng này trên thiệp." : "Tự lấy theo vị trí đã ghim.";
-  if (willEnable) input.focus();
-}
-
-// Nút "x" trong ô: bắn `input` để ô tìm dọn luôn gợi ý cũ. Ẩn/hiện do CSS
-// (.cx-mp-clear ở _common.css) theo :placeholder-shown / :disabled.
-function _clearMapInput(id) {
-  const input = document.getElementById(id);
-  if (!input || input.disabled) return;
-  input.value = "";
-  input.focus();
-  input.dispatchEvent(new Event("input", { bubbles: true }));
-}
-
-function _setupMapPickerAutocomplete() {
-  const input = document.getElementById("map-picker-search");
-  if (!input) return;
-  let debounceTimer = null;
-  input.addEventListener("input", () => {
-    _mapPickerSelected = null;
-    clearTimeout(debounceTimer);
-    const q = input.value.trim();
-    if (q.length < 2) { _clearMapSuggestions(); return; }
-    // Nominatim chặn khi gọi dồn (~1 lượt/giây) → chờ khách ngừng gõ 2s mới hỏi gợi ý.
-    debounceTimer = setTimeout(() => _fetchMapSuggestions(q), 2000);
-  });
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { e.preventDefault(); clearTimeout(debounceTimer); _clearMapSuggestions(); searchMapPicker(); }
-    if (e.key === "Escape") _clearMapSuggestions();
-  });
-  document.addEventListener("click", _onClickOutsideSuggestions);
-}
-
-function _onClickOutsideSuggestions(e) {
-  const wrap = document.getElementById("map-picker-search-wrap");
-  if (wrap && !wrap.contains(e.target)) _clearMapSuggestions();
-}
-
-async function _fetchMapSuggestions(q) {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&addressdetails=0&accept-language=vi`,
-      { headers: { "Accept-Language": "vi" } }
-    );
-    const data = await res.json();
-    // Ô tìm đã đổi trong lúc chờ → kết quả này không còn khớp.
-    if (document.getElementById("map-picker-search")?.value.trim() !== q) return;
-    _mapSuggestions = data;
-    _renderMapSuggestions(data, q);
-  } catch (e) {
-    _renderMapSuggestions(null, q);
-  }
-}
-
-// `results` null = lỗi mạng; mảng rỗng = không có chỗ nào khớp.
-function _renderMapSuggestions(results, q) {
-  const dropdown = document.getElementById("map-picker-suggestions");
-  if (!dropdown) return;
-  dropdown.classList.remove("hidden");
-  if (!results || !results.length) {
-    dropdown.innerHTML = `<p class="px-4 py-3 text-sm text-gray-500">${
-      results ? `Không thấy “${escapeHtml(q)}”. Thử thêm tên đường hoặc quận.` : "Không tải được gợi ý. Kiểm tra mạng rồi thử lại."
-    }</p>`;
-    return;
-  }
-  dropdown.innerHTML = results.map((r, i) => {
-    const [head, ...rest] = String(r.display_name).split(",");
-    return `
-    <button type="button" role="option" onclick="_selectMapSuggestion(${i})" class="cx-mp-sug">
-      <i data-lucide="map-pin" class="mt-0.5 flex-shrink-0 text-rose-400" style="width:16px;height:16px"></i>
-      <span class="min-w-0">
-        <span class="block truncate text-sm font-medium text-gray-800">${escapeHtml(head.trim())}</span>
-        ${rest.length ? `<span class="block truncate text-xs text-gray-500">${escapeHtml(rest.join(",").trim())}</span>` : ""}
-      </span>
-    </button>`;
-  }).join("");
-  window.lucide?.createIcons({ root: dropdown });
-}
-
-function _selectMapSuggestion(index) {
-  const s = _mapSuggestions[index];
-  if (!s) return;
-  const input = document.getElementById("map-picker-search");
-  if (input) input.value = s.display_name;
-  _syncDisplayName(s.display_name);
-  _mapPickerSelected = { lat: parseFloat(s.lat), lon: parseFloat(s.lon), name: s.display_name };
-  _clearMapSuggestions();
-  _showGmap(s.display_name);
-  if (_leafletMap) {
-    _leafletMap.setView([s.lat, s.lon], 15);
-    _placeMarker(parseFloat(s.lat), parseFloat(s.lon));
-  }
-}
-
-function _clearMapSuggestions() {
-  const dropdown = document.getElementById("map-picker-suggestions");
-  if (dropdown) { dropdown.innerHTML = ""; dropdown.classList.add("hidden"); }
-}
-
-// Tìm theo chữ khách gõ: lớp Google phủ lên theo ĐÚNG chữ đó (Google tìm tốt hơn OSM, và
-// đó là thứ thiệp sẽ hiện), còn OSM phía dưới dời tới kết quả của Nominatim để khách gỡ
-// lớp phủ ra ghim tay thì đã ở gần đúng chỗ.
-async function searchMapPicker() {
-  const input = document.getElementById("map-picker-search");
-  if (!input) return;
-  const q = input.value.trim();
-  if (!q) return;
-  _showGmap(q);
-  _syncDisplayName(q);
-  if (!_leafletMap) return;
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&accept-language=vi`,
-      { headers: { "Accept-Language": "vi" } }
-    );
-    const results = await res.json();
-    if (results.length) {
-      const r = results[0];
-      const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
-      _leafletMap.setView([lat, lon], 15);
-      _placeMarker(lat, lon);
-      _mapPickerSelected = { lat, lon, name: q };
-    }
-  } catch (e) {}
-}
-
-// Lớp Google Maps nhúng theo TÊN phủ trên bản đồ OSM, như khung bản đồ ở khung chat XuXi.
-// Còn lớp này thì "Dùng vị trí này" nhúng theo tên; gỡ đi để ghim tay trên OSM mới nhúng
-// theo toạ độ. `q` rỗng = gỡ lớp phủ.
-function _showGmap(q) {
-  _mapPickerGmap = String(q || "").trim();
-  const wrap = document.getElementById("map-picker-gmap");
-  if (!wrap) return;
-  wrap.hidden = !_mapPickerGmap;
-  const frame = wrap.querySelector("iframe");
-  const url = _mapPickerGmap ? cxMapEmbed(_mapPickerGmap) : "";
-  if (url && frame.getAttribute("src") !== url) frame.src = url;
-}
-
-function _pinOnOsm() {
-  _showGmap("");
-  _leafletMap?.invalidateSize();
 }
 
 // Link nhúng Google Maps — chỗ DUY NHẤT dựng link này. `q`: chuỗi địa chỉ hoặc {lat, lon}.
@@ -419,7 +175,7 @@ function _mapFieldInput(name) {
 }
 
 // Ghi bản đồ của một địa điểm vào form Thiết lập — chỗ DUY NHẤT, cho cả bảng chọn ở form
-// lẫn khung chat XuXi: link nhúng, ô hiển thị, và tên vào ô `*_location`. Chỉ nhận link
+// lẫn khung chat XuXi: link nhúng, ô vị trí + khung xem, và tên vào ô `*_location`. Chỉ nhận link
 // Google Maps vì nó thành src của iframe trên thiệp.
 function cxApplyMap(side, embed, name) {
   if (!/^https:\/\/maps\.google\.com\/maps\?/.test(String(embed || ""))) return;
@@ -433,68 +189,83 @@ function cxApplyMap(side, embed, name) {
     // Phát "input" để x-input đồng bộ nút xoá và autosave (form nghe input) lưu địa chỉ → F5 khôi phục đúng
     loc.dispatchEvent(new Event("input", { bubbles: true }));
   }
-  _updateMapDisplay(side, embed, name || String(loc?.value || "").trim());
+  _updateMapDisplay(side, embed);
   // Tiệc đang bật "cùng địa điểm" thì đồng bộ lại theo nơi vừa đổi (16-ceremony.js).
   window._onLocationSourceChanged?.(side);
 }
 
-// Ô địa điểm của form tự ghim bản đồ theo CHỮ khách gõ, như khung chat XuXi: bản đồ đang
-// trống hoặc cũng là bản theo chữ thì ghim lại theo chữ mới; đã ghim toạ độ ở bảng chọn
-// thì giữ toạ độ, chỉ đổi tên hiện.
-function cxAutoPinMap(side, addr) {
+// Ô "Vị trí trên bản đồ" (`${side}_map_query`, không có name nên không vào FormData):
+// chuỗi toạ độ "lat, lon" / link Google Maps có toạ độ → nhúng theo toạ độ, còn lại nhúng
+// theo chữ. Chỉ đổi bản đồ — tên hiện trên thiệp là ô `${side}_location` riêng.
+function _cxParseMapQuery(text) {
+  const t = String(text || "").trim();
+  const m = t.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)$/) ||
+            t.match(/[@=](-?\d{1,3}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/);
+  if (m) {
+    const lat = parseFloat(m[1]), lon = parseFloat(m[2]);
+    if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) return { lat, lon };
+  }
+  return t;
+}
+
+function cxMapFromQuery(side, text) {
   const hidden = document.getElementById(`${side}_map_embed_url`);
-  const name = String(addr || "").trim();
-  if (!hidden || !name) return;
-  const byCoords = /[?&]q=-?\d+(\.\d+)?,-?\d+(\.\d+)?(&|$)/.test(hidden.value);
-  const embed = byCoords ? hidden.value : cxMapEmbed(name);
+  if (!hidden) return;
+  if (!String(text || "").trim()) { clearMapAddress(side); return; }
+  const embed = cxMapEmbed(_cxParseMapQuery(text));
   if (embed !== hidden.value) {
     hidden.value = embed;
     hidden.dispatchEvent(new Event("input", { bubbles: true }));
   }
-  _updateMapDisplay(side, embed, name);
+  _updateMapDisplay(side, embed);
   window._onLocationSourceChanged?.(side);
 }
 
+// Chuỗi hiện lại trong ô vị trí từ link nhúng đã lưu (toạ độ viết "lat, lon").
+function _queryFromEmbed(embed) {
+  try {
+    const m = String(embed || "").match(/[?&]q=([^&]+)/);
+    if (!m) return "";
+    const q = decodeURIComponent(m[1].replace(/\+/g, " "));
+    return q.replace(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/, "$1, $2");
+  } catch (e) {
+    return "";
+  }
+}
+
+// Luôn nhúng theo TOẠ ĐỘ đã ghim. Tên không đổi: form giữ ô `*_location` (cxApplyMap bỏ qua
+// tên rỗng), khung chat nhận lại đúng tên nó truyền vào.
 function applyMapPicker(side) {
-  const searchInput = document.getElementById("map-picker-search");
-  const displayNameInput = document.getElementById("map-picker-display-name");
-  const displayName = (displayNameInput ? displayNameInput.value.trim() : "") ||
-                      (_mapPickerSelected ? _mapPickerSelected.name : "") ||
-                      (searchInput ? searchInput.value.trim() : "");
-  const q = searchInput ? searchInput.value.trim() : "";
-  const picked = !!(q || _mapPickerSelected || _mapPickerGmap);
-  // Đang phủ Google → nhúng đúng cái khách đang nhìn (theo tên); không thì theo ghim OSM.
-  const embedUrl = cxMapEmbed(_mapPickerGmap || _mapPickerSelected || q);
+  const p = _mapPickerSelected;
+  if (!p) return;
+  const embedUrl = cxMapEmbed({ lat: +p.lat.toFixed(6), lon: +p.lon.toFixed(6) });
+  const name = _mapPickerOpts ? String(_mapPickerOpts.name || _mapPickerOpts.query || "") : "";
   // Lấy callback TRƯỚC khi đóng — đóng là xoá opts. Không có thì ghi thẳng vào form.
   const done = _mapPickerOpts ? _mapPickerOpts.onApply : (e, n) => cxApplyMap(side, e, n);
   closeMapPicker();
-  if (picked) done(embedUrl, displayName);
+  done(embedUrl, name);
 }
 
 function closeMapPicker() {
   if (typeof window._closeMapPickerSheet === 'function') window._closeMapPickerSheet();
 }
 
-function _updateMapDisplay(side, embedUrl, displayName) {
+// Đồng bộ ô vị trí + khung xem bản đồ theo link nhúng (rỗng = ẩn khung, xoá ô).
+function _updateMapDisplay(side, embedUrl) {
   const display = document.getElementById(`${side}-map-display`);
-  const addressEl = document.getElementById(`${side}-map-address`);
-  if (!display || !addressEl) return;
-  if (!embedUrl) {
-    display.classList.add("hidden"); display.classList.remove("flex");
-    addressEl.textContent = "";
-    _syncMapFrame(side, "");
-    return;
+  const q = document.getElementById(`${side}_map_query`);
+  if (q && document.activeElement !== q) {
+    q.value = embedUrl ? _queryFromEmbed(embedUrl) : "";
+    q.closest("x-input")?.syncClearBtn?.();
   }
-  let name = displayName;
-  if (!name) {
-    try {
-      const m = embedUrl.match(/[?&]q=([^&]+)/);
-      if (m) name = decodeURIComponent(m[1].replace(/\+/g, " "));
-    } catch (e) {}
-  }
-  addressEl.textContent = name || embedUrl;
-  display.classList.remove("hidden"); display.classList.add("flex");
-  _syncMapFrame(side, embedUrl);
+  if (!display) return;
+  display.classList.toggle("hidden", !embedUrl);
+  _syncMapFrame(side, embedUrl || "");
+}
+
+// Vẽ lại ô vị trí + khung bản đồ theo ô ẩn đang giữ (16-ceremony.js gọi khi chép "trùng địa điểm").
+function cxRefreshMapField(side) {
+  _updateMapDisplay(side, document.getElementById(`${side}_map_embed_url`)?.value || "");
 }
 
 // Khung xem bản đồ ngay dưới dòng địa điểm đã ghim của form Thiết lập: dựng lần đầu
@@ -530,22 +301,81 @@ function clearMapAddress(side) {
 function initMapDisplays(data) {
   ["ceremony", "vu_quy", "groom_party", "bride_party"].forEach((side) => {
     const val = data && data[`${side}_map_embed_url`];
-    // Dùng địa chỉ đã lưu (..._location) làm tên hiển thị, tránh tag hiện tọa độ (q=lat,lon) sau F5
-    const displayName = data && data[`${side}_location`];
-    if (val) _updateMapDisplay(side, val, displayName);
+    if (val) _updateMapDisplay(side, val);
   });
 }
 
+// Bảng "Hướng dẫn lấy tọa độ" (nút dưới ô Vị trí trên bản đồ của form Thiết lập): cách chép
+// toạ độ trên Google Maps, hai tab Điện thoại / Máy tính, mở sẵn tab theo loại màn hình.
+const _CX_COORD_STEPS = {
+  phone: [
+    "Mở ứng dụng <b>Google Maps</b>, tìm tới đúng chỗ tổ chức.",
+    "<b>Chạm và giữ</b> vào vị trí đó đến khi hiện ghim đỏ.",
+    "Android: tọa độ hiện ngay ở ô tìm kiếm phía trên. iPhone: vuốt thẻ thông tin ở dưới lên, tọa độ nằm trong thẻ.",
+    "Chạm vào dãy số để sao chép, rồi dán vào ô <b>Vị trí trên bản đồ</b>.",
+  ],
+  desktop: [
+    'Mở <a href="https://www.google.com/maps" target="_blank" rel="noopener">google.com/maps</a>, tìm tới đúng chỗ tổ chức.',
+    "<b>Nhấp chuột phải</b> vào vị trí đó.",
+    "Dòng đầu tiên trong menu là tọa độ, nhấp vào là đã sao chép.",
+    "Dán (<b>Ctrl+V</b>) vào ô <b>Vị trí trên bản đồ</b>.",
+  ],
+};
+
+function openCoordGuide() {
+  const sheet = openBottomSheet({
+    id: "coord-guide-modal",
+    title: `<span class="cx-mp-title-ic"><i data-lucide="locate-fixed" style="width:16px;height:16px"></i></span>Lấy tọa độ trên Google Maps`,
+    height: "80",
+    cardClass: "cx-sheet-fit sm:max-w-md",
+    onClose: () => { window._closeCoordGuide = null; },
+  });
+  if (!sheet) return;
+  window._closeCoordGuide = sheet.close;
+  const touch = window.matchMedia?.("(pointer: coarse)").matches;
+  sheet.body.innerHTML = `
+    <div class="cx-cg">
+      <div class="cx-seg" style="--n:2;--i:${touch ? 0 : 1}" role="tablist" aria-label="Thiết bị">
+        <button type="button" role="tab" class="cx-seg-btn" data-tab="phone"><i data-lucide="smartphone" style="width:14px;height:14px"></i>Điện thoại</button>
+        <button type="button" role="tab" class="cx-seg-btn" data-tab="desktop"><i data-lucide="monitor" style="width:14px;height:14px"></i>Máy tính</button>
+      </div>
+      <ol class="cx-cg-steps"></ol>
+      <div class="cx-cg-tip">
+        <p>Tọa độ là hai số cách nhau dấu phẩy, ví dụ <b>10.7798, 106.6990</b>.</p>
+        <p>Link chia sẻ rút gọn (<b>maps.app.goo.gl/…</b>) không dùng được, hãy chép dãy số.</p>
+      </div>
+    </div>
+    <div class="cx-mp-act">
+      <x-button onclick="window._closeCoordGuide?.()" class="flex-1">Đã hiểu</x-button>
+    </div>`;
+
+  const seg = sheet.body.querySelector(".cx-seg");
+  const list = sheet.body.querySelector(".cx-cg-steps");
+  const show = (tab) => {
+    const btns = [...seg.querySelectorAll(".cx-seg-btn")];
+    btns.forEach((b, i) => {
+      const on = b.dataset.tab === tab;
+      b.classList.toggle("is-on", on);
+      b.setAttribute("aria-selected", String(on));
+      if (on) seg.style.setProperty("--i", i);
+    });
+    list.innerHTML = _CX_COORD_STEPS[tab].map((t) => `<li>${t}</li>`).join("");
+  };
+  seg.addEventListener("click", (e) => {
+    const b = e.target.closest(".cx-seg-btn");
+    if (b) show(b.dataset.tab);
+  });
+  show(touch ? "phone" : "desktop");
+  window.lucide?.createIcons({ root: sheet.body.closest(".cx-sheet-card") });
+}
+
+window.openCoordGuide = openCoordGuide;
 window.openMapPicker = openMapPicker;
-window.searchMapPicker = searchMapPicker;
 window.applyMapPicker = applyMapPicker;
 window.cxMapEmbed = cxMapEmbed;
 window.cxApplyMap = cxApplyMap;
-window.cxAutoPinMap = cxAutoPinMap;
+window.cxMapFromQuery = cxMapFromQuery;
+window.cxRefreshMapField = cxRefreshMapField;
 window.closeMapPicker = closeMapPicker;
-window._selectMapSuggestion = _selectMapSuggestion;
-window._toggleMapDisplayName = _toggleMapDisplayName;
-window._clearMapInput = _clearMapInput;
-window._pinOnOsm = _pinOnOsm;
 window.clearMapAddress = clearMapAddress;
 window.initMapDisplays = initMapDisplays;

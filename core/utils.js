@@ -1135,6 +1135,8 @@ function cxYtWithStart(url, sec) {
 
 // ============= TIME PICKER =============
 
+// Popup chọn giờ dạng lưới bấm (#tp-popup, style ở styles/_time-picker.css) —
+// dùng cho mọi máy; đóng bằng closeTimePicker().
 function openTimePicker(anchorEl, currentValue, callback) {
   closeTimePicker();
 
@@ -1144,103 +1146,123 @@ function openTimePicker(anchorEl, currentValue, callback) {
     initH = h; initM = m;
   }
 
-  const ITEM_H = 32;
-  const VISIBLE = 5;
-  const COL_H = ITEM_H * VISIBLE;
-  const PAD = ITEM_H * Math.floor(VISIBLE / 2);
-  const CYCLES = 7; // enough to scroll freely without hitting edge
-  const H_COUNT = 24, M_COUNT = 60;
+  _openTimeGrid(anchorEl, initH, initM, callback);
+}
 
-  // Render CYCLES repetitions for infinite wrap illusion
-  const makeItems = (count) => Array.from({ length: count * CYCLES }, (_, i) =>
-    `<div style="height:${ITEM_H}px;scroll-snap-align:center;font-size:0.875rem;display:flex;align-items:center;justify-content:center;font-weight:500;color:rgb(var(--text-title-rgb));user-select:none">${String(i % count).padStart(2, '0')}</div>`
-  ).join('');
+function _openTimeGrid(anchorEl, initH, initM, callback) {
+  const pad = (n) => String(n).padStart(2, "0");
+  const st = { h: initH, m: initM, seg: "h" };
 
-  const colHtml = (id, count) => `
-    <div style="position:relative;flex:1;height:${COL_H}px">
-      <div style="position:absolute;left:0;right:0;top:0;height:${PAD}px;background:linear-gradient(to bottom,white,rgb(var(--white-rgb)/0));z-index:2;pointer-events:none"></div>
-      <div style="position:absolute;left:0;right:0;bottom:0;height:${PAD}px;background:linear-gradient(to top,white,rgb(var(--white-rgb)/0));z-index:2;pointer-events:none"></div>
-      <div style="position:absolute;left:2px;right:2px;top:50%;transform:translateY(-50%);height:${ITEM_H}px;border:1.5px solid rgb(var(--timeline-dot-rgb));border-radius:6px;background:rgb(var(--notice-bg-rgb)/0.7);z-index:1;pointer-events:none"></div>
-      <div id="${id}" style="height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-ms-overflow-style:none">
-        <div style="padding:${PAD}px 0">${makeItems(count)}</div>
-      </div>
+  const popup = document.createElement("div");
+  popup.id = "tp-popup";
+  popup.className = "tp-grid-pop";
+  popup.setAttribute("role", "dialog");
+  popup.setAttribute("aria-label", "Chọn giờ");
+  const seg = (key, label) => `
+    <div class="tp-seg" data-seg="${key}">
+      <button type="button" class="tp-step" data-step="1" aria-label="Tăng ${label}"><i data-lucide="chevron-up"></i></button>
+      <button type="button" class="tp-num" aria-label="${label}"></button>
+      <button type="button" class="tp-step" data-step="-1" aria-label="Giảm ${label}"><i data-lucide="chevron-down"></i></button>
     </div>`;
-
-  const popup = document.createElement('div');
-  popup.id = 'tp-popup';
-  popup.style.cssText = 'position:fixed;z-index:99999;background:white;border-radius:12px;box-shadow:0 8px 24px rgb(var(--scrim-rgb)/0.15),0 2px 6px rgb(var(--scrim-rgb)/0.08);overflow:hidden;width:160px';
   popup.innerHTML = `
-    <div style="display:flex;align-items:center;padding:8px 10px 0;gap:0">
-      ${colHtml('tp-hours', H_COUNT)}
-      <div style="flex-shrink:0;font-size:1rem;font-weight:300;color:rgb(var(--divider-rgb));padding:0 3px">:</div>
-      ${colHtml('tp-minutes', M_COUNT)}
-    </div>
-    <div class="flex gap-1.5 px-2.5 pb-2.5 pt-1.5">
-      <x-button variant="outline" tone="neutral" size="sm" id="tp-cancel" type="button" class="flex-1">Hủy</x-button>
-      <x-button size="sm" id="tp-confirm" type="button" class="flex-1">Xác nhận</x-button>
+    <div class="tp-read">${seg("h", "giờ")}<span class="tp-colon">:</span>${seg("m", "phút")}</div>
+    <div class="tp-cells"></div>
+    <div class="tp-actions">
+      <x-button variant="outline" tone="neutral" size="sm" id="tp-cancel" class="flex-1">Hủy</x-button>
+      <x-button size="sm" id="tp-confirm" class="flex-1">Xác nhận</x-button>
     </div>`;
-
-  if (!document.getElementById('tp-scrollbar-css')) {
-    const s = document.createElement('style');
-    s.id = 'tp-scrollbar-css';
-    s.textContent = '#tp-hours::-webkit-scrollbar,#tp-minutes::-webkit-scrollbar{display:none}';
-    document.head.appendChild(s);
-  }
-
   document.body.appendChild(popup);
+  window.lucide?.createIcons({ root: popup });
 
-  // Position below/above anchor
-  const rect = anchorEl.getBoundingClientRect();
-  const popH = COL_H + 8 + 30 + 16;
-  const spaceBelow = window.innerHeight - rect.bottom;
-  popup.style.top = (spaceBelow >= popH + 8 ? rect.bottom + 6 : rect.top - popH - 6) + 'px';
-  popup.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 168)) + 'px';
+  const cells = popup.querySelector(".tp-cells");
 
-  const hEl = document.getElementById('tp-hours');
-  const mEl = document.getElementById('tp-minutes');
-  const midCycle = Math.floor(CYCLES / 2);
-
-  // Start at middle cycle so user can freely wrap both directions
-  hEl.scrollTop = (midCycle * H_COUNT + initH) * ITEM_H;
-  mEl.scrollTop = (midCycle * M_COUNT + initM) * ITEM_H;
-
-  // After scroll settles, silently snap back to middle cycle (creates infinite wrap)
-  function setupWrap(el, count) {
-    let t;
-    el.addEventListener('scroll', () => {
-      clearTimeout(t);
-      t = setTimeout(() => {
-        const raw = Math.round(el.scrollTop / ITEM_H);
-        const real = ((raw % count) + count) % count;
-        const target = (midCycle * count + real) * ITEM_H;
-        if (Math.abs(el.scrollTop - target) > 1) el.scrollTop = target;
-      }, 120);
-    }, { passive: true });
+  function render() {
+    popup.querySelectorAll(".tp-seg").forEach((el) => {
+      const k = el.dataset.seg;
+      el.classList.toggle("is-on", k === st.seg);
+      el.querySelector(".tp-num").textContent = pad(st[k]);
+    });
+    const isMin = st.seg === "m";
+    cells.classList.toggle("is-min", isMin);
+    const vals = isMin ? Array.from({ length: 12 }, (_, i) => i * 5) : Array.from({ length: 24 }, (_, i) => i);
+    cells.innerHTML = vals.map((v) => {
+      const cls = ["tp-cell"];
+      if (v === st[st.seg]) cls.push("is-sel");
+      if (!isMin && (v < 6 || v > 21)) cls.push("is-dim");
+      return `<button type="button" class="${cls.join(" ")}" data-v="${v}">${pad(v)}</button>`;
+    }).join("");
   }
-  setupWrap(hEl, H_COUNT);
-  setupWrap(mEl, M_COUNT);
 
-  window._timePickerCallback = callback;
+  function step(k, d) {
+    const n = k === "h" ? 24 : 60;
+    st[k] = (st[k] + d + n) % n;
+    st.seg = k;
+    render();
+  }
+
+  popup.addEventListener("click", (e) => {
+    const cell = e.target.closest(".tp-cell");
+    if (cell) {
+      st[st.seg] = +cell.dataset.v;
+      if (st.seg === "h") st.seg = "m";
+      render();
+      return;
+    }
+    const segEl = e.target.closest(".tp-seg");
+    if (!segEl) return;
+    const stepBtn = e.target.closest(".tp-step");
+    if (stepBtn) step(segEl.dataset.seg, +stepBtn.dataset.step);
+    else { st.seg = segEl.dataset.seg; render(); }
+  });
+
+  // Lăn chuột trên dòng số: đúng một nấc mỗi lần, cộng dồn delta cho trackpad
+  let acc = 0;
+  popup.querySelector(".tp-read").addEventListener("wheel", (e) => {
+    const segEl = e.target.closest(".tp-seg");
+    if (!segEl) return;
+    e.preventDefault();
+    acc += e.deltaY;
+    if (Math.abs(acc) < 40) return;
+    step(segEl.dataset.seg, acc < 0 ? 1 : -1);
+    acc = 0;
+  }, { passive: false });
 
   function apply() {
-    const rawH = Math.round(hEl.scrollTop / ITEM_H);
-    const rawM = Math.round(mEl.scrollTop / ITEM_H);
-    const h = ((rawH % H_COUNT) + H_COUNT) % H_COUNT;
-    const m = ((rawM % M_COUNT) + M_COUNT) % M_COUNT;
-    const val = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    if (typeof window._timePickerCallback === 'function') {
-      window._timePickerCallback(val);
-      window._timePickerCallback = null;
-    }
+    const val = `${pad(st.h)}:${pad(st.m)}`;
+    const cb = window._timePickerCallback;
     closeTimePicker();
+    if (typeof cb === "function") cb(val);
   }
 
-  document.getElementById('tp-confirm').addEventListener('click', apply);
-  document.getElementById('tp-cancel').addEventListener('click', closeTimePicker);
+  window._tpKeydown = (e) => {
+    if (e.key === "Escape") { e.preventDefault(); closeTimePicker(); }
+    else if (e.key === "Enter") { e.preventDefault(); apply(); }
+    else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      step(st.seg, e.key === "ArrowUp" ? 1 : -1);
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      st.seg = e.key === "ArrowLeft" ? "h" : "m";
+      render();
+    }
+  };
+  document.addEventListener("keydown", window._tpKeydown);
+
+  render();
+  window._timePickerCallback = callback;
+  document.getElementById("tp-confirm").addEventListener("click", apply);
+  document.getElementById("tp-cancel").addEventListener("click", closeTimePicker);
+
+  const rect = anchorEl.getBoundingClientRect();
+  const popH = popup.offsetHeight;
+  const popW = popup.offsetWidth;
+  const below = window.innerHeight - rect.bottom >= popH + 8;
+  popup.style.top = Math.max(8, below ? rect.bottom + 6 : rect.top - popH - 6) + "px";
+  popup.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - popW - 8)) + "px";
 
   setTimeout(() => {
-    document.addEventListener('mousedown', _onTpOutside);
-    document.addEventListener('touchstart', _onTpOutside, { passive: true });
+    document.addEventListener("mousedown", _onTpOutside);
+    document.addEventListener("touchstart", _onTpOutside, { passive: true });
   }, 0);
 }
 
@@ -1252,6 +1274,10 @@ function _onTpOutside(e) {
 function closeTimePicker() {
   const popup = document.getElementById('tp-popup');
   if (popup) popup.remove();
+  if (window._tpKeydown) {
+    document.removeEventListener('keydown', window._tpKeydown);
+    window._tpKeydown = null;
+  }
   document.removeEventListener('mousedown', _onTpOutside);
   document.removeEventListener('touchstart', _onTpOutside);
   window._timePickerCallback = null;

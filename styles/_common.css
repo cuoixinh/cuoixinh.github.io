@@ -1443,9 +1443,106 @@ textarea::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* Sheet cao theo nội dung (bảng ngắn như Hướng dẫn lấy tọa độ) thay vì khổ cố định. */
+.cx-sheet-card.cx-sheet-fit {
+  height: auto;
+  max-height: min(100%, var(--cx-sheet-h, calc(var(--vh, 1vh) * 90)));
+}
+
+@media (min-width: 640px) {
+  .cx-sheet-card.cx-sheet-fit {
+    height: auto;
+    max-height: 92vh;
+  }
+}
+
+/* Chữ "tọa độ" trong dòng ví dụ dưới ô Vị trí trên bản đồ — bấm mở Hướng dẫn lấy tọa độ.
+   Phải là `inline` (đè inline-flex của x-button, nên cần `button.`) để nằm đúng dòng chữ. */
+button.cx-coord-help {
+  display: inline;
+  padding: 0;
+  border-radius: 0;
+  color: rgb(var(--action-primary-rgb));
+  font: inherit;
+  font-weight: 600;
+  line-height: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+button.cx-coord-help:hover {
+  text-decoration-style: solid;
+}
+
+/* ── Bảng Hướng dẫn lấy tọa độ (openCoordGuide ở core/helpers/maps-helper.js) ── */
+.cx-cg {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 4px;
+}
+
+.cx-cg-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  counter-reset: cx-cg;
+}
+
+.cx-cg-steps li {
+  position: relative;
+  min-height: 28px;
+  padding: 4px 0 0 40px;
+  color: rgb(var(--text-title-rgb));
+  font-size: 14px;
+  line-height: 1.55;
+  counter-increment: cx-cg;
+}
+
+.cx-cg-steps li::before {
+  content: counter(cx-cg);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgb(var(--action-primary-rgb) / 0.1);
+  color: rgb(var(--action-primary-rgb));
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cx-cg-steps b,
+.cx-cg-tip b {
+  font-weight: 600;
+}
+
+.cx-cg-steps a {
+  color: rgb(var(--action-primary-rgb));
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.cx-cg-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgb(var(--surface-hover-rgb));
+  color: rgb(var(--text-body-rgb));
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 /* ── Bảng chọn địa điểm (openMapPicker ở core/helpers/maps-helper.js) ────────
-   Mobile: ô gõ · bản đồ tràn hai mép · nút. Từ sm: hai cột, bản đồ chiếm trọn
-   cột phải. Hai ô gõ phải đứng ĐẦU ở mọi khổ (lý do ở maps-helper.js). */
+   Chỉ để ghim toạ độ: bản đồ chiếm trọn thân sheet, dải nút ở đáy. */
 .cx-mp {
   display: flex;
   flex: 1;
@@ -1453,22 +1550,12 @@ textarea::-webkit-scrollbar-thumb:hover {
   min-height: 0;
 }
 
-.cx-mp-ctrl {
-  position: relative;
-  z-index: 10; /* danh sách gợi ý phải nổi trên các lớp của Leaflet */
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 12px 16px 16px;
-}
-
 .cx-mp-map {
   position: relative;
   isolation: isolate; /* nhốt z-index 400–1000 của Leaflet trong khung */
   flex: 1;
   min-height: 0;
-  overflow: hidden; /* bàn phím bung là khung co còn vài chục px — thẻ nổi không được tràn lên ô gõ */
-  container-type: size; /* .cx-mp-gmap-card gọn lại theo chiều cao khung */
+  overflow: hidden;
   background: rgb(var(--surface-hover-rgb));
 }
 
@@ -1480,31 +1567,21 @@ textarea::-webkit-scrollbar-thumb:hover {
 }
 
 @media (min-width: 640px) {
-  .cx-mp {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    grid-template-rows: 1fr auto;
-  }
-
-  .cx-mp-ctrl {
-    grid-column: 1;
-    grid-row: 1;
-    padding: 20px 20px 16px;
-  }
-
   .cx-mp-map {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    margin: 0 16px 16px 0;
+    margin: 0 16px;
     border-radius: 16px;
-    overflow: hidden;
   }
 
   .cx-mp-act {
-    grid-column: 1;
-    grid-row: 2;
-    padding: 16px 20px;
+    justify-content: flex-end;
+    padding: 16px;
     border-top: 0;
+  }
+
+  /* `button` để thắng `flex-1` (utility) của nút: nút ôm chữ, dồn phải. */
+  .cx-mp-act > button {
+    flex: 0 0 auto;
+    min-width: 112px;
   }
 }
 
@@ -1530,259 +1607,36 @@ textarea::-webkit-scrollbar-thumb:hover {
   font-weight: 500;
 }
 
-.cx-mp-search,
-.cx-mp-name {
-  width: 100%;
-  height: 44px;
-  border: 1px solid rgb(var(--border-field-rgb));
-  color: rgb(var(--text-title-rgb));
-  font-size: 16px; /* dưới 16px là iOS tự zoom khi focus */
-  outline: none;
-  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
-}
-
-.cx-mp-search {
-  padding: 0 96px 0 40px;
-  border-radius: 9999px;
-  background: rgb(var(--surface-hover-rgb));
-}
-
-.cx-mp-name {
-  padding: 0 36px 0 12px;
-  border-radius: 12px;
-  background: rgb(var(--white-rgb));
-}
-
-.cx-mp-search:focus,
-.cx-mp-name:focus {
-  border-color: rgb(var(--border-field-focus-rgb));
-  background: rgb(var(--white-rgb));
-  box-shadow: 0 0 0 4px rgb(var(--action-primary-rgb) / 0.12);
-}
-
-/* Nút xoá trong hai ô: ô tìm chừa chỗ cho nút "Tìm" bên phải nên lùi vào hơn. */
-.cx-mp-clear {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 9999px;
-  color: rgb(var(--text-muted-rgb));
-}
-
-.cx-mp-clear:hover {
-  background: rgb(var(--surface-hover-rgb));
-  color: rgb(var(--text-body-rgb));
-}
-
-.cx-mp-search ~ .cx-mp-clear {
-  right: 66px;
-}
-
-.cx-mp-search:placeholder-shown ~ .cx-mp-clear,
-.cx-mp-name:placeholder-shown ~ .cx-mp-clear,
-.cx-mp-name:disabled ~ .cx-mp-clear {
-  display: none;
-}
-
-.cx-mp-name:disabled {
-  background: rgb(var(--surface-hover-rgb));
-  color: rgb(var(--text-body-rgb));
-  cursor: not-allowed;
-}
-
-.cx-mp-sugs {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 8px;
-  max-height: 288px;
-  overflow-y: auto;
-  border: 1px solid rgb(var(--border-subtle-rgb));
-  border-radius: 16px;
-  background: rgb(var(--white-rgb));
-  box-shadow: 0 12px 32px rgb(var(--scrim-rgb) / 0.14);
-}
-
-.cx-mp-sug {
-  display: flex;
-  width: 100%;
-  gap: 12px;
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid rgb(var(--border-subtle-rgb));
-}
-
-.cx-mp-sug:last-child {
-  border-bottom: 0;
-}
-
-.cx-mp-sug:hover,
-.cx-mp-sug:focus-visible {
-  background: rgb(var(--action-primary-rgb) / 0.06);
-  outline: none;
-}
-
-/* Lớp Google Maps (nhúng theo tên) phủ trọn bản đồ OSM khi khách tìm — _showGmap(). */
-.cx-mp-gmap {
-  position: absolute;
-  inset: 0;
-  z-index: 1001; /* trên mọi lớp của Leaflet lẫn chip nhắc */
-  background: rgb(var(--surface-hover-rgb));
-}
-
-.cx-mp-gmap[hidden] {
-  display: none;
-}
-
-/* Chỉ để XEM: bấm/kéo trên bản đồ Google không đổi được vị trí đã chọn, nên khoá hẳn
-   và làm xám mờ cho ra dáng "không bấm được" — ghim tay đi qua nút trong .cx-mp-gmap-card. */
-.cx-mp-gmap iframe {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  pointer-events: none;
-  filter: grayscale(0.85);
-  opacity: 0.6;
-}
-
-/* Thẻ giải thích neo đáy lớp phủ: vì sao không bấm được + lối ghim tay. Mobile khung bản
-   đồ chỉ cao vài trăm px mà ghim của Google nằm GIỮA khung → chữ và nút "Tự ghim" xếp
-   NGANG cho thẻ thấp; từ sm mới xếp dọc với nút tràn ngang. */
-.cx-mp-gmap-card {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  left: 8px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 8px 8px 12px;
-  border-radius: 16px;
-  background: rgb(var(--white-rgb));
-  box-shadow: 0 8px 24px rgb(var(--scrim-rgb) / 0.18);
-}
-
-.cx-mp-gmap-txt {
-  flex: 1;
-  min-width: 0;
-}
-
-.cx-mp-gmap-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: rgb(var(--text-heading-rgb));
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.cx-mp-gmap-title span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cx-mp-gmap-title svg {
-  flex-shrink: 0;
-  color: rgb(var(--action-primary-rgb));
-}
-
-.cx-mp-gmap-sub {
-  margin-top: 4px;
-  color: rgb(var(--text-body-rgb));
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.cx-mp-gmap-wide {
-  display: none;
-}
-
-.cx-mp-gmap-pin {
-  flex-shrink: 0;
-}
-
-@media (min-width: 640px) {
-  .cx-mp-gmap-card {
-    right: 12px;
-    bottom: 12px;
-    left: 12px;
-    display: block;
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 16px;
-  }
-
-  .cx-mp-gmap-sub {
-    margin-bottom: 12px;
-  }
-
-  .cx-mp-gmap-short {
-    display: none;
-  }
-
-  .cx-mp-gmap-wide {
-    display: inline;
-  }
-
-  /* Ghi đè khổ `sm` của x-button thành khổ `lg` tràn ngang. */
-  .cx-mp-gmap-card .cx-mp-gmap-pin {
-    width: 100%;
-    height: 48px;
-    gap: 8px;
-    padding: 0 28px;
-    font-size: 15px;
-  }
-}
-
-/* Khung thấp (bàn phím đang bung): giấu thẻ — lúc đó khách đang gõ, thẻ chỉ che bản đồ. */
-@container (max-height: 159px) {
-  .cx-mp-gmap-card {
-    display: none;
-  }
-}
-
-/* Chip nhắc trên bản đồ — hai trạng thái, cờ .is-set do _markPinned() đặt. */
+/* Chip nhắc neo đỉnh bản đồ: "Chạm để ghim" ↔ toạ độ đã ghim (_mpSync). */
 .cx-mp-hint {
   position: absolute;
   top: 12px;
   left: 50%;
-  z-index: 1000;
+  z-index: 1001; /* trên mọi lớp của Leaflet */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 112px); /* chừa nút zoom góc trái */
   transform: translateX(-50%);
-  padding: 4px 12px;
+  padding: 8px 16px;
   border-radius: 9999px;
-  background: rgb(var(--white-rgb) / 0.92);
-  box-shadow: 0 2px 8px rgb(var(--scrim-rgb) / 0.12);
+  background: rgb(var(--white-rgb) / 0.95);
+  box-shadow: 0 4px 16px rgb(var(--scrim-rgb) / 0.16);
   color: rgb(var(--text-body-rgb));
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   pointer-events: none;
 }
 
-.cx-mp-hint > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.cx-mp-hint span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.cx-mp-hint-set,
-.cx-mp-hint.is-set .cx-mp-hint-idle {
-  display: none !important;
-}
-
-.cx-mp-hint.is-set .cx-mp-hint-set {
-  display: inline-flex !important;
+.cx-mp-hint.is-set {
   color: rgb(var(--action-primary-rgb));
+  font-variant-numeric: tabular-nums;
 }
 
 /* Ghim: khối vuông bo ba góc xoay -45° → góc nhọn chĩa xuống đúng điểm neo

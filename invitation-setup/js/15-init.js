@@ -383,25 +383,17 @@ function initializePage() {
       ?.addEventListener("input", _syncPartyIfSame);
   });
 
-  // Gõ ô địa điểm → bản đồ tự ghim theo chữ (ngừng gõ mới ghim, khỏi tải lại khung bản đồ
-  // mỗi phím); xoá rỗng → ẩn luôn tag + khung bản đồ bên dưới.
-  [
-    ["ceremony", "ceremony_location"],
-    ["vu_quy", "vu_quy_location"],
-    ["groom_party", "groom_party_location"],
-    ["bride_party", "bride_party_location"],
-  ].forEach(([mapSide, name]) => {
-    const inp = document.querySelector(`input[name="${name}"]`);
+  // Ô "Vị trí trên bản đồ" → ghim bản đồ theo toạ độ/chữ khách gõ (ngừng gõ mới ghim, khỏi
+  // tải lại khung bản đồ mỗi phím); xoá rỗng (kể cả nút "x") → gỡ bản đồ ngay.
+  ["ceremony", "vu_quy", "groom_party", "bride_party"].forEach((mapSide) => {
+    const inp = document.getElementById(`${mapSide}_map_query`);
     let pinTimer = null;
-    inp?.addEventListener("input", (e) => {
+    inp?.addEventListener("input", () => {
       clearTimeout(pinTimer);
-      if (!inp.value.trim()) {
-        if (typeof clearMapAddress === "function") clearMapAddress(mapSide);
-        return;
-      }
-      // Chỉ chữ khách tự gõ: lần gán bằng mã (chép "trùng địa điểm", bảng chọn, XuXi) đã kèm bản đồ riêng.
-      if (e.isTrusted && !inp.readOnly && typeof cxAutoPinMap === "function")
-        pinTimer = setTimeout(() => cxAutoPinMap(mapSide, inp.value), 700);
+      if (inp.readOnly || typeof cxMapFromQuery !== "function") return;
+      const run = () => cxMapFromQuery(mapSide, inp.value);
+      if (!inp.value.trim()) run();
+      else pinTimer = setTimeout(run, 700);
     });
   });
 
