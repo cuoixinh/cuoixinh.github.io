@@ -266,7 +266,7 @@ function _ledPoster(tpl, P) {
   for (let i = 0; i < P.scenes.length; i++) {
     const s = P.scenes[i];
     const d = Math.min(s.max, Math.max(s.min, s.base));
-    if (t < d || i === P.scenes.length - 1) return P.starts[i] + Math.min(t, s.dur - 0.05);
+    if (t < d || i === P.scenes.length - 1) return P.starts[i] + Math.min(t, s.still ?? s.dur - 0.05);
     t -= d;
   }
   return 0;
@@ -561,12 +561,12 @@ function _ledPhRender() {
   });
 }
 
-// Dừng màn lớn ở cuối cảnh i (mọi chữ đã hiện đủ) — chỗ đứng khi đang sửa cảnh đó.
+// Dừng màn lớn ở cuối cảnh i, ngay trước quãng chữ mờ đi (mọi chữ đã hiện đủ) — chỗ đứng khi đang sửa cảnh đó.
 function _ledShowScene(i) {
   const P = _ledP.get(_ledS.tpl);
   if (!P?.scenes[i]) return;
   ledPlay(false);
-  _ledSetT(Math.floor(_ledNow() / P.total) * P.total + P.starts[i] + Math.max(0, P.scenes[i].dur - 0.05));
+  _ledSetT(Math.floor(_ledNow() / P.total) * P.total + P.starts[i] + (P.scenes[i].still ?? Math.max(0, P.scenes[i].dur - 0.05)));
 }
 
 // Mở phần chỉnh của cảnh i (-1 = đóng hết), trả về dòng đang mở.

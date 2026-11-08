@@ -59,7 +59,7 @@
     // Chuyển cảnh chậm, êm — màn chờ chạy cả tiếng đồng hồ, không cần nhịp gấp.
     fade: 2.2,
     // Bộ dữ liệu mẫu (assets/data-template/<tên>/) khi chưa chọn thiệp.
-    demo: "romantic-blush",
+    demo: "romantic-gold",
     fonts: [`400 92px ${PF}`, `400 60px ${PF}`, `italic 400 34px ${PF}`, `400 30px ${CO}`, `500 26px ${CO}`, `italic 400 34px ${CO}`, `500 32px ${CO}`, `400 132px ${SC}`],
     scenes: buildScenes,
   });
