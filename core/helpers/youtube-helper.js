@@ -44,7 +44,26 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
+// Nhạc thư viện ("lib:…", xem cxIsLibMusic ở utils.js): thẻ <audio> bọc kiểu YT.Player
+// nên mọi đường phát/dừng/hiệu ứng bên dưới dùng chung với YouTube.
+function _initLibMusic(musicUrl) {
+  const src = typeof cxLibMusicSrc === "function" ? cxLibMusicSrc(musicUrl) : "";
+  if (!src) return;
+  _musicVideoId = null;
+  // Luôn phát từ đầu và lặp: kho nhạc không trả Range nên không tua tới giây bắt đầu được.
+  youtubePlayer = cxAudioPlayer(src, { loop: true, ..._musicEvents(0) });
+  // Tên bài cho trình phát (getMusicInfo) lấy từ danh mục, không chặn việc phát.
+  const file = cxLibMusicFile(musicUrl);
+  cxMusicLibrary().then((list) => {
+    const t = list.find((x) => x.file === file);
+    if (!t || !youtubePlayer?.setMeta) return;
+    youtubePlayer.setMeta({ title: t.title, author: t.artist });
+    _emitMusicState();
+  });
+}
+
 function initYouTubeMusic(musicUrl) {
+  if (typeof cxIsLibMusic === "function" && cxIsLibMusic(musicUrl)) return _initLibMusic(musicUrl);
   if (
     !musicUrl ||
     (!musicUrl.includes("youtube.com") && !musicUrl.includes("youtu.be"))
@@ -89,42 +108,47 @@ function initYouTubeMusic(musicUrl) {
           showinfo: 0,
           modestbranding: 1,
         },
-        events: {
-          onReady: (event) => {
-            // Nhỏ hết cỡ trước, _fadeInMusic kéo lên khi thật sự phát.
-            event.target.setVolume(0);
-            // Khung chỉnh giao diện (?edit=1) không tự phát — bấm nút nhạc vẫn phát được.
-            if (_cxMusicNoAutoplay()) _musicUserPaused = true;
-            else _armOpenPlay();
-            _emitMusicState();
-          },
-          onStateChange: (event) => {
-            if (event.data === YT.PlayerState.ENDED) {
-              if (start) event.target.seekTo(start, true);
-              event.target.playVideo();
-            }
-            const S = YT.PlayerState;
-            // Đang bị dừng (người bấm, hoặc trang cha gọi cxMusicPause) mà
-            // player tự phát — autoplay của onReady tới muộn — thì dừng lại.
-            if (event.data === S.PLAYING && _musicUserPaused) {
-              event.target.pauseVideo();
-              return;
-            }
-            if (event.data === S.PLAYING && !_musicAudible) {
-              _musicAudible = true;
-              _fadeInMusic(event.target);
-            } else if (event.data !== S.PLAYING && event.data !== S.BUFFERING) {
-              _musicAudible = false;
-              _stopMusicFade();
-            }
-            isYouTubePlaying = event.data === S.PLAYING;
-            updateMusicIcon();
-            _emitMusicState();
-          },
-        },
+        events: _musicEvents(start),
       });
     }
   }, 100);
+}
+
+// Sự kiện player dùng chung cho YouTube lẫn nhạc thư viện (mã trạng thái giống YT.PlayerState).
+function _musicEvents(start) {
+  const S = window.YT?.PlayerState || CX_PLAYER_STATE;
+  return {
+    onReady: (event) => {
+      // Nhỏ hết cỡ trước, _fadeInMusic kéo lên khi thật sự phát.
+      event.target.setVolume(0);
+      // Khung chỉnh giao diện (?edit=1) không tự phát — bấm nút nhạc vẫn phát được.
+      if (_cxMusicNoAutoplay()) _musicUserPaused = true;
+      else _armOpenPlay();
+      _emitMusicState();
+    },
+    onStateChange: (event) => {
+      if (event.data === S.ENDED) {
+        if (start) event.target.seekTo(start, true);
+        event.target.playVideo();
+      }
+      // Đang bị dừng (người bấm, hoặc trang cha gọi cxMusicPause) mà
+      // player tự phát — autoplay của onReady tới muộn — thì dừng lại.
+      if (event.data === S.PLAYING && _musicUserPaused) {
+        event.target.pauseVideo();
+        return;
+      }
+      if (event.data === S.PLAYING && !_musicAudible) {
+        _musicAudible = true;
+        _fadeInMusic(event.target);
+      } else if (event.data !== S.PLAYING && event.data !== S.BUFFERING) {
+        _musicAudible = false;
+        _stopMusicFade();
+      }
+      isYouTubePlaying = event.data === S.PLAYING;
+      updateMusicIcon();
+      _emitMusicState();
+    },
+  };
 }
 
 // Mỗi lần bắt đầu phát (lần đầu, phát tiếp sau khi dừng, quay vòng) âm lượng

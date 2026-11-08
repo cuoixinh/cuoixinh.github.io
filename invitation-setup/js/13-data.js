@@ -811,9 +811,9 @@ async function _saveAllOnce(overrides, label) {
       ?.value?.trim();
 
     if (musicUrl) {
-      // Validate YouTube URL
+      // YouTube hoặc bài thư viện ("lib:…", cxIsLibMusic).
       const videoId = extractYouTubeVideoId(musicUrl);
-      if (videoId) {
+      if (videoId || cxIsLibMusic(musicUrl)) {
         payload.music_url = musicUrl;
       } else {
         console.warn("Invalid YouTube URL:", musicUrl);

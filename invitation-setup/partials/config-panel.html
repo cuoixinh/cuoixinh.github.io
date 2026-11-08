@@ -154,7 +154,7 @@
               <label for="youtube-link-input">Nhạc nền</label>
             </h2>
             <p class="cx-cfg-desc">
-              Tìm theo tên bài hát hoặc dán đường dẫn YouTube.
+              Chọn từ thư viện nhạc, hoặc tìm trên YouTube theo tên bài / dán đường dẫn.
             </p>
           </div>
           <x-switch
@@ -164,20 +164,41 @@
           ></x-switch>
         </div>
         <div class="cx-cfg-body space-y-3">
-          <!-- Ô TÌM KIẾM thuần: chọn bài xong thì trống lại, bài đang chọn hiện
-               ở thẻ bên dưới. Link thật lưu ngầm ở #music-url-input. -->
-          <x-input
-            id="youtube-link-input"
-            placeholder="Nhập tên bài hát hoặc dán đường dẫn ..."
-          ></x-input>
-          <input type="hidden" id="music-url-input" name="music_url" />
-          <p id="youtube-error" class="hidden text-xs text-red-600" role="alert">
-            Đường dẫn không hợp lệ.
+          <!-- Hai nguồn nhạc (11-youtube.js, cxMusicSrc): chỉ đổi khung tìm bên dưới,
+               bài đang chọn (thẻ + #music-url-input) giữ nguyên tới khi chọn bài khác. -->
+          <div id="music-src-seg" class="cx-seg" role="tablist" aria-label="Nguồn nhạc" style="--n: 2; --i: 0">
+            <button type="button" class="cx-seg-btn is-on" role="tab" data-music-src="lib" aria-selected="true">Thư viện nhạc</button>
+            <button type="button" class="cx-seg-btn" role="tab" data-music-src="yt" aria-selected="false">YouTube</button>
+          </div>
+          <p class="text-xs text-gray-500">
+            Nên chọn bài trong thư viện nhạc để thiệp tải nhanh hơn. Thư viện chưa có bài bạn cần thì tìm trên YouTube.
           </p>
-          <div
-            id="youtube-search-results"
-            class="space-y-1 max-h-64 overflow-y-auto rounded-lg"
-          ></div>
+          <input type="hidden" id="music-url-input" name="music_url" />
+          <div id="music-src-yt" class="hidden space-y-3">
+            <!-- Ô TÌM KIẾM thuần: chọn bài xong thì trống lại, bài đang chọn hiện
+                 ở thẻ bên dưới. Link thật lưu ngầm ở #music-url-input. -->
+            <x-input
+              id="youtube-link-input"
+              placeholder="Nhập tên bài hát hoặc dán đường dẫn ..."
+            ></x-input>
+            <p id="youtube-error" class="hidden text-xs text-red-600" role="alert">
+              Đường dẫn không hợp lệ.
+            </p>
+            <div
+              id="youtube-search-results"
+              class="space-y-1 max-h-64 overflow-y-auto rounded-lg"
+            ></div>
+          </div>
+          <div id="music-src-lib" class="space-y-3">
+            <x-input
+              id="music-lib-q"
+              placeholder="Tìm tên bài hát hoặc ca sĩ"
+            ></x-input>
+            <div
+              id="music-lib-list"
+              class="space-y-1 max-h-64 overflow-y-auto rounded-lg"
+            ></div>
+          </div>
 
           <!-- Bài đang chọn: trình phát + tên bài + nút gỡ trong MỘT thẻ. Tên bài
                để xuống dòng chứ không cắt: đây là cách duy nhất biết đang chọn
@@ -208,7 +229,8 @@
                    (cxYtWithStart), nên các ô ở đây KHÔNG có name. Thanh kéo cần độ
                    dài bài từ trình phát thử; video chặn nhúng thì lùi về ô nhập tay. -->
               <div>
-                <label for="music-start-range" class="text-xs text-gray-500">
+                <!-- Bài thư viện (_musicStartLib) chỉ còn nút Nghe thử: kho không trả Range nên không tua được. -->
+                <label id="music-start-label" for="music-start-range" class="text-xs text-gray-500">
                   Bắt đầu phát từ
                 </label>
                 <div id="music-start-slider" class="cx-music-start">
@@ -246,6 +268,7 @@
                     Nghe thử
                   </x-button>
                   <x-button
+                    id="music-start-grab"
                     variant="soft"
                     tone="neutral"
                     size="xs"

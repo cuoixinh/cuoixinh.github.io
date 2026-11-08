@@ -181,6 +181,30 @@ _scCtl.addEventListener("click", (e) => {
   else win?.postMessage({ type: "cx-slide-act", k }, location.origin);
 });
 
+// Phím cách ở bất kỳ đâu trên trang = phát / tạm dừng, kể cả khi đang đứng trên một nút (bắt ở
+// pha capture để nút không nhận cú bấm). Chỉ chừa ô gõ chữ. Trong khung slide thì runtime tự lo.
+const _scInField = (el) => !!el?.closest?.('textarea, select, [contenteditable=""], [contenteditable="true"], input:not([type=button], [type=checkbox], [type=radio], [type=range], [type=file], [type=submit], [type=reset])');
+addEventListener(
+  "keydown",
+  (e) => {
+    if (e.key !== " " || e.ctrlKey || e.metaKey || e.altKey || _scInField(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.repeat) return;
+    if (typeof _scVoRec !== "undefined" && _scVoRec) return _scVoRecStop();
+    _scFrame.contentWindow?.postMessage({ type: "cx-slide-play", on: !_scCtlPlaying }, location.origin);
+  },
+  true,
+);
+// Firefox kích hoạt nút đang focus lúc NHẢ phím cách — chặn luôn ở keyup.
+addEventListener(
+  "keyup",
+  (e) => {
+    if (e.key === " " && !_scInField(e.target)) e.preventDefault();
+  },
+  true,
+);
+
 // ── Chữ trong slide: mỗi cảnh một dòng (mốc giờ · tên · thời lượng), bấm là chiếu cảnh đó,
 // dừng lại và mở các ô chữ của nó. Chữ sửa lưu trên máy theo mẫu + thiệp, gửi sang khung
 // bằng cx-slide-texts; khung dựng lại rồi báo cảnh mới lên — khoá ô không đổi thì chỉ cập
@@ -1141,17 +1165,34 @@ function scMusicLibOpen(on) {
   _scEl("sc-mu-libbox").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
+// Bỏ dấu + chữ thường để gõ "vay cuoi" vẫn ra "Váy Cưới".
+const _scFold = (s) =>
+  String(s || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase()
+    .trim();
+
 function _scMuRender() {
   const p = _scMu.pick;
   const track = p?.mode === "lib" ? _scTrack(p.id) : null;
 
   const box = _scEl("sc-mu-lib");
+  _scEl("sc-mu-search").classList.toggle("hidden", !_scLib?.length);
+  const words = _scFold(_scEl("sc-mu-q").value).split(/\s+/).filter(Boolean);
+  const shown = (_scLib || []).filter((t) => {
+    const hay = _scFold(`${t.title} ${t.artist}`);
+    return words.every((w) => hay.includes(w));
+  });
   if (_scLib === null) {
     box.innerHTML = `<p class="sc-mu-empty">Đang tải thư viện nhạc…</p>`;
   } else if (!_scLib.length) {
     box.innerHTML = `<p class="sc-mu-empty">Thư viện nhạc hiện đang chưa có</p>`;
+  } else if (!shown.length) {
+    box.innerHTML = `<p class="sc-mu-empty">Không có bài nào khớp với “${_scEsc(_scEl("sc-mu-q").value.trim())}”</p>`;
   } else {
-    box.innerHTML = _scLib
+    box.innerHTML = shown
       .map((t) => {
         const on = track?.id === t.id;
         const playing = _scPrevId === t.id;
@@ -1180,6 +1221,16 @@ _scEl("sc-mu-lib").addEventListener("click", (e) => {
   const pick = e.target.closest("[data-mu-lib]");
   if (pick) scMusicLib(pick.dataset.muLib);
 });
+_scEl("sc-mu-q").addEventListener("input", () => {
+  _scMuRender();
+  _scEl("sc-mu-lib").scrollTop = 0;
+});
+
+// Chiều cao tiêu đề trang → mốc ghim của dải tab ở cột phải (từ lg, xem .sc-tabs-bar).
+if (typeof ResizeObserver === "function") {
+  const head = _scEl("sc-head");
+  new ResizeObserver(() => head.parentElement.style.setProperty("--sc-head-h", `${head.offsetHeight}px`)).observe(head);
+}
 
 // ── Các tab của bảng chỉnh (Cảnh · Thiệp · Âm thanh · Mẫu): một dải .cx-seg, con trượt theo --i. ──
 const _SC_TABS = ["scenes", "data", "audio", "tpl"];
