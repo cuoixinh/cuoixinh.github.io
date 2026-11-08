@@ -1020,9 +1020,12 @@ html.hd-on {
 .hd-plan .hd-title {
   margin: 8px 0 calc(var(--hd-screen) * 0.06);
 }
-/* Danh sách chiếm hết phần trắng dưới mảng đỏ, các nhóm (lễ · tiệc) dàn đều theo
-   chiều cao — để co theo nội dung thì máy cao bỏ trống cả khúc đáy trang. */
+/* Trang luôn cao một màn → danh sách tự giãn theo số mốc: mỗi mốc cao ~60% màn chia
+   cho --n (mốc + nhãn nhóm, index.js đặt), trần 12% màn. Ít mốc thì mốc cao ra và
+   trục dọc nối các chấm lấp khoảng giữa; nhiều mốc thì tự nén như danh sách thường.
+   Chỉ có CSS + biến --n: không thêm phần tử, để selector sửa chữ đã lưu không lệch. */
 .hd-plan-list {
+  --row: min(calc(var(--hd-screen) * 0.6 / var(--n, 8)), calc(var(--hd-screen) * 0.12));
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
@@ -1040,15 +1043,45 @@ html.hd-on {
   font-weight: 500;
   color: rgb(var(--cx-heading-rgb));
 }
+/* Cột giờ · trục (32px) · tên mốc. Mốc canh giữa trong chiều cao --row. */
 .hd-plan-row {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  column-gap: 32px;
+  align-content: center;
   align-items: baseline;
-  gap: 16px;
-  padding: min(10px, calc(var(--hd-screen) * 0.012)) 0;
+  min-height: var(--row);
+}
+/* Trục dọc chạy suốt các mốc của một nhóm: mốc đầu bắt đầu từ chấm, mốc cuối dừng ở chấm. */
+.hd-plan-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 76px;
+  width: 1px;
+  background: rgb(var(--cx-line-rgb));
+}
+.hd-plan-label + .hd-plan-row::before {
+  top: 50%;
+}
+.hd-plan-row:last-child::before {
+  bottom: 50%;
+}
+.hd-plan-row::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 72px;
+  width: 9px;
+  height: 9px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: rgb(var(--cx-accent-rgb));
+  box-shadow: 0 0 0 3px rgb(var(--cx-card-bg-rgb));
 }
 .hd-plan-time {
-  flex: none;
-  width: 60px;
   font-size: 18px;
   font-style: italic;
 }

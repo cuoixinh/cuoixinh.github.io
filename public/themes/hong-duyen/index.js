@@ -323,6 +323,9 @@
         </div>`;
       })
       .join("");
+    // Số "hàng" (mốc + nhãn nhóm) để CSS chia chiều cao trang: ít mốc thì mỗi mốc cao ra.
+    const rowCount = groups.reduce((n, g) => n + g.items.length + 1, 0);
+    list.style.setProperty("--n", rowCount);
     cxToggle("section-timeline", true);
   }
 
