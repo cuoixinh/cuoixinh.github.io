@@ -92,6 +92,10 @@ const CHECKS = [
   },
 ];
 
+// Khoá CỐ Ý dùng chung mọi môi trường nên được miễn CHECKS: kho nhạc ở tài khoản Cloudflare phụ
+// (cloudflare-media/) không có bản staging. Chỉ thêm khoá trỏ vào thứ KHÔNG chứa dữ liệu khách.
+const SHARED_KEYS = new Set(["slideMusic.library"]);
+
 const baseSrc = read(BASE_FILE);
 if (!baseSrc) {
   console.error(`✗ Không đọc được ${BASE_FILE}${REF ? ` ở ${REF}` : ""}.`);
@@ -117,6 +121,7 @@ for (const rel of envFiles) {
 
   const missing = [...prod.keys()].filter((k) => !built.has(k));
   const leaked = [...built.entries()].flatMap(([k, v]) => {
+    if (SHARED_KEYS.has(k)) return [];
     const c = CHECKS.find((c) => c.hit(v));
     return c ? [[k, c.why()]] : [];
   });
