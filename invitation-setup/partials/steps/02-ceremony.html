@@ -15,55 +15,35 @@
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <x-time label="Giờ tổ chức lễ" name="ceremony_time"></x-time>
-      <div>
-        <label for="ceremony_location" class="text-sm text-gray-700 flex items-center gap-2 mb-2">
-          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
-          điểm lễ cưới
-        </label>
-        <div id="ceremony-location-row" class="flex gap-2">
-          <x-input
-            class="flex-1 min-w-0"
-            name="ceremony_location"
-            placeholder="Nhập địa điểm lễ cưới..."
-            suffix-btn-label="Bản đồ"
-            suffix-btn-icon="map-pin"
-            suffix-btn-action="openMapPicker('ceremony')"
-          ></x-input>
-        </div>
-        <input
-          type="hidden"
-          name="ceremony_map_embed_url"
-          id="ceremony_map_embed_url"
-        />
-        <div id="ceremony-picker-wrap">
-          <div
-            id="ceremony-map-display"
-            class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
-          >
-            <svg
-              class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            <span
-              id="ceremony-map-address"
-              class="flex-1 text-sm text-gray-700 truncate"
-            ></span>
-          </div>
-        </div>
-      </div>
     </div>
     <p id="ceremony-lunar-display" class="text-sm text-gray-500 italic">
       Chọn ngày để tự động tính ngày âm lịch
     </p>
+    <div class="space-y-3">
+        <label for="ceremony_map_query" class="text-sm font-medium text-gray-800 flex items-center gap-2">
+          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa điểm lễ cưới
+        </label>
+        <!-- Ô vị trí không có name (không vào FormData): nó chỉ dựng ceremony_map_embed_url
+             (maps-helper.js → cxMapFromQuery). Tên khách thấy là ô ceremony_location. -->
+        <div>
+          <x-input
+            id="ceremony_map_query"
+            label="Vị trí trên bản đồ"
+            placeholder="Nhập tên vị trí hoặc tọa độ trên Maps"
+            suffix-btn-label="Bản đồ"
+            suffix-btn-icon="map-pin"
+            suffix-btn-action="openMapPicker('ceremony')"
+          ></x-input>
+          <p class="mt-1.5 text-xs text-gray-400">Ví dụ: GEM Center Nguyễn Bỉnh Khiêm, hoặc <x-button variant="bare" onclick="openCoordGuide()" class="cx-coord-help" title="Xem cách lấy tọa độ">tọa độ</x-button> chép từ Google Maps.</p>
+        </div>
+        <x-input
+          name="ceremony_location"
+          label="Tên hiện trên thiệp"
+          placeholder="Ví dụ: Trung tâm hội nghị tiệc cưới GEM Center, 8 Nguyễn Bỉnh Khiêm, TP.HCM"
+        ></x-input>
+        <input type="hidden" name="ceremony_map_embed_url" id="ceremony_map_embed_url" />
+        <div id="ceremony-map-display" class="hidden"></div>
+      </div>
     <div class="pt-2 border-t border-gray-100">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -89,58 +69,31 @@
         <p id="vu-quy-lunar-display" class="text-sm text-gray-500 italic">
           Bỏ trống thì lấy theo ngày lễ thành hôn
         </p>
+        <div class="space-y-3">
+        <label for="vu_quy_map_query" class="text-sm font-medium text-gray-800 flex items-center gap-2">
+          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa điểm vu quy
+        </label>
+        <!-- Ô vị trí không có name (không vào FormData): nó chỉ dựng vu_quy_map_embed_url
+             (maps-helper.js → cxMapFromQuery). Tên khách thấy là ô vu_quy_location. -->
         <div>
-          <div>
-            <label
-              for="vu_quy_location"
-              class="text-sm text-gray-700 flex items-center gap-2 mb-2"
-            >
-              <i data-lucide="map-pin" class="text-color-secondary"></i
-              >Địa điểm vu quy
-            </label>
-            <div id="vu-quy-location-row" class="flex gap-2">
-              <x-input
-                class="flex-1 min-w-0"
-                name="vu_quy_location"
-                placeholder="Nhập địa điểm vu quy..."
-                suffix-btn-label="Bản đồ"
-                suffix-btn-icon="map-pin"
-                suffix-btn-action="openMapPicker('vu_quy')"
-              ></x-input>
-            </div>
-            <input
-              type="hidden"
-              name="vu_quy_map_embed_url"
-              id="vu_quy_map_embed_url"
-            />
-            <div id="vu_quy-picker-wrap">
-              <div
-                id="vu_quy-map-display"
-                class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
-              >
-                <svg
-                  class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
-                  />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span
-                  id="vu_quy-map-address"
-                  class="flex-1 text-sm text-gray-700 truncate"
-                ></span>
-              </div>
-            </div>
-          </div>
+          <x-input
+            id="vu_quy_map_query"
+            label="Vị trí trên bản đồ"
+            placeholder="Nhập tên vị trí hoặc tọa độ trên Maps"
+            suffix-btn-label="Bản đồ"
+            suffix-btn-icon="map-pin"
+            suffix-btn-action="openMapPicker('vu_quy')"
+          ></x-input>
+          <p class="mt-1.5 text-xs text-gray-400">Ví dụ: Trống Đồng Palace Hoàng Quốc Việt, hoặc <x-button variant="bare" onclick="openCoordGuide()" class="cx-coord-help" title="Xem cách lấy tọa độ">tọa độ</x-button> chép từ Google Maps.</p>
         </div>
+        <x-input
+          name="vu_quy_location"
+          label="Tên hiện trên thiệp"
+          placeholder="Ví dụ: Nhà hàng tiệc cưới Trống Đồng Palace, 489 Hoàng Quốc Việt, Hà Nội"
+        ></x-input>
+        <input type="hidden" name="vu_quy_map_embed_url" id="vu_quy_map_embed_url" />
+        <div id="vu_quy-map-display" class="hidden"></div>
+      </div>
       </div>
     </div>
   </div>

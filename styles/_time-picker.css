@@ -1,0 +1,150 @@
+/* Bộ chọn giờ dạng lưới (openTimePicker ở core/utils.js), dùng cho mọi máy.
+   Khổ ô cho màn cảm ứng khai ở media (pointer: coarse) cuối file. */
+
+.tp-grid-pop {
+  position: fixed;
+  z-index: 99999;
+  width: 268px;
+  padding: 12px;
+  background: rgb(var(--white-rgb));
+  border-radius: 16px;
+  box-shadow:
+    0 12px 32px rgb(var(--scrim-rgb) / 0.14),
+    0 2px 6px rgb(var(--scrim-rgb) / 0.06);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dòng số to: hai cột (giờ · phút), mỗi cột ▲ số ▼ */
+.tp-read {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgb(var(--divider-rgb) / 0.6);
+}
+.tp-seg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tp-num {
+  width: 64px;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 32px;
+  line-height: 48px;
+  font-weight: 600;
+  color: rgb(var(--text-title-rgb));
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.tp-num:hover {
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.tp-seg.is-on .tp-num {
+  background: rgb(var(--notice-bg-rgb));
+  color: rgb(var(--brand-accent-rgb));
+}
+.tp-colon {
+  font-size: 28px;
+  font-weight: 300;
+  color: rgb(var(--divider-rgb));
+  padding-bottom: 4px;
+}
+.tp-step {
+  width: 40px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: rgb(var(--text-placeholder-rgb));
+  font-size: 16px;
+  cursor: pointer;
+}
+.tp-step:hover {
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+
+/* Lưới chọn nhanh: 24 ô giờ (6 cột) hoặc 12 ô phút (4 cột) */
+.tp-cells {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.tp-cells.is-min {
+  grid-template-columns: repeat(4, 1fr);
+}
+.tp-cell {
+  height: 32px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(var(--text-title-rgb));
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.tp-cells.is-min .tp-cell {
+  height: 36px;
+}
+.tp-cell:hover {
+  background: rgb(var(--notice-bg-rgb));
+}
+/* Giờ khuya/sớm — hiếm khi đặt tiệc nên in nhạt, vẫn chọn được */
+.tp-cell.is-dim {
+  color: rgb(var(--text-placeholder-rgb));
+}
+.tp-cell.is-sel,
+.tp-cell.is-sel:hover {
+  background: rgb(var(--brand-accent-rgb));
+  color: rgb(var(--white-rgb));
+}
+.tp-num:focus-visible,
+.tp-step:focus-visible,
+.tp-cell:focus-visible {
+  outline: 2px solid rgb(var(--brand-accent-rgb));
+  outline-offset: 1px;
+}
+
+.tp-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-num,
+  .tp-cell {
+    transition: none;
+  }
+}
+
+/* Màn cảm ứng: ô to vừa ngón tay, popup rộng hơn chút */
+@media (pointer: coarse) {
+  .tp-grid-pop {
+    width: 304px;
+  }
+  .tp-cell {
+    height: 40px;
+    font-size: 15px;
+  }
+  .tp-cells.is-min .tp-cell {
+    height: 44px;
+  }
+  .tp-step {
+    width: 56px;
+    height: 32px;
+    font-size: 20px;
+  }
+  .tp-num {
+    width: 72px;
+    height: 52px;
+    line-height: 52px;
+    font-size: 36px;
+  }
+}

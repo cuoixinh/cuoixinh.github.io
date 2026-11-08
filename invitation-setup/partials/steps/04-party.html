@@ -57,9 +57,8 @@
         Chọn ngày để tự động tính ngày âm lịch
       </p>
       <div class="space-y-3">
-        <label for="groom_party_location" class="text-sm text-gray-700 flex items-center gap-2">
-          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
-          điểm tiệc
+        <label for="groom_party_map_query" class="text-sm font-medium text-gray-800 flex items-center gap-2">
+          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa điểm tiệc
         </label>
         <!-- x-check là display:contents → bọc div để nhận khoảng cách của space-y. -->
         <div>
@@ -69,45 +68,26 @@
             onchange="togglePartySameLoc('groom', event)"
           ></x-check>
         </div>
-        <div id="groom-party-location-row" class="flex gap-2">
+        <!-- Ô vị trí không có name (không vào FormData): nó chỉ dựng groom_party_map_embed_url
+             (maps-helper.js → cxMapFromQuery). Tên khách thấy là ô groom_party_location. -->
+        <div>
           <x-input
-            class="flex-1 min-w-0"
-            name="groom_party_location"
-            placeholder="Ví dụ: Trung tâm tiệc cưới Hoàng Gia, Q.1, TP.HCM"
+            id="groom_party_map_query"
+            label="Vị trí trên bản đồ"
+            placeholder="Nhập tên vị trí hoặc tọa độ trên Maps"
             suffix-btn-label="Bản đồ"
             suffix-btn-icon="map-pin"
             suffix-btn-action="openMapPicker('groom_party')"
           ></x-input>
+          <p class="mt-1.5 text-xs text-gray-400">Ví dụ: White Palace Phạm Văn Đồng, hoặc <x-button variant="bare" onclick="openCoordGuide()" class="cx-coord-help" title="Xem cách lấy tọa độ">tọa độ</x-button> chép từ Google Maps.</p>
         </div>
-        <input
-          type="hidden"
-          name="groom_party_map_embed_url"
-          id="groom_party_map_embed_url"
-        />
-        <div id="groom_party-picker-wrap">
-          <div
-            id="groom_party-map-display"
-            class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
-          >
-            <svg
-              class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            <span
-              id="groom_party-map-address"
-              class="flex-1 text-sm text-gray-700 truncate"
-            ></span>
-          </div>
-        </div>
+        <x-input
+          name="groom_party_location"
+          label="Tên hiện trên thiệp"
+          placeholder="Ví dụ: Trung tâm tiệc cưới White Palace Phạm Văn Đồng, TP.HCM"
+        ></x-input>
+        <input type="hidden" name="groom_party_map_embed_url" id="groom_party_map_embed_url" />
+        <div id="groom_party-map-display" class="hidden"></div>
       </div>
     </div>
 
@@ -124,10 +104,10 @@
         Chọn ngày để tự động tính ngày âm lịch
       </p>
       <div class="space-y-3">
-        <label for="bride_party_location" class="text-sm text-gray-700 flex items-center gap-2">
-          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
-          điểm tiệc
+        <label for="bride_party_map_query" class="text-sm font-medium text-gray-800 flex items-center gap-2">
+          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa điểm tiệc
         </label>
+        <!-- x-check là display:contents → bọc div để nhận khoảng cách của space-y. -->
         <div>
           <x-check
             key="bride-party-same"
@@ -135,45 +115,26 @@
             onchange="togglePartySameLoc('bride', event)"
           ></x-check>
         </div>
-        <div id="bride-party-location-row" class="flex gap-2">
+        <!-- Ô vị trí không có name (không vào FormData): nó chỉ dựng bride_party_map_embed_url
+             (maps-helper.js → cxMapFromQuery). Tên khách thấy là ô bride_party_location. -->
+        <div>
           <x-input
-            class="flex-1 min-w-0"
-            name="bride_party_location"
-            placeholder="Ví dụ: Nhà hàng Riverside, Q.3, TP.HCM"
+            id="bride_party_map_query"
+            label="Vị trí trên bản đồ"
+            placeholder="Nhập tên vị trí hoặc tọa độ trên Maps"
             suffix-btn-label="Bản đồ"
             suffix-btn-icon="map-pin"
             suffix-btn-action="openMapPicker('bride_party')"
           ></x-input>
+          <p class="mt-1.5 text-xs text-gray-400">Ví dụ: Riverside Palace Bến Vân Đồn, hoặc <x-button variant="bare" onclick="openCoordGuide()" class="cx-coord-help" title="Xem cách lấy tọa độ">tọa độ</x-button> chép từ Google Maps.</p>
         </div>
-        <input
-          type="hidden"
-          name="bride_party_map_embed_url"
-          id="bride_party_map_embed_url"
-        />
-        <div id="bride_party-picker-wrap">
-          <div
-            id="bride_party-map-display"
-            class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
-          >
-            <svg
-              class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            <span
-              id="bride_party-map-address"
-              class="flex-1 text-sm text-gray-700 truncate"
-            ></span>
-          </div>
-        </div>
+        <x-input
+          name="bride_party_location"
+          label="Tên hiện trên thiệp"
+          placeholder="Ví dụ: Nhà hàng Riverside Palace, 360D Bến Vân Đồn, TP.HCM"
+        ></x-input>
+        <input type="hidden" name="bride_party_map_embed_url" id="bride_party_map_embed_url" />
+        <div id="bride_party-map-display" class="hidden"></div>
       </div>
     </div>
   </div>

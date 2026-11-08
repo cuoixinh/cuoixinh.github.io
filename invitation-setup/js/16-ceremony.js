@@ -64,56 +64,43 @@ function togglePartySameLoc(side, event, force) {
     `input[name="${side}_party_location"]`,
   );
   const mapEmbedInput = document.getElementById(`${side}_party_map_embed_url`);
-  const mapDisplay = document.getElementById(`${side}_party-map-display`);
-  const mapAddress = document.getElementById(`${side}_party-map-address`);
-  // Nút "Bản đồ" là suffix-button bên trong <x-input> (không có id riêng) → lấy qua x-input
-  const partyXInput = document.querySelector(
-    `x-input[name="${side}_party_location"]`,
-  );
-  const mapBtn =
-    (partyXInput && partyXInput.querySelector("button:not(.x-clear)")) ||
-    document.getElementById(`${side}-party-map-btn`);
-  // Nút X xoá của x-input và nút X trên tag bản đồ — phải khoá luôn khi "trùng địa điểm"
-  const xClearBtn = partyXInput && partyXInput.querySelector(".x-clear");
-  const tagClearBtn = mapDisplay && mapDisplay.querySelector("button");
+  const queryInput = document.getElementById(`${side}_party_map_query`);
+  // Nút "Bản đồ" là suffix-button của ô vị trí; nút "x" nằm ở cả hai ô — khoá hết khi "trùng".
+  const queryXInput = queryInput?.closest("x-input");
+  const mapBtn = queryXInput?.querySelector("button:not(.x-clear)");
+  const clearBtns = [locationInput, queryInput]
+    .map((el) => el?.closest("x-input")?.querySelector(".x-clear"))
+    .filter(Boolean);
+  const LOCK = ["!bg-gray-100", "!text-gray-400", "cursor-not-allowed"];
+  const lock = (on) => {
+    [locationInput, queryInput].forEach((el) => {
+      if (!el) return;
+      el.readOnly = on;
+      LOCK.forEach((c) => el.classList.toggle(c, on));
+    });
+    if (mapBtn) {
+      mapBtn.disabled = on;
+      mapBtn.classList.toggle("opacity-40", on);
+      mapBtn.classList.toggle("cursor-not-allowed", on);
+    }
+    // Inline style đè class 'hidden' mà x-input tự bật/tắt theo giá trị
+    clearBtns.forEach((b) => { b.style.display = on ? "none" : ""; });
+  };
 
   if (newActive) {
     const src = _partySameSource(side);
-    const srcLocName = `${src}_location`;
-    const srcMapId = `${src}_map_embed_url`;
-    const srcAddrId = `${src}-map-address`;
-    const srcLoc = document.querySelector(`input[name="${srcLocName}"]`);
-    const srcMap = document.getElementById(srcMapId);
-    const srcAddr = document.getElementById(srcAddrId);
+    const srcLoc = document.querySelector(`input[name="${src}_location"]`);
+    const srcMap = document.getElementById(`${src}_map_embed_url`);
 
     if (locationInput) {
       locationInput.value = srcLoc?.value || "";
-      locationInput.readOnly = true;
-      // Dùng ! (important) để đè bg-white/text mặc định của x-input → nhìn rõ trạng thái khoá
-      locationInput.classList.add(
-        "!bg-gray-100",
-        "!text-gray-400",
-        "cursor-not-allowed",
-      );
       // Phát input để autosave lưu giá trị vừa bind (form nghe "input")
       locationInput.dispatchEvent(new Event("input", { bubbles: true }));
+      locationInput.closest("x-input")?.syncClearBtn?.();
     }
-    if (mapEmbedInput && srcMap) mapEmbedInput.value = srcMap.value || "";
-    // Nguồn không có bản đồ thì tiệc cũng không — để nguyên là tag cũ nằm lại.
-    const srcHasMap = !!(srcMap?.value && srcAddr?.textContent?.trim());
-    if (mapDisplay && mapAddress) {
-      mapAddress.textContent = srcHasMap ? srcAddr.textContent : "";
-      mapDisplay.classList.toggle("hidden", !srcHasMap);
-      mapDisplay.classList.toggle("flex", srcHasMap);
-    }
-    window._syncMapFrame?.(`${side}_party`);
-    if (mapBtn) {
-      mapBtn.disabled = true;
-      mapBtn.classList.add("opacity-40", "cursor-not-allowed");
-    }
-    // Ẩn nút xoá (inline style đè class 'hidden' mà x-input tự bật/tắt theo giá trị)
-    if (xClearBtn) xClearBtn.style.display = "none";
-    if (tagClearBtn) tagClearBtn.style.display = "none";
+    if (mapEmbedInput) mapEmbedInput.value = srcMap?.value || "";
+    window.cxRefreshMapField?.(`${side}_party`);
+    lock(true);
   } else {
     // Khách tự bỏ tick → xoá nơi đã chép: để nguyên thì nơi tiệc vẫn bằng nơi lễ,
     // lần nạp sau initCeremonySection lại suy ra "trùng" và tick lại.
@@ -121,26 +108,9 @@ function togglePartySameLoc(side, event, force) {
       locationInput.value = "";
       locationInput.dispatchEvent(new Event("input", { bubbles: true }));
       if (mapEmbedInput) mapEmbedInput.value = "";
-      if (mapAddress) mapAddress.textContent = "";
-      mapDisplay?.classList.add("hidden");
-      mapDisplay?.classList.remove("flex");
-      window._syncMapFrame?.(`${side}_party`);
+      window.cxRefreshMapField?.(`${side}_party`);
     }
-    if (locationInput) {
-      locationInput.readOnly = false;
-      locationInput.classList.remove(
-        "!bg-gray-100",
-        "!text-gray-400",
-        "cursor-not-allowed",
-      );
-    }
-    if (mapBtn) {
-      mapBtn.disabled = false;
-      mapBtn.classList.remove("opacity-40", "cursor-not-allowed");
-    }
-    // Trả lại nút xoá (bỏ inline style để x-input tự quản lý hiển thị theo giá trị)
-    if (xClearBtn) xClearBtn.style.display = "";
-    if (tagClearBtn) tagClearBtn.style.display = "";
+    lock(false);
   }
 }
 
