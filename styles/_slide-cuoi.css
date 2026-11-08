@@ -94,15 +94,17 @@
   border-radius: inherit;
 }
 /* Chế độ "Màn chiếu" (.sc-stage.is-hall, nút ở hàng dưới slide): khung thành ảnh hội trường
-   dọc 941×1672, iframe nằm đúng ô màn chiếu — số khớp HALL ở engine/slide-export.js (video
-   TikTok dựng y bố cục này). Toàn màn hình vẫn phủ kín: .is-full ở dưới đè lại. */
+   dọc 941×1672, iframe (Slide) / canvas (Hình nền LED) nằm đúng ô màn chiếu — số khớp HALL ở
+   engine/slide-export.js (video TikTok dựng y bố cục này). Toàn màn hình vẫn phủ kín: .is-full ở
+   dưới (và ở _hinh-nen-led.css) đè lại. */
 .sc-stage.is-hall .sc-screen {
   width: min(100%, calc(var(--sc-max-h) * 941 / 1672));
   aspect-ratio: 941 / 1672;
   overflow: hidden;
   background: rgb(0 0 0) url("/slide-cuoi/assets/hall.jpg") center / 100% 100% no-repeat;
 }
-.sc-stage.is-hall .sc-screen iframe {
+.sc-stage.is-hall .sc-screen iframe,
+.sc-stage.is-hall .sc-screen canvas {
   inset: auto;
   left: 0;
   top: 24.333%;
