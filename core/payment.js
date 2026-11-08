@@ -1177,12 +1177,18 @@
                  cháu "fixed" cũng biến mất theo nên không cần đồng bộ thêm. -->
             <div id="payment-paybar" class="px-6 pt-5 pb-6 flex flex-col gap-3 border-t border-gray-100">
               <p id="payment-api-error" class="hidden text-xs text-red-500 text-center p-2 bg-red-50 rounded-lg m-0"></p>
-              <!-- Mức tiết kiệm ở ngay giây quyết định, dồn phải cho đứng thẳng
-                   trên con số ở đầu phải nút; ẩn khi bằng 0 (xem _syncSaving).
-                   w-fit + ml-auto chứ không inline-flex: class "hidden" bật tắt
-                   trên chính thẻ này, hai utility display đè nhau là khó đoán.
-                   Mọi chỗ nói về tiền tiết kiệm dùng chung tông hồng đậm này. -->
-              <p id="payment-saving" class="hidden w-fit ml-auto rounded-full px-3 py-1 text-xs font-semibold m-0" style="color:rgb(var(--action-primary-deep-rgb));background:rgb(var(--surface-blossom-rgb));"></p>
+              <!-- Đồng ý hiện thiệp ở mục "Thiệp của khách" trang chủ — tích sẵn, khách tự bỏ,
+                   đặt sát nút trả tiền để thấy ngay lúc chốt. Chỉ có khi MUA LẦN ĐẦU gói
+                   trả phí (_syncShowcase); trả xong thì chốt, muốn đổi phải nhờ admin-support. -->
+              <!-- Nút "i" đứng NGOÀI <label>: nằm trong thì bấm vào là đảo luôn ô tích. -->
+              <div id="payment-showcase" class="cx-ord-consent" style="display:none;">
+                <label>
+                  <input id="payment-showcase-input" type="checkbox" checked />
+                  <span>Cho phép hiển thị thiệp trên trang chủ</span>
+                </label>
+                <x-button variant="bare" icon-only class="cx-ord-cmp-info" onclick="cxShowcaseInfo(this)"
+                  aria-label="Giải thích: hiển thị thiệp trên trang chủ"><i data-lucide="info" style="width:14px;height:14px"></i></x-button>
+              </div>
               <!-- Nền gradient đè lên bg-rose-600 của fill/brand: cùng một màu
                    hành động của site (--action-primary-rgb), chỉ chuyển sang hồng
                    nhấn ở đầu kia nên nút hoà vào bảng màu của trang.
@@ -1342,19 +1348,6 @@
       amount.textContent = `-${(discount || 0).toLocaleString("vi-VN")}đ`;
       amount.classList.toggle("hidden", !code);
     }
-  }
-
-  // Tổng tiết kiệm (so với giá gốc). Bằng 0 thì ẩn hẳn dòng, không hiện "Tiết
-  // kiệm 0đ".
-  function _syncSaving() {
-    const el = document.getElementById("payment-saving");
-    if (!el) return;
-    // Tiết kiệm = giá gốc − số phải trả (có mã thì ưu đãi ra mắt đã bị thay bằng mã).
-    const saved = Number.isFinite(window._discountedTotal)
-      ? Math.max(0, _promoBase() - window._discountedTotal)
-      : 0;
-    el.textContent = `Tổng tiết kiệm ${saved.toLocaleString("vi-VN")}đ`;
-    el.classList.toggle("hidden", saved <= 0);
   }
 
   // Bung ô nhập mã. Một chiều — nhánh báo lỗi mã gọi để chắc ô đang mở; bấm vào
@@ -1546,11 +1539,9 @@
         : window._appliedPromo
         ? _promoBase() - _discountOf(window._appliedPromo, _promoBase())
         : price;
-    window._discountedTotal = total;
     const totalEl = document.getElementById("payment-total-price");
     if (totalEl) totalEl.textContent = known ? fmt(total) : blank;
 
-    _syncSaving();
     _syncPayEnabled();
   }
 
@@ -1674,8 +1665,19 @@
     _syncFree();
   };
 
+  // Ô đồng ý hiện ở trang chủ: chỉ khi mua lần đầu một gói trả phí (gói Free không
+  // lên trang chủ, nâng gói thì lựa chọn đã chốt từ lần mua đầu).
+  function _showcaseShown() {
+    return !window._planQuote?.current_plan && !!window._paymentPlan && window._paymentPlan !== "free";
+  }
+  function _syncShowcase() {
+    const box = document.getElementById("payment-showcase");
+    if (box) box.style.display = _showcaseShown() ? "flex" : "none";
+  }
+
   // Hộp chọn bên + chữ trên nút theo gói đang chọn.
   function _syncFree() {
+    _syncShowcase();
     const on = window._paymentPlan === "free";
     const box = document.getElementById("payment-free-box");
     if (box) box.style.display = on ? "block" : "none";
@@ -1831,10 +1833,9 @@
   window.cxPlanCompareHTML = _compareHTML;
 
 
-  // Popover giải thích một hàng của bảng so sánh; bấm lại đúng nút "i" đang mở thì đóng.
-  window.cxCmpInfo = function (btn, i) {
-    const row = _CMP_ROWS[i];
-    if (!row?.info) return;
+  // Popover giải thích của các nút "i" (bảng so sánh, ô đồng ý hiện ở trang chủ);
+  // bấm lại đúng nút đang mở thì đóng.
+  function _infoPop(btn, title, text) {
     let pop = document.getElementById("cx-cmp-info-pop");
     if (!pop) {
       pop = document.createElement("x-popover");
@@ -1847,11 +1848,24 @@
     }
     if (pop.isOpen && pop._anchorEl === btn) return pop.close();
     pop.innerHTML = '<p class="x-pop-note"><b></b><span></span></p>';
-    pop.querySelector("b").textContent = row.label;
-    pop.querySelector("span").textContent = row.info;
-    pop.setAttribute("aria-label", row.label);
+    pop.querySelector("b").textContent = title;
+    pop.querySelector("span").textContent = text;
+    pop.setAttribute("aria-label", title);
     pop.open(btn);
+  }
+
+  window.cxCmpInfo = function (btn, i) {
+    const row = _CMP_ROWS[i];
+    if (row?.info) _infoPop(btn, row.label, row.info);
   };
+
+  window.cxShowcaseInfo = (btn) =>
+    _infoPop(
+      btn,
+      "Hiển thị trên trang chủ",
+      "Thiệp của bạn sẽ được giới thiệu ở trang chủ Cưới Xinh, ai cũng có thể bấm vào " +
+        "để xem. Sau khi thanh toán, nếu muốn gỡ thiệp xuống, bạn chỉ cần liên hệ Cưới Xinh.",
+    );
 
   // Ba thẻ gói. Gói đang dùng / thấp hơn / quá hạn để nâng vẫn hiện (khách cần
   // thấy mình đang ở đâu) nhưng khoá lại. Huy hiệu "Khuyên dùng" chỉ khi mua mới.
@@ -2013,7 +2027,6 @@
       window._existingManageId = existingManageId || null;
       window._appliedPromo = null;
       window._promoCandidate = null;
-      window._discountedTotal = null;
       // Reset promo UI — gấp ô mã lại như lúc mới vào.
       const promoInput = document.getElementById("promo-input");
       const promoMsg = document.getElementById("promo-msg");
@@ -2022,6 +2035,9 @@
       if (promoMsg) { promoMsg.textContent = ""; promoMsg.classList.add("hidden"); }
       if (promoBox) promoBox.style.display = "none";
       _setPromoRow(null, 0);
+      // Modal dùng lại cho nhiều thiệp: lượt trước khách bỏ tích thì lượt này vẫn phải tích sẵn.
+      const showcase = document.getElementById("payment-showcase-input");
+      if (showcase) showcase.checked = true;
 
       // Giá tuỳ gói, mà gói chỉ biết sau khi có báo giá → bảng tiền để dấu chờ
       // tới lúc _resolvePricing (cuối hàm) xong; giá nơi gọi đưa sang (giá gốc)
@@ -2387,6 +2403,8 @@
           theme: window._paymentTheme || "basic-gold",
           plan: window._paymentPlan,
           is_existing_draft: !!window._existingManageId,
+          showcase_consent:
+            _showcaseShown() && !!document.getElementById("payment-showcase-input")?.checked,
           // SECURITY: Amount is determined by backend from database
         };
         if (window._appliedPromo) {

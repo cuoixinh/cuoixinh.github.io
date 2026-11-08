@@ -285,6 +285,9 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
   try {
     const body = await req.json();
     const { manage_id, customer_name, customer_phone, customer_email, template_name, theme, promo_code, plan } = body;
+    // Ô "cho hiện thiệp ở trang chủ" của màn thanh toán. Chỉ ghi khi mua lần đầu (nhánh
+    // nâng gói không đụng) — đã thanh toán thì chỉ admin-support đổi. Client cũ không gửi = false.
+    const showcaseConsent = body.showcase_consent === true;
 
     // Client cũ (chưa có bước chọn gói) không gửi plan: đừng đoán thay khách — đoán
     // sai gói là QR khác số đang hiện.
@@ -588,6 +591,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
             payment_status: "completed",
             payment_order_id: fullOrderId,
             payment_amount: 0,
+            showcase_consent: showcaseConsent,
             payment_time: freePaidAt,
             transaction_id: freeTransactionId,
             ...planDoneFields(),
@@ -668,6 +672,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
           payment_status: "pending",
           payment_order_id: fullOrderId,
           payment_amount: paymentAmount,
+          showcase_consent: showcaseConsent,
           pending_plan: plan,
           pending_amount: paymentAmount,
           // Mẫu ĐÃ BÁO GIÁ cho đơn này: thiệp chưa trả tiền vẫn đổi mẫu được, nên

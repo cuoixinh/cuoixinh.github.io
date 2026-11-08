@@ -6064,6 +6064,38 @@ button.cx-ok-close:hover {
     letter-spacing: 0;
   }
 }
+/* Ô đồng ý hiện thiệp ở trang chủ, trong dải trả tiền (payment.js → _syncShowcase).
+   Không khung: dải ghim đáy màn điện thoại, mỗi px ở đây ăn vào phần nội dung.
+   Ô tích · chữ · nút "i" canh GIỮA theo cùng một dòng 20px; chữ dài xuống dòng thì
+   ô tích và nút vẫn đứng giữa khối chữ. */
+.cx-ord-consent {
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ord-consent label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  cursor: pointer;
+}
+.cx-ord-consent input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: rgb(var(--action-primary-rgb));
+}
+.cx-ord-consent .cx-ord-cmp-info {
+  flex-shrink: 0;
+  height: 20px;
+  margin: 0;
+}
+
 /* Hộp gói Miễn phí dưới các thẻ (payment.js → _syncFree): chọn bên + giới hạn. */
 .cx-ord-free {
   min-width: 0;

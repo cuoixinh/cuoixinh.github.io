@@ -343,8 +343,11 @@ Rà bằng cách đọc mã ngày **2026-09-15**, trừ dòng ghi rõ nguồn kh
 - [x] DELETE thiệp: chủ thiệp hoặc admin; thiệp vô chủ chỉ admin xoá được.
 - [x] GET `?id=` phải là chủ thiệp; `?slug=` là đường công khai DUY NHẤT trả trọn thiệp.
       Đường công khai LIỆT KÊ thiệp duy nhất là `resource=public-showcase` (mục "Thiệp của
-      khách" ở trang chủ): chỉ thiệp đã thanh toán + đang xuất bản + chưa hết hạn gói, và chỉ
+      khách" ở trang chủ): chỉ thiệp khách ĐỒNG Ý (`showcase_consent`, chốt ở màn thanh toán,
+      sau đó chỉ admin-support đổi) + đã thanh toán + đang xuất bản + chưa hết hạn gói, và chỉ
       slug, tên cô dâu chú rể, mẫu, ngày cưới, ảnh bìa — thêm cột vào `select` đó là lộ ra web.
+      Thẻ mở `/<slug>` (bản nhà trai) nên người xem thấy TRỌN thiệp: lời giải thích cho khách
+      ở màn thanh toán/admin-support phải nói đúng điều đó.
 - [x] Allowlist field khách được sửa — `CUSTOMER_EDITABLE_FIELDS`.
 - [x] GET công khai không trả field thanh toán (`expires_at`/`payment_status` lấy để XÉT rồi
       `delete` khỏi response).

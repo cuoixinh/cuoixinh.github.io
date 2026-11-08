@@ -1447,14 +1447,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
 
     // ── Public: thiệp khách đã thanh toán cho mục "Thiệp của khách" ở trang chủ ──
-    // Chỉ trả cột đủ vẽ thẻ (tên, ảnh bìa, ngày cưới, link) — không SĐT/địa chỉ/
-    // ngân hàng. Bỏ thiệp hết hạn gói (đang bị khoá) và thiệp chưa có ảnh nào.
+    // Chỉ thiệp khách ĐỒNG Ý (showcase_consent, chốt ở màn thanh toán). Chỉ trả cột đủ
+    // vẽ thẻ — không SĐT/địa chỉ/ngân hàng. Bỏ thiệp hết hạn gói và thiệp chưa có ảnh.
     if (resource === 'public-showcase') {
       const nowIso = new Date().toISOString()
       const { data, error } = await supabase
         .from('weddings')
         .select('slug, groom_name, bride_name, theme, ceremony_date, cover_image_url, gallery_images, image_focal_points')
         .eq('payment_status', 'completed')
+        .eq('showcase_consent', true)
         .eq('is_published', true)
         .eq('is_active', true)
         .not('slug', 'is', null)

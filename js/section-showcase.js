@@ -31,6 +31,7 @@
     const meta = [date && `<span>${date}</span>`, tpl && `<span>Mẫu ${tpl}</span>`]
       .filter(Boolean)
       .join(`<span aria-hidden="true">·</span>`);
+    // Link trần /<slug> = bản nhà trai (isGroomSide mặc định), đúng như khách đã đồng ý.
     return `
       <a class="tt-card cx-tplcard cx-showcard" href="/${encodeURIComponent(w.slug)}"
          target="_blank" rel="noopener nofollow">

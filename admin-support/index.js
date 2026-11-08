@@ -223,6 +223,14 @@ function payRender() {
         <p><span class="text-gray-500">Mẫu:</span> ${escapeHtml(w.theme || "—")}</p>
         <p class="sm:col-span-2"><span class="text-gray-500">Trạng thái:</span> ${escapeHtml(payStatusText(w))}</p>
       </div>
+      <label class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2">
+        <span class="text-sm text-gray-800">
+          Hiện ở mục "Thiệp của khách" trang chủ
+          <span class="block text-[11px] text-gray-400">Người xem trang chủ mở được cả thiệp (bản nhà trai). Khách chọn lúc thanh toán; chỉ đổi khi khách yêu cầu, thiệp chưa thanh toán thì chưa hiện dù bật.</span>
+        </span>
+        <input type="checkbox" role="switch" class="cx-switch shrink-0" ${w.showcase_consent ? "checked" : ""}
+          onchange="payShowcase(this)" />
+      </label>
       ${
         w.pending_payos
           ? `<p class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
@@ -250,6 +258,16 @@ function payRender() {
                   class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
               </div>
             </div>
+            ${
+              w.current_plan
+                ? ""
+                : `<label class="flex items-start gap-2 text-sm text-gray-800 cursor-pointer">
+                    <input id="pay-showcase" type="checkbox" checked class="mt-1 accent-rose-500" />
+                    <span>Khách cho phép hiện thiệp ở trang chủ
+                      <span class="block text-[11px] text-gray-400">Hỏi khách trước khi xác nhận — người xem trang chủ mở được cả thiệp (bản nhà trai)</span>
+                    </span>
+                  </label>`
+            }
             <x-button id="pay-confirm-btn" icon="badge-check" onclick="payConfirm()">Xác nhận đã nhận tiền</x-button>`
           : `<p class="text-sm text-gray-500">${
               w.plans.length ? "Thiệp đã ở gói cao nhất, không còn gói nào để nâng." : "Mẫu này chưa có giá nên không xác nhận được."
@@ -257,6 +275,24 @@ function payRender() {
       }
     </div>`;
   window.lucide?.createIcons({ root: box });
+}
+
+// Bật/tắt hiện thiệp ở trang chủ; ghi hỏng thì trả công tắc về như cũ.
+async function payShowcase(input) {
+  const w = payWedding;
+  if (!w) return;
+  const value = input.checked;
+  input.disabled = true;
+  try {
+    await supRequest("support-pay", "PATCH", { payload: { id: w.id, showcase_consent: value } });
+    w.showcase_consent = value;
+    showToast(value ? "Đã cho hiện thiệp ở trang chủ" : "Đã gỡ thiệp khỏi trang chủ", "success");
+  } catch (e) {
+    input.checked = !value;
+    showAlert("Không đổi được", e.message);
+  } finally {
+    input.disabled = false;
+  }
 }
 
 async function payConfirm() {
@@ -278,7 +314,13 @@ async function payConfirm() {
   btn.disabled = true;
   try {
     await supRequest("support-pay", "POST", {
-      payload: { id: w.id, plan: plan.id, amount, note: document.getElementById("pay-note").value.trim() },
+      payload: {
+        id: w.id,
+        plan: plan.id,
+        amount,
+        note: document.getElementById("pay-note").value.trim(),
+        showcase_consent: !!document.getElementById("pay-showcase")?.checked,
+      },
     });
     showToast(`Đã chuyển thiệp sang gói ${plan.label}`, "success");
     payLookup();
