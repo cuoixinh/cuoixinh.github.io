@@ -673,10 +673,12 @@ function _cxMountMusic(decl) {
     }
     window.renderWedding(w);
     // Link chung (khách vãn lai) không ứng với hàng khách nào nên không ghi được
-    // xác nhận → giấu hẳn mục. Bản xem thử giữ nguyên để chủ thiệp thấy mục này.
+    // xác nhận → giấu khối nút, và cả phần mẫu đánh dấu `data-cx-guest-only` (vd cả
+    // màn RSVP). Bản xem thử giữ nguyên để chủ thiệp thấy mục này.
     if (!window.CX_GUEST && !isPreviewMode()) {
       const rsvp = document.getElementById("rsvp-section");
       if (rsvp) rsvp.style.display = "none";
+      document.querySelectorAll("[data-cx-guest-only]").forEach((el) => el.classList.add("hidden"));
     }
     if (T.revealItems?.length) _cxRevealItems(T.revealItems);
     // Ảnh trên nút nhạc (CX_THEME.music.art) cần dữ liệu thiệp → áp sau render.
