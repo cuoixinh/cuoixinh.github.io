@@ -45,6 +45,9 @@ function cxHeroMenu(btn) {
       ...(loggedIn
         ? [{ icon: _cxHeroMenuIcon("users"), label: "Khách mời", onClick: go("/guest-list/") }]
         : []),
+      ...(typeof CONFIG === "undefined" || CONFIG.features?.led !== false
+        ? [{ icon: _cxHeroMenuIcon("monitor"), label: "Hình nền LED", onClick: go("/hinh-nen-led/") }]
+        : []),
       // Cùng trang: đóng menu rồi cuộn tới mục, không tải lại trang.
       { icon: _cxHeroMenuIcon("tag"), label: "Bảng giá", onClick: () => {
         window.flushLazyRender?.();
@@ -53,9 +56,6 @@ function cxHeroMenu(btn) {
       // Theo cờ CONFIG.features.slides — cùng cờ với mục `feature: "slides"` ở navbar.
       ...(typeof CONFIG === "undefined" || CONFIG.features?.slides !== false
         ? [{ icon: _cxHeroMenuIcon("film"), label: "Slide cưới", onClick: go("/slide-cuoi/") }]
-        : []),
-      ...(typeof CONFIG === "undefined" || CONFIG.features?.led !== false
-        ? [{ icon: _cxHeroMenuIcon("monitor"), label: "Hình nền LED", onClick: go("/hinh-nen-led/") }]
         : []),
     ];
     // 4 trang thì 2 + 2, 5 thì 3 + 2, 6 thì 3 + 3, 7 thì 4 + 3 — không để ô lẻ trơ một mình.

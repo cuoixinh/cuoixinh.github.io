@@ -50,7 +50,7 @@ supabase/functions/      Edge Functions
 changelogs/              Lịch sử thay đổi DB
 cloudflare-worker/       Workers proxy/cache
 hinh-nen-led/            "Hình nền LED" — mẫu màn chờ chiếu lặp lên LED sân khấu, tải video/ảnh (vẽ bằng bộ vẽ của slide-cuoi/)
-cloudflare-media/        Kho nhạc thư viện của Slide cưới (Worker file tĩnh, media.cuoixinh.com) — file nhạc KHÔNG vào git
+cloudflare-media/        Kho nhạc thư viện của Slide cưới (Worker file tĩnh ở tài khoản Cloudflare phụ, cuoixinh-media.cx-music.workers.dev) — file nhạc KHÔNG vào git
 worker/                  Worker của site chính — trả trang thiệp tại /<slug> + thẻ og:*
 ```
 

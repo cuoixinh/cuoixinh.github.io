@@ -131,7 +131,7 @@ slide-cuoi/
   nên **không bao giờ chặn slide**: dữ liệu gửi sang khung không chờ kho; bài thư viện đã chọn
   chỉ được áp khi kho trả lời, trước đó (hoặc kho chết) slide chạy không nhạc. Gửi sang khung: `{id, blob}` · `{url}` ·
   null qua `cx-slide-data` / `cx-slide-music`.
-- **Kho nhạc thư viện** = Worker CHỈ phục vụ file tĩnh `cuoixinh-media` ở `media.cuoixinh.com`
+- **Kho nhạc thư viện** = Worker CHỈ phục vụ file tĩnh `cuoixinh-media` ở tài khoản Cloudflare phụ (`cuoixinh-media.cx-music.workers.dev`)
   (thư mục `cloudflare-media/`, `npm run deploy:media`) — không tính vào 10 GB miễn phí của R2,
   file nhạc không vào git (`public/songs/` bị .gitignore, wrangler đọc file trên máy). Thêm bài:
   chép file vào `cloudflare-media/public/songs/`, thêm mục vào `public/library.json`, deploy.

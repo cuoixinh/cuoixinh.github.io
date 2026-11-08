@@ -25,7 +25,7 @@
     "check:lint": "node scripts/check-lint.mjs",
     "check:api": "node scripts/check-api.mjs",
     "production": "bash scripts/promote-production.sh",
-    "deploy:media": "npx wrangler deploy --config cloudflare-media/wrangler.jsonc",
+    "deploy:media": "node scripts/media-guard.mjs",
     "sync-production": "bash scripts/sync-production.sh",
     "deploy:public": "node scripts/deploy-public.mjs",
     "sql:merge": "node scripts/merge-changelogs.mjs"
