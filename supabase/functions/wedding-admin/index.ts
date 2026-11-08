@@ -165,6 +165,9 @@ function isSafeImageRef(value: unknown): boolean {
 // dài, và bắt `image_url`/`focal_point` theo cùng luật với cột ảnh.
 const MAX_TEXT = 2000
 
+// Số thẻ tối đa của mục "Thiệp của khách" ở trang chủ (resource=public-showcase).
+const SHOWCASE_LIMIT = 12
+
 function cleanText(v: unknown, max = MAX_TEXT): string {
   return typeof v === 'string' ? v.slice(0, max) : ''
 }
@@ -1440,6 +1443,46 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
 
       return new Response(JSON.stringify(combined), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // ── Public: thiệp khách đã thanh toán cho mục "Thiệp của khách" ở trang chủ ──
+    // Chỉ trả cột đủ vẽ thẻ (tên, ảnh bìa, ngày cưới, link) — không SĐT/địa chỉ/
+    // ngân hàng. Bỏ thiệp hết hạn gói (đang bị khoá) và thiệp chưa có ảnh nào.
+    if (resource === 'public-showcase') {
+      const nowIso = new Date().toISOString()
+      const { data, error } = await supabase
+        .from('weddings')
+        .select('slug, groom_name, bride_name, theme, ceremony_date, cover_image_url, gallery_images, image_focal_points')
+        .eq('payment_status', 'completed')
+        .eq('is_published', true)
+        .eq('is_active', true)
+        .not('slug', 'is', null)
+        .or(`plan_expires_at.is.null,plan_expires_at.gt.${nowIso}`)
+        .order('payment_time', { ascending: false, nullsFirst: false })
+        .limit(SHOWCASE_LIMIT * 2)
+      if (error) {
+        log.error('wedding.showcase_query_failed', { code: error.code, message: error.message })
+        return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+      }
+      const rows = (data ?? [])
+        .map((w: Record<string, any>) => {
+          const cover = w.cover_image_url || (Array.isArray(w.gallery_images) ? w.gallery_images[0] : '') || ''
+          const focal = w.cover_image_url ? w.image_focal_points?.cover_image_url ?? null : null
+          return {
+            slug: w.slug,
+            groom_name: w.groom_name,
+            bride_name: w.bride_name,
+            theme: w.theme,
+            ceremony_date: w.ceremony_date,
+            cover,
+            focal,
+          }
+        })
+        .filter((w) => w.cover)
+        .slice(0, SHOWCASE_LIMIT)
+      return new Response(JSON.stringify(rows), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
       })
     }
 

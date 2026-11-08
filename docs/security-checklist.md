@@ -341,7 +341,10 @@ Rà bằng cách đọc mã ngày **2026-09-15**, trừ dòng ghi rõ nguồn kh
 - [x] PATCH thiệp: bắt buộc đăng nhập + `user_id` khớp — `wedding-admin/index.ts`, khối
       "Phân quyền sửa thiệp".
 - [x] DELETE thiệp: chủ thiệp hoặc admin; thiệp vô chủ chỉ admin xoá được.
-- [x] GET `?id=` phải là chủ thiệp; `?slug=` là đường công khai DUY NHẤT.
+- [x] GET `?id=` phải là chủ thiệp; `?slug=` là đường công khai DUY NHẤT trả trọn thiệp.
+      Đường công khai LIỆT KÊ thiệp duy nhất là `resource=public-showcase` (mục "Thiệp của
+      khách" ở trang chủ): chỉ thiệp đã thanh toán + đang xuất bản + chưa hết hạn gói, và chỉ
+      slug, tên cô dâu chú rể, mẫu, ngày cưới, ảnh bìa — thêm cột vào `select` đó là lộ ra web.
 - [x] Allowlist field khách được sửa — `CUSTOMER_EDITABLE_FIELDS`.
 - [x] GET công khai không trả field thanh toán (`expires_at`/`payment_status` lấy để XÉT rồi
       `delete` khỏi response).
