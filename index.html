@@ -340,15 +340,20 @@
     </section>
 
     <!-- ===== THIỆP CỦA KHÁCH ===== -->
-    <!-- Thiệp đã thanh toán, mới trả đứng đầu — js/section-showcase.js đổ vào và
-         chỉ bỏ `hidden` khi có ít nhất một thiệp. Thẻ cùng kiểu .tt-card với dải trên. -->
-    <section id="showcase" class="pb-12" hidden>
-      <div class="max-w-6xl mx-auto px-5 pb-3 md:pb-4">
+    <!-- Thiệp khách đã thanh toán và đồng ý hiện ở đây, mới trả đứng đầu —
+         js/section-showcase.js đổ thẻ vào và chỉ bỏ `hidden` khi có ít nhất một thiệp.
+         Style ở .cx-show-* (styles/tailwind-src.css). -->
+    <section id="showcase" class="cx-showcase" hidden>
+      <div class="max-w-6xl mx-auto px-5 pb-2 md:pb-3">
         <h2
           class="font-playfair text-lg min-[380px]:text-xl md:text-3xl font-semibold whitespace-nowrap text-[rgb(var(--text-heading-rgb))]"
         >
           Thiệp của khách đã tạo
         </h2>
+        <p class="cx-show-sub">
+          <i data-lucide="heart-handshake" style="width:16px;height:16px"></i>
+          Thiệp được chia sẻ với sự đồng ý của các cặp đôi
+        </p>
       </div>
       <div class="mx-auto flex max-w-6xl items-center lg:gap-4 lg:px-2">
         <x-button
@@ -360,7 +365,7 @@
         >
           <i data-lucide="chevron-left" style="width:16px;height:16px"></i>
         </x-button>
-        <div id="showcaseRow" class="cx-tplrow scroll-fade min-w-0 flex-1"></div>
+        <div id="showcaseRow" class="cx-tplrow cx-show-row scroll-fade min-w-0 flex-1"></div>
         <x-button
           variant="outline"
           icon-only
