@@ -89,6 +89,19 @@
 .led-screen.is-full .led-full-x {
   display: flex;
 }
+/* Trình chiếu lúc đang bật "Màn chiếu": chiếu đúng hình nền như lên LED thật, bỏ ảnh hội trường. */
+.sc-stage.is-hall .led-screen.is-full {
+  width: 100%;
+  aspect-ratio: auto;
+  background: rgb(0 0 0);
+}
+.sc-stage.is-hall .led-screen.is-full canvas {
+  position: static;
+  width: min(100%, calc(100vh * var(--sc-ratio-n, 1.7778)));
+  height: auto;
+  aspect-ratio: var(--sc-ratio, 16 / 9);
+  box-shadow: none;
+}
 .led-screen.is-full.is-idle {
   cursor: none;
 }

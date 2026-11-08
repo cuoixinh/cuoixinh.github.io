@@ -1,6 +1,7 @@
 // Trang "Hình nền LED": màn LED to chạy mẫu đang chọn (bộ vẽ slide dùng chung), nguồn thông tin là
 // thiệp của tài khoản (getWeddingById, chỉ chủ thiệp) hoặc dữ liệu mẫu; tải xuống ảnh PNG
-// 3840×2160 hoặc video MP4 4K nối vòng liền mạch. Mọi thứ dựng trên máy khách.
+// 3840×2160, video MP4 4K nối vòng liền mạch, hoặc video dọc 2K đăng TikTok (hình nền trên màn
+// chiếu của ảnh hội trường). Mọi thứ dựng trên máy khách.
 
 const _LED_TPLS = window.CX_LED_TEMPLATES || [];
 const _ledS = { tpl: _LED_TPLS[0]?.id || "", real: false, wid: null, user: null };
@@ -61,7 +62,7 @@ async function _ledBuild(keep) {
   if (gen !== _ledGen) return;
   const order = [_ledTpl(), ..._LED_TPLS.filter((t) => t !== _ledTpl())];
   for (const tpl of order) {
-    const P = await CXSlideEngine.build(tpl, await _ledInput(tpl), _ledTexts(tpl.id), _ledPhFor(tpl.id), null);
+    const P = await CXSlideEngine.build(tpl, await _ledInput(tpl), _ledTexts(tpl.id), _ledPhFor(tpl.id), _ledTiming(tpl.id));
     if (gen !== _ledGen) return;
     _ledP.set(tpl.id, P);
     if (tpl.id === _ledS.tpl) {
@@ -79,7 +80,7 @@ function _ledThumb(tpl, P) {
   const cv = document.createElement("canvas");
   cv.width = 480;
   cv.height = Math.round((480 * P.H) / P.W);
-  CXSlideEngine.frame(cv.getContext("2d"), P, tpl.poster ?? 0, { loop: true });
+  CXSlideEngine.frame(cv.getContext("2d"), P, _ledPoster(tpl, P), { loop: true });
   img.src = cv.toDataURL("image/jpeg", 0.85);
 }
 
@@ -213,6 +214,109 @@ function _ledTexts(tplId = _ledS.tpl) {
     return {};
   }
 }
+// ── Thời lượng (y như Slide cưới): thanh "cả vòng" (hệ số nhân thời lượng mẫu, 0,5×–2×) + thanh
+// riêng từng cảnh (giây, đè hệ số). Lưu ở localStorage `cx_led_timing` theo <mẫu>|<thiệp hoặc demo>,
+// dạng {scale, scenes: {id cảnh: giây}}; đổi thì chỉ retime dự án đang có (bộ vẽ tự kẹp mỗi cảnh
+// trong [min, max] — min = đủ cho mọi hiệu ứng chạy xong), không dựng lại.
+const _LED_TIMING = "cx_led_timing";
+function _ledTiming(tplId = _ledS.tpl) {
+  try {
+    const own = JSON.parse(localStorage.getItem(_LED_TIMING) || "{}")?.[`${tplId}|${_ledPhKey()}`];
+    return own && typeof own === "object" ? own : {};
+  } catch (e) {
+    return {};
+  }
+}
+function _ledTimingSave(own) {
+  if (own.scenes && !Object.keys(own.scenes).length) delete own.scenes;
+  if (own.scale === 1) delete own.scale;
+  try {
+    const all = JSON.parse(localStorage.getItem(_LED_TIMING) || "{}") || {};
+    const k = `${_ledS.tpl}|${_ledPhKey()}`;
+    if (Object.keys(own).length) all[k] = own;
+    else delete all[k];
+    localStorage.setItem(_LED_TIMING, JSON.stringify(all));
+  } catch (e) {}
+  _ledRetime();
+}
+// Áp thời lượng mới lên dự án đang chiếu, đứng lại đúng cảnh + đúng chỗ trong cảnh đó.
+function _ledRetime() {
+  const P = _ledP.get(_ledS.tpl);
+  if (!P) return;
+  const now = _ledNow();
+  const lap = Math.floor(now / P.total);
+  const tt = now - lap * P.total;
+  const i = CXSlideEngine.indexAt(P, tt);
+  const local = tt - P.starts[i];
+  CXSlideEngine.retime(P, _ledTiming());
+  _ledSetT(lap * P.total + P.starts[i] + Math.min(local, P.scenes[i].dur - 0.05));
+  _ledSyncTpl();
+}
+// Đang tạo video thì dự án đang được đọc từng khung — không đổi thời lượng giữa chừng.
+function _ledTimeBusy() {
+  if (!_ledJob) return false;
+  window.showToast?.("Đang tạo video, đợi xong rồi hãy chỉnh thời gian", "warning");
+  _ledTimeSync();
+  return true;
+}
+// Giây `poster` của mẫu tính theo thời lượng MẪU → đổi sang dòng thời gian đã chỉnh (cùng cảnh,
+// cùng chỗ trong cảnh), để ảnh nhỏ + ảnh PNG vẫn ra đúng khung mẫu chọn.
+function _ledPoster(tpl, P) {
+  let t = tpl.poster ?? 0;
+  for (let i = 0; i < P.scenes.length; i++) {
+    const s = P.scenes[i];
+    const d = Math.min(s.max, Math.max(s.min, s.base));
+    if (t < d || i === P.scenes.length - 1) return P.starts[i] + Math.min(t, s.dur - 0.05);
+    t -= d;
+  }
+  return 0;
+}
+// Phần đã kéo của thanh (tô màu nhấn), CSS đọc qua --p.
+function _ledRangeFill(r) {
+  const min = Number(r.min);
+  const max = Number(r.max);
+  r.style.setProperty("--p", `${max > min ? ((Number(r.value) - min) / (max - min)) * 100 : 0}%`);
+}
+// Đồng bộ thẻ "cả vòng" + thanh từng cảnh theo dự án hiện tại; thanh đang kéo thì để yên.
+function _ledTimeSync() {
+  const P = _ledP.get(_ledS.tpl);
+  const own = _ledTiming();
+  const live = document.activeElement;
+  const sp = _ledEl("led-speed");
+  if (live !== sp) sp.value = String(own.scale || 1);
+  _ledRangeFill(sp);
+  const changed = Object.keys(own).length > 0;
+  _ledEl("led-time-total").textContent = P ? _ledMin(Math.round(P.total)) : "–:––";
+  _ledEl("led-time-reset").classList.toggle("hidden", !changed);
+  const base = P ? P.scenes.reduce((n, s) => n + Math.min(s.max, Math.max(s.min, s.base)), 0) : 0;
+  _ledEl("led-time-def").textContent = changed && P ? `Mặc định ${_ledMin(Math.round(base))}` : "";
+  _ledEl("led-cues").querySelectorAll("[data-dur]").forEach((r) => {
+    const s = P?.scenes[Number(r.dataset.dur)];
+    if (!s) return;
+    r.min = String(s.min);
+    r.max = String(s.max);
+    if (r !== live) r.value = String(s.dur);
+    _ledRangeFill(r);
+    const box = r.closest(".sc-dur");
+    box.querySelector(".sc-dur-v").textContent = _ledSecTxt(Number(r.value));
+    box.querySelector(".sc-dur-min").textContent = _ledSecTxt(s.min);
+    box.querySelector(".sc-dur-max").textContent = _ledSecTxt(s.max);
+    box.querySelector(".sc-dur-undo").classList.toggle("is-off", !(own.scenes && s.id in own.scenes));
+  });
+}
+_ledEl("led-speed").addEventListener("input", (e) => {
+  if (_ledTimeBusy()) return;
+  const own = _ledTiming();
+  own.scale = Number(e.target.value);
+  _ledRangeFill(e.target);
+  _ledTimingSave(own);
+});
+function ledTimingReset() {
+  if (_ledTimeBusy()) return;
+  _ledEl("led-speed").value = "1";
+  _ledTimingSave({});
+}
+
 function _ledTextsSave(own) {
   try {
     const all = JSON.parse(localStorage.getItem(_LED_TEXTS) || "{}") || {};
@@ -325,6 +429,15 @@ function _ledCueRender() {
           <span class="sc-cue-d"></span>
         </button>
         <div class="sc-tx-list${open ? "" : " hidden"}">
+          <div class="sc-dur">
+            <div class="sc-dur-row">
+              <label class="sc-dur-l" for="led-dur-${i}">${_ledIco("timer")}Thời gian cảnh</label>
+              <output class="sc-dur-v" for="led-dur-${i}"></output>
+              <button type="button" class="sc-dur-undo is-off" data-dur-undo="${i}" aria-label="Trả thời gian cảnh về mặc định" title="Về mặc định">${_ledIco("undo-2")}</button>
+            </div>
+            <input id="led-dur-${i}" type="range" class="sc-range" data-dur="${i}" step="0.5" />
+            <div class="sc-range-ends"><span class="sc-dur-min"></span><span class="sc-dur-max"></span></div>
+          </div>
           ${c.photos?.length ? `<div class="sc-phbox"></div>` : ""}${fields}
         </div>
       </li>`;
@@ -347,6 +460,7 @@ function _ledCueTimes() {
     b.querySelector(".sc-cue-t").textContent = _ledMin(Math.round(P.starts[i]));
     b.querySelector(".sc-cue-d").textContent = _ledSecTxt(c.dur);
   });
+  _ledTimeSync();
 }
 
 // Cảnh đang chiếu sáng nền + vạch nhấn trên danh sách; đang chạy thì chấm "đang phát" nhịp.
@@ -515,6 +629,16 @@ function ledTextsReset() {
 }
 
 _ledEl("led-cues").addEventListener("input", (e) => {
+  const r = e.target.closest("[data-dur]");
+  if (r) {
+    const s = _ledP.get(_ledS.tpl)?.scenes[Number(r.dataset.dur)];
+    if (!s || _ledTimeBusy()) return;
+    const own = _ledTiming();
+    own.scenes = { ...(own.scenes || {}), [s.id]: Number(r.value) };
+    _ledRangeFill(r);
+    _ledTimingSave(own);
+    return;
+  }
   const ta = e.target.closest(".sc-tx-in");
   if (!ta) return;
   _ledGrow(ta);
@@ -523,6 +647,15 @@ _ledEl("led-cues").addEventListener("input", (e) => {
 });
 
 _ledEl("led-cues").addEventListener("click", (e) => {
+  const du = e.target.closest("[data-dur-undo]");
+  if (du) {
+    const s = _ledP.get(_ledS.tpl)?.scenes[Number(du.dataset.durUndo)];
+    const own = _ledTiming();
+    if (!s || !own.scenes || _ledTimeBusy()) return;
+    delete own.scenes[s.id];
+    _ledTimingSave(own);
+    return;
+  }
   const tu = e.target.closest("[data-undo]");
   if (tu) {
     const ta = tu.parentElement.querySelector(".sc-tx-in");
@@ -894,9 +1027,9 @@ _ledEl("led-screen").addEventListener("click", (e) => {
 });
 
 // ── Tải xuống ──
-function _ledFile(ext) {
+function _ledFile(ext, tag) {
   const slug = _ledWed()?.slug;
-  return `hinh-nen-led-${_ledS.tpl}${slug ? "-" + slug : ""}.${ext}`;
+  return `hinh-nen-led-${_ledS.tpl}${slug ? "-" + slug : ""}${tag ? "-" + tag : ""}.${ext}`;
 }
 function _ledSaveBlob(blob, name) {
   const a = document.createElement("a");
@@ -913,16 +1046,20 @@ function ledImage() {
   const cv = document.createElement("canvas");
   cv.width = 3840;
   cv.height = Math.round((3840 * P.H) / P.W);
-  CXSlideEngine.frame(cv.getContext("2d", { alpha: false }), P, _ledTpl().poster ?? 0, { loop: true });
+  CXSlideEngine.frame(cv.getContext("2d", { alpha: false }), P, _ledPoster(_ledTpl(), P), { loop: true });
   cv.toBlob((blob) => blob && _ledSaveBlob(blob, _ledFile("png")), "image/png");
 }
 
-// Video MP4 4K nối vòng; máy không mã hoá nổi 4K thì lùi về 1080p và báo.
-async function ledVideo() {
+// Video MP4 nối vòng. kind "tiktok": video dọc 2K, hình nền đặt trên màn chiếu ảnh hội trường
+// (CXSlideExport.HALL); còn lại 4K, máy không mã hoá nổi 4K thì lùi về 1080p và báo.
+async function ledVideo(kind) {
   const P = _ledP.get(_ledS.tpl);
   if (!P || _ledJob) return;
+  const tiktok = kind === "tiktok";
+  if (tiktok && !(await CXSlideExport.pickCodec("tiktok")))
+    return window.showToast?.("Máy này không tạo được video TikTok 2K. Hãy thử bản 4K hoặc mở bằng Chrome bản mới", "error");
   _ledJob = new AbortController();
-  const h = (await CXSlideExport.pickCodec(2160)) ? 2160 : 1080;
+  const h = tiktok ? "tiktok" : (await CXSlideExport.pickCodec(2160)) ? 2160 : 1080;
   _ledProg(0);
   let wake = null;
   try {
@@ -931,8 +1068,8 @@ async function ledVideo() {
   } catch (e) {}
   try {
     const blob = await CXSlideExport.run(P, { height: h, loop: true, signal: _ledJob.signal, onProgress: _ledProg });
-    _ledSaveBlob(blob, _ledFile("mp4"));
-    if (h !== 2160) window.showToast?.("Máy này không tạo được video 4K nên đã tạo bản 1080p", "warning");
+    _ledSaveBlob(blob, _ledFile("mp4", tiktok ? "tiktok" : h === 1080 ? "1080p" : "4k"));
+    if (h === 1080) window.showToast?.("Máy này không tạo được video 4K nên đã tạo bản 1080p", "warning");
   } catch (e) {
     if (e?.code !== "ABORTED")
       window.showToast?.(
@@ -967,11 +1104,27 @@ const _ledDlPop = _ledEl("led-dl-pop");
 _ledEl("led-dl").addEventListener("click", (e) => {
   if (_ledJob) e.stopImmediatePropagation();
 }, true);
-_ledDlPop.setItems([
-  { icon: _ledIco("image"), label: "Ảnh (PNG)", onClick: ledImage },
-  { icon: _ledIco("film"), label: "Video (MP4 - 4K)", onClick: ledVideo, disabled: !window.CXSlideExport?.supported() },
-]);
-window.lucide?.createIcons({ root: _ledDlPop });
+// tiktok: false khi máy không mã hoá được khổ dọc 2K (dò một lần lúc nạp trang).
+function _ledDlItems(tiktok) {
+  const vid = !!window.CXSlideExport?.supported();
+  _ledDlPop.setItems([
+    { icon: _ledIco("image"), label: "Ảnh (PNG - 4K)", onClick: ledImage },
+    { icon: _ledIco("film"), label: "Video (MP4 - 4K)", onClick: () => ledVideo("4k"), disabled: !vid },
+    { icon: _ledIco("smartphone"), label: "Video TikTok (dọc 2K)", onClick: () => ledVideo("tiktok"), disabled: !vid || !tiktok },
+  ]);
+  window.lucide?.createIcons({ root: _ledDlPop });
+}
+_ledDlItems(true);
+window.CXSlideExport?.supported() && CXSlideExport.pickCodec("tiktok").then((c) => !c && _ledDlItems(false));
+
+// ── Màn chiếu: đặt hình nền lên ảnh hội trường (đúng bố cục video TikTok) để xem nó trông ra sao
+// trên sân khấu. Chỉ đổi CSS của khung — canvas tự vẽ lại theo khổ mới, không chạy lại từ đầu.
+function ledHall(on) {
+  const stage = _ledEl("led-screen").closest(".sc-stage");
+  on = typeof on === "boolean" ? on : !stage.classList.contains("is-hall");
+  stage.classList.toggle("is-hall", on);
+  _ledEl("led-hall-btn")?.setAttribute("aria-pressed", String(on));
+}
 
 // ── Nguồn thông tin: công tắc "Dùng thiệp của tôi" + dải thẻ thiệp (cùng kiểu Slide cưới) ──
 function _ledState(state) {

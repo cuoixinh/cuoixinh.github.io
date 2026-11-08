@@ -12,7 +12,7 @@ window.CXSlideExport = (() => {
     tiktok: { w: 1440, h: 2560, bitrate: 12e6, codecs: ["avc1.640032", "avc1.4d0032", "avc1.640033"] },
   };
   // Ảnh hội trường 941×1672 + ô màn chiếu (tỉ lệ 0–1 của ảnh, đúng 16:9, tràn hết bề ngang ảnh) — trang /slide-cuoi/
-  // dựng khung "Màn chiếu" theo CÙNG số này (.sc-stage.is-hall ở styles/_slide-cuoi.css).
+  // và /hinh-nen-led/ dựng khung "Màn chiếu" theo CÙNG số này (.sc-stage.is-hall ở styles/_slide-cuoi.css).
   const HALL = { src: "/slide-cuoi/assets/hall.jpg", x: 0, y: 406.84 / 1672, w: 1, h: 529.31 / 1672 };
   const FPS = 30;
   const AUDIO_RATE = 48000;

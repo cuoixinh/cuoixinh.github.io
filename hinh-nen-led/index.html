@@ -21,10 +21,10 @@
     ></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Playfair + Inter cho trang; Cormorant + Playfair nghiêng cho chữ vẽ trên hình nền (canvas
-         chỉ vẽ được font trang đã khai). Font viết tay của mẫu tự host trong build.css. -->
+    <!-- Playfair + Inter cho trang; các họ còn lại là chữ vẽ trên hình nền (canvas chỉ vẽ được font
+         trang đã khai) — mẫu mới dùng font Google nào thì thêm vào đây. Font viết tay tự host trong build.css. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Infant:ital,wght@0,400;0,500;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Infant:ital,wght@0,400;0,500;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;500;800&family=Josefin+Sans:wght@300;600&family=Prata&family=Noto+Serif+Display:ital,wght@0,300;1,400&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../styles/build.css" />
@@ -65,6 +65,10 @@
             <x-button variant="bare" icon-only icon="skip-forward" class="sc-ctl-btn" data-ctl="next" aria-label="Cảnh sau" title="Cảnh sau"></x-button>
           </div>
           <div class="sc-acts">
+            <!-- Đặt hình nền lên màn chiếu của ảnh hội trường — đúng khung của video TikTok. -->
+            <x-button id="led-hall-btn" variant="bare" icon="projector" onclick="ledHall()" class="sc-ghost sc-hall-btn" aria-pressed="false" aria-label="Xem trên màn chiếu hội trường">
+              <span class="sc-act-t">Màn chiếu</span>
+            </x-button>
             <x-button id="led-dl" variant="bare" icon="download" class="sc-ghost sc-ex-btn" aria-haspopup="menu">
               <span id="led-dl-t" class="sc-act-t">Tải xuống</span>
             </x-button>
@@ -78,7 +82,7 @@
         </div>
       </section>
 
-      <x-popover id="led-dl-pop" anchor="#led-dl" placement="bottom" align="start" width="220"></x-popover>
+      <x-popover id="led-dl-pop" anchor="#led-dl" placement="bottom" align="start" width="240"></x-popover>
 
       <div class="sc-panel">
         <div id="led-tabs" class="cx-seg sc-tabs led-tabs" role="tablist" aria-label="Chỉnh hình nền" style="--n: 3; --i: 1">
@@ -137,7 +141,17 @@
         <!-- Tab Cảnh (y như tab Cảnh của Slide cưới): mỗi cảnh một dòng, mở ra là khối đổi ảnh + ô sửa
              chữ của cảnh đó (index.js vẽ). Ảnh/chữ khách đổi chỉ cất trên máy (IndexedDB + localStorage). -->
         <section id="led-tab-scenes" class="sc-tab hidden" role="tabpanel" aria-labelledby="led-tabbtn-scenes">
-          <p class="sc-lead">Bấm thẳng vào chữ hoặc ảnh trên màn, hoặc chọn một cảnh dưới đây để đổi ảnh và sửa chữ. Xoá trắng một dòng chữ là bỏ dòng đó.</p>
+          <p class="sc-lead">Bấm thẳng vào chữ hoặc ảnh trên màn, hoặc chọn một cảnh dưới đây để đổi ảnh, sửa chữ và chỉnh thời gian cảnh. Xoá trắng một dòng chữ là bỏ dòng đó.</p>
+          <!-- Thời lượng cả vòng (hệ số 0,5×–2× thời lượng mẫu), cùng khối .sc-time của Slide cưới. -->
+          <div class="sc-time" role="group" aria-labelledby="led-time-l">
+            <div class="sc-time-head">
+              <span id="led-time-l" class="sc-time-l"><i data-lucide="clock"></i>Thời lượng cả vòng</span>
+              <x-button id="led-time-reset" variant="bare" icon="rotate-ccw" onclick="ledTimingReset()" class="sc-time-reset hidden">Mặc định</x-button>
+            </div>
+            <p class="sc-time-v"><output id="led-time-total" for="led-speed">–:––</output><span id="led-time-def" class="sc-time-def"></span></p>
+            <input id="led-speed" type="range" class="sc-range" min="0.5" max="2" step="0.05" value="1" aria-label="Thời lượng cả vòng" />
+            <div class="sc-range-ends"><span>Nhanh hơn</span><span>Chậm hơn</span></div>
+          </div>
           <ol id="led-cues" class="sc-cues"></ol>
           <input id="led-ph-file" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
           <div class="sc-foot">
@@ -149,7 +163,7 @@
             </x-button>
           </div>
           <p class="sc-keys">Phím cách: tạm dừng. Mũi tên: chuyển cảnh. Bấm vào màn để chiếu toàn màn hình, Esc để thoát.</p>
-          <p class="sc-fine">Ảnh bạn đổi và chữ bạn sửa chỉ lưu trên máy này, không tải lên đâu cả.</p>
+          <p class="sc-fine">Ảnh bạn đổi, chữ bạn sửa và thời gian bạn chỉnh chỉ lưu trên máy này, không tải lên đâu cả.</p>
         </section>
       </div>
     </main>
@@ -211,8 +225,15 @@
     <script src="../slide-cuoi/engine/slide-engine.js"></script>
     <script src="../slide-cuoi/vendor/mp4-muxer.js"></script>
     <script src="../slide-cuoi/engine/slide-export.js"></script>
-    <!-- Danh mục mẫu: mỗi file tự đăng ký vào CX_LED_TEMPLATES. Thêm mẫu = thêm một thẻ ở đây. -->
+    <!-- Danh mục mẫu: mỗi file tự đăng ký vào CX_LED_TEMPLATES. Thêm mẫu = thêm một thẻ ở đây
+         (sau led-kit.js — đồ nghề dùng chung của các mẫu). -->
+    <script src="templates/led-kit.js"></script>
     <script src="templates/hen-uoc-tram-nam.js"></script>
+    <script src="templates/dong-long-son-sat.js"></script>
+    <script src="templates/nguyen-uoc-chung-doi.js"></script>
+    <script src="templates/ket-toc-xe-to.js"></script>
+    <script src="templates/bach-nien-giai-lao.js"></script>
+    <script src="templates/duyen-lanh-tron-kiep.js"></script>
     <script src="index.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="../core/helpers/nav-cart-count.js"></script>

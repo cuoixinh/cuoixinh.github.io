@@ -310,7 +310,14 @@ window.CXSlideEngine = (() => {
     // Mốc đầu cảnh đang vẽ: phần tử cần giờ chung của cả vòng (bầu trời `sky`) cộng với lt.
     P._t0 = P.starts[i];
     ctx.save();
-    pre?.(ctx);
+    // Đang chuyển cảnh (trượt/phóng): cắt theo khung của chính cảnh, không thì phần tử to hơn
+    // khung (quầng sáng, vòng sóng) tràn sang màn rồi biến mất đột ngột lúc chuyển xong.
+    if (pre) {
+      pre(ctx);
+      ctx.beginPath();
+      ctx.rect(0, 0, P.W, P.H);
+      ctx.clip();
+    }
     ctx.globalAlpha = alpha;
     ctx.fillStyle = s.bg || P.bg;
     ctx.fillRect(0, 0, P.W, P.H);
@@ -472,6 +479,18 @@ window.CXSlideEngine = (() => {
       case "sky":
         _sky(ctx, P, el, lt, dur);
         break;
+      case "beams":
+        _beams(ctx, P, el, lt, dur);
+        break;
+      case "waves":
+        _waves(ctx, P, el, lt, dur);
+        break;
+      case "drift":
+        _drift(ctx, P, el, lt, dur);
+        break;
+      case "rings":
+        _rings(ctx, P, el, lt, dur);
+        break;
       case "text":
         _text(ctx, el, (el.ls || 0) + (lsAdd || 0));
         break;
@@ -592,7 +611,42 @@ window.CXSlideEngine = (() => {
 
   // Ảnh phủ kín khung theo điểm lấy nét (như object-fit: cover + object-position). el.kb: Ken
   // Burns suốt cảnh, giữ điểm lấy nét đứng yên — true thu từ 1.1 về 1, "in" phóng từ 1 lên 1.12.
+  // el.shape cắt ảnh theo hình: "circle" (elip nội tiếp khung) · "arch" (vòm, đỉnh bán nguyệt) ·
+  // "chamfer" (vát bốn góc `cut` px); el.radius = bo góc.
   function _image(ctx, img, el, lt, dur) {
+    if (!el.shape && !el.radius) return _imageRect(ctx, img, el, lt, dur);
+    ctx.save();
+    _shapePath(ctx, el);
+    ctx.clip();
+    _imageRect(ctx, img, el, lt, dur);
+    ctx.restore();
+  }
+  function _shapePath(ctx, el) {
+    const { x, y, w, h } = el;
+    ctx.beginPath();
+    if (el.shape === "circle") ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+    else if (el.shape === "arch") {
+      const r = Math.min(w / 2, h);
+      ctx.moveTo(x, y + h);
+      ctx.lineTo(x, y + r);
+      ctx.arc(x + w / 2, y + r, w / 2, Math.PI, 0);
+      ctx.lineTo(x + w, y + h);
+      ctx.closePath();
+    } else if (el.shape === "chamfer") {
+      const c = Math.min(el.cut ?? 24, w / 2, h / 2);
+      ctx.moveTo(x + c, y);
+      ctx.lineTo(x + w - c, y);
+      ctx.lineTo(x + w, y + c);
+      ctx.lineTo(x + w, y + h - c);
+      ctx.lineTo(x + w - c, y + h);
+      ctx.lineTo(x + c, y + h);
+      ctx.lineTo(x, y + h - c);
+      ctx.lineTo(x, y + c);
+      ctx.closePath();
+    } else if (el.radius && ctx.roundRect) ctx.roundRect(x, y, w, h, el.radius);
+    else ctx.rect(x, y, w, h);
+  }
+  function _imageRect(ctx, img, el, lt, dur) {
     if (!img || !img.naturalWidth) {
       ctx.fillStyle = el.empty || "#eee";
       ctx.fillRect(el.x, el.y, el.w, el.h);
@@ -702,6 +756,17 @@ window.CXSlideEngine = (() => {
     if (el.glow) {
       ctx.shadowColor = el.glow;
       ctx.shadowBlur = (el.blur ?? 12) * ctx.getTransform().a;
+    }
+    // fill + fillPts (một đa giác khép kín): tô đặc bên trong, hiện dần theo tiến độ nét vẽ.
+    if (el.fill && el.fillPts) {
+      const a = ctx.globalAlpha;
+      ctx.globalAlpha = a * p * p;
+      ctx.fillStyle = el.fill;
+      ctx.beginPath();
+      el.fillPts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = a;
     }
     const heads = [];
     el.paths.forEach((pts, k) => {
@@ -898,6 +963,194 @@ window.CXSlideEngine = (() => {
       ctx.fill();
       ctx.globalAlpha = base * a;
       ctx.drawImage(dot, hx - 7, hy - 7, 14, 14);
+    }
+    ctx.restore();
+    ctx.globalAlpha = base;
+  }
+
+  // ── Chuyển động nền chạy suốt vòng (beams · waves · drift · rings) ──
+  // Cùng nguyên tắc với `sky`: tính theo giờ CHUNG của cả vòng, mọi nhịp làm tròn thành số vòng
+  // nguyên trong P.total → cảnh trước/sau lúc chuyển cảnh vẽ trùng khít, chỗ nối vòng không giật.
+  // Màu khai dạng "r, g, b" (rgb) để tự pha độ trong. Khung {x, y, w, h} mặc định cả slide.
+  function _clock(P, el, t, dur) {
+    const T = P.total || el.period || dur || 16;
+    return [T, ((((P._t0 || 0) + t) % T) + T) % T];
+  }
+  const _laps = (T, sec) => Math.max(1, Math.round(T / Math.max(0.1, sec)));
+  const _wave = (T, gt, sec, ph) => Math.sin((2 * Math.PI * _laps(T, sec) * gt) / T + (ph || 0));
+  const _area = (P, el) => [el.x || 0, el.y || 0, el.w || P.W, el.h || P.H];
+
+  // Đèn sân khấu: n luồng sáng hình nón rọi từ mép trên (from: "bottom" = từ dưới lên), chụm dần
+  // về giữa theo `lean` (độ) và lắc qua lại `sway` độ mỗi `period` giây. spread = độ mở của nón ·
+  // len = độ dài luồng · rgb = một màu hoặc mảng màu xoay vòng · alpha · flare = cỡ đốm chói ở gốc.
+  function _beams(ctx, P, el, t, dur) {
+    const [T, gt] = _clock(P, el, t, dur);
+    const [X, Y, w, h] = _area(P, el);
+    const n = el.n ?? 5;
+    const up = el.from === "bottom";
+    const len = el.len ?? h * 1.3;
+    const half = ((el.spread ?? 14) * Math.PI) / 360;
+    const rgbs = [].concat(el.rgb || "255, 255, 255");
+    const seed = (el.seed || 1) * 7717;
+    const base = ctx.globalAlpha;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(X, Y, w, h);
+    ctx.clip();
+    ctx.globalCompositeOperation = "lighter";
+    for (let k = 0; k < n; k++) {
+      const q = (m) => _rnd(seed + k * 13 + m);
+      const ox = X + (w * (k + 0.5)) / n;
+      const oy = up ? Y + h + 8 : Y - 8;
+      const lean = (el.lean ?? 22) * (0.5 - (k + 0.5) / n) * 2;
+      const sway = (el.sway ?? 14) * _wave(T, gt, (el.period ?? 10) * (0.7 + q(1) * 0.6), q(2) * 6.283);
+      const a = (((up ? -90 + lean : 90 - lean) + sway) * Math.PI) / 180;
+      const ux = Math.cos(a);
+      const uy = Math.sin(a);
+      const ex = ox + ux * len;
+      const ey = oy + uy * len;
+      const rgb = rgbs[k % rgbs.length];
+      const A0 = (el.alpha ?? 0.25) * (0.8 + 0.2 * _wave(T, gt, 5 + q(3) * 4, q(4) * 6.283));
+      const g = ctx.createLinearGradient(ox, oy, ex, ey);
+      g.addColorStop(0, `rgba(${rgb}, 1)`);
+      g.addColorStop(0.5, `rgba(${rgb}, 0.35)`);
+      g.addColorStop(1, `rgba(${rgb}, 0)`);
+      ctx.fillStyle = g;
+      // Ba lớp nón lồng nhau (rộng → hẹp) cho rìa luồng sáng mềm, lõi sáng hơn.
+      [[1, 0.35], [0.6, 0.35], [0.25, 0.5]].forEach(([f, k2]) => {
+        const r0 = (el.w0 ?? 6) * f;
+        const r1 = len * Math.tan(half * f);
+        ctx.globalAlpha = base * A0 * k2;
+        ctx.beginPath();
+        ctx.moveTo(ox - uy * r0, oy + ux * r0);
+        ctx.lineTo(ex - uy * r1, ey + ux * r1);
+        ctx.lineTo(ex + uy * r1, ey - ux * r1);
+        ctx.lineTo(ox + uy * r0, oy - ux * r0);
+        ctx.closePath();
+        ctx.fill();
+      });
+      const R = el.flare ?? 46;
+      if (R) {
+        ctx.globalAlpha = base * Math.min(1, A0 * 2.4);
+        ctx.drawImage(_glow(), ox - R, oy - R, R * 2, R * 2);
+      }
+    }
+    ctx.restore();
+    ctx.globalAlpha = base;
+  }
+
+  // Dải sóng sáng: n đường mảnh chạy song song qua giữa khung, uốn theo hai sóng sin chồng nhau và
+  // trôi ngang liên tục. len = bước sóng (px) · amp = biên độ · spread = độ xoè của bó đường ·
+  // speed = px/giây · rgb = một màu, hoặc mảng màu đổ dần từ trái sang phải · alpha · lw.
+  function _waves(ctx, P, el, t, dur) {
+    const [T, gt] = _clock(P, el, t, dur);
+    const [X, Y, w, h] = _area(P, el);
+    const n = el.n ?? 12;
+    const len = el.len ?? 760;
+    const amp = el.amp ?? h * 0.22;
+    const spread = el.spread ?? h * 0.35;
+    const speed = el.speed ?? 24;
+    const p1 = (2 * Math.PI * _laps(T, len / speed) * gt) / T;
+    const p2 = (2 * Math.PI * _laps(T, (len * 0.6) / (speed * 0.7)) * gt) / T;
+    const rgbs = [].concat(el.rgb || "255, 255, 255");
+    const g = ctx.createLinearGradient(X, 0, X + w, 0);
+    rgbs.forEach((c, i) => g.addColorStop(rgbs.length > 1 ? i / (rgbs.length - 1) : 0, `rgba(${c}, 1)`));
+    const base = ctx.globalAlpha;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.strokeStyle = g;
+    ctx.lineWidth = el.lw ?? 1.4;
+    ctx.lineJoin = "round";
+    const step = 10;
+    for (let k = 0; k < n; k++) {
+      const f = n > 1 ? k / (n - 1) : 0.5;
+      ctx.globalAlpha = base * (el.alpha ?? 0.5) * (0.25 + 0.75 * Math.sin(Math.PI * f));
+      ctx.beginPath();
+      for (let x = 0; x <= w + step; x += step) {
+        const env = 0.35 + 0.65 * Math.sin(Math.PI * Math.min(1, x / w));
+        const s1 = Math.sin((2 * Math.PI * x) / len + p1 + f * (el.twist ?? 1.6));
+        const s2 = Math.sin((2 * Math.PI * x) / (len * 0.6) - p2 + f * 2.3);
+        const fan = (f - 0.5) * spread * (0.55 + 0.45 * Math.sin((2 * Math.PI * x) / (len * 1.7) + p1));
+        const y = Y + h / 2 + fan + amp * env * (0.62 * s1 + 0.38 * s2);
+        if (x) ctx.lineTo(X + x, y);
+        else ctx.moveTo(X, y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.globalAlpha = base;
+  }
+
+  // Hạt rơi (dir: "up" = bay lên): n hạt, vừa rơi vừa lắc ngang `sway` px, xoay và lật (co bề
+  // ngang) cho có chiều sâu. shape: "rect" (giấy confetti) · "diamond" · "petal" · "dot" ·
+  // color = một màu hoặc mảng màu · size (px) · speed (px/giây) · alpha.
+  function _drift(ctx, P, el, t, dur) {
+    const [T, gt] = _clock(P, el, t, dur);
+    const [X, Y, w, h] = _area(P, el);
+    const n = el.n ?? 60;
+    const size = el.size ?? 10;
+    const m = size * 3;
+    const span = h + m * 2;
+    const cols = [].concat(el.color || "#fff");
+    const up = el.dir === "up";
+    const shape = el.shape || "rect";
+    const seed = (el.seed || 1) * 3571;
+    const base = ctx.globalAlpha;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(X, Y, w, h);
+    ctx.clip();
+    for (let k = 0; k < n; k++) {
+      const q = (i) => _rnd(seed + k * 29 + i);
+      const s = size * (0.5 + q(1) * 0.9);
+      const laps = _laps(T, span / ((el.speed ?? 50) * (0.6 + q(2) * 0.8)));
+      const prog = (q(3) + (laps * gt) / T) % 1;
+      const y = up ? Y + h + m - prog * span : Y - m + prog * span;
+      const x = X + q(4) * w + (el.sway ?? 30) * _wave(T, gt, 3 + q(5) * 4, q(6) * 6.283);
+      const rot = (q(8) < 0.5 ? 1 : -1) * ((2 * Math.PI * _laps(T, 4 + q(7) * 6) * gt) / T) + q(9) * 6.283;
+      const flip = _wave(T, gt, 1.5 + q(10) * 2.5, q(11) * 6.283);
+      ctx.globalAlpha = base * (el.alpha ?? 0.85) * (0.55 + 0.45 * q(12));
+      ctx.fillStyle = cols[k % cols.length];
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      if (shape !== "dot") ctx.scale(Math.abs(flip) < 0.06 ? 0.06 : flip, 1);
+      ctx.beginPath();
+      if (shape === "dot") ctx.arc(0, 0, s / 2, 0, Math.PI * 2);
+      else if (shape === "petal") ctx.ellipse(0, 0, s / 2, s * 0.28, 0, 0, Math.PI * 2);
+      else if (shape === "diamond") {
+        ctx.moveTo(0, -s / 2);
+        ctx.lineTo(s * 0.32, 0);
+        ctx.lineTo(0, s / 2);
+        ctx.lineTo(-s * 0.32, 0);
+        ctx.closePath();
+      } else ctx.rect(-s / 2, -s * 0.22, s, s * 0.44);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+    ctx.globalAlpha = base;
+  }
+
+  // Vòng sóng lan: n vòng tròn mảnh nối đuôi nhau nở từ bán kính r0 tới r1 quanh tâm (x, y) rồi tan,
+  // mỗi vòng đi hết một lượt trong `period` giây. rgb · alpha · lw.
+  function _rings(ctx, P, el, t, dur) {
+    const [T, gt] = _clock(P, el, t, dur);
+    const n = el.n ?? 3;
+    const cyc = _laps(T, el.period ?? 6);
+    const r0 = el.r0 ?? 0;
+    const r1 = el.r1 ?? 400;
+    const base = ctx.globalAlpha;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.strokeStyle = `rgba(${el.rgb || "255, 255, 255"}, 1)`;
+    ctx.lineWidth = el.lw ?? 1.5;
+    for (let k = 0; k < n; k++) {
+      const p = ((gt / T) * cyc + k / n) % 1;
+      ctx.globalAlpha = base * (el.alpha ?? 0.5) * Math.min(1, p * 6) * (1 - p) ** 1.6;
+      ctx.beginPath();
+      ctx.arc(el.x, el.y, r0 + (r1 - r0) * _ease(p), 0, Math.PI * 2);
+      ctx.stroke();
     }
     ctx.restore();
     ctx.globalAlpha = base;

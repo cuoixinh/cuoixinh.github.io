@@ -650,9 +650,11 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `docs/PLAN-slide-cuoi.md`.
 - **Hình nền LED (`hinh-nen-led/`):** phân hệ RIÊNG (mục navbar `feature: "led"`), chỉ có lấy
   thông tin từ thiệp + màn xem to + dải mẫu, tải video MP4 4K NỐI VÒNG (máy không mã hoá nổi 4K thì 1080p) (`loop` của `CXSlideExport.run`:
-  khung đầu là lúc cảnh cuối chuyển sang cảnh đầu) hoặc ảnh PNG 4K. Mẫu là MỘT file
-  `templates/<id>.js` tự đăng ký vào `CX_LED_TEMPLATES` + một thẻ `<script>` ở `index.html`;
-  vẽ bằng bộ vẽ của `slide-cuoi/engine/` (cùng định dạng cảnh) — đừng chép bộ vẽ sang đây.
+  khung đầu là lúc cảnh cuối chuyển sang cảnh đầu), video dọc TikTok y như Slide cưới (nút "Màn chiếu" xem trước cùng khung) hoặc ảnh PNG 4K. Mẫu là MỘT file
+  `templates/<id>.js` tự đăng ký vào `CX_LED_TEMPLATES` + một thẻ `<script>` ở `index.html`
+  (sau `templates/led-kit.js` — đồ nghề dựng cảnh dùng chung); font Google mẫu dùng phải có trong
+  thẻ `<link>` của trang (canvas không tự tải font). Vẽ bằng bộ vẽ của `slide-cuoi/engine/` (cùng
+  định dạng cảnh) — đừng chép bộ vẽ sang đây; chuyển động nền mới thì thêm kiểu phần tử vào bộ vẽ đó.
 - **Video quảng cáo (tab admin "Tạo Video Quảng Cáo"):** quay bằng Chrome không giao diện
   ở `scripts/promo-video.mjs`, gắn vào `npm run dev` (đường `/__promo-video/*`) — mở admin
   bằng server khác là không có bộ quay. Sân khấu 9:16 + kịch bản cuộn ở
