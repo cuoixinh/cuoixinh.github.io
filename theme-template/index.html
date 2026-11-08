@@ -523,86 +523,96 @@
         </div>
       </section>
 
-      <!-- ─── HỎI ĐÁP ─── Mở một mục thì đóng mục khác (toggleFaq). -->
-      <section
-        class="tg-faq max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"
-        aria-labelledby="faq-heading"
-      >
-        <div>
-          <h2 id="faq-heading" class="tg-faq-heading">Câu hỏi thường gặp</h2>
-          <p class="tg-faq-sub">
-            Giải đáp nhanh các thắc mắc phổ biến trước khi bắt đầu.
-          </p>
+      <!-- ─── HỎI ĐÁP ─── BẢN SAO của #faq ở trang chủ (index.html), cùng lớp .faq-* —
+           sửa câu hỏi/đáp ở bên nào thì chép sang bên kia. Không khai JSON-LD FAQPage ở
+           đây: trang chủ đã khai, hai trang cùng một bộ hỏi đáp thì chỉ nên một nơi. -->
+      <section class="tg-faq max-w-3xl lg:max-w-6xl mx-auto px-5 lg:px-8" aria-labelledby="faq-heading">
+        <div class="text-center lg:text-left">
+          <span class="bnf-eyebrow"><i data-lucide="message-circle-question" style="width:14px;height:14px"></i>Hỏi đáp</span>
+          <h2 id="faq-heading" class="mt-4 font-playfair text-3xl md:text-4xl font-semibold leading-tight text-[rgb(var(--text-heading-rgb))]">
+            Câu hỏi thường gặp
+          </h2>
         </div>
-
-        <div class="tg-faq-list">
-          <div class="tg-faq-item">
-            <button type="button" class="tg-faq-q" aria-expanded="false" onclick="toggleFaq(this)">
-              <span>Thiệp điện tử thay thiệp giấy như thế nào?</span>
-              <span class="tg-faq-ico"><i data-lucide="plus"></i></span>
-            </button>
-            <div class="tg-faq-a">
-              <div>
-                <p>
-                  Thay vì in và phát thiệp giấy, bạn gửi một đường link đến từng
-                  khách. Khách mở link trên điện thoại là thấy thiệp ngay — có đủ
-                  thông tin đám cưới, bản đồ và nút xác nhận tham dự, không cần tải
-                  app hay đăng nhập.
-                </p>
-              </div>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary class="faq-q">Cưới Xinh là gì?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Cưới Xinh (cuoixinh.com) là dịch vụ tạo thiệp cưới online cho các cặp đôi Việt Nam. Bạn
+              chọn một mẫu thiệp, điền thông tin hai bạn, tải ảnh cưới rồi gửi đường link cho khách mời.
+              Thiệp có xác nhận tham dự, lời chúc của khách mời, bản đồ đường đi, nhạc nền và mã QR mừng
+              cưới; trợ lý AI XuXi có thể viết giúp lời mời từ vài dòng bạn kể.
             </div>
-          </div>
-
-          <div class="tg-faq-item">
-            <button type="button" class="tg-faq-q" aria-expanded="false" onclick="toggleFaq(this)">
-              <span>Tôi không giỏi công nghệ — có làm được không?</span>
-              <span class="tg-faq-ico"><i data-lucide="plus"></i></span>
-            </button>
-            <div class="tg-faq-a">
-              <div>
-                <p>
-                  Hoàn toàn được. Giao diện tạo thiệp hoạt động giống form điền
-                  thông tin — bạn nhập tên, ngày cưới, địa điểm, tải ảnh lên và xem
-                  kết quả ngay bên cạnh. Thường mất khoảng 10–15 phút để hoàn
-                  chỉnh, không cần biết thiết kế hay lập trình.
-                </p>
-              </div>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Thiệp điện tử thay thiệp giấy như thế nào?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Thay vì in và phát thiệp giấy, bạn gửi một đường link đến từng khách. Khách mở link trên
+              điện thoại là thấy thiệp ngay — có đủ thông tin đám cưới, bản đồ và nút xác nhận tham dự,
+              không cần tải ứng dụng hay đăng nhập.
             </div>
-          </div>
-
-          <div class="tg-faq-item">
-            <button type="button" class="tg-faq-q" aria-expanded="false" onclick="toggleFaq(this)">
-              <span>Mất phí từ lúc nào?</span>
-              <span class="tg-faq-ico"><i data-lucide="plus"></i></span>
-            </button>
-            <div class="tg-faq-a">
-              <div>
-                <p>
-                  Tạo và xem thử thiệp miễn phí. Khi xuất bản, thiệp được dùng thử 3 ngày
-                  để gửi cho khách; sau đó bạn chọn gói Free (miễn phí, có giới hạn) hoặc
-                  gói trả phí Premium/Forever — thanh toán một lần, phí tùy mẫu, không tự
-                  gia hạn. Chi tiết ở trang <a href="/policy/" class="underline">Điều khoản</a>.
-                </p>
-              </div>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Tôi không giỏi công nghệ — có làm được không?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Hoàn toàn được. Tạo thiệp giống điền một biểu mẫu: bạn nhập tên, ngày cưới, địa điểm, tải
+              ảnh lên và xem trước thiệp ngay trong lúc làm. Thường mất khoảng 10–15 phút để hoàn chỉnh,
+              không cần biết thiết kế hay lập trình.
             </div>
-          </div>
-
-          <div class="tg-faq-item">
-            <button type="button" class="tg-faq-q" aria-expanded="false" onclick="toggleFaq(this)">
-              <span>Mỗi khách có nhận được link khác nhau không?</span>
-              <span class="tg-faq-ico"><i data-lucide="plus"></i></span>
-            </button>
-            <div class="tg-faq-a">
-              <div>
-                <p>
-                  Có. Bạn nhập danh sách khách, hệ thống tạo link riêng cho từng
-                  người — mở ra là thấy tên mình trên thiệp. Kèm theo đó là lời
-                  nhắn cá nhân và nút xác nhận dự. Bạn theo dõi ai đã xác nhận ngay
-                  trong trang quản lý.
-                </p>
-              </div>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Tạo thiệp cưới online có mất phí không?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Tạo và xem trước thiệp hoàn toàn miễn phí. Khi xuất bản, thiệp được dùng thử 3 ngày để gửi
+              cho khách mời. Sau đó bạn chọn một trong ba gói: Free (miễn phí, có giới hạn), Premium
+              (khách xem được trong 6 tháng) hoặc Forever (lâu dài). Gói trả phí thanh toán một lần,
+              không tự gia hạn — giá từng gói xem ở mục Bảng giá phía trên.
             </div>
-          </div>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Gói Free khác gì gói trả phí?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Gói Free chỉ mở thiệp cho một bên (nhà trai hoặc nhà gái), giới hạn số khách mời và số lượt
+              mở thiệp, khách xem được trong 3 tháng, và mỗi tài khoản chỉ dùng cho một thiệp. Thiệp gói
+              Free vẫn có xác nhận tham dự và lời chúc. Gói Premium và Forever mở đủ cả hai bên, không giới
+              hạn như vậy. Chi tiết ở trang <a href="/policy/" class="faq-link">Điều khoản</a>.
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Gửi thiệp cưới online cho khách bằng cách nào?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Mỗi thiệp có một đường link riêng, bạn gửi qua Zalo, Messenger hay tin nhắn đều được; dán
+              link vào là hiện sẵn ảnh và tên cô dâu chú rể. Bạn còn tạo được link riêng cho từng khách:
+              thiệp mở ra gọi đúng tên và cách xưng hô với người nhận.
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Khách mời có cần cài ứng dụng hay đăng nhập không?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Không. Khách chỉ cần bấm vào link, thiệp mở ngay trên trình duyệt của điện thoại hay máy tính.
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Có quản lý khách mời và xác nhận tham dự không?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Có. Bạn nhập danh sách khách mời, khách xác nhận tham dự và gửi lời chúc ngay trên thiệp, còn
+              bạn theo dõi tất cả ở trang Khách mời. Bạn cũng có thể chia sẻ quyền quản lý khách mời cho
+              một người nữa (gói trả phí).
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Gửi thiệp rồi có sửa được không?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Được. Bạn sửa nội dung, ảnh, màu sắc bất cứ lúc nào và đường link đã gửi giữ nguyên. Riêng
+              mẫu thiệp được chốt sau khi thanh toán, nên hãy đổi mẫu thoải mái trong lúc dùng thử.
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Thanh toán bằng cách nào?<i data-lucide="chevron-down"></i></summary>
+            <div class="faq-a">
+              Chuyển khoản ngân hàng bằng mã QR qua cổng PayOS, thanh toán một lần. Cưới Xinh không lưu
+              thông tin tài khoản ngân hàng hay thẻ của bạn.
+            </div>
+          </details>
         </div>
       </section>
     </div>
@@ -1018,19 +1028,6 @@
         );
       })();
 
-      /* ── FAQ ── */
-      function toggleFaq(btn) {
-        const item = btn.closest(".tg-faq-item");
-        const isOpen = item.classList.contains("open");
-        document.querySelectorAll(".tg-faq-item.open").forEach((el) => {
-          el.classList.remove("open");
-          el.querySelector(".tg-faq-q").setAttribute("aria-expanded", "false");
-        });
-        if (!isOpen) {
-          item.classList.add("open");
-          btn.setAttribute("aria-expanded", "true");
-        }
-      }
     </script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="../core/helpers/nav-cart-count.js"></script>

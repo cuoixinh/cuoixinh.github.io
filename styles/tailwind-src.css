@@ -3565,79 +3565,12 @@ html.cx-landing {
   color: rgb(var(--text-caption-rgb));
 }
 
-/* Hỏi đáp: điện thoại xếp dọc; lg tiêu đề trái, danh sách phải. Mở/đóng bằng
-   grid-template-rows 0fr→1fr (cao theo nội dung, không cần đoán max-height).
+/* Hỏi đáp: nội dung dùng chung lớp .faq-* của trang chủ; ở đây lo đệm + bố cục
+   hai cột từ lg (tiêu đề trái, danh sách phải).
    Đệm đáy 96px trên điện thoại chừa nút nổi "Bắt đầu miễn phí". */
 .tg-faq {
   padding-top: 64px;
   padding-bottom: 96px;
-}
-.tg-faq-heading {
-  @apply font-playfair;
-  font-size: 24px;
-  font-weight: 600;
-  color: rgb(var(--text-heading-rgb));
-}
-.tg-faq-sub {
-  margin-top: 8px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgb(var(--text-caption-rgb));
-}
-.tg-faq-list {
-  margin-top: 24px;
-  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
-}
-.tg-faq-item {
-  border-bottom: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
-}
-.tg-faq-q {
-  @apply flex w-full items-center justify-between text-left;
-  gap: 16px;
-  min-height: 56px;
-  padding: 16px 0;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: rgb(var(--text-heading-rgb));
-}
-.tg-faq-q:focus-visible {
-  outline: 2px solid rgb(var(--action-primary-rgb));
-  outline-offset: 2px;
-  border-radius: 8px;
-}
-.tg-faq-ico {
-  @apply inline-flex shrink-0 items-center justify-center rounded-full;
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
-  color: rgb(var(--action-primary-deep-rgb));
-  background: rgb(var(--surface-brand-rgb));
-  transition:
-    transform 0.25s ease,
-    background-color 0.2s ease;
-}
-.tg-faq-item.open .tg-faq-ico {
-  transform: rotate(45deg);
-  background: rgb(var(--surface-blossom-rgb));
-}
-.tg-faq-a {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s ease;
-}
-.tg-faq-item.open .tg-faq-a {
-  grid-template-rows: 1fr;
-}
-.tg-faq-a > div {
-  overflow: hidden;
-}
-.tg-faq-a p {
-  max-width: 640px;
-  padding-bottom: 20px;
-  font-size: 14px;
-  line-height: 1.7;
-  color: rgb(var(--text-caption-rgb));
 }
 
 @media (min-width: 640px) {
@@ -3686,12 +3619,6 @@ html.cx-landing {
   .tg-faq {
     padding-top: 96px;
   }
-  .tg-faq-heading {
-    font-size: 32px;
-  }
-  .tg-faq-q {
-    font-size: 16px;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -3702,21 +3629,20 @@ html.cx-landing {
     flex-direction: column;
     padding: 24px;
   }
+  /* Hỏi đáp hai cột: tiêu đề trái, danh sách phải. */
   .tg-faq {
     display: grid;
     grid-template-columns: 5fr 7fr;
     align-items: start;
     gap: 64px;
   }
-  .tg-faq-list {
+  .tg-faq .faq-list {
     margin-top: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tg-chip,
-  .tg-faq-ico,
-  .tg-faq-a {
+  .tg-chip {
     transition: none;
   }
 }
