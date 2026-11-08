@@ -355,12 +355,13 @@
         </section>
 
         <!-- ═══ MÀN 9 · RSVP + đếm ngược ════════════════════════════════════
-             #rsvp-section chỉ là khối nút (rsvp_enabled); đếm ngược luôn hiện. -->
-        <section id="section-rsvp" data-rb-label="Xác nhận" data-rb-main class="rb-screen rb-rsvp" data-rb-tone="dark">
+             #rsvp-section chỉ là khối nút (rsvp_enabled). Cả màn chỉ có với khách mời:
+             link chung thì theme-boot giấu theo data-cx-guest-only, _slides tự bỏ màn ẩn. -->
+        <section id="section-rsvp" data-cx-guest-only data-rb-label="Xác nhận" data-rb-main class="rb-screen rb-rsvp" data-rb-tone="dark">
           <img data-rb-g="cover" class="rb-full-img" data-a="zoomout" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
           <div class="rb-rv-veil"></div>
           <div class="rb-rv-inner">
-            <h2 class="rb-title rb-title-light" data-a="ch-drop" data-d="1">Hồi đáp</h2>
+            <h2 class="rb-title rb-title-light rb-title-2l" data-a="ch-drop" data-d="1">Xác nhận tham dự</h2>
             <div id="rb-rsvp-lines" class="rb-rv-lines cx-t">
               <p data-a="up" data-d="3">Gửi những người thân yêu nhất</p>
               <p data-a="up" data-d="4">Cảm ơn bạn giữa bộn bề vẫn dành thời gian</p>
@@ -380,8 +381,6 @@
               </div>
               <div id="attend-msg" class="hidden rb-rv-msg cx-t"></div>
             </div>
-
-            <div class="rb-rv-script" data-a="wipe" data-d="9">Hẹn gặp bạn ở lễ cưới!</div>
           </div>
 
           <div class="rb-count" data-a="up" data-d="10">
