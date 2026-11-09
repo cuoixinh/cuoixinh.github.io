@@ -105,9 +105,10 @@ async function loadWeddingData(weddingSlug, renderCallback) {
         window.location.replace(u.toString());
         return;
       }
-      // Chỉ gói Free có lượt xem: đếm song song với lúc dựng, hết lượt thì khoá ngay —
-      // bản GET đang cache ở worker có thể còn chưa biết.
-      if (wedding.free_side) {
+      // Thiệp chưa thanh toán (dùng thử + gói Free, server gắn cờ count_views) có lượt
+      // xem: đếm song song với lúc dựng, hết lượt thì khoá ngay — bản GET đang cache ở
+      // worker có thể còn chưa biết.
+      if (wedding.count_views) {
         weddingBL.countView(weddingSlug).then((locked) => {
           if (locked) showLockedInvitation({ ...wedding, code: "VIEW_LIMIT" });
         });
@@ -163,7 +164,7 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     // Hết hạn dùng thử: edge function trả 403 TRIAL_EXPIRED. Đây KHÔNG phải lỗi —
     // hiện màn khoá thay vì đá về trang chủ, nếu không khách mời (và cả chủ thiệp)
     // không hiểu vì sao link chết.
-    // Hết hạn gói (PLAN_EXPIRED) và gói Free hết lượt xem (VIEW_LIMIT) cũng khoá y vậy,
+    // Hết hạn gói (PLAN_EXPIRED) và hết lượt xem miễn phí (VIEW_LIMIT) cũng khoá y vậy,
     // chỉ khác câu chữ.
     if (error && CONFIG.lockCodes.includes(error.code)) {
       showLockedInvitation(error.info);
@@ -219,7 +220,7 @@ function showLockedInvitation(info) {
       ? "Thiệp đã hết thời hạn hiển thị nên tạm thời chưa mở cho khách mời. " +
         "Chủ thiệp cần nâng gói để mở lại."
       : info && info.code === "VIEW_LIMIT"
-        ? "Thiệp đã hết lượt xem của gói Free nên tạm thời chưa mở cho khách mời. " +
+        ? "Thiệp đã hết lượt xem miễn phí nên tạm thời chưa mở cho khách mời. " +
           "Chủ thiệp cần nâng gói để mở lại."
         : "Thiệp đã hết hạn sử dụng nên tạm thời chưa mở cho khách mời. " +
           "Chủ thiệp cần kích hoạt để mở lại.") +

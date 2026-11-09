@@ -675,15 +675,15 @@ function _fillForm(data) {
   document.querySelectorAll("x-input").forEach((el) => el.syncClearBtn?.());
 }
 
-// Gói Free sắp hết / đã hết lượt xem: nhắc một lần mỗi phiên mở thiệp (popup xuất bản
-// nhắc lại ở _freeViewsHtml).
+// Thiệp chưa thanh toán sắp hết / đã hết lượt xem: nhắc một lần mỗi phiên mở thiệp
+// (popup xuất bản nhắc lại ở _freeViewsHtml).
 function _warnFreeViews() {
   const level = weddingBL.viewsLevel(VIEW_COUNT, VIEW_LIMIT);
   if (level !== "warn" && level !== "out") return;
   showToast(
     level === "out"
-      ? `Thiệp đã hết ${VIEW_LIMIT} lượt xem của gói Free — khách mời đang thấy màn tạm khoá. Nâng gói để mở lại.`
-      : `Thiệp đã dùng ${VIEW_COUNT}/${VIEW_LIMIT} lượt xem của gói Free. Nâng gói để không bị khoá.`,
+      ? `Thiệp đã hết ${VIEW_LIMIT} lượt xem miễn phí — khách mời đang thấy màn tạm khoá. Thanh toán để mở lại.`
+      : `Thiệp đã dùng ${VIEW_COUNT}/${VIEW_LIMIT} lượt xem miễn phí. Thanh toán để không bị khoá.`,
     "warning",
   );
 }

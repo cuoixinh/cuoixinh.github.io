@@ -20,9 +20,16 @@ export const PLAN_IDS = Object.keys(PLANS) as PlanId[]
 // lưu sau ghi đè mất dữ liệu thật.
 export const FREE_PLAN = {
   days: 90, // hạn tính từ lúc chọn gói Free; bản sao ở CONFIG.freePlanDays
-  views: 200, // lượt mở link công khai, đủ thì khoá (VIEW_LIMIT); bản sao ở CONFIG.freePlanViews
+  views: 200, // trần lượt xem của MỌI thiệp chưa thanh toán (xem countsViews); bản sao ở CONFIG.freePlanViews
   guests: 20, // chỉ ở bên đã chọn (free_side)
 }
+
+/**
+ * Thiệp bị đếm lượt xem + khoá ở trần FREE_PLAN.views (VIEW_LIMIT): MỌI thiệp chưa thanh
+ * toán — dùng thử lẫn gói Free, chung MỘT bộ đếm tính từ lần xuất bản đầu. Chỉ đếm gói Free
+ * là dùng thử xem vô hạn rồi chọn Free lại được trọn trần mới.
+ */
+export const countsViews = (row: { payment_status?: string | null }) => row.payment_status !== 'completed'
 
 type FreeRow = { payment_status?: string | null; free_side?: string | null }
 

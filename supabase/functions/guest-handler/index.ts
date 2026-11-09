@@ -1,7 +1,7 @@
 import type { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
-import { currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired } from '../_shared/plans.ts'
+import { countsViews, currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired } from '../_shared/plans.ts'
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*' (danh sách giống ai-invitation). CORS chỉ ràng
@@ -371,7 +371,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     // tên + lời chúc của khách cũng không được lộ qua đường này.
     const trialOver = !!wedding.expires_at && new Date(wedding.expires_at).getTime() < Date.now()
     const st = Array.isArray(wedding.wedding_stats) ? wedding.wedding_stats[0] : wedding.wedding_stats
-    const viewLocked = isFreePlan(wedding) && (st?.view_count ?? 0) >= FREE_PLAN.views
+    const viewLocked = countsViews(wedding) && (st?.view_count ?? 0) >= FREE_PLAN.views
     const closed =
       !wedding.is_published || wedding.is_active === false ||
       wedding.enable_wishes === false || wedding.enable_wishes === 'false' ||
