@@ -4,8 +4,6 @@
 // chỗ trong mức này, không thì validateSlug cắt mất hậu tố lúc lưu.
 const SLUG_MAX_LENGTH = 50;
 
-// Khoảng gộp lượt xem cùng một máy (countView).
-const VIEW_DEDUPE_MS = 30 * 60 * 1000;
 // Gói Free dùng tới tỉ lệ lượt xem này thì cảnh báo sắp hết (viewsLevel).
 const VIEW_WARN_RATIO = 0.8;
 
@@ -51,17 +49,9 @@ class WeddingBL {
     return w;
   }
 
-  // Một máy mở lại cùng thiệp trong VIEW_DEDUPE_MS chỉ tính một lượt (tải lại trang,
-  // chuyển qua lại giữa các app). Trả true khi gói Free đã hết lượt xem → khoá thiệp.
+  // Mỗi lần tải trang là một lượt (kể cả F5) — cố ý KHÔNG gộp theo máy.
+  // Trả true khi gói Free đã hết lượt xem → khoá thiệp.
   async countView(slug) {
-    const key = `cx_view:${slug}`;
-    try {
-      const last = Number(localStorage.getItem(key)) || 0;
-      if (Date.now() - last < VIEW_DEDUPE_MS) return false;
-      localStorage.setItem(key, String(Date.now()));
-    } catch (e) {
-      /* chặn bộ nhớ (ẩn danh) → vẫn đếm */
-    }
     try {
       const r = await this.dal.countView(slug);
       return !!(r && r.locked);

@@ -20,7 +20,7 @@ export const PLAN_IDS = Object.keys(PLANS) as PlanId[]
 // lưu sau ghi đè mất dữ liệu thật.
 export const FREE_PLAN = {
   days: 90, // hạn tính từ lúc chọn gói Free; bản sao ở CONFIG.freePlanDays
-  views: 300, // lượt mở link công khai, đủ thì khoá (VIEW_LIMIT); bản sao ở CONFIG.freePlanViews
+  views: 200, // lượt mở link công khai, đủ thì khoá (VIEW_LIMIT); bản sao ở CONFIG.freePlanViews
   guests: 20, // chỉ ở bên đã chọn (free_side)
 }
 

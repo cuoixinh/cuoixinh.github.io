@@ -22,6 +22,23 @@ function toggleVuQuy(event) {
   _updateTimelineVuQuySection();
 }
 
+// Ô tick "Chỉ hiển thị QR của thiệp tương ứng" (bước Hộp mừng cưới) — giá trị
+// thật ở hidden #gift_own_side; phát "input" để autosave + xem trực tiếp bắt được.
+function toggleGiftOwnSide(event) {
+  const hidden = document.getElementById("gift_own_side");
+  if (!hidden) return;
+  hidden.value = String(!!event?.target?.checked);
+  hidden.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function initGiftOwnSide(data) {
+  const on = data?.gift_own_side === true || data?.gift_own_side === "true";
+  const hidden = document.getElementById("gift_own_side");
+  if (hidden) hidden.value = String(on);
+  const check = document.querySelector('x-check[key="gift-own-side"]');
+  if (check) check.checked = on;
+}
+
 // Khi địa điểm nguồn (ceremony/vu_quy) thay đổi, re-sync tất cả party đang bật "Trùng địa điểm"
 function _syncPartyIfSame() {
   ["groom", "bride"].forEach((side) => {
@@ -153,6 +170,7 @@ window.adjustLoveStoryFocalPoint = adjustLoveStoryFocalPoint;
 // file này nạp trước nên tham chiếu ở đây sẽ là ReferenceError.
 window.toggleSectionVis = toggleSectionVis;
 window.toggleVuQuy = toggleVuQuy;
+window.toggleGiftOwnSide = toggleGiftOwnSide;
 window.togglePartySameLoc = togglePartySameLoc;
 
 window.switchTab = switchTab;

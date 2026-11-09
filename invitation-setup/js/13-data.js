@@ -656,6 +656,7 @@ function _fillForm(data) {
   _initVisToggles(data);
   if (typeof initMapDisplays === "function") initMapDisplays(data);
   initCeremonySection(data);
+  initGiftOwnSide(data);
 
   IS_PUBLISHED = !!data.is_published;
   IS_TRIAL_LOCKED = !!data.trial_locked;

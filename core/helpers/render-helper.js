@@ -153,6 +153,9 @@ function renderQRCodes(wedding) {
 
   // Gói Free chỉ có QR của bên được mở (server gỡ thông tin bên kia) → ẩn hẳn thẻ bên kia.
   if (wedding.free_side) _cxHideGiftSide(wedding.free_side === "groom" ? "bride" : "groom");
+  // Chủ thiệp tick "Chỉ hiển thị QR của thiệp tương ứng" → thiệp mỗi bên chỉ còn QR bên đó.
+  else if (wedding.gift_own_side === true || wedding.gift_own_side === "true")
+    _cxHideGiftSide(isGroomSide() ? "bride" : "groom");
 }
 
 // Thẻ QR của một bên = tổ tiên cao nhất của ảnh QR bên đó mà KHÔNG chứa ảnh QR bên kia
