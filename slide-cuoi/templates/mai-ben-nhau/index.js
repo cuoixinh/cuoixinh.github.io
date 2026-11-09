@@ -49,7 +49,7 @@
     h: H,
     bg: C.paper,
     fade: 1.1,
-    demo: "ribbon-love",
+    demo: "noir-elegance",
     // Đốm sáng trôi lấp lánh phủ suốt slide.
     fx: { sparkle: { n: 26, size: 9, alpha: 0.75, seed: 3 } },
     fonts: [`400 64px ${PF}`, `italic 400 22px ${PF}`, `300 20px ${NS}`, `400 24px ${NS}`],
