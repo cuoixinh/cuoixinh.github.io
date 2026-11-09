@@ -169,6 +169,8 @@
             <div class="sc-range-ends"><span>Nhanh hơn</span><span>Chậm hơn</span></div>
           </div>
           <ol id="sc-cues" class="sc-cues"></ol>
+          <!-- Cảnh khách đã xoá (index.js _scHiddenRender), mỗi dòng một nút Khôi phục. -->
+          <div id="sc-hidden" class="sc-hidden hidden"></div>
           <input id="sc-ph-file" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
           <div class="sc-foot">
             <x-button id="sc-tx-reset" variant="bare" icon="rotate-ccw" onclick="scTextsReset()" class="mi-btn mi-btn--soft hidden">
@@ -247,6 +249,9 @@
           <div id="sc-vo-tl" class="sc-vo-tl"></div>
           <!-- Thanh tuỳ chọn của khối âm thanh vừa bấm (voice.js neo ngay chỗ bấm trên khối). -->
           <x-popover id="sc-vo-act" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn âm thanh">
+            <!-- To dần / nhỏ dần: bấm để đổi số giây vòng qua _SC_VO_FADES, thanh giữ nguyên để bấm tiếp. -->
+            <button type="button" class="sc-vo-act-btn" data-act="fi" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-up"></i></span>To dần<span class="sc-vo-act-v" data-fade-v="fi"></span></button>
+            <button type="button" class="sc-vo-act-btn" data-act="fo" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-down"></i></span>Nhỏ dần<span class="sc-vo-act-v" data-fade-v="fo"></span></button>
             <button type="button" class="sc-vo-act-btn" data-act="replace"><span class="sc-vo-act-ico"><i data-lucide="replace"></i></span>Thay thế</button>
             <button type="button" class="sc-vo-act-btn" data-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá</button>
           </x-popover>

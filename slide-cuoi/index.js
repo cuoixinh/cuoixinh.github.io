@@ -240,8 +240,9 @@ function _scTextsSave(own) {
 
 // ── Thời lượng: thanh "cả slide" (hệ số nhân thời lượng mẫu, 0,5×–2×) + thanh riêng từng cảnh
 // (giây, đè hệ số). Lưu trên máy như chữ sửa — localStorage `cx_slide_timing` theo mẫu + thiệp,
-// dạng {scale, scenes: {id cảnh: giây}} — gửi khung bằng cx-slide-timing; khung chỉ đặt lại mốc,
-// tự kẹp mỗi cảnh trong [min, max] (min = đủ cho mọi hiệu ứng chạy xong) rồi báo cảnh lên lại.
+// dạng {scale, scenes: {id cảnh: giây}, off: [id cảnh đã xoá]} — gửi khung bằng cx-slide-timing;
+// khung chỉ đặt lại mốc (bỏ cảnh trong `off`), tự kẹp mỗi cảnh trong [min, max] (min = đủ cho mọi
+// hiệu ứng chạy xong) rồi báo cảnh lên lại.
 const _SC_TIMING = "cx_slide_timing";
 let _scTmT = 0;
 function _scTiming() {
@@ -254,6 +255,7 @@ function _scTiming() {
 }
 function _scTimingSave(own) {
   if (own.scenes && !Object.keys(own.scenes).length) delete own.scenes;
+  if (own.off && !own.off.length) delete own.off;
   if (own.scale === 1) delete own.scale;
   try {
     const all = JSON.parse(localStorage.getItem(_SC_TIMING) || "{}") || {};
@@ -291,7 +293,7 @@ function _scTimeSync() {
   const base = _scCues.reduce((n, c) => n + Math.min(c.max, Math.max(c.min, c.base)), 0);
   const tv = _scEl("sc-time-total");
   if (tv) tv.textContent = _scCues.length ? _scClock(total) : "–:––";
-  const changed = Object.keys(own).length > 0;
+  const changed = !!(own.scale || own.scenes);
   _scToggle("sc-time-reset", changed);
   const def = _scEl("sc-time-def");
   if (def) def.textContent = changed && _scCues.length ? `Mặc định ${_scClock(base)}` : "";
@@ -324,9 +326,11 @@ _scEl("sc-speed")?.addEventListener("input", (e) => {
   _scTimingSave(own);
 });
 
+// Về thời lượng mặc định — cảnh đã xoá vẫn xoá (khôi phục riêng ở khối "Cảnh đã xoá").
 function scTimingReset() {
   if (_scTimeBusy()) return;
-  _scTimingSave({});
+  const off = _scTiming().off;
+  _scTimingSave(off ? { off } : {});
   _scEl("sc-speed").value = "1";
   _scRangeFill(_scEl("sc-speed"));
 }
@@ -406,6 +410,9 @@ function _scCueRender() {
             <div class="sc-range-ends"><span class="sc-dur-min"></span><span class="sc-dur-max"></span></div>
           </div>
           ${c.photos.length ? `<div class="sc-phbox"></div>` : ""}${fields}
+          <div class="sc-scene-foot">
+            <x-button variant="ghost" tone="danger" size="sm" icon="trash-2" data-scene-del="${i}">Xoá cảnh này</x-button>
+          </div>
         </div>
       </li>`;
     })
@@ -440,6 +447,8 @@ function _scCueState(m) {
         .filter((p) => p?.key)
         .map((p) => ({ key: String(p.key), def: String(p.def || ""), w: Number(p.w) || 3, h: Number(p.h) || 4 })),
     }));
+    _scHidden = (Array.isArray(m.hidden) ? m.hidden : []).map((c) => ({ id: String(c.id), label: String(c.label || "") }));
+    _scHiddenRender();
     const sig = _scCues
       .map((c) => c.label + ":" + c.texts.map((x) => x.key).join(",") + ":" + c.photos.map((p) => p.key).join(","))
       .join("|");
@@ -461,6 +470,49 @@ function _scCueState(m) {
     else b.removeAttribute("aria-current");
   });
 }
+
+// ── Xoá cảnh: id cảnh vào timing.off (lưu + gửi khung như thời lượng); khung bỏ cảnh đó khỏi
+// lượt chiếu lẫn video xuất và báo lại danh sách `hidden` để hiện ở khối "Cảnh đã xoá".
+let _scHidden = []; // [{id, label}] cảnh đã xoá, theo thứ tự trong mẫu
+function _scSceneOff(id, on) {
+  if (_scTimeBusy()) return;
+  const own = _scTiming();
+  const off = new Set(own.off || []);
+  if (on) off.add(id);
+  else off.delete(id);
+  own.off = [...off];
+  _scTimingSave(own);
+}
+function _scHiddenRender() {
+  const box = _scEl("sc-hidden");
+  if (!box) return;
+  box.classList.toggle("hidden", !_scHidden.length);
+  if (!_scHidden.length) return (box.innerHTML = "");
+  box.innerHTML = `<p class="sc-hidden-h">${_scIco("eye-off")}Cảnh đã xoá</p>
+    <ul class="sc-hidden-list">${_scHidden
+      .map(
+        (c) => `<li class="sc-hidden-row">
+          <span class="sc-hidden-n">${_scEsc(c.label)}</span>
+          <x-button variant="soft" size="xs" icon="undo-2" data-scene-back="${_scEsc(c.id)}">Khôi phục</x-button>
+        </li>`,
+      )
+      .join("")}</ul>`;
+  window.lucide?.createIcons({ root: box });
+}
+_scEl("sc-cues").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-scene-del]");
+  if (!b) return;
+  const c = _scCues[Number(b.dataset.sceneDel)];
+  if (!c) return;
+  if (_scCues.length <= 1) return window.showToast?.("Slide phải còn ít nhất một cảnh", "warning");
+  _scOpen = -1;
+  _scSceneOff(c.id, true);
+  window.showToast?.(`Đã xoá cảnh "${c.label}". Muốn lấy lại thì bấm Khôi phục ở cuối danh sách cảnh.`, "success");
+});
+_scEl("sc-hidden")?.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-scene-back]");
+  if (b) _scSceneOff(b.dataset.sceneBack, false);
+});
 
 // Ô chữ cao theo nội dung.
 function _scGrow(ta) {
@@ -919,8 +971,10 @@ const _scMuKey = () => (_scS.real && _scS.wid ? _scS.wid : "demo");
 
 // Đoạn nhạc nền trên dòng thời gian (giây, cùng khuôn lớp giọng đọc): đặt ở `start`, bắt đầu từ
 // giây `in` của bài (bài LẶP nếu đoạn dài hơn bài), dài `len`; `full` = khối chạy tới hết slide,
-// tự dài theo khi đổi thời lượng cảnh. Lưu localStorage theo thiệp + bài — đổi bài là về nguyên bài.
+// tự dài theo khi đổi thời lượng cảnh; `fi`/`fo` = giây to dần / nhỏ dần ở hai mép (mặc định
+// _SC_MU_FADE). Lưu localStorage theo thiệp + bài — đổi bài là về nguyên bài.
 const _SC_MU_CUT = "cx_slide_mucut";
+const _SC_MU_FADE = 1.5;
 const _scMuPid = (p) => (p ? `${p.mode}:${p.id}` : "");
 function _scMuCutAll() {
   try {
@@ -938,7 +992,10 @@ function _scMuCut() {
     const s = _scMuCutAll()[_scMuKey()];
     const ok = s && s.pid === _scMuPid(p);
     const n = (v) => Math.max(0, Number(v) || 0);
-    p.cut = ok ? { start: n(s.start), in: n(s.in), len: n(s.len), full: s.full !== false } : { start: 0, in: 0, len: 0, full: true };
+    const f = (v) => (v == null ? _SC_MU_FADE : n(v));
+    p.cut = ok
+      ? { start: n(s.start), in: n(s.in), len: n(s.len), full: s.full !== false, fi: f(s.fi), fo: f(s.fo) }
+      : { start: 0, in: 0, len: 0, full: true, fi: _SC_MU_FADE, fo: _SC_MU_FADE };
   }
   return p.cut;
 }
@@ -947,8 +1004,8 @@ function _scMuCutSave() {
   try {
     const all = _scMuCutAll();
     const key = _scMuKey();
-    if (c && (c.start > 0.01 || c.in > 0.01 || !c.full)) {
-      all[key] = { pid: _scMuPid(_scMu.pick), start: c.start, in: c.in, len: c.len, full: c.full };
+    if (c && (c.start > 0.01 || c.in > 0.01 || !c.full || c.fi !== _SC_MU_FADE || c.fo !== _SC_MU_FADE)) {
+      all[key] = { pid: _scMuPid(_scMu.pick), start: c.start, in: c.in, len: c.len, full: c.full, fi: c.fi, fo: c.fo };
     } else delete all[key];
     localStorage.setItem(_SC_MU_CUT, JSON.stringify(all));
   } catch (e) {}
@@ -1016,11 +1073,11 @@ async function _scMuLoad() {
   _scMuRender();
 }
 
-// `cut` cho khung: {start, in, len} — len null = tới hết slide.
+// `cut` cho khung: {start, in, len, fi, fo} — len null = tới hết slide.
 function _scMuMsg() {
   const p = _scMu.pick;
   const c = _scMuCut();
-  const cut = c ? { start: c.start, in: c.in, len: c.full ? null : c.len } : null;
+  const cut = c ? { start: c.start, in: c.in, len: c.full ? null : c.len, fi: c.fi, fo: c.fo } : null;
   if (p?.mode === "file") return { id: p.id, blob: p.blob, cut };
   if (p?.mode === "lib") return { url: _scTrack(p.id)?.file || "", cut };
   return null;
