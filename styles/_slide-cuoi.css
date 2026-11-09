@@ -591,6 +591,32 @@ html.sc-lock .cx-navmore-pop {
   .sc-panel {
     padding: 8px 0 0;
   }
+  /* Cột phải: tiêu đề ghim sát đáy navbar, dải tab ghim ngay dưới (--sc-head-h do index.js đo).
+     Navbar nền trong suốt nên ::before tô trắng phần phía trên để nội dung cuộn không lộ qua nó. */
+  .sc-head-pin {
+    position: sticky;
+    top: calc(var(--sc-top) - 8px);
+    z-index: 10;
+    background: rgb(var(--white-rgb));
+  }
+  .sc-head-pin::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: calc(var(--sc-top) - 8px);
+    background: rgb(var(--white-rgb));
+  }
+  .sc-tabs-bar {
+    position: sticky;
+    top: calc(var(--sc-top) - 8px + var(--sc-head-h, 88px));
+    z-index: 10;
+    margin-top: -8px;
+    padding: 8px 0 12px;
+    background: rgb(var(--white-rgb));
+    box-shadow: 0 1px 0 rgb(var(--brand-primary-rgb) / 0.4);
+  }
 }
 @media (min-width: 1280px) {
   .sc-app {
@@ -1413,8 +1439,43 @@ html.sc-typing .sc-tx-in {
 }
 
 /* Bảng Thư viện nhạc (dưới dòng thời gian): mỗi dòng nút nghe thử · tên bài để chọn · dấu đang chọn. */
+/* Danh sách cuộn riêng trong khung có trần, ô tìm kiếm đứng yên phía trên. */
 .sc-mu-libbox .sc-mu-lib {
   margin-bottom: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sc-mu-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin: 4px 0 8px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background: rgb(var(--surface-brand-subtle-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
+  color: rgb(var(--text-caption-rgb));
+  cursor: text;
+}
+.sc-mu-search:focus-within {
+  border-color: rgb(var(--action-primary-rgb));
+}
+.sc-mu-search svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+.sc-mu-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 16px;
+  color: rgb(var(--text-body-rgb));
 }
 .sc-mu-play:focus-visible,
 .sc-mu-pick:focus-visible {

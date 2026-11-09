@@ -6,6 +6,167 @@
       "artist": "Taylor Swift",
       "file": "songs/Lover_Taylor_Swift.mp3",
       "credit": ""
+    },
+    {
+      "id": "mot-doi-14-casper-bon-nghiem",
+      "title": "một đời",
+      "artist": "14 Casper & Bon Nghiêm ft. buitruonglinh",
+      "file": "songs/mot-doi-14-casper-bon-nghiem.mp3",
+      "credit": ""
+    },
+    {
+      "id": "cuoi-nhau-di-bui-anh-tuan-hien-ho",
+      "title": "Cưới Nhau Đi",
+      "artist": "Bùi Anh Tuấn & Hiền Hồ",
+      "file": "songs/cuoi-nhau-di-bui-anh-tuan-hien-ho.mp3",
+      "credit": ""
+    },
+    {
+      "id": "ban-tinh-ca-khong-ten-tho",
+      "title": "Bản Tình Ca Không Tên",
+      "artist": "THỎ (Da LAB)",
+      "file": "songs/ban-tinh-ca-khong-ten-tho.mp3",
+      "credit": ""
+    },
+    {
+      "id": "em-dong-y-duc-phuc",
+      "title": "Em Đồng Ý (I Do)",
+      "artist": "Đức Phúc ft. 911 & Khắc Hưng",
+      "file": "songs/em-dong-y-duc-phuc.mp3",
+      "credit": ""
+    },
+    {
+      "id": "ngay-dau-tien-duc-phuc",
+      "title": "Ngày Đầu Tiên",
+      "artist": "Đức Phúc",
+      "file": "songs/ngay-dau-tien-duc-phuc.mp3",
+      "credit": ""
+    },
+    {
+      "id": "hon-ca-yeu-duc-phuc",
+      "title": "Hơn Cả Yêu",
+      "artist": "Đức Phúc",
+      "file": "songs/hon-ca-yeu-duc-phuc.mp3",
+      "credit": ""
+    },
+    {
+      "id": "vay-cuoi-erik-kai-dinh",
+      "title": "Váy Cưới",
+      "artist": "ERIK x Kai Đinh",
+      "file": "songs/vay-cuoi-erik-kai-dinh.mp3",
+      "credit": ""
+    },
+    {
+      "id": "le-duong-kai-dinh",
+      "title": "Lễ Đường",
+      "artist": "Kai Đinh x CaoTri",
+      "file": "songs/le-duong-kai-dinh.mp3",
+      "credit": ""
+    },
+    {
+      "id": "noi-gio-len-phan-nhu-thuy",
+      "title": "Nổi Gió Lên",
+      "artist": "Phan Như Thùy",
+      "file": "songs/noi-gio-len-phan-nhu-thuy.mp3",
+      "credit": ""
+    },
+    {
+      "id": "cam-on-tinh-yeu-toi-anh-trai",
+      "title": "Cảm Ơn Tình Yêu Tôi",
+      "artist": "Nhà Thăng Hoa (Anh Trai Vượt Ngàn Chông Gai)",
+      "file": "songs/cam-on-tinh-yeu-toi-anh-trai.mp3",
+      "credit": ""
+    },
+    {
+      "id": "den-khi-nao-mat-troi-ngung-chieu-khac-viet",
+      "title": "Đến Khi Nào Mặt Trời Ngừng Chiếu",
+      "artist": "Khắc Việt x YanBi",
+      "file": "songs/den-khi-nao-mat-troi-ngung-chieu-khac-viet.mp3",
+      "credit": ""
+    },
+    {
+      "id": "ngay-chung-doi-van-mai-huong",
+      "title": "Ngày Chung Đôi",
+      "artist": "Văn Mai Hương",
+      "file": "songs/ngay-chung-doi-van-mai-huong.mp3",
+      "credit": ""
+    },
+    {
+      "id": "minh-yeu-nhau-yeu-nhau-binh-yen-thoi-dinh-huong",
+      "title": "Mình Yêu Nhau Yêu Nhau Bình Yên Thôi",
+      "artist": "Đinh Hương ft. Hà Anh Tuấn",
+      "file": "songs/minh-yeu-nhau-yeu-nhau-binh-yen-thoi-dinh-huong.mp3",
+      "credit": ""
+    },
+    {
+      "id": "mai-mai-ben-nhau-noo-phuoc-thinh",
+      "title": "Mãi Mãi Bên Nhau",
+      "artist": "Noo Phước Thịnh",
+      "file": "songs/mai-mai-ben-nhau-noo-phuoc-thinh.mp3",
+      "credit": ""
+    },
+    {
+      "id": "noi-nay-co-anh-son-tung",
+      "title": "Nơi Này Có Anh",
+      "artist": "Sơn Tùng M-TP",
+      "file": "songs/noi-nay-co-anh-son-tung.mp3",
+      "credit": ""
+    },
+    {
+      "id": "anh-nang-cua-anh-duc-phuc",
+      "title": "Ánh Nắng Của Anh",
+      "artist": "Đức Phúc",
+      "file": "songs/anh-nang-cua-anh-duc-phuc.mp3",
+      "credit": ""
+    },
+    {
+      "id": "a-thousand-years-christina-perri",
+      "title": "A Thousand Years",
+      "artist": "Christina Perri",
+      "file": "songs/a-thousand-years-christina-perri.mp3",
+      "credit": ""
+    },
+    {
+      "id": "beautiful-in-white-shane-filan",
+      "title": "Beautiful In White",
+      "artist": "Shane Filan",
+      "file": "songs/beautiful-in-white-shane-filan.mp3",
+      "credit": ""
+    },
+    {
+      "id": "my-love-westlife",
+      "title": "My Love",
+      "artist": "Westlife",
+      "file": "songs/my-love-westlife.mp3",
+      "credit": ""
+    },
+    {
+      "id": "you-are-the-reason-calum-scott",
+      "title": "You Are The Reason",
+      "artist": "Calum Scott",
+      "file": "songs/you-are-the-reason-calum-scott.mp3",
+      "credit": ""
+    },
+    {
+      "id": "i-do-911",
+      "title": "I Do",
+      "artist": "911",
+      "file": "songs/i-do-911.mp3",
+      "credit": ""
+    },
+    {
+      "id": "i-do-it-for-you-bryan-adams",
+      "title": "(Everything I Do) I Do It For You",
+      "artist": "Bryan Adams",
+      "file": "songs/i-do-it-for-you-bryan-adams.mp3",
+      "credit": ""
+    },
+    {
+      "id": "canon-in-d-pachelbel",
+      "title": "Canon in D",
+      "artist": "Pachelbel",
+      "file": "songs/canon-in-d-pachelbel.mp3",
+      "credit": ""
     }
   ]
 }

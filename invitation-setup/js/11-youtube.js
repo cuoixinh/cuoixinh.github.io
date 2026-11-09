@@ -181,6 +181,7 @@ async function selectYouTubeSong(url, title) {
     input.closest("x-input, x-textarea")?.syncClearBtn?.();
   }
   _showMusicStart(cxYtStart(url));
+  _musicLibRender();
   _showMusicTag(title || "Đang lấy tên bài…");
   if (!title) _showMusicTag((await _fetchYouTubeTitle(url)) || url);
 }
@@ -275,7 +276,7 @@ function _musicStartError(msg) {
 
 // Ghi giây bắt đầu vào URL đang chọn + tua trình phát thử tới đó.
 function _applyMusicStart(sec) {
-  if (!_currentMusicUrl) return;
+  if (!_currentMusicUrl || cxIsLibMusic(_currentMusicUrl)) return;
   const dur = _ytPreviewPlayer?.getDuration?.() || 0;
   if (dur && sec >= dur) {
     _musicStartError(`Bài chỉ dài ${_fmtMusicStart(Math.floor(dur))}.`);
@@ -296,7 +297,7 @@ function _seekYtPreview(sec) {
   try {
     const st = p.getPlayerState();
     // Chưa phát lần nào thì seekTo sẽ tự phát → chỉ nạp sẵn ở giây đó.
-    if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.PAUSED) {
+    if (st === CX_PLAYER_STATE.PLAYING || st === CX_PLAYER_STATE.PAUSED) {
       p.seekTo(sec, true);
     } else {
       p.cueVideoById({ videoId: extractYouTubeVideoId(_currentMusicUrl), startSeconds: sec });
@@ -314,7 +315,7 @@ function playMusicFromStart() {
   }
   _musicStartError("");
   try {
-    if (p.getPlayerState() === YT.PlayerState.PLAYING) {
+    if (p.getPlayerState() === CX_PLAYER_STATE.PLAYING) {
       p.pauseVideo();
       return;
     }
@@ -329,7 +330,7 @@ let _ytDragging = false;
 // Đang phát: nút thành "Dừng", thanh chạy theo giây đang nghe. Dừng/hết bài: nút về
 // "Nghe thử", thanh + video lùi về đúng giây bắt đầu.
 function _ytListenSync(state) {
-  const playing = state === YT.PlayerState.PLAYING;
+  const playing = state === CX_PLAYER_STATE.PLAYING;
   const btn = document.getElementById("music-listen-btn");
   if (btn && btn.dataset.on !== String(playing)) {
     btn.dataset.on = String(playing);
@@ -350,7 +351,7 @@ function _ytListenSync(state) {
     }, 250);
     return;
   }
-  if (state !== YT.PlayerState.PAUSED && state !== YT.PlayerState.ENDED) return;
+  if (state !== CX_PLAYER_STATE.PAUSED && state !== CX_PLAYER_STATE.ENDED) return;
   const start = cxYtStart(_currentMusicUrl);
   if (range && !range.disabled) {
     range.value = String(start);
@@ -370,7 +371,7 @@ function _ytListenSync(state) {
 function cxPauseYtPreview() {
   try {
     const st = _ytPreviewPlayer?.getPlayerState?.();
-    if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.BUFFERING) _ytPreviewPlayer.pauseVideo();
+    if (st === CX_PLAYER_STATE.PLAYING || st === CX_PLAYER_STATE.BUFFERING) _ytPreviewPlayer.pauseVideo();
   } catch {}
 }
 
@@ -397,6 +398,7 @@ function clearMusicSelection() {
   document.getElementById("youtube-error")?.classList.add("hidden");
   _scheduleAutoSave("config");
   _showYouTubeSuggestions();
+  _musicLibRender();
 }
 
 let _ytPreviewPlayer = null;
@@ -445,6 +447,7 @@ function showYouTubePreview(videoId, url) {
   if (thumb) thumb.style.display = "none";
   preview.classList.remove("hidden");
 
+  _musicStartLib(false);
   _setMusicStartMode("loading");
   _ensureYTApi(() => {
     _ytPreviewPlayer = new YT.Player("_yt_target", {
@@ -480,6 +483,7 @@ function showYouTubePreview(videoId, url) {
 }
 
 function renderExistingYouTubeMusic(musicUrl) {
+  if (cxIsLibMusic(musicUrl)) return selectLibSong(musicUrl, "");
   if (
     !musicUrl ||
     (!musicUrl.includes("youtube.com") && !musicUrl.includes("youtu.be"))
@@ -487,10 +491,161 @@ function renderExistingYouTubeMusic(musicUrl) {
     return; // Not a YouTube URL
   }
 
+  cxMusicSrc("yt");
   // Load từ DB: chỉ có URL → selectYouTubeSong tự lấy tên bài (oEmbed), hiện tag + preview.
   // Không gọi _scheduleAutoSave để tránh đánh dấu "dirty" khi vừa nạp.
   selectYouTubeSong(musicUrl, "");
 }
+
+// ============= THƯ VIỆN NHẠC =============
+// Bài thư viện lưu "lib:<file>" (cxIsLibMusic, core/utils.js), nghe thử bằng thẻ <audio> bọc
+// kiểu YT.Player (cxAudioPlayer). KHÔNG có giây bắt đầu: kho không trả Range nên không tua được.
+
+// Đổi khung tìm giữa YouTube và Thư viện — không đụng bài đang chọn.
+function cxMusicSrc(src) {
+  const seg = document.getElementById("music-src-seg");
+  if (!seg) return;
+  const lib = src === "lib";
+  seg.style.setProperty("--i", lib ? "0" : "1");
+  seg.querySelectorAll("[data-music-src]").forEach((b) => {
+    const on = b.dataset.musicSrc === src;
+    b.classList.toggle("is-on", on);
+    b.setAttribute("aria-selected", String(on));
+  });
+  document.getElementById("music-src-yt")?.classList.toggle("hidden", lib);
+  document.getElementById("music-src-lib")?.classList.toggle("hidden", !lib);
+  if (lib) _musicLibLoad();
+}
+
+let _musicLib = null; // null = chưa tải
+function _musicLibLoad() {
+  if (_musicLib) return Promise.resolve(_musicLib);
+  _musicLibRender();
+  return cxMusicLibrary().then((list) => {
+    _musicLib = list;
+    _musicLibRender();
+    return list;
+  });
+}
+
+// Bỏ dấu + chữ thường để gõ "vay cuoi" vẫn ra "Váy Cưới".
+const _musicFold = (s) =>
+  String(s || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase()
+    .trim();
+
+function _musicLibRender() {
+  const box = document.getElementById("music-lib-list");
+  if (!box) return;
+  if (!_musicLib) {
+    box.innerHTML = '<p class="text-xs text-gray-500 py-3 text-center">Đang tải thư viện nhạc...</p>';
+    return;
+  }
+  if (!_musicLib.length) {
+    box.innerHTML = '<p class="text-xs text-gray-500 py-3 text-center">Thư viện nhạc hiện chưa có bài nào.</p>';
+    return;
+  }
+  const q = document.getElementById("music-lib-q")?.value || "";
+  const words = _musicFold(q).split(/\s+/).filter(Boolean);
+  const cur = cxLibMusicFile(_currentMusicUrl);
+  const shown = _musicLib.filter((t) => {
+    const hay = _musicFold(`${t.title} ${t.artist}`);
+    return words.every((w) => hay.includes(w));
+  });
+  if (!shown.length) {
+    box.innerHTML = `<p class="text-xs text-gray-500 py-3 text-center">Không có bài nào khớp với “${_escHtml(q.trim())}”.</p>`;
+    return;
+  }
+  box.innerHTML = shown
+    .map((t) => {
+      const on = t.file === cur;
+      return `<button type="button" data-lib-file="${_escHtml(t.file)}" aria-pressed="${on}"
+        class="w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors ${on ? "bg-rose-50" : "hover:bg-rose-50"}">
+        <span class="w-9 h-9 shrink-0 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center"><i data-lucide="${on ? "check" : "music"}" style="width:16px;height:16px"></i></span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-xs font-medium text-gray-800 leading-snug">${_escHtml(t.title)}</span>
+          ${t.artist ? `<span class="block text-xs text-gray-500 mt-0.5">${_escHtml(t.artist)}</span>` : ""}
+        </span>
+      </button>`;
+    })
+    .join("");
+  window.lucide?.createIcons({ root: box });
+}
+
+// Tên hiện trên thẻ bài đang chọn.
+const _musicLibLabel = (t) => (t.artist ? `${t.title} – ${t.artist}` : t.title);
+
+// Chọn một bài thư viện (url = "lib:…"), title rỗng = tra trong danh mục.
+async function selectLibSong(url, title) {
+  if (!cxIsLibMusic(url)) return;
+  url = CX_LIB_PREFIX + cxLibMusicFile(url);
+  _setMusicUrl(url);
+  showLibPreview(url);
+  cxMusicSrc("lib");
+  _showMusicStart(0);
+  _musicLibRender();
+  _showMusicTag(title || "Đang lấy tên bài…");
+  if (title) return;
+  const file = cxLibMusicFile(url);
+  const t = (await _musicLibLoad()).find((x) => x.file === file);
+  if (cxLibMusicFile(_currentMusicUrl) !== file) return; // đã chọn bài khác trong lúc chờ
+  _showMusicTag(t ? _musicLibLabel(t) : file.split("/").pop());
+}
+
+// Trình nghe thử cho bài thư viện: không có khung video, chỉ thanh giây bắt đầu + nút nghe.
+function showLibPreview(url) {
+  if (_ytPreviewPlayer) {
+    try {
+      _ytPreviewPlayer.destroy();
+    } catch {}
+    _ytPreviewPlayer = null;
+    _ytListenSync(-1);
+  }
+  document.getElementById("youtube-preview")?.classList.add("hidden");
+  _musicStartLib(true);
+  const src = cxLibMusicSrc(url);
+  if (!src) return;
+  const p = cxAudioPlayer(src, {
+    preload: "metadata",
+    onStateChange: (e) => _ytPreviewPlayer === p && _ytListenSync(e.data),
+  });
+  _ytPreviewPlayer = p;
+}
+
+// Bài thư viện: giấu nhãn, thanh kéo, ô nhập và nút "Lấy vị trí", chỉ giữ "Nghe thử".
+// YouTube (showYouTubePreview) trả lại rồi _setMusicStartMode lo phần còn lại.
+function _musicStartLib(on) {
+  ["music-start-label", "music-start-grab", "music-start-slider", "music-start-input"].forEach((id) =>
+    document.getElementById(id)?.classList.toggle("hidden", on),
+  );
+  if (on) document.getElementById("music-start-actions")?.classList.remove("hidden");
+}
+
+_onDomReady(function () {
+  // Thư viện là tab mở sẵn; thiệp đang dùng bài YouTube thì renderExistingYouTubeMusic chuyển tab.
+  if (document.getElementById("music-src-seg")) cxMusicSrc(cxIsLibMusic(_currentMusicUrl) || !_currentMusicUrl ? "lib" : "yt");
+  document.getElementById("music-src-seg")?.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-music-src]");
+    if (b) cxMusicSrc(b.dataset.musicSrc);
+  });
+  document.getElementById("music-lib-list")?.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-lib-file]");
+    if (!b) return;
+    const file = b.dataset.libFile;
+    if (file === cxLibMusicFile(_currentMusicUrl)) return;
+    const t = _musicLib?.find((x) => x.file === file);
+    selectLibSong(CX_LIB_PREFIX + file, t ? _musicLibLabel(t) : "");
+    _scheduleAutoSave("config");
+  });
+  document.getElementById("music-lib-q")?.addEventListener("input", () => {
+    _musicLibRender();
+    const box = document.getElementById("music-lib-list");
+    if (box) box.scrollTop = 0;
+  });
+});
 
 // Setup auto-preview on input change
 _onDomReady(function () {
@@ -533,7 +688,7 @@ function _bindMusicStartControls() {
       const p = _ytPreviewPlayer;
       try {
         const st = p?.getPlayerState?.();
-        if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.PAUSED)
+        if (st === CX_PLAYER_STATE.PLAYING || st === CX_PLAYER_STATE.PAUSED)
           p.seekTo(Number(range.value), false);
       } catch {}
     });

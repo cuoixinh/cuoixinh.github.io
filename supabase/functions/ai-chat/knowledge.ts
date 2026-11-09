@@ -44,10 +44,10 @@ giảm giá. Dựng thiệp và xem thử luôn miễn phí.
 Xuất bản xong được 3 ngày dùng thử đủ tính năng — tách riêng với các gói: chọn gói lúc nào
 thì thời hạn gói tính từ lúc đó. Mỗi tài khoản chỉ dùng được 1 thiệp gói Free: được 3 tháng
 tính từ lúc chọn, có giới hạn: chỉ MỘT thiệp (nhà trai hoặc nhà gái, chọn ở bước thanh toán
-— link bên kia mở ra thiệp bên đã chọn), tối đa 20 khách mời, tối đa 300 lượt xem thiệp
+— link bên kia mở ra thiệp bên đã chọn), tối đa 20 khách mời, tối đa 200 lượt xem thiệp
 (mỗi lần mở link tính một lượt), hộp mừng cưới chỉ có QR của bên đã chọn, không mời được
 người cùng quản lý khách mời. Ảnh, xác nhận tham dự và lời chúc của khách như gói trả phí.
-Hết dùng thử, hết 3 tháng Free hay hết 300 lượt xem mà chưa nâng gói thì khách mời mở link
+Hết dùng thử, hết 3 tháng Free hay hết 200 lượt xem mà chưa nâng gói thì khách mời mở link
 sẽ thấy màn "Thiệp đang tạm khoá"; nâng gói là mở lại ngay, nội dung còn nguyên. Hết hạn
 quá 30 ngày nữa thì thiệp bị xoá vĩnh viễn. Gói trả phí mở cả hai thiệp, 100 khách mời mỗi
 thiệp, không giới hạn lượt xem; sửa nội dung, ảnh, bảng màu và font lúc nào cũng được.

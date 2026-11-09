@@ -40,7 +40,7 @@
          (Cảnh: ảnh + chữ từng cảnh · Thiệp · Âm thanh: nhạc + giọng đọc · Mẫu). Từ lg sân khấu bên trái, bảng chỉnh bên
          phải; dưới lg xếp chồng, sân khấu ghim đầu màn. Logic ở index.js. -->
     <main class="sc-app">
-      <header class="sc-head">
+      <header id="sc-head" class="sc-head sc-head-pin">
         <h1 class="tg-title">Slide cưới</h1>
         <p class="sc-sub">Xem trước rồi chiếu lên màn hình sân khấu tiệc cưới.</p>
       </header>
@@ -147,11 +147,14 @@
       </x-popover>
 
       <div class="sc-panel">
+        <!-- Từ lg tiêu đề + dải tab ghim đầu cột phải (_slide-cuoi.css), nội dung tab cuộn bên dưới. -->
+        <div class="sc-tabs-bar">
         <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 4; --i: 0">
           <button type="button" class="cx-seg-btn is-on" role="tab" id="sc-tabbtn-scenes" data-tab="scenes" aria-selected="true" aria-controls="sc-tab-scenes">Cảnh</button>
           <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-data" data-tab="data" aria-selected="false" aria-controls="sc-tab-data">Thiệp</button>
           <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-audio" data-tab="audio" aria-selected="false" aria-controls="sc-tab-audio">Âm thanh</button>
           <button type="button" class="cx-seg-btn" role="tab" id="sc-tabbtn-tpl" data-tab="tpl" aria-selected="false" aria-controls="sc-tab-tpl">Mẫu</button>
+        </div>
         </div>
 
         <section id="sc-tab-scenes" class="sc-tab" role="tabpanel" aria-labelledby="sc-tabbtn-scenes">
@@ -254,6 +257,10 @@
               <p class="sc-vo-sel-name">Thư viện nhạc</p>
               <button type="button" class="sc-vo-x" onclick="scMusicLibOpen(false)" aria-label="Đóng thư viện nhạc" title="Đóng"><i data-lucide="x"></i></button>
             </div>
+            <label id="sc-mu-search" class="sc-mu-search hidden">
+              <i data-lucide="search" aria-hidden="true"></i>
+              <input id="sc-mu-q" type="search" placeholder="Tìm tên bài hát hoặc ca sĩ" autocomplete="off" enterkeyhint="search" aria-label="Tìm bài hát" />
+            </label>
             <div id="sc-mu-lib" class="sc-mu-lib"></div>
             <p id="sc-mu-credit" class="sc-fine hidden"></p>
           </div>

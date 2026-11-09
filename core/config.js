@@ -13,7 +13,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.11.08-12";
+const CX_VERSION = "2026.11.08-14";
  
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -191,7 +191,7 @@ const CONFIG = {
   // Bản gốc là FREE_PLAN.days / FREE_PLAN.views ở supabase/functions/_shared/plans.ts
   // — đổi phải đổi cả hai.
   freePlanDays: 90,
-  freePlanViews: 300,
+  freePlanViews: 200,
   // Mã lỗi khoá thiệp (403 của wedding-admin) → vẫn mở trang thiệp để hiện màn khoá.
   // Bản gốc LOCK_CODES ở worker/route-html.mjs, LINT-32 gác hai nơi khớp nhau.
   lockCodes: ["TRIAL_EXPIRED", "PLAN_EXPIRED", "VIEW_LIMIT"],
@@ -218,10 +218,11 @@ const CONFIG = {
     led: true, // "Hình nền LED" (/hinh-nen-led/)
   },
 
-  // Thư viện nhạc của trang Slide cưới — Worker file tĩnh ở tài khoản Cloudflare PHỤ (thư mục
-  // cloudflare-media/, `npm run deploy:media`), dùng chung cho mọi môi trường. Đường dẫn
-  // bài trong file danh mục tính theo chính file đó. Đổi địa chỉ thì đổi cả connect-src
-  // trong `_headers` (bộ xuất video fetch file nhạc).
+  // Thư viện nhạc (Slide cưới + nhạc nền thiệp) — Worker file tĩnh ở tài khoản Cloudflare PHỤ
+  // (thư mục cloudflare-media/, `npm run deploy:media`), dùng chung cho mọi môi trường. Đường
+  // dẫn bài trong file danh mục tính theo chính file đó; thiệp chỉ lưu đường dẫn tương đối
+  // ("lib:songs/…", cxIsLibMusic) nên đổi địa chỉ ở đây là mọi thiệp đi theo. Đổi địa chỉ thì
+  // đổi cả connect-src trong `_headers` (bộ xuất video + danh mục fetch từ kho).
   slideMusic: {
     library: "https://cuoixinh-media.cx-music.workers.dev/library.json",
   },

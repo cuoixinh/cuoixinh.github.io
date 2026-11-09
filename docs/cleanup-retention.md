@@ -50,7 +50,7 @@ PATCH `free_side` lên `wedding-admin`, server xuất bản luôn và đặt `ex
 FREE_PLAN.days` (90 ngày) — dùng thử 3 ngày là chuyện riêng, hết hạn rồi chọn vẫn được đủ số
 ngày đó (gói trả phí cũng tính hạn từ lúc mua). Chọn một lần, chốt bên. Giới hạn ở `FREE_PLAN`
 của `_shared/plans.ts`: chỉ mở một bên (`weddings.free_side`; link bên kia tự chuyển về bên đã
-chọn ở `loadWeddingData`), 20 khách ở bên đó (`guest-handler`), `FREE_PLAN.views` (300) lượt xem
+chọn ở `loadWeddingData`), 20 khách ở bên đó (`guest-handler`), `FREE_PLAN.views` (200) lượt xem
 (xem mục 7), không có thành viên cùng quản lý, và `applyFreeLimits` gỡ thông tin ngân hàng của
 bên KIA ở đường công khai `?slug=` — hộp mừng cưới chỉ còn QR của bên được mở
 (`renderQRCodes` ẩn thẻ bên kia). Ảnh (10 album + 10 chuyện tình, trần chung của trình chỉnh
@@ -187,10 +187,10 @@ bảng này (khỏi tốn request). Lượt đếm ở bảng `wedding_stats` (b
 là kích trigger `updated_at`), tăng qua hàm `cx_wedding_view` — trần nằm trong câu upsert nên
 hai lượt cùng lúc không vượt trần.
 - Trang thiệp gọi `POST wedding-admin?resource=view` mỗi lượt mở `?slug=` (`WeddingBL.countView`,
-  gộp lượt cùng máy trong 30 phút). Đi THẲNG Edge Function vì GET `?slug=` bị worker cache 5
+  mỗi lần tải trang là một lượt, kể cả F5 — không gộp). Đi THẲNG Edge Function vì GET `?slug=` bị worker cache 5
   phút. Ai mở link cũng tính, kể cả chủ thiệp; bot (User-Agent) và bản xem trước của trang
   Thiết lập thì không; thiệp đã khoá vì lý do khác không đếm.
-- Chủ thiệp xem số `x/300` ở thẻ thiệp của "Quản lý thiệp cưới"; từ 80% (240 lượt) có cảnh
+- Chủ thiệp xem số `x/200` ở thẻ thiệp của "Quản lý thiệp cưới"; từ 80% (160 lượt) có cảnh
   báo ở thẻ đó, ở toast lúc mở trình chỉnh sửa và ở popup xuất bản. Không gửi email. Đọc số hỏng thì thẻ chỉ ẩn
   con số, còn link công khai thì DỪNG (500) vì trần là phép kiểm.
 - Đủ `FREE_PLAN.views` → GET `?slug=` trả 403 `VIEW_LIMIT` (cùng màn khoá). Bản GET còn trong

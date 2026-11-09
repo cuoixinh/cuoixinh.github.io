@@ -1133,6 +1133,100 @@ function cxYtWithStart(url, sec) {
   }
 }
 
+// Nhạc nền từ THƯ VIỆN (kho cloudflare-media/): music_url = "lib:<đường dẫn tương đối như
+// `file` trong library.json>" (không có giây bắt đầu) — KHÔNG lưu tên miền kho, gốc lấy lúc chạy từ
+// CONFIG.slideMusic.library nên đổi tài khoản/miền kho chỉ sửa config. Link YouTube cũ không
+// có tiền tố này nên vẫn đi đường YouTube như trước.
+const CX_LIB_PREFIX = "lib:";
+function cxIsLibMusic(url) {
+  return typeof url === "string" && url.startsWith(CX_LIB_PREFIX);
+}
+// "lib:songs/a.mp3?t=5" → "songs/a.mp3"
+function cxLibMusicFile(url) {
+  return cxIsLibMusic(url) ? url.slice(CX_LIB_PREFIX.length).split(/[?#]/)[0] : "";
+}
+// Đường dẫn tương đối → URL file thật trên kho; "" khi thiếu config.
+function cxLibMusicSrc(fileOrUrl) {
+  const file = cxIsLibMusic(fileOrUrl) ? cxLibMusicFile(fileOrUrl) : fileOrUrl;
+  const base = typeof CONFIG !== "undefined" ? CONFIG.slideMusic?.library : "";
+  if (!file || !base) return "";
+  try {
+    return new URL(file, base).href;
+  } catch (e) {
+    return "";
+  }
+}
+// Danh mục thư viện (một lần mỗi trang): [{id, title, artist, file}] — kho lỗi thì rỗng.
+let _cxLibReq = null;
+function cxMusicLibrary() {
+  const base = typeof CONFIG !== "undefined" ? CONFIG.slideMusic?.library : "";
+  _cxLibReq ||= (base ? fetch(base, { cache: "no-cache" }) : Promise.reject(new Error("no library")))
+    .then((r) => (r.ok ? r.json() : { tracks: [] }))
+    .catch(() => ({ tracks: [] }))
+    .then((j) =>
+      (Array.isArray(j?.tracks) ? j.tracks : [])
+        .filter((t) => t && t.id && t.title && t.file)
+        .map((t) => ({ id: String(t.id), title: String(t.title), artist: String(t.artist || ""), file: String(t.file) })),
+    );
+  return _cxLibReq;
+}
+
+// Thẻ <audio> mặc áo của YT.Player (đúng những lệnh trình phát nhạc của thiệp + trang Thiết
+// lập dùng) để nhạc thư viện đi chung một luồng với YouTube. Sự kiện báo theo mã YT.PlayerState.
+const CX_PLAYER_STATE = { UNSTARTED: -1, ENDED: 0, PLAYING: 1, PAUSED: 2, BUFFERING: 3, CUED: 5 };
+function cxAudioPlayer(src, opts = {}) {
+  const S = CX_PLAYER_STATE;
+  const a = new Audio();
+  a.preload = opts.preload || "auto";
+  a.loop = !!opts.loop;
+  let state = S.UNSTARTED;
+  const meta = { title: opts.title || "", author: opts.author || "" };
+  const p = {
+    playVideo() {
+      a.play()?.catch?.(() => {});
+    },
+    pauseVideo() {
+      a.pause();
+    },
+    seekTo(sec) {
+      try {
+        a.currentTime = Math.max(0, sec || 0);
+      } catch (e) {}
+    },
+    cueVideoById(o) {
+      a.pause();
+      p.seekTo(o?.startSeconds || 0);
+    },
+    setVolume(v) {
+      a.volume = Math.max(0, Math.min(1, (Number(v) || 0) / 100));
+    },
+    getCurrentTime: () => a.currentTime || 0,
+    getDuration: () => (Number.isFinite(a.duration) ? a.duration : 0),
+    getPlayerState: () => state,
+    getVideoData: () => ({ title: meta.title, author: meta.author, video_id: "" }),
+    setMeta(m) {
+      Object.assign(meta, m);
+    },
+    destroy() {
+      a.pause();
+      a.removeAttribute("src");
+      a.load();
+    },
+    audio: a,
+  };
+  const fire = (s) => {
+    state = s;
+    opts.onStateChange?.({ target: p, data: s });
+  };
+  a.addEventListener("playing", () => fire(S.PLAYING));
+  a.addEventListener("pause", () => a.ended || fire(S.PAUSED));
+  a.addEventListener("ended", () => fire(S.ENDED));
+  a.addEventListener("waiting", () => fire(S.BUFFERING));
+  a.src = src;
+  setTimeout(() => opts.onReady?.({ target: p }), 0);
+  return p;
+}
+
 // ============= TIME PICKER =============
 
 // Popup chọn giờ dạng lưới bấm (#tp-popup, style ở styles/_time-picker.css) —

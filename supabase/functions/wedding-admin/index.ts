@@ -107,6 +107,8 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
   'bride_party_location', 'bride_party_map_embed_url', 'bride_party_use_embed',
   'bride_map_embed_url', 'bride_bank_name', 'bride_bank_number',
   'bride_bank_owner', 'bride_qr_url',
+  // Hộp mừng cưới: mỗi bên chỉ hiện QR của bên mình
+  'gift_own_side',
   // Theme & nhạc
   'theme', 'theme_setting', 'music_url',
   // JSONB

@@ -26,6 +26,7 @@ changelogs/*.final.sql
 
 # Kho nhạc slide: file nhạc chỉ nằm trên máy rồi đẩy thẳng lên Cloudflare (npm run deploy:media), không vào git.
 cloudflare-media/public/songs/
+cloudflare-media/_bo-ra/
 # Token API của tài khoản Cloudflare PHỤ (giữ kho nhạc) — wrangler tự đọc khi chạy deploy:media.
 cloudflare-media/.env
 

@@ -18,6 +18,19 @@
     </div>
   </div>
   <div id="section-gift-body" class="px-4 py-5 sm:p-6 space-y-6">
+    <!-- x-check là display:contents → bọc div để nhận khoảng cách của space-y.
+         Giá trị thật nằm ở ô hidden (vào FormData), toggleGiftOwnSide đồng bộ hai bên. -->
+    <div>
+      <input type="hidden" name="gift_own_side" id="gift_own_side" value="false" />
+      <x-check
+        key="gift-own-side"
+        label="Chỉ hiển thị QR của thiệp tương ứng"
+        onchange="toggleGiftOwnSide(event)"
+      ></x-check>
+      <p class="text-xs text-gray-400 mt-1.5 px-1">
+        Thiệp nhà trai chỉ hiện QR nhà trai, thiệp nhà gái chỉ hiện QR nhà gái.
+      </p>
+    </div>
     <div class="overflow-hidden sm:rounded-2xl sm:border sm:border-gray-100">
       <div
         class="pb-3 sm:px-5 sm:py-3 sm:bg-rose-50 sm:border-b sm:border-rose-100 flex items-center gap-2"
