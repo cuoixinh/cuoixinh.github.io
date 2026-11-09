@@ -182,8 +182,14 @@ window.CXSlideEngine = (() => {
   // chữ chưa hiện hết đã sang cảnh) · max = SCENE_MAX. timing = {scale, scenes: {id cảnh: giây}}
   // do khách kéo ở trang cha: cảnh có số riêng dùng số đó, còn lại base × scale; luôn kẹp
   // trong [min, max]. Đổi timing chỉ cần retime — không dựng lại dự án.
+  // timing.off = [id cảnh] khách đã xoá: P.all giữ đủ cảnh của mẫu, P.scenes chỉ còn cảnh được chiếu
+  // (xoá hết thì giữ nguyên bộ — slide không bao giờ rỗng).
   const SCENE_MAX = 30;
   function retime(P, timing) {
+    if (!P.all) P.all = P.scenes;
+    const off = new Set(Array.isArray(timing?.off) ? timing.off.map(String) : []);
+    const on = P.all.filter((s) => !off.has(s.id));
+    P.scenes = on.length ? on : P.all;
     const k = Number(timing?.scale) > 0 ? Number(timing.scale) : 1;
     const own = (timing && typeof timing.scenes === "object" && timing.scenes) || {};
     P.starts = [];

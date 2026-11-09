@@ -67,7 +67,7 @@ function _scVoSave() {
   const key = _scVo.key;
   const meta = {
     duck: _scVo.duck,
-    clips: _scVo.clips.map((c) => ({ id: c.id, name: c.name, dur: c.dur, start: c.start, in: c.in, len: c.len, vol: c.vol, mute: c.mute })),
+    clips: _scVo.clips.map((c) => ({ id: c.id, name: c.name, dur: c.dur, start: c.start, in: c.in, len: c.len, vol: c.vol, fi: c.fi || 0, fo: c.fo || 0, mute: c.mute })),
   };
   _scVoSaveT = setTimeout(() => {
     try {
@@ -113,7 +113,7 @@ async function _scVoLoad() {
 function _scVoMsg() {
   return {
     duck: _scVo.duck,
-    clips: _scVo.clips.map((c) => ({ id: c.id, blob: c.blob, start: c.start, in: c.in, len: c.len, vol: c.vol, mute: c.mute })),
+    clips: _scVo.clips.map((c) => ({ id: c.id, blob: c.blob, start: c.start, in: c.in, len: c.len, vol: c.vol, fi: c.fi || 0, fo: c.fo || 0, mute: c.mute })),
   };
 }
 // Gửi cả đoạn nhạc nền: khối nhạc kéo trên cùng dòng thời gian, đi chung đường lưu/gửi với lớp giọng.
@@ -474,6 +474,7 @@ function _scVoRender() {
           ? `<div class="sc-vo-lane" data-lane>
               <div class="sc-vo-clip is-music${_scVoSel === _SC_VO_MU ? " is-sel" : ""}" data-clip="${_SC_VO_MU}" tabindex="0" role="button" aria-label="Nhạc nền: ${_scEsc(mi.name)}">
                 <span class="sc-vo-cname">${_scEsc(mi.name)}</span>
+                <i class="sc-vo-fade is-in" aria-hidden="true"></i><i class="sc-vo-fade is-out" aria-hidden="true"></i>
                 <span class="sc-vo-edge is-l" data-edge="l" aria-hidden="true"></span>
                 <span class="sc-vo-edge is-r" data-edge="r" aria-hidden="true"></span>
               </div>
@@ -505,7 +506,8 @@ function _scVoRender() {
             <div class="sc-vo-clip${c.id === _scVoSel ? " is-sel" : ""}${c.mute ? " is-mute" : ""}" data-clip="${c.id}" tabindex="0" role="button" aria-label="Lớp ${k + 1}: ${_scEsc(c.name)}, bắt đầu ${_scVoFmt(c.start)}">
               <canvas aria-hidden="true"></canvas>
               <span class="sc-vo-cname">${_scEsc(c.name)}</span>
-              <span class="sc-vo-edge is-l" data-edge="l" aria-hidden="true"></span>
+              <i class="sc-vo-fade is-in" aria-hidden="true"></i><i class="sc-vo-fade is-out" aria-hidden="true"></i>
+                <span class="sc-vo-edge is-l" data-edge="l" aria-hidden="true"></span>
               <span class="sc-vo-edge is-r" data-edge="r" aria-hidden="true"></span>
             </div>
             ${live(c.id)}
@@ -556,6 +558,12 @@ function _scVoPlace(c) {
   // Khối hẹp: bỏ tay nắm hai mép để cả khối là chỗ kéo dời.
   el.classList.toggle("is-narrow", w < 40);
   el.setAttribute("aria-label", `${c.name}, bắt đầu ${_scVoFmt(c.start)}, dài ${_scVoFmt(c.len)}`);
+  // Dốc to dần / nhỏ dần (cùng phép thu của fadeGain khi hai dốc dài quá khối).
+  const fi = c.fi || 0;
+  const fo = c.fo || 0;
+  const k = fi + fo > c.len ? c.len / (fi + fo) : 1;
+  el.querySelector(".sc-vo-fade.is-in")?.style.setProperty("width", `${(fi * k * pps).toFixed(1)}px`);
+  el.querySelector(".sc-vo-fade.is-out")?.style.setProperty("width", `${(fo * k * pps).toFixed(1)}px`);
   const cv = el.querySelector("canvas");
   const P = c.peaks;
   if (!cv || !P?.length) return;
@@ -576,7 +584,8 @@ function _scVoPlace(c) {
   }
 }
 
-// ── Thanh tuỳ chọn của khối âm thanh (bấm vào khối giọng đọc / nhạc nền): Thay thế · Xoá ──
+// ── Thanh tuỳ chọn của khối âm thanh (bấm vào khối giọng đọc / nhạc nền): To dần · Nhỏ dần ·
+// Thay thế · Xoá ──
 // Neo vào một chấm vô hình đặt đúng chỗ bấm trên khối (khối nhạc trải cả slide, neo giữa khối
 // là thanh nằm tít ngoài khung nhìn). Kéo dời / cắt khối thì không mở.
 let _scVoActId = "";
@@ -591,7 +600,20 @@ function _scVoActOpen(clipEl, clientX) {
   pin.style.left = `${Math.max(8, Math.min(r.width - 8, clientX - r.left))}px`;
   clipEl.appendChild(pin);
   _scVoActId = clipEl.dataset.clip;
+  _scVoFadeLabels();
   pop.open(pin);
+}
+
+// Nấc giây của nút To dần / Nhỏ dần (bấm là sang nấc kế, hết vòng về 0 = tắt).
+const _SC_VO_FADES = [0, 0.5, 1, 1.5, 2, 3, 5];
+function _scVoFadeLabels() {
+  const c = _scVoClip(_scVoActId);
+  _scEl("sc-vo-act")
+    ?.querySelectorAll("[data-fade-v]")
+    .forEach((el) => {
+      const v = Number(c?.[el.dataset.fadeV]) || 0;
+      el.textContent = v > 0 ? `${String(v).replace(".", ",")} giây` : "Tắt";
+    });
 }
 // Thanh đi theo khối khi khối dời; vẽ lại dòng thời gian (khối cũ bị thay) thì đóng.
 function _scVoInspect() {
@@ -605,6 +627,12 @@ _scEl("sc-vo-act")?.addEventListener("click", (e) => {
   const act = e.target.closest("[data-act]")?.dataset.act;
   const id = _scVoActId;
   if (!act || !id || _scVoBusy() || _scVoRec) return;
+  if (act === "fi" || act === "fo") {
+    const cur = Number(_scVoClip(id)?.[act]) || 0;
+    const next = _SC_VO_FADES.find((v) => v > cur + 1e-6) ?? 0;
+    _scVoSet(id, { [act]: next });
+    return _scVoFadeLabels();
+  }
   if (id === _SC_VO_MU) {
     if (act === "replace") scMusicPick();
     else {

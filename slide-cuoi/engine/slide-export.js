@@ -40,8 +40,9 @@ window.CXSlideExport = (() => {
   });
 
   // Tiếng của video, 48kHz stereo dài đúng `seconds`: nhạc nền trong đoạn `cut` {start, in,
-  // len|null} (bài lặp nếu ngắn, mờ vào/ra 1.5 giây ở hai mép đoạn) + các đoạn GIỌNG ĐỌC đặt đúng
-  // mốc {blob, start, in, len, vol, mute}; trong lúc có giọng nhạc hạ còn `duck` (0..1). Nguồn là URL
+  // len|null, fi, fo} (bài lặp nếu ngắn; to dần fi / nhỏ dần fo giây ở hai mép, không khai thì 1.5)
+  // + các đoạn GIỌNG ĐỌC đặt đúng mốc {blob, start, in, len, vol, fi, fo, mute}; trong lúc có giọng
+  // nhạc hạ còn `duck` (0..1). Dốc khớp fadeGain của slide-runtime.js. Nguồn là URL
   // cùng gốc hoặc Blob — file khách tải lên phải đưa thẳng Blob: CSP chặn fetch URL `blob:`.
   // Trả {buf, music, voices, lost} hoặc null khi không đọc được gì.
   async function _mix({ music, cut, voices = [], duck = 1 }, seconds) {
@@ -58,6 +59,21 @@ window.CXSlideExport = (() => {
     const vs = voices.filter((v) => v?.blob && !v.mute && v.len > 0 && v.start < seconds);
     const [mbuf, ...vbufs] = await Promise.all([music ? dec(music) : null, ...vs.map((v) => dec(v.blob))]);
 
+    // Dốc to dần / nhỏ dần trên gain g cho đoạn [a, b]; hai dốc dài quá đoạn thì thu cùng tỉ lệ.
+    const ramp = (g, a, b, fi, fo, top) => {
+      fi = Math.max(0, Number(fi) || 0);
+      fo = Math.max(0, Number(fo) || 0);
+      const k = fi + fo > b - a ? (b - a) / (fi + fo) : 1;
+      fi *= k;
+      fo *= k;
+      g.gain.setValueAtTime(fi > 0 ? 0 : top, a);
+      if (fi > 0) g.gain.linearRampToValueAtTime(top, a + fi);
+      if (fo > 0) {
+        g.gain.setValueAtTime(top, Math.max(a + fi, b - fo));
+        g.gain.linearRampToValueAtTime(0, b);
+      }
+    };
+
     const spans = [];
     vs.forEach((v, k) => {
       const b = vbufs[k];
@@ -69,7 +85,7 @@ window.CXSlideExport = (() => {
       const src = off.createBufferSource();
       src.buffer = b;
       const g = off.createGain();
-      g.gain.value = Number.isFinite(v.vol) ? v.vol : 1;
+      ramp(g, at, at + len, v.fi, v.fo, Number.isFinite(v.vol) ? v.vol : 1);
       src.connect(g).connect(off.destination);
       src.start(at, skip, len);
       spans.push([at, at + len]);
@@ -82,11 +98,7 @@ window.CXSlideExport = (() => {
       src.buffer = mbuf;
       src.loop = true;
       const fade = off.createGain();
-      const f = Math.min(1.5, (mEnd - mAt) / 4);
-      fade.gain.setValueAtTime(0, mAt);
-      fade.gain.linearRampToValueAtTime(1, mAt + f);
-      fade.gain.setValueAtTime(1, Math.max(mAt + f, mEnd - f));
-      fade.gain.linearRampToValueAtTime(0, mEnd);
+      ramp(fade, mAt, mEnd, cut?.fi ?? 1.5, cut?.fo ?? 1.5, 1);
       // Hạ nhạc theo các quãng có giọng (quãng cách nhau dưới 1.2 giây gộp làm một, khỏi phập phồng).
       const dk = off.createGain();
       dk.gain.setValueAtTime(1, 0);

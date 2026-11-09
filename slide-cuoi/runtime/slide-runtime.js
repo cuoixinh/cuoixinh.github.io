@@ -259,6 +259,8 @@
         // Ô ảnh của cảnh: mẫu khai `photos` (nhiều ô) hoặc `photo` (một ô).
         photos: s.photos || (s.photo ? [s.photo] : []),
       }));
+      // Cảnh khách đã xoá (timing.off) — trang cha liệt kê để khôi phục.
+      msg.hidden = (P.all || []).filter((s) => !P.scenes.includes(s)).map((s, k) => ({ id: s.id, label: s.label || `Cảnh ${k + 1}` }));
       // Có nhạc nền không ("file" = có, ghép được vào video xuất).
       msg.music = Music.has() ? "file" : "";
     }
@@ -384,8 +386,20 @@
     if (hover) _box(hover, 1, true, false);
   }
 
+  // Hệ số to dần / nhỏ dần (0..1) tại giây x của một đoạn dài len: fi giây đầu lên từ 0, fo giây
+  // cuối về 0; hai dốc dài quá đoạn thì thu cùng tỉ lệ. Bộ xuất (_mix ở slide-export.js) dựng y vậy.
+  function fadeGain(x, len, fi, fo) {
+    if (!(len > 0)) return 0;
+    const k = fi + fo > len ? len / (fi + fo) : 1;
+    let g = 1;
+    if (fi > 0 && x < fi * k) g = x / (fi * k);
+    if (fo > 0 && len - x < fo * k) g = Math.min(g, (len - x) / (fo * k));
+    return Math.min(1, Math.max(0, g));
+  }
+
   // ── Giọng đọc: đoạn ghi âm khách tải lên ở tab Giọng đọc của trang cha. Mỗi đoạn đặt ở một mốc
-  // của slide (start, giây), cắt đầu `in` + dài `len`, âm lượng `vol` (0..1), tắt `mute`; phát
+  // của slide (start, giây), cắt đầu `in` + dài `len`, âm lượng `vol` (0..1), to dần `fi` / nhỏ
+  // dần `fo` (giây), tắt `mute`; phát
   // KHỚP đồng hồ slide (lệch quá 0,35 giây thì tua lại) và nhạc nền hạ còn `duck` khi có giọng.
   // Bật/tắt tiếng dùng chung cờ của nhạc (nút loa, cú chạm đầu tiên).
   const Voice = (() => {
@@ -409,7 +423,7 @@
             el.preload = "auto";
             els.set(id, { url, el });
           }
-          return { id, blob: v.blob, start: Math.max(0, n(v.start)), in: Math.max(0, n(v.in)), len: Math.max(0, n(v.len)), vol: unit(v.vol ?? 1), mute: !!v.mute };
+          return { id, blob: v.blob, start: Math.max(0, n(v.start)), in: Math.max(0, n(v.in)), len: Math.max(0, n(v.len)), vol: unit(v.vol ?? 1), fi: Math.max(0, n(v.fi)), fo: Math.max(0, n(v.fo)), mute: !!v.mute };
         });
       els.forEach((x, id) => {
         if (keep.has(id)) return;
@@ -433,7 +447,7 @@
               x.el.currentTime = want;
             } catch (e) {}
           }
-          x.el.volume = c.vol;
+          x.el.volume = c.vol * fadeGain(tt - c.start, c.len, c.fi, c.fo);
           if (x.el.paused) x.el.play().catch(Music.refused);
         } else if (!x.el.paused) x.el.pause();
       });
@@ -449,7 +463,7 @@
       quiet: (on) => (quiet = !!on),
       has: () => clips.some((c) => !c.mute),
       duck: () => duck,
-      exportList: () => clips.map((c) => ({ blob: c.blob, start: c.start, in: c.in, len: c.len, vol: c.vol, mute: c.mute })),
+      exportList: () => clips.map((c) => ({ blob: c.blob, start: c.start, in: c.in, len: c.len, vol: c.vol, fi: c.fi, fo: c.fo, mute: c.mute })),
     };
   })();
 
@@ -457,9 +471,9 @@
   // của thiệp (thường là YouTube, không ghép được vào video). Mặc định BẬT; trình duyệt chặn tự
   // phát tiếng (chưa có cú chạm nào) thì cờ `blocked` giữ im, nút loa hiện tắt, và cú chạm/phím
   // đầu tiên trong khung phát luôn. Phát KHỚP đồng hồ slide trong đoạn `cut` {start, in,
-  // len|null} như giọng đọc (bài lặp; len null = tới hết slide).
+  // len|null, fi, fo} như giọng đọc (bài lặp; len null = tới hết slide; fi/fo = giây to dần / nhỏ dần).
   const Music = (() => {
-    let cut = { start: 0, in: 0, len: null };
+    let cut = { start: 0, in: 0, len: null, fi: 0, fo: 0 };
     let audio = null;
     let fileUrl = "";
     let fileBlob = null; // file nhạc khách tải lên (trang cha gửi Blob) — bộ xuất đọc thẳng
@@ -468,6 +482,10 @@
     let touched = false;
     let blocked = false; // trình duyệt từ chối phát (chưa có cú chạm) — chờ cú chạm đầu tiên
     let vol = 1; // mức nhạc hiện tại (Voice hạ xuống khi có giọng đọc)
+    let env = 1; // hệ số to dần / nhỏ dần ở hai mép đoạn
+    const apply = () => {
+      if (audio) audio.volume = Math.min(1, Math.max(0, vol * env));
+    };
 
     function reset() {
       audio?.pause();
@@ -491,7 +509,7 @@
         audio = new Audio(fileUrl);
         audio.loop = true;
         audio.preload = "auto";
-        audio.volume = vol;
+        apply();
       }
       if (want) play();
       sync();
@@ -530,10 +548,15 @@
     // quá 0,35 giây thì tua lại (tính vòng lặp của bài).
     function tick(tt, run) {
       if (!audio) return;
-      const end = cut.len == null ? Infinity : cut.start + cut.len;
+      const end = cut.len == null ? (P ? P.total : Infinity) : cut.start + cut.len;
       if (!run || tt < cut.start || tt >= end) {
         if (!audio.paused) audio.pause();
         return;
+      }
+      const e = fadeGain(tt - cut.start, end - cut.start, cut.fi, cut.fo);
+      if (Math.abs(e - env) >= 0.005 || (e !== env && (e === 0 || e === 1))) {
+        env = e;
+        apply();
       }
       const d = audio.duration;
       if (Number.isFinite(d) && d > 0 && !audio.seeking) {
@@ -555,7 +578,7 @@
       tick,
       setCut(c) {
         const n = (v) => Math.max(0, Number(v) || 0);
-        cut = { start: n(c?.start), in: n(c?.in), len: c?.len == null ? null : n(c.len) };
+        cut = { start: n(c?.start), in: n(c?.in), len: c?.len == null ? null : n(c.len), fi: n(c?.fi), fo: n(c?.fo) };
       },
       exportCut: () => ({ ...cut }),
       has: () => !!audio,
@@ -573,7 +596,7 @@
       level(v) {
         if (Math.abs(v - vol) < 0.005) return;
         vol = v;
-        if (audio) audio.volume = vol;
+        apply();
       },
       // Nguồn cho bộ xuất: Blob nếu là file tải lên (CSP chặn fetch URL blob:), không thì URL.
       exportSrc: () => fileBlob || fileUrl,
@@ -699,8 +722,14 @@
   function setTiming(m) {
     timing = m && typeof m === "object" ? m : {};
     if (!P || exporting) return;
-    const { i, lt } = local();
+    const { i: i0, lt: lt0 } = local();
+    const id = P.scenes[i0]?.id;
     E.retime(P, timing);
+    // Giữ cảnh đang chiếu theo id (xoá / khôi phục cảnh làm lệch số thứ tự); cảnh đó vừa bị xoá thì
+    // đứng ở cảnh kế chỗ nó.
+    let i = P.scenes.findIndex((s) => s.id === id);
+    const lt = i < 0 ? 0 : lt0;
+    if (i < 0) i = Math.min(i0, P.scenes.length - 1);
     t = playing ? P.starts[i] + Math.min(lt, P.scenes[i].dur - 0.05) : settled(i);
     idx = -1;
     draw();

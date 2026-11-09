@@ -1058,6 +1058,48 @@ html.sc-typing .sc-tx-in {
   font-size: 14px;
   color: rgb(var(--text-caption-rgb));
 }
+/* Chân ô mở của một cảnh: nút "Xoá cảnh này" canh phải. */
+.sc-scene-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+/* Khối "Cảnh đã xoá" dưới danh sách cảnh: mỗi dòng tên cảnh + nút Khôi phục. */
+.sc-hidden {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed rgb(var(--brand-primary-rgb) / 0.45);
+}
+.sc-hidden-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-hidden-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sc-hidden-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sc-hidden-n {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-decoration: line-through;
+  color: rgb(var(--text-caption-rgb));
+}
 
 /* Thanh kéo dùng chung (thời lượng cả slide + từng cảnh): rãnh mảnh, phần đã kéo tô màu nhấn
    theo --p (JS đặt), núm tròn trắng viền nhấn. Vùng chạm cao 32px, máy cảm ứng núm to hơn. */
@@ -1870,6 +1912,23 @@ html.sc-typing .sc-tx-in {
   opacity: 0.55;
   pointer-events: none;
 }
+/* Dốc to dần / nhỏ dần ở hai mép khối: tam giác tối phủ phần âm lượng bị bớt (JS đặt width). */
+.sc-vo-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: rgb(0 0 0 / 0.32);
+  pointer-events: none;
+}
+.sc-vo-fade.is-in {
+  left: 0;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+.sc-vo-fade.is-out {
+  right: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
 .sc-vo-cname {
   position: absolute;
   top: 4px;
@@ -2127,6 +2186,13 @@ html.sc-typing .sc-tx-in {
 .sc-vo-act-ico {
   display: inline-flex;
   font-size: 24px;
+}
+.sc-vo-act-v {
+  margin-top: -2px;
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
 }
 .sc-vo-pin {
   position: absolute;
