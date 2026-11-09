@@ -9,6 +9,7 @@
     "build:themes": "tailwindcss -c ./tailwind.themes.config.js -i ./styles/themes-src.css -o ./styles/themes.css --minify",
     "capture:templates": "node scripts/capture.js",
     "capture:ref": "node scripts/capture-ref.mjs",
+    "capture:slides": "node scripts/capture-slide-thumb.mjs",
     "watch:css": "tailwindcss -c ./tailwind.config.js -i ./styles/tailwind-src.css -o ./styles/build.css --watch",
     "watch:themes": "tailwindcss -c ./tailwind.themes.config.js -i ./styles/themes-src.css -o ./styles/themes.css --watch",
     "deploy:functions": "bash scripts/deploy-functions.sh",
