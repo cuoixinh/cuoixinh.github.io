@@ -51,7 +51,7 @@ let IS_TRIAL_LOCKED = false;
 let IS_PLAN_LOCKED = false;
 // Gói Miễn phí: bên được mở ("groom" | "bride"), null = cả hai. Server tính (free_side).
 let FREE_SIDE = null;
-// Lượt xem của thiệp gói Free / trần FREE_PLAN.views (server gửi kèm); null = không đếm.
+// Lượt xem của thiệp chưa thanh toán / trần FREE_PLAN.views (server gửi kèm); null = không đếm.
 // Mức cảnh báo hỏi weddingBL.viewsLevel — cùng luật với my-invitations.
 let VIEW_COUNT = null;
 let VIEW_LIMIT = null;

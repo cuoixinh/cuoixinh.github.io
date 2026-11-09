@@ -372,7 +372,7 @@ function _cardFromWedding(w) {
     planExpiresAt: w.plan_expires_at || null,
     // Gói Free: bên được mở (server trả null khi đã thanh toán / đang dùng thử).
     freeSide: w.free_side || null,
-    // Lượt mở link công khai — chỉ gói Free có (viewLimit = trần); null = không có số.
+    // Lượt mở link công khai — chỉ thiệp chưa thanh toán có (viewLimit = trần); null = không có số.
     views: w.view_count ?? null,
     viewLimit: w.view_limit ?? null,
     createdAt: w.created_at,
@@ -466,8 +466,8 @@ function newInvitation() {
 const DAY_MS = 86400000;
 
 /**
- * draft · trial · expired · free / freeViews / freeExpired (gói Free: còn hạn / hết lượt
- * xem / hết hạn) · active (vĩnh viễn) · plan (gói có hạn còn hạn) · planExpired (hết hạn
+ * draft · trial / trialViews (dùng thử: còn hạn / hết lượt xem) · expired · free / freeViews /
+ * freeExpired (gói Free: còn hạn / hết lượt xem / hết hạn) · active (vĩnh viễn) · plan (gói có hạn còn hạn) · planExpired (hết hạn
  * gói) · published (không rõ hạn).
  */
 function cardState(c) {
@@ -480,12 +480,13 @@ function cardState(c) {
     if (daysLeft(c) <= 0) return "freeExpired";
     return weddingBL.viewsLevel(c.views, c.viewLimit) === "out" ? "freeViews" : "free";
   }
-  return daysLeft(c) > 0 ? "trial" : "expired";
+  if (daysLeft(c) <= 0) return "expired";
+  return weddingBL.viewsLevel(c.views, c.viewLimit) === "out" ? "trialViews" : "trial";
 }
 
 // Còn dưới chừng này ngày thì nhãn gói chuyển tông cảnh báo + mời nâng gói.
 const PLAN_WARN_DAYS = 14;
-// Sắp hết / đã hết lượt xem gói Free → cảnh báo + mời nâng gói.
+// Sắp hết / đã hết lượt xem miễn phí (dùng thử + gói Free) → cảnh báo + mời nâng gói.
 const viewsWarn = (c) => ["warn", "out"].includes(weddingBL.viewsLevel(c.views, c.viewLimit));
 
 // Ngày hết hạn gói, dd/mm/yyyy đủ hai chữ số ("16/1/2027" trông như ghi vội).
@@ -760,7 +761,7 @@ function cardHTML(c, i) {
 // Dùng cho tooltip lẫn dải ghim ở đầu trang, nên chỉ là TEXT thuần.
 const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau ${CONFIG.retention.unpaidDays} ngày kể từ khi hết hạn dùng thử hoặc hết hạn gói Free.`;
 const PLAN_KEEP_TEXT = `Hết hạn gói thì khách mời không mở được thiệp; sau ${CONFIG.retention.planExpiredDays} ngày thiệp sẽ tự động xoá. Nâng lên gói Forever để giữ thiệp mãi mãi.`;
-const VIEWS_TEXT = `Gói Free mở được ${CONFIG.freePlanViews} lượt xem thiệp. Hết lượt thì khách mời không mở được thiệp cho tới khi nâng gói.`;
+const VIEWS_TEXT = `Thiệp chưa thanh toán (dùng thử và gói Free) mở được tổng cộng ${CONFIG.freePlanViews} lượt xem, tính từ lần xuất bản đầu. Hết lượt thì khách mời không mở được thiệp cho tới khi thanh toán.`;
 
 // Nháp trên máy (chưa có bản ghi DB) và nháp đã lưu trên hệ thống có hạn riêng.
 function draftKeepText(c) {
@@ -777,6 +778,7 @@ function tagHTML(c, state) {
   const T = {
     draft: ["draft", "pen-line", "Nháp", draftKeepText(c)],
     trial: ["trial", "clock", `Dùng thử · còn ${days} ngày`, UNPAID_KEEP_TEXT],
+    trialViews: ["due", "eye-off", "Hết lượt xem dùng thử", VIEWS_TEXT],
     expired: ["due", "clock-alert", "Hết hạn dùng thử", UNPAID_KEEP_TEXT],
     free: ["trial", "gift", `Free · còn ${days} ngày`, UNPAID_KEEP_TEXT],
     freeViews: ["due", "eye-off", "Hết lượt xem gói Free", VIEWS_TEXT],
@@ -799,7 +801,10 @@ function hintHTML(c, state) {
     draft: c.local
       ? ["", "hard-drive", "Chỉ lưu trên thiết bị này"]
       : ["", "send", "Xuất bản để gửi tới khách mời"],
-    trial: ["", "info", "Chọn gói để thiệp vẫn mở sau thời gian dùng thử"],
+    trial: viewsWarn(c)
+      ? ["warn", "triangle-alert", `Sắp hết lượt xem (${c.views}/${c.viewLimit}) — kích hoạt để không bị khoá`]
+      : ["", "info", "Chọn gói để thiệp vẫn mở sau thời gian dùng thử"],
+    trialViews: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
     expired: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
     free: viewsWarn(c)
       ? ["warn", "triangle-alert", `Sắp hết lượt xem (${c.views}/${c.viewLimit}) — nâng gói để không bị khoá`]
@@ -817,7 +822,7 @@ function hintHTML(c, state) {
   return `<p class="mi-hint${H[0] ? ` mi-hint--${H[0]}` : ""}">${_ico(H[1])}<span>${H[2]}</span></p>`;
 }
 
-// Lượt xem / trần của thiệp gói Free (thiệp khác không đếm).
+// Lượt xem / trần của thiệp chưa thanh toán (thiệp đã thanh toán không đếm).
 function viewsHTML(c) {
   if (c.local || !c.published || !c.viewLimit || c.views == null) return "";
   const text = `${c.views.toLocaleString("vi-VN")}/${c.viewLimit.toLocaleString("vi-VN")} lượt xem`;
@@ -850,7 +855,7 @@ function _cardActions(c, i, state) {
   // giá phần chênh.
   const upgrade = { id: "upgrade", icon: "sparkles", label: "Nâng gói", menuLabel: "Nâng cấp gói", run: `activateCard(${i})`, pick: () => activateCard(i) };
 
-  if (state === "trial" || state === "expired" || state === "published")
+  if (state === "trial" || state === "trialViews" || state === "expired" || state === "published")
     return [activate, live && view, edit, live && share].filter(Boolean);
   // Gói Free đi y như gói trả phí: còn hạn thì Chia sẻ là nút chính, Nâng gói lùi
   // về cuối; hết hạn / hết lượt xem (hay sắp hết) thì Nâng gói lên đầu như hết hạn gói.

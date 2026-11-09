@@ -82,7 +82,7 @@ class WeddingDAL {
   }
 
   // Ghi một lượt xem link công khai. Đi THẲNG Edge Function: worker cache chỉ phục vụ
-  // GET. Trả {counted, locked}; locked = gói Free đã đủ lượt xem.
+  // GET. Trả {counted, locked}; locked = thiệp chưa thanh toán đã đủ lượt xem.
   async countView(slug) {
     const response = await fetch(`${this.edgeUrl}?resource=view`, {
       method: "POST",

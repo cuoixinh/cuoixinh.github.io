@@ -4,7 +4,7 @@
 // chỗ trong mức này, không thì validateSlug cắt mất hậu tố lúc lưu.
 const SLUG_MAX_LENGTH = 50;
 
-// Gói Free dùng tới tỉ lệ lượt xem này thì cảnh báo sắp hết (viewsLevel).
+// Thiệp chưa thanh toán dùng tới tỉ lệ lượt xem này thì cảnh báo sắp hết (viewsLevel).
 const VIEW_WARN_RATIO = 0.8;
 
 class WeddingBL {
@@ -50,7 +50,7 @@ class WeddingBL {
   }
 
   // Mỗi lần tải trang là một lượt (kể cả F5) — cố ý KHÔNG gộp theo máy.
-  // Trả true khi gói Free đã hết lượt xem → khoá thiệp.
+  // Trả true khi thiệp đã hết lượt xem miễn phí → khoá thiệp.
   async countView(slug) {
     try {
       const r = await this.dal.countView(slug);
@@ -189,8 +189,8 @@ class WeddingBL {
     return normalized;
   }
 
-  // Mức lượt xem của thiệp gói Free — luật DUY NHẤT cho mọi chỗ cảnh báo (thẻ thiệp,
-  // toast + popup xuất bản ở trang Thiết lập). null = không đếm (không phải gói Free).
+  // Mức lượt xem của thiệp chưa thanh toán (dùng thử + gói Free) — luật DUY NHẤT cho mọi
+  // chỗ cảnh báo (thẻ thiệp, toast + popup xuất bản ở trang Thiết lập). null = không đếm.
   viewsLevel(count, limit) {
     if (!limit || count == null) return null;
     if (count >= limit) return "out";

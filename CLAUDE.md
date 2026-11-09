@@ -786,8 +786,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `_shared/plans.ts`; cắt dữ liệu CHỈ ở đường công khai `?slug=` (`applyFreeLimits`) — đường
   `?id=` của trình chỉnh sửa luôn đủ, cắt ở đó là lần lưu sau ghi đè mất dữ liệu. **Mỗi tài
   khoản 1 thiệp Free** (`hasOtherFreeWedding`, 409 `FREE_LIMIT`). Hết `FREE_PLAN.views` lượt
-  xem là khoá (403 `VIEW_LIMIT`): lượt đếm ở bảng `wedding_stats`, trang thiệp ghi qua
-  `POST wedding-admin?resource=view` — đi thẳng Edge Function vì GET `?slug=` bị worker cache.
+  xem là khoá (403 `VIEW_LIMIT`) — trần áp cho MỌI thiệp chưa thanh toán, dùng thử lẫn Free
+  chung một bộ đếm từ lần xuất bản đầu (`countsViews`): lượt đếm ở bảng `wedding_stats`, trang
+  thiệp ghi qua `POST wedding-admin?resource=view` — đi thẳng Edge Function vì GET `?slug=` bị
+  worker cache.
   Xem `docs/cleanup-retention.md`.
 - **Thành viên thiệp** (tên hiện cho khách: "Chia sẻ quyền quản lý"): chủ thiệp mời 1 người (bảng `wedding_members`, theo email) cùng
   quản lý KHÁCH MỜI, giới hạn theo bên — không sửa thiệp, không thanh toán, không có ở gói

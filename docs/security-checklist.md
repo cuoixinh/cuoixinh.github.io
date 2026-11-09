@@ -273,10 +273,11 @@ Luồng: `invitation-setup/guests/` → `ai-invitation` (`mode=guests`, chỉ Đ
       theo `payment_order_id` + `pending_plan`); đơn nâng gói không hạ `payment_status`.
 - [x] **A32. Bộ đếm lượt xem công khai đốt được lượt của thiệp Free (2026-10-20) — CHẤP
       NHẬN, cố ý không vá.** `wedding-admin?resource=view` (POST, anon) không cần quyền: ai có
-      link thiệp gói Free gọi lặp 200 lần là thiệp bị khoá `VIEW_LIMIT`. Không gộp lượt ở đâu cả
-      (mỗi lần tải trang là một lượt, kể cả F5), server chỉ lọc User-Agent bot. Chủ sản phẩm chốt
+      link thiệp chưa thanh toán (dùng thử hoặc Free) gọi lặp 200 lần là thiệp bị khoá `VIEW_LIMIT`.
+      Không gộp lượt ở đâu cả (mỗi lần tải trang là một lượt, kể cả F5), server chỉ lọc User-Agent
+      bot. Chủ sản phẩm chốt
       KHÔNG giới hạn theo IP: ai có link mở là tính, kể cả chủ thiệp. Hệ quả giới hạn ở thiệp
-      Free (gói trả phí không có trần) và chỉ là khoá chứ không lộ dữ liệu. Đừng thêm tham số
+      chưa thanh toán (gói trả phí không có trần) và chỉ là khoá chứ không lộ dữ liệu. Đừng thêm tham số
       URL kiểu "không đếm": chủ thiệp gắn nó vào link gửi khách là vượt trần.
 
 ### Đợt 2026-10-31 — Tài khoản Cưới Xinh (tên đăng nhập + mật khẩu, chưa deploy)
