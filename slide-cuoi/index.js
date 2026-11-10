@@ -256,6 +256,8 @@ function _scTiming() {
 function _scTimingSave(own) {
   if (own.scenes && !Object.keys(own.scenes).length) delete own.scenes;
   if (own.off && !own.off.length) delete own.off;
+  if (own.order && !own.order.length) delete own.order;
+  if (own.tr && !Object.keys(own.tr).length) delete own.tr;
   if (own.scale === 1) delete own.scale;
   try {
     const all = JSON.parse(localStorage.getItem(_SC_TIMING) || "{}") || {};
@@ -327,10 +329,11 @@ _scEl("sc-speed")?.addEventListener("input", (e) => {
 });
 
 // Về thời lượng mặc định — cảnh đã xoá vẫn xoá (khôi phục riêng ở khối "Cảnh đã xoá").
+// "Mặc định": chỉ trả thời lượng (cả slide + từng cảnh) — cảnh đã xoá, thứ tự và chuyển cảnh giữ nguyên.
 function scTimingReset() {
   if (_scTimeBusy()) return;
-  const off = _scTiming().off;
-  _scTimingSave(off ? { off } : {});
+  const { off, order, tr } = _scTiming();
+  _scHistDo("Thời lượng mặc định", () => _scTimingSave({ off, order, tr }));
   _scEl("sc-speed").value = "1";
   _scRangeFill(_scEl("sc-speed"));
 }
@@ -438,6 +441,8 @@ function _scCueState(m) {
       base: Number(c.base) || Number(c.dur) || 0,
       min: Number(c.min) || 1000,
       max: Number(c.max) || 30000,
+      tr: String(c.tr || "fade"),
+      tr0: String(c.tr0 || "fade"),
       texts: (Array.isArray(c.texts) ? c.texts : []).map((x) => ({
         key: String(x.key),
         text: String(x.text ?? ""),
@@ -499,15 +504,17 @@ function _scHiddenRender() {
       .join("")}</ul>`;
   window.lucide?.createIcons({ root: box });
 }
-// Xoá cảnh thứ i — dùng chung cho nút trong danh sách cảnh và làn Cảnh của dòng thời gian (voice.js).
+// Bọc một thay đổi vào lịch sử hoàn tác của dòng thời gian (timeline.js) — trang chưa nạp nó thì chạy thẳng.
+const _scHistDo = (label, fn) => (typeof _scTlDo === "function" ? _scTlDo(label, fn) : fn());
+// Xoá cảnh thứ i — dùng chung cho nút trong danh sách cảnh và track Cảnh của dòng thời gian.
 function scSceneDelete(i) {
   const c = _scCues[i];
   if (!c) return;
   if (_scCues.length <= 1) return window.showToast?.("Slide phải còn ít nhất một cảnh", "warning");
   if (_scExState === "run") return window.showToast?.("Đang xuất video, đợi xong rồi hãy xoá cảnh", "warning");
   _scOpen = -1;
-  _scSceneOff(c.id, true);
-  window.showToast?.(`Đã xoá cảnh "${c.label}". Muốn lấy lại thì bấm Khôi phục ở cuối tab Cảnh.`, "success");
+  _scHistDo("Xoá cảnh", () => _scSceneOff(c.id, true));
+  window.showToast?.(`Đã xoá cảnh "${c.label}". Ctrl+Z để hoàn tác, hoặc bấm Khôi phục ở cuối tab Cảnh.`, "success");
 }
 _scEl("sc-cues").addEventListener("click", (e) => {
   const b = e.target.closest("[data-scene-del]");
@@ -515,7 +522,7 @@ _scEl("sc-cues").addEventListener("click", (e) => {
 });
 _scEl("sc-hidden")?.addEventListener("click", (e) => {
   const b = e.target.closest("[data-scene-back]");
-  if (b) _scSceneOff(b.dataset.sceneBack, false);
+  if (b) _scHistDo("Khôi phục cảnh", () => _scSceneOff(b.dataset.sceneBack, false));
 });
 
 // Ô chữ cao theo nội dung.
@@ -976,7 +983,8 @@ const _scMuKey = () => (_scS.real && _scS.wid ? _scS.wid : "demo");
 // Đoạn nhạc nền trên dòng thời gian (giây, cùng khuôn lớp giọng đọc): đặt ở `start`, bắt đầu từ
 // giây `in` của bài (bài LẶP nếu đoạn dài hơn bài), dài `len`; `full` = khối chạy tới hết slide,
 // tự dài theo khi đổi thời lượng cảnh; `fi`/`fo` = giây to dần / nhỏ dần ở hai mép (mặc định
-// _SC_MU_FADE). Lưu localStorage theo thiệp + bài — đổi bài là về nguyên bài.
+// _SC_MU_FADE); `env` = đường âm lượng [{t: giây trong bài, g}]. Lưu localStorage theo thiệp + bài —
+// đổi bài là về nguyên bài. Mức + tắt tiếng / solo của track Nhạc nền nằm ở timeline.js (_scVo.mtr).
 const _SC_MU_CUT = "cx_slide_mucut";
 const _SC_MU_FADE = 1.5;
 const _scMuPid = (p) => (p ? `${p.mode}:${p.id}` : "");
@@ -997,9 +1005,10 @@ function _scMuCut() {
     const ok = s && s.pid === _scMuPid(p);
     const n = (v) => Math.max(0, Number(v) || 0);
     const f = (v) => (v == null ? _SC_MU_FADE : n(v));
+    const env = ok && Array.isArray(s.env) ? s.env.filter((x) => Number.isFinite(x?.t) && Number.isFinite(x?.g)) : [];
     p.cut = ok
-      ? { start: n(s.start), in: n(s.in), len: n(s.len), full: s.full !== false, fi: f(s.fi), fo: f(s.fo) }
-      : { start: 0, in: 0, len: 0, full: true, fi: _SC_MU_FADE, fo: _SC_MU_FADE };
+      ? { start: n(s.start), in: n(s.in), len: n(s.len), full: s.full !== false, fi: f(s.fi), fo: f(s.fo), env }
+      : { start: 0, in: 0, len: 0, full: true, fi: _SC_MU_FADE, fo: _SC_MU_FADE, env: [] };
   }
   return p.cut;
 }
@@ -1008,8 +1017,8 @@ function _scMuCutSave() {
   try {
     const all = _scMuCutAll();
     const key = _scMuKey();
-    if (c && (c.start > 0.01 || c.in > 0.01 || !c.full || c.fi !== _SC_MU_FADE || c.fo !== _SC_MU_FADE)) {
-      all[key] = { pid: _scMuPid(_scMu.pick), start: c.start, in: c.in, len: c.len, full: c.full, fi: c.fi, fo: c.fo };
+    if (c && (c.start > 0.01 || c.in > 0.01 || !c.full || c.fi !== _SC_MU_FADE || c.fo !== _SC_MU_FADE || c.env?.length)) {
+      all[key] = { pid: _scMuPid(_scMu.pick), start: c.start, in: c.in, len: c.len, full: c.full, fi: c.fi, fo: c.fo, env: c.env || [] };
     } else delete all[key];
     localStorage.setItem(_SC_MU_CUT, JSON.stringify(all));
   } catch (e) {}
@@ -1081,7 +1090,8 @@ async function _scMuLoad() {
 function _scMuMsg() {
   const p = _scMu.pick;
   const c = _scMuCut();
-  const cut = c ? { start: c.start, in: c.in, len: c.full ? null : c.len, fi: c.fi, fo: c.fo } : null;
+  const vol = typeof _scVoMuVol === "function" ? _scVoMuVol() : 1;
+  const cut = c ? { start: c.start, in: c.in, len: c.full ? null : c.len, fi: c.fi, fo: c.fo, vol, env: c.env || [] } : null;
   if (p?.mode === "file") return { id: p.id, blob: p.blob, cut };
   if (p?.mode === "lib") return { url: _scTrack(p.id)?.file || "", cut };
   return null;
