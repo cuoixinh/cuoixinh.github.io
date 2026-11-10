@@ -12,8 +12,10 @@
 > Xưng hô trong lời văn: cô dâu, chú rể nói với quan khách và cha mẹ thì xưng **"con"**; chú rể
 > nói với cô dâu là **"anh"**, cô dâu nói với chú rể là **"em"**. **Không chèn họ tên vào lời văn**
 > — tên chỉ đứng riêng ở cảnh mở đầu.
-> Mẫu đầu tiên: `templates/romantic-blush/` ("Mãi mãi về sau") — 16:9, mượn bảng màu + bộ chữ
-> của mẫu thiệp romantic-blush. Mẫu thứ hai: `templates/mai-ben-nhau/` ("Mãi Bên Nhau") — bố
+> Mẫu đầu tiên: `templates/romantic-blush/` ("Mãi mãi về sau") — 16:9 hồng pastel khối màu phẳng,
+> năm kiểu bố cục luân phiên (`_LAYOUTS`: chia đôi · dải dọc · thẻ chữ · chồng ảnh · bộ đôi cho cảnh
+> album), hai cảnh liền nhau không trùng kiểu và lật trái/phải xen kẽ; mọi khối bay từ ngoài vào,
+> quầng sáng trôi trên ảnh + đốm sáng lấp lánh. Bố cục có ảnh phụ thêm ô `<id>.p1`. Mẫu thứ hai: `templates/mai-ben-nhau/` ("Mãi Bên Nhau") — bố
 > cục tạp chí (nền hồng xám, mảng nâu be lệch sau ảnh, tiêu đề tiếng Anh viết hoa dãn rộng,
 > chữ dọc sát mép), mỗi cảnh nhiều ảnh bay từ ngoài khung vào. **Thiệp ít ảnh hơn số khung thì
 > ảnh LẶP VÒNG cho đủ** — không bớt cảnh, không để khung trống. Mẫu này theo LỜI CÔ DÂU: sau Mở đầu + Đôi
@@ -85,20 +87,40 @@ slide-cuoi/
   mỗi cảnh trong [min, max]: min = lúc mọi hiệu ứng của cảnh chạy xong + 1 giây (`_end`), max
   30 giây; đổi thời lượng chỉ `retime` (đặt lại mốc), không dựng lại dự án. Cảnh phải có `id`
   ổn định (mẫu đặt = id cảnh), thiếu thì engine lấy vị trí — chèn cảnh là lệch thời lượng đã chỉnh.
-- Tab "Âm thanh" gộp nhạc nền + giọng đọc: một dòng thời gian (`voice.js`) có làn Nhạc nền (dấu + chọn file nhạc, bấm khối là xuống phần chọn nhạc), các lớp giọng, và hàng "Lớp mới" — dấu + thêm file ở đầu phát, bấm thẳng vào làn thêm file BẮT ĐẦU đúng mốc đó (vạch + chạy theo chuột), micro thu âm. Dưới là phần Nhạc nền (file · thư viện).
-- Giọng đọc (`voice.js`): tối đa 10 file ghi âm, mỗi file ≤ 50 MB, mỗi file một LỚP
-  trên dòng thời gian của slide (thước giây · dải cảnh · nhạc · các lớp). Kéo thân khối = đổi lúc
-  bắt đầu, kéo hai mép = cắt đầu/cuối, hút về đầu cảnh / đầu phát / mép lớp khác; bấm vào một
-  khối (giọng hay nhạc nền) là hiện thanh tuỳ chọn nổi ngay chỗ bấm (`#sc-vo-act`, x-popover):
-  Thay thế (giọng: file mới cho đúng lớp, giữ chỗ bắt đầu; nhạc: chọn file khác) · Xoá (giọng:
-  xoá lớp, có hỏi lại; nhạc: bỏ nhạc). Nút micro ở đầu mỗi lớp (thu lại, giữ chỗ
-  bắt đầu) và hàng "Lớp mới": đếm ngược 3 giây, slide chạy từ mốc đó và TẮT TIẾNG trong lúc thu
-  (`cx-slide-quiet`), bấm lại / slide hết là dừng; bản thu đi chung đường cất với file tải lên. Byte file cất IndexedDB kho `voice` (BYTE,
-  không Blob, kèm đỉnh sóng âm) theo `<mẫu>|<id thiệp hoặc demo>|<id lớp>`, vị trí/cắt/âm lượng +
-  mức "nhạc nền khi có giọng" ở `localStorage.cx_slide_voice` — không lên server. Khung phát lớp
-  khớp đồng hồ slide (`Voice` ở runtime), hạ nhạc khi có giọng; bộ xuất trộn nhạc + giọng bằng
-  OfflineAudioContext (`_mix`). Vị trí lớp là giây TUYỆT ĐỐI của slide — đổi thời lượng cảnh
-  thì lớp không chạy theo.
+- Dòng thời gian kiểu bàn dựng phim (`timeline.js` vẽ + thao tác, `voice.js` giữ dữ liệu + thêm
+  file + thu âm). Máy tính: dock trải ngang đáy trang; màn nhỏ: trong tab Âm thanh. Hàng từ trên
+  xuống: thước giây (kéo = tua) · track Cảnh · track Nhạc nền · các track giọng đọc · hàng "Track
+  mới" (dấu + / bấm làn = thêm file vào track mới, micro = thu vào track mới, thả clip vào = tạo
+  track mới).
+- Track giọng đọc: tối đa 10 track, mỗi track NHIỀU clip, trên một track clip không chồng nhau
+  (thả chồng → tự dời tới chỗ trống gần nhất, hết chỗ thì xuống track mới). Mỗi clip trỏ tới một
+  NGUỒN (`src`): tách / nhân bản / dán tạo clip mới cùng nguồn, không nhân đôi byte — tối đa 10
+  file (≤ 50 MB/file) và 60 clip. Đầu track: M (tắt tiếng) · S (solo — chỉ nghe các track solo, kể
+  cả Nhạc nền) · khoá (không kéo / sửa được) · micro (thu một clip mới từ đầu phát) · ⋯ (âm lượng
+  track, đổi tên, thêm file, đổi thứ tự, xoá track). Track Nhạc nền cùng bộ nút đó (mức + tắt /
+  solo đi vào `cut.vol` gửi khung).
+- Clip: bấm = chọn (Shift / Ctrl: thêm bớt, kéo vùng trống = khung chọn); kéo thân = dời cả cụm,
+  kể cả sang track khác (Alt = kéo ra bản sao); kéo mép = cắt (không lấn sang clip kề); kéo ô
+  vuông góc trên = to dần / nhỏ dần; dây vàng = đường âm lượng (kéo dây = nâng hạ cả đường, Ctrl +
+  bấm = thêm điểm, bấm đúp điểm = xoá) — điểm tính theo giây TRONG FILE nên cắt mép không làm lệch.
+  Thanh nổi của clip (`#sc-vo-act`): To dần · Nhỏ dần · Tách · Nhân bản · Thu lại · Thay thế · Xoá.
+  Hút vào đầu cảnh / đầu phát / mép clip khác (bật tắt bằng S).
+- Track Cảnh: bấm = nhảy tới cảnh + thanh (Sửa · Chuyển cảnh · Xoá); kéo thân = đổi thứ tự
+  (`timing.order`), kéo mép phải = thời lượng (`timing.scenes`, kẹp [min, max]); dấu thoi ở chỗ
+  nối = kiểu chuyển vào cảnh sau (`timing.tr`, thêm "cut" = cắt thẳng). Cả ba nằm trong `timing`
+  nên preview, trình chiếu và video xuất đi chung `retime` của engine.
+- Lịch sử hoàn tác (Ctrl+Z / Ctrl+Shift+Z, 100 bước, trong phiên): mỗi bước giữ trạng thái trước /
+  sau của track + clip (kèm mức giảm nhạc), bài nhạc + đoạn cắt, `timing`, chữ sửa và ảnh từng ô —
+  hoàn tác chỉ trả lại miền bước đó đổi, `timing` / chữ / ảnh trả từng khoá. Kéo thanh hay gõ một ô
+  chữ là MỘT bước (`_scTlHoldOpen`). Byte ảnh / file nhạc đã bỏ giữ trong bộ nhớ (`_scPhBank`,
+  `_scMuBank`) để còn trả lại. Đổi mẫu / thiệp là xoá trắng lịch sử. Phím tắt đầy đủ ở `#sc-tl-keys`.
+- Lưu: byte file ở IndexedDB kho `voice` (BYTE, không Blob, kèm đỉnh sóng âm) theo
+  `<mẫu>|<id thiệp hoặc demo>|<src>`; track + clip + mức "nhạc nền khi có giọng" ở
+  `localStorage.cx_slide_voice` — không lên server. Dữ liệu bản cũ (mỗi file một lớp) đọc thành mỗi
+  clip một track. Byte không còn clip nào trỏ tới chỉ dọn lúc nạp lại (trong phiên còn để hoàn tác).
+  Khung phát clip khớp đồng hồ slide (`Voice` ở runtime, `envGain` cho đường âm lượng), hạ nhạc khi
+  có giọng; bộ xuất trộn nhạc + giọng bằng OfflineAudioContext (`_mix`, cùng phép tính). Vị trí clip
+  là giây TUYỆT ĐỐI của slide — đổi thời lượng / thứ tự cảnh thì clip không chạy theo.
 - Ảnh thiệp đi qua worker ảnh / Storage: lượt tải crossOrigin hỏng thì engine tải lại kèm
   `?cx-cors=1` — bản trong cache trình duyệt có thể là bản KHÔNG có header CORS (thẻ `<img>`
   thường, worker ảnh bản cũ cache 30 ngày) và canvas không nhận nó.

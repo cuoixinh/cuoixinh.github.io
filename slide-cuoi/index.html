@@ -33,13 +33,14 @@
     <script src="../core/helpers/vh-lock.js"></script>
   </head>
   <body
-    class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
+    class="sc-body font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
   >
-    <!-- "Slide cưới": màn chiếu cho sân khấu tiệc cưới. Lưới ba vùng: đầu trang · sân khấu
-         (khung xem iframe templates/<id>/ + nút chiếu/xuất, GHIM khi cuộn) · bảng chỉnh bốn tab
-         (Cảnh: ảnh + chữ từng cảnh · Thiệp · Âm thanh: nhạc + giọng đọc · Mẫu). Từ lg sân khấu bên trái, bảng chỉnh bên
-         phải; dưới lg xếp chồng, sân khấu ghim đầu màn. Logic ở index.js. -->
-    <main class="sc-app">
+    <!-- "Slide cưới": màn chiếu cho sân khấu tiệc cưới. Vùng: đầu trang · sân khấu (khung xem
+         iframe templates/<id>/ + nút chiếu/xuất) · bảng chỉnh bốn tab (Cảnh · Thiệp · Âm thanh ·
+         Mẫu) · dock dòng thời gian. Máy tính (_SC_STUDIO): bố cục bàn dựng phim, trang không cuộn —
+         sân khấu trái, bảng chỉnh phải, dòng thời gian trải ngang đáy. Nhỏ hơn: xếp chồng, sân khấu
+         ghim đầu màn, dòng thời gian nằm trong tab Âm thanh. Logic ở index.js. -->
+    <main class="sc-app sc-studio">
       <header id="sc-head" class="sc-head sc-head-pin">
         <h1 class="tg-title">Slide cưới</h1>
         <p class="sc-sub">Xem trước rồi chiếu lên màn hình sân khấu tiệc cưới.</p>
@@ -146,8 +147,59 @@
         </div>
       </x-popover>
 
+      <!-- Hai thanh tuỳ chọn nổi của dòng thời gian (khối âm thanh · cảnh) để NGOÀI bảng chỉnh: dòng
+           thời gian có thể nằm ở dock trong khi tab Âm thanh đang ẩn — thẻ nằm trong tab ẩn thì mở
+           cũng không thấy. -->
+      <!-- Thanh tuỳ chọn của clip vừa bấm (timeline.js _scVoActOpen neo ngay chỗ bấm trên khối).
+           data-voice-only: khối Nhạc nền không có. -->
+      <x-popover id="sc-vo-act" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn âm thanh">
+        <!-- To dần / nhỏ dần: bấm để đổi số giây vòng qua _SC_VO_FADES, thanh giữ nguyên để bấm tiếp. -->
+        <button type="button" class="sc-vo-act-btn" data-act="fi" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-up"></i></span>To dần<span class="sc-vo-act-v" data-fade-v="fi"></span></button>
+        <button type="button" class="sc-vo-act-btn" data-act="fo" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-down"></i></span>Nhỏ dần<span class="sc-vo-act-v" data-fade-v="fo"></span></button>
+        <button type="button" class="sc-vo-act-btn" data-act="split" data-voice-only title="Tách tại đầu phát (C)"><span class="sc-vo-act-ico"><i data-lucide="scissors"></i></span>Tách</button>
+        <button type="button" class="sc-vo-act-btn" data-act="dup" data-voice-only title="Nhân bản (Ctrl+D)"><span class="sc-vo-act-ico"><i data-lucide="copy-plus"></i></span>Nhân bản</button>
+        <button type="button" class="sc-vo-act-btn" data-act="rerec" data-voice-only><span class="sc-vo-act-ico"><i data-lucide="mic"></i></span>Thu lại</button>
+        <button type="button" class="sc-vo-act-btn" data-act="replace"><span class="sc-vo-act-ico"><i data-lucide="replace"></i></span>Thay thế</button>
+        <button type="button" class="sc-vo-act-btn" data-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá</button>
+      </x-popover>
+      <!-- Thanh tuỳ chọn của cảnh vừa bấm trên track Cảnh. -->
+      <x-popover id="sc-vo-scene" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn cảnh">
+        <button type="button" class="sc-vo-act-btn" data-scene-act="edit"><span class="sc-vo-act-ico"><i data-lucide="file-pen"></i></span>Sửa cảnh</button>
+        <button type="button" class="sc-vo-act-btn" data-scene-act="tr"><span class="sc-vo-act-ico"><i data-lucide="blend"></i></span>Chuyển cảnh</button>
+        <button type="button" class="sc-vo-act-btn" data-scene-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá cảnh</button>
+      </x-popover>
+      <!-- Menu ⋯ của một track (âm lượng, đổi tên, thứ tự, khoá, xoá) và bảng chọn kiểu chuyển cảnh —
+           timeline.js dựng nội dung mỗi lần mở. -->
+      <x-popover id="sc-tl-trk" class="sc-tl-menu" placement="bottom" align="start" arrow width="260" aria-label="Tuỳ chọn track"></x-popover>
+      <x-popover id="sc-tl-tr" class="sc-tl-menu" placement="top" arrow width="240" role="menu" aria-label="Kiểu chuyển cảnh"></x-popover>
+      <!-- Bảng phím tắt của dòng thời gian (nút bàn phím trên thanh dòng thời gian, hoặc phím ?). -->
+      <x-popover id="sc-tl-keys" class="sc-tl-keys" anchor="#sc-tl-keys-btn" placement="top" align="end" arrow width="340" role="dialog" aria-label="Phím tắt">
+        <p class="sc-tl-pop-h">Phím tắt dòng thời gian</p>
+        <dl>
+          <dt>Phím cách · K · L</dt><dd>Phát / dừng · dừng · phát</dd>
+          <dt>J</dt><dd>Lùi 2 giây</dd>
+          <dt>← →</dt><dd>Dời đầu phát 0,1 giây (Shift: 1 giây)</dd>
+          <dt>↑ ↓</dt><dd>Nhảy tới mốc cắt / đầu cảnh kế bên</dd>
+          <dt>Home · End</dt><dd>Về đầu · ra cuối</dd>
+          <dt>Shift / Ctrl + bấm</dt><dd>Chọn thêm / bớt clip</dd>
+          <dt>Kéo vùng trống</dt><dd>Khung chọn nhiều clip</dd>
+          <dt>Ctrl+A · Esc</dt><dd>Chọn hết · bỏ chọn</dd>
+          <dt>Alt + kéo</dt><dd>Kéo ra bản sao</dd>
+          <dt>Alt + ← →</dt><dd>Nhích clip đang chọn</dd>
+          <dt>C · Ctrl+K</dt><dd>Tách clip tại đầu phát</dd>
+          <dt>Ctrl+D</dt><dd>Nhân bản</dd>
+          <dt>Ctrl+C · X · V</dt><dd>Chép · cắt · dán ở đầu phát</dd>
+          <dt>Delete</dt><dd>Xoá clip / cảnh đang chọn</dd>
+          <dt>Shift+Delete</dt><dd>Xoá và dồn clip phía sau lên</dd>
+          <dt>Ctrl+Z · Ctrl+Shift+Z</dt><dd>Hoàn tác · làm lại</dd>
+          <dt>S</dt><dd>Bật / tắt hút vào mốc</dd>
+          <dt>+ − \</dt><dd>Phóng to · thu nhỏ · vừa khung (Ctrl + lăn chuột)</dd>
+          <dt>Ctrl + bấm dây âm lượng</dt><dd>Thêm điểm; bấm đúp điểm để xoá</dd>
+        </dl>
+      </x-popover>
+
       <div class="sc-panel">
-        <!-- Từ lg tiêu đề + dải tab ghim đầu cột phải (_slide-cuoi.css), nội dung tab cuộn bên dưới. -->
+        <!-- Dải tab luôn ghim: dưới lg ngay dưới khung chiếu, từ lg đầu cột phải (_slide-cuoi.css). -->
         <div class="sc-tabs-bar">
         <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 4; --i: 0">
           <button type="button" class="cx-seg-btn is-on" role="tab" id="sc-tabbtn-scenes" data-tab="scenes" aria-selected="true" aria-controls="sc-tab-scenes">Cảnh</button>
@@ -158,7 +210,6 @@
         </div>
 
         <section id="sc-tab-scenes" class="sc-tab" role="tabpanel" aria-labelledby="sc-tabbtn-scenes">
-          <p class="sc-lead">Bấm thẳng vào chữ hoặc ảnh trên slide, hoặc chọn một cảnh dưới đây để đổi ảnh, sửa chữ và chỉnh thời gian cảnh. Xoá trắng một dòng chữ là bỏ dòng đó.</p>
           <div class="sc-time" role="group" aria-labelledby="sc-time-l">
             <div class="sc-time-head">
               <span id="sc-time-l" class="sc-time-l"><i data-lucide="clock"></i>Thời lượng cả slide</span>
@@ -180,12 +231,10 @@
               Về ảnh của thiệp
             </x-button>
           </div>
-          <p class="sc-keys">Phím cách: tạm dừng. Mũi tên: chuyển cảnh. Esc: thoát toàn màn.</p>
           <p class="sc-fine">Ảnh bạn đổi, chữ bạn sửa và thời gian bạn chỉnh chỉ lưu trên máy này, không tải lên đâu cả.</p>
         </section>
 
         <section id="sc-tab-data" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-data">
-          <p class="sc-lead">Lấy ảnh, tên, ngày cưới và chuyện tình từ thiệp của bạn.</p>
           <label class="sc-check">
             <span class="sc-check-text">
               <span class="sc-check-title">Dùng thiệp của tôi</span>
@@ -226,19 +275,26 @@
           </div>
         </section>
 
-        <!-- Âm thanh = nhạc nền + giọng đọc trên CÙNG một dòng thời gian (slide-cuoi/voice.js vẽ):
-             làn Nhạc nền dựng như một lớp giọng đọc (đầu làn: thư viện · chọn file; bấm làn trống =
-             chọn file), hàng "Lớp mới" có nút + (thêm file ở đầu phát), micro (thu âm) và bấm thẳng
-             vào làn = thêm file đúng mốc đó. Dưới dòng thời gian là bảng lớp đang chọn, bảng thư viện
+        <!-- Âm thanh = nhạc nền + giọng đọc trên CÙNG một dòng thời gian (slide-cuoi/timeline.js vẽ):
+             track Cảnh · track Nhạc nền · các track giọng đọc (mỗi track nhiều clip), hàng "Track mới"
+             có nút + (thêm file), micro (thu âm) và bấm thẳng vào làn = thêm file đúng mốc đó. Dưới
+             dòng thời gian (khi nó nằm trong tab — màn nhỏ) là bảng thư viện
              nhạc, rồi mức nhạc khi có giọng. Mọi thứ chỉ lưu trên máy (IndexedDB + localStorage). -->
         <section id="sc-tab-audio" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-audio">
-          <p class="sc-lead">Nhạc nền và giọng đọc chung một dòng thời gian, có cả trong video xuất ra. Bấm dấu + hoặc bấm thẳng vào làn để thêm file đúng chỗ đó, micro để thu âm. Kéo khối để dời, kéo hai mép để cắt.</p>
           <div id="sc-vo-bar" class="sc-vo-bar">
             <button type="button" id="sc-vo-play" class="sc-vo-play" aria-label="Phát hoặc tạm dừng slide">
               <span class="sc-vo-i-play"><i data-lucide="play"></i></span>
               <span class="sc-vo-i-pause"><i data-lucide="pause"></i></span>
             </button>
             <p class="sc-vo-clock"><output id="sc-vo-now">0:00.0</output> <span id="sc-vo-total"></span></p>
+            <!-- Công cụ dựng: hoàn tác / làm lại · tách tại đầu phát · hút vào mốc · bảng phím tắt. -->
+            <div class="sc-vo-zoom sc-tl-tools" role="group" aria-label="Công cụ dòng thời gian">
+              <button type="button" id="sc-tl-undo" onclick="scTlUndo()" aria-label="Hoàn tác" title="Hoàn tác (Ctrl+Z)" disabled><i data-lucide="undo-2"></i></button>
+              <button type="button" id="sc-tl-redo" onclick="scTlRedo()" aria-label="Làm lại" title="Làm lại (Ctrl+Shift+Z)" disabled><i data-lucide="redo-2"></i></button>
+              <button type="button" onclick="scTlSplitBtn()" aria-label="Tách clip tại đầu phát" title="Tách tại đầu phát (C)"><i data-lucide="scissors"></i></button>
+              <button type="button" id="sc-tl-snap" onclick="scTlSnap()" aria-pressed="true" aria-label="Hút vào mốc" title="Hút vào mốc (S)"><i data-lucide="magnet"></i></button>
+              <button type="button" id="sc-tl-keys-btn" class="sc-tl-keys-btn" aria-label="Phím tắt" title="Phím tắt (?)"><i data-lucide="keyboard"></i></button>
+            </div>
             <div class="sc-vo-zoom" role="group" aria-label="Thu phóng dòng thời gian">
               <button type="button" onclick="scVoiceZoom(1 / 1.6)" aria-label="Thu nhỏ" title="Thu nhỏ"><i data-lucide="zoom-out"></i></button>
               <button type="button" onclick="scVoiceZoom(0)" aria-label="Vừa khung" title="Vừa khung"><i data-lucide="maximize-2"></i></button>
@@ -246,15 +302,7 @@
             </div>
           </div>
           <p id="sc-vo-rec" class="sc-vo-rec hidden" role="status" aria-live="polite"></p>
-          <div id="sc-vo-tl" class="sc-vo-tl"></div>
-          <!-- Thanh tuỳ chọn của khối âm thanh vừa bấm (voice.js neo ngay chỗ bấm trên khối). -->
-          <x-popover id="sc-vo-act" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn âm thanh">
-            <!-- To dần / nhỏ dần: bấm để đổi số giây vòng qua _SC_VO_FADES, thanh giữ nguyên để bấm tiếp. -->
-            <button type="button" class="sc-vo-act-btn" data-act="fi" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-up"></i></span>To dần<span class="sc-vo-act-v" data-fade-v="fi"></span></button>
-            <button type="button" class="sc-vo-act-btn" data-act="fo" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-down"></i></span>Nhỏ dần<span class="sc-vo-act-v" data-fade-v="fo"></span></button>
-            <button type="button" class="sc-vo-act-btn" data-act="replace"><span class="sc-vo-act-ico"><i data-lucide="replace"></i></span>Thay thế</button>
-            <button type="button" class="sc-vo-act-btn" data-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá</button>
-          </x-popover>
+          <div id="sc-vo-tl" class="sc-vo-tl" tabindex="-1" aria-label="Dòng thời gian"></div>
           <!-- Thư viện nhạc: mở từ nút ở đầu làn Nhạc nền (voice.js), danh sách do _scMuRender vẽ. -->
           <div id="sc-mu-libbox" class="sc-vo-sel sc-mu-libbox hidden">
             <div class="sc-vo-sel-head">
@@ -284,11 +332,22 @@
         </section>
 
         <section id="sc-tab-tpl" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-tpl">
-          <p class="sc-lead">Chọn một mẫu, slide đổi theo ngay.</p>
           <div id="sc-tpls" class="sc-tpls"></div>
         </section>
       </div>
+
+      <!-- Dock dòng thời gian (chỉ máy tính): timeline.js (_scVoDock) chuyển thanh phát + dòng thời
+           gian của tab Âm thanh vào đây, màn nhỏ thì trả về tab. -->
+      <section id="sc-dock" class="sc-dock" aria-label="Dòng thời gian"></section>
     </main>
+
+    <!-- Màn chờ khoá cả trang lúc slide đang dựng (đổi mẫu, F5, đổi thiệp) — _scWait ở index.js. -->
+    <div id="sc-wait" class="sc-wait" role="status" aria-live="polite" hidden>
+      <div class="sc-wait-card">
+        <span class="sc-wait-spin" aria-hidden="true"></span>
+        <p id="sc-wait-msg">Đang tải ảnh slide…</p>
+      </div>
+    </div>
 
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
@@ -352,8 +411,9 @@
     <script src="../core/helpers/image-helper.js"></script>
     <script src="templates.js"></script>
     <script src="index.js"></script>
-    <!-- Tab Giọng đọc — nạp SAU index.js (dùng chung biến/hàm của nó). -->
+    <!-- Âm thanh (dữ liệu track/clip) rồi dòng thời gian — nạp SAU index.js, đúng thứ tự này. -->
     <script src="voice.js"></script>
+    <script src="timeline.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="../core/helpers/nav-cart-count.js"></script>
   </body>

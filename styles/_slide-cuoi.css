@@ -149,6 +149,13 @@ html.sc-lock body {
 }
 /* Đang phủ kín màn: ẩn navbar (trên + thanh tab dưới) và đưa sân khấu lên trên mọi lớp — khối
    sticky có z-index riêng nên khung `fixed` bên trong không vượt được lớp ngoài nó. */
+/* Navbar dưới trượt khuất khi đang cuộn trong nội dung tab (cờ body.sc-nav-off, index.js _scNavSync). */
+.sc-body .cx-tabbar {
+  transition: transform 0.3s ease;
+}
+.sc-body.sc-nav-off .cx-tabbar {
+  transform: translateY(calc(100% + 8px));
+}
 html.sc-lock .sc-stage {
   z-index: 200;
 }
@@ -539,12 +546,26 @@ html.sc-lock .cx-navmore-pop {
 .sc-tab {
   margin-top: 16px;
 }
-.sc-lead {
-  max-width: 560px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgb(var(--text-caption-rgb));
+/* Dưới lg: dải tab ghim ngay dưới khung chiếu (cũng đang ghim) — --sc-stage-h do index.js đo. */
+.sc-tabs-bar {
+  position: sticky;
+  top: calc(var(--sc-top) + var(--sc-stage-h, 0px));
+  z-index: 15;
+  margin: -20px -16px 0;
+  padding: 12px 16px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 1px 0 rgb(var(--brand-primary-rgb) / 0.4);
+}
+@media (min-width: 640px) {
+  .sc-tabs-bar {
+    margin-inline: -24px;
+    padding-inline: 24px;
+  }
+}
+/* Đang gõ trên điện thoại khung chiếu thôi dính (xem html.sc-typing) → dải tab cũng thả ra. */
+html.sc-typing .sc-tabs-bar {
+  position: relative;
+  top: auto;
 }
 
 /* Từ lg: sân khấu là cột trái lớn ghim dưới navbar, cao tối đa bằng màn còn lại; đầu trang +
@@ -612,7 +633,7 @@ html.sc-lock .cx-navmore-pop {
     position: sticky;
     top: calc(var(--sc-top) - 8px + var(--sc-head-h, 88px));
     z-index: 10;
-    margin-top: -8px;
+    margin: -8px 0 0;
     padding: 8px 0 12px;
     background: rgb(var(--white-rgb));
     box-shadow: 0 1px 0 rgb(var(--brand-primary-rgb) / 0.4);
@@ -1442,21 +1463,11 @@ html.sc-typing .sc-tx-in {
 .sc-foot > button {
   margin-top: 16px;
 }
-.sc-keys,
 .sc-fine {
   margin-top: 16px;
   font-size: 13px;
   line-height: 1.6;
   color: rgb(var(--text-caption-rgb));
-}
-.sc-fine {
-  margin-top: 4px;
-}
-/* Máy cảm ứng không có bàn phím: bỏ dòng phím tắt. */
-@media (hover: none) {
-  .sc-keys {
-    display: none;
-  }
 }
 
 /* Nhịp sáng khi bấm lên slide mở đúng ô chữ / khối ảnh ở đây (_scEditFromSlide). */
@@ -1611,8 +1622,8 @@ html.sc-typing .sc-tx-in {
   border-radius: 999px;
   font-size: 18px;
   color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 8px 20px -8px rgb(var(--action-primary-rgb) / 0.7);
+  background: rgb(var(--sc-on));
+  box-shadow: 0 8px 20px -8px rgb(var(--sc-on) / 0.7);
 }
 .sc-vo-play:focus-visible {
   outline: 2px solid rgb(var(--action-primary-rgb));
@@ -1669,6 +1680,10 @@ html.sc-typing .sc-tx-in {
   --vo-bg: 40 24 32;
   --vo-head-bg: 52 32 42;
   --vo-ink: 255 240 245;
+  /* Màu khối giọng đọc: xanh ngọc dịu (nhạc nền vàng đồng riêng) — tách hẳn màu nhấn hồng đỏ của
+     trang để dòng thời gian tối không chói. */
+  --vo-clip: 64 150 140;
+  --vo-clip-deep: 36 104 98;
   position: relative;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1683,10 +1698,7 @@ html.sc-typing .sc-tx-in {
 /* Màn hẹp: cột lớp chỉ còn số + nút tiếng (tên đã hiện trên khối). */
 @media (max-width: 639px) {
   .sc-vo-tl {
-    --vo-head: 96px;
-  }
-  .sc-vo-row.is-voice .sc-vo-name {
-    display: none;
+    --vo-head: 112px;
   }
 }
 .sc-vo-in {
@@ -1734,7 +1746,7 @@ html.sc-typing .sc-tx-in {
   font-size: 11px;
   font-weight: 700;
   color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
+  background: rgb(var(--vo-clip, 64 150 140));
 }
 .sc-vo-name {
   flex: 1 1 auto;
@@ -1796,10 +1808,24 @@ html.sc-typing .sc-tx-in {
   color: rgb(var(--vo-ink) / 0.75);
   background: rgb(var(--vo-ink) / 0.1);
   box-shadow: inset -1px 0 0 rgb(var(--vo-bg));
-  pointer-events: none;
+  cursor: pointer;
 }
 .sc-vo-seg.is-alt {
   background: rgb(var(--vo-ink) / 0.16);
+}
+/* Cảnh đang chọn (bấm trên làn — voice.js _scVoSceneSelect): màu nhấn như khối âm thanh đang chọn. */
+.sc-vo-seg:hover {
+  color: rgb(var(--vo-ink));
+  background: rgb(var(--vo-ink) / 0.24);
+}
+.sc-vo-seg.is-sel {
+  color: rgb(var(--vo-bg));
+  background: rgb(var(--vo-ink) / 0.9);
+  box-shadow: none;
+}
+.sc-vo-seg:focus-visible {
+  outline: 2px solid rgb(var(--vo-ink) / 0.8);
+  outline-offset: -2px;
 }
 .sc-vo-n.is-new:focus-visible {
   outline: 2px solid rgb(var(--vo-ink) / 0.8);
@@ -1818,7 +1844,7 @@ html.sc-typing .sc-tx-in {
 }
 .sc-vo-n.is-new:hover {
   color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
+  background: rgb(var(--vo-clip));
 }
 /* Làn "Lớp mới": bấm chỗ nào là thêm file bắt đầu từ chỗ đó; vạch + chạy theo chuột báo trước. */
 .sc-vo-lane.is-add {
@@ -1881,7 +1907,7 @@ html.sc-typing .sc-tx-in {
   bottom: 4px;
   overflow: hidden;
   border-radius: 8px;
-  background: linear-gradient(180deg, rgb(var(--action-primary-rgb)), rgb(var(--action-primary-deep-rgb)));
+  background: linear-gradient(180deg, rgb(var(--vo-clip)), rgb(var(--vo-clip-deep)));
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
   cursor: grab;
   touch-action: none;
@@ -1987,7 +2013,7 @@ html.sc-typing .sc-tx-in {
   width: 2px;
   margin-left: -1px;
   background: rgb(var(--white-rgb));
-  box-shadow: 0 0 8px rgb(var(--action-primary-rgb) / 0.8);
+  box-shadow: 0 0 8px rgb(var(--white-rgb) / 0.45);
   pointer-events: none;
   will-change: transform;
 }
@@ -2148,16 +2174,17 @@ html.sc-typing .sc-tx-in {
   }
 }
 
-/* Thanh tuỳ chọn nổi trên khối âm thanh (x-popover #sc-vo-act): nền màu nhấn, nút icon + nhãn
-   xếp dọc, mũi tên chỉ đúng chỗ bấm (.sc-vo-pin — chấm vô hình JS đặt trong khối). */
+/* Thanh tuỳ chọn nổi trên khối âm thanh / cảnh (x-popover #sc-vo-act, #sc-vo-scene): nền tối cùng
+   tông dòng thời gian, nút icon + nhãn xếp dọc, mũi tên chỉ đúng chỗ bấm (.sc-vo-pin — chấm vô
+   hình JS đặt trong khối). Nằm ngoài .sc-vo-tl nên ghi thẳng màu, không mượn biến của nó. */
 .x-pop.sc-vo-act {
   flex-direction: row;
   gap: 4px;
   padding: 8px;
-  border: 0;
+  border: 1px solid rgb(255 240 245 / 0.14);
   border-radius: 20px;
-  background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 16px 32px -12px rgb(var(--action-primary-rgb) / 0.65);
+  background: rgb(46 28 37);
+  box-shadow: 0 20px 40px -12px rgb(20 10 16 / 0.6);
 }
 .x-pop.sc-vo-act.has-arrow.is-top::after,
 .x-pop.sc-vo-act.has-arrow.is-bottom::after {
@@ -2168,10 +2195,10 @@ html.sc-typing .sc-tx-in {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  min-width: 76px;
-  padding: 8px 12px;
+  min-width: 64px;
+  padding: 8px 8px;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   color: rgb(var(--white-rgb));
@@ -2185,7 +2212,7 @@ html.sc-typing .sc-tx-in {
 }
 .sc-vo-act-ico {
   display: inline-flex;
-  font-size: 24px;
+  font-size: 20px;
 }
 .sc-vo-act-v {
   margin-top: -2px;
@@ -2200,4 +2227,633 @@ html.sc-typing .sc-tx-in {
   width: 1px;
   height: 1px;
   pointer-events: none;
+}
+
+/* ── Bố cục bàn dựng phim (chỉ Slide cưới, cờ .sc-studio trên .sc-app) ─────────────────────────
+   Máy tính: trang KHÔNG cuộn — sân khấu trái + bảng chỉnh phải (tự cuộn) ở trên, dock dòng thời
+   gian trải ngang đáy (voice.js _scVoDock chuyển dòng thời gian vào #sc-dock). Chuỗi @media phải
+   khớp _SC_STUDIO ở slide-cuoi/index.js. Dưới ngưỡng: dock ẩn, bố cục xếp chồng như trên. */
+.sc-dock,
+.sc-studio-only {
+  display: none;
+}
+@media (min-width: 1024px) and (min-height: 600px) {
+  .sc-app.sc-studio {
+    --sc-dock-h: clamp(208px, calc(var(--vh, 1vh) * 34), 400px);
+    /* Cao vùng trên = màn − navbar (đã tính trong --sc-top) − lề đáy − dock − khe với dock. */
+    --sc-upper-h: calc(var(--vh, 1vh) * 100 - var(--sc-top) - 16px - var(--sc-dock-h) - 12px);
+    grid-template-rows: auto minmax(0, 1fr) calc(var(--sc-dock-h) + 12px);
+    grid-template-areas: "stage head" "stage panel" "dock dock";
+    height: calc(var(--vh, 1vh) * 100 - var(--sc-top) + 8px);
+    padding-bottom: 16px;
+    overflow: hidden;
+  }
+  .sc-studio-only {
+    display: inline;
+  }
+  /* Sân khấu vừa khít vùng trên: slide co theo cả hai chiều (76px = hàng nút dưới slide + khe). */
+  .sc-studio .sc-stage {
+    --sc-max-h: max(120px, calc(var(--sc-upper-h) - 32px - 76px));
+    align-self: stretch;
+    position: relative;
+    top: auto;
+    max-height: none;
+    padding: 16px 24px;
+  }
+  /* Dải cảnh + đồng hồ dưới slide trùng với làn Cảnh + thước của dock → bỏ, chừa chỗ cho slide. */
+  .sc-studio .sc-line {
+    display: none;
+  }
+  .sc-studio .sc-bar {
+    margin-top: 12px;
+    padding: 4px 8px;
+  }
+  /* Cột phải: tiêu đề đứng yên, dải tab ghim đầu khung cuộn riêng của bảng chỉnh. */
+  .sc-studio .sc-head-pin {
+    position: static;
+  }
+  .sc-studio .sc-head-pin::before {
+    content: none;
+  }
+  .sc-studio .sc-head {
+    padding: 8px 0;
+  }
+  /* Tiêu đề gọn lại: cột phải còn phải chứa nội dung tab trong một màn. */
+  .sc-studio .sc-head .tg-title {
+    font-size: 28px;
+  }
+  .sc-studio .sc-sub {
+    font-size: 13px;
+  }
+  .sc-studio .sc-panel {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 8px 16px 0;
+    scrollbar-width: thin;
+  }
+  .sc-studio .sc-tabs-bar {
+    top: 0;
+    margin-top: 0;
+  }
+
+  /* Dock: thanh phát / đồng hồ / thu phóng ở trên, dòng thời gian lấp phần còn lại và tự cuộn hai
+     chiều — thước giây + làn Cảnh ghim đầu, cột tên lớp ghim trái (sẵn ở .sc-vo-head). */
+  .sc-dock {
+    grid-area: dock;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin-top: 12px;
+    padding: 8px 12px 12px;
+    border-radius: 24px;
+    background: rgb(var(--white-rgb));
+    box-shadow:
+      0 0 0 1px rgb(var(--brand-primary-rgb) / 0.5),
+      0 16px 40px -28px rgb(var(--sc-on) / 0.45);
+  }
+  .sc-dock .sc-vo-bar {
+    flex: none;
+  }
+  .sc-dock .sc-vo-play {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .sc-dock .sc-vo-rec {
+    flex: none;
+  }
+  .sc-dock .sc-vo-tl {
+    --vo-head: 160px;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border-radius: 12px;
+  }
+  .sc-dock .sc-vo-in {
+    min-height: 100%;
+  }
+  /* Hai làn ghim nằm trên cột tên lớp khi cuộn dọc; đầu phát còn nằm trên chúng nữa. */
+  .sc-dock .sc-vo-row.is-ruler,
+  .sc-dock .sc-vo-row.is-scenes {
+    position: sticky;
+    z-index: 4;
+    background: rgb(var(--vo-bg));
+  }
+  .sc-dock .sc-vo-ph {
+    z-index: 5;
+  }
+  .sc-dock .sc-vo-row.is-ruler {
+    top: 0;
+  }
+  .sc-dock .sc-vo-row.is-scenes {
+    top: 24px;
+  }
+}
+
+/* ── Dòng thời gian kiểu bàn dựng phim (slide-cuoi/timeline.js) ────────────────────────────────
+   Track giọng đọc nhiều clip, đầu track hai dòng (số · tên · ⋯ / M · S · khoá · micro), khung chọn,
+   tay nắm fade, dây âm lượng, track Cảnh kéo đổi thứ tự / thời lượng, dấu chuyển cảnh. */
+.sc-vo-row.is-voice {
+  height: 52px;
+}
+.sc-vo-row.is-voice .sc-vo-note {
+  line-height: 52px;
+}
+.sc-vo-head {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2px;
+}
+.sc-tl-h1,
+.sc-tl-h2 {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.sc-tl-h2 {
+  padding-left: 24px;
+}
+.sc-vo-n.is-scenes {
+  font-size: 12px;
+  background: rgb(var(--vo-ink) / 0.2);
+}
+.sc-tl-more {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 20px;
+  margin-left: auto;
+  border-radius: 6px;
+  font-size: 14px;
+  color: rgb(var(--vo-ink) / 0.7);
+}
+.sc-tl-more:hover {
+  color: rgb(var(--vo-ink));
+  background: rgb(var(--vo-ink) / 0.12);
+}
+.sc-tl-tog {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 20px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgb(var(--vo-ink) / 0.6);
+  background: rgb(var(--vo-ink) / 0.08);
+}
+.sc-tl-tog.is-ico {
+  width: 24px;
+  height: 20px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.sc-tl-tog:hover {
+  color: rgb(var(--vo-ink));
+  background: rgb(var(--vo-ink) / 0.18);
+}
+.sc-tl-tog:focus-visible,
+.sc-tl-more:focus-visible {
+  outline: 2px solid rgb(var(--vo-ink) / 0.8);
+}
+/* M bật = cam, S bật = vàng, khoá bật = trắng trên xám — như bàn trộn của phần mềm dựng phim. */
+.sc-tl-tog.is-on {
+  color: rgb(40 24 32);
+  background: rgb(251 146 60);
+}
+.sc-tl-tog.is-solo.is-on {
+  background: rgb(250 204 21);
+}
+.sc-tl-tog.is-lock.is-on {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--vo-ink) / 0.45);
+}
+.sc-vo-name[data-trk-name] {
+  cursor: text;
+}
+.sc-tl-rename {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: rgb(var(--vo-bg));
+  background: rgb(var(--vo-ink));
+  border: 0;
+  outline: 2px solid rgb(var(--vo-clip));
+}
+/* Track khoá: làn kẻ sọc mờ, khối không kéo được. */
+.sc-vo-row.is-lock .sc-vo-lane {
+  background: repeating-linear-gradient(135deg, rgb(var(--vo-ink) / 0.04) 0 8px, transparent 8px 16px);
+}
+.sc-vo-row.is-lock .sc-vo-clip {
+  cursor: default;
+  opacity: 0.75;
+}
+.sc-vo-row.is-lock .sc-vo-edge,
+.sc-vo-row.is-lock .sc-tl-fh {
+  display: none;
+}
+/* Khối thả chồng lên clip khác: viền đỏ — thả ra thì tự dời tới chỗ trống gần nhất. */
+.sc-vo-clip.is-bad {
+  box-shadow:
+    0 0 0 2px rgb(239 68 68),
+    0 8px 20px rgb(0 0 0 / 0.45);
+}
+.sc-vo-clip.is-drag {
+  z-index: 1;
+}
+/* Tay nắm fade: ô vuông nhỏ ở hai góc trên, kéo ngang để to dần / nhỏ dần. */
+.sc-tl-fh {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  width: 10px;
+  height: 10px;
+  border-radius: 0 0 4px 4px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  cursor: ew-resize;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.sc-tl-fh.is-in {
+  left: 0;
+}
+.sc-tl-fh.is-out {
+  right: 0;
+}
+.sc-vo-clip:hover .sc-tl-fh,
+.sc-vo-clip.is-sel .sc-tl-fh {
+  opacity: 1;
+}
+.sc-vo-clip.is-narrow .sc-tl-fh {
+  display: none;
+}
+/* Dây âm lượng: hiện khi khối có điểm hoặc đang chọn; chỉ khối đang chọn mới kéo được. */
+.sc-tl-env {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  display: none;
+}
+.sc-tl-env.is-on {
+  display: block;
+}
+.sc-tl-env-line {
+  fill: none;
+  stroke: rgb(250 204 21);
+  stroke-width: 1.5;
+}
+.sc-tl-env-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 12;
+}
+.sc-tl-env circle {
+  fill: rgb(250 204 21);
+  stroke: rgb(40 24 32);
+  stroke-width: 1.5;
+}
+.sc-tl-env.is-edit .sc-tl-env-hit,
+.sc-tl-env.is-edit circle {
+  pointer-events: auto;
+  cursor: ns-resize;
+}
+.sc-tl-env.is-edit circle {
+  cursor: move;
+}
+/* Track Cảnh: kéo thân khối = đổi thứ tự, mép phải = thời lượng; dấu thoi ở chỗ nối = chuyển cảnh. */
+.sc-vo-seg {
+  bottom: 9px;
+  line-height: 15px;
+  touch-action: none;
+  user-select: none;
+}
+.sc-vo-seg.is-drag {
+  z-index: 3;
+  cursor: grabbing;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.5);
+}
+.sc-tl-sedge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+}
+.sc-tl-sedge:hover {
+  background: rgb(var(--vo-ink) / 0.35);
+}
+/* Dấu thoi nằm ở dải dưới đáy làn (khối cảnh chừa 9px) để không đè lên tay nắm mép cảnh. */
+.sc-tl-tr {
+  position: absolute;
+  bottom: 1px;
+  z-index: 2;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  background: rgb(var(--vo-ink) / 0.55);
+  box-shadow: 0 0 0 2px rgb(var(--vo-bg));
+}
+.sc-tl-tr:hover,
+.sc-tl-tr:focus-visible {
+  background: rgb(var(--vo-ink));
+  outline: none;
+}
+.sc-tl-tr.is-set {
+  background: rgb(250 204 21);
+}
+.sc-tl-tr.is-cut {
+  border-radius: 0;
+  transform: none;
+  width: 4px;
+  height: 9px;
+  margin-left: -2px;
+}
+.sc-tl-ins {
+  position: absolute;
+  top: 24px;
+  z-index: 6;
+  width: 4px;
+  height: 28px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: rgb(250 204 21);
+  pointer-events: none;
+}
+.sc-tl-marq {
+  position: absolute;
+  z-index: 6;
+  border: 1px solid rgb(var(--vo-ink) / 0.8);
+  background: rgb(var(--vo-ink) / 0.12);
+  pointer-events: none;
+}
+.sc-tl-snapi {
+  display: inline-flex;
+  margin: auto;
+  font-size: 12px;
+  color: rgb(var(--vo-ink) / 0.3);
+}
+.sc-tl-snapi.is-on {
+  color: rgb(250 204 21);
+}
+/* Nhãn giờ chạy theo con trỏ lúc kéo (gắn vào body, position fixed). */
+.sc-tl-tip {
+  position: fixed;
+  z-index: 300;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: rgb(var(--white-rgb));
+  background: rgb(20 12 16 / 0.92);
+  transform: translate(12px, -32px);
+  pointer-events: none;
+  display: none;
+}
+.sc-tl-tip.is-on {
+  display: block;
+}
+/* Công cụ trên thanh dòng thời gian. */
+.sc-tl-tools button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.sc-tl-tools button:disabled:hover {
+  background: none;
+}
+#sc-tl-snap[aria-pressed="true"] {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--sc-on));
+}
+/* Thanh tuỳ chọn của clip nhiều nút: xuống dòng khi màn hẹp, không tràn khỏi màn. */
+.x-pop.sc-vo-act {
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100vw - 32px);
+}
+/* Menu track + bảng chuyển cảnh + bảng phím tắt. */
+.sc-tl-pop-h {
+  padding: 4px 8px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-tl-vol {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+.sc-tl-vol label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-tl-vol output {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-tl-vol input {
+  grid-column: 1 / -1;
+}
+.sc-tl-keys dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0 8px 8px;
+  font-size: 12px;
+}
+.sc-tl-keys dt {
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgb(var(--text-heading-rgb));
+}
+.sc-tl-keys dd {
+  margin: 0;
+  color: rgb(var(--text-caption-rgb));
+}
+/* ── Điện thoại (dưới sm) ──
+   Thanh trên hai hàng gọn: [phát · đồng hồ · thu phóng] rồi dải công cụ trải đều cả bề ngang.
+   Cột track 112px: số + tên ngắn + ⋯ / M · S · micro (khoá nằm trong ⋯). Thanh tuỳ chọn của
+   clip thu nhỏ nút; menu track + bảng chuyển cảnh thành tấm trượt đáy (neo theo nút thì dài
+   hơn khoảng còn lại dưới nút, tràn xuống sau thanh điều hướng đáy). */
+@media (max-width: 639px) {
+  .sc-vo-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sc-vo-play {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .sc-vo-clock output {
+    font-size: 15px;
+  }
+  .sc-tl-tools {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+  .sc-tl-tools button {
+    flex: 1 1 0;
+    width: auto;
+    height: 36px;
+  }
+  .sc-tl-tools #sc-tl-keys-btn {
+    display: none;
+  }
+  .sc-vo-name {
+    font-size: 11px;
+  }
+  .sc-tl-h2 {
+    padding-left: 0;
+  }
+  .sc-tl-h2 .is-lock,
+  .sc-tl-h2 [data-mu-lib] {
+    display: none;
+  }
+  .sc-tl-tog,
+  .sc-tl-tog.is-ico {
+    width: 28px;
+    height: 22px;
+  }
+  .sc-vo-note {
+    font-size: 11px;
+  }
+  /* Đủ 7 nút trên một hàng ở khổ 360px trở lên. */
+  .x-pop.sc-vo-act {
+    flex-wrap: nowrap;
+    gap: 0;
+    padding: 4px;
+    border-radius: 16px;
+  }
+  .sc-vo-act-btn {
+    min-width: 48px;
+    gap: 4px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .sc-vo-act-ico {
+    font-size: 16px;
+  }
+  .sc-vo-act-v {
+    font-size: 10px;
+  }
+  .x-pop.sc-tl-menu {
+    left: 8px !important;
+    right: 8px;
+    top: auto !important;
+    bottom: 96px;
+    width: auto !important;
+    max-height: calc(var(--vh, 1vh) * 100 - 128px);
+    overflow-y: auto;
+    border-radius: 20px;
+    box-shadow: 0 -8px 40px -12px rgb(0 0 0 / 0.35);
+  }
+  .x-pop.sc-tl-menu.has-arrow::after {
+    display: none;
+  }
+  .sc-tl-menu .x-pop-item {
+    min-height: 44px;
+  }
+}
+/* Khung dòng thời gian nhận focus bằng mã (để phím tắt ăn) — không vẽ viền focus cho cú bấm chuột. */
+.sc-vo-tl:focus {
+  outline: none;
+}
+/* Máy rất hẹp (iPhone SE 320px): 7 nút không vừa một hàng thì xuống hai hàng. */
+@media (max-width: 359px) {
+  .x-pop.sc-vo-act {
+    flex-wrap: wrap;
+  }
+  .sc-vo-act-btn {
+    min-width: 64px;
+  }
+}
+
+/* Màn chờ khoá cả trang lúc slide đang dựng (index.js _scWaitSync). Chặn bấm ngay, còn lớp
+   mờ + thẻ chỉ hiện sau một nhịp ngắn: ảnh đã có trong cache thì dựng xong trước, khỏi nháy. */
+.sc-wait {
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(var(--sc-on, 76 29 46) / 0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: progress;
+  animation: cx-sc-wait-in 0.2s ease-out 0.16s both;
+}
+.sc-wait[hidden] {
+  display: none;
+}
+.sc-wait-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+  color: rgb(76 29 46);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 16px 40px -16px rgb(76 29 46 / 0.45);
+}
+.sc-wait-spin {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 999px;
+  border: 2px solid rgb(76 29 46 / 0.15);
+  border-top-color: rgb(var(--brand-accent-rgb));
+  animation: cx-sc-wait-spin 0.8s linear infinite;
+}
+@keyframes cx-sc-wait-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cx-sc-wait-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-wait-spin {
+    animation-duration: 2.4s;
+  }
 }

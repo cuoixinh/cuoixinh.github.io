@@ -160,7 +160,13 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       `guest-handler`) không giả được, **nhưng lỗ CHƯA đóng**: nhánh tên + xưng hô vẫn khớp
       MỌI khách, kể cả khách đã có mã — dựng link dạng cũ cho khách mới vẫn qua. Đóng được
       khi `findGuestByLink` chỉ xét hàng có link dạng cũ (link cũ đã gửi phải sống mãi).
-- [ ] **A12c. `rsvp`/`wish` không rate limit.** Chưa vá — chặn ở tầng Cloudflare, xem mục E.
+- [ ] **A12c. `rsvp`/`wish` không rate limit.** Chưa vá. Trình duyệt gọi THẲNG
+      `*.supabase.co/functions/v1/` nên Cloudflare Rate Limiting Rules của zone mình không
+      đứng trước được. Đếm theo IP trong function chỉ giữ được dữ liệu, KHÔNG giữ được quota
+      gói Free: request bị từ chối vẫn tính một Invocation. Tương tự, URL Storage gốc (bucket
+      public) cho tải ảnh lặp mà không đi qua cache của `image-proxy` → đốt Egress.
+      Giữ quota thật phải có lớp đứng trước (API qua worker ở miền mình, bucket private chỉ
+      worker đọc).
 
 - [x] **A13. `returnUrl`/`cancelUrl` lấy từ header `origin`.**
       **Đã vá**: `allowedBaseUrl()` trong `payment-handler` — allowlist ba miền của hệ thống,
@@ -175,7 +181,7 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
 
 - [x] **A15.** `cloudflare-worker/image-proxy.js`: `decodeURIComponent` rồi ép allowlist
       `^[A-Za-z0-9._-]{1,120}$`, sai → 400. Chặn `%2e%2e%2f` đi ra khỏi thư mục bucket.
-- [ ] **A16.** Bucket `wedding-images` chưa giới hạn MIME/kích thước ở phía Supabase → mục E.
+- [x] **A16.** Bucket `wedding-images` đã giới hạn MIME/kích thước ở phía Supabase → mục E.
 - [x] **A17.** `core/bl/image-bl.js`: thêm `safeExt()` (đuôi suy từ **kiểu MIME**, không từ
       `file.name` do client đặt) và `safeField()`. Tên file sinh ra giờ khớp đúng allowlist mà
       `isSafeImageRef` và `image-proxy` cùng dùng.
@@ -503,10 +509,11 @@ grep -rniE "service_role|sbp_[0-9a-f]{40}|sb_secret_" dist/ | head
 
 ## E. Chỉ làm được ngoài repo (Dashboard)
 
-- [ ] **A16.** Bucket `wedding-images`: đặt `allowed_mime_types` (jpeg/png/webp/gif/avif) và
+- [x] **A16.** Bucket `wedding-images`: đặt `allowed_mime_types` (jpeg/png/webp/gif/avif) và
       `file_size_limit`. Client đã chặn nhưng gọi API trực tiếp thì bỏ qua được.
-- [ ] **A12c.** Cloudflare Rate Limiting Rules cho `guest-handler` (`action=rsvp|wish`),
-      endpoint `?resource=promo`, và `wedding-admin`.
+- [ ] **A12c.** Rate limit cho `guest-handler` (`action=rsvp|wish`), `?resource=promo`,
+      `?resource=youtube-search` và `wedding-admin` — Rules của Cloudflare chỉ có tác dụng khi
+      API đã đi qua worker/miền của mình (xem A12c ở mục A).
 - [ ] **A20.** Đặt `CLEANUP_SECRET_TOKEN` (khác `ADMIN_SECRET_TOKEN`) ở cả hai project, rồi
       cập nhật Vault `cleanup_token` mà pg_cron dùng. Chưa đặt thì vẫn chạy bằng mã admin.
 - [ ] Job `cx-cleanup-weddings` đã schedule trên **cả hai** project:

@@ -41,7 +41,7 @@ window.CXSlideExport = (() => {
 
   // Tiếng của video, 48kHz stereo dài đúng `seconds`: nhạc nền trong đoạn `cut` {start, in,
   // len|null, fi, fo} (bài lặp nếu ngắn; to dần fi / nhỏ dần fo giây ở hai mép, không khai thì 1.5)
-  // + các đoạn GIỌNG ĐỌC đặt đúng mốc {blob, start, in, len, vol, fi, fo, mute}; trong lúc có giọng
+  // + các đoạn GIỌNG ĐỌC đặt đúng mốc {blob, start, in, len, vol, fi, fo, mute, env}; trong lúc có giọng
   // nhạc hạ còn `duck` (0..1). Dốc khớp fadeGain của slide-runtime.js. Nguồn là URL
   // cùng gốc hoặc Blob — file khách tải lên phải đưa thẳng Blob: CSP chặn fetch URL `blob:`.
   // Trả {buf, music, voices, lost} hoặc null khi không đọc được gì.
@@ -74,6 +74,22 @@ window.CXSlideExport = (() => {
       }
     };
 
+    // Đường âm lượng {t: giây trong file, g} → các mốc trên gain g, đoạn đặt ở `at` cắt đầu `skip`.
+    // Khớp envGain của slide-runtime.js: nối thẳng giữa hai điểm, ngoài hai đầu giữ mức đầu/cuối.
+    const envelope = (g, env, at, skip, len) => {
+      const pts = (Array.isArray(env) ? env : [])
+        .map((p) => ({ t: Number(p?.t) || 0, g: Math.min(1, Math.max(0, Number(p?.g) || 0)) }))
+        .sort((a, b) => a.t - b.t);
+      if (!pts.length) return;
+      const x = (t) => at + (t - skip);
+      g.gain.setValueAtTime(pts[0].g, Math.max(0, at));
+      pts.forEach((p) => {
+        const tt = x(p.t);
+        if (tt > at && tt < at + len) g.gain.linearRampToValueAtTime(p.g, tt);
+        else if (tt <= at) g.gain.setValueAtTime(p.g, Math.max(0, at));
+      });
+    };
+
     const spans = [];
     vs.forEach((v, k) => {
       const b = vbufs[k];
@@ -86,19 +102,25 @@ window.CXSlideExport = (() => {
       src.buffer = b;
       const g = off.createGain();
       ramp(g, at, at + len, v.fi, v.fo, Number.isFinite(v.vol) ? v.vol : 1);
-      src.connect(g).connect(off.destination);
+      const eg = off.createGain();
+      envelope(eg, v.env, at, skip, len);
+      src.connect(g).connect(eg).connect(off.destination);
       src.start(at, skip, len);
       spans.push([at, at + len]);
     });
 
     const mAt = Math.min(Math.max(0, Number(cut?.start) || 0), seconds);
     const mEnd = cut?.len == null ? seconds : Math.min(seconds, mAt + Math.max(0, Number(cut.len) || 0));
-    if (mbuf && mEnd - mAt > 0.05) {
+    const mVol = cut?.vol == null ? 1 : Math.min(1, Math.max(0, Number(cut.vol) || 0));
+    if (mbuf && mEnd - mAt > 0.05 && mVol > 0) {
       const src = off.createBufferSource();
       src.buffer = mbuf;
       src.loop = true;
       const fade = off.createGain();
-      ramp(fade, mAt, mEnd, cut?.fi ?? 1.5, cut?.fo ?? 1.5, 1);
+      ramp(fade, mAt, mEnd, cut?.fi ?? 1.5, cut?.fo ?? 1.5, mVol);
+      // Đường âm lượng nhạc tính theo giây "trong bài" chưa quấn vòng (in + giây kể từ đầu đoạn).
+      const menv = off.createGain();
+      envelope(menv, cut?.env, mAt, Math.max(0, Number(cut?.in) || 0), mEnd - mAt);
       // Hạ nhạc theo các quãng có giọng (quãng cách nhau dưới 1.2 giây gộp làm một, khỏi phập phồng).
       const dk = off.createGain();
       dk.gain.setValueAtTime(1, 0);
@@ -119,7 +141,7 @@ window.CXSlideExport = (() => {
           dk.gain.linearRampToValueAtTime(1, b + 0.6);
         });
       }
-      src.connect(fade).connect(dk).connect(off.destination);
+      src.connect(fade).connect(menv).connect(dk).connect(off.destination);
       src.start(mAt, (Math.max(0, Number(cut?.in) || 0)) % mbuf.duration);
       src.stop(mEnd);
     }

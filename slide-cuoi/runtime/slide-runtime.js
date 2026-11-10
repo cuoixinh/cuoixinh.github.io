@@ -251,6 +251,9 @@
         id: s.id,
         label: s.label || `Cảnh ${k + 1}`,
         dur: Math.round(s.dur * 1000),
+        // Kiểu chuyển vào cảnh đang dùng và mặc định của mẫu (trang cha vẽ dấu chuyển cảnh).
+        tr: s.tr || P.tr || "fade",
+        tr0: s.tr0 || P.tr || "fade",
         // Khung thời lượng cho thanh kéo ở trang cha (ms): mặc định của mẫu, ngắn nhất, dài nhất.
         base: Math.round(s.base * 1000),
         min: Math.round(s.min * 1000),
@@ -396,6 +399,22 @@
     if (fo > 0 && len - x < fo * k) g = Math.min(g, (len - x) / (fo * k));
     return Math.min(1, Math.max(0, g));
   }
+  // Đường âm lượng của một đoạn: các điểm {t: giây trong FILE, g: 0..1} nối thẳng, ngoài hai đầu giữ
+  // mức điểm đầu/cuối; không có điểm = 1. Bộ xuất (_envAt ở slide-export.js) dựng y vậy.
+  function envGain(env, t) {
+    if (!Array.isArray(env) || !env.length) return 1;
+    if (t <= env[0].t) return env[0].g;
+    for (let k = 1; k < env.length; k++) {
+      const a = env[k - 1];
+      const b = env[k];
+      if (t <= b.t) return b.t > a.t ? a.g + ((b.g - a.g) * (t - a.t)) / (b.t - a.t) : b.g;
+    }
+    return env[env.length - 1].g;
+  }
+  const envList = (v) =>
+    (Array.isArray(v) ? v : [])
+      .map((p) => ({ t: Math.max(0, Number(p?.t) || 0), g: Math.min(1, Math.max(0, Number(p?.g) || 0)) }))
+      .sort((a, b) => a.t - b.t);
 
   // ── Giọng đọc: đoạn ghi âm khách tải lên ở tab Giọng đọc của trang cha. Mỗi đoạn đặt ở một mốc
   // của slide (start, giây), cắt đầu `in` + dài `len`, âm lượng `vol` (0..1), to dần `fi` / nhỏ
@@ -423,7 +442,7 @@
             el.preload = "auto";
             els.set(id, { url, el });
           }
-          return { id, blob: v.blob, start: Math.max(0, n(v.start)), in: Math.max(0, n(v.in)), len: Math.max(0, n(v.len)), vol: unit(v.vol ?? 1), fi: Math.max(0, n(v.fi)), fo: Math.max(0, n(v.fo)), mute: !!v.mute };
+          return { id, blob: v.blob, start: Math.max(0, n(v.start)), in: Math.max(0, n(v.in)), len: Math.max(0, n(v.len)), vol: unit(v.vol ?? 1), fi: Math.max(0, n(v.fi)), fo: Math.max(0, n(v.fo)), mute: !!v.mute, env: envList(v.env) };
         });
       els.forEach((x, id) => {
         if (keep.has(id)) return;
@@ -447,7 +466,7 @@
               x.el.currentTime = want;
             } catch (e) {}
           }
-          x.el.volume = c.vol * fadeGain(tt - c.start, c.len, c.fi, c.fo);
+          x.el.volume = Math.min(1, c.vol * fadeGain(tt - c.start, c.len, c.fi, c.fo) * envGain(c.env, want));
           if (x.el.paused) x.el.play().catch(Music.refused);
         } else if (!x.el.paused) x.el.pause();
       });
@@ -463,7 +482,7 @@
       quiet: (on) => (quiet = !!on),
       has: () => clips.some((c) => !c.mute),
       duck: () => duck,
-      exportList: () => clips.map((c) => ({ blob: c.blob, start: c.start, in: c.in, len: c.len, vol: c.vol, fi: c.fi, fo: c.fo, mute: c.mute })),
+      exportList: () => clips.map((c) => ({ blob: c.blob, start: c.start, in: c.in, len: c.len, vol: c.vol, fi: c.fi, fo: c.fo, mute: c.mute, env: c.env })),
     };
   })();
 
@@ -473,7 +492,7 @@
   // đầu tiên trong khung phát luôn. Phát KHỚP đồng hồ slide trong đoạn `cut` {start, in,
   // len|null, fi, fo} như giọng đọc (bài lặp; len null = tới hết slide; fi/fo = giây to dần / nhỏ dần).
   const Music = (() => {
-    let cut = { start: 0, in: 0, len: null, fi: 0, fo: 0 };
+    let cut = { start: 0, in: 0, len: null, fi: 0, fo: 0, vol: 1, env: [] };
     let audio = null;
     let fileUrl = "";
     let fileBlob = null; // file nhạc khách tải lên (trang cha gửi Blob) — bộ xuất đọc thẳng
@@ -553,7 +572,7 @@
         if (!audio.paused) audio.pause();
         return;
       }
-      const e = fadeGain(tt - cut.start, end - cut.start, cut.fi, cut.fo);
+      const e = cut.vol * fadeGain(tt - cut.start, end - cut.start, cut.fi, cut.fo) * envGain(cut.env, cut.in + tt - cut.start);
       if (Math.abs(e - env) >= 0.005 || (e !== env && (e === 0 || e === 1))) {
         env = e;
         apply();
@@ -578,7 +597,8 @@
       tick,
       setCut(c) {
         const n = (v) => Math.max(0, Number(v) || 0);
-        cut = { start: n(c?.start), in: n(c?.in), len: c?.len == null ? null : n(c.len), fi: n(c?.fi), fo: n(c?.fo) };
+        // vol: mức của track Nhạc nền (đã tính tắt tiếng / solo ở trang cha); env: đường âm lượng.
+        cut = { start: n(c?.start), in: n(c?.in), len: c?.len == null ? null : n(c.len), fi: n(c?.fi), fo: n(c?.fo), vol: c?.vol == null ? 1 : Math.min(1, n(c.vol)), env: envList(c?.env) };
       },
       exportCut: () => ({ ...cut }),
       has: () => !!audio,

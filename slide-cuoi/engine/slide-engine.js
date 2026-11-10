@@ -183,13 +183,22 @@ window.CXSlideEngine = (() => {
   // do khách kéo ở trang cha: cảnh có số riêng dùng số đó, còn lại base × scale; luôn kẹp
   // trong [min, max]. Đổi timing chỉ cần retime — không dựng lại dự án.
   // timing.off = [id cảnh] khách đã xoá: P.all giữ đủ cảnh của mẫu, P.scenes chỉ còn cảnh được chiếu
-  // (xoá hết thì giữ nguyên bộ — slide không bao giờ rỗng).
+  // (xoá hết thì giữ nguyên bộ — slide không bao giờ rỗng). timing.order = [id cảnh] thứ tự khách
+  // kéo (cảnh không có trong dãy đứng sau, theo thứ tự mẫu); timing.tr = {id cảnh: kiểu chuyển vào
+  // cảnh đó} đè `tr` của mẫu (TRANSITIONS, "cut" = cắt thẳng không chuyển).
   const SCENE_MAX = 30;
   function retime(P, timing) {
     if (!P.all) P.all = P.scenes;
     const off = new Set(Array.isArray(timing?.off) ? timing.off.map(String) : []);
-    const on = P.all.filter((s) => !off.has(s.id));
+    const rank = new Map((Array.isArray(timing?.order) ? timing.order : []).map((id, k) => [String(id), k]));
+    const pos = (s) => (rank.has(s.id) ? rank.get(s.id) : rank.size + P.all.indexOf(s));
+    const on = P.all.filter((s) => !off.has(s.id)).sort((a, b) => pos(a) - pos(b));
     P.scenes = on.length ? on : P.all;
+    const trs = (timing && typeof timing.tr === "object" && timing.tr) || {};
+    P.all.forEach((s) => {
+      if (!("tr0" in s)) s.tr0 = s.tr;
+      s.tr = TRANSITIONS.includes(trs[s.id]) ? trs[s.id] : s.tr0;
+    });
     const k = Number(timing?.scale) > 0 ? Number(timing.scale) : 1;
     const own = (timing && typeof timing.scenes === "object" && timing.scenes) || {};
     P.starts = [];
@@ -264,6 +273,8 @@ window.CXSlideEngine = (() => {
   // theo kiểu chuyển cảnh `tr` của cảnh mới (hoặc của mẫu): fade · slide/slide-up (đẩy cảnh cũ
   // ra) · zoom (lao xuyên qua) · split (mở từ giữa ra hai bên). o.loop: cảnh đầu đè lên cảnh cuối
   // (xem trước quay vòng); o.noFade: bỏ lớp cảnh trước (nhảy cảnh — runtime tự làm mờ khung cũ).
+  // Kiểu chuyển cảnh nhận được từ timing.tr của trang cha (mẫu khai `tr` trong cùng bộ này).
+  const TRANSITIONS = ["fade", "slide", "slide-up", "zoom", "split", "cut"];
   function frame(ctx, P, t, o = {}) {
     const n = P.scenes.length;
     const k = ctx.canvas.width / P.W;
@@ -275,7 +286,8 @@ window.CXSlideEngine = (() => {
     t = o.loop ? ((t % P.total) + P.total) % P.total : Math.max(0, Math.min(t, P.total - 1e-6));
     const i = indexAt(P, t);
     const local = t - P.starts[i];
-    if (n > 1 && local < P.fade && !o.noFade && (i > 0 || o.loop)) {
+    const cut = (P.scenes[i].tr || P.tr) === "cut";
+    if (n > 1 && local < P.fade && !o.noFade && !cut && (i > 0 || o.loop)) {
       const j = (i - 1 + n) % n;
       _cross(ctx, P, j, i, local, local / P.fade);
     } else _scene(ctx, P, i, local, 1);
@@ -1170,5 +1182,5 @@ window.CXSlideEngine = (() => {
     ctx.globalAlpha = base;
   }
 
-  return { build, retime, frame, indexAt, column, wrap, fontStr, typeTime, bounds };
+  return { build, retime, frame, indexAt, column, wrap, fontStr, typeTime, bounds, TRANSITIONS };
 })();

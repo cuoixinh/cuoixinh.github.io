@@ -64,7 +64,37 @@ _scEl("sc-tpls").addEventListener("click", (e) => {
   _scFrameLoad();
 });
 
+// ── Màn chờ khoá cả trang lúc slide đang dựng ──
+// Khung chỉ vẽ khi MỌI ảnh của mẫu đã tải xong (CXSlideEngine.build), trước đó là ô trống mà
+// bàn chỉnh vẫn bấm được → khoá trang cho tới khi khung báo dựng xong (cx-slide-state có
+// scenes). _scWaitN = việc đang đọc dữ liệu (thiệp, IndexedDB) — còn việc thì giữ màn chờ để
+// không nháy giữa bộ dữ liệu mẫu và thiệp thật; _scWaitFrame = đã giao dữ liệu, khung chưa dựng.
+const _SC_WAIT_MAX = 20000; // ảnh treo không trả lời thì vẫn nhả trang ra
+let _scWaitN = 0;
+let _scWaitFrame = false;
+let _scWaitTimer = 0;
+function _scWaitSync(msg) {
+  const box = _scEl("sc-wait");
+  if (msg) _scEl("sc-wait-msg").textContent = msg;
+  const on = _scWaitN > 0 || _scWaitFrame;
+  if (on === !box.hidden) return;
+  box.hidden = !on;
+  // inert: bàn phím (phím tắt dòng thời gian, Tab) cũng không lọt xuống trang bên dưới.
+  document.querySelector(".sc-app")?.toggleAttribute("inert", on);
+  clearTimeout(_scWaitTimer);
+  if (on)
+    _scWaitTimer = setTimeout(() => {
+      _scWaitN = 0;
+      _scWaitFrame = false;
+      _scWaitSync();
+    }, _SC_WAIT_MAX);
+}
+const _scWaitHold = (msg) => (_scWaitN++, _scWaitSync(msg));
+const _scWaitDone = () => (_scWaitN = Math.max(0, _scWaitN - 1), _scWaitSync());
+
 function _scFrameLoad() {
+  _scWaitFrame = true;
+  _scWaitSync("Đang tải mẫu slide…");
   _scSent = "";
   // Khung nạp lại là mất việc xuất đang chạy (nó sống trong khung) — về lại bước chọn.
   if (_scExState === "run") _scExportState("error", "Slide vừa được nạp lại nên việc xuất đã dừng.");
@@ -96,7 +126,14 @@ async function _scPush(force) {
   _scPhSig = "";
   // voice.js nạp sau và có thể hỏng riêng — thiếu nó slide vẫn chạy, chỉ không có giọng đọc.
   const vo = typeof _scVoLoad === "function";
-  await Promise.all([_scPhLoad(), _scMuLoad(), vo ? _scVoLoad().catch(() => null) : null]);
+  _scWaitHold(w ? "Đang tải ảnh thiệp…" : "");
+  try {
+    await Promise.all([_scPhLoad(), _scMuLoad(), vo ? _scVoLoad().catch(() => null) : null]);
+  } finally {
+    // Giao dữ liệu là chờ khung dựng — bật cờ TRƯỚC khi nhả việc, không thì màn chờ nháy tắt.
+    if (_scSent === key) _scWaitFrame = true;
+    _scWaitDone();
+  }
   if (_scSent !== key) return; // trong lúc đọc ảnh / nhạc đã đổi sang bộ dữ liệu khác
   _scFrame.contentWindow?.postMessage(
     {
@@ -118,7 +155,13 @@ addEventListener("message", (e) => {
   const t = e.data?.type;
   if (t === "cx-slide-ready") _scPush(true);
   else if (t === "cx-slide-full") scFullscreen();
-  else if (t === "cx-slide-state") _scCueState(e.data);
+  else if (t === "cx-slide-state") {
+    if (Array.isArray(e.data?.scenes) && _scWaitFrame) {
+      _scWaitFrame = false;
+      _scWaitSync();
+    }
+    _scCueState(e.data);
+  }
   else if (t === "cx-slide-caps") _scCaps(e.data);
   else if (t === "cx-slide-export-state") _scExportMsg(e.data);
   else if (t === "cx-slide-edit") _scEditFromSlide(e.data);
@@ -256,6 +299,8 @@ function _scTiming() {
 function _scTimingSave(own) {
   if (own.scenes && !Object.keys(own.scenes).length) delete own.scenes;
   if (own.off && !own.off.length) delete own.off;
+  if (own.order && !own.order.length) delete own.order;
+  if (own.tr && !Object.keys(own.tr).length) delete own.tr;
   if (own.scale === 1) delete own.scale;
   try {
     const all = JSON.parse(localStorage.getItem(_SC_TIMING) || "{}") || {};
@@ -314,6 +359,7 @@ function _scTimeSync() {
 
 _scEl("sc-speed")?.addEventListener("input", (e) => {
   if (_scTimeBusy()) return;
+  _scHistHold("Thời lượng cả slide");
   const own = _scTiming();
   own.scale = Number(e.target.value);
   _scRangeFill(e.target);
@@ -325,12 +371,14 @@ _scEl("sc-speed")?.addEventListener("input", (e) => {
   _scEl("sc-time-total").textContent = _scClock(total);
   _scTimingSave(own);
 });
+_scEl("sc-speed")?.addEventListener("change", () => _scHistHoldEnd());
 
 // Về thời lượng mặc định — cảnh đã xoá vẫn xoá (khôi phục riêng ở khối "Cảnh đã xoá").
+// "Mặc định": chỉ trả thời lượng (cả slide + từng cảnh) — cảnh đã xoá, thứ tự và chuyển cảnh giữ nguyên.
 function scTimingReset() {
   if (_scTimeBusy()) return;
-  const off = _scTiming().off;
-  _scTimingSave(off ? { off } : {});
+  const { off, order, tr } = _scTiming();
+  _scHistDo("Thời lượng mặc định", () => _scTimingSave({ off, order, tr }));
   _scEl("sc-speed").value = "1";
   _scRangeFill(_scEl("sc-speed"));
 }
@@ -340,6 +388,7 @@ _scEl("sc-cues").addEventListener("input", (e) => {
   if (!r || _scTimeBusy()) return;
   const c = _scCues[Number(r.dataset.dur)];
   if (!c) return;
+  _scHistHold("Thời lượng cảnh");
   const own = _scTiming();
   own.scenes = { ...(own.scenes || {}), [c.id]: Number(r.value) };
   _scRangeFill(r);
@@ -357,8 +406,11 @@ _scEl("sc-cues").addEventListener("click", (e) => {
   if (!c || !own.scenes) return;
   delete own.scenes[c.id];
   b.classList.add("is-off");
-  _scTimingSave(own);
+  _scHistDo("Thời lượng cảnh mặc định", () => _scTimingSave(own));
 });
+// Thả thanh thời lượng cảnh / rời ô chữ: đóng bước đang mở của lịch sử hoàn tác.
+_scEl("sc-cues").addEventListener("change", (e) => e.target.closest("[data-dur]") && _scHistHoldEnd());
+_scEl("sc-cues").addEventListener("focusout", (e) => e.target.closest(".sc-tx-in") && _scHistHoldEnd());
 
 function _scFieldHTML(x) {
   return `<label class="sc-tx">
@@ -438,6 +490,8 @@ function _scCueState(m) {
       base: Number(c.base) || Number(c.dur) || 0,
       min: Number(c.min) || 1000,
       max: Number(c.max) || 30000,
+      tr: String(c.tr || "fade"),
+      tr0: String(c.tr0 || "fade"),
       texts: (Array.isArray(c.texts) ? c.texts : []).map((x) => ({
         key: String(x.key),
         text: String(x.text ?? ""),
@@ -499,19 +553,28 @@ function _scHiddenRender() {
       .join("")}</ul>`;
   window.lucide?.createIcons({ root: box });
 }
-_scEl("sc-cues").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-scene-del]");
-  if (!b) return;
-  const c = _scCues[Number(b.dataset.sceneDel)];
+// Bọc một thay đổi vào lịch sử hoàn tác của dòng thời gian (timeline.js) — trang chưa nạp nó thì chạy thẳng.
+const _scHistDo = (label, fn) => (typeof _scTlDo === "function" ? _scTlDo(label, fn) : fn());
+// Bước mở dài của lịch sử (kéo thanh, gõ chữ) — timeline.js _scTlHoldOpen / _scTlHoldClose.
+const _scHistHold = (label) => typeof _scTlHoldOpen === "function" && _scTlHoldOpen(label);
+const _scHistHoldEnd = () => typeof _scTlHoldClose === "function" && _scTlHoldClose();
+// Xoá cảnh thứ i — dùng chung cho nút trong danh sách cảnh và track Cảnh của dòng thời gian.
+function scSceneDelete(i) {
+  const c = _scCues[i];
   if (!c) return;
   if (_scCues.length <= 1) return window.showToast?.("Slide phải còn ít nhất một cảnh", "warning");
+  if (_scExState === "run") return window.showToast?.("Đang xuất video, đợi xong rồi hãy xoá cảnh", "warning");
   _scOpen = -1;
-  _scSceneOff(c.id, true);
-  window.showToast?.(`Đã xoá cảnh "${c.label}". Muốn lấy lại thì bấm Khôi phục ở cuối danh sách cảnh.`, "success");
+  _scHistDo("Xoá cảnh", () => _scSceneOff(c.id, true));
+  window.showToast?.(`Đã xoá cảnh "${c.label}". Ctrl+Z để hoàn tác, hoặc bấm Khôi phục ở cuối tab Cảnh.`, "success");
+}
+_scEl("sc-cues").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-scene-del]");
+  if (b) scSceneDelete(Number(b.dataset.sceneDel));
 });
 _scEl("sc-hidden")?.addEventListener("click", (e) => {
   const b = e.target.closest("[data-scene-back]");
-  if (b) _scSceneOff(b.dataset.sceneBack, false);
+  if (b) _scHistDo("Khôi phục cảnh", () => _scSceneOff(b.dataset.sceneBack, false));
 });
 
 // Ô chữ cao theo nội dung.
@@ -541,15 +604,21 @@ function _scTextSet(key, value, def) {
   _scTextsPush();
 }
 
-function scTextsReset() {
-  _scTextsSave({});
+// Đặt cả bộ chữ sửa (về lời mẫu, hoàn tác) và vẽ lại mọi ô theo bộ đó.
+function _scTextsApply(own) {
+  _scTextsSave(own);
   _scResetBtn();
   _scEl("sc-cues").querySelectorAll(".sc-tx-in").forEach((ta) => {
-    ta.value = ta.dataset.def;
+    const v = own[ta.dataset.key] ?? ta.dataset.def;
+    if (ta.value !== v) ta.value = v;
     _scGrow(ta);
-    ta.parentElement.querySelector(".sc-tx-undo")?.classList.add("is-off");
+    ta.parentElement.querySelector(".sc-tx-undo")?.classList.toggle("is-off", v === ta.dataset.def);
   });
   _scTextsPush();
+}
+
+function scTextsReset() {
+  _scHistDo("Về lời mẫu", () => _scTextsApply({}));
 }
 
 _scEl("sc-cues").addEventListener("click", (e) => {
@@ -559,7 +628,7 @@ _scEl("sc-cues").addEventListener("click", (e) => {
     ta.value = ta.dataset.def;
     _scGrow(ta);
     undo.classList.add("is-off");
-    _scTextSet(ta.dataset.key, ta.value, ta.dataset.def);
+    _scHistDo("Trả lời mẫu", () => _scTextSet(ta.dataset.key, ta.value, ta.dataset.def));
     ta.focus();
     return;
   }
@@ -614,6 +683,7 @@ _scEl("sc-cues").addEventListener("input", (e) => {
   if (!ta) return;
   _scGrow(ta);
   ta.parentElement.querySelector(".sc-tx-undo")?.classList.toggle("is-off", ta.value === ta.dataset.def);
+  _scHistHold("Sửa chữ");
   _scTextSet(ta.dataset.key, ta.value, ta.dataset.def);
 });
 
@@ -627,6 +697,10 @@ const _SC_PH_STORE = "photos";
 const _SC_MU_STORE = "music";
 const _SC_PH_LIMITS = { maxWidth: 2560, maxHeight: 2560, maxSizeMB: 2, quality: 0.9 };
 let _scPh = { key: null, map: {} }; // map: id cảnh → {id, blob, url, focal}
+// Mọi ảnh đã thấy của bộ dữ liệu đang chiếu (id ảnh → {blob, name}) — ảnh đã thay / bỏ vẫn còn đây
+// để hoàn tác trả lại được (IndexedDB thì đã xoá). Chỉ trong bộ nhớ, đổi mẫu / thiệp là dọn.
+const _scPhBank = new Map();
+let _scPhQ = Promise.resolve(); // ghi IndexedDB của hoàn tác chạy nối đuôi, không chồng nhau
 let _scPhSig = "";
 let _scPhPick = null; // {key, index} ô đang chọn ảnh
 let _scDbP = null;
@@ -669,6 +743,7 @@ async function _scPhLoad() {
   const key = _scTxKey();
   if (_scPh.key === key) return;
   _scPhClear();
+  _scPhBank.clear();
   _scPh.key = key;
   const prefix = key + "|";
   let keys = [];
@@ -688,6 +763,46 @@ async function _scPhLoad() {
     if (!v?.buf?.byteLength) return;
     const blob = new Blob([v.buf], { type: v.type || "image/jpeg" });
     _scPh.map[String(k).slice(prefix.length)] = { id: v.id, blob, url: URL.createObjectURL(blob), focal: v.focal || null };
+    _scPhBank.set(v.id, { blob, name: v.name || "" });
+  });
+}
+
+// Hoàn tác / làm lại: đặt ô ảnh theo refs = {id cảnh: {id ảnh, focal}} (byte lấy từ _scPhBank),
+// vẽ + gửi khung ngay, rồi ghi IndexedDB ở nền.
+function _scPhApply(refs) {
+  const txKey = _scTxKey();
+  if (_scPh.key !== txKey) return;
+  const map = {};
+  Object.entries(refs).forEach(([k, r]) => {
+    const cur = _scPh.map[k];
+    if (cur && cur.id === r.id) {
+      cur.focal = r.focal || null;
+      map[k] = cur;
+      return;
+    }
+    const b = _scPhBank.get(r.id);
+    if (b) map[k] = { id: r.id, blob: b.blob, url: URL.createObjectURL(b.blob), focal: r.focal || null };
+  });
+  Object.entries(_scPh.map).forEach(([k, p]) => map[k] !== p && URL.revokeObjectURL(p.url));
+  const old = _scPh.map;
+  _scPh.map = map;
+  _scPhRender();
+  _scPhSend();
+  const keys = new Set([...Object.keys(old), ...Object.keys(map)]);
+  _scPhQ = _scPhQ.then(async () => {
+    for (const k of keys) {
+      const p = map[k];
+      if (!p && !old[k]) continue;
+      try {
+        if (!p) await _scDbDo("readwrite", (st) => st.delete(`${txKey}|${k}`));
+        else {
+          const buf = await p.blob.arrayBuffer();
+          await _scDbDo("readwrite", (st) => st.put({ id: p.id, buf, type: p.blob.type, name: _scPhBank.get(p.id)?.name || "", focal: p.focal }, `${txKey}|${k}`));
+        }
+      } catch (e) {
+        console.warn("Không lưu được ảnh slide:", e);
+      }
+    }
   });
 }
 
@@ -893,6 +1008,7 @@ _scEl("sc-ph-file").addEventListener("change", async (e) => {
     return;
   }
   const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  await _scPhQ;
   try {
     await _scDbDo("readwrite", (st) => st.put({ id, buf, type, name: file.name, focal }, `${txKey}|${pick.key}`));
   } catch (err) {
@@ -902,7 +1018,8 @@ _scEl("sc-ph-file").addEventListener("change", async (e) => {
   if (_scPh.key !== txKey) return URL.revokeObjectURL(url); // đã đổi mẫu / thiệp trong lúc lưu
   const old = _scPh.map[pick.key];
   if (old) URL.revokeObjectURL(old.url);
-  _scPh.map[pick.key] = { id, blob, url, focal };
+  _scPhBank.set(id, { blob, name: file.name });
+  _scHistDo("Đổi ảnh", () => (_scPh.map[pick.key] = { id, blob, url, focal }));
   _scPhRender();
   _scPhSend(pick.index);
 });
@@ -914,7 +1031,8 @@ async function scPhotoFocal(key, index, w, h) {
   if (!own) return;
   const focal = await _scPhFocal(own.url, own.focal, w, h);
   if (!focal || _scPh.key !== txKey || _scPh.map[key] !== own) return;
-  own.focal = focal;
+  _scHistDo("Lấy nét ảnh", () => (own.focal = focal));
+  await _scPhQ;
   try {
     const dbKey = `${txKey}|${key}`;
     await _scDbDo("readwrite", (st) => {
@@ -931,13 +1049,14 @@ async function scPhotoFocal(key, index, w, h) {
 
 async function scPhotoRemove(key, index) {
   const txKey = _scTxKey();
+  await _scPhQ;
   try {
     await _scDbDo("readwrite", (st) => st.delete(`${txKey}|${key}`));
   } catch (e) {}
   if (_scPh.key !== txKey) return;
   const old = _scPh.map[key];
   if (old) URL.revokeObjectURL(old.url);
-  delete _scPh.map[key];
+  _scHistDo(txKey.endsWith("|demo") ? "Dùng ảnh mẫu" : "Dùng ảnh thiệp", () => delete _scPh.map[key]);
   _scPhRender();
   _scPhSend(index);
 }
@@ -945,12 +1064,13 @@ async function scPhotoRemove(key, index) {
 async function scPhotosReset() {
   if (_scPhBusy()) return;
   const txKey = _scTxKey();
+  await _scPhQ;
   try {
     const prefix = txKey + "|";
     await _scDbDo("readwrite", (st) => st.delete(IDBKeyRange.bound(prefix, prefix + "\uffff")));
   } catch (e) {}
   if (_scPh.key !== txKey) return;
-  _scPhClear();
+  _scHistDo("Về ảnh của thiệp", _scPhClear);
   _scPhRender();
   _scPhSend();
 }
@@ -962,6 +1082,10 @@ async function scPhotosReset() {
 const _SC_MU_MAX = 30 * 1024 * 1024;
 const _SC_MU_EXT = /\.(mp3|m4a|aac|wav)$/i;
 let _scMu = { key: null, pick: null }; // pick: {mode:"file", id, blob, name, dur} | {mode:"lib", id} | null
+// File nhạc đã thấy của thiệp đang chiếu (id → {blob, name, dur}): đổi / bỏ bài rồi hoàn tác vẫn có
+// byte để trả lại (IndexedDB chỉ giữ bài đang dùng). Chỉ trong bộ nhớ, đổi thiệp là dọn.
+const _scMuBank = new Map();
+let _scMuQ = Promise.resolve(); // ghi IndexedDB của hoàn tác chạy nối đuôi
 let _scLib = null; // bài trong thư viện; null = chưa tải
 let _scLibReq = null;
 let _scPrev = null; // <audio> nghe thử bài thư viện
@@ -972,7 +1096,8 @@ const _scMuKey = () => (_scS.real && _scS.wid ? _scS.wid : "demo");
 // Đoạn nhạc nền trên dòng thời gian (giây, cùng khuôn lớp giọng đọc): đặt ở `start`, bắt đầu từ
 // giây `in` của bài (bài LẶP nếu đoạn dài hơn bài), dài `len`; `full` = khối chạy tới hết slide,
 // tự dài theo khi đổi thời lượng cảnh; `fi`/`fo` = giây to dần / nhỏ dần ở hai mép (mặc định
-// _SC_MU_FADE). Lưu localStorage theo thiệp + bài — đổi bài là về nguyên bài.
+// _SC_MU_FADE); `env` = đường âm lượng [{t: giây trong bài, g}]. Lưu localStorage theo thiệp + bài —
+// đổi bài là về nguyên bài. Mức + tắt tiếng / solo của track Nhạc nền nằm ở timeline.js (_scVo.mtr).
 const _SC_MU_CUT = "cx_slide_mucut";
 const _SC_MU_FADE = 1.5;
 const _scMuPid = (p) => (p ? `${p.mode}:${p.id}` : "");
@@ -993,9 +1118,10 @@ function _scMuCut() {
     const ok = s && s.pid === _scMuPid(p);
     const n = (v) => Math.max(0, Number(v) || 0);
     const f = (v) => (v == null ? _SC_MU_FADE : n(v));
+    const env = ok && Array.isArray(s.env) ? s.env.filter((x) => Number.isFinite(x?.t) && Number.isFinite(x?.g)) : [];
     p.cut = ok
-      ? { start: n(s.start), in: n(s.in), len: n(s.len), full: s.full !== false, fi: f(s.fi), fo: f(s.fo) }
-      : { start: 0, in: 0, len: 0, full: true, fi: _SC_MU_FADE, fo: _SC_MU_FADE };
+      ? { start: n(s.start), in: n(s.in), len: n(s.len), full: s.full !== false, fi: f(s.fi), fo: f(s.fo), env }
+      : { start: 0, in: 0, len: 0, full: true, fi: _SC_MU_FADE, fo: _SC_MU_FADE, env: [] };
   }
   return p.cut;
 }
@@ -1004,8 +1130,8 @@ function _scMuCutSave() {
   try {
     const all = _scMuCutAll();
     const key = _scMuKey();
-    if (c && (c.start > 0.01 || c.in > 0.01 || !c.full || c.fi !== _SC_MU_FADE || c.fo !== _SC_MU_FADE)) {
-      all[key] = { pid: _scMuPid(_scMu.pick), start: c.start, in: c.in, len: c.len, full: c.full, fi: c.fi, fo: c.fo };
+    if (c && (c.start > 0.01 || c.in > 0.01 || !c.full || c.fi !== _SC_MU_FADE || c.fo !== _SC_MU_FADE || c.env?.length)) {
+      all[key] = { pid: _scMuPid(_scMu.pick), start: c.start, in: c.in, len: c.len, full: c.full, fi: c.fi, fo: c.fo, env: c.env || [] };
     } else delete all[key];
     localStorage.setItem(_SC_MU_CUT, JSON.stringify(all));
   } catch (e) {}
@@ -1052,6 +1178,7 @@ async function _scMuLoad() {
   const key = _scMuKey();
   if (_scMu.key === key) return;
   _scMu = { key, pick: null };
+  _scMuBank.clear();
   let rec = null;
   try {
     rec = await _scDbDo("readonly", (st) => st.get(key), _SC_MU_STORE);
@@ -1061,12 +1188,14 @@ async function _scMuLoad() {
   if (_scMu.key !== key) return;
   if (rec?.mode === "file" && rec.buf?.byteLength) {
     _scMu.pick = { mode: "file", id: rec.id, blob: new Blob([rec.buf], { type: rec.type || "audio/mpeg" }), name: rec.name || "", dur: rec.dur || 0 };
+    _scMuBank.set(rec.id, { blob: _scMu.pick.blob, name: _scMu.pick.name, dur: _scMu.pick.dur });
   }
   // Bài thư viện: KHÔNG chờ kho (dịch vụ ngoài) — slide chạy ngay chưa có nhạc, kho tải xong mà
   // còn bài đó thì mới bật; kho chết thì slide chạy không nhạc.
   _scLibLoad().then(() => {
     if (rec?.mode !== "lib" || _scMu.key !== key || _scMu.pick || !_scTrack(rec.id)) return;
     _scMu.pick = { mode: "lib", id: rec.id };
+    if (typeof _scTlRebase === "function") _scTlRebase("mu");
     _scMuRender();
     _scMuSend();
   });
@@ -1077,7 +1206,8 @@ async function _scMuLoad() {
 function _scMuMsg() {
   const p = _scMu.pick;
   const c = _scMuCut();
-  const cut = c ? { start: c.start, in: c.in, len: c.full ? null : c.len, fi: c.fi, fo: c.fo } : null;
+  const vol = typeof _scVoMuVol === "function" ? _scVoMuVol() : 1;
+  const cut = c ? { start: c.start, in: c.in, len: c.full ? null : c.len, fi: c.fi, fo: c.fo, vol, env: c.env || [] } : null;
   if (p?.mode === "file") return { id: p.id, blob: p.blob, cut };
   if (p?.mode === "lib") return { url: _scTrack(p.id)?.file || "", cut };
   return null;
@@ -1095,6 +1225,7 @@ function _scMuBusy() {
 
 async function _scMuSave(rec) {
   const key = _scMuKey();
+  await _scMuQ;
   try {
     await _scDbDo("readwrite", (st) => (rec ? st.put(rec, key) : st.delete(key)), _SC_MU_STORE);
   } catch (e) {
@@ -1157,8 +1288,11 @@ _scEl("sc-mu-file").addEventListener("change", async (e) => {
   }
   const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
   if (!(await _scMuSave({ mode: "file", id, buf, type, name: file.name, dur }))) return;
-  _scMu.pick = { mode: "file", id, blob, name: file.name, dur };
-  _scMuCutSave(); // bài mới: về nguyên bài
+  _scMuBank.set(id, { blob, name: file.name, dur });
+  _scHistDo("Đổi nhạc", () => {
+    _scMu.pick = { mode: "file", id, blob, name: file.name, dur };
+    _scMuCutSave(); // bài mới: về nguyên bài
+  });
   _scPreviewStop();
   _scMuRender();
   _scMuSend();
@@ -1168,8 +1302,10 @@ _scEl("sc-mu-file").addEventListener("change", async (e) => {
 async function scMusicLib(id) {
   if (_scMuBusy() || !_scTrack(id)) return;
   if (!(await _scMuSave({ mode: "lib", id }))) return;
-  _scMu.pick = { mode: "lib", id };
-  _scMuCutSave();
+  _scHistDo("Đổi nhạc", () => {
+    _scMu.pick = { mode: "lib", id };
+    _scMuCutSave();
+  });
   _scPreviewStop();
   _scMuRender();
   _scMuSend();
@@ -1178,10 +1314,47 @@ async function scMusicLib(id) {
 async function scMusicClear() {
   if (_scMuBusy()) return;
   if (!(await _scMuSave(null))) return;
-  _scMu.pick = null;
+  _scHistDo("Bỏ nhạc", () => {
+    _scMu.pick = null;
+    _scMuCutSave();
+  });
+  _scMuRender();
+  _scMuSend();
+}
+
+// Hoàn tác / làm lại: m = {pid, start, in, len, full, fi, fo, env} (bản _scTlState) hoặc null = không
+// nhạc. Đổi bài thì lấy byte từ _scMuBank; đặt + gửi khung ngay, ghi IndexedDB ở nền.
+function _scMuApply(m) {
+  const cur = _scMu.pick;
+  let rec;
+  if (!m) {
+    if (!cur) return;
+    _scMu.pick = null;
+    rec = null;
+  } else if (m.pid !== _scMuPid(cur)) {
+    const [mode, id] = [m.pid.slice(0, m.pid.indexOf(":")), m.pid.slice(m.pid.indexOf(":") + 1)];
+    const b = mode === "file" ? _scMuBank.get(id) : null;
+    if (mode === "lib") _scMu.pick = { mode, id };
+    else if (b) _scMu.pick = { mode, id, blob: b.blob, name: b.name, dur: b.dur };
+    else return;
+    rec = mode === "lib" ? { mode, id } : { mode, id, blob: b.blob, name: b.name, dur: b.dur };
+  }
+  if (m) Object.assign(_scMuCut(), { start: m.start, in: m.in, len: m.len, full: m.full, fi: m.fi, fo: m.fo, env: m.env || [] });
   _scMuCutSave();
   _scMuRender();
   _scMuSend();
+  if (rec === undefined) return;
+  const key = _scMuKey();
+  _scMuQ = _scMuQ.then(async () => {
+    try {
+      let row = rec;
+      if (rec?.blob) row = { mode: "file", id: rec.id, buf: await rec.blob.arrayBuffer(), type: rec.blob.type, name: rec.name, dur: rec.dur };
+      if (_scMuKey() !== key) return;
+      await _scDbDo("readwrite", (st) => (row ? st.put(row, key) : st.delete(key)), _SC_MU_STORE);
+    } catch (e) {
+      console.warn("Không lưu được nhạc slide:", e);
+    }
+  });
 }
 
 // Nghe thử một bài thư viện ngay trên trang (không đổi nhạc của slide).
@@ -1216,6 +1389,8 @@ function _scMuInfo() {
 
 // Bảng thư viện nhạc dưới dòng thời gian — mở từ nút ở đầu làn Nhạc nền.
 function scMusicLibOpen(on) {
+  // Bàn dựng phim: nút mở nằm ở dock, còn bảng thư viện ở tab Âm thanh.
+  if (on && _SC_STUDIO.matches) scTab("audio");
   _scToggle("sc-mu-libbox", on);
   if (!on) return _scPreviewStop();
   _scLibLoad();
@@ -1283,17 +1458,30 @@ _scEl("sc-mu-q").addEventListener("input", () => {
   _scEl("sc-mu-lib").scrollTop = 0;
 });
 
-// Chiều cao tiêu đề trang → mốc ghim của dải tab ở cột phải (từ lg, xem .sc-tabs-bar).
+// Mốc ghim của dải tab (.sc-tabs-bar): dưới lg nằm ngay dưới khung chiếu (cao --sc-stage-h),
+// từ lg dưới tiêu đề cột phải (--sc-head-h).
 if (typeof ResizeObserver === "function") {
   const head = _scEl("sc-head");
-  new ResizeObserver(() => head.parentElement.style.setProperty("--sc-head-h", `${head.offsetHeight}px`)).observe(head);
+  const stage = document.querySelector(".sc-stage");
+  const app = head.parentElement;
+  const ro = new ResizeObserver(() => {
+    app.style.setProperty("--sc-head-h", `${head.offsetHeight}px`);
+    app.style.setProperty("--sc-stage-h", `${stage.offsetHeight}px`);
+  });
+  ro.observe(head);
+  ro.observe(stage);
 }
+
+// Bố cục bàn dựng phim (dòng thời gian ở dock đáy) — chuỗi phải khớp @media của .sc-studio ở
+// styles/_slide-cuoi.css.
+const _SC_STUDIO = matchMedia("(min-width: 1024px) and (min-height: 600px)");
 
 // ── Các tab của bảng chỉnh (Cảnh · Thiệp · Âm thanh · Mẫu): một dải .cx-seg, con trượt theo --i. ──
 const _SC_TABS = ["scenes", "data", "audio", "tpl"];
 function scTab(id) {
   const i = Math.max(0, _SC_TABS.indexOf(id));
   const seg = _scEl("sc-tabs");
+  const moved = seg.style.getPropertyValue("--i").trim() !== String(i);
   seg.style.setProperty("--i", String(i));
   seg.querySelectorAll("[data-tab]").forEach((b) => {
     const on = b.dataset.tab === _SC_TABS[i];
@@ -1302,9 +1490,47 @@ function scTab(id) {
     b.tabIndex = on ? 0 : -1;
   });
   _SC_TABS.forEach((t, k) => _scToggle(`sc-tab-${t}`, k === i));
+  // Sang tab KHÁC thì mở từ đầu nội dung; bấm tab (kể cả tab đang mở) là hiện lại navbar dưới.
+  if (moved && _SC_STUDIO.matches) document.querySelector(".sc-panel").scrollTop = 0;
+  else if (moved && scrollY > _scTabTopY()) scrollTo({ top: _scTabTopY() });
+  _scNavShow(true);
   // Dòng thời gian đo theo bề ngang khung — chỉ vẽ được khi tab đã hiện.
   if (_SC_TABS[i] === "audio" && typeof _scVoRender === "function") _scVoRender();
 }
+
+// Navbar dưới (điện thoại), cờ body.sc-nav-off: cuộn XUỐNG trong nội dung tab là trượt khuất; chỉ
+// hiện lại khi bấm tab, khi vuốt LÊN NHANH (tốc độ trung bình trong _SC_NAV_WIN ms vượt
+// _SC_NAV_V px/ms — vuốt chậm là đang xem phía trên, giữ ẩn), hoặc khi đã về tới đầu tab.
+// Đầu tab = mốc cuộn mà dải tab vừa ghim (top tính ra px của khối sticky).
+const _SC_NAV_WIN = 120;
+const _SC_NAV_V = 0.6;
+function _scTabTopY() {
+  const bar = document.querySelector(".sc-tabs-bar");
+  const panel = document.querySelector(".sc-panel");
+  return Math.max(0, panel.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(bar).top) || 0));
+}
+const _scNavShow = (on) => document.body.classList.toggle("sc-nav-off", !on && !_SC_STUDIO.matches);
+let _scNavPts = []; // [thời điểm, scrollY] các nhịp cuộn gần nhất CÙNG một chiều
+addEventListener(
+  "scroll",
+  () => {
+    const now = performance.now();
+    const y = scrollY;
+    const last = _scNavPts[_scNavPts.length - 1];
+    if (y <= _scTabTopY() + 4) _scNavShow(true);
+    else if (last && y > last[1]) _scNavShow(false);
+    // Đổi chiều thì đo lại từ nhịp vừa rồi — nhịp cuộn xuống cũ không được tính vào tốc độ đi lên.
+    const up = !!last && y < last[1];
+    const prev = _scNavPts.length > 1 && _scNavPts[_scNavPts.length - 2][1] > last[1];
+    _scNavPts = (last && up !== prev ? [last] : _scNavPts).filter((p) => now - p[0] <= _SC_NAV_WIN);
+    _scNavPts.push([now, y]);
+    if (!up) return;
+    // Đi lên: tốc độ trên cả cửa sổ, cần đủ quãng để khỏi bắt nhầm rung tay.
+    const [t0, y0] = _scNavPts[0];
+    if (y0 - y >= 24 && (y0 - y) / Math.max(16, now - t0) >= _SC_NAV_V) _scNavShow(true);
+  },
+  { passive: true },
+);
 _scEl("sc-tabs").addEventListener("click", (e) => {
   const b = e.target.closest("[data-tab]");
   if (b) scTab(b.dataset.tab);
@@ -1489,10 +1715,12 @@ async function scPick(id, again) {
   if (!_scData.has(id)) {
     const btn = _scEl("sc-weddings").querySelector(`[data-wid="${CSS.escape(id)}"]`);
     btn?.classList.add("is-busy");
+    _scWaitHold("Đang tải ảnh thiệp…");
     try {
       _scData.set(id, await weddingDAL.getWeddingById(id));
     } catch (e) {
       btn?.classList.remove("is-busy");
+      _scWaitDone();
       if (_scS.wid === id) {
         _scS.wid = null;
         btn?.setAttribute("aria-checked", "false");
@@ -1501,6 +1729,10 @@ async function scPick(id, again) {
       return;
     }
     btn?.classList.remove("is-busy");
+    // _scPush giữ màn chờ của nó ngay khi gọi → nhả lượt đọc thiệp SAU đó, khỏi nháy.
+    if (_scS.wid === id) _scPush();
+    _scWaitDone();
+    return;
   }
   if (_scS.wid !== id) return;
   _scPush();
@@ -1536,8 +1768,16 @@ function scLogin() {
   _scCheck.checked = _scS.real;
   _scToggle("sc-real", _scS.real);
   _scFrameLoad();
-  _scS.user = await CXAuth.getUser();
-  if (_scS.real) scLoadList();
+  // F5 khi đang dùng thiệp thật: giữ màn chờ qua lúc lấy phiên + danh sách thiệp, không thì
+  // khung dựng xong bộ dữ liệu mẫu là trang mở khoá rồi lại khoá khi ảnh thiệp về.
+  const hold = _scS.real && !!_scS.wid;
+  if (hold) _scWaitHold("Đang tải ảnh thiệp…");
+  try {
+    _scS.user = await CXAuth.getUser();
+    if (_scS.real) await scLoadList();
+  } finally {
+    if (hold) _scWaitDone();
+  }
   // Lấy phiên TRƯỚC rồi mới nghe onChange, không thì lần đồng bộ đầu tải hai lần.
   // Làm mới token cũng báo về đây — cùng người thì giữ nguyên lựa chọn.
   CXAuth.onChange((user) => {
