@@ -2184,10 +2184,10 @@ html.sc-typing .sc-tx-in {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  min-width: 76px;
-  padding: 8px 12px;
+  min-width: 64px;
+  padding: 8px 8px;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   color: rgb(var(--white-rgb));
@@ -2201,7 +2201,7 @@ html.sc-typing .sc-tx-in {
 }
 .sc-vo-act-ico {
   display: inline-flex;
-  font-size: 24px;
+  font-size: 20px;
 }
 .sc-vo-act-v {
   margin-top: -2px;
@@ -2735,18 +2735,26 @@ html.sc-typing .sc-tx-in {
   .sc-vo-note {
     font-size: 11px;
   }
+  /* Đủ 7 nút trên một hàng ở khổ 360px trở lên. */
   .x-pop.sc-vo-act {
-    gap: 2px;
-    padding: 6px;
+    flex-wrap: nowrap;
+    gap: 0;
+    padding: 4px;
     border-radius: 16px;
   }
   .sc-vo-act-btn {
-    min-width: 64px;
-    padding: 6px 8px;
-    font-size: 12px;
+    min-width: 48px;
+    gap: 4px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
   }
   .sc-vo-act-ico {
-    font-size: 20px;
+    font-size: 16px;
+  }
+  .sc-vo-act-v {
+    font-size: 10px;
   }
   .x-pop.sc-tl-menu {
     left: 8px !important;
@@ -2769,4 +2777,13 @@ html.sc-typing .sc-tx-in {
 /* Khung dòng thời gian nhận focus bằng mã (để phím tắt ăn) — không vẽ viền focus cho cú bấm chuột. */
 .sc-vo-tl:focus {
   outline: none;
+}
+/* Máy rất hẹp (iPhone SE 320px): 7 nút không vừa một hàng thì xuống hai hàng. */
+@media (max-width: 359px) {
+  .x-pop.sc-vo-act {
+    flex-wrap: wrap;
+  }
+  .sc-vo-act-btn {
+    min-width: 64px;
+  }
 }
