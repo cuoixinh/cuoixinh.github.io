@@ -9,7 +9,7 @@
     { id: "theme", label: "Mẫu thiệp", icon: "layout-template", hint: "Chọn một mẫu — trước khi thanh toán đổi lại lúc nào cũng được." },
     { id: "photos", label: "Ảnh cưới", icon: "image", hint: "Ảnh bìa và ảnh chân dung chú rể, cô dâu." },
     { id: "gallery", label: "Album", icon: "images", hint: "Tối đa 10 ảnh cho album cưới, chọn nhiều ảnh một lúc được." },
-    { id: "music", label: "Nhạc nền", icon: "music", hint: "Tìm bài trên YouTube, hoặc dán thẳng link bài hát." },
+    { id: "music", label: "Nhạc nền", icon: "music", hint: "Chọn bài trong thư viện nhạc, hoặc tìm trên YouTube / dán link bài hát." },
     { id: "map", label: "Bản đồ", icon: "map-pin", hint: "Ghim chỉ đường để khách mời tìm tới nơi làm lễ, tổ chức tiệc." },
     { id: "qr", label: "QR mừng cưới", icon: "qr-code", hint: "Ảnh mã QR tài khoản ngân hàng hai bên cho hộp mừng cưới." },
   ];
@@ -32,8 +32,6 @@
     ["bride_qr_url", "bride", "Nhà gái"],
   ];
   const GALLERY_MAX = 10; // khớp MAX_GALLERY_IMAGES của invitation-setup/js/10-images.js
-  const MUSIC_DEFAULT_Q = "nhạc đám cưới hay nhất";
-  const MUSIC_TYPE_MS = 1000; // ô tìm nhạc: ngừng gõ bấy lâu thì tự tìm
 
   const VISIT_KEY = "cx_aichat_visited"; // sessionStorage: ô đã đi qua trong luồng dẫn
   // sessionStorage: nhạc/bản đồ/mẫu chọn ở trang chủ + gương URL ảnh đã lên thiệp (saved)
@@ -152,13 +150,6 @@
       throw e;
     });
     return pickerReq;
-  }
-
-  function ytId(url) {
-    const m = String(url || "").match(
-      /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{6,})/,
-    );
-    return m ? m[1] : null;
   }
 
   // ── Trang chủ: IndexedDB dưới mã nháp của cuộc chat ───────────────────────
@@ -530,7 +521,7 @@
     if (kind === "theme") return `(Đã chọn mẫu ${st.theme.name || st.theme.theme})`;
     if (kind === "photos") return `(Đã thêm ảnh: ${names(PHOTO_SLOTS)})`;
     if (kind === "gallery") return `(Đã thêm ${st.gallery.length} ảnh vào album)`;
-    if (kind === "music") return `(Đã chọn nhạc nền: ${st.music.title || "bài từ YouTube"})`;
+    if (kind === "music") return `(Đã chọn nhạc nền: ${st.music.title || "đã chọn"})`;
     if (kind === "map")
       return `(Đã ghim bản đồ: ${SIDES.filter(([s]) => st.maps[s]).map((s) => s[1].toLowerCase()).join(", ")})`;
     return `(Đã thêm mã QR: ${names(QR_SLOTS)})`;
@@ -686,22 +677,220 @@
     };
   }
 
+  // Nhạc nền: hai tab Thư viện nhạc / YouTube y tab Cấu hình của trang Thiết lập (cxMusicSrc ở
+  // invitation-setup/js/11-youtube.js). Bài thư viện lưu "lib:<file>", YouTube lưu link.
+  // Thư viện = kho cloudflare-media/ (CONFIG.slideMusic.library). Trang Thiết lập có sẵn
+  // cxMusicLibrary (core/utils.js); trang chủ không nạp utils nên tự đọc danh mục, lọc y hệt.
+  const LIB_PREFIX = "lib:"; // khớp CX_LIB_PREFIX ở core/utils.js
+  const MUSIC_DEFAULT_Q = "nhạc đám cưới hay nhất";
+  const MUSIC_TYPE_MS = 1000; // ô tìm YouTube: ngừng gõ bấy lâu thì tự tìm
+  let libReq = null;
+  function musicLibrary() {
+    if (typeof window.cxMusicLibrary === "function") return window.cxMusicLibrary();
+    const base = typeof CONFIG !== "undefined" ? CONFIG.slideMusic?.library : "";
+    libReq ||= (base ? fetch(base, { cache: "no-cache" }) : Promise.reject(new Error("no library")))
+      .then((r) => (r.ok ? r.json() : { tracks: [] }))
+      .catch(() => ({ tracks: [] }))
+      .then((j) =>
+        (Array.isArray(j?.tracks) ? j.tracks : [])
+          .filter((t) => t && t.id && t.title && t.file)
+          .map((t) => ({ title: String(t.title), artist: String(t.artist || ""), file: String(t.file) })),
+      );
+    return libReq;
+  }
+  function libSrc(file) {
+    try {
+      return new URL(file, CONFIG.slideMusic.library).href;
+    } catch {
+      return "";
+    }
+  }
+  // Bỏ dấu + chữ thường để gõ "vay cuoi" vẫn ra "Váy Cưới".
+  const fold = (s) =>
+    String(s || "")
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/đ/gi, "d")
+      .toLowerCase()
+      .trim();
+
+  function ytId(url) {
+    const m = String(url || "").match(
+      /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{6,})/,
+    );
+    return m ? m[1] : null;
+  }
+
   function mountMusic(body) {
     const cur = el("div", "aichat-yt-cur");
     cur.hidden = true;
+    const seg = el("div", "cx-seg");
+    seg.setAttribute("role", "tablist");
+    seg.setAttribute("aria-label", "Nguồn nhạc");
+    seg.style.setProperty("--n", "2");
+    const tabs = [
+      ["lib", "Thư viện nhạc"],
+      ["yt", "YouTube"],
+    ].map(([id, label]) => {
+      const b = el("button", "cx-seg-btn", label);
+      b.type = "button";
+      b.setAttribute("role", "tab");
+      b.dataset.src = id;
+      return b;
+    });
+    seg.append(...tabs);
+    const note = el(
+      "p",
+      "aichat-kit-sub",
+      "Nên chọn bài trong thư viện nhạc để thiệp tải nhanh hơn. Thư viện chưa có bài bạn cần thì tìm trên YouTube.",
+    );
+    const libPane = el("div", "aichat-music-pane");
+    const ytPane = el("div", "aichat-music-pane");
+    body.append(cur, seg, note, libPane, ytPane);
+    const lib = musicLibPane(libPane);
+    const yt = musicYtPane(ytPane);
+
+    // Đổi tab chỉ đổi khung tìm, bài đang chọn giữ nguyên. YouTube tìm lần đầu khi mở tab.
+    function show(src) {
+      seg.style.setProperty("--i", src === "lib" ? "0" : "1");
+      tabs.forEach((b) => {
+        const on = b.dataset.src === src;
+        b.classList.toggle("is-on", on);
+        b.setAttribute("aria-selected", String(on));
+      });
+      libPane.hidden = src !== "lib";
+      ytPane.hidden = src !== "yt";
+      if (src === "yt") yt.start();
+    }
+    seg.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-src]");
+      if (b) show(b.dataset.src);
+    });
+
+    let first = true;
+    return (st) => {
+      const url = st.music?.url || "";
+      // Mở lần đầu: đang có bài YouTube thì mở tab YouTube, còn lại tab Thư viện.
+      if (first) {
+        first = false;
+        show(url && !url.startsWith(LIB_PREFIX) ? "yt" : "lib");
+      }
+      cur.hidden = !url;
+      cur.textContent = "";
+      if (url) {
+        cur.append(icon("music", 14), el("span", "", "Đang chọn: " + (st.music.title || "bài đã chọn")));
+        paintIcons(cur);
+      }
+      lib.mark(url);
+      yt.mark(url);
+    };
+  }
+
+  // Tab Thư viện nhạc: lọc tại chỗ, ▶ nghe thử, bấm tên bài là chọn.
+  function musicLibPane(pane) {
+    const form = el("form", "aichat-search");
+    const input = el("input", "aichat-search-input");
+    input.type = "search";
+    input.placeholder = "Tìm tên bài hát, ca sĩ…";
+    input.setAttribute("aria-label", "Tìm trong thư viện nhạc");
+    form.append(input);
+    const list = el("div", "aichat-yt");
+    pane.append(form, list);
+    let currentUrl = "";
+    let tracks = null; // null = đang tải
+
+    // Nghe thử: một thẻ <audio> dùng chung. Tab bị giấu/gỡ (sang tab YouTube, đóng khung
+    // chat) thì tự dừng — kiểm ở timeupdate vì ô chọn không có lúc dọn.
+    const audio = new Audio();
+    audio.preload = "none";
+    let playing = "";
+    const setPlaying = (file) => {
+      playing = file;
+      list.querySelectorAll("[data-file]").forEach((row) => {
+        const btn = row.querySelector(".aichat-lib-play");
+        const on = row.dataset.file === playing;
+        btn.setAttribute("aria-label", on ? "Dừng nghe thử" : "Nghe thử");
+        btn.replaceChildren(icon(on ? "pause" : "play", 16));
+      });
+      paintIcons(list);
+    };
+    ["pause", "ended", "error"].forEach((ev) => audio.addEventListener(ev, () => setPlaying("")));
+    audio.addEventListener("timeupdate", () => {
+      if (!list.isConnected || list.offsetParent === null) audio.pause();
+    });
+    function toggle(file) {
+      if (playing === file) return audio.pause();
+      const src = libSrc(file);
+      if (!src) return;
+      audio.src = src;
+      audio.play().then(() => setPlaying(file), () => setPlaying(""));
+    }
+
+    const mark = () =>
+      list.querySelectorAll("[data-file]").forEach((row) =>
+        row.classList.toggle("is-on", LIB_PREFIX + row.dataset.file === currentUrl),
+      );
+
+    function render() {
+      list.innerHTML = "";
+      if (!tracks) return list.appendChild(el("p", "aichat-kit-sub", "Đang tải thư viện nhạc…"));
+      if (!tracks.length)
+        return list.appendChild(el("p", "aichat-kit-sub", "Thư viện nhạc hiện chưa có bài nào."));
+      const words = fold(input.value).split(/\s+/).filter(Boolean);
+      const shown = tracks.filter((t) => words.every((w) => fold(`${t.title} ${t.artist}`).includes(w)));
+      if (!shown.length)
+        return list.appendChild(el("p", "aichat-kit-sub", "Không có bài nào khớp, bạn thử tên khác nhé."));
+      shown.forEach((t) => {
+        const row = el("div", "aichat-yt-item");
+        row.dataset.file = t.file;
+        const play = el("button", "aichat-lib-play");
+        play.type = "button";
+        play.addEventListener("click", () => toggle(t.file));
+        const pick = el("button", "aichat-lib-pick");
+        pick.type = "button";
+        pick.append(el("span", "aichat-yt-title", t.title));
+        if (t.artist) pick.append(el("span", "aichat-yt-meta", t.artist));
+        const label = t.artist ? `${t.title} – ${t.artist}` : t.title;
+        pick.addEventListener("click", () => sink().setMusic(LIB_PREFIX + t.file, label));
+        row.append(play, pick);
+        list.appendChild(row);
+      });
+      setPlaying(playing);
+      mark();
+    }
+
+    input.addEventListener("input", render);
+    form.addEventListener("submit", (e) => e.preventDefault());
+    render();
+    musicLibrary().then((l) => {
+      tracks = l;
+      render();
+    });
+
+    return {
+      mark(url) {
+        currentUrl = url;
+        mark();
+      },
+    };
+  }
+
+  // Tab YouTube: gõ tên bài (tự tìm khi ngừng gõ) hoặc dán link là chọn luôn.
+  function musicYtPane(pane) {
     const form = el("form", "aichat-search");
     const input = el("input", "aichat-search-input");
     input.type = "search";
     input.placeholder = "Tên bài hát hoặc link YouTube…";
-    input.setAttribute("aria-label", "Tìm nhạc nền");
+    input.setAttribute("aria-label", "Tìm nhạc trên YouTube");
     const go = el("button", "aichat-search-go");
     go.type = "submit";
     go.setAttribute("aria-label", "Tìm");
     go.appendChild(icon("search", 16));
     form.append(input, go);
     const list = el("div", "aichat-yt");
-    body.append(cur, form, list);
+    pane.append(form, list);
     let currentUrl = "";
+    let started = false;
 
     const mark = () =>
       list.querySelectorAll("[data-url]").forEach((b) => b.classList.toggle("is-on", b.dataset.url === currentUrl));
@@ -783,19 +972,25 @@
       e.preventDefault();
       run();
     });
-    search(MUSIC_DEFAULT_Q);
 
-    return (st) => {
-      currentUrl = st.music?.url || "";
-      cur.hidden = !currentUrl;
-      cur.textContent = "";
-      if (currentUrl) {
-        cur.append(icon("music", 14), el("span", "", "Đang chọn: " + (st.music.title || currentUrl)));
-        paintIcons(cur);
-      }
-      mark();
+    return {
+      // Gợi ý mặc định chỉ tìm khi khách mở tab này lần đầu — khỏi gọi YouTube vô ích.
+      start() {
+        if (started) return;
+        started = true;
+        search(MUSIC_DEFAULT_Q);
+      },
+      mark(url) {
+        currentUrl = url;
+        mark();
+      },
     };
   }
+
+  // Mỗi địa điểm dựng y bước Sự kiện/Tiệc của form Thiết lập: "Vị trí trên bản đồ" (gõ tên /
+  // toạ độ, hoặc nút Bản đồ mở openMapPicker) chỉ đổi BẢN ĐỒ; "Tên hiện trên thiệp" là chữ
+  // khách mời đọc (đi vào *_location qua tên của setMap).
+  const MAP_TYPE_MS = 800; // ngừng gõ bấy lâu mới ghim / lưu tên
 
   function mountMap(body) {
     const wrap = el("div", "aichat-places");
@@ -804,8 +999,10 @@
     let lastMaps = {};
     const rows = {};
     // Nơi tự ghim theo địa chỉ khách khai: side → địa chỉ đã dùng. Địa chỉ đổi mà bản đồ
-    // vẫn là bản tự ghim cũ thì ghim lại; khách đã tự chọn nơi khác thì để yên.
+    // vẫn là bản tự ghim cũ thì ghim lại. Khách tự sửa vị trí/tên (owned) thì thôi tự ghim —
+    // ở trang Thiết lập sửa tên là đổi luôn địa chỉ, tự ghim lại sẽ đè chỗ khách chọn.
     const autoPinned = {};
+    const owned = {};
 
     async function autoPin(side, addr) {
       autoPinned[side] = addr;
@@ -818,63 +1015,126 @@
       sink().setMap(side, window.cxMapEmbed(addr), addr);
     }
 
-    function buildRow(side, label, addr) {
+    function field(label, control, hint) {
+      const f = el("label", "aichat-place-field");
+      f.append(el("span", "aichat-place-flabel", label), control);
+      if (hint) f.appendChild(el("span", "aichat-place-hint", hint));
+      return f;
+    }
+
+    function buildRow(side, label) {
+      const r = { addr: "", timer: 0 };
       const row = el("div", "aichat-place");
       const head = el("div", "aichat-place-head");
-      const status = el("span", "aichat-place-ok");
-      status.append(icon("check", 12), el("span", "", "Đã ghim"));
-      head.append(el("span", "aichat-place-label", label), status);
-      const text = el("p", "aichat-place-addr", addr);
-      const acts = el("div", "aichat-place-acts");
-      acts.append(xbtn("Chọn vị trí khác", "other", "ghost"));
+      r.status = el("span", "aichat-place-ok");
+      r.status.append(icon("check", 12), el("span", "", "Đã ghim"));
+      head.append(el("span", "aichat-place-label", label), r.status);
 
-      // Bản đồ tự ghim theo địa chỉ (autoPin); nút này mở ĐÚNG bảng chọn openMapPicker của
-      // form Thiết lập (chạm/kéo ghim theo toạ độ, giữ nguyên tên) khi khách thấy sai chỗ.
-      acts.addEventListener("click", async (e) => {
-        if (e.target.closest("[data-act]")?.dataset.act !== "other") return;
+      // Vị trí trên bản đồ: ô gõ + nút "Bản đồ" (bảng chọn kéo ghim theo toạ độ, giữ tên).
+      r.q = el("input", "aichat-place-input");
+      r.q.type = "text";
+      r.q.placeholder = "Tên địa điểm hoặc toạ độ trên Maps";
+      const mapBtn = xbtn("Bản đồ", "map", "outline");
+      mapBtn.setAttribute("icon", "map-pin");
+      const qrow = el("div", "aichat-place-qrow");
+      qrow.append(r.q, mapBtn);
+
+      // Tên hiện trên thiệp: nhiều dòng như ô *_location của form (vd "(Nay thuộc …)").
+      r.name = el("textarea", "aichat-place-input aichat-place-name");
+      r.name.rows = 2;
+      r.name.placeholder = "Tên địa điểm, địa chỉ khách mời sẽ đọc";
+
+      const curMap = () => lastMaps[side];
+      const nameNow = () => r.name.value.trim() || curMap()?.name || r.addr;
+      const later = (fn) => {
+        clearTimeout(r.timer);
+        r.timer = setTimeout(fn, MAP_TYPE_MS);
+      };
+      r.q.addEventListener("input", () =>
+        later(async () => {
+          const text = r.q.value.trim();
+          if (!text) return;
+          try {
+            await ensureMapsHelper();
+          } catch {
+            return;
+          }
+          owned[side] = true;
+          sink().setMap(side, window.cxMapEmbed(window._cxParseMapQuery(text)), nameNow());
+        }),
+      );
+      r.name.addEventListener("input", () =>
+        later(() => {
+          const embed = curMap()?.embed;
+          const name = r.name.value.trim();
+          if (!embed || !name) return;
+          owned[side] = true;
+          sink().setMap(side, embed, name);
+        }),
+      );
+      row.addEventListener("click", async (e) => {
+        const b = e.target.closest('[data-act="map"]');
+        if (!b || b.disabled) return;
         try {
           await ensureMapPicker();
         } catch {
           window.showToast?.("Chưa mở được bản đồ, bạn thử lại giúp mình nhé.", "error");
           return;
         }
-        const cur = lastMaps[side];
+        const cur = curMap();
         window.openMapPicker(side, {
           embed: cur?.embed || "",
-          name: cur?.name || "",
-          query: cur ? "" : addr,
-          onApply: (embed, name) => sink().setMap(side, embed, name),
+          name: nameNow(),
+          query: cur ? "" : r.q.value.trim() || r.addr,
+          onApply: (embed, name) => {
+            owned[side] = true;
+            sink().setMap(side, embed, name);
+          },
         });
       });
 
-      const frame = el("iframe", "aichat-place-frame");
-      frame.hidden = true;
-      frame.loading = "lazy";
-      frame.title = "Bản đồ " + label;
-      frame.referrerPolicy = "no-referrer-when-downgrade";
+      r.frame = el("iframe", "aichat-place-frame");
+      r.frame.hidden = true;
+      r.frame.loading = "lazy";
+      r.frame.title = "Bản đồ " + label;
+      r.frame.referrerPolicy = "no-referrer-when-downgrade";
 
-      // Tiệc: ô "Trùng địa điểm …" như form Thiết lập — bật thì dùng luôn bản đồ của lễ,
-      // khỏi ghim lại. Nhãn nguồn điền lúc vẽ (vu quy có thể bật/tắt giữa chừng).
+      // Tiệc: ô "Trùng địa điểm …" như form Thiết lập — bật thì dùng luôn bản đồ + tên của lễ,
+      // hai ô dưới khoá lại. Nhãn nguồn điền lúc vẽ (vu quy có thể bật/tắt giữa chừng).
       // `key` riêng cho khung chat: x-check dựng id `${key}-btn`, trùng key của ô trên form
       // Thiết lập là hai phần tử cùng id.
-      let same = null;
+      r.same = null;
       if (PARTY_SIDES.includes(side)) {
-        same = el("div", "aichat-place-same");
+        r.same = el("div", "aichat-place-same");
         const check = document.createElement("x-check");
         check.setAttribute("key", `aichat-${side}-same-${++sameSeq}`);
         check.addEventListener("change", () => sink().setSame?.(side, check.checked));
-        same.appendChild(check);
+        r.same.appendChild(check);
         ensureXControls().catch(() => {});
       }
 
-      row.append(head, ...(same ? [same] : []), text, acts, frame);
+      row.append(
+        head,
+        ...(r.same ? [r.same] : []),
+        field("Vị trí trên bản đồ", qrow, "Ví dụ: GEM Center Nguyễn Bỉnh Khiêm, hoặc toạ độ chép từ Google Maps."),
+        field("Tên hiện trên thiệp", r.name),
+        r.frame,
+      );
+      r.row = row;
       paintIcons(row);
-      return { row, status, frame, text, acts, same, addr };
+      return r;
     }
+
+    // Ghi giá trị vào ô — trừ ô khách đang gõ dở.
+    const fill = (input, v) => {
+      if (document.activeElement !== input && input.value !== v) input.value = v;
+    };
 
     return (st) => {
       const sides = SIDES.filter(([s]) => st.places[s]);
-      const key = sides.map(([s]) => s + "=" + st.places[s]).join("|");
+      // Dựng lại khi DANH SÁCH nơi đổi, không theo chữ địa chỉ: sửa "Tên hiện trên thiệp" ở
+      // trang Thiết lập là đổi luôn st.places — dựng lại thì ô đang gõ mất con trỏ.
+      const key = sides.map(([s]) => s).join("|");
       if (key !== sidesKey) {
         sidesKey = key;
         wrap.innerHTML = "";
@@ -885,28 +1145,34 @@
           );
         }
         sides.forEach(([s, label]) => {
-          rows[s] = buildRow(s, label, st.places[s]);
+          rows[s] = buildRow(s, label);
           wrap.appendChild(rows[s].row);
         });
       }
       lastMaps = st.maps || {};
       Object.entries(rows).forEach(([s, r]) => {
+        r.addr = st.places[s];
         const src = partySource(s, st);
         const linked = !!src && isSame(s, src, st);
         if (r.same) {
           r.same.hidden = !src;
           setCheck(r.same.firstChild, linked, "Trùng địa điểm " + sideLabel(src).toLowerCase());
         }
-        r.acts.hidden = linked;
         // Trùng địa điểm: chép bản đồ của lễ sang tiệc mỗi khi lễ đổi. So trước khi ghi
         // để không lặp vô tận (setMap phát lại sự kiện đổi → vẽ lại lần nữa).
         const srcMap = linked ? st.maps[src] : null;
         if (srcMap && st.maps[s]?.embed !== srcMap.embed) sink().setMap(s, srcMap.embed, srcMap.name);
         const m = linked ? srcMap : st.maps[s];
         const stale = m && autoPinned[s] && m.name === autoPinned[s] && autoPinned[s] !== r.addr;
-        if (!linked && (!m || stale) && autoPinned[s] !== r.addr) autoPin(s, r.addr);
-        // Đã ghim thì hiện tên nơi đã ghim (có thể khác địa chỉ khách khai), như form Thiết lập.
-        r.text.textContent = m?.name || (linked ? st.places[src] : r.addr);
+        if (!linked && !owned[s] && (!m || stale) && autoPinned[s] !== r.addr) autoPin(s, r.addr);
+
+        const q = m && typeof window._queryFromEmbed === "function" ? window._queryFromEmbed(m.embed) : "";
+        fill(r.q, q || (linked ? "" : r.addr));
+        fill(r.name, m?.name || (linked ? st.places[src] : r.addr));
+        r.q.readOnly = r.name.readOnly = linked;
+        r.row.classList.toggle("is-linked", linked);
+        const btn = r.row.querySelector('[data-act="map"]');
+        if (btn) btn.disabled = linked;
         r.status.hidden = !m;
         r.frame.hidden = !m;
         if (m && r.frame.getAttribute("src") !== m.embed) r.frame.src = m.embed;
@@ -1051,7 +1317,7 @@
       theme: st.theme?.name || st.theme?.theme || "",
       photos: hasPhotos(st, PHOTO_SLOTS).map((s) => s[1]),
       gallery: st.gallery.length,
-      music: st.music?.url ? st.music.title || "bài từ YouTube" : "",
+      music: st.music?.url ? st.music.title || "đã chọn" : "",
       maps: SIDES.filter(([s]) => st.maps[s]).map((s) => s[0]),
       qr: hasPhotos(st, QR_SLOTS).map((s) => s[1]),
       places: Object.keys(st.places),

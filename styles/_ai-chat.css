@@ -1940,6 +1940,27 @@
   background: rgb(var(--brand-primary-rgb) / 0.3);
 }
 
+/* Hai tab nguồn nhạc (mountMusic ở js/ai-chat-media.js): mỗi tab một khung tìm. */
+.aichat-music-pane {
+  @apply flex flex-col gap-2;
+}
+
+.aichat-music-pane[hidden] {
+  display: none;
+}
+
+/* Thư viện nhạc: nút nghe thử tròn bên trái + vùng bấm chọn bài chiếm phần còn lại. */
+.aichat-lib-play {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-tint-rgb));
+}
+
+.aichat-lib-pick {
+  @apply flex min-w-0 flex-1 flex-col py-1 text-left;
+}
+
 .aichat-yt-item img {
   @apply h-10 w-16 shrink-0 rounded object-cover;
 
@@ -2005,14 +2026,43 @@
   display: none;
 }
 
-.aichat-place-addr {
-  @apply text-xs leading-snug;
-
-  color: rgb(var(--text-body-rgb));
+/* Hai ô như bước Sự kiện/Tiệc của form Thiết lập: "Vị trí trên bản đồ" (ô + nút Bản đồ) và
+   "Tên hiện trên thiệp" (nhiều dòng). Tiệc "trùng địa điểm" thì hai ô khoá — cờ .is-linked. */
+.aichat-place-field {
+  @apply flex flex-col gap-1;
 }
 
-.aichat-place-acts {
-  @apply flex flex-wrap gap-2;
+.aichat-place-flabel {
+  @apply text-[11px] font-medium;
+
+  color: rgb(var(--text-heading-rgb));
+}
+
+.aichat-place-hint {
+  @apply text-[11px] leading-snug;
+
+  color: rgb(var(--text-caption-rgb));
+}
+
+.aichat-place-qrow {
+  @apply flex items-center gap-2;
+}
+
+.aichat-place-input {
+  @apply w-full min-w-0 flex-1 rounded-lg px-3 py-2 text-sm outline-none;
+
+  color: rgb(var(--text-body-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--border-subtle-rgb));
+}
+
+.aichat-place-name {
+  @apply flex-none resize-none leading-snug;
+}
+
+.aichat-place.is-linked .aichat-place-input {
+  color: rgb(var(--text-caption-rgb));
+  background: rgb(var(--surface-control-rgb));
 }
 
 /* Ô "Trùng địa điểm …" của hai tiệc (mountMap ở js/ai-chat-media.js) — một <x-check>. */
@@ -2020,7 +2070,6 @@
   @apply flex;
 }
 
-.aichat-place-acts[hidden],
 .aichat-place-same[hidden] {
   display: none;
 }

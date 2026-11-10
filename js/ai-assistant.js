@@ -1474,7 +1474,7 @@
           gallery.length - SUM_GALLERY_MAX,
         ),
       );
-      sumRow(b, "Nhạc nền", st.music?.url ? st.music.title || "Bài từ YouTube" : "");
+      sumRow(b, "Nhạc nền", st.music?.url ? st.music.title || "Đã chọn" : "");
       sumRow(b, "Bản đồ", maps);
     });
 
