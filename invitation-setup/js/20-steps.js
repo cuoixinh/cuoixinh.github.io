@@ -55,6 +55,7 @@ const CX_STEPS = [
     id: "ceremony",
     label: "Sự kiện",
     icon: "calendar-heart",
+    vis: "ceremony",
     done: () => _cxAll("ceremony_date", "ceremony_time", "ceremony_location"),
     some: () => _cxAny("ceremony_date", "ceremony_time", "ceremony_location"),
   },
@@ -540,7 +541,7 @@ window.cxStepPrev = cxStepPrev;
 
 /**
  * Sang bước sau. Chỉ CHẶN khi thiếu ô [required] của chính bước đang mở (tên cô
- * dâu/chú rể, ngày cưới); các tiêu chí còn lại chỉ hiện ⚠ trên chip, không chặn.
+ * dâu/chú rể); các tiêu chí còn lại chỉ hiện ⚠ trên chip, không chặn.
  */
 function cxStepNext() {
   const cur = _cxStepAt(_cxStepIndex);

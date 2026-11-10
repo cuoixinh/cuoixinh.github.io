@@ -151,6 +151,45 @@ function initCeremonySection(data) {
     const src = val(`${_partySameSource(side)}_location`);
     togglePartySameLoc(side, null, !own || own === src);
   });
+  _syncPartyOnly();
+}
+
+// ============= TIỆC BÁO HỶ (enable_ceremony = false) =============
+// Không có lễ → thiệp lấy tiệc thay lễ (cxPartyOnly ở core/helpers/wedding-helper.js),
+// nên tiệc phải luôn bật: tắt lễ thì bật tiệc, tắt tiệc lúc đang báo hỷ thì bật lại lễ.
+
+function _isPartyOnly() {
+  return document.getElementById("enable_ceremony")?.value === "false";
+}
+
+function _onPartyOnlyToggle(section) {
+  const partyOn = document.getElementById("enable_party")?.value === "true";
+  if (_isPartyOnly() && !partyOn) {
+    if (section === "ceremony") {
+      toggleSectionVis("party");
+    } else {
+      toggleSectionVis("ceremony");
+      showToast("Thiệp cần có lễ hoặc tiệc — đã bật lại lễ cưới", "warning");
+      return;
+    }
+  }
+  if (section === "ceremony" && _isPartyOnly()) {
+    showToast("Tiệc báo hỷ: điền ngày, giờ, nơi đãi tiệc ở bước Tiệc cưới");
+  }
+  _syncPartyOnly();
+}
+
+// Tiệc không còn "trùng địa điểm lễ", lịch trình bỏ nhóm lễ.
+function _syncPartyOnly() {
+  const off = _isPartyOnly();
+  ["groom", "bride"].forEach((side) => {
+    const check = document.querySelector(`x-check[key="${side}-party-same"]`);
+    if (!check) return;
+    if (off && check.checked) togglePartySameLoc(side, null, false);
+    check.parentElement?.classList.toggle("hidden", off);
+  });
+  document.getElementById("timeline-ceremony-sub")?.classList.toggle("hidden", off);
+  _updateTimelineVuQuySection();
 }
 
 window.applySlug = applySlug;

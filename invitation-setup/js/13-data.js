@@ -221,6 +221,7 @@ const DEMO_FILL_FIELDS = [
   // Mẫu bật/tắt mục nào thì thiệp mới ra đúng dáng đó
   "rsvp_enabled",
   "vu_quy_enabled",
+  "enable_ceremony",
   "enable_family",
   "enable_party",
   "enable_photos",

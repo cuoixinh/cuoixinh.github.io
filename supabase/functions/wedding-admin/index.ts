@@ -118,7 +118,7 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
   // Toggle hiển thị mục
   'enable_family', 'enable_party', 'enable_photos', 'enable_timeline',
   'enable_love_story', 'enable_music', 'enable_gift', 'enable_footer',
-  'enable_wishes',
+  'enable_wishes', 'enable_ceremony',
   // Gói Miễn phí: bên được mở (luật ở PATCH + _shared/plans.ts)
   'free_side',
 ])

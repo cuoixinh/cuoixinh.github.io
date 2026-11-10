@@ -3,9 +3,22 @@
 <div data-step="ceremony"
   class="cx-block animate-fade-in"
 >
+  <!-- Tắt = tiệc báo hỷ: không có lễ, thiệp lấy ngày tiệc ở bước Tiệc cưới (16-ceremony.js). -->
+  <div class="cx-block-head">
+    <div class="cx-vis">
+      <div class="min-w-0">
+        <p class="cx-vis-t">Có tổ chức lễ cưới</p>
+        <p class="cx-vis-d">Tiệc báo hỷ — thiệp chỉ hiện ngày tiệc, điền ở bước Tiệc cưới.</p>
+      </div>
+      <x-switch
+        key="ceremony"
+        onclick="toggleSectionVis('ceremony', event)"
+      ></x-switch>
+    </div>
+  </div>
   <div id="section-ceremony-body" class="px-4 py-5 sm:p-6 space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <x-date label="Ngày cưới" name="ceremony_date" required></x-date>
+      <x-date label="Ngày cưới" name="ceremony_date"></x-date>
       <x-input
         label="Tên nghi lễ"
         name="ceremony_name"
