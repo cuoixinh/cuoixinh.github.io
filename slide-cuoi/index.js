@@ -1365,6 +1365,7 @@ const _SC_TABS = ["scenes", "data", "audio", "tpl"];
 function scTab(id) {
   const i = Math.max(0, _SC_TABS.indexOf(id));
   const seg = _scEl("sc-tabs");
+  const moved = seg.style.getPropertyValue("--i").trim() !== String(i);
   seg.style.setProperty("--i", String(i));
   seg.querySelectorAll("[data-tab]").forEach((b) => {
     const on = b.dataset.tab === _SC_TABS[i];
@@ -1373,9 +1374,26 @@ function scTab(id) {
     b.tabIndex = on ? 0 : -1;
   });
   _SC_TABS.forEach((t, k) => _scToggle(`sc-tab-${t}`, k === i));
+  // Sang tab KHÁC thì mở từ đầu nội dung (navbar dưới hiện lại theo _scNavSync).
+  if (moved && _SC_STUDIO.matches) document.querySelector(".sc-panel").scrollTop = 0;
+  else if (moved && scrollY > _scTabTopY()) scrollTo({ top: _scTabTopY() });
   // Dòng thời gian đo theo bề ngang khung — chỉ vẽ được khi tab đã hiện.
   if (_SC_TABS[i] === "audio" && typeof _scVoRender === "function") _scVoRender();
 }
+
+// Navbar dưới (điện thoại): cuộn vào nội dung tab là trượt khuất, về lại đầu tab mới hiện — cờ
+// body.sc-nav-off. Đầu tab = mốc cuộn mà dải tab vừa ghim (top tính ra px của khối sticky).
+function _scTabTopY() {
+  const bar = document.querySelector(".sc-tabs-bar");
+  const panel = document.querySelector(".sc-panel");
+  return Math.max(0, panel.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(bar).top) || 0));
+}
+let _scNavRaf = 0;
+function _scNavSync() {
+  _scNavRaf = 0;
+  document.body.classList.toggle("sc-nav-off", !_SC_STUDIO.matches && scrollY > _scTabTopY() + 4);
+}
+addEventListener("scroll", () => (_scNavRaf ||= requestAnimationFrame(_scNavSync)), { passive: true });
 _scEl("sc-tabs").addEventListener("click", (e) => {
   const b = e.target.closest("[data-tab]");
   if (b) scTab(b.dataset.tab);

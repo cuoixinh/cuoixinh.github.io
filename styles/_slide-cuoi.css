@@ -149,6 +149,13 @@ html.sc-lock body {
 }
 /* Đang phủ kín màn: ẩn navbar (trên + thanh tab dưới) và đưa sân khấu lên trên mọi lớp — khối
    sticky có z-index riêng nên khung `fixed` bên trong không vượt được lớp ngoài nó. */
+/* Navbar dưới trượt khuất khi đang cuộn trong nội dung tab (cờ body.sc-nav-off, index.js _scNavSync). */
+.sc-body .cx-tabbar {
+  transition: transform 0.3s ease;
+}
+.sc-body.sc-nav-off .cx-tabbar {
+  transform: translateY(calc(100% + 8px));
+}
 html.sc-lock .sc-stage {
   z-index: 200;
 }
