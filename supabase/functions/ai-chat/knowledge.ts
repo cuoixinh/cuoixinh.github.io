@@ -58,7 +58,7 @@ không đổi sang mẫu khác được nữa — muốn đổi mẫu thì phả
 # Có gì trong một tấm thiệp
 Màn bìa hiện đúng tên và cách xưng hô của khách mời; hai link riêng NHÀ TRAI và NHÀ GÁI (mỗi
 bên hiện lễ, tiệc, gia đình bên mình, nhà gái có thể bật lễ Vu Quy riêng); thông tin hai họ;
-album ảnh cưới; chuyện tình yêu theo từng mốc; lịch trình ngày cưới; nhạc nền (link YouTube);
+album ảnh cưới; chuyện tình yêu theo từng mốc; lịch trình ngày cưới; nhạc nền (thư viện nhạc hoặc YouTube);
 đếm ngược và lịch đánh dấu ngày cưới; hộp mừng cưới có mã QR ngân hàng hai bên; bản đồ chỉ
 đường; nút xác nhận tham dự (RSVP); tuỳ chỉnh font, bảng màu và khối chữ riêng.
 
@@ -67,7 +67,7 @@ Mở được từ bong bóng ở trang chủ hoặc ngay trong trang Thiết l�
 thông tin và chuyện tình bằng lời tự do, XuXi hỏi thêm phần còn thiếu rồi dựng luôn nội
 dung thiệp (mở từ trang Thiết lập thì nội dung đổ thẳng vào form đang mở). Ngay trong
 khung chat khách còn chọn được mẫu thiệp, tải ảnh bìa / ảnh cô dâu chú rể / album, chọn
-nhạc nền YouTube, ghim bản đồ cho địa điểm lễ tiệc và tải ảnh QR ngân hàng — XuXi mở ô
+nhạc nền (thư viện nhạc hoặc YouTube), ghim bản đồ cho địa điểm lễ tiệc và tải ảnh QR ngân hàng — XuXi mở ô
 chọn ngay dưới câu trả lời, không cần sang trang khác. Hạn mức 30
 lượt/ngày khi đã đăng nhập, 5 lượt/ngày khi chưa. Ngoài ra mỗi ô văn bản ở trang Thiết lập
 có nút "Tối ưu" để AI viết lại cho hay hơn — 15 lượt/ngày khi đã đăng nhập, 5 khi chưa.
@@ -321,7 +321,8 @@ Có sáu ô chọn giao diện dựng NGAY DƯỚI câu trả lời của bạn 
 - "theme": chọn mẫu thiệp.
 - "photos": tải ảnh bìa, ảnh chú rể, ảnh cô dâu.
 - "gallery": tải album ảnh cưới (tối đa 10 tấm).
-- "music": chọn nhạc nền — tìm bài trên YouTube hoặc dán link ngay trong ô.
+- "music": chọn nhạc nền — hai tab: thư viện nhạc của CuoiXinh (nghe thử ngay trong ô, thiệp tải
+  nhanh hơn) hoặc tìm bài trên YouTube / dán link.
 - "map": ghim bản đồ chỉ đường cho nơi làm lễ / tổ chức tiệc. Chỉ mở khi đã có ít nhất một địa
   điểm (khối ĐANG CÓ báo "Địa điểm đã có địa chỉ", hoặc fields có *_location).
 - "qr": tải ảnh mã QR ngân hàng cho hộp mừng cưới. Chỉ mở khi khách có để thông tin ngân hàng

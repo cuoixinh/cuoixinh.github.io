@@ -53,7 +53,6 @@ function cxPartyOnly(w) {
     ceremony_lunar: p("lunar") || "",
     ceremony_location: p("location") || "",
     ceremony_map_embed_url: p("map_embed_url") || "",
-    ceremony_use_embed: p("use_embed"),
     vu_quy_enabled: false,
     enable_party: false,
   };
@@ -64,6 +63,42 @@ function cxPartyOnly(w) {
       .map((i) => ({ ...i, type: "ceremony" }));
   }
   return out;
+}
+
+// Sáu ô địa chỉ nhập được NHIỀU DÒNG (textarea ở trang Thiết lập), vd "Xã A, huyện B
+// ⏎ (Nay thuộc xã C)". Chỉ đụng giá trị có xuống dòng: bỏ dòng trống, khoảng trắng thừa.
+const CX_ADDR_KEYS = [
+  "ceremony_location",
+  "vu_quy_location",
+  "groom_party_location",
+  "bride_party_location",
+  "groom_address",
+  "bride_address",
+];
+function cxTidyAddr(w) {
+  if (!w) return w;
+  const out = { ...w };
+  CX_ADDR_KEYS.forEach((k) => {
+    const v = out[k];
+    if (typeof v !== "string" || !/[\r\n]/.test(v)) return;
+    out[k] = v.split(/\r\n?|\n/).map((l) => l.trim()).filter(Boolean).join("\n");
+  });
+  return out;
+}
+
+// Mẫu vẽ địa chỉ bằng textContent nên xuống dòng bị gộp thành dấu cách. Dò theo NỘI DUNG
+// (khỏi sửa từng mẫu): nút chữ nào chứa một địa chỉ nhiều dòng thì thẻ cha giữ dòng.
+// Gọi SAU renderWedding.
+function cxKeepAddrLines(w) {
+  const vals = CX_ADDR_KEYS.map((k) => w?.[k]).filter(
+    (v) => typeof v === "string" && v.includes("\n"),
+  );
+  if (!vals.length || !document.body) return;
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    if (n.parentElement && vals.some((v) => n.data.includes(v)))
+      n.parentElement.style.whiteSpace = "pre-line";
+  }
 }
 
 // [ngày, tên] của nhóm mốc "ceremony" trong lịch trình — mẫu truyền tên lễ đang hiện ở
@@ -159,7 +194,7 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     }
     await guestReady;
 
-    wedding = cxVuQuyAsCeremony(cxPartyOnly(wedding));
+    wedding = cxVuQuyAsCeremony(cxPartyOnly(cxTidyAddr(wedding)));
 
     // Áp dụng tuỳ chỉnh font/màu chữ (nếu có) trước khi render
     if (typeof applyThemeSetting === "function") {
@@ -167,6 +202,7 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     }
 
     renderCallback(wedding);
+    cxKeepAddrLines(wedding);
 
     // Áp NỘI DUNG text đã sửa (phải sau render vì đổi textContent, không phải CSS)
     if (typeof applyTextOverrides === "function") {

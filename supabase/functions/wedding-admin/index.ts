@@ -1456,7 +1456,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       const nowIso = new Date().toISOString()
       const { data, error } = await supabase
         .from('weddings')
-        .select('slug, groom_name, bride_name, theme, ceremony_date, cover_image_url, gallery_images, image_focal_points')
+        .select('slug, groom_name, bride_name, theme, ceremony_date, enable_ceremony, groom_party_date, bride_party_date, cover_image_url, gallery_images, image_focal_points')
         .eq('payment_status', 'completed')
         .eq('showcase_consent', true)
         .eq('is_published', true)
@@ -1478,7 +1478,11 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
             groom_name: w.groom_name,
             bride_name: w.bride_name,
             theme: w.theme,
-            ceremony_date: w.ceremony_date,
+            // Tiệc báo hỷ: thiệp lấy ngày tiệc thay lễ (cxPartyOnly ở core/helpers/wedding-helper.js);
+            // link trần là bản nhà trai nên ưu tiên tiệc nhà trai.
+            ceremony_date: w.enable_ceremony === false
+              ? w.groom_party_date || w.bride_party_date || null
+              : w.ceremony_date,
             cover,
             focal,
           }

@@ -78,7 +78,7 @@ function togglePartySameLoc(side, event, force) {
   check.checked = newActive;
 
   const locationInput = document.querySelector(
-    `input[name="${side}_party_location"]`,
+    `textarea[name="${side}_party_location"]`,
   );
   const mapEmbedInput = document.getElementById(`${side}_party_map_embed_url`);
   const queryInput = document.getElementById(`${side}_party_map_query`);
@@ -106,7 +106,7 @@ function togglePartySameLoc(side, event, force) {
 
   if (newActive) {
     const src = _partySameSource(side);
-    const srcLoc = document.querySelector(`input[name="${src}_location"]`);
+    const srcLoc = document.querySelector(`textarea[name="${src}_location"]`);
     const srcMap = document.getElementById(`${src}_map_embed_url`);
 
     if (locationInput) {
@@ -146,7 +146,7 @@ function initCeremonySection(data) {
   // Ô "Trùng địa điểm" không có cột DB: suy lại từ dữ liệu — tiệc chưa có nơi riêng
   // hoặc nơi tiệc bằng đúng nơi nguồn thì coi là đang trùng.
   ["groom", "bride"].forEach((side) => {
-    const val = (n) => document.querySelector(`input[name="${n}"]`)?.value?.trim() || "";
+    const val = (n) => document.querySelector(`#wedding-form :is(input, textarea)[name="${n}"]`)?.value?.trim() || "";
     const own = val(`${side}_party_location`);
     const src = val(`${_partySameSource(side)}_location`);
     togglePartySameLoc(side, null, !own || own === src);

@@ -517,8 +517,10 @@ window.cxAiMediaSink = {
     removeGalleryItem(item.index);
   },
 
+  // Khung chat chỉ đưa bài thư viện ("lib:…"); nhánh YouTube giữ cho link cũ.
   async setMusic(url, title) {
-    await selectYouTubeSong(url, title);
+    if (cxIsLibMusic(url)) await selectLibSong(url, title);
+    else await selectYouTubeSong(url, title);
     _scheduleAutoSave("config");
     _cxMediaChanged();
   },

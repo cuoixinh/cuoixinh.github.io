@@ -250,9 +250,9 @@ function setupLunarDateListeners() {
   }
 
   // Auto-fill party location from address
-  const groomAddress = document.querySelector('input[name="groom_address"]');
+  const groomAddress = document.querySelector('textarea[name="groom_address"]');
   const groomPartyLocation = document.querySelector(
-    'input[name="groom_party_location"]',
+    'textarea[name="groom_party_location"]',
   );
 
   if (groomAddress && groomPartyLocation) {
@@ -268,9 +268,9 @@ function setupLunarDateListeners() {
     });
   }
 
-  const brideAddress = document.querySelector('input[name="bride_address"]');
+  const brideAddress = document.querySelector('textarea[name="bride_address"]');
   const bridePartyLocation = document.querySelector(
-    'input[name="bride_party_location"]',
+    'textarea[name="bride_party_location"]',
   );
 
   if (brideAddress && bridePartyLocation) {
@@ -379,7 +379,7 @@ function initializePage() {
   // Sync party "Trùng địa điểm" khi user gõ tay vào ceremony/vu_quy location
   ["ceremony_location", "vu_quy_location"].forEach((name) => {
     document
-      .querySelector(`input[name="${name}"]`)
+      .querySelector(`textarea[name="${name}"]`)
       ?.addEventListener("input", _syncPartyIfSame);
   });
 

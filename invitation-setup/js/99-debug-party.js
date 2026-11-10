@@ -40,7 +40,7 @@
   }
 
   function inputState(side) {
-    const i = document.querySelector(`input[name="${side}_party_location"]`);
+    const i = document.querySelector(`textarea[name="${side}_party_location"]`);
     const c = document.querySelector(`x-check[key="${side}-party-same"]`);
     if (!i) return `${side}: (không thấy input)`;
     return (
@@ -95,7 +95,7 @@
   }
 
   function hookSide(side) {
-    const i = document.querySelector(`input[name="${side}_party_location"]`);
+    const i = document.querySelector(`textarea[name="${side}_party_location"]`);
     const c = document.querySelector(`x-check[key="${side}-party-same"]`);
     if (!i || i._cxDbg) return !!i;
     i._cxDbg = true;

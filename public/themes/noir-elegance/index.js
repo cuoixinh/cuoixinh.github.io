@@ -200,8 +200,8 @@
       setText("cover-date", `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`);
 
     // Ngày ở chân màn mở đầu: ngày tiệc như màn bìa, chưa có thì ngày lễ.
-    const hd = d && !isNaN(d) ? d : new Date(w.ceremony_date);
-    if (!isNaN(hd)) {
+    const hd = d && !isNaN(d) ? d : w.ceremony_date ? new Date(w.ceremony_date) : null;
+    if (hd && !isNaN(hd)) {
       const pad = (n) => String(n).padStart(2, "0");
       setText("hero-date", `${pad(hd.getDate())} · ${pad(hd.getMonth() + 1)} · ${hd.getFullYear()}`);
     }
