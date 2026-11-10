@@ -816,8 +816,9 @@ body {
   margin-top: calc(var(--u) * 0.45 * var(--tt-gap));
 }
 .tt-person-name {
-  font-size: calc(var(--u) * 0.38);
-  letter-spacing: calc(var(--u) * 0.03);
+  font-family: "KattyDiona", cursive;
+  font-size: 28px;
+  letter-spacing: 0;
   color: rgb(var(--cx-heading-rgb));
 }
 .tt-person-name + .tt-person-name {

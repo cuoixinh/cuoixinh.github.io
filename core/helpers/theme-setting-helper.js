@@ -2514,6 +2514,12 @@ if (typeof window !== "undefined") {
 
   // Phân giải phần tử đang trỏ: ảnh (chỉnh kích thước) hay chữ (chỉnh phông…).
   function _resolveTarget(target) {
+    // Khối mẫu đánh dấu [data-cx-pick-whole] chọn NGUYÊN khối (để ẩn cả cụm),
+    // không chọn lẻ từng chữ/ảnh bên trong.
+    const whole =
+      target && target.closest ? target.closest("[data-cx-pick-whole]") : null;
+    if (whole && !whole.closest(".cx-no-edit, .cx-custom-block, .cx-el"))
+      return { el: whole, isImage: false };
     const img = target && target.closest ? target.closest("img") : null;
     // Thành phần / khối văn bản có luồng chọn riêng — ảnh bên trong chúng
     // (ảnh bìa bài hát…) không phải ảnh của thiệp để chỉnh cỡ.
