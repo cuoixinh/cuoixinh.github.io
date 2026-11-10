@@ -185,7 +185,10 @@ function _updateTimelineBridePartyDateBadge() {
 // Lịch lễ vu quy chỉ có khi bật vu quy; ngày = ngày vu quy, trống thì ngày lễ thành hôn.
 // Gọi lại khi công tắc vu quy, ngày vu quy hoặc ngày lễ đổi.
 function _updateTimelineVuQuySection() {
-  const on = document.getElementById("vu_quy_enabled")?.value === "true";
+  // Tiệc báo hỷ thì không có lễ nào, kể cả vu quy (_syncPartyOnly ở 16-ceremony.js).
+  const on =
+    document.getElementById("vu_quy_enabled")?.value === "true" &&
+    document.getElementById("enable_ceremony")?.value !== "false";
   document.getElementById("timeline-vu-quy-sub")?.classList.toggle("hidden", !on);
   const head = document.getElementById("timeline-ceremony-label");
   if (head) head.textContent = on ? "Lễ thành hôn" : "Lễ cưới";

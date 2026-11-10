@@ -6,6 +6,7 @@
 // ============= SECTION VISIBILITY TOGGLES =============
 
 const SECTION_VIS_FIELDS = {
+  ceremony: "enable_ceremony",
   family: "enable_family",
   party: "enable_party",
   photos: "enable_photos",
@@ -53,6 +54,7 @@ function toggleSectionVis(section, event) {
   ) {
     _updateTimelinePartySection();
   }
+  if (section === "ceremony" || section === "party") _onPartyOnlyToggle(section);
 }
 
 function _initVisToggles(data) {

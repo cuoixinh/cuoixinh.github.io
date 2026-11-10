@@ -34,6 +34,40 @@ function cxVuQuyAsCeremony(w) {
   return out;
 }
 
+// Tiệc báo hỷ (enable_ceremony = false): không có lễ, chỉ có tiệc. Tiệc của bên đang
+// xem (trống thì bên kia) đứng vào chỗ của lễ, rồi tắt mục Tiệc + vu quy để mẫu không
+// vẽ lặp — mẫu chỉ biết ceremony_* nên mọi chỗ (thư mời, đếm ngược, lịch, bản đồ) tự
+// ra ngày tiệc. Lịch trình: mốc tiệc của bên đó thành mốc "ceremony", mốc lễ bỏ đi.
+// Phải chạy TRƯỚC cxVuQuyAsCeremony.
+const CX_PARTY_ONLY_NAME = "Tiệc Báo Hỷ";
+function cxPartyOnly(w) {
+  if (!w || (w.enable_ceremony !== false && w.enable_ceremony !== "false")) return w;
+  const groom = isGroomSide();
+  let side = groom ? "groom" : "bride";
+  const other = groom ? "bride" : "groom";
+  if (!w[`${side}_party_date`] && w[`${other}_party_date`]) side = other;
+  const p = (k) => w[`${side}_party_${k}`];
+  const out = {
+    ...w,
+    ceremony_name: CX_PARTY_ONLY_NAME,
+    ceremony_date: p("date") || null,
+    ceremony_time: p("time") || "",
+    ceremony_lunar: p("lunar") || "",
+    ceremony_location: p("location") || "",
+    ceremony_map_embed_url: p("map_embed_url") || "",
+    ceremony_use_embed: p("use_embed"),
+    vu_quy_enabled: false,
+    enable_party: false,
+  };
+  if (Array.isArray(w.timeline)) {
+    const type = side === "groom" ? "party" : "bride-party";
+    out.timeline = w.timeline
+      .filter((i) => i?.type === type)
+      .map((i) => ({ ...i, type: "ceremony" }));
+  }
+  return out;
+}
+
 // [ngày, tên] của nhóm mốc "ceremony" trong lịch trình — mẫu truyền tên lễ đang hiện ở
 // thư mời, chỉ ca lịch chung khác ngày vu quy (cxVuQuyAsCeremony) mới đổi đi.
 function cxTimelineCeremony(w, ceremonyName) {
@@ -127,7 +161,7 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     }
     await guestReady;
 
-    wedding = cxVuQuyAsCeremony(wedding);
+    wedding = cxVuQuyAsCeremony(cxPartyOnly(wedding));
 
     // Áp dụng tuỳ chỉnh font/màu chữ (nếu có) trước khi render
     if (typeof applyThemeSetting === "function") {
