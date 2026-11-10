@@ -1374,26 +1374,47 @@ function scTab(id) {
     b.tabIndex = on ? 0 : -1;
   });
   _SC_TABS.forEach((t, k) => _scToggle(`sc-tab-${t}`, k === i));
-  // Sang tab KHÁC thì mở từ đầu nội dung (navbar dưới hiện lại theo _scNavSync).
+  // Sang tab KHÁC thì mở từ đầu nội dung; bấm tab (kể cả tab đang mở) là hiện lại navbar dưới.
   if (moved && _SC_STUDIO.matches) document.querySelector(".sc-panel").scrollTop = 0;
   else if (moved && scrollY > _scTabTopY()) scrollTo({ top: _scTabTopY() });
+  _scNavShow(true);
   // Dòng thời gian đo theo bề ngang khung — chỉ vẽ được khi tab đã hiện.
   if (_SC_TABS[i] === "audio" && typeof _scVoRender === "function") _scVoRender();
 }
 
-// Navbar dưới (điện thoại): cuộn vào nội dung tab là trượt khuất, về lại đầu tab mới hiện — cờ
-// body.sc-nav-off. Đầu tab = mốc cuộn mà dải tab vừa ghim (top tính ra px của khối sticky).
+// Navbar dưới (điện thoại), cờ body.sc-nav-off: cuộn XUỐNG trong nội dung tab là trượt khuất; chỉ
+// hiện lại khi bấm tab, khi vuốt LÊN NHANH (tốc độ trung bình trong _SC_NAV_WIN ms vượt
+// _SC_NAV_V px/ms — vuốt chậm là đang xem phía trên, giữ ẩn), hoặc khi đã về tới đầu tab.
+// Đầu tab = mốc cuộn mà dải tab vừa ghim (top tính ra px của khối sticky).
+const _SC_NAV_WIN = 120;
+const _SC_NAV_V = 0.6;
 function _scTabTopY() {
   const bar = document.querySelector(".sc-tabs-bar");
   const panel = document.querySelector(".sc-panel");
   return Math.max(0, panel.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(bar).top) || 0));
 }
-let _scNavRaf = 0;
-function _scNavSync() {
-  _scNavRaf = 0;
-  document.body.classList.toggle("sc-nav-off", !_SC_STUDIO.matches && scrollY > _scTabTopY() + 4);
-}
-addEventListener("scroll", () => (_scNavRaf ||= requestAnimationFrame(_scNavSync)), { passive: true });
+const _scNavShow = (on) => document.body.classList.toggle("sc-nav-off", !on && !_SC_STUDIO.matches);
+let _scNavPts = []; // [thời điểm, scrollY] các nhịp cuộn gần nhất CÙNG một chiều
+addEventListener(
+  "scroll",
+  () => {
+    const now = performance.now();
+    const y = scrollY;
+    const last = _scNavPts[_scNavPts.length - 1];
+    if (y <= _scTabTopY() + 4) _scNavShow(true);
+    else if (last && y > last[1]) _scNavShow(false);
+    // Đổi chiều thì đo lại từ nhịp vừa rồi — nhịp cuộn xuống cũ không được tính vào tốc độ đi lên.
+    const up = !!last && y < last[1];
+    const prev = _scNavPts.length > 1 && _scNavPts[_scNavPts.length - 2][1] > last[1];
+    _scNavPts = (last && up !== prev ? [last] : _scNavPts).filter((p) => now - p[0] <= _SC_NAV_WIN);
+    _scNavPts.push([now, y]);
+    if (!up) return;
+    // Đi lên: tốc độ trên cả cửa sổ, cần đủ quãng để khỏi bắt nhầm rung tay.
+    const [t0, y0] = _scNavPts[0];
+    if (y0 - y >= 24 && (y0 - y) / Math.max(16, now - t0) >= _SC_NAV_V) _scNavShow(true);
+  },
+  { passive: true },
+);
 _scEl("sc-tabs").addEventListener("click", (e) => {
   const b = e.target.closest("[data-tab]");
   if (b) scTab(b.dataset.tab);
