@@ -1611,8 +1611,8 @@ html.sc-typing .sc-tx-in {
   border-radius: 999px;
   font-size: 18px;
   color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 8px 20px -8px rgb(var(--action-primary-rgb) / 0.7);
+  background: rgb(var(--sc-on));
+  box-shadow: 0 8px 20px -8px rgb(var(--sc-on) / 0.7);
 }
 .sc-vo-play:focus-visible {
   outline: 2px solid rgb(var(--action-primary-rgb));
@@ -1669,6 +1669,10 @@ html.sc-typing .sc-tx-in {
   --vo-bg: 40 24 32;
   --vo-head-bg: 52 32 42;
   --vo-ink: 255 240 245;
+  /* Màu khối giọng đọc: xanh ngọc dịu (nhạc nền vàng đồng riêng) — tách hẳn màu nhấn hồng đỏ của
+     trang để dòng thời gian tối không chói. */
+  --vo-clip: 64 150 140;
+  --vo-clip-deep: 36 104 98;
   position: relative;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1731,7 +1735,7 @@ html.sc-typing .sc-tx-in {
   font-size: 11px;
   font-weight: 700;
   color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
+  background: rgb(var(--vo-clip, 64 150 140));
 }
 .sc-vo-name {
   flex: 1 1 auto;
@@ -1804,9 +1808,9 @@ html.sc-typing .sc-tx-in {
   background: rgb(var(--vo-ink) / 0.24);
 }
 .sc-vo-seg.is-sel {
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
-  box-shadow: inset 0 0 0 1px rgb(var(--white-rgb) / 0.6);
+  color: rgb(var(--vo-bg));
+  background: rgb(var(--vo-ink) / 0.9);
+  box-shadow: none;
 }
 .sc-vo-seg:focus-visible {
   outline: 2px solid rgb(var(--vo-ink) / 0.8);
@@ -1829,7 +1833,7 @@ html.sc-typing .sc-tx-in {
 }
 .sc-vo-n.is-new:hover {
   color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
+  background: rgb(var(--vo-clip));
 }
 /* Làn "Lớp mới": bấm chỗ nào là thêm file bắt đầu từ chỗ đó; vạch + chạy theo chuột báo trước. */
 .sc-vo-lane.is-add {
@@ -1892,7 +1896,7 @@ html.sc-typing .sc-tx-in {
   bottom: 4px;
   overflow: hidden;
   border-radius: 8px;
-  background: linear-gradient(180deg, rgb(var(--action-primary-rgb)), rgb(var(--action-primary-deep-rgb)));
+  background: linear-gradient(180deg, rgb(var(--vo-clip)), rgb(var(--vo-clip-deep)));
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
   cursor: grab;
   touch-action: none;
@@ -1998,7 +2002,7 @@ html.sc-typing .sc-tx-in {
   width: 2px;
   margin-left: -1px;
   background: rgb(var(--white-rgb));
-  box-shadow: 0 0 8px rgb(var(--action-primary-rgb) / 0.8);
+  box-shadow: 0 0 8px rgb(var(--white-rgb) / 0.45);
   pointer-events: none;
   will-change: transform;
 }
@@ -2159,16 +2163,17 @@ html.sc-typing .sc-tx-in {
   }
 }
 
-/* Thanh tuỳ chọn nổi trên khối âm thanh (x-popover #sc-vo-act): nền màu nhấn, nút icon + nhãn
-   xếp dọc, mũi tên chỉ đúng chỗ bấm (.sc-vo-pin — chấm vô hình JS đặt trong khối). */
+/* Thanh tuỳ chọn nổi trên khối âm thanh / cảnh (x-popover #sc-vo-act, #sc-vo-scene): nền tối cùng
+   tông dòng thời gian, nút icon + nhãn xếp dọc, mũi tên chỉ đúng chỗ bấm (.sc-vo-pin — chấm vô
+   hình JS đặt trong khối). Nằm ngoài .sc-vo-tl nên ghi thẳng màu, không mượn biến của nó. */
 .x-pop.sc-vo-act {
   flex-direction: row;
   gap: 4px;
   padding: 8px;
-  border: 0;
+  border: 1px solid rgb(255 240 245 / 0.14);
   border-radius: 20px;
-  background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 16px 32px -12px rgb(var(--action-primary-rgb) / 0.65);
+  background: rgb(46 28 37);
+  box-shadow: 0 20px 40px -12px rgb(20 10 16 / 0.6);
 }
 .x-pop.sc-vo-act.has-arrow.is-top::after,
 .x-pop.sc-vo-act.has-arrow.is-bottom::after {
@@ -2433,7 +2438,7 @@ html.sc-typing .sc-tx-in {
   color: rgb(var(--vo-bg));
   background: rgb(var(--vo-ink));
   border: 0;
-  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline: 2px solid rgb(var(--vo-clip));
 }
 /* Track khoá: làn kẻ sọc mờ, khối không kéo được. */
 .sc-vo-row.is-lock .sc-vo-lane {
@@ -2626,7 +2631,7 @@ html.sc-typing .sc-tx-in {
 }
 #sc-tl-snap[aria-pressed="true"] {
   color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
+  background: rgb(var(--sc-on));
 }
 /* Thanh tuỳ chọn của clip nhiều nút: xuống dòng khi màn hẹp, không tràn khỏi màn. */
 .x-pop.sc-vo-act {
