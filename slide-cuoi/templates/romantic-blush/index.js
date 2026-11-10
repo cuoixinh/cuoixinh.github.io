@@ -1,4 +1,4 @@
-// Slide sân khấu "Mãi mãi về sau" (1280×720, tông hồng): mỗi cảnh ảnh vòm cửa bay vào một bên,
+// Slide sân khấu "Mãi mãi về sau" (1280×720, tông hồng): mỗi cảnh ảnh bo góc bay vào một bên,
 // chữ bay vào bên kia, xen kẽ trái/phải, cánh hoa rơi suốt slide. Từ thiệp chỉ lấy ảnh, họ tên,
 // ngày cưới, chuyện tình — không tên cha mẹ, không địa chỉ (khách đã ở tiệc); lời văn là của mẫu.
 // Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime + slide-export.js.
@@ -232,13 +232,14 @@
     // Có đánh chữ: giữ thêm 4 giây sau khi gõ xong để khách đọc lại và chữ ký kịp hiện.
     const dur = Math.max(opt.dur || Math.min(16, Math.max(8, 4 + len * 0.045)), typedEnd ? typedEnd + 4 : 0);
     // Bên ảnh (bố cục cảnh ảnh trái; ảnh phải thì lật gương qua trục giữa): hai mảng tròn hồng
-    // bay vào từ góc · ảnh vòm cửa bay vào từ mép, hơi xoay rồi đứng lại · viền vòm mảnh lệch
+    // bay vào từ góc · ảnh bo góc bay vào từ mép, hơi xoay rồi đứng lại · viền bo góc mảnh lệch
     // ra sau tự vẽ dần quanh ảnh. Ảnh khách tự tải ở mục "Ảnh trong slide" (L.photos, khoá = id
     // cảnh) đè ảnh của thiệp. Mảng tròn là ô ảnh rỗng cắt tròn (chỉ tô màu `empty`).
     const PX = 72;
     const PY = 56;
     const PW = 440;
     const PH = 608;
+    const R = 28;
     const mx = (x, w) => (rev ? 1280 - x - w : x);
     const side = rev ? "right" : "left";
     const def = photo.file ? getImageUrl(photo.file) : "";
@@ -250,8 +251,8 @@
     const photoEls = [
       dot(-140, -160, 300, C.petal, rev ? "tr" : "tl", 0),
       dot(380, 492, 104, C.blush, "bottom", 0.25),
-      { type: "stroke", x: ax, y: PY + 24, w: PW, h: PH, paths: [_arch(ax, PY + 24, PW, PH)], color: C.line, lw: 1.5, anim: { k: "draw", t: 2.2, d: 1.1 } },
-      { type: "image", x: mx(PX, PW), y: PY, w: PW, h: PH, shape: "arch", src, focal: fp, kb: true, empty: C.surface, edit: sid, anim: { k: "fly", from: side, rot: rev ? 7 : -7, t: 1.7, d: 0.15 } },
+      { type: "stroke", x: ax, y: PY + 24, w: PW, h: PH, paths: [_round(ax, PY + 24, PW, PH, R)], color: C.line, lw: 1.5, anim: { k: "draw", t: 2.2, d: 1.1 } },
+      { type: "image", x: mx(PX, PW), y: PY, w: PW, h: PH, radius: R, src, focal: fp, kb: true, empty: C.surface, edit: sid, anim: { k: "fly", from: side, rot: rev ? 7 : -7, t: 1.7, d: 0.15 } },
     ];
 
     // Bên chữ: cột rộng 592, canh giữa theo chiều dọc. Khối có `indent` (dấu &) lùi vào.
@@ -266,16 +267,20 @@
   const _BG = { type: "grad", x: 0, y: 0, w: 1280, h: 720, stops: [[0, C.paper], [1, C.paper2]] };
   const _PETALS = { type: "drift", shape: "petal", n: 26, size: 20, speed: 30, sway: 48, color: [C.blush, C.rose, C.accent], alpha: 0.62, seed: 7 };
 
-  // Đường viền vòm cửa (cùng dáng shape "arch" của engine): mép trái từ đáy lên, nửa vòng tròn
-  // đỉnh, mép phải xuống đáy, khép lại ở đáy.
-  function _arch(x, y, w, h) {
-    const r = Math.min(w / 2, h);
-    const pts = [[x, y + h], [x, y + r]];
-    for (let k = 1; k <= 48; k++) {
-      const a = Math.PI + (Math.PI * k) / 48;
-      pts.push([x + w / 2 + Math.cos(a) * (w / 2), y + r + Math.sin(a) * r]);
-    }
-    pts.push([x + w, y + h], [x, y + h]);
+  // Đường viền chữ nhật bo góc r (cùng dáng `radius` của ảnh), chạy một vòng từ giữa mép trên.
+  function _round(x, y, w, h, r) {
+    const pts = [[x + w / 2, y]];
+    const corner = (cx, cy, a0) => {
+      for (let k = 0; k <= 12; k++) {
+        const a = a0 + (Math.PI / 2) * (k / 12);
+        pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+      }
+    };
+    corner(x + w - r, y + r, -Math.PI / 2);
+    corner(x + w - r, y + h - r, 0);
+    corner(x + r, y + h - r, Math.PI / 2);
+    corner(x + r, y + r, Math.PI);
+    pts.push([x + w / 2, y]);
     return pts;
   }
 })();
