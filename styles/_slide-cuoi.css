@@ -1683,10 +1683,7 @@ html.sc-typing .sc-tx-in {
 /* Màn hẹp: cột lớp chỉ còn số + nút tiếng (tên đã hiện trên khối). */
 @media (max-width: 639px) {
   .sc-vo-tl {
-    --vo-head: 96px;
-  }
-  .sc-vo-row.is-voice .sc-vo-name {
-    display: none;
+    --vo-head: 112px;
   }
 }
 .sc-vo-in {
@@ -2684,26 +2681,84 @@ html.sc-typing .sc-tx-in {
   margin: 0;
   color: rgb(var(--text-caption-rgb));
 }
-/* Màn hẹp: cột track chỉ còn số + ⋯ / M + S (khoá, thu âm nằm trong menu ⋯). */
+/* ── Điện thoại (dưới sm) ──
+   Thanh trên hai hàng gọn: [phát · đồng hồ · thu phóng] rồi dải công cụ trải đều cả bề ngang.
+   Cột track 112px: số + tên ngắn + ⋯ / M · S · micro (khoá nằm trong ⋯). Thanh tuỳ chọn của
+   clip thu nhỏ nút; menu track + bảng chuyển cảnh thành tấm trượt đáy (neo theo nút thì dài
+   hơn khoảng còn lại dưới nút, tràn xuống sau thanh điều hướng đáy). */
 @media (max-width: 639px) {
-  .sc-tl-h2 {
-    padding-left: 0;
+  .sc-vo-bar {
+    flex-wrap: wrap;
+    gap: 8px;
   }
-  .sc-tl-h2 .is-lock,
-  .sc-tl-h2 .sc-vo-rec-btn,
-  .sc-tl-h2 [data-mu-lib] {
-    display: none;
+  .sc-vo-play {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .sc-vo-clock output {
+    font-size: 15px;
+  }
+  .sc-tl-tools {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+  .sc-tl-tools button {
+    flex: 1 1 0;
+    width: auto;
+    height: 36px;
   }
   .sc-tl-tools #sc-tl-keys-btn {
     display: none;
   }
-}
-@media (max-width: 639px) {
-  .sc-vo-row.is-new .sc-tl-h2 .sc-vo-rec-btn {
-    display: inline-flex;
+  .sc-vo-name {
+    font-size: 11px;
   }
-  .sc-vo-bar {
-    flex-wrap: wrap;
+  .sc-tl-h2 {
+    padding-left: 0;
+  }
+  .sc-tl-h2 .is-lock,
+  .sc-tl-h2 [data-mu-lib] {
+    display: none;
+  }
+  .sc-tl-tog,
+  .sc-tl-tog.is-ico {
+    width: 28px;
+    height: 22px;
+  }
+  .sc-vo-note {
+    font-size: 11px;
+  }
+  .x-pop.sc-vo-act {
+    gap: 2px;
+    padding: 6px;
+    border-radius: 16px;
+  }
+  .sc-vo-act-btn {
+    min-width: 64px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  .sc-vo-act-ico {
+    font-size: 20px;
+  }
+  .x-pop.sc-tl-menu {
+    left: 8px !important;
+    right: 8px;
+    top: auto !important;
+    bottom: 96px;
+    width: auto !important;
+    max-height: calc(var(--vh, 1vh) * 100 - 128px);
+    overflow-y: auto;
+    border-radius: 20px;
+    box-shadow: 0 -8px 40px -12px rgb(0 0 0 / 0.35);
+  }
+  .x-pop.sc-tl-menu.has-arrow::after {
+    display: none;
+  }
+  .sc-tl-menu .x-pop-item {
+    min-height: 44px;
   }
 }
 /* Khung dòng thời gian nhận focus bằng mã (để phím tắt ăn) — không vẽ viền focus cho cú bấm chuột. */

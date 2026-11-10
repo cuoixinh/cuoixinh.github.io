@@ -224,9 +224,13 @@ function _scTlSelectAll() {
 const _SC_VO_STEPS = [0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300];
 const _scVoHead = (box) => parseFloat(getComputedStyle(box).getPropertyValue("--vo-head")) || 96;
 const _scVoFit = (box, total) => (total > 0 ? Math.max(0.5, (box.clientWidth - _scVoHead(box) - 24) / total) : 8);
+// Mức phóng mặc định không dưới _SC_VO_PPS — khung hẹp (điện thoại) thì gấp đôi cho clip vài giây
+// còn đọc được tên; vuốt ngang để xem phần còn lại.
 function _scVoPx() {
-  const fit = _scVoFit(_scTlBox(), _scVoTotal());
-  return _scVoPps > 0 ? _scVoPps : _scVoPps < 0 ? fit : Math.max(fit, _SC_VO_PPS);
+  const box = _scTlBox();
+  const fit = _scVoFit(box, _scVoTotal());
+  const min = box && box.clientWidth < 600 ? _SC_VO_PPS * 2.4 : _SC_VO_PPS;
+  return _scVoPps > 0 ? _scVoPps : _scVoPps < 0 ? fit : Math.max(fit, min);
 }
 const _SC_TL_TR = {
   fade: ["Mờ dần", "blend"],
@@ -781,7 +785,8 @@ function _scTlTrackMenu(btn, id) {
   const item = (act, icon, label, dis) =>
     `<button type="button" class="x-pop-item" role="menuitem" data-trk-act="${act}"${dis ? " disabled" : ""}><span class="x-pop-ico">${_scIco(icon)}</span><span>${label}</span></button>`;
   const v = Math.round(t.vol * 100);
-  pop.innerHTML = `<div class="sc-tl-vol">
+  pop.innerHTML = `<p class="sc-tl-pop-h">${_scEsc(music ? "Nhạc nền" : t.name)}</p>
+    <div class="sc-tl-vol">
       <label for="sc-tl-vol-in">${_scIco("volume-2")}Âm lượng track</label>
       <output id="sc-tl-vol-v">${v}%</output>
       <input id="sc-tl-vol-in" type="range" class="sc-range" min="0" max="100" step="5" value="${v}" />
