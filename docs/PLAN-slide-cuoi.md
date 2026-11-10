@@ -108,8 +108,10 @@ slide-cuoi/
   nối = kiểu chuyển vào cảnh sau (`timing.tr`, thêm "cut" = cắt thẳng). Cả ba nằm trong `timing`
   nên preview, trình chiếu và video xuất đi chung `retime` của engine.
 - Lịch sử hoàn tác (Ctrl+Z / Ctrl+Shift+Z, 100 bước, trong phiên): mỗi bước giữ trạng thái trước /
-  sau của track + clip, đoạn nhạc và `timing` — hoàn tác chỉ trả lại miền bước đó đổi, `timing`
-  trả từng khoá. Đổi bài nhạc không vào lịch sử (bài cất riêng). Phím tắt đầy đủ ở bảng `#sc-tl-keys`.
+  sau của track + clip (kèm mức giảm nhạc), bài nhạc + đoạn cắt, `timing`, chữ sửa và ảnh từng ô —
+  hoàn tác chỉ trả lại miền bước đó đổi, `timing` / chữ / ảnh trả từng khoá. Kéo thanh hay gõ một ô
+  chữ là MỘT bước (`_scTlHoldOpen`). Byte ảnh / file nhạc đã bỏ giữ trong bộ nhớ (`_scPhBank`,
+  `_scMuBank`) để còn trả lại. Đổi mẫu / thiệp là xoá trắng lịch sử. Phím tắt đầy đủ ở `#sc-tl-keys`.
 - Lưu: byte file ở IndexedDB kho `voice` (BYTE, không Blob, kèm đỉnh sóng âm) theo
   `<mẫu>|<id thiệp hoặc demo>|<src>`; track + clip + mức "nhạc nền khi có giọng" ở
   `localStorage.cx_slide_voice` — không lên server. Dữ liệu bản cũ (mỗi file một lớp) đọc thành mỗi

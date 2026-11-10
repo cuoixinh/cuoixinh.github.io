@@ -359,6 +359,7 @@ function _scTimeSync() {
 
 _scEl("sc-speed")?.addEventListener("input", (e) => {
   if (_scTimeBusy()) return;
+  _scHistHold("Thời lượng cả slide");
   const own = _scTiming();
   own.scale = Number(e.target.value);
   _scRangeFill(e.target);
@@ -370,6 +371,7 @@ _scEl("sc-speed")?.addEventListener("input", (e) => {
   _scEl("sc-time-total").textContent = _scClock(total);
   _scTimingSave(own);
 });
+_scEl("sc-speed")?.addEventListener("change", () => _scHistHoldEnd());
 
 // Về thời lượng mặc định — cảnh đã xoá vẫn xoá (khôi phục riêng ở khối "Cảnh đã xoá").
 // "Mặc định": chỉ trả thời lượng (cả slide + từng cảnh) — cảnh đã xoá, thứ tự và chuyển cảnh giữ nguyên.
@@ -386,6 +388,7 @@ _scEl("sc-cues").addEventListener("input", (e) => {
   if (!r || _scTimeBusy()) return;
   const c = _scCues[Number(r.dataset.dur)];
   if (!c) return;
+  _scHistHold("Thời lượng cảnh");
   const own = _scTiming();
   own.scenes = { ...(own.scenes || {}), [c.id]: Number(r.value) };
   _scRangeFill(r);
@@ -403,8 +406,11 @@ _scEl("sc-cues").addEventListener("click", (e) => {
   if (!c || !own.scenes) return;
   delete own.scenes[c.id];
   b.classList.add("is-off");
-  _scTimingSave(own);
+  _scHistDo("Thời lượng cảnh mặc định", () => _scTimingSave(own));
 });
+// Thả thanh thời lượng cảnh / rời ô chữ: đóng bước đang mở của lịch sử hoàn tác.
+_scEl("sc-cues").addEventListener("change", (e) => e.target.closest("[data-dur]") && _scHistHoldEnd());
+_scEl("sc-cues").addEventListener("focusout", (e) => e.target.closest(".sc-tx-in") && _scHistHoldEnd());
 
 function _scFieldHTML(x) {
   return `<label class="sc-tx">
@@ -549,6 +555,9 @@ function _scHiddenRender() {
 }
 // Bọc một thay đổi vào lịch sử hoàn tác của dòng thời gian (timeline.js) — trang chưa nạp nó thì chạy thẳng.
 const _scHistDo = (label, fn) => (typeof _scTlDo === "function" ? _scTlDo(label, fn) : fn());
+// Bước mở dài của lịch sử (kéo thanh, gõ chữ) — timeline.js _scTlHoldOpen / _scTlHoldClose.
+const _scHistHold = (label) => typeof _scTlHoldOpen === "function" && _scTlHoldOpen(label);
+const _scHistHoldEnd = () => typeof _scTlHoldClose === "function" && _scTlHoldClose();
 // Xoá cảnh thứ i — dùng chung cho nút trong danh sách cảnh và track Cảnh của dòng thời gian.
 function scSceneDelete(i) {
   const c = _scCues[i];
@@ -595,15 +604,21 @@ function _scTextSet(key, value, def) {
   _scTextsPush();
 }
 
-function scTextsReset() {
-  _scTextsSave({});
+// Đặt cả bộ chữ sửa (về lời mẫu, hoàn tác) và vẽ lại mọi ô theo bộ đó.
+function _scTextsApply(own) {
+  _scTextsSave(own);
   _scResetBtn();
   _scEl("sc-cues").querySelectorAll(".sc-tx-in").forEach((ta) => {
-    ta.value = ta.dataset.def;
+    const v = own[ta.dataset.key] ?? ta.dataset.def;
+    if (ta.value !== v) ta.value = v;
     _scGrow(ta);
-    ta.parentElement.querySelector(".sc-tx-undo")?.classList.add("is-off");
+    ta.parentElement.querySelector(".sc-tx-undo")?.classList.toggle("is-off", v === ta.dataset.def);
   });
   _scTextsPush();
+}
+
+function scTextsReset() {
+  _scHistDo("Về lời mẫu", () => _scTextsApply({}));
 }
 
 _scEl("sc-cues").addEventListener("click", (e) => {
@@ -613,7 +628,7 @@ _scEl("sc-cues").addEventListener("click", (e) => {
     ta.value = ta.dataset.def;
     _scGrow(ta);
     undo.classList.add("is-off");
-    _scTextSet(ta.dataset.key, ta.value, ta.dataset.def);
+    _scHistDo("Trả lời mẫu", () => _scTextSet(ta.dataset.key, ta.value, ta.dataset.def));
     ta.focus();
     return;
   }
@@ -668,6 +683,7 @@ _scEl("sc-cues").addEventListener("input", (e) => {
   if (!ta) return;
   _scGrow(ta);
   ta.parentElement.querySelector(".sc-tx-undo")?.classList.toggle("is-off", ta.value === ta.dataset.def);
+  _scHistHold("Sửa chữ");
   _scTextSet(ta.dataset.key, ta.value, ta.dataset.def);
 });
 
@@ -681,6 +697,10 @@ const _SC_PH_STORE = "photos";
 const _SC_MU_STORE = "music";
 const _SC_PH_LIMITS = { maxWidth: 2560, maxHeight: 2560, maxSizeMB: 2, quality: 0.9 };
 let _scPh = { key: null, map: {} }; // map: id cảnh → {id, blob, url, focal}
+// Mọi ảnh đã thấy của bộ dữ liệu đang chiếu (id ảnh → {blob, name}) — ảnh đã thay / bỏ vẫn còn đây
+// để hoàn tác trả lại được (IndexedDB thì đã xoá). Chỉ trong bộ nhớ, đổi mẫu / thiệp là dọn.
+const _scPhBank = new Map();
+let _scPhQ = Promise.resolve(); // ghi IndexedDB của hoàn tác chạy nối đuôi, không chồng nhau
 let _scPhSig = "";
 let _scPhPick = null; // {key, index} ô đang chọn ảnh
 let _scDbP = null;
@@ -723,6 +743,7 @@ async function _scPhLoad() {
   const key = _scTxKey();
   if (_scPh.key === key) return;
   _scPhClear();
+  _scPhBank.clear();
   _scPh.key = key;
   const prefix = key + "|";
   let keys = [];
@@ -742,6 +763,46 @@ async function _scPhLoad() {
     if (!v?.buf?.byteLength) return;
     const blob = new Blob([v.buf], { type: v.type || "image/jpeg" });
     _scPh.map[String(k).slice(prefix.length)] = { id: v.id, blob, url: URL.createObjectURL(blob), focal: v.focal || null };
+    _scPhBank.set(v.id, { blob, name: v.name || "" });
+  });
+}
+
+// Hoàn tác / làm lại: đặt ô ảnh theo refs = {id cảnh: {id ảnh, focal}} (byte lấy từ _scPhBank),
+// vẽ + gửi khung ngay, rồi ghi IndexedDB ở nền.
+function _scPhApply(refs) {
+  const txKey = _scTxKey();
+  if (_scPh.key !== txKey) return;
+  const map = {};
+  Object.entries(refs).forEach(([k, r]) => {
+    const cur = _scPh.map[k];
+    if (cur && cur.id === r.id) {
+      cur.focal = r.focal || null;
+      map[k] = cur;
+      return;
+    }
+    const b = _scPhBank.get(r.id);
+    if (b) map[k] = { id: r.id, blob: b.blob, url: URL.createObjectURL(b.blob), focal: r.focal || null };
+  });
+  Object.entries(_scPh.map).forEach(([k, p]) => map[k] !== p && URL.revokeObjectURL(p.url));
+  const old = _scPh.map;
+  _scPh.map = map;
+  _scPhRender();
+  _scPhSend();
+  const keys = new Set([...Object.keys(old), ...Object.keys(map)]);
+  _scPhQ = _scPhQ.then(async () => {
+    for (const k of keys) {
+      const p = map[k];
+      if (!p && !old[k]) continue;
+      try {
+        if (!p) await _scDbDo("readwrite", (st) => st.delete(`${txKey}|${k}`));
+        else {
+          const buf = await p.blob.arrayBuffer();
+          await _scDbDo("readwrite", (st) => st.put({ id: p.id, buf, type: p.blob.type, name: _scPhBank.get(p.id)?.name || "", focal: p.focal }, `${txKey}|${k}`));
+        }
+      } catch (e) {
+        console.warn("Không lưu được ảnh slide:", e);
+      }
+    }
   });
 }
 
@@ -947,6 +1008,7 @@ _scEl("sc-ph-file").addEventListener("change", async (e) => {
     return;
   }
   const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  await _scPhQ;
   try {
     await _scDbDo("readwrite", (st) => st.put({ id, buf, type, name: file.name, focal }, `${txKey}|${pick.key}`));
   } catch (err) {
@@ -956,7 +1018,8 @@ _scEl("sc-ph-file").addEventListener("change", async (e) => {
   if (_scPh.key !== txKey) return URL.revokeObjectURL(url); // đã đổi mẫu / thiệp trong lúc lưu
   const old = _scPh.map[pick.key];
   if (old) URL.revokeObjectURL(old.url);
-  _scPh.map[pick.key] = { id, blob, url, focal };
+  _scPhBank.set(id, { blob, name: file.name });
+  _scHistDo("Đổi ảnh", () => (_scPh.map[pick.key] = { id, blob, url, focal }));
   _scPhRender();
   _scPhSend(pick.index);
 });
@@ -968,7 +1031,8 @@ async function scPhotoFocal(key, index, w, h) {
   if (!own) return;
   const focal = await _scPhFocal(own.url, own.focal, w, h);
   if (!focal || _scPh.key !== txKey || _scPh.map[key] !== own) return;
-  own.focal = focal;
+  _scHistDo("Lấy nét ảnh", () => (own.focal = focal));
+  await _scPhQ;
   try {
     const dbKey = `${txKey}|${key}`;
     await _scDbDo("readwrite", (st) => {
@@ -985,13 +1049,14 @@ async function scPhotoFocal(key, index, w, h) {
 
 async function scPhotoRemove(key, index) {
   const txKey = _scTxKey();
+  await _scPhQ;
   try {
     await _scDbDo("readwrite", (st) => st.delete(`${txKey}|${key}`));
   } catch (e) {}
   if (_scPh.key !== txKey) return;
   const old = _scPh.map[key];
   if (old) URL.revokeObjectURL(old.url);
-  delete _scPh.map[key];
+  _scHistDo(txKey.endsWith("|demo") ? "Dùng ảnh mẫu" : "Dùng ảnh thiệp", () => delete _scPh.map[key]);
   _scPhRender();
   _scPhSend(index);
 }
@@ -999,12 +1064,13 @@ async function scPhotoRemove(key, index) {
 async function scPhotosReset() {
   if (_scPhBusy()) return;
   const txKey = _scTxKey();
+  await _scPhQ;
   try {
     const prefix = txKey + "|";
     await _scDbDo("readwrite", (st) => st.delete(IDBKeyRange.bound(prefix, prefix + "\uffff")));
   } catch (e) {}
   if (_scPh.key !== txKey) return;
-  _scPhClear();
+  _scHistDo("Về ảnh của thiệp", _scPhClear);
   _scPhRender();
   _scPhSend();
 }
@@ -1016,6 +1082,10 @@ async function scPhotosReset() {
 const _SC_MU_MAX = 30 * 1024 * 1024;
 const _SC_MU_EXT = /\.(mp3|m4a|aac|wav)$/i;
 let _scMu = { key: null, pick: null }; // pick: {mode:"file", id, blob, name, dur} | {mode:"lib", id} | null
+// File nhạc đã thấy của thiệp đang chiếu (id → {blob, name, dur}): đổi / bỏ bài rồi hoàn tác vẫn có
+// byte để trả lại (IndexedDB chỉ giữ bài đang dùng). Chỉ trong bộ nhớ, đổi thiệp là dọn.
+const _scMuBank = new Map();
+let _scMuQ = Promise.resolve(); // ghi IndexedDB của hoàn tác chạy nối đuôi
 let _scLib = null; // bài trong thư viện; null = chưa tải
 let _scLibReq = null;
 let _scPrev = null; // <audio> nghe thử bài thư viện
@@ -1108,6 +1178,7 @@ async function _scMuLoad() {
   const key = _scMuKey();
   if (_scMu.key === key) return;
   _scMu = { key, pick: null };
+  _scMuBank.clear();
   let rec = null;
   try {
     rec = await _scDbDo("readonly", (st) => st.get(key), _SC_MU_STORE);
@@ -1117,12 +1188,14 @@ async function _scMuLoad() {
   if (_scMu.key !== key) return;
   if (rec?.mode === "file" && rec.buf?.byteLength) {
     _scMu.pick = { mode: "file", id: rec.id, blob: new Blob([rec.buf], { type: rec.type || "audio/mpeg" }), name: rec.name || "", dur: rec.dur || 0 };
+    _scMuBank.set(rec.id, { blob: _scMu.pick.blob, name: _scMu.pick.name, dur: _scMu.pick.dur });
   }
   // Bài thư viện: KHÔNG chờ kho (dịch vụ ngoài) — slide chạy ngay chưa có nhạc, kho tải xong mà
   // còn bài đó thì mới bật; kho chết thì slide chạy không nhạc.
   _scLibLoad().then(() => {
     if (rec?.mode !== "lib" || _scMu.key !== key || _scMu.pick || !_scTrack(rec.id)) return;
     _scMu.pick = { mode: "lib", id: rec.id };
+    if (typeof _scTlRebase === "function") _scTlRebase("mu");
     _scMuRender();
     _scMuSend();
   });
@@ -1152,6 +1225,7 @@ function _scMuBusy() {
 
 async function _scMuSave(rec) {
   const key = _scMuKey();
+  await _scMuQ;
   try {
     await _scDbDo("readwrite", (st) => (rec ? st.put(rec, key) : st.delete(key)), _SC_MU_STORE);
   } catch (e) {
@@ -1214,8 +1288,11 @@ _scEl("sc-mu-file").addEventListener("change", async (e) => {
   }
   const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
   if (!(await _scMuSave({ mode: "file", id, buf, type, name: file.name, dur }))) return;
-  _scMu.pick = { mode: "file", id, blob, name: file.name, dur };
-  _scMuCutSave(); // bài mới: về nguyên bài
+  _scMuBank.set(id, { blob, name: file.name, dur });
+  _scHistDo("Đổi nhạc", () => {
+    _scMu.pick = { mode: "file", id, blob, name: file.name, dur };
+    _scMuCutSave(); // bài mới: về nguyên bài
+  });
   _scPreviewStop();
   _scMuRender();
   _scMuSend();
@@ -1225,8 +1302,10 @@ _scEl("sc-mu-file").addEventListener("change", async (e) => {
 async function scMusicLib(id) {
   if (_scMuBusy() || !_scTrack(id)) return;
   if (!(await _scMuSave({ mode: "lib", id }))) return;
-  _scMu.pick = { mode: "lib", id };
-  _scMuCutSave();
+  _scHistDo("Đổi nhạc", () => {
+    _scMu.pick = { mode: "lib", id };
+    _scMuCutSave();
+  });
   _scPreviewStop();
   _scMuRender();
   _scMuSend();
@@ -1235,10 +1314,47 @@ async function scMusicLib(id) {
 async function scMusicClear() {
   if (_scMuBusy()) return;
   if (!(await _scMuSave(null))) return;
-  _scMu.pick = null;
+  _scHistDo("Bỏ nhạc", () => {
+    _scMu.pick = null;
+    _scMuCutSave();
+  });
+  _scMuRender();
+  _scMuSend();
+}
+
+// Hoàn tác / làm lại: m = {pid, start, in, len, full, fi, fo, env} (bản _scTlState) hoặc null = không
+// nhạc. Đổi bài thì lấy byte từ _scMuBank; đặt + gửi khung ngay, ghi IndexedDB ở nền.
+function _scMuApply(m) {
+  const cur = _scMu.pick;
+  let rec;
+  if (!m) {
+    if (!cur) return;
+    _scMu.pick = null;
+    rec = null;
+  } else if (m.pid !== _scMuPid(cur)) {
+    const [mode, id] = [m.pid.slice(0, m.pid.indexOf(":")), m.pid.slice(m.pid.indexOf(":") + 1)];
+    const b = mode === "file" ? _scMuBank.get(id) : null;
+    if (mode === "lib") _scMu.pick = { mode, id };
+    else if (b) _scMu.pick = { mode, id, blob: b.blob, name: b.name, dur: b.dur };
+    else return;
+    rec = mode === "lib" ? { mode, id } : { mode, id, blob: b.blob, name: b.name, dur: b.dur };
+  }
+  if (m) Object.assign(_scMuCut(), { start: m.start, in: m.in, len: m.len, full: m.full, fi: m.fi, fo: m.fo, env: m.env || [] });
   _scMuCutSave();
   _scMuRender();
   _scMuSend();
+  if (rec === undefined) return;
+  const key = _scMuKey();
+  _scMuQ = _scMuQ.then(async () => {
+    try {
+      let row = rec;
+      if (rec?.blob) row = { mode: "file", id: rec.id, buf: await rec.blob.arrayBuffer(), type: rec.blob.type, name: rec.name, dur: rec.dur };
+      if (_scMuKey() !== key) return;
+      await _scDbDo("readwrite", (st) => (row ? st.put(row, key) : st.delete(key)), _SC_MU_STORE);
+    } catch (e) {
+      console.warn("Không lưu được nhạc slide:", e);
+    }
+  });
 }
 
 // Nghe thử một bài thư viện ngay trên trang (không đổi nhạc của slide).

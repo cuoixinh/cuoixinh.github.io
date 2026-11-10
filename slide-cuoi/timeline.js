@@ -30,19 +30,48 @@ function _scTlToast(msg, type = "success") {
 }
 
 // ── Lịch sử hoàn tác ──
-// Mỗi bước giữ trạng thái TRƯỚC và SAU của ba miền (track + clip · đoạn nhạc · thời gian cảnh);
-// hoàn tác chỉ trả lại miền bước đó đã đổi — chỉnh thanh "Thời lượng" ở tab Cảnh xen giữa không bị
-// cuốn theo. Thời gian cảnh trả từng khoá (scale · từng cảnh · off · order · tr), không đè cả cụm.
+// Mỗi bước giữ trạng thái TRƯỚC và SAU của các miền: vo (track + clip + mức giảm nhạc) · mu (bài
+// nhạc + đoạn cắt) · tm (thời gian cảnh) · tx (chữ sửa) · ph (ảnh từng ô: id + điểm lấy nét). Hoàn
+// tác chỉ trả lại miền bước đó đã đổi; tm/tx/ph trả từng khoá, không đè cả cụm. Byte ảnh / file nhạc
+// cũ nằm ở _scPhBank / _scMuBank (index.js) để còn trả lại được sau khi đã xoá khỏi IndexedDB.
+const _SC_TL_DOMS = ["vo", "mu", "tm", "tx", "ph"];
 const _scTlH = { undo: [], redo: [], cur: null };
 function _scTlState() {
   const mu = _scMu.pick ? _scMuCut() : null;
+  const ph = {};
+  Object.keys(_scPh.map)
+    .sort()
+    .forEach((k) => (ph[k] = { id: _scPh.map[k].id, focal: _scPh.map[k].focal || null }));
   return {
-    vo: JSON.stringify({ clips: _scVo.clips.map(_scVoClipMeta), tracks: _scVo.tracks, mtr: _scVo.mtr }),
+    vo: JSON.stringify({ clips: _scVo.clips.map(_scVoClipMeta), tracks: _scVo.tracks, mtr: _scVo.mtr, duck: _scVo.duck }),
     mu: mu ? JSON.stringify({ pid: _scMuPid(_scMu.pick), start: mu.start, in: mu.in, len: mu.len, full: mu.full, fi: mu.fi, fo: mu.fo, env: mu.env || [] }) : "",
     tm: JSON.stringify(_scTiming()),
+    tx: JSON.stringify(_scTexts()),
+    ph: JSON.stringify(ph),
   };
 }
+// Bước MỞ DÀI: gõ chữ (từ phím đầu tới lúc rời ô), kéo thanh (từ nấc đầu tới lúc thả) gom thành một
+// bước. Bước khác bắt đầu, hay bấm hoàn tác / làm lại, thì đóng bước đang mở trước.
+let _scTlHold = "";
+function _scTlHoldOpen(label) {
+  if (_scTlHold === label && _scTlH.cur) return;
+  _scTlHoldClose();
+  _scTlBegin();
+  _scTlHold = label;
+}
+function _scTlHoldClose() {
+  if (!_scTlHold) return;
+  const label = _scTlHold;
+  _scTlHold = "";
+  _scTlEnd(label);
+}
+// Dữ liệu tự nạp xong giữa chừng một bước đang mở (bài thư viện về trễ) không phải thao tác của
+// người dùng: dời mốc TRƯỚC của bước đó theo, để hoàn tác không gỡ luôn nó.
+function _scTlRebase(dom) {
+  if (_scTlH.cur) _scTlH.cur.before[dom] = _scTlState()[dom];
+}
 function _scTlBegin() {
+  if (_scTlHold) _scTlHoldClose();
   if (!_scTlH.cur) _scTlH.cur = { before: _scTlState(), depth: 0 };
   _scTlH.cur.depth++;
 }
@@ -52,7 +81,7 @@ function _scTlEnd(label) {
   const before = H.cur.before;
   H.cur = null;
   const after = _scTlState();
-  if (before.vo === after.vo && before.mu === after.mu && before.tm === after.tm) return;
+  if (_SC_TL_DOMS.every((d) => before[d] === after[d])) return;
   H.undo.push({ before, after, label: label || "", key: _scVo.key });
   if (H.undo.length > _SC_TL_HIST) H.undo.shift();
   H.redo = [];
@@ -67,6 +96,7 @@ function _scTlDo(label, fn) {
   }
 }
 function _scTlReset() {
+  _scTlHold = "";
   _scTlH.undo = [];
   _scTlH.redo = [];
   _scTlH.cur = null;
@@ -107,25 +137,38 @@ function _scTlTimingMerge(cur, from, to) {
   });
   return cur;
 }
+// Chữ / ảnh: trả đúng các khoá bước này đổi (from → to) vào bản hiện tại.
+function _scTlKeyMerge(cur, from, to) {
+  new Set([...Object.keys(from), ...Object.keys(to)]).forEach((k) => {
+    if (JSON.stringify(from[k]) === JSON.stringify(to[k])) return;
+    if (to[k] == null) delete cur[k];
+    else cur[k] = JSON.parse(JSON.stringify(to[k]));
+  });
+  return cur;
+}
 function _scTlApply(to, from) {
   if (to.vo !== from.vo) {
     const v = JSON.parse(to.vo);
     _scVo.clips = v.clips.filter((c) => _scVo.srcs.has(c.src));
     _scVo.tracks = v.tracks;
     _scVo.mtr = v.mtr;
+    if (Number.isFinite(v.duck)) _scVo.duck = v.duck;
     _scTlSel = new Set([..._scTlSel].filter((id) => id === _SC_VO_MU || _scVo.clips.some((c) => c.id === id)));
   }
-  if (to.mu !== from.mu && to.mu && _scMu.pick) {
-    const m = JSON.parse(to.mu);
-    const c = _scMuCut();
-    if (c && m.pid === _scMuPid(_scMu.pick)) Object.assign(c, { start: m.start, in: m.in, len: m.len, full: m.full, fi: m.fi, fo: m.fo, env: m.env });
-  }
+  if (to.mu !== from.mu) _scMuApply(to.mu ? JSON.parse(to.mu) : null);
   if (to.tm !== from.tm) _scTimingSave(_scTlTimingMerge(_scTiming(), JSON.parse(from.tm), JSON.parse(to.tm)));
+  if (to.tx !== from.tx) _scTextsApply(_scTlKeyMerge(_scTexts(), JSON.parse(from.tx), JSON.parse(to.tx)));
+  if (to.ph !== from.ph) {
+    const cur = {};
+    Object.entries(_scPh.map).forEach(([k, p]) => (cur[k] = { id: p.id, focal: p.focal || null }));
+    _scPhApply(_scTlKeyMerge(cur, JSON.parse(from.ph), JSON.parse(to.ph)));
+  }
   _scVoSave();
   _scVoSend();
   _scVoRender();
 }
 function scTlUndo() {
+  _scTlHoldClose();
   if (_scVoBusy() || _scTlD || _scTlH.cur) return;
   const e = _scTlH.undo.pop();
   if (!e) return;
@@ -136,6 +179,7 @@ function scTlUndo() {
   _scTlToast(`Đã hoàn tác: ${e.label}`, "info");
 }
 function scTlRedo() {
+  _scTlHoldClose();
   if (_scVoBusy() || _scTlD || _scTlH.cur) return;
   const e = _scTlH.redo.pop();
   if (!e) return;
@@ -532,12 +576,11 @@ _scEl("sc-vo-act")?.addEventListener("click", (e) => {
   }
 });
 
-// Bỏ nhạc nền: đổi bài không nằm trong lịch sử hoàn tác (bài cất riêng ở index.js) nên hỏi lại.
+// Bỏ nhạc nền (Delete trên khối nhạc / nút trong thanh tuỳ chọn) — hoàn tác trả lại được cả bài.
 async function _scTlMusicClear() {
-  const ok = await (window.showConfirm?.("Bỏ nhạc nền?", "Slide sẽ không còn nhạc nền. Muốn có lại thì chọn lại bài trong thư viện hoặc từ máy.", { confirmText: "Bỏ nhạc", type: "error" }) ?? true);
-  if (!ok) return;
   _scTlSel.delete(_SC_VO_MU);
-  scMusicClear();
+  await scMusicClear();
+  if (!_scMu.pick) _scTlToast("Đã bỏ nhạc nền. Ctrl+Z để hoàn tác.");
 }
 
 // ── Thao tác trên clip ──
@@ -1569,12 +1612,14 @@ document.addEventListener("keydown", (e) => {
 // ── Thanh trên dòng thời gian ──
 _scEl("sc-vo-duck")?.addEventListener("input", (e) => {
   if (_scVoBusy()) return;
+  _scTlHoldOpen("Giảm nhạc khi có giọng");
   _scVo.duck = Number(e.target.value) / 100;
   _scRangeFill(e.target);
   _scEl("sc-vo-duck-v").textContent = `${e.target.value}%`;
   _scVoSave();
   _scVoSend();
 });
+_scEl("sc-vo-duck")?.addEventListener("change", _scTlHoldClose);
 _scEl("sc-vo-play")?.addEventListener("click", () => {
   if (_scVoRec) return _scVoRecStop();
   _scFrame.contentWindow?.postMessage({ type: "cx-slide-play", on: !_scVoT.playing }, location.origin);
