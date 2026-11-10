@@ -441,10 +441,13 @@ function _scVoPx() {
   return _scVoPps > 0 ? _scVoPps : _scVoPps < 0 ? fit : Math.max(fit, _SC_VO_PPS);
 }
 
+// Dòng thời gian đo theo bề ngang khung: chỉ vẽ khi đang hiện (dock đáy, hoặc tab Âm thanh đang mở).
+const _scVoShown = (box) => !!box && box.getClientRects().length > 0;
+
 function _scVoRender() {
   const box = _scEl("sc-vo-tl");
   _scEl("sc-vo-act")?.close?.(); // khối neo sắp bị vẽ lại
-  if (!box || _scEl("sc-tab-audio")?.classList.contains("hidden")) return;
+  if (!_scVoShown(box)) return;
   const total = _scVoTotal();
   const pps = _scVoPx();
   const W = Math.max(box.clientWidth - _scVoHead(box), Math.ceil(total * pps) + 24);
@@ -684,14 +687,18 @@ function _scVoLoop() {
   if (_scVoRaf) return;
   const step = () => {
     const box = _scEl("sc-vo-tl");
-    if (!box || _scEl("sc-tab-audio")?.classList.contains("hidden")) {
+    if (!_scVoShown(box)) {
       _scVoRaf = 0;
       return;
     }
     const t = _scVoNow();
     const pps = _scVoPx();
     const ph = box.querySelector(".sc-vo-ph");
-    if (ph) ph.style.transform = `translateX(${(t * pps).toFixed(1)}px)`;
+    if (ph) {
+      ph.style.transform = `translateX(${(t * pps).toFixed(1)}px)`;
+      // Cuộn quá đầu phát thì giấu, không thì nó vẽ đè lên cột tên lớp ghim bên trái.
+      ph.style.visibility = t * pps < box.scrollLeft - 1 ? "hidden" : "";
+    }
     const now = _scEl("sc-vo-now");
     if (now) now.textContent = _scVoFmt(t);
     const R = _scVoRec;
@@ -923,3 +930,20 @@ addEventListener("resize", () => {
   clearTimeout(_scVoRender._t);
   _scVoRender._t = setTimeout(_scVoRender, 150);
 });
+
+// Bàn dựng phim (_SC_STUDIO): thanh phát + dòng thời gian ra dock đáy trang; màn nhỏ trả về tab
+// Âm thanh, đúng chỗ cũ (trước thanh tuỳ chọn #sc-vo-act). Chuyển nút thật nên sự kiện đã gắn giữ nguyên.
+function _scVoDock() {
+  const on = _SC_STUDIO.matches;
+  const dock = _scEl("sc-dock");
+  const tab = _scEl("sc-tab-audio");
+  const anchor = _scEl("sc-vo-act");
+  ["sc-vo-bar", "sc-vo-rec", "sc-vo-tl"].forEach((id) => {
+    const el = _scEl(id);
+    if (on) dock.appendChild(el);
+    else tab.insertBefore(el, anchor);
+  });
+  _scVoRender();
+}
+_SC_STUDIO.addEventListener("change", _scVoDock);
+_scVoDock();

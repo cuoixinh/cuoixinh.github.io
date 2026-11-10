@@ -2201,3 +2201,126 @@ html.sc-typing .sc-tx-in {
   height: 1px;
   pointer-events: none;
 }
+
+/* ── Bố cục bàn dựng phim (chỉ Slide cưới, cờ .sc-studio trên .sc-app) ─────────────────────────
+   Máy tính: trang KHÔNG cuộn — sân khấu trái + bảng chỉnh phải (tự cuộn) ở trên, dock dòng thời
+   gian trải ngang đáy (voice.js _scVoDock chuyển dòng thời gian vào #sc-dock). Chuỗi @media phải
+   khớp _SC_STUDIO ở slide-cuoi/index.js. Dưới ngưỡng: dock ẩn, bố cục xếp chồng như trên. */
+.sc-dock,
+.sc-studio-only {
+  display: none;
+}
+@media (min-width: 1024px) and (min-height: 600px) {
+  .sc-app.sc-studio {
+    --sc-dock-h: clamp(208px, calc(var(--vh, 1vh) * 34), 400px);
+    /* Cao vùng trên = màn − navbar (đã tính trong --sc-top) − lề đáy − dock − khe với dock. */
+    --sc-upper-h: calc(var(--vh, 1vh) * 100 - var(--sc-top) - 16px - var(--sc-dock-h) - 12px);
+    grid-template-rows: auto minmax(0, 1fr) calc(var(--sc-dock-h) + 12px);
+    grid-template-areas: "stage head" "stage panel" "dock dock";
+    height: calc(var(--vh, 1vh) * 100 - var(--sc-top) + 8px);
+    padding-bottom: 16px;
+    overflow: hidden;
+  }
+  .sc-studio-only {
+    display: inline;
+  }
+  /* Sân khấu vừa khít vùng trên: slide co theo cả hai chiều (76px = hàng nút dưới slide + khe). */
+  .sc-studio .sc-stage {
+    --sc-max-h: max(120px, calc(var(--sc-upper-h) - 32px - 76px));
+    align-self: stretch;
+    position: relative;
+    top: auto;
+    max-height: none;
+    padding: 16px 24px;
+  }
+  /* Dải cảnh + đồng hồ dưới slide trùng với làn Cảnh + thước của dock → bỏ, chừa chỗ cho slide. */
+  .sc-studio .sc-line {
+    display: none;
+  }
+  .sc-studio .sc-bar {
+    margin-top: 12px;
+    padding: 4px 8px;
+  }
+  /* Cột phải: tiêu đề đứng yên, dải tab ghim đầu khung cuộn riêng của bảng chỉnh. */
+  .sc-studio .sc-head-pin {
+    position: static;
+  }
+  .sc-studio .sc-head-pin::before {
+    content: none;
+  }
+  .sc-studio .sc-head {
+    padding: 8px 0;
+  }
+  /* Tiêu đề gọn lại: cột phải còn phải chứa nội dung tab trong một màn. */
+  .sc-studio .sc-head .tg-title {
+    font-size: 28px;
+  }
+  .sc-studio .sc-sub {
+    font-size: 13px;
+  }
+  .sc-studio .sc-panel {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 8px 16px 0;
+    scrollbar-width: thin;
+  }
+  .sc-studio .sc-tabs-bar {
+    top: 0;
+    margin-top: 0;
+  }
+
+  /* Dock: thanh phát / đồng hồ / thu phóng ở trên, dòng thời gian lấp phần còn lại và tự cuộn hai
+     chiều — thước giây + làn Cảnh ghim đầu, cột tên lớp ghim trái (sẵn ở .sc-vo-head). */
+  .sc-dock {
+    grid-area: dock;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    margin-top: 12px;
+    padding: 8px 12px 12px;
+    border-radius: 24px;
+    background: rgb(var(--white-rgb));
+    box-shadow:
+      0 0 0 1px rgb(var(--brand-primary-rgb) / 0.5),
+      0 16px 40px -28px rgb(var(--sc-on) / 0.45);
+  }
+  .sc-dock .sc-vo-bar {
+    flex: none;
+  }
+  .sc-dock .sc-vo-play {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .sc-dock .sc-vo-rec {
+    flex: none;
+  }
+  .sc-dock .sc-vo-tl {
+    --vo-head: 160px;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border-radius: 12px;
+  }
+  .sc-dock .sc-vo-in {
+    min-height: 100%;
+  }
+  /* Hai làn ghim nằm trên cột tên lớp khi cuộn dọc; đầu phát còn nằm trên chúng nữa. */
+  .sc-dock .sc-vo-row.is-ruler,
+  .sc-dock .sc-vo-row.is-scenes {
+    position: sticky;
+    z-index: 4;
+    background: rgb(var(--vo-bg));
+  }
+  .sc-dock .sc-vo-ph {
+    z-index: 5;
+  }
+  .sc-dock .sc-vo-row.is-ruler {
+    top: 0;
+  }
+  .sc-dock .sc-vo-row.is-scenes {
+    top: 24px;
+  }
+}

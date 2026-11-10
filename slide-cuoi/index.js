@@ -1216,6 +1216,8 @@ function _scMuInfo() {
 
 // Bảng thư viện nhạc dưới dòng thời gian — mở từ nút ở đầu làn Nhạc nền.
 function scMusicLibOpen(on) {
+  // Bàn dựng phim: nút mở nằm ở dock, còn bảng thư viện ở tab Âm thanh.
+  if (on && _SC_STUDIO.matches) scTab("audio");
   _scToggle("sc-mu-libbox", on);
   if (!on) return _scPreviewStop();
   _scLibLoad();
@@ -1288,6 +1290,10 @@ if (typeof ResizeObserver === "function") {
   const head = _scEl("sc-head");
   new ResizeObserver(() => head.parentElement.style.setProperty("--sc-head-h", `${head.offsetHeight}px`)).observe(head);
 }
+
+// Bố cục bàn dựng phim (dòng thời gian ở dock đáy) — chuỗi phải khớp @media của .sc-studio ở
+// styles/_slide-cuoi.css.
+const _SC_STUDIO = matchMedia("(min-width: 1024px) and (min-height: 600px)");
 
 // ── Các tab của bảng chỉnh (Cảnh · Thiệp · Âm thanh · Mẫu): một dải .cx-seg, con trượt theo --i. ──
 const _SC_TABS = ["scenes", "data", "audio", "tpl"];
