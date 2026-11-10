@@ -1,17 +1,20 @@
-// Slide sân khấu "Mãi mãi về sau" (1280×720, tông be của romantic-blush): mỗi cảnh một bên
-// ảnh, một bên chữ, xen kẽ trái/phải. Từ thiệp chỉ lấy ảnh, họ tên, ngày cưới, chuyện tình —
-// không tên cha mẹ, không địa chỉ (khách đã ở tiệc); lời văn là của mẫu. Chỉ KHAI cảnh dưới
-// dạng dữ liệu (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime + slide-export.js.
+// Slide sân khấu "Mãi mãi về sau" (1280×720, tông hồng): mỗi cảnh ảnh vòm cửa bay vào một bên,
+// chữ bay vào bên kia, xen kẽ trái/phải, cánh hoa rơi suốt slide. Từ thiệp chỉ lấy ảnh, họ tên,
+// ngày cưới, chuyện tình — không tên cha mẹ, không địa chỉ (khách đã ở tiệc); lời văn là của mẫu.
+// Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime + slide-export.js.
 
 (function () {
   const C = {
-    paper: "#FDFAF4",
-    surface: "#F7F1E7",
-    heading: "#4A3B2E",
-    body: "rgba(74, 59, 46, 0.88)",
-    accent: "#82664B",
-    gold: "#B8956A",
-    line: "rgba(107, 86, 68, 0.55)",
+    paper: "#FFF5F8",
+    paper2: "#FCE4EC",
+    surface: "#F8DCE5",
+    petal: "#F9D7E1",
+    blush: "#F2B8CB",
+    heading: "#6A1F40",
+    body: "rgba(84, 30, 56, 0.9)",
+    accent: "#C24F78",
+    rose: "#E58FAD",
+    line: "rgba(194, 79, 120, 0.7)",
   };
   const PLAY = '"Playfair Display", "Times New Roman", serif';
   const CORM = '"Cormorant Infant", "Times New Roman", serif';
@@ -85,11 +88,13 @@
     const scenes = [];
     const add = (sid, photo, blocks, opt = {}) => scenes.push(_scene(scenes.length, sid, photo, blocks, opt, L));
 
-    // Khối dùng lại nhiều lần.
-    const kicker = (text, n = 2) => ({ text, font: F.kicker, color: C.accent, lh: 1.2, anim: { k: "fade", d: d(n) } });
-    const title = (text, n = 3, font = F.title) => ({ text, font, color: C.heading, lh: 1.16, mt: 16, anim: { k: "up", d: d(n) } });
-    const rule = (n) => ({ line: true, w: 96, color: C.gold, mt: 28, anim: { k: "spread", d: d(n) } });
-    const para = (text, n, mt = 28, font = F.body) => ({ text, font, color: C.body, lh: 1.5, mt, anim: { k: "up", d: d(n) } });
+    // Khối dùng lại nhiều lần. Chữ bay vào một quãng ngắn từ phía cột chữ (from "in", _scene đổi
+    // thành left/right theo bên ảnh) — bay từ tận mép khung là chữ vắt ngang qua ảnh.
+    const fly = (n, dist = 140, t = 1.3) => ({ k: "fly", from: "in", dist, t, d: d(n) });
+    const kicker = (text, n = 2) => ({ text, font: F.kicker, color: C.accent, lh: 1.2, anim: fly(n, 90) });
+    const title = (text, n = 3, font = F.title) => ({ text, font, color: C.heading, lh: 1.16, mt: 16, anim: fly(n, 180, 1.5) });
+    const rule = (n) => ({ line: true, w: 96, color: C.rose, mt: 28, anim: { k: "spread", d: d(n) } });
+    const para = (text, n, mt = 28, font = F.body) => ({ text, font, color: C.body, lh: 1.5, mt, anim: fly(n, 80) });
     // Lời nói (cô dâu, chú rể, anh – em, gửi cha mẹ, cảm ơn): hiện bằng hiệu ứng đánh chữ.
     const say = (text, n, mt = 28) => ({ text, font: F.body, color: C.body, lh: 1.5, mt, anim: { k: "type", d: d(n) } });
     const sign = (text, n) => ({ text, font: F.sign, color: C.accent, lh: 1.2, mt: 28, anim: { k: "wipe", d: d(n) } });
@@ -101,14 +106,15 @@
     const date = cd
       ? `${_WEEKDAYS[cd.getDay()]}, ngày ${cd.getDate()} tháng ${cd.getMonth() + 1} năm ${cd.getFullYear()}`
       : "";
+    // Hai tên lần lượt bay vào từ mép phía chữ, hơi xoay rồi đứng lại; dấu & nở ra ở giữa.
     add("open", own(w.cover_image_url, fps.cover_image_url), [
       kicker(ceremonyName),
-      { text: G, font: F.names, color: C.heading, lh: 1.04, mt: 20, anim: { k: "up", d: d(3) } },
-      { text: "&", font: F.amp, color: C.gold, lh: 1, mt: 4, indent: 64, anim: { k: "fade", d: d(4) } },
-      { text: B, font: F.names, color: C.heading, lh: 1.04, mt: 4, anim: { k: "up", d: d(5) } },
-      rule(6),
-      date && { text: date, font: F.date, color: C.heading, lh: 1.3, mt: 28, anim: { k: "up", d: d(7) } },
-      w.ceremony_lunar && note(w.ceremony_lunar, 8),
+      { text: G, font: F.names, color: C.heading, lh: 1.04, mt: 20, anim: { k: "fly", from: "in", t: 1.6, rot: 6, d: d(3) } },
+      { text: "&", font: F.amp, color: C.accent, lh: 1, mt: 4, indent: 64, anim: { k: "zoom", s0: 2.4, d: d(8) } },
+      { text: B, font: F.names, color: C.heading, lh: 1.04, mt: 4, anim: { k: "fly", from: "in", t: 1.6, rot: -6, d: d(5) } },
+      rule(9),
+      date && { text: date, font: F.date, color: C.heading, lh: 1.3, mt: 28, anim: fly(10, 100) },
+      w.ceremony_lunar && note(w.ceremony_lunar, 11),
     ], { dur: 9, label: "Mở đầu" });
 
     // --- Lời chú rể, lời cô dâu gửi quan khách ---
@@ -175,7 +181,7 @@
 
     // --- Lời cảm ơn (cảnh cuối) ---
     add("thanks", own(w.cover_image_url, fps.cover_image_url), [
-      { text: "Thank you", font: F.script, color: C.accent, lh: 1.1, anim: { k: "wipe", d: d(2) } },
+      { text: "Thank you", font: F.script, color: C.accent, lh: 1.1, anim: { k: "wipe", d: d(3) } },
       rule(5),
       say("Sự hiện diện của quý vị hôm nay đã làm ngày vui của chúng con thêm trọn vẹn. Chúng con kính chúc quý vị luôn mạnh khoẻ, hạnh phúc và bình an.", 6),
       sign("Chú rể & Cô dâu", 8),
@@ -208,6 +214,9 @@
       return text.trim() ? { ...b, text, key } : null;
     };
     blocks = blocks.map((b, k) => apply(b, `${sid}.${k}`)).filter(Boolean);
+    const rev = i % 2 === 1;
+    // Chữ bay vào từ phía cột chữ: ảnh bên trái thì chữ đến từ bên phải và ngược lại.
+    blocks = blocks.map((b) => (b.anim?.from === "in" ? { ...b, anim: { ...b.anim, from: rev ? "left" : "right" } } : b));
 
     // Đánh chữ nối đuôi: đoạn sau chờ đoạn trước gõ xong, khối đứng sau (chữ ký)
     // chờ đoạn cuối. Thời điểm tính theo chữ ĐÃ SỬA nên đổi lời là nhịp tự giãn theo.
@@ -222,33 +231,51 @@
     const len = blocks.reduce((n, b) => n + (b.text ? String(b.text).length : 0), 0);
     // Có đánh chữ: giữ thêm 4 giây sau khi gõ xong để khách đọc lại và chữ ký kịp hiện.
     const dur = Math.max(opt.dur || Math.min(16, Math.max(8, 4 + len * 0.045)), typedEnd ? typedEnd + 4 : 0);
-    const rev = i % 2 === 1;
-    const PW = 520;
-
-    // Bên ảnh: khối màu nhấn lệch góc · ảnh · khung nét mảnh lệch đè lên — trượt vào cùng nhau.
-    // Ảnh khách tự tải lên ở mục "Ảnh trong slide" (L.photos, khoá = id cảnh) đè ảnh của thiệp.
-    const px = rev ? 1280 - PW : 0;
+    // Bên ảnh (bố cục cảnh ảnh trái; ảnh phải thì lật gương qua trục giữa): hai mảng tròn hồng
+    // bay vào từ góc · ảnh vòm cửa bay vào từ mép, hơi xoay rồi đứng lại · viền vòm mảnh lệch
+    // ra sau tự vẽ dần quanh ảnh. Ảnh khách tự tải ở mục "Ảnh trong slide" (L.photos, khoá = id
+    // cảnh) đè ảnh của thiệp. Mảng tròn là ô ảnh rỗng cắt tròn (chỉ tô màu `empty`).
+    const PX = 72;
+    const PY = 56;
+    const PW = 440;
+    const PH = 608;
+    const mx = (x, w) => (rev ? 1280 - x - w : x);
+    const side = rev ? "right" : "left";
     const def = photo.file ? getImageUrl(photo.file) : "";
     const mine = L.photos?.[sid];
     const src = mine?.src || getImageUrl(photo.file);
     const fp = mine ? mine.focal : photo.fp;
-    const photoEls = rev
-      ? [
-          { type: "rect", x: 1280 - 320, y: 360, w: 320, h: 360, fill: C.accent },
-          { type: "image", x: px, y: 48, w: PW - 48, h: 624, src, focal: fp, kb: true, empty: C.surface, edit: sid },
-          { type: "frame", x: px - 28, y: 24, w: PW - 76 + 28, h: 620, stroke: C.line },
-        ]
-      : [
-          { type: "rect", x: 0, y: 0, w: 320, h: 360, fill: C.accent },
-          { type: "image", x: 48, y: 48, w: PW - 48, h: 624, src, focal: fp, kb: true, empty: C.surface, edit: sid },
-          { type: "frame", x: 76, y: 76, w: PW - 76 + 28, h: 620, stroke: C.line },
-        ];
-    const group = { type: "group", x: px, y: 0, w: PW, h: 720, kids: photoEls, anim: { k: rev ? "right" : "left", d: 0 } };
+    const dot = (x, y, r, fill, from, dl) => ({ type: "image", src: "", shape: "circle", x: mx(x, r * 2), y, w: r * 2, h: r * 2, empty: fill, anim: { k: "fly", from, t: 1.8, d: dl } });
+    const ax = mx(PX + 24, PW);
+    const photoEls = [
+      dot(-140, -160, 300, C.petal, rev ? "tr" : "tl", 0),
+      dot(380, 492, 104, C.blush, "bottom", 0.25),
+      { type: "stroke", x: ax, y: PY + 24, w: PW, h: PH, paths: [_arch(ax, PY + 24, PW, PH)], color: C.line, lw: 1.5, anim: { k: "draw", t: 2.2, d: 1.1 } },
+      { type: "image", x: mx(PX, PW), y: PY, w: PW, h: PH, shape: "arch", src, focal: fp, kb: true, empty: C.surface, edit: sid, anim: { k: "fly", from: side, rot: rev ? 7 : -7, t: 1.7, d: 0.15 } },
+    ];
 
     // Bên chữ: cột rộng 592, canh giữa theo chiều dọc. Khối có `indent` (dấu &) lùi vào.
-    const tx = rev ? 72 : PW + 96;
-    const text = L.column(blocks, { x: tx, w: 592, top: 56, bottom: 720 - 56 });
+    const tx = rev ? 80 : 616;
+    const text = L.column(blocks, { x: tx, w: 584, top: 56, bottom: 720 - 56 });
     blocks.forEach((b, k) => b.indent && text[k] && (text[k].x += b.indent));
-    return { id: sid, dur, label: opt.label || "", texts, photo: { key: sid, def, w: PW - 48, h: 624 }, els: [group, ...text] };
+    return { id: sid, dur, label: opt.label || "", texts, photo: { key: sid, def, w: PW, h: PH }, els: [{ ..._BG }, { ..._PETALS }, ...photoEls, ...text] };
+  }
+
+  // Nền hồng chuyển nhẹ + cánh hoa rơi chậm: hai lớp tĩnh/tính theo giờ chung của cả vòng nên
+  // lúc chuyển cảnh nền đứng yên, cánh hoa rơi liền mạch.
+  const _BG = { type: "grad", x: 0, y: 0, w: 1280, h: 720, stops: [[0, C.paper], [1, C.paper2]] };
+  const _PETALS = { type: "drift", shape: "petal", n: 26, size: 20, speed: 30, sway: 48, color: [C.blush, C.rose, C.accent], alpha: 0.62, seed: 7 };
+
+  // Đường viền vòm cửa (cùng dáng shape "arch" của engine): mép trái từ đáy lên, nửa vòng tròn
+  // đỉnh, mép phải xuống đáy, khép lại ở đáy.
+  function _arch(x, y, w, h) {
+    const r = Math.min(w / 2, h);
+    const pts = [[x, y + h], [x, y + r]];
+    for (let k = 1; k <= 48; k++) {
+      const a = Math.PI + (Math.PI * k) / 48;
+      pts.push([x + w / 2 + Math.cos(a) * (w / 2), y + r + Math.sin(a) * r]);
+    }
+    pts.push([x + w, y + h], [x, y + h]);
+    return pts;
   }
 })();
