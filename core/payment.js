@@ -1177,13 +1177,13 @@
                  cháu "fixed" cũng biến mất theo nên không cần đồng bộ thêm. -->
             <div id="payment-paybar" class="px-6 pt-5 pb-6 flex flex-col gap-3 border-t border-gray-100">
               <p id="payment-api-error" class="hidden text-xs text-red-500 text-center p-2 bg-red-50 rounded-lg m-0"></p>
-              <!-- Đồng ý hiện thiệp ở mục "Thiệp của khách" trang chủ — tích sẵn, khách tự bỏ,
-                   đặt sát nút trả tiền để thấy ngay lúc chốt. Chỉ có khi MUA LẦN ĐẦU gói
+              <!-- Đồng ý hiện thiệp ở mục "Thiệp của khách" trang chủ — mặc định KHÔNG tích, khách tự
+                   tích nếu muốn; đặt sát nút trả tiền để thấy ngay lúc chốt. Chỉ có khi MUA LẦN ĐẦU gói
                    trả phí (_syncShowcase); trả xong thì chốt, muốn đổi phải nhờ admin-support. -->
               <!-- Nút "i" đứng NGOÀI <label>: nằm trong thì bấm vào là đảo luôn ô tích. -->
               <div id="payment-showcase" class="cx-ord-consent" style="display:none;">
                 <label>
-                  <input id="payment-showcase-input" type="checkbox" checked />
+                  <input id="payment-showcase-input" type="checkbox" />
                   <span>Cho phép hiển thị thiệp trên trang chủ</span>
                 </label>
                 <x-button variant="bare" icon-only class="cx-ord-cmp-info" onclick="cxShowcaseInfo(this)"
@@ -2035,9 +2035,9 @@
       if (promoMsg) { promoMsg.textContent = ""; promoMsg.classList.add("hidden"); }
       if (promoBox) promoBox.style.display = "none";
       _setPromoRow(null, 0);
-      // Modal dùng lại cho nhiều thiệp: lượt trước khách bỏ tích thì lượt này vẫn phải tích sẵn.
+      // Modal dùng lại cho nhiều thiệp: lượt trước khách đã tích thì lượt này vẫn phải về bỏ tích.
       const showcase = document.getElementById("payment-showcase-input");
-      if (showcase) showcase.checked = true;
+      if (showcase) showcase.checked = false;
 
       // Giá tuỳ gói, mà gói chỉ biết sau khi có báo giá → bảng tiền để dấu chờ
       // tới lúc _resolvePricing (cuối hàm) xong; giá nơi gọi đưa sang (giá gốc)
