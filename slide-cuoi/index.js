@@ -1342,10 +1342,18 @@ _scEl("sc-mu-q").addEventListener("input", () => {
   _scEl("sc-mu-lib").scrollTop = 0;
 });
 
-// Chiều cao tiêu đề trang → mốc ghim của dải tab ở cột phải (từ lg, xem .sc-tabs-bar).
+// Mốc ghim của dải tab (.sc-tabs-bar): dưới lg nằm ngay dưới khung chiếu (cao --sc-stage-h),
+// từ lg dưới tiêu đề cột phải (--sc-head-h).
 if (typeof ResizeObserver === "function") {
   const head = _scEl("sc-head");
-  new ResizeObserver(() => head.parentElement.style.setProperty("--sc-head-h", `${head.offsetHeight}px`)).observe(head);
+  const stage = document.querySelector(".sc-stage");
+  const app = head.parentElement;
+  const ro = new ResizeObserver(() => {
+    app.style.setProperty("--sc-head-h", `${head.offsetHeight}px`);
+    app.style.setProperty("--sc-stage-h", `${stage.offsetHeight}px`);
+  });
+  ro.observe(head);
+  ro.observe(stage);
 }
 
 // Bố cục bàn dựng phim (dòng thời gian ở dock đáy) — chuỗi phải khớp @media của .sc-studio ở

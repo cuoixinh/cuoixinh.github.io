@@ -199,7 +199,7 @@
       </x-popover>
 
       <div class="sc-panel">
-        <!-- Từ lg tiêu đề + dải tab ghim đầu cột phải (_slide-cuoi.css), nội dung tab cuộn bên dưới. -->
+        <!-- Dải tab luôn ghim: dưới lg ngay dưới khung chiếu, từ lg đầu cột phải (_slide-cuoi.css). -->
         <div class="sc-tabs-bar">
         <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 4; --i: 0">
           <button type="button" class="cx-seg-btn is-on" role="tab" id="sc-tabbtn-scenes" data-tab="scenes" aria-selected="true" aria-controls="sc-tab-scenes">Cảnh</button>
@@ -210,7 +210,6 @@
         </div>
 
         <section id="sc-tab-scenes" class="sc-tab" role="tabpanel" aria-labelledby="sc-tabbtn-scenes">
-          <p class="sc-lead">Bấm thẳng vào chữ hoặc ảnh trên slide, hoặc chọn một cảnh dưới đây để đổi ảnh, sửa chữ và chỉnh thời gian cảnh. Xoá trắng một dòng chữ là bỏ dòng đó.</p>
           <div class="sc-time" role="group" aria-labelledby="sc-time-l">
             <div class="sc-time-head">
               <span id="sc-time-l" class="sc-time-l"><i data-lucide="clock"></i>Thời lượng cả slide</span>
@@ -232,12 +231,10 @@
               Về ảnh của thiệp
             </x-button>
           </div>
-          <p class="sc-keys">Phím cách: phát / tạm dừng. Esc: thoát toàn màn. Trên dòng thời gian: Ctrl+Z hoàn tác, bấm ? để xem đủ phím tắt.</p>
           <p class="sc-fine">Ảnh bạn đổi, chữ bạn sửa và thời gian bạn chỉnh chỉ lưu trên máy này, không tải lên đâu cả.</p>
         </section>
 
         <section id="sc-tab-data" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-data">
-          <p class="sc-lead">Lấy ảnh, tên, ngày cưới và chuyện tình từ thiệp của bạn.</p>
           <label class="sc-check">
             <span class="sc-check-text">
               <span class="sc-check-title">Dùng thiệp của tôi</span>
@@ -284,7 +281,6 @@
              dòng thời gian (khi nó nằm trong tab — màn nhỏ) là bảng thư viện
              nhạc, rồi mức nhạc khi có giọng. Mọi thứ chỉ lưu trên máy (IndexedDB + localStorage). -->
         <section id="sc-tab-audio" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-audio">
-          <p class="sc-lead">Nhạc nền và giọng đọc chung một dòng thời gian<span class="sc-studio-only"> ở dải dưới cùng</span>, có cả trong video xuất ra. Bấm dấu + hoặc bấm thẳng vào hàng Track mới để thêm file, micro để thu âm. Kéo khối để dời (sang track khác cũng được), kéo hai mép để cắt, kéo góc trên để to dần / nhỏ dần.</p>
           <div id="sc-vo-bar" class="sc-vo-bar">
             <button type="button" id="sc-vo-play" class="sc-vo-play" aria-label="Phát hoặc tạm dừng slide">
               <span class="sc-vo-i-play"><i data-lucide="play"></i></span>
@@ -336,7 +332,6 @@
         </section>
 
         <section id="sc-tab-tpl" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-tpl">
-          <p class="sc-lead">Chọn một mẫu, slide đổi theo ngay.</p>
           <div id="sc-tpls" class="sc-tpls"></div>
         </section>
       </div>

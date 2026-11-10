@@ -539,12 +539,26 @@ html.sc-lock .cx-navmore-pop {
 .sc-tab {
   margin-top: 16px;
 }
-.sc-lead {
-  max-width: 560px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgb(var(--text-caption-rgb));
+/* Dưới lg: dải tab ghim ngay dưới khung chiếu (cũng đang ghim) — --sc-stage-h do index.js đo. */
+.sc-tabs-bar {
+  position: sticky;
+  top: calc(var(--sc-top) + var(--sc-stage-h, 0px));
+  z-index: 15;
+  margin: -20px -16px 0;
+  padding: 12px 16px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 1px 0 rgb(var(--brand-primary-rgb) / 0.4);
+}
+@media (min-width: 640px) {
+  .sc-tabs-bar {
+    margin-inline: -24px;
+    padding-inline: 24px;
+  }
+}
+/* Đang gõ trên điện thoại khung chiếu thôi dính (xem html.sc-typing) → dải tab cũng thả ra. */
+html.sc-typing .sc-tabs-bar {
+  position: relative;
+  top: auto;
 }
 
 /* Từ lg: sân khấu là cột trái lớn ghim dưới navbar, cao tối đa bằng màn còn lại; đầu trang +
@@ -612,7 +626,7 @@ html.sc-lock .cx-navmore-pop {
     position: sticky;
     top: calc(var(--sc-top) - 8px + var(--sc-head-h, 88px));
     z-index: 10;
-    margin-top: -8px;
+    margin: -8px 0 0;
     padding: 8px 0 12px;
     background: rgb(var(--white-rgb));
     box-shadow: 0 1px 0 rgb(var(--brand-primary-rgb) / 0.4);
@@ -1442,21 +1456,11 @@ html.sc-typing .sc-tx-in {
 .sc-foot > button {
   margin-top: 16px;
 }
-.sc-keys,
 .sc-fine {
   margin-top: 16px;
   font-size: 13px;
   line-height: 1.6;
   color: rgb(var(--text-caption-rgb));
-}
-.sc-fine {
-  margin-top: 4px;
-}
-/* Máy cảm ứng không có bàn phím: bỏ dòng phím tắt. */
-@media (hover: none) {
-  .sc-keys {
-    display: none;
-  }
 }
 
 /* Nhịp sáng khi bấm lên slide mở đúng ô chữ / khối ảnh ở đây (_scEditFromSlide). */
