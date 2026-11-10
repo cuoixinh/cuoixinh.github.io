@@ -168,6 +168,9 @@ class XCombobox extends HTMLElement {
       txt.textContent = it.label;
       o.appendChild(txt);
       if (this._previewFont) o.style.fontFamily = `'${it.value}', sans-serif`;
+      // Không cho mục cướp focus lúc nhấn: đổi focus làm khung cha cuộn → _onReflow đặt lại
+      // danh sách về đầu giữa lúc nhấn và nhả → mục trượt khỏi con trỏ, mất cú click đầu.
+      o.addEventListener("mousedown", (e) => e.preventDefault());
       o.addEventListener("click", () => this._pick(it.value));
       this._items.appendChild(o);
     });
@@ -273,6 +276,8 @@ class XCombobox extends HTMLElement {
     list.style.right = "auto";
     list.style.left = r.left + "px";
     list.style.width = r.width + "px";
+    // Bỏ trần để đo làm danh sách mất vị trí cuộn — giữ lại rồi trả sau khi đặt trần mới.
+    const keep = list.scrollTop;
     list.style.maxHeight = "none";
     const listH = list.scrollHeight;
     // Đáy chỗ trống là mép trên bàn phím chứ không phải đáy cửa sổ: bàn phím không làm innerHeight co.
@@ -282,6 +287,7 @@ class XCombobox extends HTMLElement {
     const avail = (up ? spaceAbove : spaceBelow) - gap - 8;
     const maxH = Math.max(96, Math.min(240, avail));
     list.style.maxHeight = maxH + "px";
+    list.scrollTop = keep;
     list.style.top = up
       ? Math.max(8, r.top - Math.min(listH, maxH) - gap) + "px"
       : r.bottom + gap + "px";
