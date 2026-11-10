@@ -12,10 +12,10 @@
 > Xưng hô trong lời văn: cô dâu, chú rể nói với quan khách và cha mẹ thì xưng **"con"**; chú rể
 > nói với cô dâu là **"anh"**, cô dâu nói với chú rể là **"em"**. **Không chèn họ tên vào lời văn**
 > — tên chỉ đứng riêng ở cảnh mở đầu.
-> Mẫu đầu tiên: `templates/romantic-blush/` ("Mãi mãi về sau") — 16:9 hồng pastel khối màu phẳng
-> (dải hồng dọc + ảnh chữ nhật đè mép dải, dải da đào kèm lát ảnh nhỏ ở mép kia, cụm chấm tròn,
-> tiêu đề viết hoa chữ không chân), mọi khối bay từ ngoài vào; mỗi cảnh hai ô ảnh (`<id>` và
-> `<id>.p1`). Mẫu thứ hai: `templates/mai-ben-nhau/` ("Mãi Bên Nhau") — bố
+> Mẫu đầu tiên: `templates/romantic-blush/` ("Mãi mãi về sau") — 16:9 hồng pastel khối màu phẳng,
+> năm kiểu bố cục luân phiên (`_LAYOUTS`: chia đôi · dải dọc · thẻ chữ · chồng ảnh · bộ đôi cho cảnh
+> album), hai cảnh liền nhau không trùng kiểu và lật trái/phải xen kẽ; mọi khối bay từ ngoài vào,
+> quầng sáng trôi trên ảnh + đốm sáng lấp lánh. Bố cục có ảnh phụ thêm ô `<id>.p1`. Mẫu thứ hai: `templates/mai-ben-nhau/` ("Mãi Bên Nhau") — bố
 > cục tạp chí (nền hồng xám, mảng nâu be lệch sau ảnh, tiêu đề tiếng Anh viết hoa dãn rộng,
 > chữ dọc sát mép), mỗi cảnh nhiều ảnh bay từ ngoài khung vào. **Thiệp ít ảnh hơn số khung thì
 > ảnh LẶP VÒNG cho đủ** — không bớt cảnh, không để khung trống. Mẫu này theo LỜI CÔ DÂU: sau Mở đầu + Đôi
