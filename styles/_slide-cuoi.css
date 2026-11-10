@@ -2787,3 +2787,62 @@ html.sc-typing .sc-tx-in {
     min-width: 64px;
   }
 }
+
+/* Màn chờ khoá cả trang lúc slide đang dựng (index.js _scWaitSync). Chặn bấm ngay, còn lớp
+   mờ + thẻ chỉ hiện sau một nhịp ngắn: ảnh đã có trong cache thì dựng xong trước, khỏi nháy. */
+.sc-wait {
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(var(--sc-on, 76 29 46) / 0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: progress;
+  animation: cx-sc-wait-in 0.2s ease-out 0.16s both;
+}
+.sc-wait[hidden] {
+  display: none;
+}
+.sc-wait-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+  color: rgb(76 29 46);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 16px 40px -16px rgb(76 29 46 / 0.45);
+}
+.sc-wait-spin {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 999px;
+  border: 2px solid rgb(76 29 46 / 0.15);
+  border-top-color: rgb(var(--brand-accent-rgb));
+  animation: cx-sc-wait-spin 0.8s linear infinite;
+}
+@keyframes cx-sc-wait-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cx-sc-wait-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-wait-spin {
+    animation-duration: 2.4s;
+  }
+}

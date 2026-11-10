@@ -346,6 +346,14 @@
       <section id="sc-dock" class="sc-dock" aria-label="Dòng thời gian"></section>
     </main>
 
+    <!-- Màn chờ khoá cả trang lúc slide đang dựng (đổi mẫu, F5, đổi thiệp) — _scWait ở index.js. -->
+    <div id="sc-wait" class="sc-wait" role="status" aria-live="polite" hidden>
+      <div class="sc-wait-card">
+        <span class="sc-wait-spin" aria-hidden="true"></span>
+        <p id="sc-wait-msg">Đang tải ảnh slide…</p>
+      </div>
+    </div>
+
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
          Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->

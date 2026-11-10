@@ -64,7 +64,37 @@ _scEl("sc-tpls").addEventListener("click", (e) => {
   _scFrameLoad();
 });
 
+// ── Màn chờ khoá cả trang lúc slide đang dựng ──
+// Khung chỉ vẽ khi MỌI ảnh của mẫu đã tải xong (CXSlideEngine.build), trước đó là ô trống mà
+// bàn chỉnh vẫn bấm được → khoá trang cho tới khi khung báo dựng xong (cx-slide-state có
+// scenes). _scWaitN = việc đang đọc dữ liệu (thiệp, IndexedDB) — còn việc thì giữ màn chờ để
+// không nháy giữa bộ dữ liệu mẫu và thiệp thật; _scWaitFrame = đã giao dữ liệu, khung chưa dựng.
+const _SC_WAIT_MAX = 20000; // ảnh treo không trả lời thì vẫn nhả trang ra
+let _scWaitN = 0;
+let _scWaitFrame = false;
+let _scWaitTimer = 0;
+function _scWaitSync(msg) {
+  const box = _scEl("sc-wait");
+  if (msg) _scEl("sc-wait-msg").textContent = msg;
+  const on = _scWaitN > 0 || _scWaitFrame;
+  if (on === !box.hidden) return;
+  box.hidden = !on;
+  // inert: bàn phím (phím tắt dòng thời gian, Tab) cũng không lọt xuống trang bên dưới.
+  document.querySelector(".sc-app")?.toggleAttribute("inert", on);
+  clearTimeout(_scWaitTimer);
+  if (on)
+    _scWaitTimer = setTimeout(() => {
+      _scWaitN = 0;
+      _scWaitFrame = false;
+      _scWaitSync();
+    }, _SC_WAIT_MAX);
+}
+const _scWaitHold = (msg) => (_scWaitN++, _scWaitSync(msg));
+const _scWaitDone = () => (_scWaitN = Math.max(0, _scWaitN - 1), _scWaitSync());
+
 function _scFrameLoad() {
+  _scWaitFrame = true;
+  _scWaitSync("Đang tải mẫu slide…");
   _scSent = "";
   // Khung nạp lại là mất việc xuất đang chạy (nó sống trong khung) — về lại bước chọn.
   if (_scExState === "run") _scExportState("error", "Slide vừa được nạp lại nên việc xuất đã dừng.");
@@ -96,7 +126,14 @@ async function _scPush(force) {
   _scPhSig = "";
   // voice.js nạp sau và có thể hỏng riêng — thiếu nó slide vẫn chạy, chỉ không có giọng đọc.
   const vo = typeof _scVoLoad === "function";
-  await Promise.all([_scPhLoad(), _scMuLoad(), vo ? _scVoLoad().catch(() => null) : null]);
+  _scWaitHold(w ? "Đang tải ảnh thiệp…" : "");
+  try {
+    await Promise.all([_scPhLoad(), _scMuLoad(), vo ? _scVoLoad().catch(() => null) : null]);
+  } finally {
+    // Giao dữ liệu là chờ khung dựng — bật cờ TRƯỚC khi nhả việc, không thì màn chờ nháy tắt.
+    if (_scSent === key) _scWaitFrame = true;
+    _scWaitDone();
+  }
   if (_scSent !== key) return; // trong lúc đọc ảnh / nhạc đã đổi sang bộ dữ liệu khác
   _scFrame.contentWindow?.postMessage(
     {
@@ -118,7 +155,13 @@ addEventListener("message", (e) => {
   const t = e.data?.type;
   if (t === "cx-slide-ready") _scPush(true);
   else if (t === "cx-slide-full") scFullscreen();
-  else if (t === "cx-slide-state") _scCueState(e.data);
+  else if (t === "cx-slide-state") {
+    if (Array.isArray(e.data?.scenes) && _scWaitFrame) {
+      _scWaitFrame = false;
+      _scWaitSync();
+    }
+    _scCueState(e.data);
+  }
   else if (t === "cx-slide-caps") _scCaps(e.data);
   else if (t === "cx-slide-export-state") _scExportMsg(e.data);
   else if (t === "cx-slide-edit") _scEditFromSlide(e.data);
@@ -1509,10 +1552,12 @@ async function scPick(id, again) {
   if (!_scData.has(id)) {
     const btn = _scEl("sc-weddings").querySelector(`[data-wid="${CSS.escape(id)}"]`);
     btn?.classList.add("is-busy");
+    _scWaitHold("Đang tải ảnh thiệp…");
     try {
       _scData.set(id, await weddingDAL.getWeddingById(id));
     } catch (e) {
       btn?.classList.remove("is-busy");
+      _scWaitDone();
       if (_scS.wid === id) {
         _scS.wid = null;
         btn?.setAttribute("aria-checked", "false");
@@ -1521,6 +1566,10 @@ async function scPick(id, again) {
       return;
     }
     btn?.classList.remove("is-busy");
+    // _scPush giữ màn chờ của nó ngay khi gọi → nhả lượt đọc thiệp SAU đó, khỏi nháy.
+    if (_scS.wid === id) _scPush();
+    _scWaitDone();
+    return;
   }
   if (_scS.wid !== id) return;
   _scPush();
@@ -1556,8 +1605,16 @@ function scLogin() {
   _scCheck.checked = _scS.real;
   _scToggle("sc-real", _scS.real);
   _scFrameLoad();
-  _scS.user = await CXAuth.getUser();
-  if (_scS.real) scLoadList();
+  // F5 khi đang dùng thiệp thật: giữ màn chờ qua lúc lấy phiên + danh sách thiệp, không thì
+  // khung dựng xong bộ dữ liệu mẫu là trang mở khoá rồi lại khoá khi ảnh thiệp về.
+  const hold = _scS.real && !!_scS.wid;
+  if (hold) _scWaitHold("Đang tải ảnh thiệp…");
+  try {
+    _scS.user = await CXAuth.getUser();
+    if (_scS.real) await scLoadList();
+  } finally {
+    if (hold) _scWaitDone();
+  }
   // Lấy phiên TRƯỚC rồi mới nghe onChange, không thì lần đồng bộ đầu tải hai lần.
   // Làm mới token cũng báo về đây — cùng người thì giữ nguyên lựa chọn.
   CXAuth.onChange((user) => {
