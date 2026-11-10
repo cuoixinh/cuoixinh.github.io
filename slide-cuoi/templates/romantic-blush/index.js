@@ -1,35 +1,35 @@
-// Slide sân khấu "Mãi mãi về sau" (1280×720, tông hồng): mỗi cảnh ảnh bo góc bay vào một bên,
-// chữ bay vào bên kia, xen kẽ trái/phải, cánh hoa rơi suốt slide. Từ thiệp chỉ lấy ảnh, họ tên,
-// ngày cưới, chuyện tình — không tên cha mẹ, không địa chỉ (khách đã ở tiệc); lời văn là của mẫu.
+// Slide sân khấu "Mãi mãi về sau" (1280×720, hồng pastel, khối màu phẳng): mỗi cảnh một dải hồng
+// dọc + ảnh chữ nhật đè lên mép dải, dải da đào hẹp kèm lát ảnh nhỏ ở mép bên kia, cụm chấm tròn;
+// tiêu đề viết hoa chữ không chân. Bố cục xen kẽ trái/phải, mọi khối bay từ ngoài vào. Từ thiệp
+// chỉ lấy ảnh, họ tên, ngày cưới, chuyện tình — không tên cha mẹ, không địa chỉ (khách đã ở tiệc).
 // Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime + slide-export.js.
 
 (function () {
   const C = {
-    paper: "#FFF5F8",
-    paper2: "#FCE4EC",
-    surface: "#F8DCE5",
-    petal: "#F9D7E1",
-    blush: "#F2B8CB",
-    heading: "#6A1F40",
-    body: "rgba(84, 30, 56, 0.9)",
-    accent: "#C24F78",
-    rose: "#E58FAD",
-    line: "rgba(194, 79, 120, 0.7)",
+    paper: "#FFFDFD",
+    band: "#F6DCE2",
+    peach: "#FAEAE3",
+    dot: "#EDC3CE",
+    surface: "#F8E6EA",
+    rose: "#B9788B",
+    roseDeep: "#9C5A6E",
+    ink: "#4A3A40",
+    body: "rgba(74, 58, 64, 0.9)",
   };
-  const PLAY = '"Playfair Display", "Times New Roman", serif';
+  const SANS = '"Montserrat", "Segoe UI", sans-serif';
   const CORM = '"Cormorant Infant", "Times New Roman", serif';
   const SCRIPT = '"TheHamstter", cursive';
   const F = {
-    kicker: { family: CORM, size: 30, style: "italic", weight: 500 },
-    title: { family: PLAY, size: 56 },
-    quote: { family: PLAY, size: 48, style: "italic" },
+    kicker: { family: SANS, size: 19, weight: 500 },
+    title: { family: SANS, size: 40, weight: 300 },
+    quote: { family: SANS, size: 36, weight: 300 },
     script: { family: SCRIPT, size: 96 },
-    names: { family: PLAY, size: 80 },
+    names: { family: SANS, size: 64, weight: 300 },
     amp: { family: SCRIPT, size: 64 },
-    date: { family: CORM, size: 32 },
-    note: { family: CORM, size: 24, style: "italic" },
-    body: { family: CORM, size: 28 },
-    bodyLong: { family: CORM, size: 26 },
+    date: { family: SANS, size: 24, weight: 400 },
+    note: { family: SANS, size: 19, style: "italic", weight: 300 },
+    body: { family: SANS, size: 22, weight: 300 },
+    bodyLong: { family: SANS, size: 20, weight: 300 },
     sign: { family: CORM, size: 34, style: "italic", weight: 500 },
   };
   // Nhịp trễ hiệu ứng: 1 = 0.15 giây.
@@ -58,11 +58,11 @@
     // Thư mục assets/data-template/ làm dữ liệu mẫu khi chưa chọn thiệp.
     demo: "romantic-blush",
     fonts: [
-      `400 56px ${PLAY}`,
-      `italic 400 48px ${PLAY}`,
-      `400 28px ${CORM}`,
-      `italic 400 24px ${CORM}`,
-      `italic 500 30px ${CORM}`,
+      `300 40px ${SANS}`,
+      `400 24px ${SANS}`,
+      `500 19px ${SANS}`,
+      `italic 300 19px ${SANS}`,
+      `italic 500 34px ${CORM}`,
       `400 64px ${SCRIPT}`,
     ],
     scenes: buildScenes,
@@ -86,19 +86,21 @@
     const own = (file, fp) => (file ? { file, fp } : next());
 
     const scenes = [];
-    const add = (sid, photo, blocks, opt = {}) => scenes.push(_scene(scenes.length, sid, photo, blocks, opt, L));
+    // Mỗi cảnh thêm một lát ảnh nhỏ ở dải da đào (ảnh kế tiếp của album).
+    const add = (sid, photo, blocks, opt = {}) => scenes.push(_scene(scenes.length, sid, photo, next(), blocks, opt, L));
 
     // Khối dùng lại nhiều lần. Chữ bay vào một quãng ngắn từ phía cột chữ (from "in", _scene đổi
     // thành left/right theo bên ảnh) — bay từ tận mép khung là chữ vắt ngang qua ảnh.
     const fly = (n, dist = 140, t = 1.3) => ({ k: "fly", from: "in", dist, t, d: d(n) });
-    const kicker = (text, n = 2) => ({ text, font: F.kicker, color: C.accent, lh: 1.2, anim: fly(n, 90) });
-    const title = (text, n = 3, font = F.title) => ({ text, font, color: C.heading, lh: 1.16, mt: 16, anim: fly(n, 180, 1.5) });
-    const rule = (n) => ({ line: true, w: 96, color: C.rose, mt: 28, anim: { k: "spread", d: d(n) } });
-    const para = (text, n, mt = 28, font = F.body) => ({ text, font, color: C.body, lh: 1.5, mt, anim: fly(n, 80) });
+    // kicker nằm trong nhãn bo tròn (pill, _scene vẽ nền nhãn theo bề ngang chữ).
+    const kicker = (text, n = 2) => ({ text, font: F.kicker, color: C.roseDeep, lh: 1.6, pill: true, anim: fly(n, 90) });
+    const title = (text, n = 3, font = F.title) => ({ text, font, color: C.rose, lh: 1.3, mt: 24, caps: true, ls: 3, anim: fly(n, 180, 1.5) });
+    const rule = (n) => ({ line: true, w: 96, color: C.dot, mt: 28, anim: { k: "spread", d: d(n) } });
+    const para = (text, n, mt = 28, font = F.body) => ({ text, font, color: C.body, lh: 1.65, mt, anim: fly(n, 80) });
     // Lời nói (cô dâu, chú rể, anh – em, gửi cha mẹ, cảm ơn): hiện bằng hiệu ứng đánh chữ.
-    const say = (text, n, mt = 28) => ({ text, font: F.body, color: C.body, lh: 1.5, mt, anim: { k: "type", d: d(n) } });
-    const sign = (text, n) => ({ text, font: F.sign, color: C.accent, lh: 1.2, mt: 28, anim: { k: "wipe", d: d(n) } });
-    const note = (text, n, mt = 8) => ({ text, font: F.note, color: C.heading, lh: 1.4, mt, anim: { k: "fade", d: d(n) } });
+    const say = (text, n, mt = 28) => ({ text, font: F.body, color: C.body, lh: 1.65, mt, anim: { k: "type", d: d(n) } });
+    const sign = (text, n) => ({ text, font: F.sign, color: C.rose, lh: 1.2, mt: 28, anim: { k: "wipe", d: d(n) } });
+    const note = (text, n, mt = 8) => ({ text, font: F.note, color: C.ink, lh: 1.4, mt, anim: { k: "fade", d: d(n) } });
 
     // --- Mở đầu ---
     const ceremonyName = w.ceremony_name || "Lễ Thành Hôn";
@@ -109,11 +111,11 @@
     // Hai tên lần lượt bay vào từ mép phía chữ, hơi xoay rồi đứng lại; dấu & nở ra ở giữa.
     add("open", own(w.cover_image_url, fps.cover_image_url), [
       kicker(ceremonyName),
-      { text: G, font: F.names, color: C.heading, lh: 1.04, mt: 20, anim: { k: "fly", from: "in", t: 1.6, rot: 6, d: d(3) } },
-      { text: "&", font: F.amp, color: C.accent, lh: 1, mt: 4, indent: 64, anim: { k: "zoom", s0: 2.4, d: d(8) } },
-      { text: B, font: F.names, color: C.heading, lh: 1.04, mt: 4, anim: { k: "fly", from: "in", t: 1.6, rot: -6, d: d(5) } },
+      { text: G, font: F.names, color: C.rose, lh: 1.15, mt: 28, caps: true, ls: 4, anim: { k: "fly", from: "in", t: 1.6, rot: 4, d: d(3) } },
+      { text: "&", font: F.amp, color: C.roseDeep, lh: 1, mt: 0, indent: 64, anim: { k: "zoom", s0: 2.4, d: d(8) } },
+      { text: B, font: F.names, color: C.rose, lh: 1.15, mt: 0, caps: true, ls: 4, anim: { k: "fly", from: "in", t: 1.6, rot: -4, d: d(5) } },
       rule(9),
-      date && { text: date, font: F.date, color: C.heading, lh: 1.3, mt: 28, anim: fly(10, 100) },
+      date && { text: date, font: F.date, color: C.ink, lh: 1.4, mt: 28, anim: fly(10, 100) },
       w.ceremony_lunar && note(w.ceremony_lunar, 11),
     ], { dur: 9, label: "Mở đầu" });
 
@@ -168,7 +170,7 @@
     // --- Album: ảnh + một câu ngắn ---
     for (let i = 0; i < Math.min(_ALBUM_MAX, album.length); i++) {
       const q = _QUOTES[i % _QUOTES.length];
-      add(`album${i}`, next(), [title(q, 2, F.quote), rule(6)], { dur: 7, label: `Album ảnh ${i + 1}` });
+      add(`album${i}`, next(), [{ ...title(q, 2, F.quote), caps: false, ls: 0, color: C.ink, lh: 1.45 }, rule(6)], { dur: 7, label: `Album ảnh ${i + 1}` });
     }
 
     // --- Gửi cha mẹ hai bên: chỉ lời cảm ơn, KHÔNG hiện tên cha mẹ ---
@@ -181,7 +183,7 @@
 
     // --- Lời cảm ơn (cảnh cuối) ---
     add("thanks", own(w.cover_image_url, fps.cover_image_url), [
-      { text: "Thank you", font: F.script, color: C.accent, lh: 1.1, anim: { k: "wipe", d: d(3) } },
+      { text: "Thank you", font: F.script, color: C.rose, lh: 1.1, anim: { k: "wipe", d: d(3) } },
       rule(5),
       say("Sự hiện diện của quý vị hôm nay đã làm ngày vui của chúng con thêm trọn vẹn. Chúng con kính chúc quý vị luôn mạnh khoẻ, hạnh phúc và bình an.", 6),
       sign("Chú rể & Cô dâu", 8),
@@ -197,7 +199,7 @@
   // sửa thành rỗng là bỏ khối. Thêm chữ vào cảnh mà không qua đây là chữ đó không sửa được.
   // Khối giữ `key` (engine chép sang phần tử chữ) và ảnh cảnh mang `edit: sid` — bộ phát dùng
   // hai dấu đó để bấm thẳng lên slide là mở đúng ô sửa.
-  function _scene(i, sid, photo, blocks, opt, L) {
+  function _scene(i, sid, photo, strip, blocks, opt, L) {
     const texts = [];
     const apply = (b, key) => {
       if (!b) return null;
@@ -231,56 +233,66 @@
     const len = blocks.reduce((n, b) => n + (b.text ? String(b.text).length : 0), 0);
     // Có đánh chữ: giữ thêm 4 giây sau khi gõ xong để khách đọc lại và chữ ký kịp hiện.
     const dur = Math.max(opt.dur || Math.min(16, Math.max(8, 4 + len * 0.045)), typedEnd ? typedEnd + 4 : 0);
-    // Bên ảnh (bố cục cảnh ảnh trái; ảnh phải thì lật gương qua trục giữa): hai mảng tròn hồng
-    // bay vào từ góc · ảnh bo góc bay vào từ mép, hơi xoay rồi đứng lại · viền bo góc mảnh lệch
-    // ra sau tự vẽ dần quanh ảnh. Ảnh khách tự tải ở mục "Ảnh trong slide" (L.photos, khoá = id
-    // cảnh) đè ảnh của thiệp. Mảng tròn là ô ảnh rỗng cắt tròn (chỉ tô màu `empty`).
-    const PX = 72;
-    const PY = 56;
-    const PW = 440;
-    const PH = 608;
-    const R = 28;
-    const mx = (x, w) => (rev ? 1280 - x - w : x);
+    // Bố cục cảnh ảnh trái (ảnh phải thì lật gương qua trục giữa): dải hồng dọc bay vào từ mép ·
+    // dải da đào hẹp bay vào từ mép đối diện, lát ảnh nhỏ trồi lên trong đó · ảnh chính chữ nhật
+    // đè lên mép dải hồng, bay vào hơi nghiêng · cụm chấm 2×5 nở lần lượt ở góc trên ảnh.
+    // Ảnh khách tự tải ở mục "Ảnh trong slide" (L.photos, khoá = id cảnh / `<id>.p1` cho lát ảnh)
+    // đè ảnh của thiệp. Chấm tròn và nhãn bo là ô ảnh rỗng (chỉ tô màu `empty`).
+    const W = 1280;
+    const H = 720;
+    const BW = 400;
+    const SW = 96;
+    const PX = 136;
+    const PY = 64;
+    const PW = 400;
+    const PH = 592;
+    const mx = (x, w) => (rev ? W - x - w : x);
     const side = rev ? "right" : "left";
-    const def = photo.file ? getImageUrl(photo.file) : "";
-    const mine = L.photos?.[sid];
-    const src = mine?.src || getImageUrl(photo.file);
-    const fp = mine ? mine.focal : photo.fp;
-    const dot = (x, y, r, fill, from, dl) => ({ type: "image", src: "", shape: "circle", x: mx(x, r * 2), y, w: r * 2, h: r * 2, empty: fill, anim: { k: "fly", from, t: 1.8, d: dl } });
-    const ax = mx(PX + 24, PW);
-    const photoEls = [
-      dot(-140, -160, 300, C.petal, rev ? "tr" : "tl", 0),
-      dot(380, 492, 104, C.blush, "bottom", 0.25),
-      { type: "stroke", x: ax, y: PY + 24, w: PW, h: PH, paths: [_round(ax, PY + 24, PW, PH, R)], color: C.line, lw: 1.5, anim: { k: "draw", t: 2.2, d: 1.1 } },
-      { type: "image", x: mx(PX, PW), y: PY, w: PW, h: PH, radius: R, src, focal: fp, kb: true, empty: C.surface, edit: sid, anim: { k: "fly", from: side, rot: rev ? 7 : -7, t: 1.7, d: 0.15 } },
+    const far = rev ? "left" : "right";
+    const pic = (key, ph) => {
+      const mine = L.photos?.[key];
+      return { src: mine?.src || getImageUrl(ph.file), focal: mine ? mine.focal : ph.fp, def: ph.file ? getImageUrl(ph.file) : "" };
+    };
+    const main = pic(sid, photo);
+    const k2 = `${sid}.p1`;
+    const sub = pic(k2, strip);
+    const SY = 360;
+    const dots = [];
+    for (let r = 0; r < 2; r++)
+      for (let c = 0; c < 5; c++)
+        dots.push({ type: "image", src: "", shape: "circle", x: mx(PX + PW - 56 + c * 28, 16), y: 32 + r * 28, w: 16, h: 16, empty: C.dot, anim: { k: "zoom", s0: 0.01, t: 0.6, d: 1.1 + (r * 5 + c) * 0.05 } });
+    const back = [
+      { type: "rect", x: mx(0, BW), y: 0, w: BW, h: H, fill: C.band, anim: { k: "fly", from: side, t: 1.3, d: 0 } },
+      { type: "rect", x: mx(W - SW, SW), y: 0, w: SW, h: H, fill: C.peach, anim: { k: "fly", from: far, t: 1.3, d: 0.15 } },
+      { type: "image", x: mx(W - SW, SW), y: SY, w: SW, h: H - SY, src: sub.src, focal: sub.focal, kb: "in", empty: C.surface, edit: k2, anim: { k: "reveal", from: "bottom", drift: 60, t: 1.4, d: 0.7 } },
+      { type: "image", x: mx(PX, PW), y: PY, w: PW, h: PH, src: main.src, focal: main.focal, kb: true, empty: C.surface, edit: sid, anim: { k: "fly", from: side, rot: rev ? 5 : -5, t: 1.6, d: 0.3 } },
+      ...dots,
     ];
 
-    // Bên chữ: cột rộng 592, canh giữa theo chiều dọc. Khối có `indent` (dấu &) lùi vào.
-    const tx = rev ? 80 : 616;
-    const text = L.column(blocks, { x: tx, w: 584, top: 56, bottom: 720 - 56 });
-    blocks.forEach((b, k) => b.indent && text[k] && (text[k].x += b.indent));
-    return { id: sid, dur, label: opt.label || "", texts, photo: { key: sid, def, w: PW, h: PH }, els: [{ ..._BG }, { ..._PETALS }, ...photoEls, ...text] };
-  }
-
-  // Nền hồng chuyển nhẹ + cánh hoa rơi chậm: hai lớp tĩnh/tính theo giờ chung của cả vòng nên
-  // lúc chuyển cảnh nền đứng yên, cánh hoa rơi liền mạch.
-  const _BG = { type: "grad", x: 0, y: 0, w: 1280, h: 720, stops: [[0, C.paper], [1, C.paper2]] };
-  const _PETALS = { type: "drift", shape: "petal", n: 26, size: 20, speed: 30, sway: 48, color: [C.blush, C.rose, C.accent], alpha: 0.62, seed: 7 };
-
-  // Đường viền chữ nhật bo góc r (cùng dáng `radius` của ảnh), chạy một vòng từ giữa mép trên.
-  function _round(x, y, w, h, r) {
-    const pts = [[x + w / 2, y]];
-    const corner = (cx, cy, a0) => {
-      for (let k = 0; k <= 12; k++) {
-        const a = a0 + (Math.PI / 2) * (k / 12);
-        pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    // Bên chữ: cột giữa ảnh chính và dải da đào, canh giữa theo chiều dọc. Khối có `indent` (dấu &)
+    // lùi vào; khối `pill` có nền nhãn bo tròn ôm theo chữ, nở ra cùng nhịp với chữ.
+    const tx = rev ? SW + 64 : PX + PW + 72;
+    const text = L.column(blocks, { x: tx, w: W - SW - 64 - (PX + PW + 72), top: 56, bottom: H - 56 });
+    const pills = [];
+    blocks.forEach((b, k) => {
+      const el = text[k];
+      if (!el) return;
+      if (b.indent) el.x += b.indent;
+      if (b.pill) {
+        el.x += 24;
+        pills.push({ type: "image", src: "", radius: el.h / 2, x: el.x - 24, y: el.y, w: el.tw + 48, h: el.h, empty: C.band, anim: { k: "reveal", from: rev ? "right" : "left", t: 0.9, d: el.anim?.d || 0 } });
       }
+    });
+    return {
+      id: sid,
+      dur,
+      label: opt.label || "",
+      texts,
+      photos: [
+        { key: sid, def: main.def, w: PW, h: PH },
+        { key: k2, def: sub.def, w: SW, h: H - SY },
+      ],
+      els: [{ type: "rect", x: 0, y: 0, w: W, h: H, fill: C.paper }, ...back, ...pills, ...text],
     };
-    corner(x + w - r, y + r, -Math.PI / 2);
-    corner(x + w - r, y + h - r, 0);
-    corner(x + r, y + h - r, Math.PI / 2);
-    corner(x + r, y + r, Math.PI);
-    pts.push([x + w / 2, y]);
-    return pts;
   }
 })();

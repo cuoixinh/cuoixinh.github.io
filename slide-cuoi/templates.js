@@ -6,7 +6,7 @@ window.CX_SLIDE_TEMPLATES = [
   {
     id: "romantic-blush",
     name: "Mãi mãi về sau",
-    desc: "Tông hồng, ảnh bo góc bay vào, cánh hoa rơi",
+    desc: "Hồng pastel, khối màu phẳng, ảnh bay từ ngoài vào",
     ratio: "16 / 9",
     thumb: "/slide-cuoi/templates/romantic-blush/thumb.jpg",
   },
