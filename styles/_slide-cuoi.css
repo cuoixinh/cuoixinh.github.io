@@ -1796,10 +1796,24 @@ html.sc-typing .sc-tx-in {
   color: rgb(var(--vo-ink) / 0.75);
   background: rgb(var(--vo-ink) / 0.1);
   box-shadow: inset -1px 0 0 rgb(var(--vo-bg));
-  pointer-events: none;
+  cursor: pointer;
 }
 .sc-vo-seg.is-alt {
   background: rgb(var(--vo-ink) / 0.16);
+}
+/* Cảnh đang chọn (bấm trên làn — voice.js _scVoSceneSelect): màu nhấn như khối âm thanh đang chọn. */
+.sc-vo-seg:hover {
+  color: rgb(var(--vo-ink));
+  background: rgb(var(--vo-ink) / 0.24);
+}
+.sc-vo-seg.is-sel {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: inset 0 0 0 1px rgb(var(--white-rgb) / 0.6);
+}
+.sc-vo-seg:focus-visible {
+  outline: 2px solid rgb(var(--vo-ink) / 0.8);
+  outline-offset: -2px;
 }
 .sc-vo-n.is-new:focus-visible {
   outline: 2px solid rgb(var(--vo-ink) / 0.8);

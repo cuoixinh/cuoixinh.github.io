@@ -19,6 +19,10 @@ let _scVoT = { t: 0, total: 0, playing: false, at: 0 }; // vị trí khung báo 
 let _scVoSendT = 0;
 let _scVoSaveT = 0;
 let _scVoRaf = 0;
+let _scVoScene = -1; // cảnh đang chọn trên làn Cảnh (chỉ số trong _scCues), -1 = không chọn
+// Cảnh vừa được CHẠM (bấm không kéo) trên làn Cảnh: {i, x} — click ngay sau đó mở thanh tuỳ chọn.
+// Lưu lại vì làn giữ con trỏ (setPointerCapture) nên click rơi vào làn chứ không vào cảnh.
+let _scVoSceneTapAt = null;
 
 const _scVoTotal = () => _scCues.reduce((n, c) => n + c.dur, 0) / 1000 || _scVoT.total || 0;
 const _scVoFmt = (s) => {
@@ -447,7 +451,12 @@ const _scVoShown = (box) => !!box && box.getClientRects().length > 0;
 function _scVoRender() {
   const box = _scEl("sc-vo-tl");
   _scEl("sc-vo-act")?.close?.(); // khối neo sắp bị vẽ lại
-  if (!_scVoShown(box)) return;
+  if (!_scVoShown(box)) return _scEl("sc-vo-scene")?.close?.();
+  if (_scVoScene >= _scCues.length) _scVoScene = -1;
+  // Thanh của cảnh đang mở thì bám lại vào cảnh đó sau khi vẽ (khung báo lại danh sách cảnh mỗi
+  // lần tua sang cảnh khác — đóng theo là vừa bấm đã mất).
+  const scPop = _scEl("sc-vo-scene");
+  const scPin = scPop?.isOpen && _scVoScene >= 0 ? parseFloat(box.querySelector(".sc-vo-seg .sc-vo-pin")?.style.left) || 8 : null;
   const total = _scVoTotal();
   const pps = _scVoPx();
   const W = Math.max(box.clientWidth - _scVoHead(box), Math.ceil(total * pps) + 24);
@@ -459,7 +468,7 @@ function _scVoRender() {
   const segs = _scCues
     .map(
       (c, i) =>
-        `<span class="sc-vo-seg${i % 2 ? " is-alt" : ""}" style="left:${(starts[i] * pps).toFixed(1)}px;width:${((c.dur / 1000) * pps).toFixed(1)}px" title="${_scEsc(c.label)}">${_scEsc(c.label)}</span>`,
+        `<span class="sc-vo-seg${i % 2 ? " is-alt" : ""}${i === _scVoScene ? " is-sel" : ""}" data-scene="${i}" tabindex="0" role="button" aria-label="Cảnh ${i + 1}: ${_scEsc(c.label)}" style="left:${(starts[i] * pps).toFixed(1)}px;width:${((c.dur / 1000) * pps).toFixed(1)}px" title="${_scEsc(c.label)}">${_scEsc(c.label)}</span>`,
     )
     .join("");
   // Làn Nhạc nền dựng như một lớp giọng đọc: đầu làn icon · tên · thư viện · chọn file; khối nhạc
@@ -540,6 +549,9 @@ function _scVoRender() {
   window.lucide?.createIcons({ root: box });
   _scVo.clips.forEach((c) => _scVoPlace(c));
   if (mi) _scVoPlace(mi);
+  const scSeg = scPin != null && box.querySelector(`[data-scene="${_scVoScene}"]`);
+  if (scSeg) _scVoSceneOpen(scSeg, scSeg.getBoundingClientRect().left + scPin);
+  else scPop?.close?.();
   _scEl("sc-vo-total").textContent = `/ ${_scVoFmt(total)}`;
   const duck = _scEl("sc-vo-duck");
   duck.value = String(Math.round(_scVo.duck * 100));
@@ -740,6 +752,7 @@ _scEl("sc-vo-tl")?.addEventListener("pointerdown", (e) => {
   const clipEl = e.target.closest("[data-clip]");
   if (_scVoRec) return; // đang thu: slide tự chạy, không cho dời lớp hay tua
   if (!clipEl && e.target.closest("[data-lane]") && _scVoSel) _scVoSelect("");
+  if (!e.target.closest("[data-scene]")) _scVoSceneSelect(-1);
   _scVoDragged = false;
   if (clipEl) {
     if (e.button > 0 || _scVoBusy()) return;
@@ -766,11 +779,17 @@ _scEl("sc-vo-tl")?.addEventListener("pointerdown", (e) => {
   go(e);
   lane.setPointerCapture(e.pointerId);
   _scVoEdge = { x: e.clientX, run: (x) => go({ clientX: x }) };
+  // Bấm (không kéo) vào một cảnh = chọn cảnh đó; kéo quá 4px thì chỉ là tua.
+  const segEl = e.target.closest("[data-scene]");
+  let tap = !!segEl;
   const move = (ev) => {
     _scVoEdge.x = ev.clientX;
+    if (Math.abs(ev.clientX - e.clientX) > 4) tap = false;
     go(ev);
   };
-  const up = () => {
+  _scVoSceneTapAt = null;
+  const up = (ev) => {
+    if (tap && ev.type === "pointerup") _scVoSceneTapAt = { i: Number(segEl.dataset.scene), x: ev.clientX };
     _scVoEdge = null;
     lane.removeEventListener("pointermove", move);
     lane.removeEventListener("pointerup", up);
@@ -851,8 +870,65 @@ const _scVoEnd = () => {
 _scEl("sc-vo-tl")?.addEventListener("pointerup", _scVoEnd);
 _scEl("sc-vo-tl")?.addEventListener("pointercancel", _scVoEnd);
 
+// ── Làn Cảnh: bấm chọn một cảnh → tô màu + thanh tuỳ chọn (Sửa cảnh · Xoá cảnh). Delete /
+// Backspace xoá cảnh đang chọn, Enter / Space mở thanh. Xoá đi qua scSceneDelete của index.js.
+function _scVoSceneSelect(i) {
+  _scVoScene = i;
+  _scEl("sc-vo-tl")
+    ?.querySelectorAll("[data-scene]")
+    .forEach((el) => el.classList.toggle("is-sel", Number(el.dataset.scene) === i));
+  if (i < 0) _scEl("sc-vo-scene")?.close?.();
+}
+function _scVoSceneTap(i, clientX) {
+  const el = _scEl("sc-vo-tl")?.querySelector(`[data-scene="${i}"]`);
+  if (!el || _scVoRec) return;
+  _scVoSceneSelect(i);
+  el.focus({ preventScroll: true });
+  _scVoSceneOpen(el, clientX);
+}
+function _scVoSceneOpen(el, clientX) {
+  const pop = _scEl("sc-vo-scene");
+  if (!pop?.open) return;
+  el.querySelector(".sc-vo-pin")?.remove();
+  const pin = document.createElement("i");
+  pin.className = "sc-vo-pin";
+  const r = el.getBoundingClientRect();
+  pin.style.left = `${Math.max(8, Math.min(r.width - 8, clientX - r.left))}px`;
+  el.appendChild(pin);
+  pop.open(pin);
+}
+function _scVoSceneDel(i) {
+  _scEl("sc-vo-scene")?.close?.();
+  _scVoScene = -1;
+  scSceneDelete(i);
+}
+_scEl("sc-vo-scene")?.addEventListener("click", (e) => {
+  const act = e.target.closest("[data-scene-act]")?.dataset.sceneAct;
+  const i = _scVoScene;
+  if (!act || i < 0) return;
+  if (act === "delete") return _scVoSceneDel(i);
+  _scEl("sc-vo-scene").close?.();
+  scTab("scenes");
+  _scOpenScene(i)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+});
+
 // Phím trên khối đang chọn: ← → nhích 0,1 giây (Shift: 1 giây).
 _scEl("sc-vo-tl")?.addEventListener("keydown", (e) => {
+  const seg = e.target.closest("[data-scene]");
+  if (seg && !_scVoRec) {
+    const i = Number(seg.dataset.scene);
+    if (e.key === "Delete" || e.key === "Backspace") {
+      e.preventDefault();
+      return _scVoSceneDel(i);
+    }
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      _scVoSceneSelect(i);
+      const r = seg.getBoundingClientRect();
+      return _scVoSceneOpen(seg, r.left + Math.min(40, r.width / 2));
+    }
+    return;
+  }
   const el = e.target.closest("[data-clip]");
   if (el && (e.key === "Enter" || e.key === " ") && !_scVoRec) {
     e.preventDefault();
@@ -870,6 +946,10 @@ _scEl("sc-vo-tl")?.addEventListener("keydown", (e) => {
 
 // Nút trong dòng thời gian (tắt tiếng, micro) và dấu x của bảng lớp đang chọn.
 function _scVoClick(e) {
+  // Mở thanh ở click chứ không ở pointerup: x-popover đóng theo click ra ngoài ngay sau đó.
+  const tap = _scVoSceneTapAt;
+  _scVoSceneTapAt = null;
+  if (tap) return _scVoSceneTap(tap.i, tap.x);
   const clipEl = e.target.closest("[data-clip]");
   if (clipEl && e.currentTarget === _scEl("sc-vo-tl")) {
     if (_scVoDragged || _scVoRec) return (_scVoDragged = false);
@@ -932,12 +1012,12 @@ addEventListener("resize", () => {
 });
 
 // Bàn dựng phim (_SC_STUDIO): thanh phát + dòng thời gian ra dock đáy trang; màn nhỏ trả về tab
-// Âm thanh, đúng chỗ cũ (trước thanh tuỳ chọn #sc-vo-act). Chuyển nút thật nên sự kiện đã gắn giữ nguyên.
+// Âm thanh, đúng chỗ cũ (trước bảng thư viện nhạc). Chuyển nút thật nên sự kiện đã gắn giữ nguyên.
 function _scVoDock() {
   const on = _SC_STUDIO.matches;
   const dock = _scEl("sc-dock");
   const tab = _scEl("sc-tab-audio");
-  const anchor = _scEl("sc-vo-act");
+  const anchor = _scEl("sc-mu-libbox");
   ["sc-vo-bar", "sc-vo-rec", "sc-vo-tl"].forEach((id) => {
     const el = _scEl(id);
     if (on) dock.appendChild(el);

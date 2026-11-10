@@ -499,15 +499,19 @@ function _scHiddenRender() {
       .join("")}</ul>`;
   window.lucide?.createIcons({ root: box });
 }
-_scEl("sc-cues").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-scene-del]");
-  if (!b) return;
-  const c = _scCues[Number(b.dataset.sceneDel)];
+// Xoá cảnh thứ i — dùng chung cho nút trong danh sách cảnh và làn Cảnh của dòng thời gian (voice.js).
+function scSceneDelete(i) {
+  const c = _scCues[i];
   if (!c) return;
   if (_scCues.length <= 1) return window.showToast?.("Slide phải còn ít nhất một cảnh", "warning");
+  if (_scExState === "run") return window.showToast?.("Đang xuất video, đợi xong rồi hãy xoá cảnh", "warning");
   _scOpen = -1;
   _scSceneOff(c.id, true);
-  window.showToast?.(`Đã xoá cảnh "${c.label}". Muốn lấy lại thì bấm Khôi phục ở cuối danh sách cảnh.`, "success");
+  window.showToast?.(`Đã xoá cảnh "${c.label}". Muốn lấy lại thì bấm Khôi phục ở cuối tab Cảnh.`, "success");
+}
+_scEl("sc-cues").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-scene-del]");
+  if (b) scSceneDelete(Number(b.dataset.sceneDel));
 });
 _scEl("sc-hidden")?.addEventListener("click", (e) => {
   const b = e.target.closest("[data-scene-back]");

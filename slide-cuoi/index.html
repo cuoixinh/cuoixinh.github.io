@@ -147,6 +147,23 @@
         </div>
       </x-popover>
 
+      <!-- Hai thanh tuỳ chọn nổi của dòng thời gian (khối âm thanh · cảnh) để NGOÀI bảng chỉnh: dòng
+           thời gian có thể nằm ở dock trong khi tab Âm thanh đang ẩn — thẻ nằm trong tab ẩn thì mở
+           cũng không thấy. -->
+      <!-- Thanh tuỳ chọn của khối âm thanh vừa bấm (voice.js neo ngay chỗ bấm trên khối). -->
+      <x-popover id="sc-vo-act" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn âm thanh">
+        <!-- To dần / nhỏ dần: bấm để đổi số giây vòng qua _SC_VO_FADES, thanh giữ nguyên để bấm tiếp. -->
+        <button type="button" class="sc-vo-act-btn" data-act="fi" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-up"></i></span>To dần<span class="sc-vo-act-v" data-fade-v="fi"></span></button>
+        <button type="button" class="sc-vo-act-btn" data-act="fo" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-down"></i></span>Nhỏ dần<span class="sc-vo-act-v" data-fade-v="fo"></span></button>
+        <button type="button" class="sc-vo-act-btn" data-act="replace"><span class="sc-vo-act-ico"><i data-lucide="replace"></i></span>Thay thế</button>
+        <button type="button" class="sc-vo-act-btn" data-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá</button>
+      </x-popover>
+      <!-- Thanh tuỳ chọn của cảnh vừa bấm trên làn Cảnh (voice.js _scVoSceneOpen). -->
+      <x-popover id="sc-vo-scene" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn cảnh">
+        <button type="button" class="sc-vo-act-btn" data-scene-act="edit"><span class="sc-vo-act-ico"><i data-lucide="file-pen"></i></span>Sửa cảnh</button>
+        <button type="button" class="sc-vo-act-btn" data-scene-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá cảnh</button>
+      </x-popover>
+
       <div class="sc-panel">
         <!-- Từ lg tiêu đề + dải tab ghim đầu cột phải (_slide-cuoi.css), nội dung tab cuộn bên dưới. -->
         <div class="sc-tabs-bar">
@@ -248,14 +265,6 @@
           </div>
           <p id="sc-vo-rec" class="sc-vo-rec hidden" role="status" aria-live="polite"></p>
           <div id="sc-vo-tl" class="sc-vo-tl"></div>
-          <!-- Thanh tuỳ chọn của khối âm thanh vừa bấm (voice.js neo ngay chỗ bấm trên khối). -->
-          <x-popover id="sc-vo-act" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn âm thanh">
-            <!-- To dần / nhỏ dần: bấm để đổi số giây vòng qua _SC_VO_FADES, thanh giữ nguyên để bấm tiếp. -->
-            <button type="button" class="sc-vo-act-btn" data-act="fi" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-up"></i></span>To dần<span class="sc-vo-act-v" data-fade-v="fi"></span></button>
-            <button type="button" class="sc-vo-act-btn" data-act="fo" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-down"></i></span>Nhỏ dần<span class="sc-vo-act-v" data-fade-v="fo"></span></button>
-            <button type="button" class="sc-vo-act-btn" data-act="replace"><span class="sc-vo-act-ico"><i data-lucide="replace"></i></span>Thay thế</button>
-            <button type="button" class="sc-vo-act-btn" data-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá</button>
-          </x-popover>
           <!-- Thư viện nhạc: mở từ nút ở đầu làn Nhạc nền (voice.js), danh sách do _scMuRender vẽ. -->
           <div id="sc-mu-libbox" class="sc-vo-sel sc-mu-libbox hidden">
             <div class="sc-vo-sel-head">
