@@ -262,7 +262,7 @@ function payRender() {
               w.current_plan
                 ? ""
                 : `<label class="flex items-start gap-2 text-sm text-gray-800 cursor-pointer">
-                    <input id="pay-showcase" type="checkbox" checked class="mt-1 accent-rose-500" />
+                    <input id="pay-showcase" type="checkbox" class="mt-1 accent-rose-500" />
                     <span>Khách cho phép hiện thiệp ở trang chủ
                       <span class="block text-[11px] text-gray-400">Hỏi khách trước khi xác nhận — người xem trang chủ mở được cả thiệp (bản nhà trai)</span>
                     </span>
