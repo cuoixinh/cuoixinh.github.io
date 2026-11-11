@@ -664,77 +664,56 @@ input.flatpickr-input[readonly] {
          rounded-full bg-rose-600 px-1 text-[10px] font-bold leading-none text-white;
 }
 
-/* Popover Lịch sử: đầu (tiêu đề + đóng) · thân cuộn được, mỗi tab một nhóm ·
-   chân "Hoàn tác tất cả". Nhóm có đầu bấm được để mở tab đó. */
-#cx-hist-pop {
-  @apply gap-0 p-0;
-
-  overflow: hidden;
-}
-
-.cx-hist-head {
-  @apply flex items-start gap-2 border-b border-gray-100 px-4 pb-3 pt-4;
-}
-
-.cx-hist-h {
-  @apply text-[14px] font-semibold text-gray-800;
-}
-
-.cx-hist-sub {
-  @apply mt-0.5 text-[12px] text-gray-500;
-}
-
-.cx-hist-x {
-  @apply -mr-1 -mt-1 ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-full
-         text-gray-400 hover:bg-gray-100 hover:text-gray-700;
-}
-
+/* Popup Lịch sử (openBottomSheet): dòng tóm tắt · mỗi tab một thẻ (đầu thẻ: icon,
+   tên tab, số mục, "Mở tab") · chân: Hoàn tác tất cả + Xong. */
 .cx-hist-body {
-  @apply overflow-y-auto px-2 py-2;
-
-  max-height: min(56vh, 440px);
-  overscroll-behavior: contain;
+  @apply flex flex-col gap-3 px-4 pb-4 pt-3 sm:px-5;
 }
 
-.cx-hist-grp + .cx-hist-grp {
-  @apply mt-1 border-t border-gray-100 pt-1;
+.cx-hist-intro {
+  @apply text-[13px] leading-relaxed text-gray-500;
+}
+
+.cx-hist-intro b {
+  @apply font-semibold text-gray-800;
+}
+
+.cx-hist-grp {
+  @apply overflow-hidden rounded-2xl border border-gray-100 bg-white;
 }
 
 .cx-hist-gh {
-  @apply flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left;
-}
-
-button.cx-hist-gh:hover {
-  @apply bg-gray-50;
+  @apply flex items-center gap-2 border-b border-gray-100 bg-gray-50/70 px-3 py-2.5;
 }
 
 .cx-hist-gi {
-  @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600;
+  @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600;
 }
 
 .cx-hist-gt {
-  @apply min-w-0 truncate text-[12px] font-semibold uppercase tracking-wide text-gray-600;
+  @apply min-w-0 truncate text-[13px] font-semibold text-gray-800;
 }
 
 .cx-hist-gn {
-  @apply rounded-full bg-gray-100 px-1.5 py-px text-[11px] font-semibold text-gray-600;
+  @apply rounded-full bg-white px-2 py-px text-[11px] font-semibold text-gray-500 ring-1 ring-gray-200;
 }
 
-.cx-hist-go {
-  @apply ml-auto text-gray-400;
+.cx-hist-open {
+  @apply -my-1 ml-auto inline-flex shrink-0 items-center gap-0.5 rounded-full px-2 py-1
+         text-[12px] font-medium text-rose-600 hover:bg-rose-50;
+}
+
+.cx-hist-list {
+  @apply divide-y divide-gray-100;
 }
 
 .cx-hist-it {
-  @apply flex items-start gap-2.5 rounded-xl px-2 py-2;
-}
-
-.cx-hist-it:hover {
-  @apply bg-gray-50;
+  @apply flex items-start gap-3 px-3 py-3;
 }
 
 /* Chấm loại thay đổi: thêm xanh · xoá/ẩn đỏ · sửa xám · đặt lại hổ phách. */
 .cx-hist-ki {
-  @apply mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500;
+  @apply mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500;
 }
 
 .cx-hist-ki.is-add {
@@ -751,20 +730,28 @@ button.cx-hist-gh:hover {
 }
 
 .cx-hist-tx {
-  @apply flex min-w-0 flex-1 flex-col;
+  @apply flex min-w-0 flex-1 flex-col rounded-lg;
 }
 
 .cx-hist-tx[data-th-focus] {
   @apply cursor-pointer;
 }
 
+.cx-hist-tx[data-th-focus]:hover .cx-hist-t {
+  @apply text-rose-600;
+}
+
+.cx-hist-tx:focus-visible {
+  @apply outline-none ring-2 ring-rose-200;
+}
+
 .cx-hist-t {
-  @apply text-[13px] font-medium leading-snug text-gray-800;
+  @apply text-[14px] font-medium leading-snug text-gray-800;
 }
 
 /* Tối đa 2 dòng: "Mặc định của mẫu → Kem champagne" cắt ở một dòng là mất vế sau. */
 .cx-hist-d {
-  @apply mt-0.5 text-[12px] text-gray-500;
+  @apply mt-0.5 text-[13px] text-gray-500;
 
   display: -webkit-box;
   overflow: hidden;
@@ -774,33 +761,13 @@ button.cx-hist-gh:hover {
 }
 
 .cx-hist-w {
-  @apply mt-0.5 text-[11px] text-gray-400;
-}
-
-.cx-hist-undo {
-  @apply inline-flex h-7 shrink-0 items-center gap-1 rounded-full border border-gray-200 bg-white
-         px-2.5 text-[12px] font-medium text-gray-700 transition-[background-color,transform] duration-150;
-}
-
-.cx-hist-undo:hover {
-  @apply border-rose-200 bg-rose-50 text-rose-700;
-}
-
-.cx-hist-undo:active {
-  @apply scale-95;
-}
-
-.cx-hist-undo:focus-visible {
-  @apply outline-none ring-2 ring-rose-200;
+  @apply mt-1 text-[11px] text-gray-400;
 }
 
 .cx-hist-foot {
-  @apply border-t border-gray-100 px-3 py-2;
-}
+  @apply flex items-center gap-2 border-t border-gray-100 px-4 py-3 sm:px-5;
 
-.cx-hist-all {
-  @apply flex w-full items-center justify-center gap-1.5 rounded-full py-2 text-[13px]
-         font-semibold text-red-600 hover:bg-red-50;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
 .cx-hist-empty {

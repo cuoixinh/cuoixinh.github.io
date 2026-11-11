@@ -384,9 +384,11 @@ async function cxThemeHistUndoAll() {
 }
 window.cxThemeHistUndoAll = cxThemeHistUndoAll;
 
-// ── Popover ────────────────────────────────────────────────────────────────
+// ── Popup (openBottomSheet: bottom sheet dưới sm, hộp giữa màn từ sm) ─────────
 
 const TH_KIND_ICON = { add: "plus", del: "trash-2", hide: "eye-off", edit: "pencil", reset: "rotate-ccw" };
+
+let _thSheet = null; // { body, footer, close } khi popup đang mở
 
 function _thAgo(ms) {
   if (!ms) return "";
@@ -409,58 +411,62 @@ function _thGroupMeta(g) {
   return { title: v ? _ctrlTitle(v) : g.id, icon: v?.icon || "circle" };
 }
 
+function _thRowHTML(e) {
+  const when = _thAgo(e.at);
+  const focus = e.focus
+    ? ` data-th-focus="${_thEsc(e.focus)}" role="button" tabindex="0" title="Xem trên thiệp"`
+    : "";
+  return (
+    `<li class="cx-hist-it">` +
+    `<span class="cx-hist-ki is-${e.kind}"><i data-lucide="${TH_KIND_ICON[e.kind] || "pencil"}" style="width:14px;height:14px"></i></span>` +
+    `<div class="cx-hist-tx"${focus}>` +
+    `<span class="cx-hist-t">${_thEsc(e.title)}</span>` +
+    (e.detail ? `<span class="cx-hist-d">${_thEsc(e.detail)}</span>` : "") +
+    (when ? `<span class="cx-hist-w">${when}</span>` : "") +
+    `</div>` +
+    `<x-button variant="outline" tone="neutral" size="xs" icon="undo-2" data-th-undo="${_thEsc(e.key)}" title="Hoàn tác thay đổi này">Hoàn tác</x-button>` +
+    `</li>`
+  );
+}
+
 function _thRender() {
-  const pop = document.getElementById("cx-hist-pop");
-  if (!pop) return;
+  if (!_thSheet) return;
   const list = _thEntries();
-  let html =
-    `<div class="cx-hist-head"><div class="min-w-0"><p class="cx-hist-h">Lịch sử thay đổi</p>` +
-    `<p class="cx-hist-sub">${list.length ? `${list.length} thay đổi so với lúc bắt đầu chỉnh` : "So với lúc bắt đầu chỉnh"}</p></div>` +
-    `<button type="button" class="cx-hist-x" data-th-close aria-label="Đóng"><i data-lucide="x" style="width:16px;height:16px"></i></button></div>`;
+  const { body, footer } = _thSheet;
+  let html = "";
   if (!list.length) {
-    html +=
-      `<div class="cx-hist-empty"><span class="cx-hist-empty-ico"><i data-lucide="history" style="width:22px;height:22px"></i></span>` +
+    html =
+      `<div class="cx-hist-empty"><span class="cx-hist-empty-ico"><i data-lucide="history" style="width:24px;height:24px"></i></span>` +
       `<p class="cx-hist-empty-t">Chưa có thay đổi nào</p>` +
-      `<p class="cx-hist-empty-d">Đổi màu, sửa hay ẩn chữ, thêm khối văn bản… sẽ hiện ở đây theo từng tab để bạn hoàn tác riêng từng việc.</p></div>`;
+      `<p class="cx-hist-empty-d">Đổi màu, sửa hay ẩn chữ, thêm khối văn bản, thả thẻ nhạc… sẽ hiện ở đây theo từng tab để bạn hoàn tác riêng từng việc.</p></div>`;
   } else {
-    html += `<div class="cx-hist-body">`;
+    html = `<p class="cx-hist-intro"><b>${list.length} thay đổi</b> so với lúc bạn bắt đầu chỉnh. Bấm vào một dòng để xem nó trên thiệp.</p>`;
     TH_GROUPS.forEach((g) => {
       const rows = list.filter((e) => e.group === g.id).sort((a, b) => b.at - a.at);
       if (!rows.length) return;
       const meta = _thGroupMeta(g);
-      const head =
-        `<span class="cx-hist-gi"><i data-lucide="${meta.icon}" style="width:14px;height:14px"></i></span>` +
-        `<span class="cx-hist-gt">${_thEsc(meta.title)}</span><span class="cx-hist-gn">${rows.length}</span>`;
-      html += `<section class="cx-hist-grp">`;
-      html += g.ctab
-        ? `<button type="button" class="cx-hist-gh" data-th-tab="${g.ctab}" title="Mở tab ${_thEsc(meta.title)}">${head}<i data-lucide="chevron-right" class="cx-hist-go" style="width:14px;height:14px"></i></button>`
-        : `<div class="cx-hist-gh">${head}</div>`;
-      html += `<ul class="cx-hist-list">`;
-      rows.forEach((e) => {
-        const when = _thAgo(e.at);
-        html +=
-          `<li class="cx-hist-it">` +
-          `<span class="cx-hist-ki is-${e.kind}"><i data-lucide="${TH_KIND_ICON[e.kind] || "pencil"}" style="width:13px;height:13px"></i></span>` +
-          `<div class="cx-hist-tx"${e.focus ? ` data-th-focus="${_thEsc(e.focus)}" role="button" tabindex="0" title="Xem trên thiệp"` : ""}>` +
-          `<span class="cx-hist-t">${_thEsc(e.title)}</span>` +
-          (e.detail ? `<span class="cx-hist-d">${_thEsc(e.detail)}</span>` : "") +
-          (when ? `<span class="cx-hist-w">${when}</span>` : "") +
-          `</div>` +
-          `<button type="button" class="cx-hist-undo" data-th-undo="${_thEsc(e.key)}" title="Hoàn tác thay đổi này">` +
-          `<i data-lucide="undo-2" style="width:14px;height:14px"></i><span>Hoàn tác</span></button>` +
-          `</li>`;
-      });
-      html += `</ul></section>`;
+      html +=
+        `<section class="cx-hist-grp"><div class="cx-hist-gh">` +
+        `<span class="cx-hist-gi"><i data-lucide="${meta.icon}" style="width:16px;height:16px"></i></span>` +
+        `<span class="cx-hist-gt">${_thEsc(meta.title)}</span><span class="cx-hist-gn">${rows.length}</span>` +
+        (g.ctab
+          ? `<button type="button" class="cx-hist-open" data-th-tab="${g.ctab}">Mở tab<i data-lucide="chevron-right" style="width:14px;height:14px"></i></button>`
+          : "") +
+        `</div><ul class="cx-hist-list">${rows.map(_thRowHTML).join("")}</ul></section>`;
     });
-    html += `</div><div class="cx-hist-foot"><button type="button" class="cx-hist-all" data-th-all>` +
-      `<i data-lucide="rotate-ccw" style="width:14px;height:14px"></i>Hoàn tác tất cả</button></div>`;
   }
-  pop.innerHTML = html;
-  window.lucide?.createIcons({ root: pop });
-  pop.place?.();
+  body.innerHTML = `<div class="cx-hist-body">${html}</div>`;
+  footer.innerHTML =
+    `<div class="cx-hist-foot">` +
+    (list.length
+      ? `<x-button variant="ghost" tone="danger" size="md" icon="rotate-ccw" data-th-all>Hoàn tác tất cả</x-button>`
+      : "") +
+    `<x-button variant="fill" tone="brand" size="md" class="ml-auto" data-th-close>Xong</x-button></div>`;
+  window.lucide?.createIcons({ root: body });
+  window.lucide?.createIcons({ root: footer });
 }
 
-// Số trên nút + nội dung popover nếu đang mở.
+// Số trên nút + nội dung popup nếu đang mở.
 function _thRefresh() {
   const n = _thBase ? _thEntries().length : 0;
   const badge = document.getElementById("cx-ch-hist-n");
@@ -470,37 +476,62 @@ function _thRefresh() {
   }
   const btn = document.getElementById("cx-ch-hist");
   btn?.setAttribute("aria-label", n ? `Lịch sử thay đổi (${n})` : "Lịch sử thay đổi");
-  if (document.getElementById("cx-hist-pop")?.isOpen) _thRender();
+  if (_thSheet) _thRender();
 }
 
-function _thInitPop() {
-  const pop = document.getElementById("cx-hist-pop");
-  if (!pop) return;
-  pop.addEventListener("open", () => {
-    _thTrack();
-    _thRender();
-  });
-  pop.addEventListener("click", (e) => {
-    const t = e.target;
-    const undo = t.closest("[data-th-undo]");
-    if (undo) return cxThemeHistUndo(undo.dataset.thUndo);
-    if (t.closest("[data-th-all]")) return cxThemeHistUndoAll();
-    if (t.closest("[data-th-close]")) return pop.close();
-    const tab = t.closest("[data-th-tab]");
-    if (tab) {
-      pop.close();
-      return cxCtrlTab(tab.dataset.thTab);
-    }
-    const focus = t.closest("[data-th-focus]");
-    if (focus)
-      document
-        .getElementById("theme-preview-iframe")
-        ?.contentWindow?.postMessage({ type: "cx-scroll", selector: focus.dataset.thFocus }, "*");
-  });
-  pop.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && e.target.matches("[data-th-focus]")) e.target.click();
-  });
+function _thOnClick(e) {
+  const t = e.target;
+  const undo = t.closest("[data-th-undo]");
+  if (undo) return cxThemeHistUndo(undo.dataset.thUndo);
+  if (t.closest("[data-th-all]")) return cxThemeHistUndoAll();
+  if (t.closest("[data-th-close]")) return _thSheet?.close();
+  const tab = t.closest("[data-th-tab]");
+  if (tab) {
+    _thSheet?.close();
+    return cxCtrlTab(tab.dataset.thTab);
+  }
+  const focus = t.closest("[data-th-focus]");
+  if (focus) {
+    // Dưới sm popup che kín thiệp → đóng trước rồi mới cuộn tới.
+    if (!window.matchMedia?.("(min-width: 640px)").matches) _thSheet?.close();
+    document
+      .getElementById("theme-preview-iframe")
+      ?.contentWindow?.postMessage({ type: "cx-scroll", selector: focus.dataset.thFocus }, "*");
+  }
 }
+
+// Nút đồng hồ ở đầu bảng chỉnh.
+function cxThemeHistOpen() {
+  if (_thSheet) return;
+  _thTrack();
+  const sheet = openBottomSheet({
+    id: "cx-hist-sheet",
+    title:
+      '<span class="cx-hist-gi"><i data-lucide="history" style="width:16px;height:16px"></i></span>Lịch sử thay đổi',
+    height: 80,
+    cardClass: "cx-sheet-fit sm:max-w-xl",
+    onClose: () => {
+      _thSheet = null;
+      document.getElementById("cx-ch-hist")?.setAttribute("aria-expanded", "false");
+    },
+  });
+  if (!sheet) return;
+  _thSheet = sheet;
+  document.getElementById("cx-ch-hist")?.setAttribute("aria-expanded", "true");
+  sheet.body.className = "flex-1 min-h-0 overflow-y-auto overscroll-contain";
+  const modal = document.getElementById("cx-hist-sheet");
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) return sheet.close(); // bấm ra nền mờ
+    _thOnClick(e);
+  });
+  modal.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") sheet.close();
+    else if (e.key === "Enter" && e.target.matches("[data-th-focus]")) e.target.click();
+  });
+  window.lucide?.createIcons({ root: modal });
+  _thRender();
+}
+window.cxThemeHistOpen = cxThemeHistOpen;
 
 // Chạm = nhấn/thả/gõ trong tab, kể cả trong khung thiệp (cùng origin; mỗi lần khung
 // nạp lại là document mới nên gắn lại).
@@ -518,5 +549,4 @@ function _thInitPop() {
     } catch (e) {}
     _thRefresh();
   });
-  _thInitPop();
 })();
