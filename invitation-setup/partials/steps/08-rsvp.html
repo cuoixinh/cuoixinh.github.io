@@ -41,24 +41,25 @@
           onclick="toggleSectionVis('wishes', event)"
         ></x-switch>
       </div>
-      <p class="mt-2 text-xs text-gray-500">
-        Thiệp hiện mục Lời chúc và một ô viết ghim ở đáy màn hình. Chỉ khách mời
-        nhận thiệp riêng mới gửi được (tối đa 3 lời chúc mỗi người); ai mở thiệp
-        cũng đọc được danh sách.
-      </p>
-      <!-- Giá trị thật ở ô hidden (vào FormData), toggleWishCustomName đồng bộ hai bên
-           (js/03-form-sections.js). x-check là display:contents nên bọc div lấy lề. -->
-      <div class="mt-4">
-        <input type="hidden" name="wish_custom_name" id="wish_custom_name" value="false" />
-        <x-check
-          key="wish-custom-name"
-          label="Cho phép khách mời tự viết tên"
-          onchange="toggleWishCustomName(event)"
-        ></x-check>
-        <p class="text-xs text-gray-400 mt-1.5 px-1">
-          Ô gửi lời chúc có thêm ô "Ký tên", điền sẵn tên bạn đặt cho khách — khách
-          sửa được, để trống thì giữ tên bạn đặt.
+      <!-- Tắt lời chúc thì ẩn cả khối này (data-vis-body, xem _updateVisUI). Ô hidden
+           vẫn trong DOM nên FormData/autosave không đổi. -->
+      <div data-vis-body="wishes">
+        <p class="mt-2 text-xs text-gray-500">
+          Chỉ khách nhận thiệp riêng mới gửi được, tối đa 3 lời chúc mỗi người.
         </p>
+        <!-- Giá trị thật ở ô hidden (vào FormData), toggleWishCustomName đồng bộ hai bên
+             (js/03-form-sections.js). x-check là display:contents nên bọc div lấy lề. -->
+        <div class="mt-3">
+          <input type="hidden" name="wish_custom_name" id="wish_custom_name" value="false" />
+          <x-check
+            key="wish-custom-name"
+            label="Cho phép khách mời tự viết tên"
+            onchange="toggleWishCustomName(event)"
+          ></x-check>
+          <p class="text-xs text-gray-400 mt-1 px-1">
+            Điền sẵn tên bạn đặt, khách sửa được.
+          </p>
+        </div>
       </div>
     </div>
   </div>

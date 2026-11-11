@@ -1,7 +1,7 @@
-// Cuộn thiệp tới đúng mục đang được chỉnh bên trang Thiết lập (khung "xem trực
-// tiếp"). Trang cha gửi {type:"cx-focus", key}, key trùng `data-step` của bước
-// (riêng "map" là mục Địa điểm, chung cho nhiều bước).
-// Thiệp thật không ai gửi gì nên file này nằm im.
+// Cuộn thiệp tới đúng phần đang được chỉnh bên trang Thiết lập (khung "xem trực
+// tiếp", tab Xem trước). Trang cha gửi {type:"cx-focus", key, field?, text?}: key
+// trùng `data-step` của bước (riêng "map" là mục Địa điểm), field/text là ô sửa gần
+// nhất — có thì tới thẳng dòng chữ đó. Thiệp thật không ai gửi gì nên file này nằm im.
 
 // Mỗi vai trò một danh sách ứng viên vì id không thống nhất giữa các theme —
 // lấy phần tử ĐẦU TIÊN có thật và đang hiện. Theme đặt id khác thì khai
@@ -59,19 +59,68 @@ function _cxFocusFlash(el) {
   setTimeout(() => el.classList.remove("cx-focus-flash"), 1200);
 }
 
-function _cxFocusScroll(key, tries) {
-  if (key === "couple") {
+const _cxFocusNorm = (s) => String(s || "").replace(/\s+/g, " ").trim().toLowerCase();
+
+function _cxFocusVisible(el) {
+  return el.offsetParent !== null || getComputedStyle(el).position === "fixed";
+}
+
+// Dòng chữ chứa đúng chuỗi khách vừa gõ — id không thống nhất giữa các mẫu, còn
+// chữ thì mẫu nào cũng in ra y vậy. Chuỗi quá ngắn ("Anh") thì khớp lung tung, bỏ.
+function _cxFocusText(text, root) {
+  const needle = _cxFocusNorm(text);
+  if (!root || needle.length < 3) return null;
+  const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    const p = n.parentElement;
+    if (!p || p.closest("script,style,noscript")) continue;
+    if (_cxFocusNorm(n.data).includes(needle) && _cxFocusVisible(p)) return p;
+  }
+  return null;
+}
+
+// Ô sửa gần nhất → phần tử trên thiệp: chữ trong mục của bước trước (tên cô dâu
+// còn in ở bìa, chân thiệp…), rồi cả thiệp, rồi đoán id theo tên ô (groom_father →
+// #groom-father) cho ô không in nguyên văn (ngày giờ đã định dạng lại).
+function _cxFocusExact(field, text, section) {
+  const hit = _cxFocusText(text, section) || _cxFocusText(text, document.body);
+  if (hit) return hit;
+  if (!/^[a-z0-9_]+$/i.test(field || "")) return null;
+  const el = document.getElementById(field.replace(/_/g, "-"));
+  return el && _cxFocusVisible(el) ? el : null;
+}
+
+// Tới đầu mục NGAY (mục có sẵn trong markup), rồi dò tiếp dòng chữ của ô vừa sửa —
+// renderWedding chạy sau load nên chữ có khi chưa vào; thấy thì chỉnh lại cho trúng.
+// Không có ô sửa nào (vừa đổi bước) thì chỉ cần đầu mục: thấy là loé luôn.
+function _cxFocusScroll(d, tries, atSection) {
+  const key = d.key;
+  const section = key === "couple" ? null : _cxFocusFind(key);
+  const wantExact = !!(d.field || d.text);
+  const exact = wantExact && _cxFocusExact(d.field, d.text, section);
+  if (exact || (!wantExact && section)) {
+    _cxFocusCenter(exact || section);
+    _cxFocusFlash(exact || section);
+    return;
+  }
+  if (!wantExact && key === "couple") {
     window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
-  const el = _cxFocusFind(key);
-  if (!el) {
-    if (tries < CX_FOCUS_TRIES)
-      setTimeout(() => _cxFocusScroll(key, tries + 1), CX_FOCUS_GAP);
-    return;
+  if (!atSection) {
+    if (key === "couple") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      atSection = true;
+    } else if (section) {
+      _cxFocusCenter(section);
+      atSection = true;
+    }
   }
-  _cxFocusCenter(el);
-  _cxFocusFlash(el);
+  if (tries < CX_FOCUS_TRIES) {
+    setTimeout(() => _cxFocusScroll(d, tries + 1, atSection), CX_FOCUS_GAP);
+  } else if (section) {
+    _cxFocusFlash(section);
+  }
 }
 
 // Khung cuộn gần nhất CHỨA el trong chính thiệp (không có thì là trang).
@@ -122,5 +171,9 @@ window.addEventListener("message", (ev) => {
   const d = ev.data;
   if (!d || d.type !== "cx-focus" || !d.key) return;
   _cxFocusStyle();
-  _cxFocusScroll(String(d.key), 0);
+  _cxFocusScroll(
+    { key: String(d.key), field: String(d.field || ""), text: String(d.text || "") },
+    0,
+    false,
+  );
 });
