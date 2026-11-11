@@ -240,7 +240,7 @@ chính là thứ cho thấy thiệp trông ra sao trên điện thoại. Chỗ m
 gốc trong khi ô màn tính bằng % nên thiệp tràn ra ngoài viền. Dưới `md` thanh chỉnh của tab
 Giao diện là tấm **nổi `absolute` đè đáy khung, cao theo nội dung, KHÔNG cuộn dọc** (chỉ thu
 gọn/mở), mọi danh sách trong đó là **dải vuốt NGANG** — đừng trả nó về trong luồng: thu/mở sẽ
-làm thiệp co giãn. Vào tab chưa chọn bảng nào (màn `none` cuối `CTRL_VIEWS`). Từ `md` nó nằm trong luồng, nên lúc kéo thẻ nhạc/khối văn bản trên thiệp chỉ được làm nó MỜ chứ
+làm thiệp co giãn. Vào tab (kể cả F5) là mở sẵn tab đầu của dải (`CTRL_TABS[0]`), mọi khổ màn. Từ `md` nó nằm trong luồng, nên lúc kéo thẻ nhạc/khối văn bản trên thiệp chỉ được làm nó MỜ chứ
 không dịch đi — bỏ chỗ của nó là máy đổi khổ giữa lúc kéo, toạ độ thả sẽ lệch. Cũng ở tab đó, thiệp bị THU NHỎ
 trong khung → toạ độ thả thành phần
 phải chia lại theo tỉ lệ (`_framePoint` ở `js/05-theme-panel.js`), lấy thẳng hiệu toạ độ màn
