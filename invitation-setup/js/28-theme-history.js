@@ -183,7 +183,7 @@ function _thEntries() {
   // Nhạc của mẫu đã bị xoá ở lần chỉnh trước: cờ music_seeded còn mà không còn thẻ nào.
   const hasSeed = (items) => Object.keys(items).some(_thIsSeed);
   if (_themeSetting.music_seeded && !hasSeed(cur) && !hasSeed(_thBase.items))
-    out.push({ key: "seed:music", target: "tpl", at: 0, group: "elements", kind: "del", title: "Đã xoá trình phát nhạc của mẫu", detail: "" });
+    out.push({ key: "seed:music", target: "tpl", at: 0, group: "elements", kind: "del", title: "Đã xoá trình phát nhạc của mẫu", detail: "", tile: { type: "icon", name: "music" }, diff: { type: "note", text: "Khôi phục để thiệp có lại nút nhạc như mẫu" } });
   return out;
 }
 
@@ -229,41 +229,98 @@ function _thElName(e) {
   return (window.CX_ELEMENTS || {})[e?.element]?.name || "Thành phần";
 }
 
-// → { group, kind (add|del|hide|edit|reset), title, detail, focus? }
+// Màu đại diện của một bộ màu (nền dải + màu nhấn); null = bộ mặc định của mẫu.
+function _thPalColors(p) {
+  const src = p || window.cxThemeDecl?.().palette || {};
+  return [window.cxPaletteSwatch?.(src) || src.band || src.card_bg || "#f3f4f6", src.accent || "#9ca3af"];
+}
+
+function _thGiftSrc(id) {
+  if (!id || id === "none") return "";
+  return (window.CX_GIFT_BOXES || []).find((b) => b.id === id)?.src || "";
+}
+
+// Ô xem trước đầu dòng + phần "trước → sau" của từng loại mục.
+// → { group, kind (add|del|hide|edit|reset), title, detail (chữ thuần, dùng cho toast),
+//     tile {pal|img|glyph|icon}, diff {swap|quote|edit|note}, focus? }
 function _thDescribe(k, before, after) {
   const add = before === undefined;
   const del = after === undefined;
   if (k === "palette") {
-    if (before && after && before.id === after.id)
-      return {
-        group: "main",
-        kind: "edit",
-        title: "Độ đậm màu",
-        detail: `${before.strength ?? 50} → ${after.strength ?? 50}`,
-      };
-    return { group: "main", kind: del ? "reset" : "edit", title: del ? "Về bộ màu của mẫu" : "Đổi bộ màu", detail: `${_thPalName(before)} → ${_thPalName(after)}` };
+    const pal = (p) => ({ label: _thPalName(p), dot: _thPalColors(p) });
+    const tile = { type: "pal", colors: _thPalColors(after) };
+    if (before && after && before.id === after.id) {
+      const f = `${before.strength ?? 50}%`;
+      const t = `${after.strength ?? 50}%`;
+      return { group: "main", kind: "edit", title: "Độ đậm màu", detail: `${f} → ${t}`, tile, diff: { type: "swap", from: { label: f }, to: { label: t } } };
+    }
+    return {
+      group: "main",
+      kind: del ? "reset" : "edit",
+      title: del ? "Về bộ màu của mẫu" : "Đổi bộ màu",
+      detail: `${_thPalName(before)} → ${_thPalName(after)}`,
+      tile,
+      diff: { type: "swap", from: pal(before), to: pal(after) },
+    };
   }
-  if (k === "gift_box")
-    return { group: "gift", kind: del ? "reset" : "edit", title: del ? "Về hộp của mẫu" : "Đổi hộp", detail: `${_thGiftName(before)} → ${_thGiftName(after)}` };
+  if (k === "gift_box") {
+    const src = _thGiftSrc(after) || _thGiftSrc(before);
+    return {
+      group: "gift",
+      kind: del ? "reset" : "edit",
+      title: del ? "Về hộp của mẫu" : "Đổi hộp mừng cưới",
+      detail: `${_thGiftName(before)} → ${_thGiftName(after)}`,
+      tile: src ? { type: "img", src } : { type: "icon", name: "gift" },
+      diff: { type: "swap", from: { label: _thGiftName(before) }, to: { label: _thGiftName(after) } },
+    };
+  }
   if (k === "wishes_mode")
-    return { group: "wishes", kind: del ? "reset" : "edit", title: del ? "Về cách hiện của mẫu" : "Đổi cách hiện", detail: `${_thWishName(before)} → ${_thWishName(after)}` };
+    return {
+      group: "wishes",
+      kind: del ? "reset" : "edit",
+      title: del ? "Về cách hiện của mẫu" : "Đổi cách hiện lời chúc",
+      detail: `${_thWishName(before)} → ${_thWishName(after)}`,
+      tile: { type: "icon", name: "message-circle-heart" },
+      diff: { type: "swap", from: { label: _thWishName(before) }, to: { label: _thWishName(after) } },
+    };
   if (k === "desktop_wide")
-    return { group: "desktop", kind: "edit", title: after ? "Bật trải rộng trên máy tính" : "Tắt trải rộng trên máy tính", detail: "" };
+    return {
+      group: "desktop",
+      kind: "edit",
+      title: after ? "Trải rộng khi xem trên máy tính" : "Thôi trải rộng trên máy tính",
+      detail: "",
+      tile: { type: "icon", name: "monitor" },
+      diff: { type: "note", text: after ? "Thiệp phủ cả màn hình máy tính" : "Thiệp hiện trong khung điện thoại" },
+    };
 
   if (k.startsWith("ov:")) {
     const sel = k.slice(3);
     const sample = _thBase.sample[k] || _thSampleOf(sel);
-    const quote = sample && sample !== "Ảnh" ? `“${sample}”` : sample || "Phần tử trên thiệp";
-    const isImg = sample === "Ảnh" || (after || before || {}).width != null || (after || before || {}).height != null;
-    const base = { group: "line", detail: quote, focus: sel };
-    if (after?.hidden && !before?.hidden) return Object.assign(base, { kind: "hide", title: isImg ? "Đã ẩn ảnh" : "Đã ẩn chữ" });
-    if (before?.hidden && !after?.hidden) return Object.assign(base, { kind: "reset", title: isImg ? "Đã hiện lại ảnh" : "Đã hiện lại chữ" });
-    if (del) return Object.assign(base, { kind: "reset", title: "Đặt lại về như mẫu" });
-    if ((after?.text ?? null) !== (before?.text ?? null)) return Object.assign(base, { kind: "edit", title: "Sửa nội dung" });
-    if (isImg) return Object.assign(base, { kind: "edit", title: "Đổi cỡ ảnh" });
-    const changed = Object.keys(TH_OV_FIELDS).filter(
-      (f) => _tsStable(after?.[f]) !== _tsStable(before?.[f]),
-    );
+    const o = after || before || {};
+    const isImg = sample === "Ảnh" || o.width != null || o.height != null;
+    const quote = isImg ? "" : sample;
+    const base = {
+      group: "line",
+      detail: quote ? `“${quote}”` : isImg ? "Ảnh trên thiệp" : "Phần tử trên thiệp",
+      focus: sel,
+      tile: isImg ? { type: "icon", name: "image" } : { type: "glyph", text: "Aa" },
+      diff: quote ? { type: "quote", text: quote } : { type: "note", text: isImg ? "Ảnh trên thiệp" : "Phần tử trên thiệp" },
+    };
+    if (after?.hidden && !before?.hidden)
+      return Object.assign(base, { kind: "hide", title: isImg ? "Đã ẩn ảnh" : "Đã ẩn chữ", diff: Object.assign(base.diff, { strike: true }) });
+    if (before?.hidden && !after?.hidden)
+      return Object.assign(base, { kind: "reset", title: isImg ? "Đã hiện lại ảnh" : "Đã hiện lại chữ" });
+    if (del) return Object.assign(base, { kind: "reset", title: isImg ? "Ảnh về như mẫu" : "Chữ về như mẫu" });
+    if ((after?.text ?? null) !== (before?.text ?? null)) {
+      const oldT = before?.text ?? sample;
+      const newT = after?.text ?? sample;
+      return Object.assign(base, { kind: "edit", title: "Sửa nội dung", detail: `“${newT}”`, diff: { type: "edit", old: oldT, now: newT } });
+    }
+    if (isImg) {
+      const size = [o.width && `rộng ${o.width}px`, o.height && `cao ${o.height}px`].filter(Boolean).join(", ");
+      return Object.assign(base, { kind: "edit", title: "Đổi cỡ ảnh", diff: { type: "note", text: size ? `Ảnh trên thiệp, ${size}` : "Ảnh trên thiệp" } });
+    }
+    const changed = Object.keys(TH_OV_FIELDS).filter((f) => _tsStable(after?.[f]) !== _tsStable(before?.[f]));
     const what = changed.map((f) => TH_OV_FIELDS[f]).join(", ");
     return Object.assign(base, { kind: "edit", title: what ? `Đổi ${what}` : "Đổi kiểu chữ" });
   }
@@ -271,26 +328,39 @@ function _thDescribe(k, before, after) {
   if (k.startsWith("cb:")) {
     const id = k.slice(3);
     const text = _thBlockText((after || before).b);
-    const base = { group: "addtext", detail: text ? `“${text}”` : "", focus: `[data-cb-id="${id}"]` };
+    const base = {
+      group: "addtext",
+      detail: text ? `“${text}”` : "",
+      focus: `[data-cb-id="${id}"]`,
+      tile: { type: "icon", name: "pilcrow" },
+      diff: text ? { type: "quote", text } : null,
+    };
     if (add) return Object.assign(base, { kind: "add", title: "Thêm khối văn bản" });
-    if (del) return Object.assign(base, { kind: "del", title: "Xoá khối văn bản", focus: null });
-    const bChanged = _tsStable(before.b) !== _tsStable(after.b);
+    if (del) return Object.assign(base, { kind: "del", title: "Xoá khối văn bản", focus: null, diff: text ? { type: "quote", text, strike: true } : null });
     const same = (f) => _tsStable(before.b[f]) === _tsStable(after.b[f]);
     let title = "Đổi kiểu chữ khối văn bản";
-    if (bChanged) title = !same("content") || !same("parts") ? "Sửa khối văn bản" : "Đổi vị trí khối văn bản";
+    if (_tsStable(before.b) !== _tsStable(after.b)) {
+      if (!same("content") || !same("parts")) {
+        const oldT = _thBlockText(before.b);
+        return Object.assign(base, { kind: "edit", title: "Sửa khối văn bản", diff: { type: "edit", old: oldT, now: text } });
+      }
+      title = "Dời khối văn bản";
+    }
     return Object.assign(base, { kind: "edit", title });
   }
 
   if (k.startsWith("el:")) {
     const name = _thElName(after || before);
-    if (add) return { group: "elements", kind: "add", title: `Thêm ${name.toLocaleLowerCase("vi")}`, detail: "" };
-    if (del) return { group: "elements", kind: "del", title: `Xoá ${name.toLocaleLowerCase("vi")}`, detail: "" };
+    const low = name.toLocaleLowerCase("vi");
+    const tile = { type: "icon", name: (after || before)?.element === "music" ? "music" : "sticker" };
+    if (add) return { group: "elements", kind: "add", title: `Thêm ${low}`, detail: "", tile, diff: null };
+    if (del) return { group: "elements", kind: "del", title: `Xoá ${low}`, detail: "", tile, diff: null };
     const moved = before.x !== after.x || before.y !== after.y;
     const sized = before.w !== after.w;
-    const parts = [moved && "vị trí", sized && "cỡ", (!moved && !sized) && "kiểu dáng"].filter(Boolean);
-    return { group: "elements", kind: "edit", title: `Đổi ${parts.join(", ")}`, detail: name };
+    const parts = [moved && "vị trí", sized && "cỡ", !moved && !sized && "kiểu dáng"].filter(Boolean);
+    return { group: "elements", kind: "edit", title: `Đổi ${parts.join(", ")}`, detail: name, tile, diff: { type: "note", text: name } };
   }
-  return { group: "main", kind: "edit", title: k, detail: "" };
+  return { group: "main", kind: "edit", title: k, detail: "", tile: { type: "icon", name: "pencil" }, diff: null };
 }
 
 // ── Hoàn tác ───────────────────────────────────────────────────────────────
@@ -410,8 +480,6 @@ window.cxThemeHistUndoAll = cxThemeHistUndoAll;
 
 // ── Popup (openBottomSheet: bottom sheet dưới sm, hộp giữa màn từ sm) ─────────
 
-const TH_KIND_ICON = { add: "plus", del: "trash-2", hide: "eye-off", edit: "pencil", reset: "rotate-ccw" };
-
 let _thSheet = null; // { body, footer, close } khi popup đang mở
 
 function _thAgo(ms) {
@@ -443,23 +511,54 @@ function _thTplLabel(e) {
   return "Về như mẫu";
 }
 
+function _thTileHTML(t) {
+  t = t || { type: "icon", name: "pencil" };
+  if (t.type === "pal")
+    return `<span class="cx-hist-tile is-pal" style="--a:${_thEsc(t.colors[0])};--b:${_thEsc(t.colors[1])}"></span>`;
+  if (t.type === "img")
+    return `<span class="cx-hist-tile is-img"><img src="${_thEsc(t.src)}" alt="" loading="lazy" /></span>`;
+  if (t.type === "glyph") return `<span class="cx-hist-tile is-glyph">${_thEsc(t.text)}</span>`;
+  return `<span class="cx-hist-tile"><i data-lucide="${_thEsc(t.name)}" style="width:18px;height:18px"></i></span>`;
+}
+
+// Phần "trước → sau": chữ của thiệp đặt bằng serif như trên thiệp, chữ bị bỏ gạch ngang.
+function _thDiffHTML(d) {
+  if (!d) return "";
+  if (d.type === "swap") {
+    const side = (x, cls) =>
+      `<span class="cx-hist-sw ${cls}">${x.dot ? `<i class="cx-hist-dot" style="--a:${_thEsc(x.dot[0])};--b:${_thEsc(x.dot[1])}"></i>` : ""}${_thEsc(x.label)}</span>`;
+    return (
+      `<span class="cx-hist-swap">${side(d.from, "is-from")}` +
+      `<i data-lucide="arrow-right" class="cx-hist-arr" style="width:12px;height:12px"></i>${side(d.to, "is-to")}</span>`
+    );
+  }
+  if (d.type === "quote")
+    return `<q class="cx-hist-q${d.strike ? " is-out" : ""}">${_thEsc(d.text)}</q>`;
+  if (d.type === "edit")
+    return (
+      `<span class="cx-hist-edit"><q class="cx-hist-q is-out">${_thEsc(d.old)}</q>` +
+      `<q class="cx-hist-q is-in">${_thEsc(d.now)}</q></span>`
+    );
+  return `<span class="cx-hist-note">${_thEsc(d.text)}</span>`;
+}
+
 function _thRowHTML(e) {
-  const when = e.target === "base" ? _thAgo(e.at) || "Lần chỉnh này" : "Đã lưu";
+  const fresh = e.target === "base";
+  const when = fresh ? _thAgo(e.at) || "Lần chỉnh này" : "Đã lưu";
   const focus = e.focus
     ? ` data-th-focus="${_thEsc(e.focus)}" role="button" tabindex="0" title="Xem trên thiệp"`
     : "";
+  const btn = fresh
+    ? `<x-button variant="outline" tone="neutral" size="xs" icon="undo-2" data-th-undo="${_thEsc(e.key)}" title="Trả về như lúc bắt đầu chỉnh">Hoàn tác</x-button>`
+    : `<x-button variant="outline" tone="neutral" size="xs" data-th-undo="${_thEsc(e.key)}" title="Trả phần này về như mẫu gốc">${_thTplLabel(e)}</x-button>`;
   return (
-    `<li class="cx-hist-it">` +
-    `<span class="cx-hist-ki is-${e.kind}"><i data-lucide="${TH_KIND_ICON[e.kind] || "pencil"}" style="width:14px;height:14px"></i></span>` +
+    `<li class="cx-hist-it${fresh ? " is-fresh" : ""}">` +
+    _thTileHTML(e.tile) +
     `<div class="cx-hist-tx"${focus}>` +
     `<span class="cx-hist-t">${_thEsc(e.title)}</span>` +
-    (e.detail ? `<span class="cx-hist-d">${_thEsc(e.detail)}</span>` : "") +
-    `<span class="cx-hist-w${e.target === "base" ? " is-new" : ""}">${when}</span>` +
-    `</div>` +
-    (e.target === "base"
-      ? `<x-button variant="outline" tone="neutral" size="xs" icon="undo-2" data-th-undo="${_thEsc(e.key)}" title="Trả về như lúc bắt đầu chỉnh">Hoàn tác</x-button>`
-      : `<x-button variant="outline" tone="neutral" size="xs" data-th-undo="${_thEsc(e.key)}" title="Trả phần này về như mẫu gốc">${_thTplLabel(e)}</x-button>`) +
-    `</li>`
+    _thDiffHTML(e.diff) +
+    `<span class="cx-hist-w">${when}</span>` +
+    `</div>${btn}</li>`
   );
 }
 
@@ -468,19 +567,17 @@ function _thRender() {
   const list = _thEntries();
   const { body, footer } = _thSheet;
   let html = "";
+  const fresh = list.filter((e) => e.target === "base").length;
   if (!list.length) {
     html =
       `<div class="cx-hist-empty"><span class="cx-hist-empty-ico"><i data-lucide="history" style="width:24px;height:24px"></i></span>` +
       `<p class="cx-hist-empty-t">Thiệp đang y như mẫu gốc</p>` +
-      `<p class="cx-hist-empty-d">Đổi màu, sửa hay ẩn chữ, thêm khối văn bản, thả thẻ nhạc… sẽ hiện ở đây theo từng tab để bạn xem lại và hoàn tác riêng từng việc.</p></div>`;
+      `<p class="cx-hist-empty-d">Mỗi lần bạn đổi màu, sửa hay ẩn chữ, thêm khối văn bản, thả thẻ nhạc… sẽ được ghi ở đây để trả về từng chỗ.</p></div>`;
   } else {
-    const fresh = list.filter((e) => e.target === "base").length;
     const saved = list.length - fresh;
-    const parts = [
-      saved && `<b>${saved} tuỳ chỉnh</b> đã lưu so với mẫu gốc`,
-      fresh && `<b>${fresh} thay đổi</b> trong lần chỉnh này`,
-    ].filter(Boolean);
-    html = `<p class="cx-hist-intro">${parts.join(" · ")}. Bấm vào một dòng để xem nó trên thiệp.</p>`;
+    let intro = saved ? `Thiệp có <b>${saved} chỗ</b> khác mẫu gốc.` : "";
+    if (fresh) intro += ` <span class="cx-hist-key"></span><b>${fresh} thay đổi</b> vừa làm có vạch hồng.`;
+    html = `<p class="cx-hist-intro">${intro.trim()}</p>`;
     TH_GROUPS.forEach((g) => {
       // Thay đổi lần này lên đầu (mới nhất trước), tuỳ chỉnh đã lưu xếp sau.
       const rows = list
@@ -489,19 +586,19 @@ function _thRender() {
       if (!rows.length) return;
       const meta = _thGroupMeta(g);
       html +=
-        `<section class="cx-hist-grp"><div class="cx-hist-gh">` +
-        `<span class="cx-hist-gi"><i data-lucide="${meta.icon}" style="width:16px;height:16px"></i></span>` +
+        `<section class="cx-hist-grp"><h4 class="cx-hist-gh">` +
+        `<i data-lucide="${meta.icon}" class="cx-hist-gi" style="width:15px;height:15px"></i>` +
         `<span class="cx-hist-gt">${_thEsc(meta.title)}</span><span class="cx-hist-gn">${rows.length}</span>` +
         (g.ctab
-          ? `<button type="button" class="cx-hist-open" data-th-tab="${g.ctab}">Mở tab<i data-lucide="chevron-right" style="width:14px;height:14px"></i></button>`
+          ? `<button type="button" class="cx-hist-open" data-th-tab="${g.ctab}" title="Mở tab ${_thEsc(meta.title)}">Mở<i data-lucide="chevron-right" style="width:14px;height:14px"></i></button>`
           : "") +
-        `</div><ul class="cx-hist-list">${rows.map(_thRowHTML).join("")}</ul></section>`;
+        `</h4><ul class="cx-hist-list">${rows.map(_thRowHTML).join("")}</ul></section>`;
     });
   }
   body.innerHTML = `<div class="cx-hist-body">${html}</div>`;
   footer.innerHTML =
     `<div class="cx-hist-foot">` +
-    (list.some((e) => e.target === "base")
+    (fresh
       ? `<x-button variant="ghost" tone="danger" size="md" icon="rotate-ccw" data-th-all>Hoàn tác lần này</x-button>`
       : "") +
     `<x-button variant="fill" tone="brand" size="md" class="ml-auto" data-th-close>Xong</x-button></div>`;
@@ -546,6 +643,8 @@ function _thOnClick(e) {
 // Nút đồng hồ ở đầu bảng chỉnh.
 function cxThemeHistOpen() {
   if (_thSheet) return;
+  // Serif cho phần chữ trích từ thiệp (.cx-hist-q) — nạp qua bộ nạp font của tab Giao diện.
+  window.loadThemeFont?.("Cormorant Garamond");
   _thTrack();
   const sheet = openBottomSheet({
     id: "cx-hist-sheet",
