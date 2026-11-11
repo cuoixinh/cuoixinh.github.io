@@ -1,0 +1,539 @@
+/* Trang /admin-support: thanh tab, ô nhập, vé mã giảm giá (xem trước + lô vừa sinh) và chip mã ở
+   danh sách. Lỗ răng cưa của vé là hai hình tròn tô màu NỀN chỗ đặt vé — đặt vé lên nền khác thì
+   khai lại --sup-hole ở khung chứa. */
+
+.sup-tabbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 8px 0;
+  background: rgb(249 250 251 / 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.sup-seg {
+  max-width: 560px;
+  background: rgb(var(--white-rgb));
+  box-shadow: inset 0 0 0 1px rgb(229 231 235);
+}
+.sup-seg::before {
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 4px 12px -4px rgb(var(--action-primary-rgb) / 0.6);
+}
+.sup-seg .cx-seg-btn {
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+.sup-seg .cx-seg-btn.is-on {
+  color: rgb(var(--white-rgb));
+}
+/* Ba tab trên điện thoại hẹp: bỏ icon để nhãn không xuống dòng. */
+@media (max-width: 479px) {
+  .sup-seg .cx-seg-btn {
+    padding: 8px 4px;
+    font-size: 13px;
+  }
+  .sup-seg .cx-seg-btn svg {
+    display: none;
+  }
+}
+.sup-mode {
+  max-width: 320px;
+}
+.sup-panel-in {
+  animation: cx-sup-in 0.2s ease-out;
+}
+@keyframes cx-sup-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.sup-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: rgb(var(--white-rgb));
+}
+.sup-input:focus,
+.sup-affix:focus-within {
+  border-color: rgb(251 113 133);
+}
+.sup-affix {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 8px;
+  background: rgb(var(--white-rgb));
+}
+.sup-affix input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: transparent;
+}
+.sup-affix span {
+  flex: none;
+  padding-right: 12px;
+  font-size: 14px;
+  color: rgb(156 163 175);
+}
+
+/* Nút x trong ô (xoá hạn dùng): tròn nhỏ, sát mép phải. Không khai display ở đây — .hidden của
+   Tailwind đứng TRƯỚC file này trong bản build nên sẽ bị đè; markup dùng class inline-flex. */
+.sup-clear {
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-right: 4px;
+  border-radius: 999px;
+  color: rgb(156 163 175);
+}
+.sup-clear:hover {
+  color: rgb(var(--action-primary-rgb));
+  background: rgb(255 241 242);
+}
+.sup-clear:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 1px;
+}
+
+.sup-promo-grid {
+  display: grid;
+  gap: 24px;
+}
+@media (min-width: 1024px) {
+  .sup-promo-grid {
+    grid-template-columns: minmax(0, 1fr) 304px;
+    gap: 32px;
+  }
+  .sup-preview {
+    position: sticky;
+    top: 72px;
+    align-self: start;
+  }
+}
+
+/* Vé: cuống màu nhấn (mức giảm) · đường xé nét đứt · thân trắng (mã + điều kiện). */
+.sup-ticket {
+  --sup-stub: 112px;
+  --sup-hole: var(--white-rgb);
+  position: relative;
+  display: flex;
+  min-height: 112px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  box-shadow:
+    0 0 0 1px rgb(var(--action-primary-rgb) / 0.12),
+    0 12px 28px -16px rgb(var(--action-primary-rgb) / 0.55);
+  text-align: left;
+}
+.sup-ticket::before,
+.sup-ticket::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--sup-stub) - 8px);
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgb(var(--sup-hole));
+}
+.sup-ticket::before {
+  top: -8px;
+}
+.sup-ticket::after {
+  bottom: -8px;
+}
+.sup-ticket-stub {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: var(--sup-stub);
+  padding: 12px 8px;
+  border-radius: 16px 0 0 16px;
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(160deg, rgb(244 63 94), rgb(var(--action-primary-rgb)) 60%, rgb(190 18 60));
+}
+.sup-ticket-stub b {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.sup-ticket-stub span {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+.sup-ticket-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 16px;
+  border-left: 2px dashed rgb(var(--action-primary-rgb) / 0.25);
+}
+.sup-ticket-code {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgb(31 41 55);
+}
+.sup-ticket-code.is-empty {
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: rgb(209 213 219);
+}
+.sup-ticket-terms {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
+  color: rgb(107 114 128);
+}
+
+/* Lô vừa sinh: vé nhỏ, bấm để chép. */
+.sup-batchbox {
+  --sup-hole-bg: 255 241 242;
+  background: rgb(var(--sup-hole-bg));
+}
+.sup-stubs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: 12px;
+  max-height: 264px;
+  padding: 8px 4px;
+  overflow-y: auto;
+}
+.sup-ticket.is-sm {
+  --sup-stub: 64px;
+  --sup-hole: var(--sup-hole-bg);
+  min-height: 52px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.sup-ticket.is-sm:hover {
+  transform: translateY(-2px);
+}
+.sup-ticket.is-sm:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+.sup-ticket.is-sm .sup-ticket-stub {
+  padding: 4px;
+  border-radius: 12px 0 0 12px;
+}
+.sup-ticket.is-sm .sup-ticket-stub b {
+  font-size: 16px;
+}
+.sup-ticket.is-sm .sup-ticket-body {
+  padding: 8px 12px;
+}
+.sup-ticket.is-sm .sup-ticket-code {
+  font-size: 13px;
+}
+
+/* Chip mã ở danh sách: viền đứt như mép vé, bấm để chép. */
+.sup-code {
+  display: inline-flex;
+  padding: 4px 8px;
+  border: 1px dashed rgb(253 164 175);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgb(190 18 60);
+  background: rgb(255 241 242);
+}
+.sup-code:hover {
+  border-style: solid;
+}
+.sup-code:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+
+/* ── Tab "Thiệp của khách" (admin-support/weddings.js) ── */
+.sup-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+}
+@media (min-width: 1024px) {
+  .sup-kpis {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+.sup-kpi {
+  padding: 16px 20px;
+  box-shadow: inset -1px -1px 0 rgb(243 244 246);
+}
+.sup-kpi-v {
+  margin: 4px 0 2px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: rgb(17 24 39);
+}
+
+/* Thanh chồng: mỗi đoạn rộng theo số thiệp (flex-grow), khe 2px giữa các đoạn. */
+.sup-stack {
+  display: flex;
+  gap: 2px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgb(243 244 246);
+}
+.sup-seg-part {
+  flex-basis: 0;
+  min-width: 4px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.sup-stack:hover .sup-seg-part {
+  opacity: 0.55;
+}
+.sup-stack .sup-seg-part:hover,
+.sup-seg-part:focus-visible {
+  opacity: 1;
+}
+.sup-seg-part:focus-visible {
+  outline: 2px solid rgb(17 24 39);
+  outline-offset: -2px;
+}
+.sup-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: 8px;
+}
+.sup-leg {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  column-gap: 8px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 12px;
+  text-align: left;
+  box-shadow: inset 0 0 0 1px rgb(229 231 235);
+}
+.sup-leg:hover {
+  background: rgb(249 250 251);
+}
+.sup-leg.is-on {
+  box-shadow: inset 0 0 0 2px rgb(17 24 39);
+}
+.sup-leg i {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+.sup-leg-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgb(55 65 81);
+}
+.sup-leg-n {
+  grid-column: 2;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(17 24 39);
+}
+.sup-leg-n small {
+  margin-left: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(107 114 128);
+}
+.sup-leg-sub {
+  grid-column: 2;
+  font-size: 11px;
+  color: rgb(156 163 175);
+}
+.sup-note {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: rgb(55 65 81);
+  background: rgb(243 244 246);
+}
+.sup-note:hover {
+  background: rgb(229 231 235);
+}
+
+/* Cột theo tháng: hai cột đứng cạnh nhau, cao theo tỉ lệ số lớn nhất. */
+.sup-keys {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: rgb(75 85 99);
+}
+.sup-keys span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sup-keys i {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+.sup-cols {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  height: 200px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgb(229 231 235);
+}
+.sup-col {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: 8px;
+  outline: none;
+}
+.sup-col:hover,
+.sup-col:focus-visible {
+  background: rgb(249 250 251);
+}
+.sup-col-bars {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+}
+.sup-col-bars i {
+  width: 40%;
+  max-width: 16px;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+}
+.sup-col span {
+  padding-top: 4px;
+  font-size: 11px;
+  text-align: center;
+  color: rgb(156 163 175);
+}
+
+/* Mẫu thiệp: thanh tổng (tím nhạt) + phần đã trả (xanh) đè lên từ đầu. */
+.sup-meter-track {
+  position: relative;
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 4px;
+  background: rgb(243 244 246);
+}
+.sup-meter-track i,
+.sup-meter-track b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 4px;
+}
+.sup-meter-track i {
+  background: rgb(98 80 214 / 0.35);
+}
+.sup-meter-track b {
+  background: rgb(0 131 0);
+}
+
+.sup-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sup-chip {
+  flex: none;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: rgb(75 85 99);
+  box-shadow: inset 0 0 0 1px rgb(229 231 235);
+}
+.sup-chip small {
+  margin-left: 2px;
+  font-size: 11px;
+  color: rgb(156 163 175);
+}
+.sup-chip:hover {
+  background: rgb(249 250 251);
+}
+.sup-chip.is-on {
+  color: rgb(var(--white-rgb));
+  background: rgb(31 41 55);
+  box-shadow: none;
+}
+.sup-chip.is-on small {
+  color: rgb(209 213 219);
+}
+.sup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: rgb(55 65 81);
+}
+.sup-badge i {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+.sup-badge.is-expired {
+  color: rgb(156 163 175);
+}
+.sup-badge.is-expired i {
+  opacity: 0.4;
+}
+/* Chú giải nổi — vị trí do JS đặt; ẩn/hiện bằng .hidden nên đừng khai display ở đây. */
+.sup-tip {
+  position: fixed;
+  z-index: 50;
+  max-width: 280px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgb(var(--white-rgb));
+  background: rgb(31 41 55);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sup-panel-in {
+    animation: none;
+  }
+  .sup-ticket.is-sm,
+  .sup-seg-part {
+    transition: none;
+  }
+}

@@ -25,7 +25,7 @@
     <script src="/core/helpers/no-inspect.js"></script>
   </head>
   <body class="font-inter text-gray-800 bg-gray-50 min-h-screen">
-    <!-- Trang của nhân viên hỗ trợ: thanh toán hộ + tạo tài khoản Cưới Xinh cho khách. Vào bằng Google, quyền
+    <!-- Trang của nhân viên hỗ trợ: thanh toán hộ + mã giảm giá + số liệu thiệp + tạo tài khoản Cưới Xinh cho khách. Vào bằng Google, quyền
          thật là danh sách SUPPORT_EMAILS ở supabase/functions/_shared/support-staff.ts. -->
     <main class="mx-auto max-w-5xl px-4 py-6 sm:px-6 space-y-4">
       <header class="flex items-center justify-between gap-3">
@@ -55,92 +55,324 @@
         </x-button>
       </div>
 
-      <!-- Đã có quyền -->
+      <!-- Đã có quyền: hai tab (supTab ở index.js), tab đang mở ghi ở #hash để mở thẳng lại -->
       <div id="sup-app" class="hidden space-y-4">
-        <!-- Thanh toán hộ: khách chuyển khoản thẳng / trả tiền mặt → nhân viên xác nhận (support-pay.ts) -->
-        <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div class="p-4 sm:p-6 border-b border-gray-100">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tra thiệp · Thanh toán hộ</h2>
-            <p class="text-xs text-gray-500 mt-1">
-              Khách chuyển khoản thẳng hoặc trả tiền mặt cho mình. <strong>Kiểm tra đã nhận đủ tiền</strong> rồi mới xác nhận:
-              không qua PayOS nên không có đối soát tự động, mọi lượt đều ghi lại email người xác nhận.
-            </p>
+        <div class="sup-tabbar">
+          <div id="sup-tabs" class="cx-seg sup-seg" style="--n: 3; --i: 0" role="tablist" aria-label="Chức năng hỗ trợ">
+            <button type="button" role="tab" id="sup-tab-btn-wedding" data-tab="wedding" aria-controls="sup-tab-wedding" aria-selected="true"
+              class="cx-seg-btn is-on" onclick="supTab('wedding')"><i data-lucide="heart-handshake" style="width:16px;height:16px"></i>Tạo thiệp hộ</button>
+            <button type="button" role="tab" id="sup-tab-btn-promo" data-tab="promo" aria-controls="sup-tab-promo" aria-selected="false"
+              class="cx-seg-btn" onclick="supTab('promo')"><i data-lucide="ticket-percent" style="width:16px;height:16px"></i>Mã giảm giá</button>
+            <button type="button" role="tab" id="sup-tab-btn-stats" data-tab="stats" aria-controls="sup-tab-stats" aria-selected="false"
+              class="cx-seg-btn" onclick="supTab('stats')"><i data-lucide="chart-column" style="width:16px;height:16px"></i>Thiệp của khách</button>
           </div>
-          <div class="p-4 sm:p-6 flex flex-col sm:flex-row gap-3">
-            <input id="pay-slug" type="text" placeholder="Dán link thiệp hoặc slug, vd. cuoixinh.com/lan-minh" autocomplete="off" spellcheck="false" autocapitalize="none"
-              onkeydown="if (event.key === 'Enter') payLookup()"
-              class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
-            <x-button id="pay-lookup-btn" variant="outline" icon="search" onclick="payLookup()">Tra thiệp</x-button>
-          </div>
-          <div id="pay-result" class="hidden px-4 sm:px-6 pb-4 sm:pb-6"></div>
-        </section>
+        </div>
 
-        <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div class="p-4 sm:p-6 border-b border-gray-100">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo tài khoản cho khách</h2>
-            <p class="text-xs text-gray-500 mt-1">
-              Dành cho khách không tự đăng nhập Google/email được. Tạo xong thì mở trang web ở cửa sổ ẩn danh,
-              bấm <strong>Đăng nhập bằng tài khoản Cưới Xinh</strong> để tạo thiệp hộ, rồi gửi tên đăng nhập + mật khẩu cho khách.
-            </p>
-            <p class="text-xs text-gray-400 mt-1">
-              Mật khẩu chỉ hiện <strong>một lần</strong> ngay sau khi tạo. Khách quên thì bấm "Đặt lại mật khẩu" ở bảng dưới.
-            </p>
+        <!-- Tab Tạo thiệp hộ: tra thiệp + thanh toán hộ, tạo tài khoản cho khách -->
+        <div id="sup-tab-wedding" role="tabpanel" aria-labelledby="sup-tab-btn-wedding" class="space-y-4">
+          <!-- Thanh toán hộ: khách chuyển khoản thẳng / trả tiền mặt → nhân viên xác nhận (support-pay.ts) -->
+          <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-gray-100">
+              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tra thiệp · Thanh toán hộ</h2>
+              <p class="text-xs text-gray-500 mt-1">
+                Khách chuyển khoản thẳng hoặc trả tiền mặt cho mình. <strong>Kiểm tra đã nhận đủ tiền</strong> rồi mới xác nhận:
+                không qua PayOS nên không có đối soát tự động, mọi lượt đều ghi lại email người xác nhận.
+              </p>
+            </div>
+            <div class="p-4 sm:p-6 flex flex-col sm:flex-row gap-3">
+              <input id="pay-slug" type="text" placeholder="Dán link thiệp hoặc slug" autocomplete="off" spellcheck="false" autocapitalize="none"
+                onkeydown="if (event.key === 'Enter') payLookup()"
+                class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+              <x-button id="pay-lookup-btn" variant="outline" icon="search" onclick="payLookup()">Tra thiệp</x-button>
+            </div>
+            <div id="pay-result" class="hidden px-4 sm:px-6 pb-4 sm:pb-6"></div>
+          </section>
+
+          <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-gray-100">
+              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo tài khoản cho khách</h2>
+              <p class="text-xs text-gray-500 mt-1">
+                Dành cho khách không tự đăng nhập Google/email được. Tạo xong thì mở trang web ở cửa sổ ẩn danh,
+                bấm <strong>Đăng nhập bằng tài khoản Cưới Xinh</strong> để tạo thiệp hộ, rồi gửi tên đăng nhập + mật khẩu cho khách.
+              </p>
+              <p class="text-xs text-gray-400 mt-1">
+                Mật khẩu chỉ hiện <strong>một lần</strong> ngay sau khi tạo. Khách quên thì bấm "Đặt lại mật khẩu" ở bảng dưới.
+              </p>
+            </div>
+
+            <div class="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Tên đăng nhập</label>
+                <input id="acc-username" type="text" placeholder="Tên đăng nhập của khách" autocomplete="off" spellcheck="false" autocapitalize="none"
+                  class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none lowercase focus:border-rose-400" />
+                <p class="text-[11px] text-gray-400 mt-1">3–32 ký tự: chữ không dấu, số, . _ -</p>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Tên hiển thị</label>
+                <input id="acc-fullname" type="text" placeholder="Tên cô dâu & chú rể"
+                  class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+                <p class="text-[11px] text-gray-400 mt-1">Hiện ở lời chào và menu tài khoản</p>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Mật khẩu</label>
+                <input id="acc-password" type="text" placeholder="Để trống = tự sinh" autocomplete="off" spellcheck="false" autocapitalize="none"
+                  class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+                <p class="text-[11px] text-gray-400 mt-1">Tự sinh 8 ký tự dễ đọc</p>
+              </div>
+              <div class="flex items-start sm:pt-5">
+                <x-button id="acc-create-btn" onclick="accCreate()" icon="user-plus" full>Tạo tài khoản</x-button>
+              </div>
+            </div>
+
+            <!-- Tài khoản vừa tạo / vừa đặt lại mật khẩu -->
+            <div id="acc-result" class="hidden px-4 sm:px-6 pb-4 sm:pb-6">
+              <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
+                <pre id="acc-result-text" class="text-sm text-gray-800 whitespace-pre-wrap font-sans"></pre>
+                <x-button variant="outline" size="sm" onclick="accCopyResult()" icon="copy">Chép lời nhắn gửi khách</x-button>
+              </div>
+            </div>
+          </section>
+
+          <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center gap-3">
+              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Danh sách tài khoản</h2>
+              <x-button variant="outline" onclick="loadAccounts()" icon="refresh-cw">Tải lại</x-button>
+            </div>
+            <div class="p-4 sm:p-6 overflow-x-auto">
+              <table class="w-full min-w-[760px] lg:min-w-0">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Tên đăng nhập</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Tên hiển thị</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Số thiệp</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Người tạo</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Đăng nhập gần nhất</th>
+                    <th class="py-3 px-4 text-right text-xs font-semibold text-gray-500 uppercase">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="acc-list"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Tab Mã giảm giá (admin-support/promo.js → wedding-admin?resource=promo-codes) -->
+        <div id="sup-tab-promo" role="tabpanel" aria-labelledby="sup-tab-btn-promo" class="hidden space-y-4">
+          <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-gray-100">
+              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo mã giảm giá</h2>
+              <p class="text-xs text-gray-500 mt-1 max-w-2xl">
+                Áp mã là trừ lượt ngay và <strong>không hoàn lại</strong>: khách bỏ ngang không thanh toán thì lượt đó vẫn mất,
+                cấp bù bằng nút + ở danh sách. Khách phải nhập email hoặc đăng nhập mới áp được mã, mã giảm 100% thì bắt buộc đăng nhập.
+              </p>
+            </div>
+
+            <div class="sup-promo-grid p-4 sm:p-6">
+              <div class="space-y-4 min-w-0">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <span class="block text-xs font-medium text-gray-600 mb-1">Kiểu giảm</span>
+                    <input id="promo-type" type="hidden" value="percent" />
+                    <div id="promo-type-seg" class="cx-seg" style="--n: 2; --i: 0" role="radiogroup" aria-label="Kiểu giảm">
+                      <button type="button" role="radio" aria-checked="true" data-type="percent" class="cx-seg-btn is-on">Theo %</button>
+                      <button type="button" role="radio" aria-checked="false" data-type="fixed" class="cx-seg-btn">Số tiền</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="promo-value" class="block text-xs font-medium text-gray-600 mb-1">Giá trị giảm</label>
+                    <div class="sup-affix">
+                      <input id="promo-value" type="number" min="1" value="20" inputmode="numeric" />
+                      <span id="promo-value-unit">%</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="promo-max-uses" class="block text-xs font-medium text-gray-600 mb-1">Số lượt mỗi mã</label>
+                    <input id="promo-max-uses" type="number" min="1" value="1" inputmode="numeric" placeholder="Không giới hạn" class="sup-input" />
+                  </div>
+                  <div>
+                    <label for="promo-expires" class="block text-xs font-medium text-gray-600 mb-1">Hạn dùng</label>
+                    <!-- Nút xoá nằm trong ô: xoá ngày = mã không hết hạn -->
+                    <div class="sup-affix">
+                      <input id="promo-expires" type="date" />
+                      <button type="button" id="promo-expires-clear" class="sup-clear inline-flex hidden" title="Xoá hạn dùng (không hết hạn)" aria-label="Xoá hạn dùng">
+                        <i data-lucide="x" style="width:16px;height:16px"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="promo-min-order" class="block text-xs font-medium text-gray-600 mb-1">Đơn tối thiểu</label>
+                    <div class="sup-affix">
+                      <input id="promo-min-order" type="number" min="0" step="1000" value="0" inputmode="numeric" />
+                      <span>đ</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="promo-note" class="block text-xs font-medium text-gray-600 mb-1">Ghi chú nội bộ</label>
+                    <input id="promo-note" type="text" maxlength="200" placeholder="vd. Khách nhắn qua Zalo" class="sup-input" />
+                  </div>
+                </div>
+                <p class="text-[11px] text-gray-400 -mt-2">Để trống số lượt là không giới hạn, để trống hạn dùng là không hết hạn.</p>
+
+                <div class="pt-4 border-t border-gray-100 space-y-3">
+                  <div id="promo-mode-seg" class="cx-seg sup-mode" style="--n: 2; --i: 0" role="tablist" aria-label="Cách tạo mã">
+                    <button type="button" role="tab" aria-selected="true" data-mode="single" class="cx-seg-btn is-on">Một mã tự đặt</button>
+                    <button type="button" role="tab" aria-selected="false" data-mode="batch" class="cx-seg-btn">Sinh hàng loạt</button>
+                  </div>
+
+                  <div id="promo-mode-single" class="flex flex-col sm:flex-row gap-2">
+                    <input id="promo-manual-code" type="text" maxlength="40" placeholder="Gõ mã muốn tạo" autocomplete="off" spellcheck="false" autocapitalize="characters"
+                      aria-label="Mã tự đặt" onkeydown="if (event.key === 'Enter') promoCreateSingle()" class="sup-input uppercase flex-1 min-w-0" />
+                    <x-button id="promo-single-btn" onclick="promoCreateSingle()" icon="plus">Tạo mã</x-button>
+                  </div>
+
+                  <div id="promo-mode-batch" class="hidden space-y-2">
+                    <div class="grid grid-cols-3 gap-2">
+                      <div>
+                        <label for="promo-prefix" class="block text-[11px] text-gray-500 mb-1">Tiền tố</label>
+                        <input id="promo-prefix" type="text" maxlength="20" value="CX" autocomplete="off" spellcheck="false" class="sup-input uppercase" />
+                      </div>
+                      <div>
+                        <label for="promo-count" class="block text-[11px] text-gray-500 mb-1">Số mã (≤ 200)</label>
+                        <input id="promo-count" type="number" min="1" max="200" value="10" inputmode="numeric" class="sup-input" />
+                      </div>
+                      <div>
+                        <label for="promo-length" class="block text-[11px] text-gray-500 mb-1">Độ dài đuôi</label>
+                        <input id="promo-length" type="number" min="4" max="12" value="6" inputmode="numeric" class="sup-input" />
+                      </div>
+                    </div>
+                    <x-button id="promo-generate-btn" onclick="promoGenerate()" icon="zap" full>Sinh mã</x-button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vé xem trước: vẽ lại theo từng ô ở bên trái (promoPreview) -->
+              <aside class="sup-preview" aria-label="Xem trước mã">
+                <p class="text-xs font-medium text-gray-500 mb-2">Khách sẽ nhận được</p>
+                <div id="promo-preview"></div>
+              </aside>
+            </div>
+
+            <div id="promo-batch" class="hidden px-4 sm:px-6 pb-4 sm:pb-6">
+              <div class="sup-batchbox rounded-2xl p-4 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <p id="promo-batch-title" class="text-sm font-semibold text-gray-800"></p>
+                  <div class="flex gap-2">
+                    <x-button variant="outline" size="sm" onclick="promoCopyBatch()" icon="copy">Chép tất cả</x-button>
+                    <x-button variant="outline" size="sm" onclick="promoExportCsv()" icon="file-spreadsheet">Tải CSV</x-button>
+                  </div>
+                </div>
+                <div id="promo-batch-codes" class="sup-stubs"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Danh sách mã <span id="promo-count-label" class="text-sm font-normal text-gray-400"></span></h2>
+              <div class="flex gap-2">
+                <input id="promo-search" type="search" placeholder="Tìm theo mã" autocomplete="off" spellcheck="false" aria-label="Tìm theo mã"
+                  onkeydown="if (event.key === 'Enter') loadPromoCodes()" class="sup-input uppercase flex-1 sm:w-56 min-w-0" />
+                <x-button variant="outline" onclick="loadPromoCodes()" icon="refresh-cw" icon-only title="Tải lại" aria-label="Tải lại danh sách mã"></x-button>
+              </div>
+            </div>
+            <div class="p-4 sm:p-6 overflow-x-auto">
+              <table class="w-full min-w-[760px] lg:min-w-0">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Mã</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Giảm</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Lượt dùng</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Hạn dùng</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Trạng thái</th>
+                    <th class="py-3 px-4 text-right text-xs font-semibold text-gray-500"><span class="sr-only">Thao tác</span></th>
+                  </tr>
+                </thead>
+                <tbody id="promo-list">
+                  <tr><td colspan="6" class="text-center py-8 text-gray-400">Đang tải…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Tab Thiệp của khách: số liệu phân tích (admin-support/weddings.js → wedding-admin?resource=support-weddings) -->
+        <div id="sup-tab-stats" role="tabpanel" aria-labelledby="sup-tab-btn-stats" class="hidden space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <p id="st-updated" class="text-xs text-gray-400">Đang tải số liệu…</p>
+            <x-button variant="outline" size="sm" icon="refresh-cw" onclick="stLoad()">Tải lại số liệu</x-button>
           </div>
 
-          <div class="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Năm con số chính -->
+          <section class="sup-kpis bg-white rounded-2xl shadow-lg" id="st-kpis" aria-label="Số liệu chính"></section>
+
+          <!-- Phân bố thiệp theo trạng thái: một thanh chồng + chú thích (bấm để lọc danh sách) -->
+          <section class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 space-y-4">
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Tên đăng nhập</label>
-              <input id="acc-username" type="text" placeholder="lan-minh" autocomplete="off" spellcheck="false" autocapitalize="none"
-                class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none lowercase focus:border-rose-400" />
-              <p class="text-[11px] text-gray-400 mt-1">3–32 ký tự: chữ không dấu, số, . _ -</p>
+              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Thiệp đang ở đâu trong hành trình</h2>
+              <p class="text-xs text-gray-500 mt-1">Bấm một nhóm để xem danh sách thiệp của nhóm đó.</p>
             </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Tên hiển thị</label>
-              <input id="acc-fullname" type="text" placeholder="Lan & Minh"
-                class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
-              <p class="text-[11px] text-gray-400 mt-1">Hiện ở lời chào và menu tài khoản</p>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Mật khẩu</label>
-              <input id="acc-password" type="text" placeholder="Để trống = tự sinh" autocomplete="off" spellcheck="false" autocapitalize="none"
-                class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
-              <p class="text-[11px] text-gray-400 mt-1">Tự sinh 8 ký tự dễ đọc</p>
-            </div>
-            <div class="flex items-start sm:pt-5">
-              <x-button id="acc-create-btn" onclick="accCreate()" icon="user-plus" full>Tạo tài khoản</x-button>
-            </div>
+            <div id="st-stack" class="sup-stack" role="img"></div>
+            <div id="st-legend" class="sup-legend"></div>
+            <div id="st-notes" class="flex flex-wrap gap-2"></div>
+          </section>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <section class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 space-y-4 min-w-0">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 class="text-base font-semibold text-gray-800">12 tháng gần nhất</h2>
+                <div class="sup-keys" aria-hidden="true">
+                  <span><i style="background:#6250d6"></i>Thiệp tạo mới</span>
+                  <span><i style="background:#008300"></i>Thiệp thanh toán</span>
+                </div>
+              </div>
+              <div id="st-months" class="sup-cols"></div>
+            </section>
+            <section class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 space-y-4 min-w-0">
+              <h2 class="text-base font-semibold text-gray-800">Theo mẫu thiệp</h2>
+              <div id="st-themes" class="space-y-3"></div>
+            </section>
           </div>
 
-          <!-- Tài khoản vừa tạo / vừa đặt lại mật khẩu -->
-          <div id="acc-result" class="hidden px-4 sm:px-6 pb-4 sm:pb-6">
-            <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
-              <pre id="acc-result-text" class="text-sm text-gray-800 whitespace-pre-wrap font-sans"></pre>
-              <x-button variant="outline" size="sm" onclick="accCopyResult()" icon="copy">Chép lời nhắn gửi khách</x-button>
+          <!-- Danh sách thiệp: lọc theo nhóm, tìm, sắp xếp, phân trang ở client -->
+          <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-gray-100 space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800">Danh sách thiệp <span id="st-list-count" class="text-sm font-normal text-gray-400"></span></h2>
+                <div class="flex gap-2">
+                  <input id="st-search" type="search" placeholder="Tìm tên, link, email chủ thiệp" autocomplete="off" spellcheck="false" aria-label="Tìm thiệp"
+                    class="sup-input flex-1 sm:w-64 min-w-0" />
+                  <select id="st-sort" class="sup-input w-auto" aria-label="Sắp xếp">
+                    <option value="created">Mới tạo trước</option>
+                    <option value="views">Nhiều lượt xem</option>
+                    <option value="amount">Tiền thu nhiều</option>
+                    <option value="expires">Sắp hết hạn</option>
+                  </select>
+                </div>
+              </div>
+              <div id="st-chips" class="sup-chips" role="tablist" aria-label="Lọc theo nhóm"></div>
             </div>
-          </div>
-        </section>
-
-        <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div class="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center gap-3">
-            <h2 class="text-base sm:text-lg font-semibold text-gray-800">Danh sách tài khoản</h2>
-            <x-button variant="outline" onclick="loadAccounts()" icon="refresh-cw">Tải lại</x-button>
-          </div>
-          <div class="p-4 sm:p-6 overflow-x-auto">
-            <table class="w-full min-w-[760px] lg:min-w-0">
-              <thead>
-                <tr class="border-b border-gray-200">
-                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Tên đăng nhập</th>
-                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Tên hiển thị</th>
-                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Số thiệp</th>
-                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Người tạo</th>
-                  <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Đăng nhập gần nhất</th>
-                  <th class="py-3 px-4 text-right text-xs font-semibold text-gray-500 uppercase">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody id="acc-list"></tbody>
-            </table>
-          </div>
-        </section>
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[880px]">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Thiệp</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Trạng thái</th>
+                    <th class="py-3 px-4 text-right text-xs font-semibold text-gray-500">Lượt xem</th>
+                    <th class="py-3 px-4 text-right text-xs font-semibold text-gray-500">Đã thu</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Hạn</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Chủ thiệp</th>
+                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Ngày tạo</th>
+                  </tr>
+                </thead>
+                <tbody id="st-list">
+                  <tr><td colspan="7" class="text-center py-8 text-gray-400">Đang tải…</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="st-pager" class="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-t border-gray-100 text-sm text-gray-500"></div>
+          </section>
+          <div id="st-tip" class="sup-tip hidden" role="tooltip"></div>
+        </div>
       </div>
     </main>
 
@@ -153,5 +385,7 @@
     <script src="/core/auth.js"></script>
     <script src="/core/auth-ui.js"></script>
     <script src="/admin-support/index.js"></script>
+    <script src="/admin-support/promo.js"></script>
+    <script src="/admin-support/weddings.js"></script>
   </body>
 </html>

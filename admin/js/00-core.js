@@ -61,7 +61,6 @@ const TAB_NAMES = [
   "sample-images",
   "asset-images",
   "background",
-  "promo",
   "fonts",
   "cleanup",
   "promo-video",
@@ -73,7 +72,6 @@ const TAB_BREADCRUMB_LABELS = {
   "sample-images": "Dữ liệu mẫu",
   "asset-images": "Ảnh mẫu",
   background: "Ảnh nền",
-  promo: "Mã giảm giá",
   fonts: "Font chữ",
   cleanup: "Dọn dữ liệu",
   "promo-video": "Tạo Video Quảng Cáo",
@@ -100,8 +98,6 @@ function switchTab(tabName, pushState = true) {
     initAssetImagesPanel();
   } else if (tabName === "background") {
     initBackgroundPanel();
-  } else if (tabName === "promo") {
-    initPromoPanel();
   } else if (tabName === "fonts") {
     initFontsPanel();
   } else if (tabName === "cleanup") {
@@ -113,8 +109,8 @@ function switchTab(tabName, pushState = true) {
 
 // Restore tab từ URL hash (nếu không có hash thì giữ Dashboard mặc định, không gọi API).
 // Gọi từ loader.js SAU KHI toàn bộ script theo tab đã nạp xong (không gọi ở đây
-// — lúc file này chạy, js/01-weddings.js…07-promo.js chưa nạp nên
-// loadPage()/loadTemplates()/initSampleImagesPanel()/initAssetImagesPanel()/initBackgroundPanel()/initPromoPanel()
+// — lúc file này chạy, js/01-weddings.js… chưa nạp nên
+// loadPage()/loadTemplates()/initSampleImagesPanel()/initAssetImagesPanel()/initBackgroundPanel()
 // còn undefined).
 function restoreTabFromHash() {
   const tab = location.hash.replace("#", "");

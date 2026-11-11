@@ -300,7 +300,7 @@ Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `
       Danh sách rỗng = không ai vào (fail-closed). Mã admin KHÔNG mở được resource này.
 - [ ] **A37. Tài khoản Google trong `SUPPORT_EMAILS` là chìa khoá chung** — mất một cái là
       đặt lại được mật khẩu mọi khách, và (A41) bật gói trả phí cho thiệp bất kỳ mà không thu
-      tiền. Phải bật xác minh 2 bước cho từng tài khoản (ngoài repo).
+      tiền, (A42) phát mã giảm 100%. Phải bật xác minh 2 bước cho từng tài khoản (ngoài repo).
 - [x] **A41. Thanh toán hộ (`wedding-admin?resource=support-pay`, 2026-11-02, chưa deploy).**
       Nhân viên xác nhận "đã nhận tiền" → thiệp `completed` + gói, KHÔNG qua PayOS. Chốt quyền
       dùng chung với `accounts` (cùng nhánh ở `index.ts`, mã admin không mở được). Client chỉ gửi
@@ -309,6 +309,19 @@ Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `
       vừa đọc nên bấm hai lần/hai người cùng lúc không áp hai lần. Mỗi lượt ghi `payment_logs`
       (`event_type completed`, `payload.by` = email nhân viên, `manual: true`) + Axiom
       `support_pay.confirmed` — đó là sổ duy nhất để đối soát, vì tiền không qua cổng nào.
+- [x] **A42. Mã giảm giá ở `/admin-support` (`wedding-admin?resource=promo-codes`, 2026-11-11, chưa
+      deploy).** Đi qua CÙNG nhánh chốt quyền với `accounts`/`support-pay` ở `index.ts` cho mọi method
+      (GET/POST/PATCH/DELETE); mã admin (`x-admin-token`) KHÔNG mở được (tab cũ ở `/admin` đã gỡ).
+      Xử lý ở `promo-codes.ts`: PATCH chỉ nhận `is_active`/`max_uses`/`expires_at`/
+      `note` (không sửa mã, giá trị giảm, `used_count`), id/lô kiểm định dạng trước khi truy vấn, xoá vẫn
+      fail-closed khi không đọc được lượt đã dùng. Mọi lượt ghi log Axiom `promo.generated/updated/
+      deleted` kèm `by` = email nhân viên. Kéo theo A37: mất một tài khoản trong `SUPPORT_EMAILS` là
+      phát được mã giảm 100%.
+- [x] **A43. Số liệu thiệp ở `/admin-support` (`wedding-admin?resource=support-weddings`, 2026-11-11,
+      chưa deploy).** Chỉ GET, cùng nhánh chốt quyền nhân viên ở `index.ts`. Trả về mọi thiệp nhưng chỉ
+      các cột phân tích (tên cô dâu chú rể, slug, mẫu, trạng thái, lượt xem, số tiền, hạn, ngày tạo) +
+      email chủ thiệp — KHÔNG có thông tin ngân hàng/QR/địa chỉ/khách mời. Đọc auth users hỏng thì vẫn
+      trả danh sách, thiếu cột email, có `log.error`. Mất tài khoản nhân viên (A37) = lộ danh sách email khách.
 - [x] **A38. Toast chạy mã chèn qua link (có từ trước luồng này).** `showToast` (`alert.js`)
       gán `innerHTML`, `auth-ui.js` đổ thẳng `?error_description=` của URL và tên khách
       (`full_name`, khách tự sửa được) vào toast; CSP có `'unsafe-inline'` nên `onerror=` chạy →
@@ -316,7 +329,8 @@ Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `
       `showToast` dùng `textContent` (không chỗ nào trong 230 lời gọi cố ý truyền HTML).
 - [x] **A39. Nhân viên biết mật khẩu khách mãi mãi.** Khách tài khoản Cưới Xinh tự đổi được ở
       "Thông tin cá nhân" (`profile-modal.js`, chỉ hiện với `CXAuth.isAccount`); lời nhắn gửi
-      khách ở `/admin-support` nhắc đổi. Nhân viên vẫn đặt lại được khi khách quên.
+      khách ở `/admin-support` KHÔNG còn nhắc đổi (cố ý, cho gọn) nên phần lớn khách sẽ giữ mật khẩu
+      nhân viên đặt. Nhân viên vẫn đặt lại được khi khách quên.
 - [x] **A40. Thư dội ngược khi gửi OTP tới `@account.cuoixinh.com`** — gọi thẳng API là tạo
       bounce, hại uy tín gửi thư. Chấp nhận: cùng loại với mọi tên miền giả từ trước; giao diện
       đã tự chuyển sang bước tài khoản thay vì gửi mã. Chặn hẳn phải dùng Auth Hook.
