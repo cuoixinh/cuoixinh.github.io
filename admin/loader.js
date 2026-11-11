@@ -10,7 +10,6 @@
     ["mount-sample-images", "partials/sample-images-panel.html"],
     ["mount-asset-images", "partials/asset-images-panel.html"],
     ["mount-background", "partials/background-panel.html"],
-    ["mount-promo", "partials/promo-panel.html"],
     ["mount-fonts", "partials/fonts-panel.html"],
     ["mount-cleanup", "partials/cleanup-panel.html"],
     ["mount-promo-video", "partials/promo-video-panel.html"],
@@ -72,7 +71,6 @@
     // Phải đứng SAU 03: dùng lại siIdbGet/siIdbPut + SI_IDB_STORE, và dùng CHUNG
     // handle thư mục assets/ với tab "Ảnh mẫu" (cùng key "assets-root").
     "js/06-background.js",
-    "js/07-promo.js",
     "js/08-fonts.js",
     "js/10-cleanup.js",
     "js/11-promo-video.js",

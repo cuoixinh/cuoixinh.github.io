@@ -1,6 +1,6 @@
-// Trang /admin-support — nhân viên tạo / đặt lại mật khẩu tài khoản Cưới Xinh cho khách.
-// Quyền KHÔNG xét ở đây: wedding-admin?resource=accounts trả 403 với ai ngoài SUPPORT_EMAILS
-// hoặc phiên không phải Google, trang chỉ đọc mã đó để vẽ màn chặn.
+// Trang /admin-support — ba tab: "Tạo thiệp hộ" (tra thiệp + thanh toán hộ, tạo / đặt lại mật khẩu
+// tài khoản Cưới Xinh cho khách), "Mã giảm giá" (promo.js), "Thiệp của khách" (weddings.js). Quyền KHÔNG xét ở đây: wedding-admin
+// trả 401/403 với ai ngoài SUPPORT_EMAILS hoặc phiên không phải Google, trang chỉ đọc mã đó để vẽ màn chặn.
 
 let accLastResult = "";
 
@@ -55,6 +55,58 @@ async function supSignOut() {
   location.reload();
 }
 
+// Ba tab: Tạo thiệp hộ · Mã giảm giá · Thiệp của khách. Tab đang mở ghi vào #hash (mở link là vào thẳng tab đó);
+// dữ liệu của tab chỉ tải lần đầu mở tab, và chỉ sau khi đã qua chốt quyền.
+const SUP_TABS = { wedding: "#tao-thiep-ho", promo: "#ma-giam-gia", stats: "#thiep-cua-khach" };
+let supGateOk = false;
+const supLoaded = new Set();
+function supTab(id) {
+  if (!SUP_TABS[id]) id = "wedding";
+  const ids = Object.keys(SUP_TABS);
+  const seg = document.getElementById("sup-tabs");
+  seg.style.setProperty("--i", String(ids.indexOf(id)));
+  seg.querySelectorAll("[data-tab]").forEach((b) => {
+    const on = b.dataset.tab === id;
+    b.classList.toggle("is-on", on);
+    b.setAttribute("aria-selected", String(on));
+    b.tabIndex = on ? 0 : -1;
+  });
+  ids.forEach((t) => {
+    const panel = document.getElementById(`sup-tab-${t}`);
+    const was = panel.classList.contains("hidden");
+    panel.classList.toggle("hidden", t !== id);
+    if (t === id && was) {
+      panel.classList.remove("sup-panel-in");
+      void panel.offsetWidth;
+      panel.classList.add("sup-panel-in");
+    }
+  });
+  if (location.hash !== SUP_TABS[id]) history.replaceState(null, "", SUP_TABS[id]);
+  if (supGateOk && !supLoaded.has(id)) {
+    supLoaded.add(id);
+    if (id === "promo") loadPromoCodes();
+    if (id === "stats") stLoad();
+  }
+}
+const supTabFromHash = () => Object.keys(SUP_TABS).find((k) => SUP_TABS[k] === location.hash) || "wedding";
+window.addEventListener("hashchange", () => supTab(supTabFromHash()));
+// Mũi tên trái/phải chuyển tab khi đang đứng ở dải tab.
+document.getElementById("sup-tabs").addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  const ids = Object.keys(SUP_TABS);
+  const cur = ids.indexOf(document.querySelector("#sup-tabs .is-on")?.dataset.tab);
+  const next = ids[(cur + (e.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length];
+  supTab(next);
+  document.getElementById(`sup-tab-btn-${next}`).focus();
+});
+
+// Đã qua chốt quyền lần đầu: mở tab theo #hash.
+function supAfterGate() {
+  if (supGateOk) return;
+  supGateOk = true;
+  supTab(supTabFromHash());
+}
+
 // Vẽ danh sách; cũng là phép thử quyền lúc mở trang (401/403 → màn chặn).
 async function loadAccounts() {
   const tbody = document.getElementById("acc-list");
@@ -75,6 +127,7 @@ async function loadAccounts() {
     return;
   }
   supShow("sup-app");
+  supAfterGate();
   if (!list.length) {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">Chưa có tài khoản nào</td></tr>`;
     return;
@@ -100,14 +153,13 @@ async function loadAccounts() {
   window.lucide?.createIcons({ root: tbody });
 }
 
-// Lời nhắn chép sẵn để gửi khách qua Zalo/Messenger.
+// Lời nhắn chép sẵn để gửi khách qua Zalo/Messenger — xưng "em", gọi khách "anh/chị".
 function accShowResult({ username, password }) {
   accLastResult =
-    `Tài khoản Cưới Xinh của bạn:\n` +
-    `• Vào ${ACC_SITE} → Đăng nhập → "Đăng nhập bằng tài khoản Cưới Xinh"\n` +
+    `Dạ em gửi anh/chị tài khoản Cưới Xinh ạ:\n` +
     `• Tên đăng nhập: ${username}\n` +
-    `• Mật khẩu: ${password}\n` +
-    `Đăng nhập xong, bạn nên đổi mật khẩu ở mục "Thông tin cá nhân".`;
+    `• Mật khẩu: ${password}\n\n` +
+    `Cách đăng nhập: anh/chị vào ${ACC_SITE}, bấm "Đăng nhập" rồi chọn "Đăng nhập bằng tài khoản Cưới Xinh" và nhập hai thông tin trên.`;
   document.getElementById("acc-result-text").textContent = accLastResult;
   document.getElementById("acc-result").classList.remove("hidden");
 }
@@ -254,7 +306,7 @@ function payRender() {
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Ghi chú</label>
-                <input id="pay-note" type="text" maxlength="300" placeholder="vd. CK Vietcombank 14:20, nội dung LAN MINH"
+                <input id="pay-note" type="text" maxlength="300" placeholder="vd. CK Vietcombank lúc 14:20"
                   class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
               </div>
             </div>
