@@ -12,6 +12,8 @@ const CX_WISH_MAX = 3;
 // Trần một lời chúc — trùng MAX_WISH_LEN của Edge Function guest-handler (server
 // mới là nơi chốt, quá trần trả 400).
 const CX_WISH_MAX_LEN = 300;
+// Trần tên khách tự ký (weddings.wish_custom_name) — trùng MAX_WISH_SIGN_LEN của guest-handler.
+const CX_WISH_SIGN_LEN = 60;
 
 // Tốc độ trôi (px/giây) — danh sách dài ngắn đều đi cùng nhịp đọc.
 const CX_WISH_SPEED = 32;
@@ -106,6 +108,8 @@ let _cxWishDemo = false;
 // trong khung xem trước chỉ việc dựng lại, không phải nạp lại cả thiệp.
 let _cxWishMode = CX_WISH_MODE_DEFAULT;
 let _cxWishCanWrite = false;
+// Chủ thiệp cho khách tự viết tên hiển thị (weddings.wish_custom_name) → ô "Ký tên".
+let _cxWishSign = false;
 
 // Khách tự tắt dải trôi. CỐ Ý chỉ nằm trong bộ nhớ: tải lại trang là dải hiện
 // lại, khách không phải nhớ mình đã tắt ở thiệp nào.
@@ -1293,7 +1297,9 @@ function _cxWishBuildDock(canWrite) {
     spacer.id = "cx-wdock-spacer";
     // Không có ô nhập thì dải thấp hẳn đi — chừa nguyên 104px là hở một khoảng
     // trắng dưới mục cuối.
-    spacer.className = "cx-wdock-spacer" + (canWrite ? "" : " is-slim");
+    // Ô Ký tên làm thẻ gửi cao thêm một hàng.
+    spacer.className =
+      "cx-wdock-spacer" + (!canWrite ? " is-slim" : _cxWishSign ? " has-sign" : "");
     host.appendChild(spacer);
   }
 
@@ -1316,16 +1322,33 @@ function _cxWishBuildDock(canWrite) {
 function _cxWishPlaceholder() {
   const g = window.CX_GUEST;
   const name = String(g?.name || "").trim();
-  if (!name) return "Viết lời chúc…";
+  // Có ô Ký tên thì tên đã nằm ngay trên, nhắc lại ở đây là thừa (và có thể sai).
+  if (!name || _cxWishSign) return "Viết lời chúc…";
   const rel = String(g.relationship || "").trim().toLowerCase();
   const who = rel ? rel.charAt(0).toUpperCase() + rel.slice(1) + " " + name : name;
   return "Viết lời chúc dưới tên " + who;
+}
+
+// Ô "Ký tên" (chỉ khi thiệp bật wish_custom_name): điền sẵn tên chủ thiệp đặt cho
+// khách — khách để trống thì lời chúc vẫn đứng tên đó (server lo).
+function _cxWishSignHtml() {
+  if (!_cxWishSign) return "";
+  const name = String(window.CX_GUEST?.name || "").trim();
+  return (
+    '<label class="cx-wdock-sign">' +
+    '<span class="cx-wdock-sign-cap">Ký tên</span>' +
+    `<input type="text" class="cx-wdock-sign-in" id="cx-wdock-sign" maxlength="${CX_WISH_SIGN_LEN}" ` +
+    `value="${escapeHtml(name)}" placeholder="Tên hiện dưới lời chúc" enterkeyhint="next" ` +
+    'aria-label="Tên hiện dưới lời chúc" />' +
+    "</label>"
+  );
 }
 
 function _cxWishComposerHtml(canWrite) {
   if (!canWrite) return "";
   return (
     '<div class="cx-wdock-card cx-t" id="cx-wdock-open">' +
+    _cxWishSignHtml() +
     '<div class="cx-wdock-row">' +
     // Chip bên trái là dấu hiệu "chỗ này gõ được", và cũng là chỗ báo gửi
     // xong. Hai icon dựng sẵn, CSS chọn cái nào hiện theo .is-sent của thẻ:
@@ -1395,6 +1418,12 @@ function _cxWishBindComposer(canWrite) {
   send.addEventListener("click", (e) => {
     e.stopPropagation();
     _cxWishSend();
+  });
+  // Enter ở ô Ký tên chuyển xuống ô lời chúc, không gửi (lời chúc có thể còn trống).
+  document.getElementById("cx-wdock-sign")?.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    input.focus();
   });
 }
 
@@ -1569,7 +1598,7 @@ function _cxWishCollapse() {
   _cxWishSetDockMsg("");
 }
 
-function _cxWishExpand() {
+function _cxWishExpand(e) {
   const card = document.getElementById("cx-wdock-open");
   if (!card || card.classList.contains("is-open")) return;
   if (_cxWishRemaining <= 0) return;
@@ -1578,7 +1607,8 @@ function _cxWishExpand() {
   card.classList.remove("is-sent");
   card.classList.add("is-open");
   const input = _cxWishInputEl();
-  input?.focus();
+  // Bấm vào ô Ký tên thì để con trỏ ở đó, đừng giật sang ô lời chúc.
+  if (!e?.target?.closest?.(".cx-wdock-sign")) input?.focus();
   if (input) _cxWishAutoGrow(input);
 }
 
@@ -1629,6 +1659,8 @@ async function _cxWishSend() {
   if (btn) btn.disabled = true;
   _cxWishSetDockMsg("");
 
+  const sign = (document.getElementById("cx-wdock-sign")?.value || "").trim();
+
   try {
     const res = await window.guestDAL.sendWishPublic({
       slug: g.slug,
@@ -1636,6 +1668,7 @@ async function _cxWishSend() {
       name: g.name,
       relationship: g.relationship,
       text,
+      sign: _cxWishSign ? sign : "",
     });
 
     _cxWishItems.unshift(res.wish);
@@ -1674,6 +1707,8 @@ async function initWishes(wedding) {
     }
 
     _cxWishMode = _cxWishModeOf(wedding?.theme_setting);
+    _cxWishSign =
+      wedding?.wish_custom_name === true || wedding?.wish_custom_name === "true";
 
     // Xem trước (?preview=true hoặc iframe trang Thiết lập): chưa có dữ liệu thật,
     // dựng vài lời chúc mẫu để chủ thiệp thấy đúng bố cục. Ô nhập vẫn dựng, nút
@@ -1710,12 +1745,17 @@ async function initWishes(wedding) {
 
     if (!guest) return;
 
-    // Đã gửi bao nhiêu lượt: đếm ngay trên danh sách vừa tải (server vẫn là nơi
-    // chốt, đây chỉ để hiện đúng số lượt còn lại).
-    const mine = _cxWishItems.filter(
-      (w) => (w.name || "").trim().toLowerCase() === guest.name.trim().toLowerCase(),
-    ).length;
-    _cxWishRemaining = Math.max(0, CX_WISH_MAX - mine);
+    // Số lượt còn lại do server đếm (lượt tra "view"); Edge Function cũ chưa trả thì
+    // đếm theo tên trên danh sách vừa tải — sai khi khách tự ký tên khác, nhưng server
+    // vẫn là nơi chốt (409).
+    if (typeof guest.wishesLeft === "number") {
+      _cxWishRemaining = Math.max(0, guest.wishesLeft);
+    } else {
+      const mine = _cxWishItems.filter(
+        (w) => (w.name || "").trim().toLowerCase() === guest.name.trim().toLowerCase(),
+      ).length;
+      _cxWishRemaining = Math.max(0, CX_WISH_MAX - mine);
+    }
     _cxWishSetDockText();
   } catch (error) {
     console.error("Lỗi dựng mục lời chúc:", error);
@@ -1723,6 +1763,14 @@ async function initWishes(wedding) {
 }
 
 window.initWishes = initWishes;
+
+// Link cũ (tên + xưng hô) tra "view" song song với lúc dựng thiệp → số lượt về sau.
+window.cxWishSetLeft = (n) => {
+  if (typeof n !== "number") return;
+  if (window.CX_GUEST) window.CX_GUEST.wishesLeft = n;
+  _cxWishRemaining = Math.max(0, n);
+  _cxWishSetDockText();
+};
 
 // ── Chọn dạng hiện lời chúc ─────────────────────────────────────────────────
 

@@ -154,9 +154,10 @@ class GuestDAL {
   /**
    * Khách mời gửi lời chúc từ trang thiệp. Edge function khớp khách theo
    * slug + mã (hoặc tên + xưng hô ở link cũ) rồi mới ghi — không khớp là 403, quá số lượt
-   * là 409; ném Error mang đúng câu để UI hiện thẳng cho khách.
+   * là 409; ném Error mang đúng câu để UI hiện thẳng cho khách. `sign` = tên khách
+   * tự ký (chỉ lưu khi thiệp bật wish_custom_name) — `name` là tên trên link để khớp.
    */
-  async sendWishPublic({ slug, code, name, relationship, text }) {
+  async sendWishPublic({ slug, code, name, relationship, text, sign }) {
     const res = await fetch(`${this._url}?action=wish`, {
       method: 'POST',
       headers: {
@@ -164,7 +165,7 @@ class GuestDAL {
         apikey: CONFIG.supabase.anonKey,
         Authorization: `Bearer ${CONFIG.supabase.anonKey}`,
       },
-      body: JSON.stringify({ slug, code, name, relationship, text }),
+      body: JSON.stringify({ slug, code, name, relationship, text, sign }),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Lỗi máy chủ');

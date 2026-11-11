@@ -70,6 +70,9 @@ const MAX_WISH_LEN = 300
 // Lời chúc ĐÃ LƯU từ hồi trần còn 500 — đọc ra giữ nguyên, đừng cắt theo trần mới.
 const MAX_WISH_STORED_LEN = 500
 const MAX_WISHES_RETURNED = 200
+// Tên khách tự ký dưới lời chúc (weddings.wish_custom_name) — trùng CX_WISH_SIGN_LEN
+// ở wishes-helper.js.
+const MAX_WISH_SIGN_LEN = 60
 const MAX_FIELD_LEN = 200
 const MAX_REL_LEN = 100
 const BATCH_SIZE = 50
@@ -183,17 +186,23 @@ async function findPublicGuest(
 
 // Lời chúc đã lưu → mảng sạch. Hàng cũ có cột null hoặc dữ liệu hỏng thì coi
 // như chưa có lời chúc nào, đừng để một hàng lỗi chặn khách gửi.
-function readWishes(raw: unknown): { id: string; text: string; at: string }[] {
+// `name` = tên khách tự ký (chỉ có khi thiệp bật wish_custom_name) — phải giữ lại,
+// mảng này còn được ghi ngược xuống DB (delete-wish, gửi lời chúc mới).
+type Wish = { id: string; text: string; at: string; name?: string }
+function readWishes(raw: unknown): Wish[] {
   if (!Array.isArray(raw)) return []
   return raw
     .filter(w => w && typeof w === 'object' && typeof (w as { text?: unknown }).text === 'string')
     .map(w => {
       const o = w as Record<string, unknown>
-      return {
+      const out: Wish = {
         id: String(o.id ?? crypto.randomUUID()),
         text: String(o.text).slice(0, MAX_WISH_STORED_LEN),
         at: String(o.at ?? ''),
       }
+      const sign = typeof o.name === 'string' ? o.name.trim().slice(0, MAX_WISH_SIGN_LEN) : ''
+      if (sign) out.name = sign
+      return out
     })
 }
 
@@ -396,8 +405,9 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     const items: { id: string; name: string; relationship: string; text: string; at: string }[] = []
     for (const g of rows ?? []) {
       const name = String(g.display_name || g.full_name || '').trim()
+      // Lời chúc khách tự ký tên thì đứng tên đó (kể cả khi chủ thiệp tắt cờ sau này).
       for (const w of readWishes(g.wishes)) {
-        items.push({ id: w.id, name, relationship: String(g.relationship ?? ''), text: w.text, at: w.at })
+        items.push({ id: w.id, name: w.name || name, relationship: String(g.relationship ?? ''), text: w.text, at: w.at })
       }
     }
 
@@ -654,14 +664,17 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     const slug = String(body.slug ?? '').trim()
     const who = readLinkGuest(body)
     const text = String(body.text ?? '').trim()
+    // Tên khách tự ký — KHÁC `name` (tên trên link, dùng để khớp hàng guests).
+    const sign = String(body.sign ?? '').trim()
 
     if (!slug || (!who.code && !who.name)) return fail('Thiếu thông tin khách mời')
     if (!text) return fail('Lời chúc không được để trống')
     if (text.length > MAX_WISH_LEN) return fail(`Lời chúc tối đa ${MAX_WISH_LEN} ký tự`)
+    if (sign.length > MAX_WISH_SIGN_LEN) return fail(`Tên hiển thị tối đa ${MAX_WISH_SIGN_LEN} ký tự`)
 
     const { data: wedding, error: wErr } = await supabase
       .from('weddings')
-      .select('id, enable_wishes')
+      .select('id, enable_wishes, wish_custom_name')
       .eq('slug', slug)
       .maybeSingle()
 
@@ -688,7 +701,11 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       return fail(`Bạn đã gửi tối đa ${MAX_WISHES_PER_GUEST} lời chúc rồi`, 409)
     }
 
-    const wish = { id: crypto.randomUUID(), text, at: new Date().toISOString() }
+    // Chỉ nhận tên tự ký khi chủ thiệp bật cờ; trùng tên chủ thiệp đặt thì khỏi lưu
+    // (để đổi tên khách ở tab Khách mời vẫn ăn vào các lời chúc đó).
+    const guestName = String(guest.display_name || guest.full_name || '').trim()
+    const wish: Wish = { id: crypto.randomUUID(), text, at: new Date().toISOString() }
+    if (wedding.wish_custom_name === true && sign && sign !== guestName) wish.name = sign
     const { error: upErr } = await supabase
       .from('guests')
       .update({ wishes: [...wishes, wish] })
@@ -700,7 +717,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     return ok({
       wish: {
         ...wish,
-        name: String(guest.display_name || guest.full_name || '').trim(),
+        name: wish.name || guestName,
         relationship: String(guest.relationship ?? ''),
       },
       remaining: MAX_WISHES_PER_GUEST - wishes.length - 1,
@@ -729,7 +746,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     const { error: listErr, guest } = await findPublicGuest(
       supabase, wedding.id, who,
-      'id, full_name, display_name, relationship, viewed, confirmed'
+      'id, full_name, display_name, relationship, viewed, confirmed, wishes'
     )
     if (listErr) return fail(listErr, 500)
 
@@ -751,6 +768,9 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       confirmed: guest.confirmed ?? null,
       name: String(guest.display_name || guest.full_name || '').trim(),
       relationship: String(guest.relationship ?? ''),
+      // Lượt lời chúc còn lại — thiệp không tự đếm theo tên được nữa vì khách có thể
+      // ký tên khác (wish_custom_name).
+      wishes_left: Math.max(0, MAX_WISHES_PER_GUEST - readWishes(guest.wishes).length),
     })
   }
 

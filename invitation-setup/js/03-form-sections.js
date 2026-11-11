@@ -57,6 +57,23 @@ function toggleSectionVis(section, event) {
   if (section === "ceremony" || section === "party") _onPartyOnlyToggle(section);
 }
 
+// Ô tick "Cho phép khách mời tự viết tên" (bước RSVP, dưới công tắc Lời chúc) — giá
+// trị thật ở hidden #wish_custom_name; phát "input" để autosave + xem trực tiếp bắt được.
+function toggleWishCustomName(event) {
+  const hidden = document.getElementById("wish_custom_name");
+  if (!hidden) return;
+  hidden.value = String(!!event?.target?.checked);
+  hidden.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function initWishCustomName(data) {
+  const on = data?.wish_custom_name === true || data?.wish_custom_name === "true";
+  const hidden = document.getElementById("wish_custom_name");
+  if (hidden) hidden.value = String(on);
+  const check = document.querySelector('x-check[key="wish-custom-name"]');
+  if (check) check.checked = on;
+}
+
 function _initVisToggles(data) {
   Object.entries(SECTION_VIS_FIELDS).forEach(([section, field]) => {
     const val = data?.[field];

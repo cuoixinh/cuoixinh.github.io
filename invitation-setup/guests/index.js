@@ -1710,7 +1710,7 @@ function _renderWishesModalBody(guest, side) {
           ${_ico("trash-2", 14)}
         </x-button>
       </div>
-      <p class="gs-wish-time">${escapeHtml(_fmtWishTime(w.at))}</p>
+      <p class="gs-wish-time">${w.name ? `Ký tên "${escapeHtml(w.name)}" · ` : ""}${escapeHtml(_fmtWishTime(w.at))}</p>
     </div>`).join("");
 
   body.innerHTML =
