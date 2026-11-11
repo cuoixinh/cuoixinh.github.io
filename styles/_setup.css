@@ -2782,17 +2782,111 @@ button.cx-ls-thumb {
   @apply text-xs leading-relaxed text-gray-500;
 }
 
-/* Thẻ bài nhạc đang chọn: video + tên bài/giây bắt đầu/nút gỡ — xếp dọc ở khổ
-   hẹp, từ sm đứng cạnh nhau. */
-.cx-cfg-song {
-  @apply flex flex-col gap-4 rounded-2xl p-3 sm:flex-row sm:items-start;
-
-  background: rgb(var(--surface-tint-rgb));
-  border: 1px solid rgb(var(--border-subtle-rgb));
+/* Đầu mục gọn (một dòng mô tả ngắn): tiêu đề + mô tả cao đúng bằng ô icon (20 + 16 = 36px). */
+.cx-cfg-head.is-compact .cx-cfg-title {
+  line-height: 20px;
 }
 
-.cx-cfg-song-media {
-  @apply w-full shrink-0 sm:w-60;
+.cx-cfg-head.is-compact .cx-cfg-desc {
+  line-height: 16px;
+}
+
+/* Thẻ "nhạc nền của thiệp" đứng đầu mục Nhạc nền: đĩa than + tên bài + nút gỡ, khung
+   video (chỉ bài YouTube, thế chỗ đĩa — cờ .is-yt), rồi hàng giây bắt đầu. Đĩa quay
+   khi đang nghe thử (cờ .is-playing do _ytListenSync đặt). */
+.cx-song {
+  @apply flex flex-col gap-3 rounded-2xl p-4;
+
+  margin-bottom: 8px;
+  background: rgb(var(--surface-tint-warm-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.48);
+}
+
+.cx-song-head {
+  @apply flex items-center gap-3;
+}
+
+/* Rãnh đĩa + nhãn giữa màu nhấn; vệt sáng ở ::after lệch một phía để thấy đĩa quay. */
+.cx-song-disc {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle,
+      rgb(255 255 255) 0 3px,
+      rgb(var(--brand-accent-rgb)) 4px 12px,
+      transparent 12.5px
+    ),
+    repeating-radial-gradient(
+      circle,
+      rgb(var(--text-strong-rgb)) 0 2px,
+      rgb(var(--text-strong-rgb) / 0.86) 2px 3px
+    );
+  box-shadow: 0 4px 12px rgb(var(--brand-accent-rgb) / 0.32);
+}
+
+.cx-song-disc::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 20deg,
+    transparent 0 12%,
+    rgb(255 255 255 / 0.22) 18%,
+    transparent 26% 100%
+  );
+}
+
+.cx-song.is-playing .cx-song-disc {
+  animation: cx-song-spin 2.4s linear infinite;
+}
+
+@keyframes cx-song-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cx-song.is-yt .cx-song-disc {
+  display: none;
+}
+
+.cx-song-cap {
+  @apply text-xs text-gray-500;
+}
+
+.cx-song-name {
+  @apply mt-0.5 text-sm font-semibold leading-snug text-gray-800;
+
+  overflow-wrap: anywhere;
+}
+
+.cx-song-video {
+  @apply w-full;
+}
+
+/* Hàng giây bắt đầu: nút tròn Nghe thử/Dừng bên trái, nhãn + thanh kéo bên phải. */
+.cx-song-start {
+  @apply flex items-center gap-3;
+
+  padding-top: 12px;
+  border-top: 1px dashed rgb(var(--brand-primary-rgb) / 0.6);
+}
+
+@media (min-width: 640px) {
+  .cx-song-video {
+    max-width: 320px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-song.is-playing .cx-song-disc {
+    animation: none;
+  }
 }
 
 /* Thanh kéo giây bắt đầu (CXProgress): số m:ss rộng hơn số % mặc định. */
@@ -2802,6 +2896,73 @@ button.cx-ls-thumb {
 
 .cx-music-start .cx-prog-val {
   width: 40px;
+}
+
+/* Câu mẫu chia sẻ: hàng chip chèn biến · ô soạn · bong bóng xem trước (cxShareRender). */
+.cx-share {
+  @apply flex flex-col gap-3;
+}
+
+.cx-share-tools {
+  @apply flex flex-wrap items-center gap-2;
+}
+
+/* Chip biến trộn: viền đứt = "chỗ trống sẽ được điền", đặc lại khi rê/nhấn. */
+.cx-share-chip {
+  @apply inline-flex h-8 items-center gap-1.5 px-3 text-xs font-medium;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-tint-warm-rgb));
+  border: 1px dashed rgb(var(--brand-accent-rgb) / 0.5);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.cx-share-chip:hover {
+  border-style: solid;
+  background: rgb(var(--brand-primary-rgb) / 0.24);
+}
+
+.cx-share-chip:focus-visible {
+  outline: 2px solid rgb(var(--brand-accent-rgb) / 0.5);
+  outline-offset: 2px;
+}
+
+/* Nền "khung chat" cho bong bóng tin nhắn. */
+.cx-share-preview {
+  @apply rounded-2xl p-3;
+
+  background: rgb(var(--surface-tint-warm-rgb));
+}
+
+.cx-share-cap {
+  @apply mb-2 px-1 text-xs text-gray-500;
+}
+
+/* Bong bóng tin nhắn đến: góc dưới-trái nhọn như tin của người gửi trong Zalo/Messenger. */
+.cx-share-bubble {
+  @apply px-4 py-3 text-sm leading-relaxed text-gray-700;
+
+  max-width: 100%;
+  border-radius: 16px 16px 16px 4px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Chỗ biến đã được thay — đổi theo từng khách. */
+.cx-share-var {
+  @apply rounded font-semibold;
+
+  padding: 0 2px;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.28);
+}
+
+.cx-share-empty {
+  @apply text-gray-400;
 }
 
 /* Một dòng link thiệp (nhà trai/nhà gái) kèm nút sao chép. */

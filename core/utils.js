@@ -1121,11 +1121,13 @@ function cxYtStart(url) {
 // Trả music_url đã gắn `t=<giây>` (0 = bỏ tham số); URL không parse được thì giữ nguyên.
 function cxYtWithStart(url, sec) {
   if (!url) return url;
+  sec = Math.max(0, Math.floor(sec || 0));
+  // Bài thư viện ("lib:songs/a.mp3?t=30") không phải URL thật, new URL() sẽ làm hỏng.
+  if (cxIsLibMusic(url)) return CX_LIB_PREFIX + cxLibMusicFile(url) + (sec ? `?t=${sec}` : "");
   try {
     const u = new URL(/^https?:\/\//i.test(url) ? url : "https://" + url);
     u.searchParams.delete("t");
     u.searchParams.delete("start");
-    sec = Math.max(0, Math.floor(sec || 0));
     if (sec) u.searchParams.set("t", String(sec));
     return u.toString();
   } catch (e) {
@@ -1134,7 +1136,7 @@ function cxYtWithStart(url, sec) {
 }
 
 // Nhạc nền từ THƯ VIỆN (kho cloudflare-media/): music_url = "lib:<đường dẫn tương đối như
-// `file` trong library.json>" (không có giây bắt đầu) — KHÔNG lưu tên miền kho, gốc lấy lúc chạy từ
+// `file` trong library.json>[?t=<giây bắt đầu>]" — KHÔNG lưu tên miền kho, gốc lấy lúc chạy từ
 // CONFIG.slideMusic.library nên đổi tài khoản/miền kho chỉ sửa config. Link YouTube cũ không
 // có tiền tố này nên vẫn đi đường YouTube như trước.
 const CX_LIB_PREFIX = "lib:";
@@ -1174,23 +1176,39 @@ function cxMusicLibrary() {
 // Thẻ <audio> mặc áo của YT.Player (đúng những lệnh trình phát nhạc của thiệp + trang Thiết
 // lập dùng) để nhạc thư viện đi chung một luồng với YouTube. Sự kiện báo theo mã YT.PlayerState.
 const CX_PLAYER_STATE = { UNSTARTED: -1, ENDED: 0, PLAYING: 1, PAUSED: 2, BUFFERING: 3, CUED: 5 };
+// opts.whole = tải TRỌN file (blob) rồi mới phát: kho nhạc không trả Range nên <audio> trỏ thẳng
+// vào kho không tua được — cần cho giây bắt đầu `opts.start`. Bấm phát lúc file chưa về thì phát
+// CÂM bản trên kho để giữ quyền phát của cú chạm (iOS chặn play() ngoài cú chạm), file về mới ra
+// tiếng từ đúng giây đó. opts.onMeta(dur) = đã biết độ dài bản tua được (0 = tải hỏng).
 function cxAudioPlayer(src, opts = {}) {
   const S = CX_PLAYER_STATE;
   const a = new Audio();
-  a.preload = opts.preload || "auto";
+  a.preload = opts.whole ? "none" : opts.preload || "auto";
   a.loop = !!opts.loop;
   let state = S.UNSTARTED;
+  let whole = !!opts.whole; // true = còn chờ file
+  let at = Math.max(0, opts.start || 0); // giây áp vào khi file về
+  let want = false; // đã bấm phát (chờ file về thì phát tiếp)
+  let objUrl = "";
   const meta = { title: opts.title || "", author: opts.author || "" };
   const p = {
     playVideo() {
+      want = true;
+      if (whole) a.muted = true;
       a.play()?.catch?.(() => {});
     },
     pauseVideo() {
+      want = false;
       a.pause();
     },
     seekTo(sec) {
+      sec = Math.max(0, sec || 0);
+      if (whole) {
+        at = sec;
+        return;
+      }
       try {
-        a.currentTime = Math.max(0, sec || 0);
+        a.currentTime = sec;
       } catch (e) {}
     },
     cueVideoById(o) {
@@ -1200,17 +1218,20 @@ function cxAudioPlayer(src, opts = {}) {
     setVolume(v) {
       a.volume = Math.max(0, Math.min(1, (Number(v) || 0) / 100));
     },
-    getCurrentTime: () => a.currentTime || 0,
-    getDuration: () => (Number.isFinite(a.duration) ? a.duration : 0),
+    getCurrentTime: () => (whole ? at : a.currentTime || 0),
+    getDuration: () => (!whole && Number.isFinite(a.duration) ? a.duration : 0),
     getPlayerState: () => state,
     getVideoData: () => ({ title: meta.title, author: meta.author, video_id: "" }),
     setMeta(m) {
       Object.assign(meta, m);
     },
     destroy() {
+      whole = false;
+      want = false;
       a.pause();
       a.removeAttribute("src");
       a.load();
+      if (objUrl) URL.revokeObjectURL(objUrl);
     },
     audio: a,
   };
@@ -1223,6 +1244,42 @@ function cxAudioPlayer(src, opts = {}) {
   a.addEventListener("ended", () => fire(S.ENDED));
   a.addEventListener("waiting", () => fire(S.BUFFERING));
   a.src = src;
+  if (!opts.whole) {
+    a.addEventListener("loadedmetadata", () => opts.onMeta?.(p.getDuration()), { once: true });
+  } else {
+    fetch(src)
+      .then((r) => (r.ok ? r.blob() : Promise.reject(new Error("HTTP " + r.status))))
+      .then((b) => {
+        if (!whole) return; // đã destroy trong lúc tải
+        objUrl = URL.createObjectURL(b);
+        a.addEventListener(
+          "loadedmetadata",
+          () => {
+            whole = false;
+            const dur = p.getDuration();
+            try {
+              a.currentTime = dur ? Math.min(at, dur - 1) : at;
+            } catch (e) {}
+            a.muted = false;
+            opts.onMeta?.(dur);
+            if (want) a.play()?.catch?.(() => {});
+          },
+          { once: true },
+        );
+        a.preload = "auto";
+        a.src = objUrl;
+      })
+      .catch((e) => {
+        // Tải hỏng: vẫn còn bản trên kho — phát được, chỉ không tua (từ đầu bài).
+        console.error("cxAudioPlayer: không tải được file nhạc", e);
+        if (!whole) return;
+        whole = false;
+        a.muted = false;
+        a.preload = "auto";
+        opts.onMeta?.(0);
+        if (want) a.play()?.catch?.(() => {});
+      });
+  }
   setTimeout(() => opts.onReady?.({ target: p }), 0);
   return p;
 }

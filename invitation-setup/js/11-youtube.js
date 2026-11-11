@@ -256,6 +256,7 @@ function _setMusicStartMode(mode, dur) {
   const manual = mode === "manual";
   document.getElementById("music-start-slider")?.classList.toggle("hidden", manual);
   document.getElementById("music-start-actions")?.classList.toggle("hidden", manual);
+  document.getElementById("music-start-grab")?.classList.toggle("hidden", manual);
   document.getElementById("music-start-input")?.classList.toggle("hidden", !manual);
   if (!range) return;
   if (mode === "slider") {
@@ -276,7 +277,7 @@ function _musicStartError(msg) {
 
 // Ghi giây bắt đầu vào URL đang chọn + tua trình phát thử tới đó.
 function _applyMusicStart(sec) {
-  if (!_currentMusicUrl || cxIsLibMusic(_currentMusicUrl)) return;
+  if (!_currentMusicUrl) return;
   const dur = _ytPreviewPlayer?.getDuration?.() || 0;
   if (dur && sec >= dur) {
     _musicStartError(`Bài chỉ dài ${_fmtMusicStart(Math.floor(dur))}.`);
@@ -334,11 +335,21 @@ function _ytListenSync(state) {
   const btn = document.getElementById("music-listen-btn");
   if (btn && btn.dataset.on !== String(playing)) {
     btn.dataset.on = String(playing);
-    btn.innerHTML = `<i data-lucide="${playing ? "pause" : "play"}" style="width:16px;height:16px"></i>${
-      playing ? "Dừng" : "Nghe thử"
-    }`;
+    // Nút tròn chỉ có icon (trang Thiết lập, data-icon-only) → nhãn nằm ở aria-label;
+    // nút có chữ (admin tab Dữ liệu mẫu) đổi cả chữ.
+    const label = playing ? "Dừng" : "Nghe thử";
+    const icon = `<i data-lucide="${playing ? "pause" : "play"}" style="width:16px;height:16px"></i>`;
+    if (btn.hasAttribute("data-icon-only")) {
+      btn.innerHTML = icon;
+      btn.setAttribute("aria-label", playing ? "Dừng nghe thử" : "Nghe thử từ giây bắt đầu");
+      btn.title = btn.getAttribute("aria-label");
+    } else {
+      btn.innerHTML = icon + label;
+    }
     window.lucide?.createIcons({ root: btn });
   }
+  // Đĩa than trên thẻ bài đang chọn quay theo.
+  document.getElementById("music-selected-tag")?.classList.toggle("is-playing", playing);
   clearInterval(_ytListenTimer);
   _ytListenTimer = null;
   const range = document.getElementById("music-start-range");
@@ -447,7 +458,7 @@ function showYouTubePreview(videoId, url) {
   if (thumb) thumb.style.display = "none";
   preview.classList.remove("hidden");
 
-  _musicStartLib(false);
+  _musicStartLib(true);
   _setMusicStartMode("loading");
   _ensureYTApi(() => {
     _ytPreviewPlayer = new YT.Player("_yt_target", {
@@ -498,8 +509,9 @@ function renderExistingYouTubeMusic(musicUrl) {
 }
 
 // ============= THƯ VIỆN NHẠC =============
-// Bài thư viện lưu "lib:<file>" (cxIsLibMusic, core/utils.js), nghe thử bằng thẻ <audio> bọc
-// kiểu YT.Player (cxAudioPlayer). KHÔNG có giây bắt đầu: kho không trả Range nên không tua được.
+// Bài thư viện lưu "lib:<file>[?t=<giây>]" (cxIsLibMusic, core/utils.js), nghe thử bằng thẻ
+// <audio> bọc kiểu YT.Player (cxAudioPlayer). Kho không trả Range nên trình nghe thử tải TRỌN
+// file (`whole`) mới tua được — chung thanh "Bắt đầu phát từ" với YouTube.
 
 // Đổi khung tìm giữa YouTube và Thư viện — không đụng bài đang chọn.
 function cxMusicSrc(src) {
@@ -578,14 +590,16 @@ function _musicLibRender() {
 // Tên hiện trên thẻ bài đang chọn.
 const _musicLibLabel = (t) => (t.artist ? `${t.title} – ${t.artist}` : t.title);
 
-// Chọn một bài thư viện (url = "lib:…"), title rỗng = tra trong danh mục.
+// Chọn một bài thư viện (url = "lib:…"), title rỗng = tra trong danh mục. Giữ giây bắt đầu
+// có sẵn trong url (nạp thiệp đã lưu); chọn bài mới từ danh sách thì url không có `t` → 0.
 async function selectLibSong(url, title) {
   if (!cxIsLibMusic(url)) return;
-  url = CX_LIB_PREFIX + cxLibMusicFile(url);
+  const start = cxYtStart(url);
+  url = cxYtWithStart(url, start);
   _setMusicUrl(url);
   showLibPreview(url);
   cxMusicSrc("lib");
-  _showMusicStart(0);
+  _showMusicStart(start);
   _musicLibRender();
   _showMusicTag(title || "Đang lấy tên bài…");
   if (title) return;
@@ -596,6 +610,7 @@ async function selectLibSong(url, title) {
 }
 
 // Trình nghe thử cho bài thư viện: không có khung video, chỉ thanh giây bắt đầu + nút nghe.
+// Thanh mờ ("loading") tới khi tải xong file — lúc đó mới biết độ dài và tua được.
 function showLibPreview(url) {
   if (_ytPreviewPlayer) {
     try {
@@ -605,23 +620,33 @@ function showLibPreview(url) {
     _ytListenSync(-1);
   }
   document.getElementById("youtube-preview")?.classList.add("hidden");
-  _musicStartLib(true);
+  _musicStartLib(false);
   const src = cxLibMusicSrc(url);
   if (!src) return;
+  _setMusicStartMode("loading");
   const p = cxAudioPlayer(src, {
-    preload: "metadata",
+    whole: true,
+    start: cxYtStart(url),
+    onMeta: (dur) => {
+      if (_ytPreviewPlayer !== p) return;
+      if (dur > 1) return _setMusicStartMode("slider", Math.floor(dur));
+      // Tải hỏng: vẫn nhập tay được (thiệp tự tải lại lúc phát), chỉ không nghe thử đúng giây.
+      _setMusicStartMode("manual");
+      _musicStartError("Chưa tải được bài để nghe thử — vẫn nhập được giây bắt đầu.");
+    },
     onStateChange: (e) => _ytPreviewPlayer === p && _ytListenSync(e.data),
   });
   _ytPreviewPlayer = p;
 }
 
-// Bài thư viện: giấu nhãn, thanh kéo, ô nhập và nút "Lấy vị trí", chỉ giữ "Nghe thử".
-// YouTube (showYouTubePreview) trả lại rồi _setMusicStartMode lo phần còn lại.
-function _musicStartLib(on) {
-  ["music-start-label", "music-start-grab", "music-start-slider", "music-start-input"].forEach((id) =>
-    document.getElementById(id)?.classList.toggle("hidden", on),
+// Bài thư viện và YouTube dùng CHUNG bộ điều khiển giây bắt đầu (nghe thử rồi "Lấy vị trí"
+// cũng được với bài thư viện) — chỉ việc trả nhãn + nút về; thanh/ô nhập do _setMusicStartMode.
+// Cờ .is-yt: bài YouTube có khung video nên thẻ giấu đĩa than.
+function _musicStartLib(yt) {
+  ["music-start-label", "music-start-grab"].forEach((id) =>
+    document.getElementById(id)?.classList.remove("hidden"),
   );
-  if (on) document.getElementById("music-start-actions")?.classList.remove("hidden");
+  document.getElementById("music-selected-tag")?.classList.toggle("is-yt", !!yt);
 }
 
 _onDomReady(function () {
