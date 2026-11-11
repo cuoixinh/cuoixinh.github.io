@@ -242,6 +242,7 @@ function _aiSetShare(value) {
   el.value = value;
   _syncShareTplBtn(false);
   el.closest("x-input, x-textarea")?.syncClearBtn?.();
+  cxShareRender();
   _scheduleAutoSave("config");
 }
 

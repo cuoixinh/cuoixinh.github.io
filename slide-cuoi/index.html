@@ -63,7 +63,7 @@
             <div id="sc-track" class="sc-track" role="group" aria-label="Các cảnh"></div>
             <p class="sc-ctl-time"><output id="sc-now">0:00</output><span class="sc-ctl-sep">/</span><span id="sc-total">–:––</span></p>
           </div>
-          <div id="sc-ctl" class="sc-ctl is-playing" role="group" aria-label="Điều khiển trình chiếu">
+          <div id="sc-ctl" class="sc-ctl" role="group" aria-label="Điều khiển trình chiếu">
             <x-button variant="bare" icon-only icon="skip-back" class="sc-ctl-btn" data-ctl="prev" aria-label="Cảnh trước" title="Cảnh trước"></x-button>
             <x-button variant="bare" icon-only class="sc-ctl-btn sc-ctl-play" data-ctl="play" aria-label="Phát / tạm dừng" title="Phát / tạm dừng">
               <span class="sc-ctl-i-pause"><i data-lucide="pause"></i></span><span class="sc-ctl-i-play"><i data-lucide="play"></i></span>
@@ -150,9 +150,14 @@
       <!-- Hai thanh tuỳ chọn nổi của dòng thời gian (khối âm thanh · cảnh) để NGOÀI bảng chỉnh: dòng
            thời gian có thể nằm ở dock trong khi tab Âm thanh đang ẩn — thẻ nằm trong tab ẩn thì mở
            cũng không thấy. -->
-      <!-- Thanh tuỳ chọn của clip vừa bấm (timeline.js _scVoActOpen neo ngay chỗ bấm trên khối).
-           data-voice-only: khối Nhạc nền không có. -->
-      <x-popover id="sc-vo-act" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn âm thanh">
+      <!-- Thanh tuỳ chọn của clip vừa bấm (timeline.js _scVoActOpen neo ngay chỗ bấm trên khối) — kèm
+           việc của track chứa nó; bấm đầu track thì chỉ hiện phần track. data-voice-only: khối Nhạc nền
+           không có. -->
+      <x-popover id="sc-vo-act" class="sc-vo-act is-stack" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn âm thanh">
+        <!-- Hàng Thêm (tải lên · thư viện / ghi âm) — chỉ khi thanh mở từ ô đầu track (_scVoActAddFill). -->
+        <div id="sc-vo-act-add" class="sc-vo-act-row is-add hidden"></div>
+        <!-- Hàng việc của CLIP — ẩn khi thanh mở từ đầu track (_scVoActOpenTrack). -->
+        <div class="sc-vo-act-row" data-act-sec="clip">
         <!-- To dần / nhỏ dần: bấm để đổi số giây vòng qua _SC_VO_FADES, thanh giữ nguyên để bấm tiếp. -->
         <button type="button" class="sc-vo-act-btn" data-act="fi" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-up"></i></span>To dần<span class="sc-vo-act-v" data-fade-v="fi"></span></button>
         <button type="button" class="sc-vo-act-btn" data-act="fo" data-keep-open><span class="sc-vo-act-ico"><i data-lucide="trending-down"></i></span>Nhỏ dần<span class="sc-vo-act-v" data-fade-v="fo"></span></button>
@@ -161,6 +166,10 @@
         <button type="button" class="sc-vo-act-btn" data-act="rerec" data-voice-only><span class="sc-vo-act-ico"><i data-lucide="mic"></i></span>Thu lại</button>
         <button type="button" class="sc-vo-act-btn" data-act="replace"><span class="sc-vo-act-ico"><i data-lucide="replace"></i></span>Thay thế</button>
         <button type="button" class="sc-vo-act-btn" data-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá</button>
+        </div>
+        <!-- Phần việc của TRACK chứa clip (tên · âm lượng · tắt tiếng / solo / khoá · thứ tự · xoá):
+             timeline.js _scVoActTrkFill dựng mỗi lần mở / đổi trạng thái. -->
+        <div id="sc-vo-act-trk" class="sc-vo-act-trk"></div>
       </x-popover>
       <!-- Thanh tuỳ chọn của cảnh vừa bấm trên track Cảnh. -->
       <x-popover id="sc-vo-scene" class="sc-vo-act" placement="top" arrow width="auto" role="toolbar" aria-label="Tuỳ chọn cảnh">
@@ -168,9 +177,9 @@
         <button type="button" class="sc-vo-act-btn" data-scene-act="tr"><span class="sc-vo-act-ico"><i data-lucide="blend"></i></span>Chuyển cảnh</button>
         <button type="button" class="sc-vo-act-btn" data-scene-act="delete"><span class="sc-vo-act-ico"><i data-lucide="trash-2"></i></span>Xoá cảnh</button>
       </x-popover>
-      <!-- Menu ⋯ của một track (âm lượng, đổi tên, thứ tự, khoá, xoá) và bảng chọn kiểu chuyển cảnh —
-           timeline.js dựng nội dung mỗi lần mở. -->
-      <x-popover id="sc-tl-trk" class="sc-tl-menu" placement="bottom" align="start" arrow width="260" aria-label="Tuỳ chọn track"></x-popover>
+      <!-- Nút + ở đầu track: nguồn âm thanh theo loại track (_scTlAddMenu ở timeline.js) — thanh ngang
+           cùng kiểu thanh tuỳ chọn của clip. -->
+      <x-popover id="sc-tl-add" class="sc-vo-act" placement="bottom" align="start" arrow width="auto" role="toolbar" aria-label="Thêm âm thanh"></x-popover>
       <x-popover id="sc-tl-tr" class="sc-tl-menu" placement="top" arrow width="240" role="menu" aria-label="Kiểu chuyển cảnh"></x-popover>
       <!-- Bảng phím tắt của dòng thời gian (nút bàn phím trên thanh dòng thời gian, hoặc phím ?). -->
       <x-popover id="sc-tl-keys" class="sc-tl-keys" anchor="#sc-tl-keys-btn" placement="top" align="end" arrow width="340" role="dialog" aria-label="Phím tắt">
@@ -303,20 +312,6 @@
           </div>
           <p id="sc-vo-rec" class="sc-vo-rec hidden" role="status" aria-live="polite"></p>
           <div id="sc-vo-tl" class="sc-vo-tl" tabindex="-1" aria-label="Dòng thời gian"></div>
-          <!-- Thư viện nhạc: mở từ nút ở đầu làn Nhạc nền (voice.js), danh sách do _scMuRender vẽ. -->
-          <div id="sc-mu-libbox" class="sc-vo-sel sc-mu-libbox hidden">
-            <div class="sc-vo-sel-head">
-              <span class="sc-vo-n is-music" aria-hidden="true"><i data-lucide="list-music"></i></span>
-              <p class="sc-vo-sel-name">Thư viện nhạc</p>
-              <button type="button" class="sc-vo-x" onclick="scMusicLibOpen(false)" aria-label="Đóng thư viện nhạc" title="Đóng"><i data-lucide="x"></i></button>
-            </div>
-            <label id="sc-mu-search" class="sc-mu-search hidden">
-              <i data-lucide="search" aria-hidden="true"></i>
-              <input id="sc-mu-q" type="search" placeholder="Tìm tên bài hát hoặc ca sĩ" autocomplete="off" enterkeyhint="search" aria-label="Tìm bài hát" />
-            </label>
-            <div id="sc-mu-lib" class="sc-mu-lib"></div>
-            <p id="sc-mu-credit" class="sc-fine hidden"></p>
-          </div>
           <input id="sc-mu-file" type="file" accept=".mp3,.m4a,.aac,.wav,audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/wav" class="hidden" />
           <input id="sc-vo-file" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.webm" multiple class="hidden" />
           <div class="sc-vo-duck">
@@ -409,6 +404,9 @@
     <script src="../core/supabase.js"></script>
     <!-- Nén ảnh khách tự chọn cho mục "Ảnh trong slide" (ImageHelper). -->
     <script src="../core/helpers/image-helper.js"></script>
+    <!-- Popup base (openBottomSheet) + danh sách thư viện nhạc dùng chung với trang Thiết lập. -->
+    <script src="../core/utils.js"></script>
+    <script src="../core/components/music-lib.js"></script>
     <script src="templates.js"></script>
     <script src="index.js"></script>
     <!-- Âm thanh (dữ liệu track/clip) rồi dòng thời gian — nạp SAU index.js, đúng thứ tự này. -->

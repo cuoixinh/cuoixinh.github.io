@@ -4,30 +4,50 @@
 // lấy được luồng tiếng; giọng đọc khách tải lên luôn là file nên luôn ghép được. Toàn bộ chạy trên máy khách, không gửi gì lên server.
 
 window.CXSlideExport = (() => {
+  // Mỗi khổ: bitrate + danh sách codec H.264 cho TỪNG nhịp khung — level quyết định số macroblock/giây
+  // tối đa nên 60fps cần level cao hơn 30fps (1080p60 ≥ 4.2, 4K60 = 5.2, 1440×2560@60 ≥ 5.1).
   const SIZES = {
-    1080: { w: 1920, h: 1080, bitrate: 8e6, codecs: ["avc1.640028", "avc1.4d0028", "avc1.42e028"] },
-    2160: { w: 3840, h: 2160, bitrate: 16e6, codecs: ["avc1.640033", "avc1.4d0033", "avc1.640034"] },
+    1080: {
+      w: 1920, h: 1080,
+      60: { bitrate: 12e6, codecs: ["avc1.64002a", "avc1.4d002a", "avc1.42e02a"] },
+      30: { bitrate: 8e6, codecs: ["avc1.640028", "avc1.4d0028", "avc1.42e028"] },
+    },
+    2160: {
+      w: 3840, h: 2160,
+      60: { bitrate: 28e6, codecs: ["avc1.640034", "avc1.4d0034"] },
+      30: { bitrate: 16e6, codecs: ["avc1.640033", "avc1.4d0033", "avc1.640034"] },
+    },
     // Video dọc 2K để đăng TikTok: slide nằm trên màn chiếu của ảnh hội trường (HALL). 1440×2560
     // vượt trần level 4.x nên cần H.264 level 5.0+.
-    tiktok: { w: 1440, h: 2560, bitrate: 12e6, codecs: ["avc1.640032", "avc1.4d0032", "avc1.640033"] },
+    tiktok: {
+      w: 1440, h: 2560,
+      60: { bitrate: 18e6, codecs: ["avc1.640033", "avc1.4d0033", "avc1.640034"] },
+      30: { bitrate: 12e6, codecs: ["avc1.640032", "avc1.4d0032", "avc1.640033"] },
+    },
   };
   // Ảnh hội trường 941×1672 + ô màn chiếu (tỉ lệ 0–1 của ảnh, đúng 16:9, tràn hết bề ngang ảnh) — trang /slide-cuoi/
   // và /hinh-nen-led/ dựng khung "Màn chiếu" theo CÙNG số này (.sc-stage.is-hall ở styles/_slide-cuoi.css).
   const HALL = { src: "/slide-cuoi/assets/hall.jpg", x: 0, y: 406.84 / 1672, w: 1, h: 529.31 / 1672 };
-  const FPS = 30;
+  // Mặc định 60fps; máy không mã hoá nổi 60fps ở khổ đó (4K trên máy yếu…) thì lùi 30fps cho khổ đó
+  // chứ không bỏ cả khổ — nhịp thật của lần xuất nằm ở `framerate` của cấu hình pickCodec trả về.
+  const FPS = 60;
+  const FPS_STEPS = [60, 30];
   const AUDIO_RATE = 48000;
 
   const supported = () => typeof VideoEncoder === "function" && typeof VideoFrame === "function";
 
-  // Codec H.264 đầu tiên máy mã hoá được ở khổ này; null = không xuất được khổ đó.
+  // Cấu hình H.264 đầu tiên máy mã hoá được ở khổ này, thử 60fps trước rồi 30fps; null = không
+  // xuất được khổ đó.
   async function pickCodec(height) {
     if (!supported()) return null;
     const S = SIZES[height];
-    for (const codec of S.codecs) {
-      const cfg = { codec, width: S.w, height: S.h, bitrate: S.bitrate, framerate: FPS, avc: { format: "avc" } };
-      try {
-        if ((await VideoEncoder.isConfigSupported(cfg)).supported) return cfg;
-      } catch (e) {}
+    for (const fps of FPS_STEPS) {
+      for (const codec of S[fps].codecs) {
+        const cfg = { codec, width: S.w, height: S.h, bitrate: S[fps].bitrate, framerate: fps, avc: { format: "avc" } };
+        try {
+          if ((await VideoEncoder.isConfigSupported(cfg)).supported) return cfg;
+        } catch (e) {}
+      }
     }
     return null;
   }
@@ -207,6 +227,7 @@ window.CXSlideExport = (() => {
     const vcfg = await pickCodec(opts.height);
     if (!vcfg) throw Object.assign(new Error("Máy này không mã hoá được video khổ này"), { code: "UNSUPPORTED" });
     const S = SIZES[opts.height];
+    const fps = vcfg.framerate;
     const tiktok = opts.height === "tiktok";
     const hall = tiktok ? await _img(HALL.src) : null;
 
@@ -232,7 +253,7 @@ window.CXSlideExport = (() => {
 
     const muxer = new Mp4Muxer.Muxer({
       target: new Mp4Muxer.ArrayBufferTarget(),
-      video: { codec: "avc", width: S.w, height: S.h, frameRate: FPS },
+      video: { codec: "avc", width: S.w, height: S.h, frameRate: fps },
       audio: audio ? { codec: audio.mux, numberOfChannels: 2, sampleRate: AUDIO_RATE } : undefined,
       fastStart: "in-memory",
     });
@@ -257,21 +278,21 @@ window.CXSlideExport = (() => {
       sctx = sc.getContext("2d", { alpha: false });
     }
 
-    const frames = Math.ceil(P.total * FPS);
-    const step = 1e6 / FPS;
+    const frames = Math.ceil(P.total * fps);
+    const step = 1e6 / fps;
     try {
       for (let i = 0; i < frames; i++) {
         if (opts.signal?.aborted) throw Object.assign(new Error("Đã huỷ"), { code: "ABORTED" });
         if (fail) throw fail;
         // loop: khung đầu là lúc cảnh cuối chuyển sang cảnh đầu → phát lặp file không thấy chỗ nối.
-        CXSlideEngine.frame(sctx, P, i / FPS, { loop: !!opts.loop });
+        CXSlideEngine.frame(sctx, P, i / fps, { loop: !!opts.loop });
         if (tiktok) _hallFrame(ctx, hall, sctx.canvas);
         const vf = new VideoFrame(canvas, { timestamp: Math.round(i * step), duration: Math.round(step) });
-        venc.encode(vf, { keyFrame: i % (FPS * 2) === 0 });
+        venc.encode(vf, { keyFrame: i % (fps * 2) === 0 });
         vf.close();
         // Giữ hàng đợi bộ mã hoá ngắn: dồn khung 4K là đầy bộ nhớ.
         while (venc.encodeQueueSize > 4) await new Promise((r) => setTimeout(r, 4));
-        if (i % 6 === 0) {
+        if (i % 12 === 0) {
           opts.onProgress?.((i / frames) * (acfg ? 0.95 : 1));
           await _yield();
         }

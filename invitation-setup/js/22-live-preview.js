@@ -30,19 +30,33 @@ function _cxLiveKey() {
   );
 }
 
-// Ô thuộc BẢN ĐỒ (link nhúng + tên địa điểm) của bước Lễ cưới/Tiệc cưới: sửa ở
-// đó thì thiệp cuộn tới mục Địa điểm chứ không về đầu mục của bước. Đích phụ này
-// chỉ sống trong bước đặt ra nó, sửa một ô khác là bỏ.
+// Ô sửa GẦN NHẤT: thiệp cuộn thẳng tới đúng dòng chữ của ô đó (helper trong thiệp
+// tìm theo chính chuỗi khách gõ, rồi đoán id theo tên ô), không chỉ về đầu mục.
+// Chỉ sống trong bước đặt ra nó — đổi sang bước khác là về đầu mục của bước đó.
+// Ô thuộc BẢN ĐỒ (link nhúng + tên địa điểm) thì mục đích là Địa điểm.
 const CX_LIVE_MAP_FIELD = /_(map_embed_url|location)$/;
-let _cxLiveSub = null; // { step, key }
+let _cxLiveEdit = null; // { step, key, field, text }
+
+// Chuỗi để thiệp dò: dòng đầu của ô, tối đa 40 ký tự (văn bản dài bị mẫu ngắt dòng
+// thành nhiều text node). Ô không phải chữ (tick, ẩn, file) thì không dò.
+function _cxLiveEditText(t) {
+  if (/^(checkbox|radio|hidden|file|range|color)$/.test(t.type || "")) return "";
+  const line =
+    String(t.value || "")
+      .split("\n")
+      .map((s) => s.trim())
+      .find(Boolean) || "";
+  return line.replace(/\s+/g, " ").slice(0, 40);
+}
 
 function _cxLiveTarget() {
   const step = _cxLiveKey();
-  return _cxLiveSub && _cxLiveSub.step === step ? _cxLiveSub.key : step;
+  const e = _cxLiveEdit && _cxLiveEdit.step === step ? _cxLiveEdit : null;
+  return { key: e?.key || step, field: e?.field || "", text: e?.text || "" };
 }
 
 function _cxLiveAimMap() {
-  _cxLiveSub = { step: _cxLiveKey(), key: "map" };
+  _cxLiveEdit = { step: _cxLiveKey(), key: "map", field: "", text: "" };
 }
 
 document.addEventListener(
@@ -50,8 +64,14 @@ document.addEventListener(
   (e) => {
     const t = e.target;
     if (!t?.closest?.("#wedding-form")) return;
-    if (CX_LIVE_MAP_FIELD.test(t.name || t.id || "")) _cxLiveAimMap();
-    else _cxLiveSub = null;
+    const field = t.name || t.closest?.("[name]")?.getAttribute("name") || t.id || "";
+    const step = _cxLiveKey();
+    _cxLiveEdit = {
+      step,
+      key: CX_LIVE_MAP_FIELD.test(field) ? "map" : step,
+      field,
+      text: _cxLiveEditText(t),
+    };
   },
   true,
 );
@@ -67,22 +87,34 @@ document.addEventListener(
   true,
 );
 
-/**
- * Bảo thiệp cuộn tới mục đang chỉnh (core/helpers/preview-focus-helper.js xử lý
- * bên trong iframe). Gọi được cả khi không tải lại — đổi bước chẳng hạn.
- */
-function cxLiveFocus(key) {
-  const frame = _cxLiveFrames()[0];
-  const k = key || _cxLiveTarget();
-  if (!frame || !frame.src || !k) return;
-  frame.contentWindow?.postMessage({ type: "cx-focus", key: k }, "*");
+// Gửi đích cuộn vào một khung thiệp (core/helpers/preview-focus-helper.js xử lý).
+function _cxPostFocus(frame, tgt) {
+  if (!frame || !frame.src || !tgt?.key) return;
+  frame.contentWindow?.postMessage({ type: "cx-focus", ...tgt }, "*");
 }
 
-// Tải lại xong thì đưa thiệp về đúng mục đang chỉnh; không biết mục nào thì giữ
+/**
+ * Bảo thiệp cuộn tới phần đang chỉnh. Gọi được cả khi không tải lại — đổi bước
+ * chẳng hạn. `key` truyền vào = cuộn tới đầu mục đó, bỏ qua ô sửa gần nhất.
+ */
+function cxLiveFocus(key) {
+  _cxPostFocus(_cxLiveFrames()[0], key ? { key } : _cxLiveTarget());
+}
+
+// Tab Xem trước (dưới 820px): nạp xong cũng đưa thiệp tới phần vừa sửa.
+function cxPreviewFocus(frame) {
+  if (!frame) return;
+  frame.addEventListener("load", function once() {
+    frame.removeEventListener("load", once);
+    requestAnimationFrame(() => _cxPostFocus(frame, _cxLiveTarget()));
+  });
+}
+
+// Tải lại xong thì đưa thiệp về đúng phần đang chỉnh; không biết phần nào thì giữ
 // nguyên vị trí cuộn cũ (iframe cùng origin nên đọc được scrollY) — nhảy về đầu
 // thiệp sau mỗi lần gõ là không theo dõi nổi phần đang sửa.
 function _cxLiveReload(frame) {
-  const key = _cxLiveTarget();
+  const tgt = _cxLiveTarget();
   let y = 0;
   try {
     y = frame.contentWindow?.scrollY || 0;
@@ -93,13 +125,13 @@ function _cxLiveReload(frame) {
   // điển (Chrome/Windows) ăn ~15px trong 390px bề ngang iframe → thiệp co lại,
   // chừa một dải trắng sát mép phải ngay trong lòng thân máy.
   frame.src = _previewIframeSrc("&shell=0");
-  if (!key && !y) return;
+  if (!tgt.key && !y) return;
   frame.addEventListener("load", function once() {
     frame.removeEventListener("load", once);
     // Đợi một nhịp vẽ: lúc load bắn xong theme vẫn đang dựng nội dung, cuộn ngay
     // thì trang chưa đủ dài để tới được vị trí cần.
     requestAnimationFrame(() => {
-      if (key) return cxLiveFocus(key);
+      if (tgt.key) return _cxPostFocus(frame, tgt);
       try {
         frame.contentWindow.scrollTo(0, y);
       } catch (e) {
@@ -366,6 +398,7 @@ window.cxThemeFit = cxThemeFit;
 window.cxLiveRefresh = cxLiveRefresh;
 window.cxLiveTouch = cxLiveTouch;
 window.cxLiveFocus = cxLiveFocus;
+window.cxPreviewFocus = cxPreviewFocus;
 
 if (window.__cxOnReady) window.__cxOnReady(_cxInitLive);
 else _cxInitLive();

@@ -1,0 +1,204 @@
+/* Thư viện nhạc dùng chung (core/components/music-lib.js): đĩa than + danh sách bài. Dùng ở tab
+   Cấu hình của trang Thiết lập và bảng thư viện của Slide cưới — sửa hình thức là sửa ở đây. */
+
+/* Đĩa than: rãnh + nhãn giữa, khổ và màu qua biến; vệt sáng ở ::after lệch một phía để thấy
+   đĩa quay. Nhãn tính theo % bán kính (closest-side) nên đĩa to nhỏ đều cân. */
+.cx-disc {
+  --disc-size: 48px;
+  --disc-groove-rgb: var(--text-strong-rgb);
+  --disc-label-rgb: var(--brand-accent-rgb);
+
+  position: relative;
+  flex: none;
+  width: var(--disc-size);
+  height: var(--disc-size);
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle closest-side,
+      rgb(var(--white-rgb)) 0 12%,
+      rgb(var(--disc-label-rgb)) 16% 50%,
+      transparent 52%
+    ),
+    repeating-radial-gradient(
+      circle,
+      rgb(var(--disc-groove-rgb)) 0 2px,
+      rgb(var(--disc-groove-rgb) / 0.86) 2px 3px
+    );
+}
+
+.cx-disc::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 20deg,
+    transparent 0 12%,
+    rgb(255 255 255 / 0.22) 18%,
+    transparent 26% 100%
+  );
+}
+
+/* Khung danh sách: viền mảnh, cuộn riêng, các hàng không kẻ vạch. */
+.cx-mlib {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 288px;
+  padding: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--border-subtle-rgb));
+}
+
+/* Hàng = nút chọn (đĩa + tên) + nút nghe thử ở cuối. */
+.cx-mlib-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 4px;
+  border-radius: 12px;
+  transition: background-color 0.15s ease;
+}
+
+.cx-mlib-row:hover,
+.cx-mlib-row.is-on {
+  background: rgb(var(--surface-tint-warm-rgb));
+}
+
+.cx-mlib-pick {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  text-align: left;
+  border-radius: 12px;
+}
+
+.cx-mlib-pick:focus-visible,
+.cx-mlib-end:focus-visible {
+  outline: 2px solid rgb(var(--brand-accent-rgb) / 0.5);
+  outline-offset: -2px;
+}
+
+/* Bài thường: đĩa nhạt; bài đang chọn: đĩa đậm, nhãn + tên màu nhấn. */
+.cx-mlib-row .cx-disc {
+  --disc-size: 36px;
+  --disc-groove-rgb: var(--text-idle-rgb);
+  --disc-label-rgb: var(--brand-primary-rgb);
+}
+
+.cx-mlib-row.is-on .cx-disc {
+  --disc-groove-rgb: var(--text-strong-rgb);
+  --disc-label-rgb: var(--brand-accent-rgb);
+}
+
+.cx-mlib-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: rgb(var(--text-strong-rgb));
+}
+
+.cx-mlib-row.is-on .cx-mlib-title {
+  font-weight: 600;
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.cx-mlib-artist {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgb(var(--text-idle-rgb));
+}
+
+/* Nút nghe thử: ▶ mờ, rê hàng thì đậm lên; đang nghe thì thay bằng ba vạch sóng. */
+.cx-mlib-end {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: rgb(var(--text-idle-rgb));
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.cx-mlib-row:hover .cx-mlib-end,
+.cx-mlib-row.is-playing .cx-mlib-end {
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+}
+
+.cx-mlib-eq {
+  display: none;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.cx-mlib-row.is-playing .cx-mlib-eq {
+  display: flex;
+}
+
+.cx-mlib-row.is-playing .cx-mlib-ico {
+  display: none;
+}
+
+.cx-mlib-eq i {
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: rgb(var(--brand-accent-rgb));
+  transform-origin: bottom;
+  animation: cx-mlib-eq 0.9s ease-in-out infinite alternate;
+}
+
+.cx-mlib-eq i:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.cx-mlib-eq i:nth-child(3) {
+  animation-delay: -0.6s;
+}
+
+@keyframes cx-mlib-eq {
+  from {
+    transform: scaleY(0.3);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Câu chờ / trống / không khớp nằm giữa khung. */
+.cx-mlib-msg {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 12px;
+  color: rgb(var(--text-idle-rgb));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-mlib-eq i {
+    animation: none;
+  }
+
+  .cx-mlib-eq i:nth-child(1) {
+    transform: scaleY(0.6);
+  }
+
+  .cx-mlib-eq i:nth-child(3) {
+    transform: scaleY(0.8);
+  }
+}

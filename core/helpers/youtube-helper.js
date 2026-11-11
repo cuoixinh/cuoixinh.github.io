@@ -50,8 +50,13 @@ function _initLibMusic(musicUrl) {
   const src = typeof cxLibMusicSrc === "function" ? cxLibMusicSrc(musicUrl) : "";
   if (!src) return;
   _musicVideoId = null;
-  // Luôn phát từ đầu và lặp: kho nhạc không trả Range nên không tua tới giây bắt đầu được.
-  youtubePlayer = cxAudioPlayer(src, { loop: true, ..._musicEvents(0) });
+  // Có giây bắt đầu (`?t=`) thì phải tải trọn file mới tua được (kho không trả Range — xem
+  // `whole` của cxAudioPlayer) và lặp về đúng giây đó ở ENDED (_musicEvents); không có thì
+  // phát thẳng từ kho + loop của <audio> như cũ.
+  const start = typeof cxYtStart === "function" ? cxYtStart(musicUrl) : 0;
+  youtubePlayer = start
+    ? cxAudioPlayer(src, { whole: true, start, ..._musicEvents(start) })
+    : cxAudioPlayer(src, { loop: true, ..._musicEvents(0) });
   // Tên bài cho trình phát (getMusicInfo) lấy từ danh mục, không chặn việc phát.
   const file = cxLibMusicFile(musicUrl);
   cxMusicLibrary().then((list) => {

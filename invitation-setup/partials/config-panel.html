@@ -51,12 +51,13 @@
     >
       <!-- Slug -->
       <section class="py-6 space-y-4" aria-labelledby="cfg-slug-title">
-        <div class="cx-cfg-head">
+        <div class="cx-cfg-head is-compact items-center">
           <span class="cx-cfg-ico">
             <i data-lucide="link" style="width: 16px; height: 16px"></i>
           </span>
           <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-1">
+            <!-- h-5 = đúng dòng tiêu đề: nút cảnh báo (cao hơn) hiện ra không đẩy khối chữ cao quá icon. -->
+            <div class="flex h-5 items-center gap-1">
               <h2 id="cfg-slug-title" class="cx-cfg-title">
                 <label for="slug-input">Đường dẫn thiệp</label>
               </h2>
@@ -73,10 +74,7 @@
                 ><i data-lucide="circle-alert"></i
               ></x-button>
             </div>
-            <p class="cx-cfg-desc">
-              Khách mời mở thiệp bằng đường dẫn này. Chỉ dùng chữ không dấu,
-              số và dấu gạch ngang.
-            </p>
+            <p class="cx-cfg-desc">Chữ không dấu, số và dấu gạch ngang</p>
           </div>
         </div>
         <x-input
@@ -153,9 +151,6 @@
             <h2 id="cfg-music-title" class="cx-cfg-title">
               <label for="youtube-link-input">Nhạc nền</label>
             </h2>
-            <p class="cx-cfg-desc">
-              Chọn từ thư viện nhạc, hoặc tìm trên YouTube theo tên bài / dán đường dẫn.
-            </p>
           </div>
           <x-switch
             key="music"
@@ -164,6 +159,106 @@
           ></x-switch>
         </div>
         <div class="cx-cfg-body space-y-3">
+          <!-- Bài đang chọn — đứng ĐẦU mục, phần đổi bài (nguồn · ô tìm · danh sách) ở dưới.
+               Tên bài xuống dòng chứ không cắt: đây là cách duy nhất biết đang chọn bài nào.
+               _showMusicTag() ẩn/hiện cả thẻ; cờ .is-yt (bài YouTube: khung video thế chỗ đĩa)
+               và .is-playing (đĩa quay) do 11-youtube.js đặt. -->
+          <div id="music-selected-tag" class="cx-song hidden">
+            <div class="cx-song-head">
+              <span class="cx-disc" aria-hidden="true"></span>
+              <div class="min-w-0 flex-1">
+                <p class="cx-song-cap">Nhạc nền của thiệp</p>
+                <p id="music-selected-name" class="cx-song-name"></p>
+              </div>
+              <x-button
+                variant="ghost"
+                tone="neutral"
+                size="sm"
+                icon-only
+                icon="x"
+                type="button"
+                onclick="clearMusicSelection()"
+                aria-label="Gỡ bài hát đã chọn"
+                title="Gỡ bài"
+                class="-mr-1 -mt-1 shrink-0"
+              ></x-button>
+            </div>
+            <div id="youtube-preview" class="cx-song-video hidden">
+              <div
+                id="youtube-player-container"
+                class="aspect-video bg-black rounded-xl overflow-hidden"
+              ></div>
+              <img
+                id="youtube-fallback-thumb"
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                alt="Ảnh bìa bài hát đã chọn"
+                style="display: none; cursor: pointer"
+                class="w-full aspect-video object-cover rounded-xl"
+              />
+            </div>
+            <!-- Giây bắt đầu phát: ghi vào tham số `t` của #music-url-input (cxYtWithStart),
+                 nên các ô ở đây KHÔNG có name. Thanh kéo cần độ dài bài từ trình phát thử
+                 (bài thư viện: tải trọn file, cxAudioPlayer `whole`); video chặn nhúng thì
+                 lùi về ô nhập tay. -->
+            <div class="cx-song-start">
+              <div id="music-start-actions" class="shrink-0">
+                <x-button
+                  id="music-listen-btn"
+                  variant="fill"
+                  tone="brand"
+                  size="md"
+                  icon-only
+                  icon="play"
+                  data-icon-only
+                  onclick="playMusicFromStart()"
+                  aria-label="Nghe thử từ giây bắt đầu"
+                  title="Nghe thử từ giây bắt đầu"
+                ></x-button>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <label id="music-start-label" for="music-start-range" class="cx-song-cap">
+                    Bắt đầu phát từ
+                  </label>
+                  <x-button
+                    id="music-start-grab"
+                    variant="ghost"
+                    tone="brand"
+                    size="xs"
+                    onclick="setMusicStartFromPreview()"
+                    title="Đặt giây bắt đầu đúng chỗ đang nghe"
+                    class="-mr-2"
+                  >
+                    Lấy vị trí đang nghe
+                  </x-button>
+                </div>
+                <div id="music-start-slider" class="cx-music-start">
+                  <!-- CXProgress bọc thành thanh kéo mảnh, số m:ss hiện bên phải. -->
+                  <input
+                    id="music-start-range"
+                    type="range"
+                    min="0"
+                    max="0"
+                    step="1"
+                    value="0"
+                    class="flex-1 min-w-0"
+                    aria-label="Giây bắt đầu phát nhạc"
+                  />
+                </div>
+                <input
+                  id="music-start-input"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="0:00"
+                  autocomplete="off"
+                  aria-label="Giây bắt đầu phát nhạc (phút:giây)"
+                  class="hidden mt-1 w-20 h-9 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:border-gray-400 text-center"
+                />
+              </div>
+            </div>
+            <p id="music-start-error" class="hidden text-xs text-red-600" role="alert"></p>
+          </div>
+
           <!-- Hai nguồn nhạc (11-youtube.js, cxMusicSrc): chỉ đổi khung tìm bên dưới,
                bài đang chọn (thẻ + #music-url-input) giữ nguyên tới khi chọn bài khác. -->
           <div id="music-src-seg" class="cx-seg" role="tablist" aria-label="Nguồn nhạc" style="--n: 2; --i: 0">
@@ -196,110 +291,15 @@
             ></x-input>
             <div
               id="music-lib-list"
-              class="space-y-1 max-h-64 overflow-y-auto rounded-lg"
+              class="cx-mlib"
             ></div>
-          </div>
-
-          <!-- Bài đang chọn: trình phát + tên bài + nút gỡ trong MỘT thẻ. Tên bài
-               để xuống dòng chứ không cắt: đây là cách duy nhất biết đang chọn
-               bài nào. _showMusicTag() ẩn/hiện cả thẻ. -->
-          <div id="music-selected-tag" class="cx-cfg-song hidden">
-            <div id="youtube-preview" class="cx-cfg-song-media hidden">
-              <div
-                id="youtube-player-container"
-                class="aspect-video bg-black rounded-xl overflow-hidden"
-              ></div>
-              <img
-                id="youtube-fallback-thumb"
-                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                alt="Ảnh bìa bài hát đã chọn"
-                style="display: none; cursor: pointer"
-                class="w-full aspect-video object-cover rounded-xl"
-              />
-            </div>
-            <div class="min-w-0 flex-1 flex flex-col gap-2">
-              <div class="min-w-0">
-                <p class="text-xs text-gray-500">Bài đang chọn</p>
-                <p
-                  id="music-selected-name"
-                  class="mt-0.5 text-sm font-medium text-gray-800 [overflow-wrap:anywhere]"
-                ></p>
-              </div>
-              <!-- Giây bắt đầu phát: ghi vào tham số `t` của #music-url-input
-                   (cxYtWithStart), nên các ô ở đây KHÔNG có name. Thanh kéo cần độ
-                   dài bài từ trình phát thử; video chặn nhúng thì lùi về ô nhập tay. -->
-              <div>
-                <!-- Bài thư viện (_musicStartLib) chỉ còn nút Nghe thử: kho không trả Range nên không tua được. -->
-                <label id="music-start-label" for="music-start-range" class="text-xs text-gray-500">
-                  Bắt đầu phát từ
-                </label>
-                <div id="music-start-slider" class="cx-music-start">
-                  <!-- CXProgress bọc thành thanh kéo mảnh, số m:ss hiện bên phải. -->
-                  <input
-                    id="music-start-range"
-                    type="range"
-                    min="0"
-                    max="0"
-                    step="1"
-                    value="0"
-                    class="flex-1 min-w-0"
-                    aria-label="Giây bắt đầu phát nhạc"
-                  />
-                </div>
-                <input
-                  id="music-start-input"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="0:00"
-                  autocomplete="off"
-                  aria-label="Giây bắt đầu phát nhạc (phút:giây)"
-                  class="hidden mt-1 w-20 h-9 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:border-gray-400 text-center"
-                />
-                <div id="music-start-actions" class="mt-1 flex flex-wrap gap-2">
-                  <x-button
-                    id="music-listen-btn"
-                    variant="soft"
-                    tone="neutral"
-                    size="xs"
-                    icon="play"
-                    onclick="playMusicFromStart()"
-                    title="Phát video bên cạnh từ đúng giây bắt đầu"
-                  >
-                    Nghe thử
-                  </x-button>
-                  <x-button
-                    id="music-start-grab"
-                    variant="soft"
-                    tone="neutral"
-                    size="xs"
-                    onclick="setMusicStartFromPreview()"
-                    title="Lấy giây đang phát ở trình phát bên cạnh"
-                  >
-                    Lấy vị trí đang nghe
-                  </x-button>
-                </div>
-                <p id="music-start-error" class="hidden mt-1 text-xs text-red-600" role="alert"></p>
-              </div>
-              <x-button
-                variant="ghost"
-                tone="danger"
-                size="sm"
-                type="button"
-                onclick="clearMusicSelection()"
-                aria-label="Gỡ bài hát đã chọn"
-                class="self-start -ml-3"
-              >
-                <i data-lucide="x" style="width: 14px; height: 14px"></i>
-                Gỡ bài
-              </x-button>
-            </div>
           </div>
         </div>
       </section>
 
       <!-- Câu mẫu chia sẻ -->
       <section class="py-6 space-y-4" aria-labelledby="cfg-share-title">
-        <div class="cx-cfg-head">
+        <div class="cx-cfg-head is-compact items-center">
           <span class="cx-cfg-ico">
             <i data-lucide="message-square-text" style="width: 16px; height: 16px"></i>
           </span>
@@ -308,9 +308,7 @@
               <label for="share-message-template">Câu mẫu chia sẻ</label>
             </h2>
             <p class="cx-cfg-desc">
-              Lời nhắn gửi kèm link thiệp khi chia sẻ qua Zalo, Messenger… — cũng
-              là dòng mô tả trong thẻ xem trước của link. Biến trộn tự thay bằng
-              thông tin của từng khách.
+              Gửi kèm link thiệp khi chia sẻ.
               <a
                 href="#"
                 onclick="event.preventDefault(); showMergeFieldsHelp()"
@@ -320,58 +318,57 @@
             </p>
           </div>
         </div>
-        <!-- Hàng công cụ: bên trái chèn biến trộn tại con trỏ (nhãn dễ hiểu, mã
-             biến ở title), bên phải bốc một câu mẫu có sẵn. -->
-        <div class="flex flex-wrap items-center gap-1.5">
-          <x-button
-            variant="outline"
-            tone="neutral"
-            size="sm"
-            type="button"
-            onclick="insertShareVar('##Relationship##')"
-            title="Chèn ##Relationship##"
-            class="!px-3"
-          >
-            <i data-lucide="plus" style="width: 14px; height: 14px"></i>
-            Xưng hô
-          </x-button>
-          <x-button
-            variant="outline"
-            tone="neutral"
-            size="sm"
-            type="button"
-            onclick="insertShareVar('##link##')"
-            title="Chèn ##link##"
-            class="!px-3"
-          >
-            <i data-lucide="plus" style="width: 14px; height: 14px"></i>
-            Link thiệp
-          </x-button>
-          <x-button
-            variant="soft"
-            size="sm"
-            type="button"
-            onclick="insertShareTemplate()"
-            class="ml-auto !px-3"
-          >
-            <i data-lucide="text-quote" style="width: 14px; height: 14px"></i>
-            <span id="share-template-label">Chèn mẫu</span>
-          </x-button>
+        <!-- Khung soạn câu: hàng chèn biến tại con trỏ + bốc câu mẫu · ô nhập (x-undo bọc
+             khung + thanh Mic/Tối ưu/Hoàn tác, js/19-ai-optimize.js) · bong bóng xem trước
+             trộn với một khách mẫu (cxShareRender, js/05-theme-panel.js). -->
+        <div class="cx-share">
+          <div class="cx-share-tools">
+            <x-button
+              variant="bare"
+              class="cx-share-chip"
+              onclick="insertShareVar('##Relationship##')"
+              title="Chèn ##Relationship## — thay bằng xưng hô của từng khách"
+            >
+              <i data-lucide="braces" style="width: 14px; height: 14px"></i>
+              Xưng hô
+            </x-button>
+            <x-button
+              variant="bare"
+              class="cx-share-chip"
+              onclick="insertShareVar('##link##')"
+              title="Chèn ##link## — thay bằng link thiệp riêng của từng khách"
+            >
+              <i data-lucide="braces" style="width: 14px; height: 14px"></i>
+              Link thiệp
+            </x-button>
+            <x-button
+              variant="ghost"
+              tone="brand"
+              size="sm"
+              onclick="insertShareTemplate()"
+              class="ml-auto -mr-2"
+            >
+              <i data-lucide="shuffle" style="width: 14px; height: 14px"></i>
+              <span id="share-template-label">Lấy câu mẫu</span>
+            </x-button>
+          </div>
+          <textarea
+            id="share-message-template"
+            style="height: 132px"
+            oninput="onShareTemplateInput()"
+            placeholder="VD: ##Relationship## ơi, mình sắp tổ chức đám cưới. Trân trọng mời ##Relationship## đến chung vui cùng gia đình mình nhé! Thiệp mời tại: ##link##"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-800 bg-white outline-none transition-all resize-y placeholder:text-gray-400/50 focus:border-gray-400"
+          ></textarea>
+          <div class="cx-share-preview">
+            <p class="cx-share-cap">Khách xưng hô “Anh” sẽ nhận được</p>
+            <p id="share-preview-text" class="cx-share-bubble" aria-live="polite"></p>
+          </div>
         </div>
-        <!-- Cùng khổ chữ/viền/vòng focus với <x-input>; thanh Mic + Tối ưu +
-             Hoàn tác do js/19-ai-optimize.js gắn (_attachShareControls). -->
-        <textarea
-          id="share-message-template"
-          style="height: 132px"
-          oninput="onShareTemplateInput()"
-          placeholder="VD: ##Relationship## ơi, mình sắp tổ chức đám cưới. Trân trọng mời ##Relationship## đến chung vui cùng gia đình mình nhé! Thiệp mời tại: ##link##"
-          class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-800 bg-white outline-none transition-all resize-y placeholder:text-gray-400/50 focus:border-gray-400"
-        ></textarea>
       </section>
 
       <!-- Quản lý khách mời -->
       <section class="py-6" aria-labelledby="cfg-guests-title">
-        <div class="cx-cfg-head items-center">
+        <div class="cx-cfg-head is-compact items-center">
           <span class="cx-cfg-ico">
             <i data-lucide="users" style="width: 16px; height: 16px"></i>
           </span>

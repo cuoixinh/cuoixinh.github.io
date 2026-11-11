@@ -3112,6 +3112,7 @@ function _updateSlugPreview() {
   // thấy "/Hoàng Lan" nhưng nhận về "/hoang-lan".
   const val = _toSlug(input.value);
   _setSlugTaken(null);
+  cxShareRender(); // link trong bong bóng xem trước câu chia sẻ
   row.style.display = val ? "" : "none";
   if (!val) return;
   ["groom", "bride"].forEach((side) => {
@@ -3164,7 +3165,40 @@ function insertShareVar(token) {
   const pos = start + token.length;
   el.focus();
   el.setSelectionRange(pos, pos);
+  cxShareRender();
   _scheduleAutoSave("config");
+}
+
+// Bong bóng xem trước dưới ô câu mẫu: trộn như _openShareModal (guests/index.js) với một
+// khách mẫu xưng "Anh"; chỗ biến đã thay tô màu nhấn. Gọi lại mỗi khi ô hoặc đường dẫn đổi
+// (gán .value bằng JS không phát "input" nên chỗ gán phải tự gọi).
+function cxShareRender() {
+  const out = document.getElementById("share-preview-text");
+  const el = document.getElementById("share-message-template");
+  if (!out || !el) return;
+  const tpl = el.value.trim();
+  if (!tpl) {
+    out.innerHTML =
+      '<span class="cx-share-empty">Để trống thì khi chia sẻ sẽ dùng câu mời mặc định.</span>';
+    return;
+  }
+  const slug =
+    _toSlug(document.getElementById("slug-input")?.value || "") ||
+    (typeof WEDDING_SLUG === "string" && WEDDING_SLUG) ||
+    "ten-thiep";
+  const vals = { relationship: "Anh", link: `${location.host}/${slug}` };
+  out.innerHTML = escapeHtml(tpl).replace(/##\s*([^#]+?)\s*##/g, (m, key) => {
+    const v = vals[key.trim().toLowerCase()];
+    return v == null ? m : `<mark class="cx-share-var">${escapeHtml(v)}</mark>`;
+  });
+}
+window.cxShareRender = cxShareRender;
+window.__cxOnReady?.(cxShareRender); // thiệp mới chưa có dữ liệu nạp vẫn có bong bóng
+
+// Nhãn nút câu mẫu: vừa bốc một câu thì thành "Đổi câu khác", gõ tay/AI viết thì về lại.
+function _syncShareTplBtn(picked) {
+  const label = document.getElementById("share-template-label");
+  if (label) label.textContent = picked ? "Đổi câu khác" : "Lấy câu mẫu";
 }
 
 // ─── Câu mẫu chia sẻ có sẵn (10 câu trong core/constant.js) ───────────────────
@@ -3180,26 +3214,26 @@ function _pickShareTemplate() {
   return list[i];
 }
 
-// Chèn 1 câu mẫu ngẫu nhiên (set trực tiếp .value → không kích hoạt oninput nên nút "Đổi mẫu" vẫn hiện)
+// Bốc 1 câu mẫu ngẫu nhiên (gán thẳng .value → không phát "input", nhãn nút giữ "Đổi câu khác")
 function _fillShareTemplate() {
   const el = document.getElementById("share-message-template");
   if (!el) return;
   el.value = _pickShareTemplate();
-  document.getElementById("share-template-refresh")?.classList.remove("hidden");
+  _syncShareTplBtn(true);
   el.closest("x-input, x-textarea")?.syncClearBtn?.();
+  cxShareRender();
   _scheduleAutoSave("config");
 }
 
+// Nút "Lấy câu mẫu" / "Đổi câu khác"
 function insertShareTemplate() {
   _fillShareTemplate();
-} // nút "Chèn mẫu"
-function refreshShareTemplate() {
-  _fillShareTemplate();
-} // nút "Đổi mẫu khác"
+}
 
-// Gõ tay vào ô câu mẫu → ẩn nút "Đổi mẫu" (nút này chỉ dành cho luồng Chèn mẫu)
+// Gõ tay vào ô câu mẫu → nút về "Lấy câu mẫu", bong bóng vẽ lại.
 function onShareTemplateInput() {
-  document.getElementById("share-template-refresh")?.classList.add("hidden");
+  _syncShareTplBtn(false);
+  cxShareRender();
   _scheduleAutoSave("config");
 }
 

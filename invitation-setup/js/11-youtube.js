@@ -256,6 +256,7 @@ function _setMusicStartMode(mode, dur) {
   const manual = mode === "manual";
   document.getElementById("music-start-slider")?.classList.toggle("hidden", manual);
   document.getElementById("music-start-actions")?.classList.toggle("hidden", manual);
+  document.getElementById("music-start-grab")?.classList.toggle("hidden", manual);
   document.getElementById("music-start-input")?.classList.toggle("hidden", !manual);
   if (!range) return;
   if (mode === "slider") {
@@ -276,7 +277,7 @@ function _musicStartError(msg) {
 
 // Ghi giây bắt đầu vào URL đang chọn + tua trình phát thử tới đó.
 function _applyMusicStart(sec) {
-  if (!_currentMusicUrl || cxIsLibMusic(_currentMusicUrl)) return;
+  if (!_currentMusicUrl) return;
   const dur = _ytPreviewPlayer?.getDuration?.() || 0;
   if (dur && sec >= dur) {
     _musicStartError(`Bài chỉ dài ${_fmtMusicStart(Math.floor(dur))}.`);
@@ -325,6 +326,7 @@ function playMusicFromStart() {
 }
 
 let _ytListenTimer = null;
+let _musicPreviewOn = false; // trình nghe thử đang phát — danh sách thư viện hiện vạch sóng
 let _ytDragging = false;
 
 // Đang phát: nút thành "Dừng", thanh chạy theo giây đang nghe. Dừng/hết bài: nút về
@@ -334,11 +336,26 @@ function _ytListenSync(state) {
   const btn = document.getElementById("music-listen-btn");
   if (btn && btn.dataset.on !== String(playing)) {
     btn.dataset.on = String(playing);
-    btn.innerHTML = `<i data-lucide="${playing ? "pause" : "play"}" style="width:16px;height:16px"></i>${
-      playing ? "Dừng" : "Nghe thử"
-    }`;
+    // Nút tròn chỉ có icon (trang Thiết lập, data-icon-only) → nhãn nằm ở aria-label;
+    // nút có chữ (admin tab Dữ liệu mẫu) đổi cả chữ.
+    const label = playing ? "Dừng" : "Nghe thử";
+    const icon = `<i data-lucide="${playing ? "pause" : "play"}" style="width:16px;height:16px"></i>`;
+    if (btn.hasAttribute("data-icon-only")) {
+      btn.innerHTML = icon;
+      btn.setAttribute("aria-label", playing ? "Dừng nghe thử" : "Nghe thử từ giây bắt đầu");
+      btn.title = btn.getAttribute("aria-label");
+    } else {
+      btn.innerHTML = icon + label;
+    }
     window.lucide?.createIcons({ root: btn });
   }
+  // Đĩa than trên thẻ bài đang chọn quay, vạch sóng của hàng đang chọn trong thư viện nhảy.
+  document.getElementById("music-selected-tag")?.classList.toggle("is-playing", playing);
+  _musicPreviewOn = playing;
+  window.CXMusicLib?.setPlaying(
+    document.getElementById("music-lib-list"),
+    playing ? cxLibMusicFile(_currentMusicUrl) || null : null,
+  );
   clearInterval(_ytListenTimer);
   _ytListenTimer = null;
   const range = document.getElementById("music-start-range");
@@ -447,7 +464,7 @@ function showYouTubePreview(videoId, url) {
   if (thumb) thumb.style.display = "none";
   preview.classList.remove("hidden");
 
-  _musicStartLib(false);
+  _musicStartLib(true);
   _setMusicStartMode("loading");
   _ensureYTApi(() => {
     _ytPreviewPlayer = new YT.Player("_yt_target", {
@@ -498,8 +515,9 @@ function renderExistingYouTubeMusic(musicUrl) {
 }
 
 // ============= THƯ VIỆN NHẠC =============
-// Bài thư viện lưu "lib:<file>" (cxIsLibMusic, core/utils.js), nghe thử bằng thẻ <audio> bọc
-// kiểu YT.Player (cxAudioPlayer). KHÔNG có giây bắt đầu: kho không trả Range nên không tua được.
+// Bài thư viện lưu "lib:<file>[?t=<giây>]" (cxIsLibMusic, core/utils.js), nghe thử bằng thẻ
+// <audio> bọc kiểu YT.Player (cxAudioPlayer). Kho không trả Range nên trình nghe thử tải TRỌN
+// file (`whole`) mới tua được — chung thanh "Bắt đầu phát từ" với YouTube.
 
 // Đổi khung tìm giữa YouTube và Thư viện — không đụng bài đang chọn.
 function cxMusicSrc(src) {
@@ -528,64 +546,33 @@ function _musicLibLoad() {
   });
 }
 
-// Bỏ dấu + chữ thường để gõ "vay cuoi" vẫn ra "Váy Cưới".
-const _musicFold = (s) =>
-  String(s || "")
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/gi, "d")
-    .toLowerCase()
-    .trim();
-
+// Danh sách bài vẽ bằng component dùng chung với Slide cưới (core/components/music-lib.js).
+// Admin (tab Dữ liệu mẫu) nạp file này mà không có khung danh sách → hàm tự bỏ qua.
 function _musicLibRender() {
   const box = document.getElementById("music-lib-list");
-  if (!box) return;
-  if (!_musicLib) {
-    box.innerHTML = '<p class="text-xs text-gray-500 py-3 text-center">Đang tải thư viện nhạc...</p>';
-    return;
-  }
-  if (!_musicLib.length) {
-    box.innerHTML = '<p class="text-xs text-gray-500 py-3 text-center">Thư viện nhạc hiện chưa có bài nào.</p>';
-    return;
-  }
-  const q = document.getElementById("music-lib-q")?.value || "";
-  const words = _musicFold(q).split(/\s+/).filter(Boolean);
+  if (!box || !window.CXMusicLib) return;
   const cur = cxLibMusicFile(_currentMusicUrl);
-  const shown = _musicLib.filter((t) => {
-    const hay = _musicFold(`${t.title} ${t.artist}`);
-    return words.every((w) => hay.includes(w));
+  CXMusicLib.render(box, _musicLib, {
+    query: document.getElementById("music-lib-q")?.value || "",
+    current: cur,
+    playing: _musicPreviewOn ? cur : null,
+    keyOf: (t) => t.file,
   });
-  if (!shown.length) {
-    box.innerHTML = `<p class="text-xs text-gray-500 py-3 text-center">Không có bài nào khớp với “${_escHtml(q.trim())}”.</p>`;
-    return;
-  }
-  box.innerHTML = shown
-    .map((t) => {
-      const on = t.file === cur;
-      return `<button type="button" data-lib-file="${_escHtml(t.file)}" aria-pressed="${on}"
-        class="w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors ${on ? "bg-rose-50" : "hover:bg-rose-50"}">
-        <span class="w-9 h-9 shrink-0 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center"><i data-lucide="${on ? "check" : "music"}" style="width:16px;height:16px"></i></span>
-        <span class="min-w-0 flex-1">
-          <span class="block text-xs font-medium text-gray-800 leading-snug">${_escHtml(t.title)}</span>
-          ${t.artist ? `<span class="block text-xs text-gray-500 mt-0.5">${_escHtml(t.artist)}</span>` : ""}
-        </span>
-      </button>`;
-    })
-    .join("");
-  window.lucide?.createIcons({ root: box });
 }
 
 // Tên hiện trên thẻ bài đang chọn.
 const _musicLibLabel = (t) => (t.artist ? `${t.title} – ${t.artist}` : t.title);
 
-// Chọn một bài thư viện (url = "lib:…"), title rỗng = tra trong danh mục.
+// Chọn một bài thư viện (url = "lib:…"), title rỗng = tra trong danh mục. Giữ giây bắt đầu
+// có sẵn trong url (nạp thiệp đã lưu); chọn bài mới từ danh sách thì url không có `t` → 0.
 async function selectLibSong(url, title) {
   if (!cxIsLibMusic(url)) return;
-  url = CX_LIB_PREFIX + cxLibMusicFile(url);
+  const start = cxYtStart(url);
+  url = cxYtWithStart(url, start);
   _setMusicUrl(url);
   showLibPreview(url);
   cxMusicSrc("lib");
-  _showMusicStart(0);
+  _showMusicStart(start);
   _musicLibRender();
   _showMusicTag(title || "Đang lấy tên bài…");
   if (title) return;
@@ -596,6 +583,7 @@ async function selectLibSong(url, title) {
 }
 
 // Trình nghe thử cho bài thư viện: không có khung video, chỉ thanh giây bắt đầu + nút nghe.
+// Thanh mờ ("loading") tới khi tải xong file — lúc đó mới biết độ dài và tua được.
 function showLibPreview(url) {
   if (_ytPreviewPlayer) {
     try {
@@ -605,23 +593,33 @@ function showLibPreview(url) {
     _ytListenSync(-1);
   }
   document.getElementById("youtube-preview")?.classList.add("hidden");
-  _musicStartLib(true);
+  _musicStartLib(false);
   const src = cxLibMusicSrc(url);
   if (!src) return;
+  _setMusicStartMode("loading");
   const p = cxAudioPlayer(src, {
-    preload: "metadata",
+    whole: true,
+    start: cxYtStart(url),
+    onMeta: (dur) => {
+      if (_ytPreviewPlayer !== p) return;
+      if (dur > 1) return _setMusicStartMode("slider", Math.floor(dur));
+      // Tải hỏng: vẫn nhập tay được (thiệp tự tải lại lúc phát), chỉ không nghe thử đúng giây.
+      _setMusicStartMode("manual");
+      _musicStartError("Chưa tải được bài để nghe thử — vẫn nhập được giây bắt đầu.");
+    },
     onStateChange: (e) => _ytPreviewPlayer === p && _ytListenSync(e.data),
   });
   _ytPreviewPlayer = p;
 }
 
-// Bài thư viện: giấu nhãn, thanh kéo, ô nhập và nút "Lấy vị trí", chỉ giữ "Nghe thử".
-// YouTube (showYouTubePreview) trả lại rồi _setMusicStartMode lo phần còn lại.
-function _musicStartLib(on) {
-  ["music-start-label", "music-start-grab", "music-start-slider", "music-start-input"].forEach((id) =>
-    document.getElementById(id)?.classList.toggle("hidden", on),
+// Bài thư viện và YouTube dùng CHUNG bộ điều khiển giây bắt đầu (nghe thử rồi "Lấy vị trí"
+// cũng được với bài thư viện) — chỉ việc trả nhãn + nút về; thanh/ô nhập do _setMusicStartMode.
+// Cờ .is-yt: bài YouTube có khung video nên thẻ giấu đĩa than.
+function _musicStartLib(yt) {
+  ["music-start-label", "music-start-grab"].forEach((id) =>
+    document.getElementById(id)?.classList.remove("hidden"),
   );
-  if (on) document.getElementById("music-start-actions")?.classList.remove("hidden");
+  document.getElementById("music-selected-tag")?.classList.toggle("is-yt", !!yt);
 }
 
 _onDomReady(function () {
@@ -631,14 +629,21 @@ _onDomReady(function () {
     const b = e.target.closest("[data-music-src]");
     if (b) cxMusicSrc(b.dataset.musicSrc);
   });
-  document.getElementById("music-lib-list")?.addEventListener("click", (e) => {
-    const b = e.target.closest("[data-lib-file]");
-    if (!b) return;
-    const file = b.dataset.libFile;
-    if (file === cxLibMusicFile(_currentMusicUrl)) return;
+  // Bấm tên bài hay nút ▶ đều là chọn + phát ngay (bài đang chọn thì phát / dừng): thiệp chỉ
+  // có MỘT bài nên nghe thử bài khác mà không chọn chẳng để làm gì.
+  const pickAndPlay = (file) => {
+    if (file === cxLibMusicFile(_currentMusicUrl)) return playMusicFromStart();
     const t = _musicLib?.find((x) => x.file === file);
+    // selectLibSong dựng trình nghe thử ĐỒNG BỘ (trước await đầu tiên) nên phát được ngay
+    // trong cú bấm này — iOS chặn play() ngoài cú chạm. File chưa tải xong thì cxAudioPlayer
+    // tự giữ lượt phát, tải xong mới ra tiếng.
     selectLibSong(CX_LIB_PREFIX + file, t ? _musicLibLabel(t) : "");
+    playMusicFromStart();
     _scheduleAutoSave("config");
+  };
+  window.CXMusicLib?.bind(document.getElementById("music-lib-list"), {
+    onPick: pickAndPlay,
+    onPreview: pickAndPlay,
   });
   document.getElementById("music-lib-q")?.addEventListener("input", () => {
     _musicLibRender();

@@ -476,6 +476,7 @@ function _fillForm(data) {
     const tplEl = document.getElementById("share-message-template");
     if (tplEl)
       tplEl.value = data.share_message_template || window.SHARE_MESSAGE_DEFAULT || "";
+    window.cxShareRender?.();
   }
 
   // Process image_focal_points FIRST so pendingFocalPoints is ready before any renderSingleImageUpload call

@@ -127,7 +127,10 @@
   // ── Đồng hồ + vẽ ──
   let P = null; // dự án đang chiếu (CXSlideEngine.build)
   let t = 0; // giây, đếm từ đầu slide
-  let playing = true;
+  // Mở ra là ĐỨNG YÊN (không tự chạy): người xem bấm phát mới chạy. Lúc đứng, khung hiện cảnh
+  // đầu đã hiện đủ chữ (settled) — cảnh ở giây 0 còn trống vì chữ chưa kịp hiện.
+  let playing = false;
+  let fresh = true; // chưa phát lần nào và chưa tua — lần phát đầu chạy lại từ giây 0
   let idx = -1;
   let last = 0;
   // Nhảy cảnh: khung cũ chụp lại rồi mờ dần đè lên cảnh mới (thay cho lớp cảnh-trước của engine).
@@ -188,6 +191,7 @@
   function seek(at, stop) {
     if (!P) return;
     if (stop) pause();
+    fresh = false;
     t = Math.min(Math.max(0, Number(at) || 0), P.total - 0.01);
     snap = null;
     idx = -1;
@@ -211,6 +215,7 @@
     snap.getContext("2d").drawImage(canvas, 0, 0);
     snapAt = performance.now();
     jumpIdx = i;
+    fresh = false;
     t = rest ? settled(i) : P.starts[i];
     idx = -1; // để draw() báo cảnh mới
     draw();
@@ -226,6 +231,8 @@
 
   function play() {
     if (playing) return;
+    if (fresh && P) t = 0;
+    fresh = false;
     playing = true;
     Music.play();
     sync();
@@ -787,7 +794,7 @@
     if (my !== gen) return;
     P = proj;
     const k = Number.isInteger(keep) && keep >= 0 && keep < P.scenes.length ? keep : -1;
-    t = k < 0 ? 0 : playing ? P.starts[k] : settled(k);
+    t = k < 0 ? (playing ? 0 : settled(0)) : playing ? P.starts[k] : settled(k);
     idx = -1;
     snap = null;
     const bg = w.cover_image_url || (w.gallery_images || [])[0];

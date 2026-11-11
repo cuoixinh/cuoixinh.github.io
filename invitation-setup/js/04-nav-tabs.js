@@ -388,6 +388,8 @@ function switchTab(tab) {
     _savePreviewData();
     const iframe = document.getElementById("preview-iframe");
     iframe.src = _previewIframeSrc();
+    // Nạp xong thì cuộn tới phần vừa sửa (js/22-live-preview.js).
+    window.cxPreviewFocus?.(iframe);
     formPanel.classList.add("hidden");
     previewPanel.classList.remove("hidden");
     configPanel.classList.add("hidden");

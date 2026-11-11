@@ -80,6 +80,7 @@
     // trước) — phải trước js/22-live-preview.js, nơi gắn nó vào khung.
     "../core/helpers/phone-chrome.js",
     "../core/components/music-player.js",
+    "../core/components/music-lib.js",
     "../core/components/progress.js",
     "../core/helpers/element-color-enum.js",
     "../core/helpers/element-helper.js",

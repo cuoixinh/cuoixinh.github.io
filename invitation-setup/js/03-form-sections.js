@@ -31,6 +31,10 @@ function _updateVisUI(section, enabled) {
   btn.setAttribute("aria-checked", String(enabled));
   // Mục ở tab Cấu hình (nhạc nền) mờ phần thân khi tắt — xem .cx-cfg-sec.
   document.getElementById(`cfg-${section}`)?.classList.toggle("is-off", !enabled);
+  // Phần phụ thuộc công tắc nằm ngoài thân mục (vd tuỳ chọn lời chúc ở bước RSVP).
+  document
+    .querySelectorAll(`[data-vis-body="${section}"]`)
+    .forEach((el) => (el.hidden = !enabled));
 }
 
 function toggleSectionVis(section, event) {
