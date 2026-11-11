@@ -2806,42 +2806,11 @@ button.cx-ls-thumb {
   @apply flex items-center gap-3;
 }
 
-/* Rãnh đĩa + nhãn giữa màu nhấn; vệt sáng ở ::after lệch một phía để thấy đĩa quay. */
-.cx-song-disc {
-  position: relative;
-  flex: none;
-  width: 48px;
-  height: 48px;
-  border-radius: 999px;
-  background:
-    radial-gradient(
-      circle,
-      rgb(255 255 255) 0 3px,
-      rgb(var(--brand-accent-rgb)) 4px 12px,
-      transparent 12.5px
-    ),
-    repeating-radial-gradient(
-      circle,
-      rgb(var(--text-strong-rgb)) 0 2px,
-      rgb(var(--text-strong-rgb) / 0.86) 2px 3px
-    );
+.cx-song .cx-disc {
   box-shadow: 0 4px 12px rgb(var(--brand-accent-rgb) / 0.32);
 }
 
-.cx-song-disc::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: conic-gradient(
-    from 20deg,
-    transparent 0 12%,
-    rgb(255 255 255 / 0.22) 18%,
-    transparent 26% 100%
-  );
-}
-
-.cx-song.is-playing .cx-song-disc {
+.cx-song.is-playing .cx-disc {
   animation: cx-song-spin 2.4s linear infinite;
 }
 
@@ -2851,7 +2820,7 @@ button.cx-ls-thumb {
   }
 }
 
-.cx-song.is-yt .cx-song-disc {
+.cx-song.is-yt .cx-disc {
   display: none;
 }
 
@@ -2884,7 +2853,7 @@ button.cx-ls-thumb {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cx-song.is-playing .cx-song-disc {
+  .cx-song.is-playing .cx-disc {
     animation: none;
   }
 }

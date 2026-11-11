@@ -637,6 +637,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   cho dải "Mẫu thiệp" ở trang chủ và lưới `/theme-template`, sửa hình thức thẻ là sửa một
   chỗ. Hành vi gắn bằng `bind(khung, {onPreview,onUse,onFav})` (uỷ quyền sự kiện), đừng
   viết `onclick` vào markup.
+- **Danh sách thư viện nhạc:** `core/components/music-lib.js` (`CXMusicLib.render/bind/setPlaying`),
+  style `.cx-mlib-*`/`.cx-disc` ở `styles/_music-lib.css` — dùng CHUNG cho tab Cấu hình của trang
+  Thiết lập và bảng thư viện của Slide cưới; trang chỉ khai hai cú bấm (`onPick`, `onPreview`).
 - **Slide cưới (`slide-cuoi/`):** mẫu slide ở `templates/<id>/` chỉ KHAI cảnh dưới dạng dữ
   liệu (`CX_SLIDE.scenes`); vẽ bằng canvas ở `engine/slide-engine.js` — xem trước, trình chiếu
   và xuất MP4 1080p/4K + bản "TikTok" dọc 2K đặt trên ảnh hội trường (đăng mạng xã hội;

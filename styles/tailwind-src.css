@@ -16,6 +16,8 @@
    này — không phải chỉ build thiệp. */
 @import "./_music-player.css";
 @import "./_progress.css";
+/* Thư viện nhạc dùng chung (Thiết lập + Slide cưới) — trước _setup.css để .cx-song .cx-disc đè được. */
+@import "./_music-lib.css";
 @import "./_setup.css";
 @import "./_time-picker.css";
 @import "./_ai-chat.css";

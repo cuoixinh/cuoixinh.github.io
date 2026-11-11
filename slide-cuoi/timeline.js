@@ -284,30 +284,55 @@ const _SC_TL_TR = {
   split: ["Mở từ giữa", "columns-2"],
   cut: ["Cắt thẳng", "scissors"],
 };
-const _scTlTog = (attr, id, on, label, inner, extra = "") =>
-  `<button type="button" class="sc-tl-tog${on ? " is-on" : ""}${extra}" ${attr}="${id}" aria-pressed="${on}" aria-label="${label}" title="${label}">${inner}</button>`;
-// Đầu track: dòng trên số/biểu tượng · tên · menu ⋯; dòng dưới các nút bật/tắt.
+// Đầu track = MỘT ô: biểu tượng của track (♪ / số / sóng âm) kèm dấu + nhỏ ở góc — vừa là nhãn track
+// vừa là lối thêm. Bấm mở thanh #sc-vo-act ở chế độ track (hàng Thêm + việc của track, _scVoActOpenTrack);
+// hàng Track mới chưa có track nên mở thẳng popover Thêm. Đang thu vào track đó thì ô thành nút dừng.
+// Tên + trạng thái nằm ở tooltip; có trạng thái (tắt tiếng, solo, khoá, âm lượng ≠ 100%) thì chấm cam.
+const _scTlVolPct = (t) => Math.round((Number.isFinite(t?.vol) ? t.vol : 1) * 100);
+function _scTlBadge({ id, icon, cls = "", recOn, st = "", name, add }) {
+  if (recOn)
+    return `<button type="button" class="sc-tl-badge is-rec" data-trk-rec="${id}" aria-label="Dừng thu" title="Dừng thu"><span class="sc-vo-n">${_scIco("square")}</span></button>`;
+  const tip = `${name}${st ? ` · ${st}` : ""} — ${add ? "bấm để thêm âm thanh" : "bấm để thêm âm thanh, chỉnh track"}`;
+  return `<button type="button" class="sc-tl-badge${st ? " has-st" : ""}" ${add ? `data-trk-add="${id}"` : `data-trk-menu="${id}"`} aria-haspopup="true" aria-label="${_scEsc(tip)}" title="${_scEsc(tip)}">
+      <span class="sc-vo-n${cls}">${icon}</span><span class="sc-tl-plus" aria-hidden="true">${_scIco("plus")}</span>
+    </button>`;
+}
+// Màn rộng (CSS .sc-tl-wide, ≥1024px): cạnh ô biểu tượng trải thêm tên track + hàng nút nhanh
+// (Tắt tiếng · Solo · Khoá … Tải lên · Ghi âm / Thư viện). Màn hẹp CSS ẩn khối này, chỉ còn ô biểu tượng.
+const _scTlQ = (q, id, icon, tip, on) =>
+  `<button type="button" class="sc-tl-q${on ? " is-on" : ""} is-${q}" data-trk-q="${q}" data-id="${_scEsc(id)}"${on != null ? ` aria-pressed="${!!on}"` : ""} aria-label="${tip}" title="${tip}">${_scIco(icon)}</button>`;
+function _scTlWide(id, name, vol, btns) {
+  // Track có thật: dòng trên là thanh kéo âm lượng (tên nằm ở tooltip ô biểu tượng, đổi tên vẫn ở thanh
+  // #sc-vo-act); hàng Track mới chưa có âm lượng nên giữ nhãn.
+  const top = id
+    ? `<label class="sc-tl-wvol" title="Âm lượng ${_scEsc(name)}">
+        <input type="range" class="sc-vo-act-volr" data-trk-vol="${_scEsc(id)}" min="0" max="100" step="5" value="${vol}" style="--p: ${vol}%" aria-label="Âm lượng ${_scEsc(name)}" />
+        <output>${vol}%</output>
+      </label>`
+    : `<button type="button" class="sc-tl-wname" data-trk-add="" title="Thêm âm thanh">${_scEsc(name)}</button>`;
+  return `<div class="sc-tl-wide">${top}<div class="sc-tl-qrow">${btns}</div></div>`;
+}
 function _scTlHead(t, k, music) {
   const id = music ? "music" : t.id;
   const R = _scVoRec;
-  const recOn = R && !R.id && R.track === id;
-  return `<div class="sc-vo-head${_scVoHeard(t) ? "" : " is-mute"}">
-      <div class="sc-tl-h1">
-        ${music ? `<span class="sc-vo-n is-music" aria-hidden="true">${_scIco("music")}</span>` : `<span class="sc-vo-n">${k + 1}</span>`}
-        <span class="sc-vo-name" data-trk-name="${id}" title="${_scEsc(music ? "Nhạc nền" : `${t.name} — bấm đúp để đổi tên`)}">${_scEsc(music ? "Nhạc nền" : t.name)}</span>
-        <button type="button" class="sc-tl-more" data-trk-menu="${id}" aria-label="Tuỳ chọn track" title="Tuỳ chọn track">${_scIco("ellipsis")}</button>
-      </div>
-      <div class="sc-tl-h2">
-        ${_scTlTog("data-trk-mute", id, t.mute, t.mute ? "Bật tiếng track" : "Tắt tiếng track (M)", "M")}
-        ${_scTlTog("data-trk-solo", id, t.solo, t.solo ? "Bỏ solo" : "Solo: chỉ nghe track này", "S", " is-solo")}
-        ${_scTlTog("data-trk-lock", id, t.lock, t.lock ? "Mở khoá track" : "Khoá track (không kéo nhầm)", _scIco(t.lock ? "lock" : "lock-open"), " is-lock")}
-        ${
-          music
-            ? `<button type="button" class="sc-tl-tog is-ico" data-mu-lib aria-label="Chọn nhạc trong thư viện" title="Thư viện nhạc">${_scIco("list-music")}</button>`
-            : `<button type="button" class="sc-tl-tog is-ico sc-vo-rec-btn${recOn ? " is-on" : ""}" data-trk-rec="${id}" aria-label="${recOn ? "Dừng thu" : "Thu âm vào track này từ đầu phát"}" title="${recOn ? "Dừng thu" : "Thu âm vào track này"}">${_scIco(recOn ? "square" : "mic")}</button>`
-        }
-      </div>
-    </div>`;
+  const vol = _scTlVolPct(t);
+  const st = [t.mute && "Tắt tiếng", t.solo && "Solo", t.lock && "Khoá", vol !== 100 && `${vol}%`].filter(Boolean).join(" · ");
+  const name = music ? "Nhạc nền" : t.name;
+  const btns =
+    _scTlQ("mute", id, t.mute ? "volume-x" : "volume-2", t.mute ? "Bật tiếng" : "Tắt tiếng", !!t.mute) +
+    _scTlQ("solo", id, "headphones", "Solo", !!t.solo) +
+    _scTlQ("lock", id, t.lock ? "lock" : "lock-open", t.lock ? "Mở khoá" : "Khoá", !!t.lock) +
+    `<i class="sc-tl-qsp"></i>` +
+    _scTlQ("file", id, "upload", music ? "Tải nhạc lên" : "Tải âm thanh lên") +
+    (music ? _scTlQ("lib", id, "list-music", "Thư viện nhạc") : _scTlQ("rec", id, "mic", "Ghi âm vào track này"));
+  return `<div class="sc-vo-head${_scVoHeard(t) ? "" : " is-mute"}">${_scTlBadge({
+    id,
+    icon: music ? _scIco("music") : String(k + 1),
+    cls: music ? " is-music" : "",
+    recOn: !!R && !R.id && R.track === id,
+    st,
+    name,
+  })}${_scTlWide(id, name, vol, btns)}</div>`;
 }
 const _scTlClipHTML = (c, extra = "", label = "") => `<div class="sc-vo-clip${extra}${_scTlSel.has(c.id) ? " is-sel" : ""}" data-clip="${_scEsc(c.id)}" tabindex="0" role="button" aria-label="${_scEsc(label || c.name)}">
     ${c.id === _SC_VO_MU ? "" : `<canvas aria-hidden="true"></canvas>`}
@@ -377,15 +402,12 @@ function _scVoRender() {
   const canAdd = _scVo.tracks.length < _SC_VO_TRACKS;
   const newRow = canAdd
     ? `<div class="sc-vo-row is-voice is-new${R && !R.id && !R.track ? " is-rec" : ""}" data-row="new">
-        <div class="sc-vo-head">
-          <div class="sc-tl-h1">
-            <button type="button" class="sc-vo-n is-new" data-vo-add aria-label="Thêm file âm thanh vào track mới" title="Thêm file vào track mới">${_scIco("plus")}</button>
-            <span class="sc-vo-name">Track mới</span>
-          </div>
-          <div class="sc-tl-h2">
-            <button type="button" class="sc-tl-tog is-ico sc-vo-rec-btn${R && !R.id && !R.track ? " is-on" : ""}" data-trk-rec="" aria-label="${R && !R.id && !R.track ? "Dừng thu" : "Thu âm vào track mới"}" title="Thu âm vào track mới">${_scIco(R && !R.id && !R.track ? "square" : "mic")}</button>
-          </div>
-        </div>
+        <div class="sc-vo-head">${_scTlBadge({ id: "", icon: _scIco("audio-lines"), cls: " is-new", recOn: !!(R && !R.id && !R.track), name: "Track mới", add: true })}${_scTlWide(
+          "",
+          "Track mới",
+          null,
+          _scTlQ("file", "", "upload", "Tải âm thanh lên track mới") + _scTlQ("rec", "", "mic", "Ghi âm vào track mới") + _scTlQ("empty", "", "plus", "Thêm track trống"),
+        )}</div>
         <div class="sc-vo-lane${R ? "" : " is-add"}" data-lane ${R ? "" : 'data-vo-addlane title="Bấm để thêm file vào track mới, bắt đầu từ chỗ này"'}>
           ${R && !R.id && !R.track ? live("") : `<span class="sc-vo-note">Chạm để thêm âm thanh · kéo clip thả vào đây để tạo track mới</span><i class="sc-vo-ghost" aria-hidden="true"></i>`}
         </div>
@@ -394,8 +416,8 @@ function _scVoRender() {
   const sl = box.scrollLeft;
   const st = box.scrollTop;
   box.innerHTML = `<div class="sc-vo-in" style="--vo-w:${W}px">
-      <div class="sc-vo-row is-ruler" data-row="ruler"><div class="sc-vo-head"><span class="sc-tl-snapi${_scTlSnap ? " is-on" : ""}" title="Hút vào mốc: ${_scTlSnap ? "bật" : "tắt"} (S)">${_scIco("magnet")}</span></div><div class="sc-vo-lane" data-scrub>${ticks}</div></div>
-      <div class="sc-vo-row is-scenes" data-row="scenes"><div class="sc-vo-head"><div class="sc-tl-h1"><span class="sc-vo-n is-scenes" aria-hidden="true">${_scIco("film")}</span><span class="sc-vo-name">Cảnh</span></div></div><div class="sc-vo-lane" data-lane>${segs}</div></div>
+      <div class="sc-vo-row is-ruler" data-row="ruler"><div class="sc-vo-head"><span class="sc-tl-snapi${_scTlSnap ? " is-on" : ""}" title="Hút vào mốc: ${_scTlSnap ? "bật" : "tắt"} (S)">${_scIco("magnet")}</span><span class="sc-tl-wide sc-tl-wlab">Hút mốc: ${_scTlSnap ? "bật" : "tắt"}</span></div><div class="sc-vo-lane" data-scrub>${ticks}</div></div>
+      <div class="sc-vo-row is-scenes" data-row="scenes"><div class="sc-vo-head"><span class="sc-vo-n is-scenes" title="Cảnh" aria-label="Cảnh">${_scIco("film")}</span><span class="sc-tl-wide sc-tl-wlab">Cảnh · ${_scCues.length}</span></div><div class="sc-vo-lane" data-lane>${segs}</div></div>
       ${music}
       ${rows}
       ${newRow}
@@ -526,18 +548,121 @@ function _scTlPlacePops() {
   _scEl("sc-vo-act")?.place?.();
 }
 
-// Thanh của clip: To dần · Nhỏ dần · Tách · Nhân bản · Thu lại · Thay thế · Xoá (nhạc nền chỉ có phần
-// dùng được cho một bài lặp).
+// Thanh của clip: hàng việc của clip (To dần · Nhỏ dần · Tách · Nhân bản · Thu lại · Thay thế · Xoá —
+// nhạc nền chỉ có phần dùng được cho một bài lặp) + phần việc của TRACK chứa clip. Bấm biểu tượng / tên
+// ở đầu track (kể cả track chưa có clip) cũng mở thanh này nhưng chỉ phần track.
 let _scVoActId = "";
+let _scVoActTrk = "";
 function _scVoActOpen(clipEl, clientX) {
   const pop = _scEl("sc-vo-act");
   if (!pop) return;
   _scVoActId = clipEl.dataset.clip;
+  _scVoActAddFill("");
   const mu = _scVoActId === _SC_VO_MU;
+  _scVoActTrk = mu ? "music" : _scVoClip(_scVoActId)?.track || "";
   pop.querySelectorAll("[data-voice-only]").forEach((b) => b.classList.toggle("hidden", mu));
+  pop.querySelector('[data-act-sec="clip"]')?.classList.remove("hidden");
   _scVoFadeLabels();
+  _scVoActTrkFill();
   _scTlOpenAt(pop, clipEl, clientX, `[data-clip="${CSS.escape(_scVoActId)}"]`);
 }
+function _scVoActOpenTrack(btn, id) {
+  const pop = _scEl("sc-vo-act");
+  if (!pop || !_scTlTrk(id)) return;
+  if (pop.isOpen && !_scVoActId && _scVoActTrk === id) return pop.close();
+  _scVoActId = "";
+  _scVoActTrk = id;
+  pop.querySelector('[data-act-sec="clip"]')?.classList.add("hidden");
+  _scVoActAddFill(id);
+  _scVoActTrkFill();
+  _scTlPin = { pop, sel: `[data-trk-menu="${CSS.escape(id)}"]`, btn: true };
+  pop.open(btn);
+}
+// Hàng Thêm của thanh (chỉ khi mở từ ô đầu track): nguồn âm thanh theo loại track — cùng các mục
+// của popover #sc-tl-add (_scTlAddItems). id rỗng = ẩn hàng (thanh mở từ clip).
+function _scVoActAddFill(id) {
+  const row = _scEl("sc-vo-act-add");
+  if (!row) return;
+  row.classList.toggle("hidden", !id);
+  row.innerHTML = id ? _scTlAddItems(id) : "";
+  if (id) window.lucide?.createIcons({ root: row });
+}
+_scEl("sc-vo-act-add")?.addEventListener("click", (e) => {
+  const act = e.target.closest("[data-add-act]")?.dataset.addAct;
+  if (act) _scTlAddDo(act, _scVoActTrk);
+});
+// Phần track của thanh: [tên (gõ để đổi) · âm lượng] rồi hàng nút Tắt tiếng · Solo · Khoá (bật/tắt,
+// thanh giữ mở) · Lên · Xuống · Xoá track. Nhạc nền: tên cố định, không có thứ tự / xoá track.
+function _scVoActTrkFill() {
+  const box = _scEl("sc-vo-act-trk");
+  const id = _scVoActTrk;
+  const t = _scTlTrk(id);
+  if (!box) return;
+  if (!t) return void (box.innerHTML = "");
+  const music = id === "music";
+  const i = _scTlIdx(id);
+  const v = _scTlVolPct(t);
+  const btn = (act, icon, label, opt = {}) =>
+    `<button type="button" class="sc-vo-act-btn${opt.on ? " is-on" : ""} is-${act}" data-trk-act="${act}"${opt.keep ? " data-keep-open" : ""}${opt.on != null ? ` aria-pressed="${opt.on}"` : ""}${opt.dis ? " disabled" : ""}><span class="sc-vo-act-ico">${_scIco(icon)}</span>${label}</button>`;
+  box.innerHTML = `<div class="sc-vo-act-th">
+      ${
+        music
+          ? `<span class="sc-vo-act-name is-fixed">Nhạc nền</span>`
+          : `<input id="sc-vo-act-name" class="sc-vo-act-name" value="${_scEsc(t.name)}" maxlength="40" aria-label="Tên track" title="Đổi tên track" />`
+      }
+      <label class="sc-vo-act-vol" title="Âm lượng track">
+        ${_scIco("volume-2")}
+        <input id="sc-vo-act-vol" type="range" class="sc-vo-act-volr" min="0" max="100" step="5" value="${v}" style="--p: ${v}%" aria-label="Âm lượng track" />
+        <output id="sc-vo-act-vol-v">${v}%</output>
+      </label>
+    </div>
+    <div class="sc-vo-act-row">
+      ${btn("mute", t.mute ? "volume-x" : "volume-2", "Tắt tiếng", { on: !!t.mute, keep: true })}
+      ${btn("solo", "headphones", "Solo", { on: !!t.solo, keep: true })}
+      ${btn("lock", t.lock ? "lock" : "lock-open", "Khoá", { on: !!t.lock, keep: true })}
+      ${
+        music
+          ? ""
+          : btn("up", "arrow-up", "Lên", { dis: i <= 0 }) +
+            btn("down", "arrow-down", "Xuống", { dis: i >= _scVo.tracks.length - 1 }) +
+            btn("del", "trash-2", "Xoá track")
+      }
+    </div>`;
+  window.lucide?.createIcons({ root: box });
+  const range = box.querySelector("#sc-vo-act-vol");
+  range.addEventListener("input", () => {
+    if (_scTlVolInput(id, range)) box.querySelector("#sc-vo-act-vol-v").textContent = `${range.value}%`;
+  });
+  range.addEventListener("change", _scTlVolDone);
+  const name = box.querySelector("#sc-vo-act-name");
+  if (name) {
+    name.addEventListener("change", () => {
+      const val = name.value.trim();
+      const cur = _scVoTrack(id);
+      if (!cur) return;
+      if (val && val !== cur.name) _scTlTrackSet(id, { name: val }, "Đổi tên track");
+      else name.value = cur.name;
+    });
+    name.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter") name.blur();
+      if (e.key === "Escape") {
+        name.value = _scVoTrack(id)?.name || "";
+        name.blur();
+      }
+    });
+  }
+}
+_scEl("sc-vo-act-trk")?.addEventListener("click", (e) => {
+  const act = e.target.closest("[data-trk-act]")?.dataset.trkAct;
+  const id = _scVoActTrk;
+  const t = _scTlTrk(id);
+  if (!act || !t) return;
+  if (act === "mute" || act === "solo" || act === "lock") return _scTlTrackToggle(id, act);
+  if (act === "up") return _scTlTrackMove(id, -1);
+  if (act === "down") return _scTlTrackMove(id, 1);
+  if (act === "del") return _scTlTrackDel(id);
+});
 // Nấc giây của nút To dần / Nhỏ dần (bấm là sang nấc kế, hết vòng về 0 = tắt).
 const _SC_VO_FADES = [0, 0.5, 1, 1.5, 2, 3, 5];
 function _scVoFadeLabels() {
@@ -764,6 +889,21 @@ function _scTlTrackSet(id, patch, label) {
   _scTlDo(label, () => Object.assign(t, patch));
   _scTlCommit();
 }
+// Bật/tắt Tắt tiếng · Solo · Khoá — dùng chung cho thanh #sc-vo-act và nút nhanh ở cột đầu (màn rộng).
+function _scTlTrackToggle(id, act) {
+  const t = _scTlTrk(id);
+  if (!t) return;
+  const on = !t[act];
+  const label = { mute: on ? "Tắt tiếng track" : "Bật tiếng track", solo: on ? "Solo track" : "Bỏ solo", lock: on ? "Khoá track" : "Mở khoá track" }[act];
+  _scTlTrackSet(id, { [act]: on }, label);
+  if (_scEl("sc-vo-act")?.isOpen && !_scVoActId && _scVoActTrk === id) _scVoActTrkFill();
+}
+// Nút nhanh ở cột đầu track (màn rộng).
+function _scTlQuick(q, id) {
+  if (q === "mute" || q === "solo" || q === "lock") return _scTlTrackToggle(id, q);
+  if (id !== "music" && id && _scVoTrack(id)?.lock && (q === "file" || q === "rec")) return _scTlToast("Track đang khoá, mở khoá rồi hãy thêm.", "warning");
+  _scTlAddDo(q, id);
+}
 function _scTlTrackMove(id, d) {
   const i = _scTlIdx(id);
   const j = i + d;
@@ -787,107 +927,78 @@ function _scTlTrackDel(id) {
   _scTlCommit();
   _scTlToast(`Đã xoá "${t.name}"${n ? ` cùng ${n} clip` : ""}. Ctrl+Z để hoàn tác.`);
 }
-// Đổi tên ngay tại chỗ: bấm đúp tên track (hoặc "Đổi tên" trong menu) → ô gõ; Enter / rời ô = lưu, Esc = thôi.
-function _scTlRename(id) {
-  const t = _scVoTrack(id);
-  const span = _scTlBox()?.querySelector(`[data-trk-name="${CSS.escape(id)}"]`);
-  if (!t || !span) return;
-  const inp = document.createElement("input");
-  inp.className = "sc-tl-rename";
-  inp.value = t.name;
-  inp.maxLength = 40;
-  inp.setAttribute("aria-label", "Tên track");
-  span.replaceWith(inp);
-  inp.focus();
-  inp.select();
-  let done = false;
-  const finish = (save) => {
-    if (done) return;
-    done = true;
-    const v = inp.value.trim();
-    if (save && v && v !== t.name) _scTlTrackSet(id, { name: v }, "Đổi tên track");
-    else _scVoRender();
-  };
-  inp.addEventListener("keydown", (e) => {
-    e.stopPropagation();
-    if (e.key === "Enter") finish(true);
-    if (e.key === "Escape") finish(false);
-  });
-  inp.addEventListener("blur", () => finish(true));
-}
-// Menu ⋯ của track: âm lượng track + các việc ít dùng (đổi tên, thêm file, thu âm, đổi thứ tự, xoá).
-let _scTlMenuId = "";
-let _scTlVolBusy = false;
-function _scTlTrackMenu(btn, id) {
-  const pop = _scEl("sc-tl-trk");
+// Kéo thanh âm lượng track: cả lượt kéo là MỘT bước hoàn tác; không vẽ lại bảng giữa lúc kéo.
+function _scTlVolInput(id, range) {
   const t = _scTlTrk(id);
-  if (!pop || !t) return;
-  _scTlMenuId = id;
-  const music = id === "music";
-  const i = _scTlIdx(id);
-  const item = (act, icon, label, dis) =>
-    `<button type="button" class="x-pop-item" role="menuitem" data-trk-act="${act}"${dis ? " disabled" : ""}><span class="x-pop-ico">${_scIco(icon)}</span><span>${label}</span></button>`;
-  const v = Math.round(t.vol * 100);
-  pop.innerHTML = `<p class="sc-tl-pop-h">${_scEsc(music ? "Nhạc nền" : t.name)}</p>
-    <div class="sc-tl-vol">
-      <label for="sc-tl-vol-in">${_scIco("volume-2")}Âm lượng track</label>
-      <output id="sc-tl-vol-v">${v}%</output>
-      <input id="sc-tl-vol-in" type="range" class="sc-range" min="0" max="100" step="5" value="${v}" />
-    </div>
-    <div class="x-pop-sep"></div>
-    ${
-      music
-        ? item("lib", "list-music", "Thư viện nhạc") + item("file", "upload", "Chọn file nhạc từ máy") + (_scVoMuClip() ? item("clear", "trash-2", "Bỏ nhạc nền") : "")
-        : item("rename", "pencil", "Đổi tên") +
-          item("add", "file-plus", "Thêm file vào track (từ đầu phát)") +
-          item("rec", "mic", "Thu âm vào track") +
-          item("up", "arrow-up", "Chuyển lên trên", i <= 0) +
-          item("down", "arrow-down", "Chuyển xuống dưới", i >= _scVo.tracks.length - 1)
-    }
-    ${item("lock", t.lock ? "lock-open" : "lock", t.lock ? "Mở khoá track" : "Khoá track")}
-    ${music ? "" : `<div class="x-pop-sep"></div>${item("del", "trash-2", "Xoá track")}`}`;
-  window.lucide?.createIcons({ root: pop });
-  const range = pop.querySelector("#sc-tl-vol-in");
+  if (!t || _scVoBusy()) return false;
+  if (!_scTlVolBusy) {
+    _scTlVolBusy = true;
+    _scTlBegin();
+  }
+  t.vol = Number(range.value) / 100;
   _scRangeFill(range);
-  range.addEventListener("input", () => {
-    if (_scVoBusy()) return;
-    if (!_scTlVolBusy) {
-      _scTlVolBusy = true;
-      _scTlBegin();
-    }
-    t.vol = Number(range.value) / 100;
-    _scRangeFill(range);
-    pop.querySelector("#sc-tl-vol-v").textContent = `${range.value}%`;
-    _scVoSave();
-    _scVoSend();
-  });
-  range.addEventListener("change", () => {
-    if (!_scTlVolBusy) return;
-    _scTlVolBusy = false;
-    _scTlEnd("Âm lượng track");
-  });
-  _scTlPin = { pop, sel: `[data-trk-menu="${CSS.escape(id)}"]`, btn: true };
+  _scVoSave();
+  _scVoSend();
+  return true;
+}
+function _scTlVolDone() {
+  if (!_scTlVolBusy) return;
+  _scTlVolBusy = false;
+  _scTlEnd("Âm lượng track");
+  _scVoRender(); // dòng trạng thái ở đầu track hiện mức mới
+}
+let _scTlVolBusy = false;
+// Popover Thêm (ô của hàng Track mới) + hàng Thêm của thanh #sc-vo-act: nguồn âm thanh theo loại
+// track — Nhạc nền: tải lên · thư viện; track giọng đọc / Track mới (id rỗng): tải lên · ghi âm
+// (vào track đó, từ đầu phát).
+let _scTlAddId = "";
+function _scTlAddItems(id) {
+  const item = (act, icon, label, tip) =>
+    `<button type="button" class="sc-vo-act-btn is-${act}" data-add-act="${act}" title="${tip}"><span class="sc-vo-act-ico">${_scIco(icon)}</span>${label}</button>`;
+  return id === "music"
+    ? item("file", "upload", "Tải lên", "Chọn file nhạc trên máy (mp3, m4a, wav)") + item("lib", "list-music", "Thư viện", "Chọn bài có sẵn trong thư viện nhạc")
+    : item("file", "upload", "Tải lên", "Chọn file âm thanh trên máy") +
+        item("rec", "mic", "Ghi âm", "Thu giọng ngay, bắt đầu từ đầu phát") +
+        (id ? "" : item("empty", "plus", "Track trống", "Thêm một track rỗng để kéo clip vào sau"));
+}
+// Thêm một track giọng đọc rỗng ở cuối (hàng Track mới → "Track trống").
+function _scTlTrackNew() {
+  if (_scVoBusy() || _scVoRec) return;
+  if (_scVo.tracks.length >= _SC_VO_TRACKS) return _scTlToast(`Tối đa ${_SC_VO_TRACKS} track giọng đọc.`, "warning");
+  _scEl("sc-tl-add")?.close?.();
+  const t = _scTlDo("Thêm track", () => _scVoTrackAdd());
+  _scTlCommit();
+  if (t) _scTlToast(`Đã thêm "${t.name}".`);
+}
+function _scTlAddDo(act, id) {
+  if (id === "music") return act === "lib" ? scMusicLibOpen(true) : scMusicPick();
+  if (act === "file") return id ? scVoicePick(_scVoNow(), id) : scVoicePick(_scVoNow());
+  if (act === "rec") return scVoiceRecord("", id);
+  if (act === "empty") return _scTlTrackNew();
+}
+function _scTlAddMenu(btn, id) {
+  const pop = _scEl("sc-tl-add");
+  if (!pop) return;
+  if (pop.isOpen && _scTlAddId === id) return pop.close();
+  _scTlAddId = id;
+  pop.innerHTML = _scTlAddItems(id);
+  window.lucide?.createIcons({ root: pop });
+  _scTlPin = { pop, sel: `[data-trk-add="${CSS.escape(id)}"]`, btn: true };
   pop.open(btn);
 }
-_scEl("sc-tl-trk")?.addEventListener("click", (e) => {
-  const act = e.target.closest("[data-trk-act]")?.dataset.trkAct;
-  const id = _scTlMenuId;
-  if (!act) return;
-  const t = _scTlTrk(id);
-  if (!t) return;
-  if (act === "lib") return scMusicLibOpen(true);
-  if (act === "file") return scMusicPick();
-  if (act === "clear") return _scTlMusicClear();
-  if (act === "rename") return setTimeout(() => _scTlRename(id));
-  if (act === "add") return scVoicePick(_scVoNow(), id);
-  if (act === "rec") return scVoiceRecord("", id);
-  if (act === "up") return _scTlTrackMove(id, -1);
-  if (act === "down") return _scTlTrackMove(id, 1);
-  if (act === "lock") return _scTlTrackSet(id, { lock: !t.lock }, t.lock ? "Mở khoá track" : "Khoá track");
-  if (act === "del") return _scTlTrackDel(id);
+_scEl("sc-tl-add")?.addEventListener("click", (e) => {
+  const act = e.target.closest("[data-add-act]")?.dataset.addAct;
+  if (act) _scTlAddDo(act, _scTlAddId);
 });
 
 // ── Track Cảnh ──
+// Về tab Cảnh, mở cảnh i rồi cuộn bảng tới đó (không lấy focus để phím tắt dòng thời gian vẫn ăn).
+function _scTlFocusScene(i) {
+  scTab("scenes");
+  const li = _scOpenScene(i);
+  const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  li?.scrollIntoView({ block: "nearest", behavior: smooth ? "smooth" : "auto" });
+}
 function _scTlSceneSelect(i) {
   _scTlScene = i;
   if (i >= 0) _scTlSel = new Set();
@@ -1466,29 +1577,24 @@ function _scTlClick(e) {
     _scTlSceneSelect(tap.i);
     _scFrame.contentWindow?.postMessage({ type: "cx-slide-go", index: tap.i, pause: true }, location.origin);
     el.focus({ preventScroll: true });
+    // Màn studio (dòng thời gian ở dock, tab bên cạnh vẫn thấy): mở luôn cảnh đó ở tab Cảnh. Điện thoại
+    // thì không — dòng thời gian nằm trong tab Âm thanh, đổi tab là mất chỗ đang bấm.
+    if (_SC_STUDIO.matches) _scTlFocusScene(tap.i);
     return _scTlOpenAt(_scEl("sc-vo-scene"), el, tap.x, `[data-scene="${tap.i}"]`);
   }
   const tg = e.target;
   const pick = (sel) => tg.closest(sel);
   let b;
   if ((b = pick("[data-tr]"))) return _scTlTrOpen(b, Number(b.dataset.tr));
-  if ((b = pick("[data-trk-menu]"))) return _scTlTrackMenu(b, b.dataset.trkMenu);
-  if ((b = pick("[data-trk-mute]"))) {
-    const t = _scTlTrk(b.dataset.trkMute);
-    return _scTlTrackSet(b.dataset.trkMute, { mute: !t.mute }, t.mute ? "Bật tiếng track" : "Tắt tiếng track");
-  }
-  if ((b = pick("[data-trk-solo]"))) {
-    const t = _scTlTrk(b.dataset.trkSolo);
-    return _scTlTrackSet(b.dataset.trkSolo, { solo: !t.solo }, t.solo ? "Bỏ solo" : "Solo track");
-  }
-  if ((b = pick("[data-trk-lock]"))) {
-    const t = _scTlTrk(b.dataset.trkLock);
-    return _scTlTrackSet(b.dataset.trkLock, { lock: !t.lock }, t.lock ? "Mở khoá track" : "Khoá track");
-  }
+  if ((b = pick("[data-trk-q]"))) return _scTlQuick(b.dataset.trkQ, b.dataset.id || "");
+  if ((b = pick("[data-trk-menu]"))) return _scVoActOpenTrack(b, b.dataset.trkMenu);
+  if ((b = pick("[data-trk-add]"))) return _scTlAddMenu(b, b.dataset.trkAdd);
   if ((b = pick("[data-trk-rec]"))) return scVoiceRecord("", b.dataset.trkRec);
-  if (pick("[data-mu-add]")) return scMusicPick();
-  if (pick("[data-mu-lib]")) return scMusicLibOpen(_scEl("sc-mu-libbox").classList.contains("hidden"));
-  if (pick("[data-vo-add]")) return scVoicePick();
+  // Làn Nhạc nền đang trống: mở thanh của track nhạc (hàng Thêm: tải lên / thư viện).
+  if (pick("[data-mu-add]")) {
+    const b = _scTlBox()?.querySelector('[data-trk-menu="music"]');
+    return b ? _scVoActOpenTrack(b, "music") : scMusicPick();
+  }
   const addLane = pick("[data-vo-addlane]");
   if (addLane) return scVoicePick((e.clientX - addLane.getBoundingClientRect().left) / _scVoPx());
 }
@@ -1509,9 +1615,13 @@ function _scTlClick(e) {
   box.addEventListener("pointerup", _scTlUp);
   box.addEventListener("pointercancel", _scTlUp);
   box.addEventListener("click", _scTlClick);
-  box.addEventListener("dblclick", (e) => {
-    const name = e.target.closest("[data-trk-name]");
-    if (name && name.dataset.trkName !== "music") _scTlRename(name.dataset.trkName);
+  // Thanh âm lượng ở cột đầu track (màn rộng): cả lượt kéo là một bước hoàn tác, như thanh #sc-vo-act.
+  box.addEventListener("input", (e) => {
+    const r = e.target.closest?.("[data-trk-vol]");
+    if (r && _scTlVolInput(r.dataset.trkVol, r)) r.nextElementSibling.textContent = `${r.value}%`;
+  });
+  box.addEventListener("change", (e) => {
+    if (e.target.closest?.("[data-trk-vol]")) _scTlVolDone();
   });
   // Ctrl + lăn chuột = phóng to / thu nhỏ quanh con trỏ.
   box.addEventListener(
@@ -1648,12 +1758,12 @@ addEventListener("resize", () => {
 });
 
 // Bàn dựng phim (_SC_STUDIO): thanh phát + dòng thời gian ra dock đáy trang; màn nhỏ trả về tab
-// Âm thanh, đúng chỗ cũ (trước bảng thư viện nhạc). Chuyển nút thật nên sự kiện đã gắn giữ nguyên.
+// Âm thanh, đúng chỗ cũ (trước ô chọn file nhạc ẩn). Chuyển nút thật nên sự kiện đã gắn giữ nguyên.
 function _scVoDock() {
   const on = _SC_STUDIO.matches;
   const dock = _scEl("sc-dock");
   const tab = _scEl("sc-tab-audio");
-  const anchor = _scEl("sc-mu-libbox");
+  const anchor = _scEl("sc-mu-file");
   ["sc-vo-bar", "sc-vo-rec", "sc-vo-tl"].forEach((id) => {
     const el = _scEl(id);
     if (on) dock.appendChild(el);

@@ -326,6 +326,7 @@ function playMusicFromStart() {
 }
 
 let _ytListenTimer = null;
+let _musicPreviewOn = false; // trình nghe thử đang phát — danh sách thư viện hiện vạch sóng
 let _ytDragging = false;
 
 // Đang phát: nút thành "Dừng", thanh chạy theo giây đang nghe. Dừng/hết bài: nút về
@@ -348,8 +349,13 @@ function _ytListenSync(state) {
     }
     window.lucide?.createIcons({ root: btn });
   }
-  // Đĩa than trên thẻ bài đang chọn quay theo.
+  // Đĩa than trên thẻ bài đang chọn quay, vạch sóng của hàng đang chọn trong thư viện nhảy.
   document.getElementById("music-selected-tag")?.classList.toggle("is-playing", playing);
+  _musicPreviewOn = playing;
+  window.CXMusicLib?.setPlaying(
+    document.getElementById("music-lib-list"),
+    playing ? cxLibMusicFile(_currentMusicUrl) || null : null,
+  );
   clearInterval(_ytListenTimer);
   _ytListenTimer = null;
   const range = document.getElementById("music-start-range");
@@ -540,51 +546,18 @@ function _musicLibLoad() {
   });
 }
 
-// Bỏ dấu + chữ thường để gõ "vay cuoi" vẫn ra "Váy Cưới".
-const _musicFold = (s) =>
-  String(s || "")
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/gi, "d")
-    .toLowerCase()
-    .trim();
-
+// Danh sách bài vẽ bằng component dùng chung với Slide cưới (core/components/music-lib.js).
+// Admin (tab Dữ liệu mẫu) nạp file này mà không có khung danh sách → hàm tự bỏ qua.
 function _musicLibRender() {
   const box = document.getElementById("music-lib-list");
-  if (!box) return;
-  if (!_musicLib) {
-    box.innerHTML = '<p class="text-xs text-gray-500 py-3 text-center">Đang tải thư viện nhạc...</p>';
-    return;
-  }
-  if (!_musicLib.length) {
-    box.innerHTML = '<p class="text-xs text-gray-500 py-3 text-center">Thư viện nhạc hiện chưa có bài nào.</p>';
-    return;
-  }
-  const q = document.getElementById("music-lib-q")?.value || "";
-  const words = _musicFold(q).split(/\s+/).filter(Boolean);
+  if (!box || !window.CXMusicLib) return;
   const cur = cxLibMusicFile(_currentMusicUrl);
-  const shown = _musicLib.filter((t) => {
-    const hay = _musicFold(`${t.title} ${t.artist}`);
-    return words.every((w) => hay.includes(w));
+  CXMusicLib.render(box, _musicLib, {
+    query: document.getElementById("music-lib-q")?.value || "",
+    current: cur,
+    playing: _musicPreviewOn ? cur : null,
+    keyOf: (t) => t.file,
   });
-  if (!shown.length) {
-    box.innerHTML = `<p class="text-xs text-gray-500 py-3 text-center">Không có bài nào khớp với “${_escHtml(q.trim())}”.</p>`;
-    return;
-  }
-  box.innerHTML = shown
-    .map((t) => {
-      const on = t.file === cur;
-      return `<button type="button" data-lib-file="${_escHtml(t.file)}" aria-pressed="${on}"
-        class="w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors ${on ? "bg-rose-50" : "hover:bg-rose-50"}">
-        <span class="w-9 h-9 shrink-0 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center"><i data-lucide="${on ? "check" : "music"}" style="width:16px;height:16px"></i></span>
-        <span class="min-w-0 flex-1">
-          <span class="block text-xs font-medium text-gray-800 leading-snug">${_escHtml(t.title)}</span>
-          ${t.artist ? `<span class="block text-xs text-gray-500 mt-0.5">${_escHtml(t.artist)}</span>` : ""}
-        </span>
-      </button>`;
-    })
-    .join("");
-  window.lucide?.createIcons({ root: box });
 }
 
 // Tên hiện trên thẻ bài đang chọn.
@@ -656,14 +629,21 @@ _onDomReady(function () {
     const b = e.target.closest("[data-music-src]");
     if (b) cxMusicSrc(b.dataset.musicSrc);
   });
-  document.getElementById("music-lib-list")?.addEventListener("click", (e) => {
-    const b = e.target.closest("[data-lib-file]");
-    if (!b) return;
-    const file = b.dataset.libFile;
-    if (file === cxLibMusicFile(_currentMusicUrl)) return;
+  // Bấm tên bài hay nút ▶ đều là chọn + phát ngay (bài đang chọn thì phát / dừng): thiệp chỉ
+  // có MỘT bài nên nghe thử bài khác mà không chọn chẳng để làm gì.
+  const pickAndPlay = (file) => {
+    if (file === cxLibMusicFile(_currentMusicUrl)) return playMusicFromStart();
     const t = _musicLib?.find((x) => x.file === file);
+    // selectLibSong dựng trình nghe thử ĐỒNG BỘ (trước await đầu tiên) nên phát được ngay
+    // trong cú bấm này — iOS chặn play() ngoài cú chạm. File chưa tải xong thì cxAudioPlayer
+    // tự giữ lượt phát, tải xong mới ra tiếng.
     selectLibSong(CX_LIB_PREFIX + file, t ? _musicLibLabel(t) : "");
+    playMusicFromStart();
     _scheduleAutoSave("config");
+  };
+  window.CXMusicLib?.bind(document.getElementById("music-lib-list"), {
+    onPick: pickAndPlay,
+    onPreview: pickAndPlay,
   });
   document.getElementById("music-lib-q")?.addEventListener("input", () => {
     _musicLibRender();

@@ -1491,119 +1491,87 @@ html.sc-typing .sc-tx-in {
   }
 }
 
-/* Bảng Thư viện nhạc (dưới dòng thời gian): mỗi dòng nút nghe thử · tên bài để chọn · dấu đang chọn. */
-/* Danh sách cuộn riêng trong khung có trần, ô tìm kiếm đứng yên phía trên. */
-.sc-mu-libbox .sc-mu-lib {
-  margin-bottom: 8px;
-  max-height: 320px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+/* Ruột popup Thư viện nhạc (popup base openBottomSheet — scMusicLibOpen ở index.js): dòng hướng
+   dẫn · ô tìm đứng yên · danh sách .cx-mlib (styles/_music-lib.css) lấy hết chỗ còn lại và cuộn
+   riêng · dòng ghi nguồn bài. */
+.sc-mu-sheet {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  padding: 12px 20px calc(20px + env(safe-area-inset-bottom, 0px));
 }
+/* Cột flex: CHỈ danh sách được co (rồi cuộn) — để mặc định thì ô tìm 44px cũng bị ép dẹt khi
+   danh sách dài. */
+.sc-mu-sheet > * {
+  flex-shrink: 0;
+}
+.sc-mu-sheet-sub {
+  font-size: 13px;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-mu-sheet .cx-mlib {
+  flex: 1 1 auto;
+  min-height: 160px;
+  max-height: none;
+}
+.sc-mu-sheet .sc-fine {
+  margin-top: 8px;
+}
+/* Ô tìm bài: cùng dáng với khung danh sách .cx-mlib ngay dưới (nền trắng, viền mảnh, bo 12px);
+   gõ vào thì viền + kính lúp sang màu nhấn kèm quầng nhạt. Ẩn bằng thuộc tính `hidden`. */
 .sc-mu-search {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 40px;
-  margin: 4px 0 8px;
+  height: 44px;
+  margin: 12px 0 8px;
   padding: 0 12px;
-  border-radius: 9999px;
-  background: rgb(var(--surface-brand-subtle-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
-  color: rgb(var(--text-caption-rgb));
+  border-radius: 12px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--border-field-rgb));
+  color: rgb(var(--text-idle-rgb));
   cursor: text;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.sc-mu-search[hidden] {
+  display: none;
 }
 .sc-mu-search:focus-within {
-  border-color: rgb(var(--action-primary-rgb));
+  color: rgb(var(--brand-accent-rgb));
+  border-color: rgb(var(--brand-accent-rgb) / 0.6);
+  box-shadow: 0 0 0 3px rgb(var(--brand-primary-rgb) / 0.3);
 }
 .sc-mu-search svg {
   flex: none;
   width: 16px;
   height: 16px;
 }
+/* 16px: nhỏ hơn là Safari iOS tự phóng trang lúc gõ. */
 .sc-mu-search input {
   flex: 1;
   min-width: 0;
   height: 100%;
+  padding: 0;
   border: 0;
   outline: 0;
   background: transparent;
   font-size: 16px;
-  color: rgb(var(--text-body-rgb));
+  color: rgb(var(--text-strong-rgb));
+  -webkit-appearance: none;
+  appearance: none;
 }
-.sc-mu-play:focus-visible,
-.sc-mu-pick:focus-visible {
-  outline: 2px solid rgb(var(--action-primary-rgb));
-  outline-offset: 2px;
+.sc-mu-search input::placeholder {
+  color: rgb(var(--text-idle-rgb));
 }
-.sc-mu-empty {
-  padding: 20px 16px;
-  text-align: center;
-  font-size: 14px;
-  border-radius: 16px;
-  color: rgb(var(--text-caption-rgb));
-  border: 1px dashed rgb(var(--brand-primary-rgb) / 0.6);
+/* Nút xoá / kính lúp mặc định của ô type="search" (WebKit) — lệch tông, trùng icon. */
+.sc-mu-search input::-webkit-search-decoration,
+.sc-mu-search input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
 }
-.sc-mu-lib {
-  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
-}
-.sc-mu-lib:has(.sc-mu-empty) {
-  border-top: 0;
-}
-.sc-mu-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 56px;
-  padding: 8px 12px 8px 8px;
-  border-bottom: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
-}
-.sc-mu-item.is-on {
-  background: rgb(var(--surface-brand-subtle-rgb));
-}
-.sc-mu-play {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  font-size: 16px;
-  color: rgb(var(--action-primary-deep-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.7);
-  background: rgb(var(--white-rgb));
-}
-.sc-mu-pick {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  text-align: left;
-}
-.sc-mu-name {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 15px;
-  font-weight: 500;
-  color: rgb(var(--text-heading-rgb));
-}
-.sc-mu-item.is-on .sc-mu-name {
-  font-weight: 600;
-  color: rgb(var(--action-primary-deep-rgb));
-}
-.sc-mu-artist {
-  font-size: 13px;
-  color: rgb(var(--text-caption-rgb));
-}
-.sc-mu-check {
-  font-size: 18px;
-  color: rgb(var(--action-primary-rgb));
-}
-
 /* ── Tab Giọng đọc (slide-cuoi/voice.js) ── */
 /* Thanh trên: phát/tạm dừng · đồng hồ đầu phát / tổng · thu phóng. */
 .sc-vo-bar {
@@ -1676,7 +1644,8 @@ html.sc-typing .sc-tx-in {
 
 /* Dòng thời gian: nền tối như bàn dựng phim; cột tên lớp dính trái, phần làn cuộn ngang. */
 .sc-vo-tl {
-  --vo-head: 132px;
+  /* Cột đầu track rộng đúng MỘT ô biểu tượng (28) + lề 6 hai bên — mọi khổ màn. */
+  --vo-head: 40px;
   --vo-bg: 40 24 32;
   --vo-head-bg: 52 32 42;
   --vo-ink: 255 240 245;
@@ -1694,12 +1663,6 @@ html.sc-typing .sc-tx-in {
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
   scrollbar-color: rgb(var(--vo-ink) / 0.25) transparent;
-}
-/* Màn hẹp: cột lớp chỉ còn số + nút tiếng (tên đã hiện trên khối). */
-@media (max-width: 639px) {
-  .sc-vo-tl {
-    --vo-head: 112px;
-  }
 }
 .sc-vo-in {
   position: relative;
@@ -1827,10 +1790,6 @@ html.sc-typing .sc-tx-in {
   outline: 2px solid rgb(var(--vo-ink) / 0.8);
   outline-offset: -2px;
 }
-.sc-vo-n.is-new:focus-visible {
-  outline: 2px solid rgb(var(--vo-ink) / 0.8);
-  outline-offset: -2px;
-}
 /* Làn Nhạc nền: cùng khuôn một lớp giọng đọc (kéo dời, kéo hai mép để cắt), khác màu vàng đồng. */
 .sc-vo-n.is-music {
   font-size: 12px;
@@ -1838,13 +1797,6 @@ html.sc-typing .sc-tx-in {
 }
 .sc-vo-clip.is-music {
   background: linear-gradient(180deg, rgb(201 150 96), rgb(150 102 58));
-}
-.sc-vo-n.is-new {
-  cursor: pointer;
-}
-.sc-vo-n.is-new:hover {
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--vo-clip));
 }
 /* Làn "Lớp mới": bấm chỗ nào là thêm file bắt đầu từ chỗ đó; vạch + chạy theo chuột báo trước. */
 .sc-vo-lane.is-add {
@@ -2118,6 +2070,7 @@ html.sc-typing .sc-tx-in {
     box-shadow: 0 0 0 6px rgb(239 68 68 / 0.3);
   }
 }
+/* Biểu tượng của hàng "Track mới" chỉ là nhãn — việc thêm nằm ở nút + cạnh nó. */
 .sc-vo-n.is-new {
   font-size: 12px;
   color: rgb(var(--vo-ink) / 0.8);
@@ -2221,6 +2174,148 @@ html.sc-typing .sc-tx-in {
   font-variant-numeric: tabular-nums;
   opacity: 0.8;
 }
+/* #sc-vo-act xếp TẦNG: hàng việc của clip, vạch mảnh, rồi phần track — [tên · âm lượng] trên một
+   dòng, dưới là hàng nút của track. Mở từ đầu track thì hàng clip ẩn, bỏ luôn vạch. */
+.x-pop.sc-vo-act.is-stack {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+}
+.sc-vo-act-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+.sc-vo-act-trk {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgb(255 240 245 / 0.12);
+}
+/* Hàng Thêm đứng trên cùng; ngay dưới nó là hàng clip (ẩn khi mở từ ô đầu track) hoặc phần track. */
+.sc-vo-act-row.is-add .sc-vo-act-ico {
+  color: rgb(var(--white-rgb));
+}
+.sc-vo-act-th {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 4px 4px;
+}
+.sc-vo-act-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--white-rgb));
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid transparent;
+  outline: 0;
+}
+.sc-vo-act-name:hover {
+  border-color: rgb(255 255 255 / 0.16);
+}
+.sc-vo-act-name:focus {
+  border-color: rgb(255 255 255 / 0.45);
+  background: rgb(255 255 255 / 0.1);
+}
+.sc-vo-act-name.is-fixed {
+  display: flex;
+  align-items: center;
+  background: none;
+}
+.sc-vo-act-vol {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  width: 168px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.7);
+}
+.sc-vo-act-vol svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+.sc-vo-act-vol output {
+  flex: none;
+  width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+/* Thanh âm lượng trên nền tối: rãnh mờ, phần đã kéo trắng, núm tròn nhỏ. */
+.sc-vo-act-volr {
+  --p: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 20px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.sc-vo-act-volr::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgb(255 255 255 / 0.85) var(--p), rgb(255 255 255 / 0.18) var(--p));
+}
+.sc-vo-act-volr::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgb(255 255 255 / 0.85) var(--p), rgb(255 255 255 / 0.18) var(--p));
+}
+.sc-vo-act-volr::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+  -webkit-appearance: none;
+  appearance: none;
+}
+.sc-vo-act-volr::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+}
+.sc-vo-act-volr:focus-visible {
+  outline: 2px solid rgb(var(--white-rgb));
+  outline-offset: 2px;
+}
+/* Nút bật/tắt của track: bật thì tô màu như bàn trộn (tắt tiếng cam, solo vàng, khoá trắng mờ). */
+.sc-vo-act-btn.is-on {
+  color: rgb(40 24 32);
+  background: rgb(251 146 60);
+}
+.sc-vo-act-btn.is-solo.is-on {
+  background: rgb(250 204 21);
+}
+.sc-vo-act-btn.is-lock.is-on {
+  color: rgb(var(--white-rgb));
+  background: rgb(255 255 255 / 0.28);
+}
+.sc-vo-act-btn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.sc-vo-act-btn.is-del:hover {
+  background: rgb(239 68 68 / 0.85);
+}
+/* Popover nút Thêm: nút Ghi âm có chấm đỏ — dấu hiệu quen của nút thu. */
+.sc-vo-act-btn.is-rec .sc-vo-act-ico {
+  color: rgb(248 113 113);
+}
 .sc-vo-pin {
   position: absolute;
   top: 0;
@@ -2323,7 +2418,6 @@ html.sc-typing .sc-tx-in {
     flex: none;
   }
   .sc-dock .sc-vo-tl {
-    --vo-head: 160px;
     flex: 1 1 auto;
     min-height: 0;
     margin-bottom: 0;
@@ -2362,94 +2456,74 @@ html.sc-typing .sc-tx-in {
   line-height: 52px;
 }
 .sc-vo-head {
-  flex-direction: column;
-  align-items: stretch;
   justify-content: center;
-  gap: 2px;
-}
-.sc-tl-h1,
-.sc-tl-h2 {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-}
-.sc-tl-h2 {
-  padding-left: 24px;
+  gap: 0;
+  padding: 0 6px;
 }
 .sc-vo-n.is-scenes {
   font-size: 12px;
   background: rgb(var(--vo-ink) / 0.2);
 }
-.sc-tl-more {
+/* Ô đầu track: biểu tượng của track + dấu + nhỏ đè góc dưới phải = "track này, bấm để thêm / chỉnh".
+   Chấm cam góc trên phải = track có trạng thái khác mặc định (tắt tiếng, solo, khoá, âm lượng ≠ 100%).
+   Đang thu vào track đó: biểu tượng đỏ nhấp nháy = nút dừng. */
+/* Biểu tượng nằm góc trên trái của nút, dấu + ở góc dưới phải — chỉ chạm góc biểu tượng, không che
+   ký hiệu (số track). Nút lùi trái 3px để tâm biểu tượng thẳng cột với biểu tượng hàng Cảnh. */
+.sc-tl-badge {
+  position: relative;
   display: inline-flex;
   flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 20px;
-  margin-left: auto;
-  border-radius: 6px;
-  font-size: 14px;
-  color: rgb(var(--vo-ink) / 0.7);
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 28px;
+  height: 28px;
+  margin-left: 3px;
+  padding: 1px;
+  border-radius: 8px;
 }
-.sc-tl-more:hover {
-  color: rgb(var(--vo-ink));
-  background: rgb(var(--vo-ink) / 0.12);
+.sc-tl-badge:hover {
+  background: rgb(var(--vo-ink) / 0.1);
 }
-.sc-tl-tog {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 20px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: rgb(var(--vo-ink) / 0.6);
-  background: rgb(var(--vo-ink) / 0.08);
-}
-.sc-tl-tog.is-ico {
-  width: 24px;
-  height: 20px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-.sc-tl-tog:hover {
-  color: rgb(var(--vo-ink));
-  background: rgb(var(--vo-ink) / 0.18);
-}
-.sc-tl-tog:focus-visible,
-.sc-tl-more:focus-visible {
+.sc-tl-badge:focus-visible {
   outline: 2px solid rgb(var(--vo-ink) / 0.8);
 }
-/* M bật = cam, S bật = vàng, khoá bật = trắng trên xám — như bàn trộn của phần mềm dựng phim. */
-.sc-tl-tog.is-on {
-  color: rgb(40 24 32);
-  background: rgb(251 146 60);
+.sc-tl-badge .sc-vo-n {
+  width: 22px;
+  height: 22px;
 }
-.sc-tl-tog.is-solo.is-on {
-  background: rgb(250 204 21);
-}
-.sc-tl-tog.is-lock.is-on {
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--vo-ink) / 0.45);
-}
-.sc-vo-name[data-trk-name] {
-  cursor: text;
-}
-.sc-tl-rename {
-  flex: 1 1 auto;
-  min-width: 0;
-  height: 20px;
-  padding: 0 4px;
-  border-radius: 4px;
-  font-size: 12px;
-  color: rgb(var(--vo-bg));
+.sc-tl-plus {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  font-size: 9px;
+  color: rgb(var(--vo-head-bg));
   background: rgb(var(--vo-ink));
-  border: 0;
-  outline: 2px solid rgb(var(--vo-clip));
+  box-shadow: 0 0 0 2px rgb(var(--vo-head-bg));
+}
+.sc-tl-plus svg {
+  stroke-width: 3.5;
+}
+.sc-tl-badge.has-st::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: 1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgb(251 146 60);
+  box-shadow: 0 0 0 2px rgb(var(--vo-head-bg));
+}
+.sc-tl-badge.is-rec .sc-vo-n {
+  font-size: 10px;
+  background: rgb(239 68 68);
+  animation: cx-vo-rec 1.2s ease-in-out infinite;
 }
 /* Track khoá: làn kẻ sọc mờ, khối không kéo được. */
 .sc-vo-row.is-lock .sc-vo-lane {
@@ -2652,6 +2726,14 @@ html.sc-typing .sc-tx-in {
 }
 /* Menu track + bảng chuyển cảnh + bảng phím tắt. */
 .sc-tl-pop-h {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.sc-tl-pop-h {
   padding: 4px 8px 8px;
   font-size: 13px;
   font-weight: 600;
@@ -2728,23 +2810,17 @@ html.sc-typing .sc-tx-in {
   .sc-tl-tools #sc-tl-keys-btn {
     display: none;
   }
-  .sc-vo-name {
-    font-size: 11px;
-  }
-  .sc-tl-h2 {
-    padding-left: 0;
-  }
-  .sc-tl-h2 .is-lock,
-  .sc-tl-h2 [data-mu-lib] {
-    display: none;
-  }
-  .sc-tl-tog,
-  .sc-tl-tog.is-ico {
-    width: 28px;
-    height: 22px;
-  }
   .sc-vo-note {
     font-size: 11px;
+  }
+  .sc-vo-act-row {
+    gap: 0;
+  }
+  .sc-vo-act-th {
+    gap: 8px;
+  }
+  .sc-vo-act-vol {
+    width: 128px;
   }
   /* Đủ 7 nút trên một hàng ở khổ 360px trở lên. */
   .x-pop.sc-vo-act {
@@ -2855,5 +2931,142 @@ html.sc-typing .sc-tx-in {
 @media (prefers-reduced-motion: reduce) {
   .sc-wait-spin {
     animation-duration: 2.4s;
+  }
+}
+
+/* Cột đầu track trải rộng (timeline.js _scTlWide): màn hẹp chỉ một ô biểu tượng, từ 1024px thêm tên
+   track + hàng nút nhanh. --vo-head đổi ở đây thì _scVoHead đọc lại theo, không phải sửa JS. */
+.sc-tl-wide {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .sc-vo-tl {
+    --vo-head: 200px;
+  }
+  .sc-vo-head {
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 0 8px 0 6px;
+  }
+  .sc-vo-n.is-scenes,
+  .sc-tl-snapi {
+    margin-left: 7px;
+    margin-right: 4px;
+  }
+  .sc-tl-wide {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 4px;
+    min-width: 0;
+  }
+  .sc-tl-wlab {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgb(var(--vo-ink) / 0.6);
+  }
+  .sc-tl-wname {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: left;
+    color: rgb(var(--vo-ink) / 0.9);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .sc-tl-wname:hover {
+    color: rgb(var(--vo-ink));
+    text-decoration: underline;
+  }
+  .sc-vo-head.is-mute .sc-tl-wname {
+    color: rgb(var(--vo-ink) / 0.4);
+  }
+  .sc-tl-wvol {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    height: 16px;
+    font-size: 11px;
+    color: rgb(var(--vo-ink) / 0.7);
+  }
+  .sc-tl-wvol .sc-vo-act-volr {
+    height: 16px;
+  }
+  .sc-tl-wvol output {
+    flex: none;
+    width: 32px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .sc-vo-head.is-mute .sc-tl-wvol {
+    opacity: 0.45;
+  }
+  .sc-tl-qrow {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .sc-tl-qsp {
+    flex: 1 1 auto;
+  }
+  .sc-tl-q {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    font-size: 12px;
+    color: rgb(var(--vo-ink) / 0.6);
+    background: rgb(var(--vo-ink) / 0.08);
+    cursor: pointer;
+  }
+  .sc-tl-q:hover {
+    color: rgb(var(--vo-ink));
+    background: rgb(var(--vo-ink) / 0.16);
+  }
+  .sc-tl-q:focus-visible {
+    outline: 2px solid rgb(var(--vo-ink) / 0.8);
+  }
+  .sc-tl-q.is-on {
+    color: rgb(var(--vo-head-bg));
+    background: rgb(var(--vo-ink) / 0.85);
+  }
+  .sc-tl-q.is-mute.is-on {
+    background: rgb(239 68 68);
+    color: rgb(var(--white-rgb));
+  }
+  .sc-tl-q.is-solo.is-on {
+    background: rgb(250 204 21);
+  }
+  .sc-tl-q.is-lock.is-on {
+    background: rgb(251 146 60);
+  }
+  .sc-tl-q.is-rec {
+    color: rgb(252 165 165);
+  }
+  /* Màn rộng đã có tên + nút nhanh, nên dấu + và chấm trạng thái trên ô biểu tượng là thừa. */
+  .sc-tl-badge .sc-tl-plus,
+  .sc-tl-badge.has-st::after {
+    display: none;
   }
 }

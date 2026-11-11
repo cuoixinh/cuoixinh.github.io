@@ -174,7 +174,7 @@ addEventListener("message", (e) => {
 
 // ── Cụm điều khiển ở hàng nút dưới slide: lệnh vào khung, trạng thái khung báo về ──
 const _scCtl = _scEl("sc-ctl");
-let _scCtlPlaying = true;
+let _scCtlPlaying = false; // slide mở ra đứng yên (slide-runtime.js), bấm phát mới chạy
 function _scCtlUi(m) {
   _scCtlPlaying = !!m.playing;
   _scCtl.classList.toggle("is-playing", _scCtlPlaying);
@@ -1387,76 +1387,81 @@ function _scMuInfo() {
   return { name: track.title, desc: `${track.artist ? track.artist + ". " : ""}Từ thư viện nhạc, có trong video xuất ra.`, credit: track.credit };
 }
 
-// Bảng thư viện nhạc dưới dòng thời gian — mở từ nút ở đầu làn Nhạc nền.
+// Popup thư viện nhạc (popup base openBottomSheet, core/utils.js) — mở từ làn Nhạc nền của dòng
+// thời gian (nút đầu làn / menu). Ruột dựng mỗi lần mở nên mọi chỗ đụng #sc-mu-* phải chịu được
+// lúc popup đang đóng (không có phần tử).
+let _scMuSheet = null;
+function _scMuPopKey(e) {
+  if (e.key === "Escape") scMusicLibOpen(false);
+}
 function scMusicLibOpen(on) {
-  // Bàn dựng phim: nút mở nằm ở dock, còn bảng thư viện ở tab Âm thanh.
-  if (on && _SC_STUDIO.matches) scTab("audio");
-  _scToggle("sc-mu-libbox", on);
-  if (!on) return _scPreviewStop();
+  if (!on) return _scMuSheet?.close();
+  if (_scMuSheet) return;
+  const sheet = openBottomSheet({
+    id: "sc-mu-sheet",
+    title: '<span class="sc-vo-n is-music" aria-hidden="true"><i data-lucide="list-music"></i></span>Thư viện nhạc',
+    height: 80,
+    cardClass: "cx-sheet-fit sm:max-w-lg",
+    onClose: () => {
+      _scMuSheet = null;
+      removeEventListener("keydown", _scMuPopKey);
+      _scPreviewStop();
+    },
+  });
+  if (!sheet) return;
+  _scMuSheet = sheet;
+  sheet.body.className = "sc-mu-sheet";
+  sheet.body.innerHTML = `
+    <p class="sc-mu-sheet-sub">Bấm tên bài để dùng cho slide, bấm ▶ để nghe thử.</p>
+    <label id="sc-mu-search" class="sc-mu-search" hidden>
+      <i data-lucide="search" aria-hidden="true"></i>
+      <input id="sc-mu-q" type="search" placeholder="Tìm tên bài hát hoặc ca sĩ" autocomplete="off" enterkeyhint="search" aria-label="Tìm bài hát" />
+    </label>
+    <div id="sc-mu-lib" class="cx-mlib"></div>
+    <p id="sc-mu-credit" class="sc-fine hidden"></p>`;
+  const modal = _scEl("sc-mu-sheet");
+  modal.addEventListener("click", (e) => e.target === modal && sheet.close()); // bấm ra nền mờ
+  addEventListener("keydown", _scMuPopKey);
+  window.lucide?.createIcons({ root: modal });
+
+  CXMusicLib.bind(_scEl("sc-mu-lib"), {
+    // Chọn xong (qua được hộp xác nhận nếu có) thì đóng popup — slide đổi nhạc ngay phía sau.
+    onPick: async (id) => {
+      await scMusicLib(id);
+      if (_scMu.pick?.mode === "lib" && _scMu.pick.id === id) scMusicLibOpen(false);
+    },
+    onPreview: scMusicPreview,
+  });
+  _scEl("sc-mu-q").addEventListener("input", () => {
+    _scMuRender();
+    _scEl("sc-mu-lib").scrollTop = 0;
+  });
   _scLibLoad();
-  _scEl("sc-mu-libbox").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  _scMuRender();
+  // Máy tính: con trỏ vào ô tìm luôn. Màn cảm ứng thì không — bàn phím bật lên che nửa danh sách.
+  if (matchMedia("(hover: hover)").matches) setTimeout(() => _scEl("sc-mu-q")?.focus(), 0);
 }
 
-// Bỏ dấu + chữ thường để gõ "vay cuoi" vẫn ra "Váy Cưới".
-const _scFold = (s) =>
-  String(s || "")
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/gi, "d")
-    .toLowerCase()
-    .trim();
-
+// Danh sách bài vẽ bằng component dùng chung với trang Thiết lập (core/components/music-lib.js):
+// bấm tên bài = chọn cho slide, nút ▶ cuối hàng = nghe thử (không đổi nhạc của slide).
 function _scMuRender() {
-  const p = _scMu.pick;
-  const track = p?.mode === "lib" ? _scTrack(p.id) : null;
-
   const box = _scEl("sc-mu-lib");
-  _scEl("sc-mu-search").classList.toggle("hidden", !_scLib?.length);
-  const words = _scFold(_scEl("sc-mu-q").value).split(/\s+/).filter(Boolean);
-  const shown = (_scLib || []).filter((t) => {
-    const hay = _scFold(`${t.title} ${t.artist}`);
-    return words.every((w) => hay.includes(w));
-  });
-  if (_scLib === null) {
-    box.innerHTML = `<p class="sc-mu-empty">Đang tải thư viện nhạc…</p>`;
-  } else if (!_scLib.length) {
-    box.innerHTML = `<p class="sc-mu-empty">Thư viện nhạc hiện đang chưa có</p>`;
-  } else if (!shown.length) {
-    box.innerHTML = `<p class="sc-mu-empty">Không có bài nào khớp với “${_scEsc(_scEl("sc-mu-q").value.trim())}”</p>`;
-  } else {
-    box.innerHTML = shown
-      .map((t) => {
-        const on = track?.id === t.id;
-        const playing = _scPrevId === t.id;
-        return `<div class="sc-mu-item${on ? " is-on" : ""}">
-          <button type="button" class="sc-mu-play" data-mu-prev="${_scEsc(t.id)}" aria-label="${playing ? "Dừng nghe thử" : "Nghe thử"} ${_scEsc(t.title)}">${_scIco(playing ? "pause" : "play")}</button>
-          <button type="button" class="sc-mu-pick" data-mu-lib="${_scEsc(t.id)}" role="radio" aria-checked="${on}">
-            <span class="sc-mu-name">${_scEsc(t.title)}</span>
-            ${t.artist ? `<span class="sc-mu-artist">${_scEsc(t.artist)}</span>` : ""}
-          </button>
-          ${on ? `<span class="sc-mu-check" aria-hidden="true">${_scIco("check")}</span>` : ""}
-        </div>`;
-      })
-      .join("");
-    window.lucide?.createIcons({ root: box });
+  if (box) {
+    const p = _scMu.pick;
+    const track = p?.mode === "lib" ? _scTrack(p.id) : null;
+    _scEl("sc-mu-search").hidden = !_scLib?.length;
+    CXMusicLib.render(box, _scLib, {
+      query: _scEl("sc-mu-q").value,
+      current: track?.id || null,
+      playing: _scPrevId || null,
+    });
+    const credit = _scEl("sc-mu-credit");
+    credit.textContent = track?.credit || "";
+    credit.classList.toggle("hidden", !track?.credit);
   }
-  const credit = _scEl("sc-mu-credit");
-  credit.textContent = track?.credit || "";
-  credit.classList.toggle("hidden", !track?.credit);
   // Làn Nhạc của dòng thời gian (voice.js) hiện tên bài đang chọn.
   if (typeof _scVoOnCues === "function") _scVoOnCues();
 }
-
-_scEl("sc-mu-lib").addEventListener("click", (e) => {
-  const prev = e.target.closest("[data-mu-prev]");
-  if (prev) return scMusicPreview(prev.dataset.muPrev);
-  const pick = e.target.closest("[data-mu-lib]");
-  if (pick) scMusicLib(pick.dataset.muLib);
-});
-_scEl("sc-mu-q").addEventListener("input", () => {
-  _scMuRender();
-  _scEl("sc-mu-lib").scrollTop = 0;
-});
 
 // Mốc ghim của dải tab (.sc-tabs-bar): dưới lg nằm ngay dưới khung chiếu (cao --sc-stage-h),
 // từ lg dưới tiêu đề cột phải (--sc-head-h).
