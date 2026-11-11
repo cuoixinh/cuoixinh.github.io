@@ -128,7 +128,13 @@ function cxGuestFromCode(slug) {
     .then((res) => {
       // Trả về sau hạn chờ: thiệp đã dựng như link chung, gán CX_GUEST lúc này là lệch.
       if (late || !res?.matched || !res.name) return null;
-      window.CX_GUEST = { slug, code, name: res.name, relationship: res.relationship || "" };
+      window.CX_GUEST = {
+        slug,
+        code,
+        name: res.name,
+        relationship: res.relationship || "",
+        wishesLeft: res.wishes_left,
+      };
       return res;
     })
     .catch((error) => {
@@ -582,7 +588,10 @@ async function _markViewed(g) {
   if (!g || !window.guestDAL?.viewPublic) return;
   try {
     const res = await window.guestDAL.viewPublic(g);
-    if (res?.matched) _cxShowConfirmed(res.confirmed);
+    if (!res?.matched) return;
+    _cxShowConfirmed(res.confirmed);
+    // Link cũ: lượt tra này về SAU khi mục lời chúc đã dựng → báo số lượt còn lại.
+    window.cxWishSetLeft?.(res.wishes_left);
   } catch (error) {
     console.error("Lỗi đánh dấu đã xem:", error);
   }

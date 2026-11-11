@@ -3841,6 +3841,51 @@ button.cx-pchrome-btn:hover {
   opacity: 0.8;
 }
 
+/* Ô "Ký tên" (thiệp bật wish_custom_name): một hàng mảnh trên hàng soạn, ngăn bằng
+   vạch đứt. Vừa gửi xong / hết lượt thì ẩn cùng ô gõ. */
+.cx-wdock-sign {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 8px;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgb(var(--cx-wish-accent-rgb) / 0.32);
+  font-size: 12px;
+  line-height: 1.5;
+  cursor: text;
+}
+
+.cx-wdock-sign-cap {
+  flex: none;
+  font-weight: 600;
+  color: rgb(var(--cx-wish-accent-rgb));
+}
+
+.cx-wdock-sign-in {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+  background: none;
+}
+
+.cx-wdock-sign-in::placeholder {
+  color: inherit;
+  opacity: 0.6;
+}
+
+.cx-wdock-sign-in:focus {
+  outline: none;
+}
+
+.cx-wdock-card.is-sent .cx-wdock-sign,
+.cx-wdock-card.is-done .cx-wdock-sign {
+  display: none;
+}
+
 /* Lúc nghỉ mọi thứ nằm giữa hàng; mở ra thì dồn xuống ĐÁY để nút Gửi bám mép
    dưới ô gõ khi khách viết dài. */
 .cx-wdock-row {
@@ -4601,6 +4646,16 @@ button.cx-pchrome-btn:hover {
   padding-left: 0;
 }
 
+/* Hàng soạn ở đây không thụt lề trái → ô Ký tên cũng sát lề cho thẳng hàng. */
+.cx-wsec .cx-wdock-sign {
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+
+.cx-wsec .cx-wdock-sign-in {
+  font-size: 14px;
+}
+
 /* Không có chip bút ở dạng này: ô gõ đã mở sẵn nên chẳng cần dấu hiệu "chỗ này
    gõ được", mà giữ lại thì hàng soạn thụt vào một khúc không vì lý do gì. Lời
    xác nhận sau khi gửi dồn hết vào dòng chữ (xem .is-sent bên dưới). */
@@ -4669,6 +4724,10 @@ button.cx-pchrome-btn:hover {
 
 .cx-wdock-spacer.is-slim {
   height: 48px;
+}
+
+.cx-wdock-spacer.has-sign {
+  height: 136px;
 }
 
 .cx-wdock-spacer.is-blank {

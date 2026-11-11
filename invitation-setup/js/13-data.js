@@ -658,6 +658,7 @@ function _fillForm(data) {
   if (typeof initMapDisplays === "function") initMapDisplays(data);
   initCeremonySection(data);
   initGiftOwnSide(data);
+  initWishCustomName(data);
 
   IS_PUBLISHED = !!data.is_published;
   IS_TRIAL_LOCKED = !!data.trial_locked;

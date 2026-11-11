@@ -119,6 +119,8 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
   'enable_family', 'enable_party', 'enable_photos', 'enable_timeline',
   'enable_love_story', 'enable_music', 'enable_gift', 'enable_footer',
   'enable_wishes', 'enable_ceremony',
+  // Lời chúc: khách tự viết tên hiển thị (lưu ở guests.wishes[].name)
+  'wish_custom_name',
   // Gói Miễn phí: bên được mở (luật ở PATCH + _shared/plans.ts)
   'free_side',
 ])
