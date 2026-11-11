@@ -432,9 +432,12 @@ function _initThemePanel() {
   _syncPaletteStrength();
   _syncDesktopWide();
 
-  // Mở tab Giao diện → dọn mọi bảng còn mở từ lần trước (closeLineEditor() thoát
-  // sớm khi bảng chỉnh dòng đang đóng) rồi về màn mặc định theo khổ màn.
-  _ctrlIdle();
+  // Mở tab Giao diện (kể cả sau F5) → dọn mọi bảng còn mở từ lần trước rồi mở
+  // sẵn tab ĐẦU của dải (CTRL_TABS[0]) ở mọi khổ màn.
+  _clearCtrlPanels();
+  const first = CTRL_VIEWS.find((v) => v.key === CTRL_TABS[0]);
+  if (first?.open) window[first.open]?.();
+  else _showMainControls();
   cxSyncThemeAddCards();
 
   // Icon (reset) trong thanh chỉnh
@@ -2538,8 +2541,7 @@ const CTRL_VIEWS = [
     tip: "Đổi bộ màu của cả thiệp",
     reset: "resetCardPalette",
   },
-  // Chưa chọn tab nào (mobile) — lúc mới vào tab Giao diện và sau khi bỏ chọn
-  // phần tử trên thiệp: chỉ còn đầu bảng không tiêu đề + dải tab (.cx-ctrl-none
+  // Chưa chọn tab nào (mobile) — sau khi bỏ chọn phần tử trên thiệp: chỉ còn đầu bảng không tiêu đề + dải tab (.cx-ctrl-none
   // cất vùng nội dung).
   {
     key: "none",
@@ -2798,16 +2800,11 @@ function _showMainControls() {
   _resetCtrlScroll();
 }
 
-// Màn mặc định khi không có bảng nào được chọn: từ md (máy tính) là tab "Màu
+// Màn mặc định sau khi bỏ chọn phần tử trên thiệp: từ md (máy tính) là tab "Màu
 // sắc" — cột chỉnh đứng riêng nên để trống chỉ phí chỗ; mobile là chưa chọn tab
 // nào ("none") cho thiệp lộ ra nhiều nhất.
 function _ctrlWide() {
   return !!window.matchMedia?.("(min-width: 768px)").matches;
-}
-
-function _ctrlIdle() {
-  if (_ctrlWide()) _showMainControls();
-  else _clearCtrlPanels();
 }
 
 // Vừa đóng màn chi tiết (bỏ chọn trên thiệp): máy tính thì bật lại "Màu sắc".

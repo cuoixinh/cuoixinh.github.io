@@ -203,7 +203,10 @@ chỗ trống → gọi lại `cxNavReflow()`.
 tab mà còn thay đổi thì hỏi Lưu lại / Huỷ (Huỷ trả `_themeSetting` về bản đã chốt). Dưới
 `md` phiên giấu navbar và đẩy một mốc lịch sử để nút Back là lối thoát tab. Nên mọi đường
 đổi tab phải qua `switchTab()`/`openGuestsPage()` (chỗ gác), và khung thiệp của tab nạp
-bằng `_cxFrameLoad` — gán thẳng `iframe.src` là thêm mốc, Back lùi trang con thay vì thoát.
+bằng `_cxFrameLoad` — gán thẳng `iframe.src` là thêm mốc, Back lùi trang con thay vì thoát. Nút
+Lịch sử (`js/28-theme-history.js`) dựng từ chính `theme_setting` (mẫu gốc = rỗng) cộng thay
+đổi của lần chỉnh này, theo từng mục khai ở `_thItems` — thêm khoá mới vào `theme_setting`
+phải khai ở đó, không thì lịch sử không thấy và không hoàn tác được.
 
 **Xem trực tiếp** (`js/22-live-preview.js`): từ **820px** trở lên (iPad dựng đứng cũng có),
 `#live-dock` là **dải cố định sát mép phải, NGOÀI vùng ứng dụng** — `<body>` chừa
@@ -240,7 +243,7 @@ chính là thứ cho thấy thiệp trông ra sao trên điện thoại. Chỗ m
 gốc trong khi ô màn tính bằng % nên thiệp tràn ra ngoài viền. Dưới `md` thanh chỉnh của tab
 Giao diện là tấm **nổi `absolute` đè đáy khung, cao theo nội dung, KHÔNG cuộn dọc** (chỉ thu
 gọn/mở), mọi danh sách trong đó là **dải vuốt NGANG** — đừng trả nó về trong luồng: thu/mở sẽ
-làm thiệp co giãn. Vào tab chưa chọn bảng nào (màn `none` cuối `CTRL_VIEWS`). Từ `md` nó nằm trong luồng, nên lúc kéo thẻ nhạc/khối văn bản trên thiệp chỉ được làm nó MỜ chứ
+làm thiệp co giãn. Vào tab (kể cả F5) là mở sẵn tab đầu của dải (`CTRL_TABS[0]`), mọi khổ màn. Từ `md` nó nằm trong luồng, nên lúc kéo thẻ nhạc/khối văn bản trên thiệp chỉ được làm nó MỜ chứ
 không dịch đi — bỏ chỗ của nó là máy đổi khổ giữa lúc kéo, toạ độ thả sẽ lệch. Cũng ở tab đó, thiệp bị THU NHỎ
 trong khung → toạ độ thả thành phần
 phải chia lại theo tỉ lệ (`_framePoint` ở `js/05-theme-panel.js`), lấy thẳng hiệu toạ độ màn

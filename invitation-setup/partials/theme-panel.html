@@ -78,8 +78,8 @@
     >
       <!-- Đầu bảng + vùng nội dung DÙNG CHUNG cho mọi bảng (chung, chỉnh chữ, thêm
            văn bản, thành phần, điều chỉnh): ở mobile cao theo nội dung, không
-           cuộn dọc, vuốt tay nắm xuống là thu gọn (md+ cả cột đã tự cuộn). Mới
-           vào tab chưa chọn bảng nào (.cx-ctrl-none) thì vùng nội dung ẩn hẳn.
+           cuộn dọc, vuốt tay nắm xuống là thu gọn (md+ cả cột đã tự cuộn). Chưa
+           chọn bảng nào (.cx-ctrl-none) thì vùng nội dung ẩn hẳn.
            Đầu bảng (vạch kéo + hàng nút) và dải tab dưới nằm NGOÀI vùng cuộn
            nên đứng yên khi cuộn nội dung; chữ trong đầu bảng do _syncCtrlHead()
            (js/05-theme-panel.js) đổ vào theo bảng đang mở. -->
@@ -103,6 +103,21 @@
             <button type="button" id="cx-ch-reset" class="cx-ch-reset">
               <span>Đặt lại</span>
               <i data-lucide="chevron-down" aria-hidden="true" style="width:14px;height:14px"></i>
+            </button>
+            <!-- Mở popup Lịch sử (cxThemeHistOpen, js/28-theme-history.js): mọi thay đổi
+                 của MỌI tab, hoàn tác riêng từng mục. Số đỏ = số mục đang khác gốc. -->
+            <button
+              type="button"
+              id="cx-ch-hist"
+              onclick="cxThemeHistOpen()"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              class="cx-ch-hist"
+              aria-label="Lịch sử thay đổi"
+              title="Lịch sử thay đổi"
+            >
+              <i data-lucide="history" aria-hidden="true" style="width:16px;height:16px"></i>
+              <span id="cx-ch-hist-n" class="cx-ch-hist-n hidden">0</span>
             </button>
           </div>
           <span id="cx-ch-title" class="cx-ch-title">Màu sắc</span>
