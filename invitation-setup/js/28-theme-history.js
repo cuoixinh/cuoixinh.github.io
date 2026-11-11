@@ -1,8 +1,8 @@
-// Lịch sử tab Giao diện (nút đồng hồ ở đầu bảng): so `_themeSetting` với BẢN GỐC lúc
-// bắt đầu chỉnh — nhớ trong sessionStorage theo thiệp nên F5 không mất — theo từng
-// MỤC (bộ màu, từng dòng chữ/ảnh đã chỉnh hoặc ẩn, từng khối văn bản, thẻ nhạc…),
-// gom theo tab, hoàn tác RIÊNG từng mục. Thứ khung thiệp tự đổi lúc nạp (người dùng
-// không chạm gì) được nhập luôn vào bản gốc, không thành một dòng lịch sử.
+// Lịch sử tab Giao diện (nút đồng hồ ở đầu bảng), dựng từ `theme_setting` theo từng MỤC
+// (bộ màu, từng dòng chữ/ảnh, khối văn bản, thẻ nhạc…), gom theo tab. Hai loại dòng:
+// tuỳ chỉnh ĐÃ CÓ trong JSON (mẫu gốc = theme_setting rỗng) → trả về như mẫu; thay đổi
+// của LẦN CHỈNH NÀY (so với bản gốc nhớ trong sessionStorage, F5 không mất) → hoàn tác
+// về lúc bắt đầu. Thứ khung thiệp tự đổi lúc nạp được nhập vào bản gốc, không thành dòng.
 
 const TH_TOUCH_MS = 10000; // chạm cách đây quá lâu thì thay đổi kế tiếp không tính là của người dùng
 const TH_SAMPLE_LEN = 48;
@@ -159,7 +159,14 @@ function _thTrack() {
   _thRefresh();
 }
 
-// Danh sách mục đang khác bản gốc.
+// Trình phát nhạc sẵn có của mẫu được chuyển thành thành phần (id "el_music_…", xem
+// _cxElSeedThemeMusic) — nó là của MẪU, không phải tuỳ chỉnh của khách.
+function _thIsSeed(k) {
+  return k.startsWith("el:el_music_");
+}
+
+// Mọi dòng của Lịch sử. `target`: "base" = đổi trong lần chỉnh này (hoàn tác về lúc bắt
+// đầu), "tpl" = tuỳ chỉnh đã lưu trong theme_setting (trả về như mẫu gốc).
 function _thEntries() {
   _thEnsure();
   const cur = _thItems(_themeSetting).items;
@@ -168,9 +175,15 @@ function _thEntries() {
   keys.forEach((k) => {
     const before = _thBase.items[k];
     const after = cur[k];
-    if (_tsStable(before) === _tsStable(after)) return;
-    out.push(Object.assign({ key: k, before, after, at: _thBase.at[k] || 0 }, _thDescribe(k, before, after)));
+    if (_tsStable(before) !== _tsStable(after))
+      out.push(Object.assign({ key: k, target: "base", before, after, at: _thBase.at[k] || 0 }, _thDescribe(k, before, after)));
+    else if (after !== undefined && !_thIsSeed(k))
+      out.push(Object.assign({ key: k, target: "tpl", before: undefined, after, at: 0 }, _thDescribe(k, undefined, after)));
   });
+  // Nhạc của mẫu đã bị xoá ở lần chỉnh trước: cờ music_seeded còn mà không còn thẻ nào.
+  const hasSeed = (items) => Object.keys(items).some(_thIsSeed);
+  if (_themeSetting.music_seeded && !hasSeed(cur) && !hasSeed(_thBase.items))
+    out.push({ key: "seed:music", target: "tpl", at: 0, group: "elements", kind: "del", title: "Đã xoá trình phát nhạc của mẫu", detail: "" });
   return out;
 }
 
@@ -244,6 +257,7 @@ function _thDescribe(k, before, after) {
     const isImg = sample === "Ảnh" || (after || before || {}).width != null || (after || before || {}).height != null;
     const base = { group: "line", detail: quote, focus: sel };
     if (after?.hidden && !before?.hidden) return Object.assign(base, { kind: "hide", title: isImg ? "Đã ẩn ảnh" : "Đã ẩn chữ" });
+    if (before?.hidden && !after?.hidden) return Object.assign(base, { kind: "reset", title: isImg ? "Đã hiện lại ảnh" : "Đã hiện lại chữ" });
     if (del) return Object.assign(base, { kind: "reset", title: "Đặt lại về như mẫu" });
     if ((after?.text ?? null) !== (before?.text ?? null)) return Object.assign(base, { kind: "edit", title: "Sửa nội dung" });
     if (isImg) return Object.assign(base, { kind: "edit", title: "Đổi cỡ ảnh" });
@@ -303,9 +317,16 @@ function _thSetInArray(field, id, v, at) {
   else delete _themeSetting[field];
 }
 
-// Ghi bản gốc của MỘT mục vào `_themeSetting`. Trả true khi phải nạp lại khung thiệp.
-function _thApply(k) {
-  const v = _thClone(_thBase.items[k]);
+// Ghi giá trị đích của MỘT dòng vào `_themeSetting` — bản lúc bắt đầu chỉnh ("base")
+// hoặc mẫu gốc ("tpl" = bỏ hẳn mục). Trả true khi phải nạp lại khung thiệp.
+function _thApply(k, target) {
+  if (k === "seed:music") {
+    // Bỏ cờ → nạp lại khung là mẫu tự dựng lại trình phát của nó.
+    delete _themeSetting.music_seeded;
+    _scheduleAutoSave("theme");
+    return true;
+  }
+  const v = target === "base" ? _thClone(_thBase.items[k]) : undefined;
   if (k === "palette") {
     if (v) _themeSetting.palette = v;
     else delete _themeSetting.palette;
@@ -362,25 +383,28 @@ function cxThemeHistUndo(k) {
   _thEnsure();
   const e = _thEntries().find((x) => x.key === k);
   if (!e) return;
-  _thAfterUndo(_thApply(k));
-  showToast(`Đã hoàn tác: ${e.title}`, "success");
+  // Trả về như mẫu cũng là một thay đổi của lần chỉnh này → có giờ, hoàn tác được.
+  if (e.target === "tpl") _thBase.at[k] = Date.now();
+  _thAfterUndo(_thApply(k, e.target));
+  showToast(e.target === "base" ? `Đã hoàn tác: ${e.title}` : `${_thTplLabel(e)}: ${e.title}`, "success");
 }
 window.cxThemeHistUndo = cxThemeHistUndo;
 
+// Chỉ các thay đổi của lần chỉnh này; về hẳn mẫu gốc đã có "Đặt lại cả thiệp".
 async function cxThemeHistUndoAll() {
-  const list = _thEntries();
+  const list = _thEntries().filter((e) => e.target === "base");
   if (!list.length) return;
   const ok = await showConfirm(
-    "Hoàn tác mọi thay đổi?",
-    `${list.length} thay đổi trong lịch sử sẽ trở về như lúc bạn bắt đầu chỉnh. ` +
+    "Hoàn tác thay đổi lần này?",
+    `${list.length} thay đổi trong lần chỉnh này sẽ trở về như lúc bạn bắt đầu. ` +
       "Nội dung thiệp (tên, ngày, ảnh…) không đổi.",
     { confirmText: "Hoàn tác tất cả" },
   );
   if (!ok) return;
   let reload = false;
-  list.forEach((e) => (reload = _thApply(e.key) || reload));
+  list.forEach((e) => (reload = _thApply(e.key, "base") || reload));
   _thAfterUndo(reload);
-  showToast("Đã hoàn tác mọi thay đổi", "success");
+  showToast("Đã hoàn tác các thay đổi lần này", "success");
 }
 window.cxThemeHistUndoAll = cxThemeHistUndoAll;
 
@@ -411,8 +435,16 @@ function _thGroupMeta(g) {
   return { title: v ? _ctrlTitle(v) : g.id, icon: v?.icon || "circle" };
 }
 
+// Nhãn nút của dòng "tuỳ chỉnh đã lưu" — nói đúng việc sẽ xảy ra.
+function _thTplLabel(e) {
+  if (e.kind === "hide") return "Hiện lại";
+  if (e.kind === "add") return "Gỡ";
+  if (e.kind === "del") return "Khôi phục";
+  return "Về như mẫu";
+}
+
 function _thRowHTML(e) {
-  const when = _thAgo(e.at);
+  const when = e.target === "base" ? _thAgo(e.at) || "Lần chỉnh này" : "Đã lưu";
   const focus = e.focus
     ? ` data-th-focus="${_thEsc(e.focus)}" role="button" tabindex="0" title="Xem trên thiệp"`
     : "";
@@ -422,9 +454,11 @@ function _thRowHTML(e) {
     `<div class="cx-hist-tx"${focus}>` +
     `<span class="cx-hist-t">${_thEsc(e.title)}</span>` +
     (e.detail ? `<span class="cx-hist-d">${_thEsc(e.detail)}</span>` : "") +
-    (when ? `<span class="cx-hist-w">${when}</span>` : "") +
+    `<span class="cx-hist-w${e.target === "base" ? " is-new" : ""}">${when}</span>` +
     `</div>` +
-    `<x-button variant="outline" tone="neutral" size="xs" icon="undo-2" data-th-undo="${_thEsc(e.key)}" title="Hoàn tác thay đổi này">Hoàn tác</x-button>` +
+    (e.target === "base"
+      ? `<x-button variant="outline" tone="neutral" size="xs" icon="undo-2" data-th-undo="${_thEsc(e.key)}" title="Trả về như lúc bắt đầu chỉnh">Hoàn tác</x-button>`
+      : `<x-button variant="outline" tone="neutral" size="xs" data-th-undo="${_thEsc(e.key)}" title="Trả phần này về như mẫu gốc">${_thTplLabel(e)}</x-button>`) +
     `</li>`
   );
 }
@@ -437,12 +471,21 @@ function _thRender() {
   if (!list.length) {
     html =
       `<div class="cx-hist-empty"><span class="cx-hist-empty-ico"><i data-lucide="history" style="width:24px;height:24px"></i></span>` +
-      `<p class="cx-hist-empty-t">Chưa có thay đổi nào</p>` +
-      `<p class="cx-hist-empty-d">Đổi màu, sửa hay ẩn chữ, thêm khối văn bản, thả thẻ nhạc… sẽ hiện ở đây theo từng tab để bạn hoàn tác riêng từng việc.</p></div>`;
+      `<p class="cx-hist-empty-t">Thiệp đang y như mẫu gốc</p>` +
+      `<p class="cx-hist-empty-d">Đổi màu, sửa hay ẩn chữ, thêm khối văn bản, thả thẻ nhạc… sẽ hiện ở đây theo từng tab để bạn xem lại và hoàn tác riêng từng việc.</p></div>`;
   } else {
-    html = `<p class="cx-hist-intro"><b>${list.length} thay đổi</b> so với lúc bạn bắt đầu chỉnh. Bấm vào một dòng để xem nó trên thiệp.</p>`;
+    const fresh = list.filter((e) => e.target === "base").length;
+    const saved = list.length - fresh;
+    const parts = [
+      saved && `<b>${saved} tuỳ chỉnh</b> đã lưu so với mẫu gốc`,
+      fresh && `<b>${fresh} thay đổi</b> trong lần chỉnh này`,
+    ].filter(Boolean);
+    html = `<p class="cx-hist-intro">${parts.join(" · ")}. Bấm vào một dòng để xem nó trên thiệp.</p>`;
     TH_GROUPS.forEach((g) => {
-      const rows = list.filter((e) => e.group === g.id).sort((a, b) => b.at - a.at);
+      // Thay đổi lần này lên đầu (mới nhất trước), tuỳ chỉnh đã lưu xếp sau.
+      const rows = list
+        .filter((e) => e.group === g.id)
+        .sort((a, b) => (b.target === "base") - (a.target === "base") || b.at - a.at);
       if (!rows.length) return;
       const meta = _thGroupMeta(g);
       html +=
@@ -458,17 +501,17 @@ function _thRender() {
   body.innerHTML = `<div class="cx-hist-body">${html}</div>`;
   footer.innerHTML =
     `<div class="cx-hist-foot">` +
-    (list.length
-      ? `<x-button variant="ghost" tone="danger" size="md" icon="rotate-ccw" data-th-all>Hoàn tác tất cả</x-button>`
+    (list.some((e) => e.target === "base")
+      ? `<x-button variant="ghost" tone="danger" size="md" icon="rotate-ccw" data-th-all>Hoàn tác lần này</x-button>`
       : "") +
     `<x-button variant="fill" tone="brand" size="md" class="ml-auto" data-th-close>Xong</x-button></div>`;
   window.lucide?.createIcons({ root: body });
   window.lucide?.createIcons({ root: footer });
 }
 
-// Số trên nút + nội dung popup nếu đang mở.
+// Số đỏ trên nút = thay đổi của lần chỉnh này; kèm làm mới popup nếu đang mở.
 function _thRefresh() {
-  const n = _thBase ? _thEntries().length : 0;
+  const n = _thBase ? _thEntries().filter((e) => e.target === "base").length : 0;
   const badge = document.getElementById("cx-ch-hist-n");
   if (badge) {
     badge.textContent = n > 99 ? "99+" : String(n);

@@ -764,6 +764,11 @@ input.flatpickr-input[readonly] {
   @apply mt-1 text-[11px] text-gray-400;
 }
 
+/* Thay đổi của lần chỉnh này: thời gian tô màu nhấn để tách khỏi dòng "Đã lưu". */
+.cx-hist-w.is-new {
+  @apply font-medium text-rose-500;
+}
+
 .cx-hist-foot {
   @apply flex items-center gap-2 border-t border-gray-100 px-4 py-3 sm:px-5;
 
