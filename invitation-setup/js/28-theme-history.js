@@ -106,6 +106,27 @@ function cxThemeHistInit() {
 }
 window.cxThemeHistInit = cxThemeHistInit;
 
+// Lưu thiệp thành công (Lưu nháp / Xuất bản): thứ đang thấy đã nằm trong DB → mọi
+// thay đổi thành "Đã lưu", lần chỉnh tính lại từ đây. Chưa mở tab Giao diện lần nào
+// thì chỉ bỏ mốc cũ trong sessionStorage — lần mở sau dựng lại từ bản vừa lưu.
+function cxThemeHistCommit() {
+  if (!_thBase || _thBase.key !== _thStoreKey()) {
+    try {
+      sessionStorage.removeItem(_thStoreKey());
+    } catch (e) {}
+    return;
+  }
+  clearTimeout(_thTimer);
+  const { items, idx } = _thItems(_thClone(_themeSetting));
+  _thBase.items = items;
+  _thBase.idx = idx;
+  _thBase.at = {};
+  _thLast = _thStableMap(items);
+  _thSave();
+  _thRefresh();
+}
+window.cxThemeHistCommit = cxThemeHistCommit;
+
 // Hẹn ghi nhận sau mỗi thay đổi (_scheduleAutoSave("theme")); gom nhịp kéo thanh trượt.
 function cxThemeHistNote() {
   clearTimeout(_thTimer);

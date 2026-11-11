@@ -1016,6 +1016,8 @@ async function _saveAllOnce(overrides, label) {
     }
     if (imageWarn) showToast(imageWarn, "warning");
     _setDirty(false);
+    // Lịch sử tab Giao diện: thay đổi vừa lưu chuyển sang nhóm "Đã lưu".
+    window.cxThemeHistCommit?.();
     // Còn ảnh chờ thử lại thì vẫn tính là chưa lưu xong — rời trang sẽ được hỏi lại.
     if (!uploadSkipped && kept > 0) _setDirty(true);
     return true;
