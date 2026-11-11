@@ -1918,7 +1918,11 @@ function _openTextEditor(msg, c, ov) {
       ? msg.text || ""
       : (ov.text != null ? ov.text : msg.text) || "";
     // Danh sách: mỗi dòng là 1 mục → ô cao hơn + nhắc trong nhãn/placeholder
-    ta.rows = _lineBlockList ? 4 : 2;
+    ta.rows = _lineBlockList
+      ? 4
+      : msg.multiline
+        ? Math.min(6, Math.max(2, ta.value.split("\n").length))
+        : 2;
     ta.placeholder = _lineBlockList ? "Mỗi dòng một mục…" : "Nhập nội dung…";
     const label = box?.querySelector("label");
     if (label)

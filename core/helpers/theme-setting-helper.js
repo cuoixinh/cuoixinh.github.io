@@ -363,9 +363,39 @@ function _isEditMode() {
 const _CX_BOUND_SEL =
   "[data-cx-bound], #love-story-list, #timeline-list-render, #rsvp-custom-message";
 
+// Chữ cố định xuống dòng bằng <br> (câu thơ, lời mời) vẫn tính là text thuần: con
+// chỉ toàn <br> thì đọc/ghi theo dòng — mỗi <br> là một "\n" trong ô Nội dung.
+function _cxBrOnly(el) {
+  return (
+    el.children.length > 0 &&
+    Array.prototype.every.call(el.children, (c) => c.tagName === "BR")
+  );
+}
+function _cxLineText(el) {
+  let raw = "";
+  el.childNodes.forEach((n) => {
+    if (n.nodeType === 3) raw += n.nodeValue.replace(/\s+/g, " ");
+    else if (n.nodeName === "BR") raw += "\n";
+  });
+  return raw
+    .split("\n")
+    .map((l) => l.trim())
+    .join("\n")
+    .trim();
+}
+function _cxWriteLines(el, text) {
+  el.textContent = "";
+  String(text)
+    .split("\n")
+    .forEach((line, i) => {
+      if (i) el.appendChild(document.createElement("br"));
+      el.appendChild(document.createTextNode(line));
+    });
+}
+
 // Áp NỘI DUNG text đã sửa (text_overrides[sel].text). Phải chạy SAU render vì đổi
-// textContent (không phải CSS). Bỏ qua phần tử bound và phần tử có con (chỉ sửa
-// text thuần, tránh phá cấu trúc/icon).
+// textContent (không phải CSS). Bỏ qua phần tử bound và phần tử có con khác <br>
+// (chỉ sửa text thuần, tránh phá cấu trúc/icon).
 function applyTextOverrides(setting) {
   if (typeof setting === "string") {
     try {
@@ -389,10 +419,18 @@ function applyTextOverrides(setting) {
     try {
       el = document.querySelector(sel);
     } catch (e) {}
-    if (!el || el.children.length || el.closest(_CX_BOUND_SEL)) return;
-    if (!el.hasAttribute("data-cx-orig"))
-      el.setAttribute("data-cx-orig", el.textContent);
-    el.textContent = text;
+    if (!el || el.closest(_CX_BOUND_SEL)) return;
+    if (!el.hasAttribute("data-cx-orig")) {
+      if (el.children.length && !_cxBrOnly(el)) return;
+      // data-cx-br: phần tử gốc có <br> → ghi/phục hồi theo dòng.
+      if (el.children.length) el.setAttribute("data-cx-br", "");
+      el.setAttribute(
+        "data-cx-orig",
+        el.children.length ? _cxLineText(el) : el.textContent,
+      );
+    }
+    if (el.hasAttribute("data-cx-br")) _cxWriteLines(el, text);
+    else el.textContent = text;
   });
   // Phục hồi phần tử TỪNG đổi nhưng nay đã bỏ override → trả lại text gốc.
   document.querySelectorAll("[data-cx-orig]").forEach((el) => {
@@ -404,8 +442,11 @@ function applyTextOverrides(setting) {
       }
     });
     if (!still) {
-      el.textContent = el.getAttribute("data-cx-orig");
+      if (el.hasAttribute("data-cx-br"))
+        _cxWriteLines(el, el.getAttribute("data-cx-orig"));
+      else el.textContent = el.getAttribute("data-cx-orig");
       el.removeAttribute("data-cx-orig");
+      el.removeAttribute("data-cx-br");
     }
   });
 }
@@ -2653,7 +2694,8 @@ if (typeof window !== "undefined") {
   // __cxPickBlockBody).
   function _sendPick(el, selector, extra) {
     const cs = getComputedStyle(el);
-    const txt = (el.textContent || "").trim();
+    const brMode = el.hasAttribute("data-cx-br") || _cxBrOnly(el);
+    const txt = brMode ? _cxLineText(el) : (el.textContent || "").trim();
     const grad = _textGradient(cs);
     parent.postMessage(
       Object.assign(
@@ -2662,7 +2704,8 @@ if (typeof window !== "undefined") {
           selector,
           sample: txt.slice(0, 48),
           bound: _isBound(el),
-          textOnly: el.children.length === 0,
+          textOnly: el.children.length === 0 || brMode,
+          multiline: brMode,
           text: txt.slice(0, 2000),
           computed: {
             fontFamily: cs.fontFamily,
