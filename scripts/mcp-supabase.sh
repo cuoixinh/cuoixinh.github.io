@@ -13,4 +13,6 @@ if [ -f "$ROOT/.mcp.env" ]; then
 fi
 : "${SUPABASE_ACCESS_TOKEN:=proxy-injected}"
 export SUPABASE_ACCESS_TOKEN
+# Node mặc định KHÔNG đi qua HTTPS_PROXY → request tới thẳng Supabase, không được gắn token.
+if [ -n "${HTTPS_PROXY:-}" ]; then export NODE_USE_ENV_PROXY=1; fi
 exec npx -y @supabase/mcp-server-supabase@latest "$@"
