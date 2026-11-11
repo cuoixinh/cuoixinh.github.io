@@ -104,6 +104,18 @@
               <span>Đặt lại</span>
               <i data-lucide="chevron-down" aria-hidden="true" style="width:14px;height:14px"></i>
             </button>
+            <!-- Mở #cx-hist-pop (js/28-theme-history.js): mọi thay đổi của MỌI tab, hoàn
+                 tác riêng từng mục. Có ở cả màn chi tiết. Số đỏ = số mục đang khác gốc. -->
+            <button
+              type="button"
+              id="cx-ch-hist"
+              class="cx-ch-hist"
+              aria-label="Lịch sử thay đổi"
+              title="Lịch sử thay đổi"
+            >
+              <i data-lucide="history" aria-hidden="true" style="width:16px;height:16px"></i>
+              <span id="cx-ch-hist-n" class="cx-ch-hist-n hidden">0</span>
+            </button>
           </div>
           <span id="cx-ch-title" class="cx-ch-title">Màu sắc</span>
           <!-- Ô bên phải: cặp nút của MÀN CHI TIẾT (bấm thẳng vào một phần tử trên
@@ -620,6 +632,18 @@
       placement="bottom"
       align="start"
       width="272"
+    ></x-popover>
+    <!-- Popover Lịch sử: nội dung do _thRender() dựng mỗi lần mở / mỗi khi lịch sử
+         đổi. keep-open: bấm Hoàn tác xong vẫn đứng đó để hoàn tác tiếp. -->
+    <x-popover
+      id="cx-hist-pop"
+      anchor="#cx-ch-hist"
+      placement="bottom"
+      align="start"
+      width="min(360px, calc(100vw - 16px))"
+      role="dialog"
+      aria-label="Lịch sử thay đổi"
+      keep-open
     ></x-popover>
   </div>
   <!-- /cụm preview + controls (max-w-4xl) -->

@@ -61,6 +61,8 @@ function _doAutoSave() {
 // tab: tab nào bị sửa để gắn dấu * đúng chỗ ("edit" mặc định — form chính)
 function _scheduleAutoSave(tab = "edit") {
   _setDirty(true, tab);
+  // Lịch sử tab Giao diện ghi nhận từ đây (js/28-theme-history.js).
+  if (tab === "theme") window.cxThemeHistNote?.();
   // Đã mua thiệp (đã thanh toán, is_published = true) → không auto-save nữa
   if (IS_PUBLISHED) return;
   clearTimeout(_autoSaveTimer);

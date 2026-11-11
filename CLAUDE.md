@@ -203,7 +203,10 @@ chỗ trống → gọi lại `cxNavReflow()`.
 tab mà còn thay đổi thì hỏi Lưu lại / Huỷ (Huỷ trả `_themeSetting` về bản đã chốt). Dưới
 `md` phiên giấu navbar và đẩy một mốc lịch sử để nút Back là lối thoát tab. Nên mọi đường
 đổi tab phải qua `switchTab()`/`openGuestsPage()` (chỗ gác), và khung thiệp của tab nạp
-bằng `_cxFrameLoad` — gán thẳng `iframe.src` là thêm mốc, Back lùi trang con thay vì thoát.
+bằng `_cxFrameLoad` — gán thẳng `iframe.src` là thêm mốc, Back lùi trang con thay vì thoát. Nút
+Lịch sử (`js/28-theme-history.js`) so `theme_setting` với bản gốc lúc bắt đầu chỉnh theo
+từng mục khai ở `_thItems` — thêm khoá mới vào `theme_setting` phải khai ở đó, không thì
+lịch sử không thấy và không hoàn tác được.
 
 **Xem trực tiếp** (`js/22-live-preview.js`): từ **820px** trở lên (iPad dựng đứng cũng có),
 `#live-dock` là **dải cố định sát mép phải, NGOÀI vùng ứng dụng** — `<body>` chừa

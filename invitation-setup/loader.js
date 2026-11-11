@@ -133,6 +133,8 @@
     "js/26-publish-check.js",
     // Phiên chỉnh tab Giao diện — gắn listener vào #theme-panel lúc nạp.
     "js/27-theme-session.js",
+    // Lịch sử tab Giao diện — sau 05/06/27 (dùng CTRL_VIEWS, _scheduleAutoSave, _tsStable).
+    "js/28-theme-history.js",
     // Khung chat AI dùng chung với trang chủ; thấy window.cxApplyAiCard thì đổ
     // thẳng vào thiệp đang mở thay vì dựng nháp mới.
     "../core/dal/ai-chat-dal.js",

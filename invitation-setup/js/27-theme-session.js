@@ -50,6 +50,7 @@ function _tsPush() {
 
 // switchTab() gọi khi mở tab Giao diện (trước khi nó ghi ?tab= vào URL).
 function _cxThemeEnter() {
+  window.cxThemeHistInit?.();
   if (_tsOpen) return;
   _tsOpen = true;
   _tsBase = null;
@@ -93,6 +94,7 @@ function _tsRevert() {
       _demoFilled = _tsSnap.demo;
     } else _updateDirtyMarks();
   }
+  window.cxThemeHistNote?.();
   // Nháp chỉ nằm trong máy đã ghi bản vừa chỉnh → ghi lại bản cũ ngay.
   if (!IS_PUBLISHED) {
     clearTimeout(_autoSaveTimer);
