@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Ảnh TikTok - Cưới Xinh</title>
+    <!-- Trang ứng dụng (lấy thiệp của tài khoản): không đưa lên kết quả tìm kiếm. -->
+    <meta name="robots" content="noindex" />
+    <meta
+      name="description"
+      content="Ghép lời lên ảnh cưới thành một loạt ảnh dọc để đăng TikTok, lấy sẵn ảnh từ thiệp đã tạo trên Cưới Xinh."
+    />
+    <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Playfair + Inter cho trang; Be Vietnam Pro + Fraunces + Montserrat là chữ vẽ lên ảnh (canvas chỉ
+         vẽ được font trang đã khai) — mẫu mới dùng font Google nào thì thêm vào đây. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,800;1,400&family=Montserrat:wght@800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/build.css" />
+    <script src="../core/helpers/no-zoom.js"></script>
+    <script src="../core/helpers/no-inspect.js"></script>
+  </head>
+  <body class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20">
+    <!-- "Ảnh TikTok": luôn khổ dọc 3:4, cả trang chỉ là MỘT sân khấu (ảnh cao vừa khít màn + bàn điều
+         khiển), không có bảng bên — dùng lại lớp .sc-* của Slide cưới. Mọi thao tác làm THẲNG trên ảnh:
+         kéo chữ để dời, bấm chữ mở thẻ "Chữ" (lời + màu chữ, nền, độ mờ, cỡ), kéo ảnh để căn, bấm ảnh
+         (hoặc thả file vào) để đổi. Bàn điều khiển: dải ảnh · đổi/bỏ ảnh · Mẫu · tải về. -->
+    <main id="po-app" class="sc-app po-app" style="--sc-ratio-n: 0.75; --po-ratio: 3 / 4">
+      <header class="sc-head">
+        <h1 class="tg-title">Ảnh TikTok</h1>
+        <p class="sc-sub">Ghép lời lên ảnh cưới thành một loạt ảnh để đăng TikTok.</p>
+      </header>
+
+      <section class="sc-stage" aria-label="Ảnh đang chỉnh">
+        <div id="po-screen" class="sc-screen po-screen" style="--sc-ratio: 3 / 4">
+          <canvas id="po-canvas" role="img" aria-label="Ảnh đang chỉnh"></canvas>
+          <div class="po-hint" aria-hidden="true"><i data-lucide="mouse-pointer-click"></i><span class="po-hint-drag">Bấm vào chữ để sửa lời và màu, kéo để dời chữ hoặc căn ảnh</span><span class="po-hint-fix">Bấm vào chữ để sửa lời và màu, bấm vào ảnh để đổi ảnh</span></div>
+          <!-- Mốc neo của thẻ "Chữ" — index.js đặt khít lên khối chữ đang vẽ; không bắt chuột. -->
+          <div id="po-text-anchor" class="po-text-anchor" aria-hidden="true"></div>
+          <div class="po-drop" aria-hidden="true"><i data-lucide="image-down"></i><span>Thả ảnh vào đây</span></div>
+        </div>
+        <input id="po-ph-file" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" />
+        <div class="sc-bar">
+          <div class="sc-line">
+            <div id="po-strip" class="po-strip" role="tablist" aria-label="Các ảnh trong loạt"></div>
+          </div>
+          <div class="sc-ctl" role="group" aria-label="Ảnh đang chọn">
+            <x-button id="po-ph-undo" variant="bare" icon-only icon="image-off" class="sc-ctl-btn hidden" onclick="poPhotoReset()" aria-label="Bỏ ảnh đã đổi, dùng lại ảnh mẫu" title="Dùng lại ảnh mẫu"></x-button>
+            <x-button variant="bare" icon-only icon="type" class="sc-ctl-btn" onclick="poAddText()" aria-label="Thêm khối chữ lên ảnh này" title="Thêm chữ"></x-button>
+            <x-button id="po-undo" variant="bare" icon-only icon="undo-2" class="sc-ctl-btn" onclick="poUndo()" aria-label="Hoàn tác" title="Hoàn tác (Ctrl+Z)" disabled></x-button>
+            <x-button id="po-redo" variant="bare" icon-only icon="redo-2" class="sc-ctl-btn" onclick="poRedo()" aria-label="Làm lại" title="Làm lại (Ctrl+Y)" disabled></x-button>
+            <x-button id="po-del" variant="bare" icon-only icon="trash-2" class="sc-ctl-btn" onclick="poRemove()" aria-label="Bỏ ảnh này khỏi loạt" title="Bỏ ảnh này"></x-button>
+          </div>
+          <div class="sc-acts">
+            <x-button id="po-tpl-btn" variant="bare" icon="layout-template" class="sc-ghost" title="Đổi mẫu">
+              <span class="sc-act-t">Mẫu</span>
+            </x-button>
+            <x-button variant="bare" icon="download" onclick="poSaveOne()" class="sc-ghost" title="Tải ảnh đang chọn">
+              <span class="sc-act-t">Ảnh này</span>
+            </x-button>
+            <x-button id="po-all" variant="bare" icon="images" onclick="poSaveAll()" class="sc-play">
+              <span id="po-all-t" class="sc-act-t">Tải cả bộ</span>
+            </x-button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Thẻ "Chữ": bấm vào chữ trên ảnh lớn là mở, mũi tên chỉ vào khối chữ. Gọn tối đa cho vừa điện
+           thoại: ô lời (riêng ảnh này / khối chữ thêm — khối thêm có thêm dải chọn kiểu + nút xoá) rồi mỗi kiểu một hàng icon + chấm màu, căn cả khối chữ (riêng ảnh này) + căn dòng chữ (theo kiểu chữ), độ mờ nền và cỡ chữ chung một
+           hàng (kiểu riêng của khối đang sửa). Dòng mẫu không dùng (controls) thì ẩn. keep-open: bấm chấm màu không
+           đóng thẻ. Nằm NGOÀI sân khấu vì thẻ là position: fixed. -->
+      <x-popover id="po-style-pop" anchor="#po-text-anchor" placement="top" align="center" width="300" arrow keep-open role="dialog" aria-label="Chữ trên ảnh">
+        <div id="po-sp-main" class="po-sp">
+          <textarea id="po-text" class="po-sp-text" rows="2" spellcheck="false" placeholder="Gõ lời cho ảnh này" aria-label="Lời trên ảnh"></textarea>
+          <div id="po-kinds" class="po-kinds" data-ctl="kind" role="radiogroup" aria-label="Kiểu khối chữ"></div>
+          <div class="po-sp-row" data-ctl="accent" title="Màu nhấn">
+            <i data-lucide="highlighter" class="po-sp-ic" style="width:16px;height:16px" aria-hidden="true"></i>
+            <div class="po-sws" data-for="accent" role="radiogroup" aria-label="Màu nhấn"></div>
+          </div>
+          <div class="po-sp-row" data-ctl="color" title="Màu chữ">
+            <i data-lucide="type" class="po-sp-ic" style="width:16px;height:16px" aria-hidden="true"></i>
+            <div class="po-sws" data-for="color" role="radiogroup" aria-label="Màu chữ"></div>
+          </div>
+          <div class="po-sp-row" data-ctl="bg" title="Màu nền">
+            <i data-lucide="paint-bucket" class="po-sp-ic" style="width:16px;height:16px" aria-hidden="true"></i>
+            <div class="po-sws" data-for="bg" role="radiogroup" aria-label="Màu nền"></div>
+          </div>
+          <div class="po-sp-aligns">
+            <div class="po-al" data-ctl="align" role="group" aria-label="Căn khối chữ trên ảnh" title="Vị trí khối chữ">
+              <button type="button" data-align="0" aria-pressed="false" aria-label="Sát trái" title="Sát trái"><i data-lucide="align-start-vertical" style="width:16px;height:16px" aria-hidden="true"></i></button>
+              <button type="button" data-align="50" aria-pressed="false" aria-label="Giữa" title="Giữa"><i data-lucide="align-center-vertical" style="width:16px;height:16px" aria-hidden="true"></i></button>
+              <button type="button" data-align="100" aria-pressed="false" aria-label="Sát phải" title="Sát phải"><i data-lucide="align-end-vertical" style="width:16px;height:16px" aria-hidden="true"></i></button>
+            </div>
+            <div class="po-al" data-ctl="talign" role="group" aria-label="Căn dòng chữ" title="Căn dòng chữ">
+              <button type="button" data-talign="left" aria-pressed="false" aria-label="Chữ căn trái" title="Chữ căn trái"><i data-lucide="text-align-start" style="width:16px;height:16px" aria-hidden="true"></i></button>
+              <button type="button" data-talign="center" aria-pressed="false" aria-label="Chữ căn giữa" title="Chữ căn giữa"><i data-lucide="text-align-center" style="width:16px;height:16px" aria-hidden="true"></i></button>
+              <button type="button" data-talign="right" aria-pressed="false" aria-label="Chữ căn phải" title="Chữ căn phải"><i data-lucide="text-align-end" style="width:16px;height:16px" aria-hidden="true"></i></button>
+            </div>
+          </div>
+          <div class="po-sp-row po-step" data-ctl="alpha" title="Độ mờ nền">
+            <i data-lucide="blend" class="po-sp-ic" style="width:16px;height:16px" aria-hidden="true"></i>
+            <button type="button" class="po-step-b" data-step="alpha" data-d="-1" aria-label="Giảm độ mờ nền"><i data-lucide="minus" style="width:16px;height:16px" aria-hidden="true"></i></button>
+            <input id="po-alpha" type="range" class="po-alpha" min="0" max="100" step="1" aria-label="Độ mờ nền" />
+            <button type="button" class="po-step-b" data-step="alpha" data-d="1" aria-label="Tăng độ mờ nền"><i data-lucide="plus" style="width:16px;height:16px" aria-hidden="true"></i></button>
+            <output id="po-alpha-v" class="po-step-v" for="po-alpha"></output>
+          </div>
+          <div class="po-sp-row po-step" data-ctl="size" title="Cỡ chữ">
+            <i data-lucide="a-large-small" class="po-sp-ic" style="width:16px;height:16px" aria-hidden="true"></i>
+            <button type="button" class="po-step-b" data-step="size" data-d="-1" aria-label="Giảm cỡ chữ"><i data-lucide="minus" style="width:16px;height:16px" aria-hidden="true"></i></button>
+            <input id="po-size" type="range" class="sc-range" min="60" max="160" step="1" aria-label="Cỡ chữ" />
+            <button type="button" class="po-step-b" data-step="size" data-d="1" aria-label="Tăng cỡ chữ"><i data-lucide="plus" style="width:16px;height:16px" aria-hidden="true"></i></button>
+            <output id="po-size-v" class="po-step-v" for="po-size"></output>
+          </div>
+          <div class="po-sp-acts">
+            <x-button variant="bare" icon-only icon="copy-plus" onclick="poApplyOpen()" class="po-sp-reset" aria-label="Dùng kiểu chữ, nền và vị trí này cho ảnh khác" title="Dùng cho hàng loạt"></x-button>
+            <x-button id="po-blk-del" variant="bare" icon-only icon="trash-2" onclick="poTextDel()" class="po-sp-reset hidden" aria-label="Xoá khối chữ này" title="Xoá khối chữ"></x-button>
+            <x-button id="po-style-reset" variant="bare" icon-only icon="rotate-ccw" onclick="poStyleReset()" class="po-sp-reset hidden" aria-label="Về kiểu chữ mặc định của mẫu" title="Về mặc định"></x-button>
+          </div>
+        </div>
+        <!-- Dùng cho hàng loạt: thay chỗ phần chỉnh trong cùng thẻ — chọn ảnh (hoặc tất cả) để chép kiểu
+             chữ + nền + vị trí của khối đang sửa sang. -->
+        <div id="po-apply" class="po-sp po-apply hidden">
+          <div class="po-ap-head">
+            <x-button variant="bare" icon-only icon="chevron-left" onclick="poApplyClose()" class="po-sp-reset" aria-label="Quay lại chỉnh chữ" title="Quay lại"></x-button>
+            <p class="po-ap-title">Dùng cho ảnh</p>
+            <button type="button" id="po-ap-all" class="po-ap-all" onclick="poApplyAll()">Chọn tất cả</button>
+          </div>
+          <div id="po-ap-grid" class="po-ap-grid" role="group" aria-label="Ảnh sẽ dùng kiểu này"></div>
+          <x-button id="po-ap-go" variant="fill" tone="brand" size="sm" full onclick="poApplyGo()">Áp dụng</x-button>
+        </div>
+      </x-popover>
+
+      <!-- Thẻ "Mẫu": ảnh nhỏ của ảnh đang chọn vẽ theo từng mẫu, bấm là đổi mẫu riêng ảnh đó; chân thẻ áp cho cả loạt. -->
+      <x-popover id="po-tpl-pop" anchor="#po-tpl-btn" placement="top" align="end" width="360" arrow role="dialog" aria-label="Chọn mẫu">
+        <div id="po-grid" class="po-tpls"></div>
+        <div class="po-tpl-foot">
+          <p id="po-tpl-note" class="po-tpl-note"></p>
+          <x-button id="po-tpl-all" variant="bare" icon="copy-check" onclick="poTplAll()" class="po-tpl-all hidden">Dùng cho cả loạt</x-button>
+        </div>
+      </x-popover>
+    </main>
+
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../core/x-button.js"></script>
+    <script src="../core/x-logo.js"></script>
+    <script src="../core/x-popover.js"></script>
+    <script src="../core/helpers/account-menu.js"></script>
+    <!-- config.js TRƯỚC navbar: mục có `feature` đọc CONFIG.features lúc mount. -->
+    <script src="../core/config.js"></script>
+    <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
+    <script src="../core/auth.js"></script>
+    <script src="../core/components/navbar.js"></script>
+    <script>
+      CXNavbar.mount({
+        active: "poster",
+        items: [
+          { id: "home", label: "Trang chủ", icon: "home", href: "/" },
+          { id: "templates", label: "Mẫu thiệp", icon: "layers", href: "/theme-template/" },
+          {
+            id: "cart",
+            label: "Đã chọn",
+            loginLabel: "Thiệp của tôi",
+            icon: "cart",
+            href: "/my-invitations/",
+            count: true,
+          },
+          { id: "guests", label: "Khách mời", icon: "users", href: "/guest-list/", login: true },
+          { id: "led", label: "Hình nền LED", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
+          { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
+          { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/", feature: "slides" },
+          { id: "account", label: "Tài khoản", icon: "user", onClick: "CXAccount.open(this)" },
+        ],
+      });
+      CXAccount.mountChip();
+    </script>
+    <script src="../core/cache-util.js"></script>
+    <script src="../core/helpers/alert.js"></script>
+    <script src="../core/auth-ui.js"></script>
+    <script src="../core/dal/wedding-dal.js"></script>
+    <script src="../core/dal/storage-dal.js"></script>
+    <!-- core/supabase.js dựng sẵn cả WeddingBL/ImageBL — thiếu hai file này là
+         ReferenceError dù trang chỉ đọc. -->
+    <script src="../core/bl/wedding-bl.js"></script>
+    <script src="../core/bl/image-bl.js"></script>
+    <script src="../core/supabase.js"></script>
+    <!-- getImageUrl + bộ ảnh mẫu (cxPreviewWedding) làm ảnh mặc định. -->
+    <script src="../core/utils.js"></script>
+    <script src="../public/themes/preview-data.js"></script>
+    <!-- Mẫu: mỗi file tự đăng ký vào CX_POSTER_TEMPLATES, thứ tự thẻ = thứ tự ở mục Mẫu (mẫu đầu
+         là mặc định). Thêm mẫu = thêm một thẻ ở đây, sau poster-kit.js (đồ nghề vẽ dùng chung).
+         Mẫu "phụ đề" chỉ vẽ chữ lên ảnh tràn khung; mẫu `full` tự vẽ cả khung. -->
+    <script src="/poster/templates/poster-kit.js"></script>
+    <script src="/poster/templates/phu-de-trang.js"></script>
+    <script src="/poster/templates/tieu-de-hai-mau.js"></script>
+    <script src="/poster/templates/tieu-de-dai.js"></script>
+    <script src="/poster/templates/phu-de-den.js"></script>
+    <script src="/poster/templates/tin-nhan.js"></script>
+    <script src="/poster/templates/khung-trang.js"></script>
+    <script src="/poster/index.js"></script>
+    <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
+    <script src="../core/helpers/nav-cart-count.js"></script>
+  </body>
+</html>

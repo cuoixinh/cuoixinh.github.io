@@ -158,141 +158,165 @@
 
         <!-- Tab Mã giảm giá (admin-support/promo.js → wedding-admin?resource=promo-codes) -->
         <div id="sup-tab-promo" role="tabpanel" aria-labelledby="sup-tab-btn-promo" class="hidden space-y-4">
-          <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="p-4 sm:p-6 border-b border-gray-100">
-              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo mã giảm giá</h2>
-              <p class="text-xs text-gray-500 mt-1 max-w-2xl">
-                Áp mã là trừ lượt ngay và <strong>không hoàn lại</strong>: khách bỏ ngang không thanh toán thì lượt đó vẫn mất,
-                cấp bù bằng nút + ở danh sách. Khách phải nhập email hoặc đăng nhập mới áp được mã, mã giảm 100% thì bắt buộc đăng nhập.
-              </p>
-            </div>
-
-            <div class="sup-promo-grid p-4 sm:p-6">
-              <div class="space-y-4 min-w-0">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <span class="block text-xs font-medium text-gray-600 mb-1">Kiểu giảm</span>
-                    <input id="promo-type" type="hidden" value="percent" />
-                    <div id="promo-type-seg" class="cx-seg" style="--n: 2; --i: 0" role="radiogroup" aria-label="Kiểu giảm">
-                      <button type="button" role="radio" aria-checked="true" data-type="percent" class="cx-seg-btn is-on">Theo %</button>
-                      <button type="button" role="radio" aria-checked="false" data-type="fixed" class="cx-seg-btn">Số tiền</button>
-                    </div>
-                  </div>
-                  <div>
-                    <label for="promo-value" class="block text-xs font-medium text-gray-600 mb-1">Giá trị giảm</label>
-                    <div class="sup-affix">
-                      <input id="promo-value" type="number" min="1" value="20" inputmode="numeric" />
-                      <span id="promo-value-unit">%</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label for="promo-max-uses" class="block text-xs font-medium text-gray-600 mb-1">Số lượt mỗi mã</label>
-                    <input id="promo-max-uses" type="number" min="1" value="1" inputmode="numeric" placeholder="Không giới hạn" class="sup-input" />
-                  </div>
-                  <div>
-                    <label for="promo-expires" class="block text-xs font-medium text-gray-600 mb-1">Hạn dùng</label>
-                    <!-- Nút xoá nằm trong ô: xoá ngày = mã không hết hạn -->
-                    <div class="sup-affix">
-                      <input id="promo-expires" type="date" />
-                      <button type="button" id="promo-expires-clear" class="sup-clear inline-flex hidden" title="Xoá hạn dùng (không hết hạn)" aria-label="Xoá hạn dùng">
-                        <i data-lucide="x" style="width:16px;height:16px"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label for="promo-min-order" class="block text-xs font-medium text-gray-600 mb-1">Đơn tối thiểu</label>
-                    <div class="sup-affix">
-                      <input id="promo-min-order" type="number" min="0" step="1000" value="0" inputmode="numeric" />
-                      <span>đ</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label for="promo-note" class="block text-xs font-medium text-gray-600 mb-1">Ghi chú nội bộ</label>
-                    <input id="promo-note" type="text" maxlength="200" placeholder="vd. Khách nhắn qua Zalo" class="sup-input" />
-                  </div>
-                </div>
-                <p class="text-[11px] text-gray-400 -mt-2">Để trống số lượt là không giới hạn, để trống hạn dùng là không hết hạn.</p>
-
-                <div class="pt-4 border-t border-gray-100 space-y-3">
-                  <div id="promo-mode-seg" class="cx-seg sup-mode" style="--n: 2; --i: 0" role="tablist" aria-label="Cách tạo mã">
-                    <button type="button" role="tab" aria-selected="true" data-mode="single" class="cx-seg-btn is-on">Một mã tự đặt</button>
-                    <button type="button" role="tab" aria-selected="false" data-mode="batch" class="cx-seg-btn">Sinh hàng loạt</button>
-                  </div>
-
-                  <div id="promo-mode-single" class="flex flex-col sm:flex-row gap-2">
-                    <input id="promo-manual-code" type="text" maxlength="40" placeholder="Gõ mã muốn tạo" autocomplete="off" spellcheck="false" autocapitalize="characters"
-                      aria-label="Mã tự đặt" onkeydown="if (event.key === 'Enter') promoCreateSingle()" class="sup-input uppercase flex-1 min-w-0" />
-                    <x-button id="promo-single-btn" onclick="promoCreateSingle()" icon="plus">Tạo mã</x-button>
-                  </div>
-
-                  <div id="promo-mode-batch" class="hidden space-y-2">
-                    <div class="grid grid-cols-3 gap-2">
-                      <div>
-                        <label for="promo-prefix" class="block text-[11px] text-gray-500 mb-1">Tiền tố</label>
-                        <input id="promo-prefix" type="text" maxlength="20" value="CX" autocomplete="off" spellcheck="false" class="sup-input uppercase" />
-                      </div>
-                      <div>
-                        <label for="promo-count" class="block text-[11px] text-gray-500 mb-1">Số mã (≤ 200)</label>
-                        <input id="promo-count" type="number" min="1" max="200" value="10" inputmode="numeric" class="sup-input" />
-                      </div>
-                      <div>
-                        <label for="promo-length" class="block text-[11px] text-gray-500 mb-1">Độ dài đuôi</label>
-                        <input id="promo-length" type="number" min="4" max="12" value="6" inputmode="numeric" class="sup-input" />
-                      </div>
-                    </div>
-                    <x-button id="promo-generate-btn" onclick="promoGenerate()" icon="zap" full>Sinh mã</x-button>
-                  </div>
-                </div>
+          <div id="promo-view-seg" class="cx-seg sup-mode" style="--n: 2; --i: 0" role="tablist" aria-label="Mã giảm giá">
+            <button type="button" role="tab" aria-selected="true" data-view="manage" class="cx-seg-btn is-on">Tạo &amp; quản lý</button>
+            <button type="button" role="tab" aria-selected="false" data-view="report" class="cx-seg-btn">Thống kê theo tháng</button>
+          </div>
+          <div id="promo-view-manage" class="space-y-4">
+            <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div class="p-4 sm:p-6 border-b border-gray-100">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo mã giảm giá</h2>
+                <p class="text-xs text-gray-500 mt-1 max-w-2xl">
+                  Áp mã là trừ lượt ngay và <strong>không hoàn lại</strong>: khách bỏ ngang không thanh toán thì lượt đó vẫn mất,
+                  cấp bù bằng nút + ở danh sách. Khách phải nhập email hoặc đăng nhập mới áp được mã, mã giảm 100% thì bắt buộc đăng nhập.
+                </p>
               </div>
 
-              <!-- Vé xem trước: vẽ lại theo từng ô ở bên trái (promoPreview) -->
-              <aside class="sup-preview" aria-label="Xem trước mã">
-                <p class="text-xs font-medium text-gray-500 mb-2">Khách sẽ nhận được</p>
-                <div id="promo-preview"></div>
-              </aside>
-            </div>
+              <div class="sup-promo-grid p-4 sm:p-6">
+                <div class="space-y-4 min-w-0">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <span class="block text-xs font-medium text-gray-600 mb-1">Kiểu giảm</span>
+                      <input id="promo-type" type="hidden" value="percent" />
+                      <div id="promo-type-seg" class="cx-seg" style="--n: 2; --i: 0" role="radiogroup" aria-label="Kiểu giảm">
+                        <button type="button" role="radio" aria-checked="true" data-type="percent" class="cx-seg-btn is-on">Theo %</button>
+                        <button type="button" role="radio" aria-checked="false" data-type="fixed" class="cx-seg-btn">Số tiền</button>
+                      </div>
+                    </div>
+                    <div>
+                      <label for="promo-value" class="block text-xs font-medium text-gray-600 mb-1">Giá trị giảm</label>
+                      <div class="sup-affix">
+                        <input id="promo-value" type="number" min="1" value="20" inputmode="numeric" />
+                        <span id="promo-value-unit">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label for="promo-max-uses" class="block text-xs font-medium text-gray-600 mb-1">Số lượt mỗi mã</label>
+                      <input id="promo-max-uses" type="number" min="1" value="1" inputmode="numeric" placeholder="Không giới hạn" class="sup-input" />
+                    </div>
+                    <div>
+                      <label for="promo-expires" class="block text-xs font-medium text-gray-600 mb-1">Hạn dùng</label>
+                      <!-- Nút xoá nằm trong ô: xoá ngày = mã không hết hạn -->
+                      <div class="sup-affix">
+                        <input id="promo-expires" type="date" />
+                        <button type="button" id="promo-expires-clear" class="sup-clear inline-flex hidden" title="Xoá hạn dùng (không hết hạn)" aria-label="Xoá hạn dùng">
+                          <i data-lucide="x" style="width:16px;height:16px"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label for="promo-min-order" class="block text-xs font-medium text-gray-600 mb-1">Đơn tối thiểu</label>
+                      <div class="sup-affix">
+                        <input id="promo-min-order" type="number" min="0" step="1000" value="0" inputmode="numeric" />
+                        <span>đ</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label for="promo-note" class="block text-xs font-medium text-gray-600 mb-1">Ghi chú nội bộ</label>
+                      <input id="promo-note" type="text" maxlength="200" placeholder="vd. Khách nhắn qua Zalo" class="sup-input" />
+                    </div>
+                  </div>
+                  <p class="text-[11px] text-gray-400 -mt-2">Để trống số lượt là không giới hạn, để trống hạn dùng là không hết hạn.</p>
 
-            <div id="promo-batch" class="hidden px-4 sm:px-6 pb-4 sm:pb-6">
-              <div class="sup-batchbox rounded-2xl p-4 space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                  <p id="promo-batch-title" class="text-sm font-semibold text-gray-800"></p>
+                  <div class="pt-4 border-t border-gray-100 space-y-3">
+                    <div id="promo-mode-seg" class="cx-seg sup-mode" style="--n: 2; --i: 0" role="tablist" aria-label="Cách tạo mã">
+                      <button type="button" role="tab" aria-selected="true" data-mode="single" class="cx-seg-btn is-on">Một mã tự đặt</button>
+                      <button type="button" role="tab" aria-selected="false" data-mode="batch" class="cx-seg-btn">Sinh hàng loạt</button>
+                    </div>
+
+                    <div id="promo-mode-single" class="flex flex-col sm:flex-row gap-2">
+                      <input id="promo-manual-code" type="text" maxlength="40" placeholder="Gõ mã muốn tạo" autocomplete="off" spellcheck="false" autocapitalize="characters"
+                        aria-label="Mã tự đặt" onkeydown="if (event.key === 'Enter') promoCreateSingle()" class="sup-input uppercase flex-1 min-w-0" />
+                      <x-button id="promo-single-btn" onclick="promoCreateSingle()" icon="plus">Tạo mã</x-button>
+                    </div>
+
+                    <div id="promo-mode-batch" class="hidden space-y-2">
+                      <div class="grid grid-cols-3 gap-2">
+                        <div>
+                          <label for="promo-prefix" class="block text-[11px] text-gray-500 mb-1">Tiền tố</label>
+                          <input id="promo-prefix" type="text" maxlength="20" value="CX" autocomplete="off" spellcheck="false" class="sup-input uppercase" />
+                        </div>
+                        <div>
+                          <label for="promo-count" class="block text-[11px] text-gray-500 mb-1">Số mã (≤ 200)</label>
+                          <input id="promo-count" type="number" min="1" max="200" value="10" inputmode="numeric" class="sup-input" />
+                        </div>
+                        <div>
+                          <label for="promo-length" class="block text-[11px] text-gray-500 mb-1">Độ dài đuôi</label>
+                          <input id="promo-length" type="number" min="4" max="12" value="6" inputmode="numeric" class="sup-input" />
+                        </div>
+                      </div>
+                      <x-button id="promo-generate-btn" onclick="promoGenerate()" icon="zap" full>Sinh mã</x-button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Vé xem trước: vẽ lại theo từng ô ở bên trái (promoPreview) -->
+                <aside class="sup-preview" aria-label="Xem trước mã">
+                  <p class="text-xs font-medium text-gray-500 mb-2">Khách sẽ nhận được</p>
+                  <div id="promo-preview"></div>
+                </aside>
+              </div>
+
+              <div id="promo-batch" class="hidden px-4 sm:px-6 pb-4 sm:pb-6">
+                <div class="sup-batchbox rounded-2xl p-4 space-y-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <p id="promo-batch-title" class="text-sm font-semibold text-gray-800"></p>
+                    <div class="flex gap-2">
+                      <x-button variant="outline" size="sm" onclick="promoCopyBatch()" icon="copy">Chép tất cả</x-button>
+                      <x-button variant="outline" size="sm" onclick="promoExportCsv()" icon="file-spreadsheet">Tải CSV</x-button>
+                    </div>
+                  </div>
+                  <div id="promo-batch-codes" class="sup-stubs"></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Danh sách mã: mỗi mã một dải vé (promoRenderList), chip lọc trạng thái + tìm theo mã -->
+            <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div class="p-4 sm:p-6 space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+                  <h2 class="text-base sm:text-lg font-semibold text-gray-800">Danh sách mã <span id="promo-count-label" class="text-sm font-normal text-gray-400"></span></h2>
                   <div class="flex gap-2">
-                    <x-button variant="outline" size="sm" onclick="promoCopyBatch()" icon="copy">Chép tất cả</x-button>
-                    <x-button variant="outline" size="sm" onclick="promoExportCsv()" icon="file-spreadsheet">Tải CSV</x-button>
+                    <input id="promo-search" type="search" placeholder="Tìm theo mã" autocomplete="off" spellcheck="false" aria-label="Tìm theo mã"
+                      class="sup-input uppercase flex-1 sm:w-56 min-w-0" />
+                    <x-button variant="outline" onclick="loadPromoCodes()" icon="refresh-cw" icon-only title="Tải lại" aria-label="Tải lại danh sách mã"></x-button>
                   </div>
                 </div>
-                <div id="promo-batch-codes" class="sup-stubs"></div>
+                <div id="promo-chips" class="sup-chips" role="tablist" aria-label="Lọc mã theo trạng thái"></div>
               </div>
-            </div>
-          </section>
+              <ul id="promo-list" class="sup-strips" aria-live="polite">
+                <li class="sup-strips-empty">Đang tải…</li>
+              </ul>
+            </section>
+          </div>
 
-          <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Danh sách mã <span id="promo-count-label" class="text-sm font-normal text-gray-400"></span></h2>
-              <div class="flex gap-2">
-                <input id="promo-search" type="search" placeholder="Tìm theo mã" autocomplete="off" spellcheck="false" aria-label="Tìm theo mã"
-                  onkeydown="if (event.key === 'Enter') loadPromoCodes()" class="sup-input uppercase flex-1 sm:w-56 min-w-0" />
-                <x-button variant="outline" onclick="loadPromoCodes()" icon="refresh-cw" icon-only title="Tải lại" aria-label="Tải lại danh sách mã"></x-button>
+          <!-- Thống kê theo tháng (admin-support/promo-report.js): mã đã dùng trong tháng, gom theo người nhận
+               (ô Ghi chú của mã) — căn cứ trả hoa hồng giới thiệu. -->
+          <div id="promo-view-report" class="hidden space-y-4">
+            <!-- Bảng kê tháng: tên tháng là tiêu đề (bấm để chọn), một câu tóm tắt thay cho ô số -->
+            <section class="sup-statement bg-white rounded-2xl shadow-lg">
+              <div class="sup-statement-head">
+                <div class="sup-month">
+                  <x-button variant="ghost" tone="neutral" icon-only icon="chevron-left" title="Tháng trước" aria-label="Tháng trước" onclick="prShift(-1)"></x-button>
+                  <!-- Chọn tháng: <x-date level="month"> (core/x-controls.js), nút mở mang class tiêu đề lớn -->
+                  <x-date id="pr-month" level="month" bare max="now" align="center" label="Chọn tháng" input-class="sup-month-pick"></x-date>
+                  <x-button id="pr-next" variant="ghost" tone="neutral" icon-only icon="chevron-right" title="Tháng sau" aria-label="Tháng sau" onclick="prShift(1)"></x-button>
+                </div>
+                <x-button variant="outline" size="sm" icon="file-spreadsheet" onclick="prExportCsv()">Tải CSV</x-button>
               </div>
-            </div>
-            <div class="p-4 sm:p-6 overflow-x-auto">
-              <table class="w-full min-w-[760px] lg:min-w-0">
-                <thead>
-                  <tr class="border-b border-gray-200">
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Mã</th>
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Giảm</th>
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Lượt dùng</th>
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Hạn dùng</th>
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500">Trạng thái</th>
-                    <th class="py-3 px-4 text-right text-xs font-semibold text-gray-500"><span class="sr-only">Thao tác</span></th>
-                  </tr>
-                </thead>
-                <tbody id="promo-list">
-                  <tr><td colspan="6" class="text-center py-8 text-gray-400">Đang tải…</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
+              <p id="pr-summary" class="sup-statement-sum" aria-live="polite">Đang tải…</p>
+              <p class="sup-statement-rule">
+                Chỉ tính đơn đã thanh toán xong, theo giờ Việt Nam. Người nhận là ô Ghi chú của mã: ghi đúng một tên cho mọi mã
+                của cùng một người thì số liệu mới gom chung.
+              </p>
+            </section>
+
+            <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div id="pr-people" class="sup-ledger">
+                <p class="p-6 text-sm text-gray-400">Đang tải…</p>
+              </div>
+            </section>
+          </div>
         </div>
 
         <!-- Tab Thiệp của khách: số liệu phân tích (admin-support/weddings.js → wedding-admin?resource=support-weddings) -->
@@ -378,6 +402,8 @@
 
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <script src="/core/x-button.js"></script>
+    <script src="/core/x-popover.js"></script>
+    <script src="/core/x-controls.js"></script>
     <script src="/core/x-logo.js"></script>
     <script src="/core/config.js"></script>
     <script src="/core/utils.js"></script>
@@ -386,6 +412,7 @@
     <script src="/core/auth-ui.js"></script>
     <script src="/admin-support/index.js"></script>
     <script src="/admin-support/promo.js"></script>
+    <script src="/admin-support/promo-report.js"></script>
     <script src="/admin-support/weddings.js"></script>
   </body>
 </html>

@@ -50,6 +50,7 @@ supabase/functions/      Edge Functions
 changelogs/              Lịch sử thay đổi DB
 cloudflare-worker/       Workers proxy/cache
 hinh-nen-led/            "Hình nền LED" — mẫu màn chờ chiếu lặp lên LED sân khấu, tải video/ảnh (vẽ bằng bộ vẽ của slide-cuoi/)
+poster/                  "Ảnh TikTok" — loạt ảnh ghép lời lên ảnh cưới để đăng bài nhiều ảnh (canvas riêng, không dùng bộ vẽ slide)
 cloudflare-media/        Kho nhạc thư viện của Slide cưới (Worker file tĩnh ở tài khoản Cloudflare phụ, cuoixinh-media.cx-music.workers.dev) — file nhạc KHÔNG vào git
 worker/                  Worker của site chính — trả trang thiệp tại /<slug> + thẻ og:*
 ```
@@ -662,6 +663,21 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   (sau `templates/led-kit.js` — đồ nghề dựng cảnh dùng chung); font Google mẫu dùng phải có trong
   thẻ `<link>` của trang (canvas không tự tải font). Vẽ bằng bộ vẽ của `slide-cuoi/engine/` (cùng
   định dạng cảnh) — đừng chép bộ vẽ sang đây; chuyển động nền mới thì thêm kiểu phần tử vào bộ vẽ đó.
+- **Ảnh TikTok (`poster/`):** công cụ NỘI BỘ làm ảnh quảng cáo đăng TikTok — KHÔNG có mục navbar/menu, vào thẳng URL — loạt 1–10 ảnh tĩnh
+  (mặc định 5, LUÔN khổ dọc 3:4 (1080×1440), xuất JPEG chất lượng tối đa theo độ nét ảnh gốc, ảnh khách chọn cất nguyên file).
+  Cả trang là MỘT sân khấu (ảnh cao vừa khít màn + bàn điều khiển, không bảng bên); Mẫu là nút
+  mở thẻ nổi ở `sc-acts`, đổi mẫu RIÊNG ảnh đang chọn (nút chân thẻ áp cho cả loạt).
+  Bài đăng CHỈ có ảnh + lời (không tên, ngày cưới); không lấy dữ liệu thiệp — ảnh mặc định là bộ ảnh mẫu.
+  Mọi thao tác làm THẲNG trên ảnh lớn (kéo/bấm/thả ảnh; bấm vào chữ mở thẻ nổi "Chữ" neo vào khối chữ: lời + màu, nền, độ mờ, cỡ, căn cả khối trái/giữa/phải, căn dòng chữ, "Dùng cho hàng loạt" chép kiểu + nền + vị trí sang các ảnh chọn); nút "Thêm chữ" đặt thêm khối chữ lên ảnh (`frame.texts`, kiểu = phần chữ của một mẫu không `fixedY`, màu/cỡ riêng từng khối — mẫu `full` vì thế phải vẽ chữ được khi `c.photo` không làm gì) — đừng
+  thêm lại tab chỉnh kiểu danh sách. Mỗi **mẫu** là MỘT file `templates/<id>.js` đẩy vào `CX_POSTER_TEMPLATES`
+  + một thẻ `<script>` sau `poster-kit.js`: khai `style` mặc định + `controls` (dòng nào của thẻ "Chữ"
+  dùng được), đọc màu/cỡ/căn dòng từ `c.style` (căn dòng qua `CXPosterKit.alignOf`) (kiểu chữ khách đổi lưu RIÊNG từng ảnh/khối chữ — chép bằng "Dùng cho hàng loạt" xong vẫn sửa độc lập), tâm ngang `c.cx`
+  qua `CXPosterKit.clampX`; `full` = mẫu tự vẽ cả khung (ảnh qua `c.photo`), `fixedY` = chữ nằm ô cố định.
+  Mẫu nào cũng PHẢI có nền sau chữ (ô, dải, bong bóng, giấy) — không làm mẫu chữ trần/viền/quầng sáng.
+  Mẫu vẽ theo khổ 1080 nhân `c.u` và PHẢI trả khung bao chữ (trang dùng để kéo/bấm). Chữ phải nằm ngoài
+  vùng giao diện TikTok che — lấy số ở `CXPosterKit.safe(c)`, đừng tự đặt lề. Font mẫu dùng khai ở `fonts`
+  của mẫu + thẻ `<link>` của trang. Hoàn tác/làm lại ghi trong `_poSaveDoc` — thay đổi mới của loạt ảnh phải lưu qua đó (hoặc `_poSaveSoon`), không thì Ctrl+Z bỏ sót. Lời/kiểu chữ cất localStorage, ảnh
+  khách chọn cất BYTE ở IndexedDB — không lên server.
 - **Video quảng cáo (tab admin "Tạo Video Quảng Cáo"):** quay bằng Chrome không giao diện
   ở `scripts/promo-video.mjs`, gắn vào `npm run dev` (đường `/__promo-video/*`) — mở admin
   bằng server khác là không có bộ quay. Sân khấu 9:16 + kịch bản cuộn ở

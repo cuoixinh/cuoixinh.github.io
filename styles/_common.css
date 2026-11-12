@@ -6685,3 +6685,109 @@ input.cx-switch:checked::after,
   outline: 2px solid rgb(var(--action-primary-rgb));
   outline-offset: 2px;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   <x-date level="month"> — bảng chọn tháng (core/x-controls.js) trong <x-popover>:
+   năm + ‹ › ở đầu, lưới 3 × 4 tháng, nút "Về tháng này". Nút mở dùng .x-mp-label/.x-mp-caret.
+   ══════════════════════════════════════════════════════════════════════════ */
+.x-mp-caret {
+  flex: none;
+  color: rgb(156 163 175);
+  transition: transform 0.2s ease;
+}
+[aria-expanded="true"] > .x-mp-caret {
+  transform: rotate(180deg);
+}
+.x-mp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 6px 8px;
+}
+.x-mp-year {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(17 24 39);
+}
+.x-mp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: rgb(75 85 99);
+}
+.x-mp-nav:hover {
+  background: rgb(243 244 246);
+}
+.x-mp-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+  background: transparent;
+}
+.x-mp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 0 4px 4px;
+}
+.x-mp-m {
+  position: relative;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 14px;
+  color: rgb(55 65 81);
+}
+.x-mp-m:hover {
+  background: rgb(255 241 242);
+  color: rgb(var(--action-primary-rgb));
+}
+.x-mp-m:focus-visible,
+.x-mp-nav:focus-visible,
+.x-mp-today:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 1px;
+}
+.x-mp-m.is-now::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 999px;
+  background: rgb(var(--action-primary-rgb));
+}
+.x-mp-m.is-on {
+  font-weight: 600;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+}
+.x-mp-m.is-on::after {
+  background: rgb(var(--white-rgb));
+}
+.x-mp-m:disabled {
+  color: rgb(209 213 219);
+  cursor: default;
+  background: transparent;
+}
+.x-mp-today {
+  margin: 4px 4px 2px;
+  padding: 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgb(var(--action-primary-rgb));
+  box-shadow: inset 0 0 0 1px rgb(254 205 211);
+}
+.x-mp-today:hover {
+  background: rgb(255 241 242);
+}
+@media (prefers-reduced-motion: reduce) {
+  .x-mp-caret {
+    transition: none;
+  }
+}
