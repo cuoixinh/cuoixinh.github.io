@@ -8,7 +8,8 @@ let promoMode = "single";
 
 const promoEl = (id) => document.getElementById(id);
 const promoReq = (method, opts) => supRequest("promo-codes", method, opts);
-const promoVnd = (n) => `${Number(n || 0).toLocaleString("vi-VN")}đ`;
+const promoNum = (n) => Number(n || 0).toLocaleString("vi-VN");
+const promoVnd = (n) => `${promoNum(n)}đ`;
 const promoOff = (type, value) => (type === "percent" ? `${value}%` : promoVnd(value));
 
 // Dải segmented (.cx-seg): con trượt theo --i, nút đang chọn .is-on.
@@ -178,78 +179,130 @@ function promoExportCsv() {
 }
 
 async function loadPromoCodes() {
-  const tbody = promoEl("promo-list");
+  const list = promoEl("promo-list");
   try {
     const q = promoEl("promo-search").value.trim();
     promoCodes = await promoReq("GET", { query: q ? { q } : {} });
     promoRenderList();
   } catch (e) {
     promoEl("promo-count-label").textContent = "";
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">${escapeHtml(e.message)}</td></tr>`;
+    list.innerHTML = `<li class="sup-strips-empty text-red-500">${escapeHtml(e.message)}</li>`;
   }
 }
 
-const PROMO_BADGE = {
-  on: ["bg-emerald-100 text-emerald-700", "Đang chạy"],
-  off: ["bg-gray-100 text-gray-500", "Đã tắt"],
-  expired: ["bg-amber-100 text-amber-700", "Hết hạn"],
-  used: ["bg-rose-100 text-rose-600", "Hết lượt"],
+// Trạng thái của mã: tắt tay > hết hạn > hết lượt > đang chạy. `cls` gắn lên dải để cuống đổi màu.
+const PROMO_ST = {
+  on: "Đang chạy",
+  used: "Hết lượt",
+  expired: "Hết hạn",
+  off: "Đã tắt",
 };
+let promoFilter = "all";
+
+function promoState(c, now) {
+  if (!c.is_active) return "off";
+  if (c.expires_at && new Date(c.expires_at).getTime() < now) return "expired";
+  if (c.max_uses != null && (c.used_count || 0) >= c.max_uses) return "used";
+  return "on";
+}
+
+// Mức giảm in trên cuống: % giữ nguyên, số tiền viết gọn (50.000đ → 50K) cho vừa cuống.
+function promoStub(c) {
+  if (c.discount_type === "percent") return `${c.discount_value}%`;
+  const v = Number(c.discount_value) || 0;
+  return v >= 1000 && v % 1000 === 0 ? `${v / 1000}K` : promoVnd(v);
+}
+
+function promoExpiry(c, now) {
+  if (!c.expires_at) return { text: "Không hết hạn", tone: "" };
+  const t = new Date(c.expires_at).getTime();
+  const date = new Date(c.expires_at).toLocaleDateString("vi-VN");
+  const days = Math.ceil((t - now) / 86400000);
+  if (days < 0) return { text: `Hết hạn ${date}`, tone: "is-muted" };
+  if (days === 0) return { text: `Hết hạn hôm nay`, tone: "is-warn" };
+  return { text: `Còn ${days} ngày, tới ${date}`, tone: days <= 7 ? "is-warn" : "" };
+}
+
+function promoRenderChips(now) {
+  const n = { all: promoCodes.length, on: 0, used: 0, expired: 0, off: 0 };
+  for (const c of promoCodes) n[promoState(c, now)]++;
+  const chips = [["all", "Tất cả"], ...Object.entries(PROMO_ST)];
+  promoEl("promo-chips").innerHTML = chips
+    .map(
+      ([k, label]) =>
+        `<button type="button" role="tab" aria-selected="${promoFilter === k}" class="sup-chip${promoFilter === k ? " is-on" : ""}" data-pfilter="${k}">${label} <small>${n[k]}</small></button>`,
+    )
+    .join("");
+}
 
 function promoRenderList() {
-  const tbody = promoEl("promo-list");
+  const list = promoEl("promo-list");
+  const now = Date.now();
   promoEl("promo-count-label").textContent = promoCodes.length ? `(${promoCodes.length})` : "";
-  if (!promoCodes.length) {
+  promoRenderChips(now);
+  const rows = promoCodes.filter((c) => promoFilter === "all" || promoState(c, now) === promoFilter);
+  if (!rows.length) {
     const q = promoEl("promo-search").value.trim();
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">${q ? `Không có mã nào chứa "${escapeHtml(q)}".` : "Chưa có mã nào. Tạo mã đầu tiên ở khung phía trên."}</td></tr>`;
+    list.innerHTML = `<li class="sup-strips-empty">${
+      q
+        ? `Không có mã nào chứa "${escapeHtml(q)}". Xoá ô tìm kiếm để xem lại tất cả.`
+        : promoCodes.length
+          ? `Không có mã nào ở mục "${PROMO_ST[promoFilter]}".`
+          : "Chưa có mã nào. Tạo mã đầu tiên ở khung phía trên."
+    }</li>`;
     return;
   }
-  const now = Date.now();
-  tbody.innerHTML = promoCodes
+  list.innerHTML = rows
     .map((c) => {
+      const st = promoState(c, now);
       const used = c.used_count || 0;
-      const st = !c.is_active
-        ? "off"
-        : c.expires_at && new Date(c.expires_at).getTime() < now
-          ? "expired"
-          : c.max_uses != null && used >= c.max_uses
-            ? "used"
-            : "on";
-      // Lượt đã trừ: đã thanh toán · đang chờ trả tiền · bỏ ngang (vẫn tính là đã tiêu, không hoàn).
+      const max = c.max_uses;
+      // Lượt đã trừ chia ba: đã thanh toán · đang chờ trả tiền · bỏ ngang (vẫn tính là đã tiêu, không hoàn).
       const rd = c.redemptions || [];
-      const redeemed = rd.filter((r) => r.status === "redeemed").length;
-      const holding = rd.filter((r) => r.status === "reserved" && new Date(r.expires_at).getTime() > now).length;
-      const abandoned = rd.filter((r) => r.status === "reserved" && new Date(r.expires_at).getTime() <= now).length;
+      const paid = rd.filter((r) => r.status === "redeemed").length;
+      const hold = rd.filter((r) => r.status === "reserved" && new Date(r.expires_at).getTime() > now).length;
+      const lost = Math.max(0, used - paid - hold);
+      const cap = max == null ? Math.max(used, 1) : Math.max(max, used, 1);
+      const pct = (n) => `${(n / cap) * 100}%`;
+      const parts = [
+        paid && `${paid} đã thanh toán`,
+        hold && `${hold} đang chờ trả tiền`,
+        lost && `${lost} bỏ ngang (mất lượt)`,
+      ].filter(Boolean);
+      const exp = promoExpiry(c, now);
       const id = escapeHtml(c.id);
-      return `
-    <tr class="border-b border-gray-100${c.is_active ? "" : " opacity-60"}">
-      <td class="py-3 px-4">
-        <button type="button" class="sup-code" data-copy="${escapeHtml(c.code)}" title="Bấm để chép">${escapeHtml(c.code)}</button>
-        ${c.note ? `<div class="text-[11px] text-gray-400 mt-1">${escapeHtml(c.note)}</div>` : ""}
-      </td>
-      <td class="py-3 px-4 text-sm font-semibold text-gray-800">
-        ${promoOff(c.discount_type, c.discount_value)}
-        ${c.min_order_amount ? `<div class="text-[11px] font-normal text-gray-400">đơn từ ${promoVnd(c.min_order_amount)}</div>` : ""}
-      </td>
-      <td class="py-3 px-4 text-sm text-gray-700">
-        ${used}/${c.max_uses == null ? "∞" : c.max_uses}
-        ${redeemed ? `<div class="text-[11px] text-emerald-600">${redeemed} đã thanh toán</div>` : ""}
-        ${holding ? `<div class="text-[11px] text-amber-500">${holding} đang chờ trả tiền</div>` : ""}
-        ${abandoned ? `<div class="text-[11px] text-gray-400">${abandoned} bỏ ngang (mất lượt)</div>` : ""}
-      </td>
-      <td class="py-3 px-4 text-sm text-gray-600">${c.expires_at ? new Date(c.expires_at).toLocaleDateString("vi-VN") : "Không hết hạn"}</td>
-      <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${PROMO_BADGE[st][0]}">${PROMO_BADGE[st][1]}</span></td>
-      <td class="py-3 px-4 text-right whitespace-nowrap">
-        ${c.max_uses == null ? "" : `<x-button variant="ghost" tone="neutral" size="sm" icon-only icon="plus" data-id="${id}" onclick="promoAddUses(this.dataset.id)" title="Cộng thêm lượt" aria-label="Cộng thêm lượt"></x-button>`}
-        <x-button variant="ghost" tone="neutral" size="sm" data-id="${id}" onclick="promoToggle(this.dataset.id)">${c.is_active ? "Tắt" : "Bật"}</x-button>
-        <x-button variant="ghost" tone="danger" size="sm" icon-only icon="trash-2" data-id="${id}" onclick="promoDelete(this.dataset.id)" title="Xoá mã" aria-label="Xoá mã"></x-button>
-      </td>
-    </tr>`;
+      return `<li class="sup-strip is-${st}">
+        <div class="sup-strip-stub">
+          <b>${escapeHtml(promoStub(c))}</b>
+          <small>${c.min_order_amount ? `đơn từ ${escapeHtml(promoVnd(c.min_order_amount))}` : "giảm"}</small>
+        </div>
+        <div class="sup-strip-body">
+          <div class="sup-strip-top">
+            <button type="button" class="sup-strip-code" data-copy="${escapeHtml(c.code)}" title="Bấm để chép mã">${escapeHtml(c.code)}</button>
+            <span class="sup-strip-st"><i></i>${PROMO_ST[st]}</span>
+          </div>
+          <p class="sup-strip-note">${c.note ? escapeHtml(c.note) : '<span class="text-gray-300">Chưa ghi người nhận</span>'}</p>
+          <div class="sup-strip-use">
+            <div class="sup-meter2" role="img" aria-label="${escapeHtml(`Đã dùng ${used}${max == null ? "" : ` trên ${max}`} lượt${parts.length ? `: ${parts.join(", ")}` : ""}`)}">
+              <i class="is-paid" style="width:${pct(paid)}"></i><i class="is-hold" style="width:${pct(hold)}"></i><i class="is-lost" style="width:${pct(lost)}"></i>
+            </div>
+            <span class="sup-strip-count"><b>${promoNum(used)}</b>/${max == null ? "∞" : promoNum(max)} lượt</span>
+          </div>
+          <p class="sup-strip-meta">
+            ${parts.length ? `<span>${escapeHtml(parts.join(", "))}</span>` : "<span>Chưa ai dùng</span>"}
+            <span class="${exp.tone}">${escapeHtml(exp.text)}</span>
+          </p>
+        </div>
+        <div class="sup-strip-act">
+          ${max == null ? "" : `<x-button variant="ghost" tone="neutral" size="sm" icon-only icon="plus" data-id="${id}" onclick="promoAddUses(this.dataset.id)" title="Cộng thêm lượt" aria-label="Cộng thêm lượt cho ${escapeHtml(c.code)}"></x-button>`}
+          <x-button variant="ghost" tone="neutral" size="sm" icon-only icon="${c.is_active ? "pause" : "play"}" data-id="${id}" onclick="promoToggle(this.dataset.id)" title="${c.is_active ? "Tắt mã" : "Bật lại mã"}" aria-label="${c.is_active ? "Tắt" : "Bật lại"} mã ${escapeHtml(c.code)}"></x-button>
+          <x-button variant="ghost" tone="danger" size="sm" icon-only icon="trash-2" data-id="${id}" onclick="promoDelete(this.dataset.id)" title="Xoá mã" aria-label="Xoá mã ${escapeHtml(c.code)}"></x-button>
+        </div>
+      </li>`;
     })
     .join("");
-  window.lucide?.createIcons({ root: tbody });
+  window.lucide?.createIcons({ root: list });
 }
-
 async function promoPatch(payload, okMsg) {
   try {
     await promoReq("PATCH", { payload });
@@ -317,6 +370,17 @@ promoEl("promo-expires-clear").addEventListener("click", () => {
   promoExpiresSync();
   promoPreview();
   input.focus();
+});
+promoEl("promo-chips").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-pfilter]");
+  if (!b) return;
+  promoFilter = b.dataset.pfilter;
+  promoRenderList();
+});
+let promoSearchT = 0;
+promoEl("promo-search").addEventListener("input", () => {
+  clearTimeout(promoSearchT);
+  promoSearchT = setTimeout(loadPromoCodes, 300);
 });
 // Bấm vé nhỏ / chip mã ở danh sách là chép mã.
 promoEl("sup-tab-promo").addEventListener("click", (e) => {

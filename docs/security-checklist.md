@@ -315,7 +315,9 @@ Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `
       Xử lý ở `promo-codes.ts`: PATCH chỉ nhận `is_active`/`max_uses`/`expires_at`/
       `note` (không sửa mã, giá trị giảm, `used_count`), id/lô kiểm định dạng trước khi truy vấn, xoá vẫn
       fail-closed khi không đọc được lượt đã dùng. Mọi lượt ghi log Axiom `promo.generated/updated/
-      deleted` kèm `by` = email nhân viên. Kéo theo A37: mất một tài khoản trong `SUPPORT_EMAILS` là
+      deleted` kèm `by` = email nhân viên. `GET ?view=report&month=` (thống kê tháng để trả hoa hồng
+      giới thiệu) chỉ đọc, tháng kiểm định dạng, đọc lượt dùng hỏng là trả 500 chứ không trả nửa
+      danh sách (căn cứ trả tiền). Kéo theo A37: mất một tài khoản trong `SUPPORT_EMAILS` là
       phát được mã giảm 100%.
 - [x] **A43. Số liệu thiệp ở `/admin-support` (`wedding-admin?resource=support-weddings`, 2026-11-11,
       chưa deploy).** Chỉ GET, cùng nhánh chốt quyền nhân viên ở `index.ts`. Trả về mọi thiệp nhưng chỉ

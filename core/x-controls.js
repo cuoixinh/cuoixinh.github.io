@@ -53,11 +53,31 @@ function _labelHtml(inputId, icon, label, required) {
     </label>`;
 }
 
+// Bảng chọn THÁNG của <x-date level="month">: năm + ‹ › ở đầu, lưới 12 tháng (style .x-mp-* ở
+// styles/_common.css). SVG viết tay để không phụ thuộc lucide có mặt trên trang hay không.
+const _XM_PATH = { l: '<path d="m15 18-6-6 6-6"/>', r: '<path d="m9 18 6-6-6-6"/>', d: '<path d="m6 9 6 6 6-6"/>' };
+const _xmSvg = (k, cls = "") =>
+  `<svg class="${cls}" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" ` +
+  `stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${_XM_PATH[k]}</svg>`;
+const _XM_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+const _xmNow = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
+const _xmName = (v) => `Tháng ${Number(v.slice(5))}, ${v.slice(0, 4)}`;
+const _XM_BTN_CLS = _DATE_CLS + " flex items-center justify-between gap-2 text-left cursor-pointer";
+
 // ── <x-date> → <input type="date"> (flatpickr init ở index.js như cũ) ───────
 //   bare         không tự vẽ <label> (nơi dùng đã có nhãn riêng)
 //   input-class  thay class mặc định của ô input
+//   level="month" chọn THÁNG (giá trị YYYY-MM) bằng bảng tự dựng trong <x-popover> (trang phải nạp
+//                core/x-popover.js) — nhánh riêng, không qua flatpickr, không đổi gì chế độ ngày.
+//                Thêm: value · min · max (YYYY-MM, "now" = tháng hiện tại) · align (start|center|end).
+//                Đọc/ghi qua el.value; chọn tháng phát sự kiện "change" trên chính <x-date>;
+//                input-class lúc này là class của NÚT mở; id giữ ở <x-date>, name ở ô hidden.
 class XDate extends HTMLElement {
   connectedCallback() {
+    if (this.getAttribute("level") === "month") return this._monthBuild();
     const name = this.getAttribute("name") || "";
     const label = this.getAttribute("label") || "";
     const icon = this.getAttribute("icon") || "calendar";
@@ -81,6 +101,93 @@ class XDate extends HTMLElement {
       if (inp && !inp._flatpickr) window.createWeddingDatepicker(inp);
     }
   }
+
+  // ── level="month" ── (dựng một lần; gỡ ra gắn lại không dựng lại để giữ giá trị)
+  _monthBuild() {
+    if (this._xm) return;
+    const name = this.getAttribute("name") || "";
+    const label = this.getAttribute("label") || "";
+    const bare = this.hasAttribute("bare");
+    const btnId = `${this.id || name || "x-month"}-btn`;
+    this.innerHTML =
+      (bare ? "" : _labelHtml(btnId, this.getAttribute("icon") || "calendar", label, this.hasAttribute("required"))) +
+      `<button type="button" id="${btnId}" class="${this.getAttribute("input-class") || _XM_BTN_CLS}" aria-haspopup="dialog" aria-expanded="false">` +
+      `<span class="x-mp-label"></span>${_xmSvg("d", "x-mp-caret")}</button>` +
+      `<input type="hidden"${name ? ` name="${name}"` : ""} />` +
+      `<x-popover placement="bottom" align="${this.getAttribute("align") || "start"}" arrow width="296" keep-open role="dialog" aria-label="${label || "Chọn tháng"}"></x-popover>`;
+    if (!bare && window.lucide) lucide.createIcons({ root: this });
+    const btn = this.querySelector("button");
+    const pop = this.querySelector("x-popover");
+    this._xm = { btn, pop, input: this.querySelector("input"), year: 0 };
+    // `value` chỉ gắn lên thẻ chế độ tháng — <x-date> chế độ ngày giữ nguyên như cũ (không có thuộc tính này).
+    Object.defineProperty(this, "value", {
+      configurable: true,
+      get: () => this._xm.value,
+      set: (v) => this._monthSet(v),
+    });
+    this._monthSet(this.getAttribute("value") || _xmNow());
+    btn.addEventListener("click", () => {
+      if (pop.isOpen) return pop.close();
+      this._xm.year = Number(this.value.slice(0, 4));
+      this._monthFill();
+      pop.open(btn);
+      pop.querySelector(".is-on, [data-month]:not([disabled])")?.focus();
+    });
+    pop.addEventListener("click", (e) => {
+      const y = e.target.closest("[data-year]");
+      if (y && !y.disabled) {
+        this._xm.year += Number(y.dataset.year);
+        return this._monthFill();
+      }
+      const m = e.target.closest("[data-month]");
+      if (!m || m.disabled) return;
+      pop.close();
+      btn.focus();
+      if (m.dataset.month === this.value) return;
+      this._monthSet(m.dataset.month);
+      this.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
+
+  _monthBound(attr) {
+    const v = this.getAttribute(attr);
+    return v === "now" ? _xmNow() : _XM_RE.test(v || "") ? v : "";
+  }
+
+  _monthSet(v) {
+    if (!_XM_RE.test(v || "")) return;
+    const max = this._monthBound("max");
+    const min = this._monthBound("min");
+    if (max && v > max) v = max;
+    if (min && v < min) v = min;
+    this._xm.value = v;
+    this._xm.input.value = v;
+    this._xm.btn.querySelector(".x-mp-label").textContent = _xmName(v);
+  }
+
+  _monthFill() {
+    const { pop, year } = this._xm;
+    const max = this._monthBound("max");
+    const min = this._monthBound("min");
+    const now = _xmNow();
+    const out = (k) => (max && k > max) || (min && k < min);
+    const cells = Array.from({ length: 12 }, (_, i) => {
+      const k = `${year}-${String(i + 1).padStart(2, "0")}`;
+      const cls = ["x-mp-m", k === this.value ? "is-on" : "", k === now ? "is-now" : ""].filter(Boolean).join(" ");
+      return `<button type="button" class="${cls}" data-month="${k}"${out(k) ? " disabled" : ""} aria-pressed="${k === this.value}" aria-label="Tháng ${i + 1} năm ${year}">Tháng ${i + 1}</button>`;
+    }).join("");
+    const prevOff = min && `${year - 1}-12` < min;
+    const nextOff = max && `${year + 1}-01` > max;
+    const today = now !== this.value && !out(now) ? `<button type="button" class="x-mp-today" data-month="${now}">Về tháng này</button>` : "";
+    pop.innerHTML =
+      `<div class="x-mp-head">` +
+      `<button type="button" class="x-mp-nav" data-year="-1" aria-label="Năm trước"${prevOff ? " disabled" : ""}>${_xmSvg("l")}</button>` +
+      `<span class="x-mp-year">${year}</span>` +
+      `<button type="button" class="x-mp-nav" data-year="1" aria-label="Năm sau"${nextOff ? " disabled" : ""}>${_xmSvg("r")}</button>` +
+      `</div><div class="x-mp-grid">${cells}</div>${today}`;
+    if (pop.isOpen) pop.place();
+  }
+
 }
 
 // ── <x-time> → <input data-timepicker readonly> (openTimePicker gắn bởi index.js) ──

@@ -44,6 +44,9 @@ export async function handlePromoCodes(
     new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   const method = req.method
 
+  // GET ?view=report&month=YYYY-MM — báo cáo mã đã dùng trong tháng (căn cứ trả hoa hồng người giới thiệu)
+  if (method === 'GET' && url.searchParams.get('view') === 'report') return promoReport(url, supabase, log, json)
+
   // GET - danh sách mã, mỗi mã kèm toàn bộ lần áp mã còn hiệu lực
   if (method === 'GET') {
     const q = url.searchParams.get('q')?.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '')
@@ -239,4 +242,82 @@ export async function handlePromoCodes(
   }
 
   return json({ error: 'Method not allowed' }, 405)
+}
+
+// Báo cáo tháng: mọi lượt áp mã ĐÃ THANH TOÁN (status redeemed) có redeemed_at trong tháng, tính theo
+// giờ Việt Nam (UTC+7) — tháng là kỳ trả hoa hồng nên ranh giới phải khớp lịch của mình, không phải UTC.
+// Lượt giữ chỗ bỏ ngang / đã huỷ không tính. Kèm thiệp (slug, tên) để đối chiếu từng đơn.
+const MONTH_RE = /^(\d{4})-(0[1-9]|1[0-2])$/
+const VN_OFFSET_MS = 7 * 3600 * 1000
+
+async function promoReport(
+  url: URL,
+  supabase: Db,
+  log: Logger,
+  json: (body: unknown, status?: number) => Response,
+): Promise<Response> {
+  const month = url.searchParams.get('month') ?? ''
+  const m = MONTH_RE.exec(month)
+  if (!m) return json({ error: 'Tháng không hợp lệ (YYYY-MM)' }, 400)
+  const y = Number(m[1])
+  const mo = Number(m[2])
+  const from = new Date(Date.UTC(y, mo - 1, 1) - VN_OFFSET_MS).toISOString()
+  const to = new Date(Date.UTC(y, mo, 1) - VN_OFFSET_MS).toISOString()
+
+  // deno-lint-ignore no-explicit-any
+  const rows: any[] = []
+  for (let off = 0; ; off += 1000) {
+    const { data, error } = await supabase
+      .from('promo_redemptions')
+      .select('order_id, code_id, code, manage_id, base_amount, discount_amount, final_amount, redeemed_at, promo_codes(note, discount_type, discount_value)')
+      .eq('status', 'redeemed')
+      .gte('redeemed_at', from)
+      .lt('redeemed_at', to)
+      .order('redeemed_at', { ascending: true })
+      .order('order_id')
+      .range(off, off + 999)
+    // Đây là căn cứ trả tiền: đọc hỏng giữa chừng mà trả về phần đã đọc là báo thiếu đơn → dừng hẳn.
+    if (error) {
+      log.error('promo.report_failed', { month, code: error.code, message: error.message })
+      return json({ error: 'Không đọc được lượt dùng mã' }, 500)
+    }
+    rows.push(...(data ?? []))
+    if (!data || data.length < 1000) break
+  }
+
+  // Thiệp của từng đơn: chỉ để hiện tên/slug, đọc hỏng thì vẫn trả báo cáo (thiếu cột thiệp) kèm log.
+  const ids = [...new Set(rows.map((r) => r.manage_id).filter((id) => typeof id === 'string' && UUID_RE.test(id)))]
+  const weddings = new Map<string, { slug: string | null; couple: string }>()
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data, error } = await supabase.from('weddings').select('id, slug, groom_name, bride_name').in('id', ids.slice(i, i + 200))
+    if (error) {
+      log.error('promo.report_weddings_failed', { month, code: error.code, message: error.message })
+      break
+    }
+    for (const w of data ?? []) weddings.set(w.id, { slug: w.slug, couple: [w.groom_name, w.bride_name].filter(Boolean).join(' & ') })
+  }
+
+  return json({
+    month,
+    from,
+    to,
+    orders: rows.map((r) => {
+      const c = Array.isArray(r.promo_codes) ? r.promo_codes[0] : r.promo_codes
+      const w = r.manage_id ? weddings.get(r.manage_id) : null
+      return {
+        order_id: r.order_id,
+        code_id: r.code_id,
+        code: r.code,
+        note: c?.note ?? null,
+        discount_type: c?.discount_type ?? null,
+        discount_value: c?.discount_value ?? null,
+        base_amount: r.base_amount,
+        discount_amount: r.discount_amount,
+        final_amount: r.final_amount,
+        redeemed_at: r.redeemed_at,
+        slug: w?.slug ?? null,
+        couple: w?.couple ?? null,
+      }
+    }),
+  })
 }
