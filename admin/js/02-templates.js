@@ -7,8 +7,8 @@ let editingTemplateKey = null;
 // Giá đồng hạng: điền sẵn cho mẫu MỚI và là thứ nút "Giá mặc định" đổ vào form.
 // Đây KHÔNG phải lưới an toàn ở core/dal/templates-dal.js (giá web hiện khi mẫu
 // chưa có hàng `template_pricing`) — đổi giá bán chung thì cân nhắc cả bên đó.
-const TPL_DEFAULT_PRICE = 139000;
-const TPL_DEFAULT_ORIGINAL_PRICE = 139000; // bằng giá bán = không giảm giá (không hiện gạch ngang)
+const TPL_DEFAULT_PRICE = 129000;
+const TPL_DEFAULT_ORIGINAL_PRICE = 129000; // bằng giá bán = không giảm giá (không hiện gạch ngang)
 
 /** Nút "Giá mặc định" — đa số mẫu đồng giá nên khỏi gõ lại hai con số. */
 function fillDefaultPrice() {

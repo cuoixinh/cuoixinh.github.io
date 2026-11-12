@@ -8,7 +8,7 @@ export type PlanId = '6m' | 'lifetime'
 // Gói trả phí, khai theo thứ tự rẻ → đắt.
 export const PLANS: Record<PlanId, { months: number | null; factor: number; rank: number; label: string }> = {
   '6m': { months: 6, factor: 1, rank: 0, label: 'Premium' },
-  lifetime: { months: null, factor: 1.5, rank: 1, label: 'Forever' },
+  lifetime: { months: null, factor: 1.3, rank: 1, label: 'Forever' },
 }
 
 export const PLAN_IDS = Object.keys(PLANS) as PlanId[]
