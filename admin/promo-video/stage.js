@@ -53,8 +53,20 @@
     measure();
   }
 
+  // Máy to hết mức mà vẫn trọn trong sân khấu: cao = chỗ trống dưới phần chữ đầu (chừa
+  // PHONE_GAP ở đáy), rộng theo tỉ lệ 383×785 của khung, không quá bề ngang trừ lề.
+  const PHONE_GAP = 16;
+  function fitPhone() {
+    const stage = phone.parentElement;
+    const top = phone.getBoundingClientRect().top - stage.getBoundingClientRect().top;
+    const h = Math.min(stage.clientHeight - top - PHONE_GAP, ((stage.clientWidth - 48) * 785) / 383);
+    phone.style.height = Math.floor(h) + "px";
+    phone.style.width = Math.floor((h * 383) / 785) + "px";
+  }
+
   // Cùng phép đo với khung máy của theme-boot.js: thiệp dựng ở 390px rồi thu theo ô màn.
   function measure() {
+    fitPhone();
     const screen = phone.querySelector(".cx-pshell-screen");
     const port = phone.querySelector(".cx-pviewport");
     const scale = screen.offsetWidth / 390;
@@ -62,6 +74,8 @@
     view.style.height = port.offsetHeight / scale + "px";
   }
   chrome("Thiệp cưới");
+  // Font chữ đầu tải xong làm phần đầu đổi cao → đo lại.
+  document.fonts?.ready.then(measure);
 
   // Thiệp chạy trong khung máy (shell=0) tự báo tên đôi uyên ương ra trang cha.
   let titled;
@@ -237,13 +251,39 @@
     return L.y0 + (y1 - L.y0) * f((t - L.t0) / Math.max(0.001, L.t1 - L.t0));
   }
 
+  // Mẫu dạng slide (khai CX_THEME.deck) không cuộn trang: chia quãng sau màn hero đều cho
+  // các màn còn lại, lật đúng lúc; màn dài hơn khung thì cuộn bên trong nó sau khi hiện xong.
+  const DECK_FADE = 0.9;
+  function buildDeck() {
+    const deck = win().CX_THEME?.deck;
+    const slides = deck?.slides?.() || [];
+    if (slides.length < 2) return null;
+    const slot = (DUR - tScroll) / (slides.length - 1);
+    return { deck, slides, slot, cur: 0 };
+  }
+
+  function seekDeck(D, t) {
+    const i = clamp(1 + Math.floor((t - tScroll) / D.slot), 1, D.slides.length - 1);
+    const el = D.slides[i];
+    if (i !== D.cur) {
+      D.cur = i;
+      D.deck.show(el);
+    }
+    const range = el.scrollHeight - el.clientHeight;
+    if (range <= 2) return;
+    const t0 = tScroll + (i - 1) * D.slot + Math.min(DECK_FADE, D.slot * 0.3);
+    const t1 = tScroll + i * D.slot - D.slot * 0.15;
+    el.scrollTop = range * ease(clamp((t - t0) / Math.max(0.001, t1 - t0), 0, 1));
+  }
+
   function seek(t) {
     if (hasCover && !opened && t >= tCover) {
       opened = true;
       win().openInvitation?.();
     }
-    if (!plan && t >= tScroll) plan = buildPlan();
+    if (!plan && t >= tScroll) plan = buildDeck() || buildPlan();
     if (!plan) return;
+    if (plan.deck) return seekDeck(plan, t);
     const y = Math.round(scrollAt(t) * 100) / 100;
     if (plan.isRoot) win().scrollTo({ top: y, behavior: "instant" });
     else plan.sc.scrollTop = y;

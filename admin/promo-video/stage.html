@@ -9,7 +9,7 @@
       khung iPhone. Khổ CỐ ĐỊNH 540×960 — bộ quay (scripts/promo-video.mjs) chụp ở
       deviceScaleFactor 2 ra 1080×1920; tab admin thu nhỏ trang này để xem trước.
       Tham số URL: theme, dur, title, sub, foot, music (0 = giấu nút nhạc), play.
-      Chữ chỉ nằm ở phần đầu, dưới 64px trên cùng: TikTok phủ thanh tab lên đỉnh màn và
+      Chữ chỉ nằm ở phần đầu, dưới 32px trên cùng: TikTok phủ thanh tab lên đỉnh màn và
       phủ tên tài khoản + chú thích lên khoảng 1/4 dưới — chữ để ở đó là bị che.
     -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -66,7 +66,7 @@
       .pv-head {
         position: relative;
         z-index: 1;
-        margin-top: 64px;
+        margin-top: 32px;
         padding-bottom: 12px;
         display: flex;
         flex-direction: column;
@@ -97,10 +97,13 @@
         color: #2e1e23;
       }
       /* Thân máy: tỉ lệ 383×785 của assets/images/iphone_mockup.svg — ô màn dùng lại
-         bộ inset .cx-pshell-screen của khung xem thử trên máy tính. */
+         bộ inset .cx-pshell-screen của khung xem thử trên máy tính. Khổ thật do
+         fitPhone() ở stage.js đặt theo chỗ trống dưới phần chữ đầu. */
       .pv-phone {
         position: relative;
         z-index: 1;
+        flex-shrink: 0;
+        margin-top: 8px;
         width: 360px;
         height: 738px;
       }
