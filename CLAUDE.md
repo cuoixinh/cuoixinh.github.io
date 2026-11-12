@@ -457,7 +457,8 @@ tên thư mục là `weddings.theme` + khoá của `template_pricing`, đổi l�
   `music` (`{variant, chrome}` của `CXMusicPlayer.build`, `theme-boot.js` dựng vào
   `#cx-music-mount`; `art` = ảnh trên nút khi khách chưa chọn, mọi mẫu đang để
   `"couple"` = ảnh bìa thiệp), `loveStory` (`short`/`medium`/`long` — độ dài mốc chuyện tình XuXi
-  viết khi khách chọn mẫu này, `LOVE_LEN` ở `ai-chat/knowledge.ts`), `onOpen`.
+  viết khi khách chọn mẫu này, `LOVE_LEN` ở `ai-chat/knowledge.ts`), `onOpen`, `deck`
+  (`{slides(), show(el)}` — mẫu slide không cuộn trang khai để bộ quay video quảng cáo lật màn).
   Chỗ nào cần đọc bản khai từ ngoài thiệp thì qua `cxReadThemeDecl` (`core/helpers/theme-decl.js`).
   Trang Thiết lập đọc `swatches` và `palette` **qua iframe xem trước** của tab Giao diện.
 - **`CX_THEME.palette`** khai đúng những giá trị `:root` của `theme.css` dưới dạng hex —

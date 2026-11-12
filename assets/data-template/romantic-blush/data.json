@@ -1,106 +1,101 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.webp": {
-        "x": 54,
-        "y": 59
-      },
-      "gallery-02.webp": {
-        "x": 47,
-        "y": 59
-      },
-      "gallery-03.webp": {
-        "x": 49,
-        "y": 54
-      },
-      "gallery-04.webp": {
-        "x": 71,
-        "y": 66
-      },
-      "gallery-05.webp": {
-        "x": 48,
-        "y": 54
-      },
-      "gallery-06.webp": {
-        "x": 60,
-        "y": 59
-      },
-      "gallery-07.webp": {
+      "gallery-01.jpg": {
         "x": 50,
-        "y": 58
+        "y": 50
       },
-      "gallery-08.webp": {
+      "gallery-02.jpg": {
         "x": 54,
-        "y": 71
+        "y": 35
+      },
+      "gallery-03.jpg": {
+        "x": 41,
+        "y": 49
+      },
+      "gallery-04.jpg": {
+        "x": 53,
+        "y": 47
+      },
+      "gallery-05.jpg": {
+        "x": 44,
+        "y": 34
+      },
+      "gallery-06.jpg": {
+        "x": 61,
+        "y": 26
+      },
+      "gallery-07.jpg": {
+        "x": 55,
+        "y": 34
+      },
+      "gallery-08.jpg": {
+        "x": 45,
+        "y": 10
+      },
+      "gallery-09.jpg": {
+        "x": 48,
+        "y": 40
       }
     },
     "cover_image_url": {
-      "x": 50,
-      "y": 48
+      "x": 74,
+      "y": 13
     },
     "groom_image_url": {
-      "x": 65,
-      "y": 60
+      "x": 51,
+      "y": 14
     },
     "bride_image_url": {
-      "x": 100,
-      "y": 42
+      "x": 92,
+      "y": 59
     }
   },
-  "cover_image_url": "cover.webp",
-  "groom_image_url": "groom.webp",
-  "bride_image_url": "bride.webp",
+  "cover_image_url": "cover.jpg",
+  "groom_image_url": "groom.jpg",
+  "bride_image_url": "bride.jpg",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.webp",
-    "gallery-02.webp",
-    "gallery-03.webp",
-    "gallery-04.webp",
-    "gallery-05.webp",
-    "gallery-06.webp",
-    "gallery-07.webp",
-    "gallery-08.webp"
+    "gallery-01.jpg",
+    "gallery-02.jpg",
+    "gallery-03.jpg",
+    "gallery-04.jpg",
+    "gallery-05.jpg",
+    "gallery-06.jpg",
+    "gallery-07.jpg",
+    "gallery-08.jpg",
+    "gallery-09.jpg"
   ],
   "love_story": [
     {
       "date": "09/2021",
       "title": "Cùng một lớp học vẽ",
       "content": "Em ngồi bàn trên, anh ngồi bàn dưới, và bức tranh đầu tiên anh vẽ được lại là em.",
-      "image_url": "love-story-01.webp",
+      "image_url": "love-story-01.jpg",
       "focal_point": {
-        "x": 49,
-        "y": 39
+        "x": 51,
+        "y": 9
       }
     },
     {
       "date": "02/2022",
       "title": "Valentine đầu tiên",
       "content": "Anh tặng em một bó hoa nhỏ xíu và một lời hứa rất lớn.",
-      "image_url": "love-story-02.webp",
-      "focal_point": {
-        "x": 66,
-        "y": 49
-      }
-    },
-    {
-      "date": "07/2024",
-      "title": "Mùa hè ở Hạ Long",
-      "content": "Hai đứa ngồi trên bãi biển đến tận khuya, đếm xem đã đi cùng nhau bao nhiêu mùa hè.",
-      "image_url": "love-story-03.webp",
+      "image_url": "love-story-02.jpg",
       "focal_point": {
         "x": 63,
-        "y": 67
+        "y": 26
       }
     },
     {
       "date": "03/2026",
       "title": "Lời cầu hôn",
       "content": "Anh vẽ lại bức tranh ngày xưa, lần này có thêm hai chiếc nhẫn ở góc tranh.",
-      "image_url": "love-story-04.webp",
+      "image_url": "love-story-03.jpg",
       "focal_point": {
-        "x": 55,
-        "y": 46
+        "x": 51,
+        "y": 29
       }
     }
   ],
@@ -203,5 +198,5 @@
       }
     ]
   },
-  "updated_at": "2026-11-06T07:33:30.000Z"
+  "updated_at": "2026-11-12T16:52:14.908Z"
 }

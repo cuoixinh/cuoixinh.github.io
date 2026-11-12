@@ -87,6 +87,12 @@
     // #main-card ẩn sau màn bìa thì _collect() không thấy màn nào (offsetParent
     // null) → dựng lại danh sách màn và hiện màn 1 khi thiệp vừa hiện ra.
     onOpen: () => _slides(),
+
+    // Thiệp không cuộn trang → bộ quay video quảng cáo lật từng màn qua đây.
+    deck: {
+      slides: () => (_fx() ? (_list = _collect()) : []),
+      show: (el) => _show(el),
+    },
   };
 
   const _isGroom = isGroomSide();
