@@ -143,10 +143,18 @@ function _cxWishTriplet(hex) {
   return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)).join(" ");
 }
 
+// Giá trị một ô màu: mã hex, hoặc TÊN khoá bộ màu ("heading", "surface"…) → đọc token
+// đang áp, để màu lời chúc đi theo cả thanh "Độ đậm".
+function _cxWishColor(v) {
+  const tok = typeof v === "string" && window.CX_PALETTE_TOKENS?.[v];
+  return tok ? _cxWishRootVar(tok) : _cxWishTriplet(v);
+}
+
 /**
  * Áp bảng màu của MẪU lên mục lời chúc. Màu là phần cố định của mẫu thiệp — khách
  * không chỉnh được — nên chỉ đọc CX_THEME.wishes, khoá nào mẫu không khai thì token
- * chung của thiệp lo (xem .cx-wsec ở styles/_common.css).
+ * chung của thiệp lo (xem .cx-wsec ở styles/_common.css). Ngoại lệ: bộ màu riêng của
+ * mẫu (CX_THEME.palettes) đang chọn mà kèm `wishes` thì bản đó thay CX_THEME.wishes.
  */
 function applyWishStyle() {
   // Ba gốc rời nhau: dải nổi, mục trong thân thiệp và bảng "Xem tất cả" (bảng nằm
@@ -156,21 +164,25 @@ function applyWishStyle() {
     .filter(Boolean);
   if (!targets.length) return;
 
-  const decl = (window.CX_THEME && window.CX_THEME.wishes) || {};
+  const palWishes = window.CX_PALETTE_ON?.wishes;
+  const decl =
+    (palWishes && typeof palWishes === "object" && palWishes) ||
+    (window.CX_THEME && window.CX_THEME.wishes) ||
+    {};
 
   Object.entries(CX_WISH_COLORS).forEach(([key, def]) => {
     const alias = def.alias;
     const val =
-      _cxWishTriplet(decl[key]) ||
-      (alias && _cxWishTriplet(decl[alias])) ||
+      _cxWishColor(decl[key]) ||
+      (alias && _cxWishColor(decl[alias])) ||
       // Không khai `from` = giá trị mặc định nằm thẳng trong CSS (màn tối), ở
       // đây không có gì để đọc ra cả.
       (def.from && _cxWishRootVar(def.from));
     if (val) targets.forEach((t) => t.style.setProperty(def.varName, val));
     if (!def.varName2) return;
     const to =
-      _cxWishTriplet(decl[key + "_to"]) ||
-      (alias && _cxWishTriplet(decl[alias + "_to"])) ||
+      _cxWishColor(decl[key + "_to"]) ||
+      (alias && _cxWishColor(decl[alias + "_to"])) ||
       "";
     targets.forEach((t) => {
       if (to) t.style.setProperty(def.varName2, to);

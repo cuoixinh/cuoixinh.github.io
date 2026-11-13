@@ -710,7 +710,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `applyThemeSetting` bằng cách đổ vào `:root { --cx-*-rgb }`, bảng chọn ở
   `05-theme-panel.js`. Lưu trong `theme_setting` nên **không cần changelog DB**. Thêm bộ
   mới phải qua **`npm run check:palette-contrast`** (nền sáng + đủ tương phản chữ/nền);
-  `id` đã phát hành thì đừng đổi. Nút nhạc dùng bảng `--music-*` riêng nên
+  `id` đã phát hành thì đừng đổi. Biến thể tông CHỈ cho một mẫu (vd đỏ đậm của
+  `som-hom-co-nhau`) thì mẫu tự khai ở **`CX_THEME.palettes`** (cùng khuôn, `id` có tiền tố
+  tên mẫu), hiện ngay sau "Mặc định"; kèm `wishes` (giá trị là hex hoặc TÊN khoá bộ màu) để
+  thay `CX_THEME.wishes` vốn chỉ hợp màu gốc. Nút nhạc dùng bảng `--music-*` riêng nên
   `_cxPaletteRule` suy thêm bảng đó từ bộ màu — chỉ khi CÓ bộ, để thiệp không chọn bộ giữ
   nguyên hình thức cũ.
 - **`palette.strength` (thanh "Độ đậm", 0–100):** mức **50 = đúng bộ đã khai** và

@@ -47,6 +47,46 @@
       shine_to: "#e6ddef",
     },
 
+    // Biến thể tông của chính mẫu này, hiện ngay sau "Mặc định" ở tab Giao diện →
+    // Bộ màu. Mỗi ô thay đúng vai của màu tím gốc (tím than → đỏ rượu, tím nhấn →
+    // đỏ thẫm, nền oải hương → ngà hồng); `wishes` thay CX_THEME.wishes (vốn chỉ hợp
+    // tông tím), khai bằng TÊN khoá để ăn theo cả thanh "Độ đậm". `id` lưu xuống DB →
+    // đừng đổi; thêm bộ mới thì chạy `npm run check:palette-contrast`.
+    palettes: [
+      {
+        id: "som-hom-do-dam",
+        name: "Đỏ đậm",
+        heading: "#5a0f1c",
+        body: "#43302f",
+        accent: "#9b1c2c",
+        accent_soft: "#f5e1df",
+        on_accent: "#ffffff",
+        on_image: "#ffffff",
+        on_lightbox: "#ffffff",
+        card_bg: "#ffffff",
+        page_bg: "#f9f0ed",
+        surface: "#fbf4f2",
+        band: "#f7ece8",
+        panel: "#ffffff",
+        panel_warm: "#fdf8f6",
+        cover: "#ffffff",
+        cover_mid: "#f7ece8",
+        cover_veil: "#ffffff",
+        lightbox_bg: "#000000",
+        line: "#eedcd7",
+        shadow: "#3d0a12",
+        scrim: "#3d0a12",
+        deco: "#b3263a",
+        deco_soft: "#f4dcdb",
+        deco_2: "#85696a",
+        deco_2_soft: "#eedcd7",
+        shine_from: "#ffffff",
+        shine_mid: "#f7ece8",
+        shine_to: "#eedcd7",
+        wishes: { bubble: "surface", text: "body", accent: "accent", btn: "heading" },
+      },
+    ],
+
     swatches: ["#2a1d38", "#3b2a4d", "#7b5ea7", "#9466c9", "#756b80", "#e9e1f3", "#f5f1f9", "#ffffff"],
 
     wishes: {

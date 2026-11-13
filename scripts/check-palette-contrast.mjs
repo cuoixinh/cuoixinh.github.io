@@ -16,6 +16,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -25,6 +26,20 @@ const src = fs.readFileSync(
 const body = src.slice(src.indexOf("const CX_PALETTES = ["),
                        src.indexOf("\n];", src.indexOf("const CX_PALETTES = [")) + 3);
 const PALETTES = new Function(body + " return CX_PALETTES;")();
+
+// Bộ màu riêng của từng mẫu (CX_THEME.palettes). Chạy index.js trong vm: CX_THEME
+// gán ở dòng đầu IIFE, phần sau gọi hàm dùng chung không có ở đây thì lỗi — bỏ qua.
+const THEMES_DIR = path.join(ROOT, "public/themes");
+for (const t of fs.readdirSync(THEMES_DIR).sort()) {
+  const f = path.join(THEMES_DIR, t, "index.js");
+  if (!fs.existsSync(f)) continue;
+  const ctx = { window: {} };
+  try {
+    vm.runInNewContext(fs.readFileSync(f, "utf8"), ctx, { timeout: 1000 });
+  } catch {}
+  for (const p of ctx.window.CX_THEME?.palettes || [])
+    PALETTES.push({ ...p, name: `${p.name} (${t})` });
+}
 
 const helper = fs.readFileSync(
   path.join(ROOT, "core/helpers/theme-setting-helper.js"), "utf8");

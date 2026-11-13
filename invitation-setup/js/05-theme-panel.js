@@ -73,14 +73,38 @@ function _fillFontCombo(el, types) {
 // mẫu (đã khai sẵn ở :root của theme.css nên không phải áp gì).
 const PALETTE_DEFAULT_LABEL = "Mặc định";
 
+// Bộ màu RIÊNG của mẫu đang mở (CX_THEME.palettes, đọc qua bản khai) — biến thể tông
+// do chính mẫu thiết kế, chỉ hiện ở mẫu đó. Đúng khuôn mục trong CX_PALETTES; có thể
+// kèm `wishes` (màu lời chúc, xem applyWishStyle) vì CX_THEME.wishes chỉ hợp màu gốc.
+function _themePalettes() {
+  const list = window.cxThemeDecl?.().palettes;
+  return Array.isArray(list)
+    ? list.filter((p) => p && typeof p.id === "string" && typeof p.name === "string")
+    : [];
+}
+
+// Giá trị đem lưu của một bộ: id + tên + các khoá runtime biết áp (+ wishes của bộ riêng).
+function _paletteValue(id) {
+  const own = _themePalettes().find((p) => p.id === id);
+  if (!own) return window.cxPaletteValue(id);
+  const out = { id: own.id, name: own.name };
+  (window.CX_PALETTE_KEYS || []).forEach((k) => {
+    if (own[k]) out[k] = own[k];
+  });
+  if (own.wishes && typeof own.wishes === "object") out.wishes = { ...own.wishes };
+  return out;
+}
+
 // Lưới ô màu: ô đầu "Mặc định" vẽ từ chính bản khai của mẫu đang mở
-// (CX_THEME.palette), để khách thấy ngay mình đang rời khỏi tông nào.
+// (CX_THEME.palette), để khách thấy ngay mình đang rời khỏi tông nào; kế đó là bộ
+// riêng của mẫu, rồi tới danh mục chung.
 function _renderPaletteGrid() {
   const box = document.getElementById("theme-palette");
   if (!box || !window.CX_PALETTES) return;
   box.textContent = "";
   [
     { id: "", name: PALETTE_DEFAULT_LABEL, p: _themeCardPalette() },
+    ..._themePalettes().map((p) => ({ id: p.id, name: p.name, p })),
     ...window.CX_PALETTES.map((p) => ({ id: p.id, name: p.name, p })),
   ].forEach((o) => {
     const btn = document.createElement("button");
@@ -269,7 +293,7 @@ function _applyThemeToFrame() {
 }
 
 function onCardPaletteChange(id) {
-  const val = id ? window.cxPaletteValue(id) : null;
+  const val = id ? _paletteValue(id) : null;
 
   // Đổi bộ thì GIỮ độ đậm đang kéo: khách hay so vài bộ ở cùng một mức đậm.
   const strength = _paletteStrength();
@@ -1584,9 +1608,11 @@ function pickWishMode(id) {
 window.pickWishMode = pickWishMode;
 
 // Bản khai mẫu về muộn (hoặc vừa đổi mẫu) → ô đang chọn có thể đổi theo mặc định mới,
-// và tab Lời chúc có thể phải ẩn/hiện lại (wishesFixed) — đang mở mà bị ẩn thì đóng.
+// lưới bộ màu thêm/bớt bộ riêng của mẫu, và tab Lời chúc có thể phải ẩn/hiện lại
+// (wishesFixed) — đang mở mà bị ẩn thì đóng.
 document.addEventListener("cx-theme-decl", () => {
   _syncWishTiles();
+  _renderPaletteGrid();
   const track = document.getElementById("cx-ctrl-tabs-track");
   if (!track?.children.length) return;
   const fixed = !!window.cxThemeDecl?.().wishesFixed;

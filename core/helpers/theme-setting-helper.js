@@ -2467,6 +2467,12 @@ function applyThemeSetting(setting) {
   }
   styleEl.textContent = rules.join("\n");
 
+  // Bộ màu riêng của mẫu có thể kèm màu lời chúc (palette.wishes — xem applyWishStyle
+  // ở wishes-helper.js): giữ bộ đang áp cho helper đó, mục đã dựng thì tô lại ngay.
+  window.CX_PALETTE_ON =
+    setting.palette && typeof setting.palette === "object" ? setting.palette : null;
+  if (typeof applyWishStyle === "function") applyWishStyle();
+
   // Cỡ chữ ghi tạm lúc chụm 2 ngón (inline !important) nay đã nằm trong
   // text_overrides → gỡ đi, không thì nó đè mọi lần chỉnh cỡ sau ở bảng.
   document.querySelectorAll("[data-cx-pinch]").forEach((el) => {
