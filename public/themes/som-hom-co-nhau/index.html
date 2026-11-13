@@ -68,14 +68,41 @@
               <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
             </div>
           </div>
-          <!-- Thân trước: ba vạt gấp (hai bên sẫm, vạt dưới sáng) + đường gấp chạy từ hai góc
-               đáy lên dưới dấu sáp. SVG kéo giãn theo khung; thân bị khoét chữ V nên SVG cũng bị cắt. -->
+          <!-- Thân trước: ba vạt gấp như phong bì thật, đèn từ trên lệch trái. Hai vạt bên đổ dốc
+               sẫm dần vào giữa; bóng tiếp xúc nhoè ngay trên mép vạt dưới (chỉ nằm trên vạt bên);
+               vạt dưới sáng ở mép, tối dần xuống đáy, mép gấp có chỉ sáng. Màu từ token bóng/sáng
+               (style trên <stop>) nên bộ màu nào cũng hợp. SVG kéo giãn theo khung, bị khoét V theo thân. -->
           <div class="sh-env-part sh-env-front">
             <svg class="sh-env-folds" viewBox="0 0 300 192" preserveAspectRatio="none" aria-hidden="true">
-              <polygon class="sh-fold-l" points="0,0 150,120 0,192" />
-              <polygon class="sh-fold-r" points="300,0 150,120 300,192" />
-              <polygon class="sh-fold-b" points="0,192 150,120 300,192" />
-              <polyline class="sh-fold-hi" points="0,193.5 150,121.5 300,193.5" />
+              <defs>
+                <linearGradient id="sh-fold-gl" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="150" y2="0">
+                  <stop offset="0" style="stop-color: rgb(var(--cx-on-image-rgb)); stop-opacity: 0.05" />
+                  <stop offset="1" style="stop-color: rgb(var(--cx-shadow-rgb)); stop-opacity: 0.1" />
+                </linearGradient>
+                <linearGradient id="sh-fold-gr" gradientUnits="userSpaceOnUse" x1="300" y1="0" x2="150" y2="0">
+                  <stop offset="0" style="stop-color: rgb(var(--cx-shadow-rgb)); stop-opacity: 0.04" />
+                  <stop offset="1" style="stop-color: rgb(var(--cx-shadow-rgb)); stop-opacity: 0.17" />
+                </linearGradient>
+                <linearGradient id="sh-fold-gb" gradientUnits="userSpaceOnUse" x1="0" y1="120" x2="0" y2="192">
+                  <stop offset="0" style="stop-color: rgb(var(--cx-on-image-rgb)); stop-opacity: 0.1" />
+                  <stop offset="0.55" style="stop-color: rgb(var(--cx-on-image-rgb)); stop-opacity: 0.03" />
+                  <stop offset="1" style="stop-color: rgb(var(--cx-shadow-rgb)); stop-opacity: 0.08" />
+                </linearGradient>
+                <clipPath id="sh-fold-sides">
+                  <polygon points="0,0 150,120 0,192" />
+                  <polygon points="300,0 150,120 300,192" />
+                </clipPath>
+                <filter id="sh-fold-blur" x="-10%" y="-40%" width="120%" height="180%">
+                  <feGaussianBlur stdDeviation="2.6" />
+                </filter>
+              </defs>
+              <polygon points="0,0 150,120 0,192" fill="url(#sh-fold-gl)" />
+              <polygon points="300,0 150,120 300,192" fill="url(#sh-fold-gr)" />
+              <g clip-path="url(#sh-fold-sides)">
+                <polyline class="sh-fold-ao" points="0,190 150,117 300,190" filter="url(#sh-fold-blur)" />
+              </g>
+              <polygon points="0,192 150,120 300,192" fill="url(#sh-fold-gb)" />
+              <polyline class="sh-fold-hi" points="0,193.4 150,121.6 300,193.4" />
               <polyline class="sh-fold-seam" points="0,192 150,120 300,192" />
             </svg>
           </div>

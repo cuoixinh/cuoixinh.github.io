@@ -271,24 +271,12 @@ body {
   background: rgb(var(--cx-panel-rgb) / 0.8);
 }
 
-/* Vạt gấp của thân trước — màu chỉ là bóng/sáng phủ lên màu thân nên bộ màu nào cũng hợp. */
+/* Vạt gấp của thân trước (index.html): bóng/sáng phủ lên màu thân nên bộ màu nào cũng hợp. */
 .sh-env-folds {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-}
-
-.sh-fold-l {
-  fill: rgb(var(--cx-shadow-rgb) / 0.06);
-}
-
-.sh-fold-r {
-  fill: rgb(var(--cx-shadow-rgb) / 0.12);
-}
-
-.sh-fold-b {
-  fill: rgb(var(--cx-on-image-rgb) / 0.05);
 }
 
 .sh-fold-seam,
@@ -298,13 +286,20 @@ body {
 }
 
 .sh-fold-seam {
-  stroke: rgb(var(--cx-shadow-rgb) / 0.28);
-  stroke-width: 1;
+  stroke: rgb(var(--cx-shadow-rgb) / 0.22);
+  stroke-width: 0.8;
 }
 
 .sh-fold-hi {
-  stroke: rgb(var(--cx-on-image-rgb) / 0.22);
+  stroke: rgb(var(--cx-on-image-rgb) / 0.3);
   stroke-width: 1;
+}
+
+/* Bóng tiếp xúc: vệt rộng, nhoè, chỉ nằm trên hai vạt bên ngay trên mép vạt dưới. */
+.sh-fold-ao {
+  fill: none;
+  stroke: rgb(var(--cx-shadow-rgb) / 0.3);
+  stroke-width: 7;
 }
 
 /* Vân giấy: nhiễu mịn làm mặt nạ cho một lớp màu bóng — giấy có thớ thay vì phẳng lì. */
