@@ -139,7 +139,6 @@ body {
   inset: 0;
   z-index: 70;
   display: flex;
-  perspective: 1600px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -152,18 +151,15 @@ body {
   flex: 1 1 50%;
   overflow: hidden;
   background: rgb(var(--cx-cover-rgb));
-  backface-visibility: hidden;
-  transition:
-    transform 1.8s cubic-bezier(0.6, 0, 0.2, 1),
-    opacity 0.5s ease 1.3s;
+  /* Hai cánh trượt NGANG ra hai mép (2D), không xoay bản lề. */
+  transition: transform 1.6s cubic-bezier(0.65, 0, 0.25, 1);
+  will-change: transform;
 }
 .dl-door-l {
-  transform-origin: 0 50%;
   background-image: linear-gradient(90deg, rgb(var(--cx-cover-mid-rgb)), rgb(var(--cx-cover-rgb)) 40%, rgb(var(--cx-cover-rgb)) 85%, rgb(var(--cx-cover-mid-rgb)));
   box-shadow: inset -1px 0 0 rgb(var(--cx-deco-rgb) / 0.7);
 }
 .dl-door-r {
-  transform-origin: 100% 50%;
   background-image: linear-gradient(90deg, rgb(var(--cx-cover-mid-rgb)), rgb(var(--cx-cover-rgb)) 15%, rgb(var(--cx-cover-rgb)) 60%, rgb(var(--cx-cover-mid-rgb)));
   box-shadow: inset 1px 0 0 rgb(var(--cx-deco-rgb) / 0.7);
 }
@@ -176,12 +172,10 @@ body {
   mask: var(--dl-coins) repeat center / 44px 44px;
 }
 #dl-gate.is-open .dl-door-l {
-  transform: rotateY(-96deg);
-  opacity: 0;
+  transform: translateX(-100%);
 }
 #dl-gate.is-open .dl-door-r {
-  transform: rotateY(96deg);
-  opacity: 0;
+  transform: translateX(100%);
 }
 
 /* Hai ô khung nổi trên mỗi cánh, viền vàng đôi. */
@@ -816,6 +810,7 @@ body {
   #dl-gate.is-open .dl-door-l,
   #dl-gate.is-open .dl-door-r {
     transform: none;
+    opacity: 0;
     transition: opacity 0.5s ease;
   }
   .dl-lantern,
