@@ -29,6 +29,7 @@ import {
   rewriteAttr,
   routeHead,
   desktopWide,
+  paletteStyle,
   slugSegment,
   themeDir,
 } from "../worker/route-html.mjs";
@@ -235,7 +236,7 @@ async function slugPage(slug) {
   if (!THEME_NAME.test(theme)) return null;
   const dir = themeDir(theme);
   const html = await readFile(path.join(ROOT, dir, "index.html"), "utf8");
-  return rewriteHtml(html, dir).replace("</head>", routeHead(slug, theme, desktopWide(w)) + "</head>");
+  return rewriteHtml(html, dir).replace("</head>", routeHead(slug, theme, desktopWide(w), paletteStyle(w)) + "</head>");
 }
 
 /** Đường dẫn trong repo cho URL, hoặc null nếu trỏ ra ngoài. */

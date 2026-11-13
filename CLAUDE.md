@@ -331,7 +331,12 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
   hướng) kèm thẻ og:* — crawler Messenger/Zalo/Facebook KHÔNG chạy JS nên trang thiệp
   không tự khai meta được. Luật đổi đường dẫn + chèn `window.__CX_ROUTE` ở
   `worker/route-html.mjs`, dùng chung với `scripts/dev-server.mjs` — sửa cách áp ở một bên
-  thì sửa cả bên kia. Không dựng được thì lùi về đúng đoạn chuyển hướng của `404.html` →
+  thì sửa cả bên kia. Thiệp có bộ màu (`theme_setting.palette`) thì `routeHead` chèn sẵn
+  `<style id="cx-palette-boot">` (màu đã tính) để khung hình đầu không nháy màu gốc của mẫu;
+  `loadWeddingData` gỡ nó khi dữ liệu về. Phép tính lấy thẳng từ `theme-setting-helper.js`
+  (route-html nạp bằng `import()` có bắt lỗi) → file này **không được chạm DOM ở cấp ngoài
+  cùng** nếu không kiểm `typeof window`: vỡ lúc nạp thì trang thiệp vẫn chạy nhưng mọi thiệp
+  lặng lẽ mất màu dựng sẵn, nháy lại màu gốc. Không dựng được thì lùi về đúng đoạn chuyển hướng của `404.html` →
   `router.html` — sửa `404.html` thì sửa cả bản sao trong đó.
   Ảnh của thẻ phát lại qua `/__og/<tên file>`, mã hoá lại bằng Cloudflare Images
   Transformations (phải BẬT cho zone, nếu không worker lùi về file gốc): trỏ og:image

@@ -202,6 +202,11 @@ async function loadWeddingData(weddingSlug, renderCallback) {
 
     wedding = cxVuQuyAsCeremony(cxPartyOnly(cxTidyAddr(wedding)));
 
+    // Bộ màu worker dựng sẵn vào <head> (#cx-palette-boot, route-html.mjs) xong vai: dữ liệu
+    // vừa về quyết định — kể cả khi thiệp không còn theme_setting mà trang cũ còn giữ bộ màu.
+    // Gỡ và áp liền trong một nhịp nên không có khung hình nào trống màu.
+    document.getElementById("cx-palette-boot")?.remove();
+
     // Áp dụng tuỳ chỉnh font/màu chữ (nếu có) trước khi render
     if (typeof applyThemeSetting === "function") {
       applyThemeSetting(wedding.theme_setting);
