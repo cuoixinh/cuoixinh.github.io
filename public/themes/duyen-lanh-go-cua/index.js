@@ -1,5 +1,5 @@
-// Duyên Lành Gõ Cửa — thiệp đỏ son chỉ vàng kiểu nhà Việt. Không có màn bìa bấm mở:
-// đôi cửa son (#dl-gate) tự mở ra hai bên khi ảnh mở đầu đã tải, chạm vào thì mở sớm.
+// Duyên Lành Gõ Cửa — thiệp son tươi chữ nhũ kiểu nhà Việt. Không có màn bìa bấm mở:
+// đôi cửa bức bàn (#dl-gate) tự trượt ra hai bên khi ảnh mở đầu đã tải, chạm thì mở sớm.
 // Chỉ khai báo CX_THEME + renderWedding + phần đặc thù (cửa, lịch, ba ảnh so le).
 
 (function () {
@@ -41,9 +41,9 @@
       shine_to: "#b6852c",
     },
 
-    swatches: ["#a01d22", "#5c1518", "#97191e", "#c8252b", "#cfa449", "#b6852c", "#6e4a3c", "#e6cf9f", "#fbf1dc", "#fffbf3", "#ffffff"],
+    swatches: ["#cc1f2b", "#d3212d", "#a3121c", "#7c1018", "#e7b84b", "#f7dc8e", "#c8922a", "#6b4b45", "#f0d49a", "#fffaf5", "#ffffff"],
 
-    wishes: { bubble: "#fff7e8", text: "#6e4a3c", accent: "#a01d22", btn: "#a01d22" },
+    wishes: { bubble: "#fff6ee", text: "#6b4b45", accent: "#cc1f2b", btn: "#cc1f2b" },
 
     // Mở đầu tự hiện theo đôi cửa (.dl-in), không vào danh sách hiện dần khi cuộn.
     reveal: [
@@ -139,7 +139,7 @@
     const ceremonyLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
     const cd = _date(w.ceremony_date);
 
-    setText("hero-time", [ceremonyTime, cd ? WD[cd.getDay()] : ""].filter(Boolean).join(" · "), "--:--");
+    setText("hero-time", [cd ? WD[cd.getDay()] : "", _clock(ceremonyTime)].filter(Boolean).join(", "), "------, -- giờ --");
     setText("hero-date", cd ? `${pad(cd.getDate())}.${pad(cd.getMonth() + 1)}.${cd.getFullYear()}` : "", "--.--.----");
 
     setText("ceremony-event-name", ceremonyName);
@@ -164,7 +164,7 @@
     const partyTime = w[`${side}_party_time`];
     setText("party-section-label", "Tiệc Mừng " + ceremonyName);
     setText("dl-p-time", partyTime, "--:--");
-    setText("dl-p-date", pd ? `${WD[pd.getDay()]} · ${pad(pd.getDate())}.${pad(pd.getMonth() + 1)}.${pd.getFullYear()}` : "", "------ · --.--.----");
+    setText("dl-p-date", pd ? `${WD[pd.getDay()]}, ${pad(pd.getDate())}.${pad(pd.getMonth() + 1)}.${pd.getFullYear()}` : "", "------, --.--.----");
     const pl = w[`${side}_party_lunar`];
     setText("party-lunar", pl ? `(Tức ${_lower(pl)})` : "", "(----)");
     setText("party-location", w[`${side}_party_location`], "------------------------");
@@ -244,7 +244,7 @@
     const d = base || new Date();
     const y = d.getFullYear();
     const m = d.getMonth();
-    setText("dl-cal-title", `Tháng ${m + 1} · ${y}`);
+    setText("dl-cal-title", `Tháng ${m + 1} năm ${y}`);
     const marked = new Set(
       marks.filter((x) => x && x.getFullYear() === y && x.getMonth() === m).map((x) => x.getDate()),
     );

@@ -1,35 +1,35 @@
-/* Duyên Lành Gõ Cửa — bảng màu đỏ son / chỉ vàng + CSS riêng của mẫu.
-   CSS thuần (nạp sau styles/themes.css). Mọi màu đi qua --cx-*; hoạ tiết vẽ bằng
-   mask-image (SVG trong dùng #000 chỉ để lấy kênh alpha) nên đổi bộ màu vẫn ăn theo. */
+/* Duyên Lành Gõ Cửa — bảng màu son tươi / nhũ vàng + CSS riêng của mẫu.
+   CSS thuần (nạp sau styles/themes.css). Mọi màu đi qua --cx-*; hoạ tiết duy nhất là
+   song ô trám của cửa bức bàn, vẽ bằng mask-image (SVG dùng #000 chỉ để lấy alpha). */
 
 :root {
-  --cx-heading-rgb: 92 21 24;
-  --cx-body-rgb: 110 74 60;
-  --cx-accent-rgb: 160 29 34;
-  --cx-accent-soft-rgb: 201 160 74;
-  --cx-on-accent-rgb: 255 248 234;
+  --cx-heading-rgb: 124 16 24; /* mực son */
+  --cx-body-rgb: 107 75 69;
+  --cx-accent-rgb: 204 31 43; /* son tươi trên nền giấy */
+  --cx-accent-soft-rgb: 231 184 75;
+  --cx-on-accent-rgb: 255 248 236;
   --cx-on-image-rgb: 255 255 255;
   --cx-on-lightbox-rgb: 255 255 255;
-  --cx-card-bg-rgb: 255 251 243;
-  --cx-page-bg-rgb: 243 230 204;
-  --cx-surface-rgb: 251 241 220;
-  --cx-band-rgb: 253 244 227;
+  --cx-card-bg-rgb: 255 250 245; /* giấy hồng điều */
+  --cx-page-bg-rgb: 246 228 220;
+  --cx-surface-rgb: 252 239 230;
+  --cx-band-rgb: 255 244 236;
   --cx-panel-rgb: 255 255 255;
-  --cx-panel-warm-rgb: 255 247 232;
-  --cx-cover-rgb: 151 25 30; /* cánh cửa son */
-  --cx-cover-mid-rgb: 116 18 22; /* …mép tối của cánh */
-  --cx-cover-veil-rgb: 58 10 12;
+  --cx-panel-warm-rgb: 255 246 238;
+  --cx-cover-rgb: 211 33 45; /* cửa + tấm son của mở đầu */
+  --cx-cover-mid-rgb: 163 18 28; /* …mép tối, bóng sơn */
+  --cx-cover-veil-rgb: 90 10 16;
   --cx-lightbox-bg-rgb: 0 0 0;
-  --cx-line-rgb: 230 207 159;
-  --cx-shadow-rgb: 58 10 12;
-  --cx-scrim-rgb: 42 7 8;
-  --cx-deco-rgb: 207 164 73; /* chỉ vàng */
-  --cx-deco-soft-rgb: 243 226 182;
-  --cx-deco-2-rgb: 200 37 43; /* thân đèn lồng */
-  --cx-deco-2-soft-rgb: 246 180 138;
-  --cx-shine-from-rgb: 182 133 44;
-  --cx-shine-mid-rgb: 241 212 136;
-  --cx-shine-to-rgb: 182 133 44;
+  --cx-line-rgb: 240 212 154;
+  --cx-shadow-rgb: 90 10 16;
+  --cx-scrim-rgb: 58 6 9;
+  --cx-deco-rgb: 231 184 75; /* nhũ vàng */
+  --cx-deco-soft-rgb: 248 230 181;
+  --cx-deco-2-rgb: 232 52 60; /* vệt sáng sơn mài */
+  --cx-deco-2-soft-rgb: 247 183 163;
+  --cx-shine-from-rgb: 200 146 42;
+  --cx-shine-mid-rgb: 247 220 142;
+  --cx-shine-to-rgb: 200 146 42;
 
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
@@ -47,9 +47,8 @@
   --music-art-from-rgb: var(--cx-accent-rgb);
   --music-art-to-rgb: var(--cx-heading-rgb);
 
-  /* Hoạ tiết: hồi văn (dải viền) và đồng tiền lồng nhau (mặt cửa). */
-  --dl-fret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='16' fill='none' stroke='%23000' stroke-width='1.5'%3E%3Cpath d='M0 1h24M0 15h24M2 15V4h12v8H6V8h4'/%3E%3Cpath d='M14 4h8v11'/%3E%3C/svg%3E");
-  --dl-coins: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' fill='none' stroke='%23000' stroke-width='1.2'%3E%3Ccircle cx='0' cy='0' r='22'/%3E%3Ccircle cx='44' cy='0' r='22'/%3E%3Ccircle cx='0' cy='44' r='22'/%3E%3Ccircle cx='44' cy='44' r='22'/%3E%3Ccircle cx='22' cy='22' r='22'/%3E%3Ccircle cx='22' cy='22' r='4'/%3E%3C/svg%3E");
+  /* Song ô trám: hai nét chéo, nút tròn ở mỗi giao điểm. */
+  --dl-lattice: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Cpath d='M0 0L20 20M20 0L0 20' stroke='%23000' stroke-width='1.3'/%3E%3Ccircle cx='10' cy='10' r='1.9'/%3E%3Ccircle cx='0' cy='0' r='1.9'/%3E%3Ccircle cx='20' cy='0' r='1.9'/%3E%3Ccircle cx='0' cy='20' r='1.9'/%3E%3Ccircle cx='20' cy='20' r='1.9'/%3E%3C/svg%3E");
 }
 
 body {
@@ -73,33 +72,27 @@ body {
   font-weight: 400;
 }
 
-/* ── Khung chỉ vàng đôi quanh cả thân thiệp ─────────────────────────────── */
-#main-card::before {
-  content: "";
-  position: absolute;
-  inset: 10px;
-  z-index: 2;
-  pointer-events: none;
-  border: 1px solid rgb(var(--cx-deco-rgb) / 0.6);
-  box-shadow:
-    inset 0 0 0 4px rgb(var(--cx-card-bg-rgb) / 0),
-    inset 0 0 0 5px rgb(var(--cx-deco-rgb) / 0.3);
-}
-@media (min-width: 768px) {
-  #main-card::before {
-    border-radius: 32px;
-  }
-}
 .dl-flow {
   position: relative;
   z-index: 1;
 }
 
-.dl-fret {
-  height: 16px;
-  background: rgb(var(--cx-deco-rgb));
-  -webkit-mask: var(--dl-fret) repeat-x center / 24px 16px;
-  mask: var(--dl-fret) repeat-x center / 24px 16px;
+/* Dải song ô trám kẹp giữa hai chỉ — viền đầu tấm son và cuối thiệp. */
+.dl-lattice {
+  position: relative;
+  height: 14px;
+  --dl-c: rgb(var(--cx-deco-rgb));
+  background:
+    linear-gradient(var(--dl-c), var(--dl-c)) top / 100% 1px no-repeat,
+    linear-gradient(var(--dl-c), var(--dl-c)) bottom / 100% 1px no-repeat;
+}
+.dl-lattice::before {
+  content: "";
+  position: absolute;
+  inset: 3px 0;
+  background: var(--dl-c);
+  -webkit-mask: var(--dl-lattice) repeat-x center / 8px 8px;
+  mask: var(--dl-lattice) repeat-x center / 8px 8px;
 }
 
 .dl-label {
@@ -133,7 +126,7 @@ body {
   width: 88px;
 }
 
-/* ── Đôi cửa mở đầu ─────────────────────────────────────────────────────── */
+/* ── Đôi cửa bức bàn ────────────────────────────────────────────────────── */
 #dl-gate {
   position: fixed;
   inset: 0;
@@ -146,30 +139,23 @@ body {
   pointer-events: none;
 }
 
+/* Mỗi cánh một vệt sáng dọc giữa (sơn mài bóng) + vân gỗ rất nhạt. Hai cánh trượt
+   NGANG ra hai mép (2D), không xoay bản lề. */
 .dl-door {
   position: relative;
   flex: 1 1 50%;
   overflow: hidden;
-  background: rgb(var(--cx-cover-rgb));
-  /* Hai cánh trượt NGANG ra hai mép (2D), không xoay bản lề. */
+  background:
+    repeating-linear-gradient(90deg, rgb(var(--cx-cover-mid-rgb) / 0.08) 0 1px, transparent 1px 6px),
+    linear-gradient(90deg, rgb(var(--cx-cover-mid-rgb)), rgb(var(--cx-cover-rgb)) 22%, rgb(var(--cx-deco-2-rgb)) 50%, rgb(var(--cx-cover-rgb)) 78%, rgb(var(--cx-cover-mid-rgb)));
   transition: transform 1.6s cubic-bezier(0.65, 0, 0.25, 1);
   will-change: transform;
 }
 .dl-door-l {
-  background-image: linear-gradient(90deg, rgb(var(--cx-cover-mid-rgb)), rgb(var(--cx-cover-rgb)) 40%, rgb(var(--cx-cover-rgb)) 85%, rgb(var(--cx-cover-mid-rgb)));
-  box-shadow: inset -1px 0 0 rgb(var(--cx-deco-rgb) / 0.7);
+  box-shadow: inset -1px 0 0 rgb(var(--cx-deco-rgb));
 }
 .dl-door-r {
-  background-image: linear-gradient(90deg, rgb(var(--cx-cover-mid-rgb)), rgb(var(--cx-cover-rgb)) 15%, rgb(var(--cx-cover-rgb)) 60%, rgb(var(--cx-cover-mid-rgb)));
-  box-shadow: inset 1px 0 0 rgb(var(--cx-deco-rgb) / 0.7);
-}
-.dl-door::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgb(var(--cx-deco-rgb) / 0.2);
-  -webkit-mask: var(--dl-coins) repeat center / 44px 44px;
-  mask: var(--dl-coins) repeat center / 44px 44px;
+  box-shadow: inset 1px 0 0 rgb(var(--cx-deco-rgb));
 }
 #dl-gate.is-open .dl-door-l {
   transform: translateX(-100%);
@@ -178,77 +164,71 @@ body {
   transform: translateX(100%);
 }
 
-/* Hai ô khung nổi trên mỗi cánh, viền vàng đôi. */
+/* Khung cánh: ô trên song ô trám, ô dưới trơn; con dấu nằm ở khoảng hở giữa hai ô. */
 .dl-door-frame {
   position: absolute;
-  inset: 28px 18px;
+  inset: 28px 20px;
   display: grid;
-  grid-template-rows: 1.6fr 1fr;
-  gap: 16px;
+  grid-template-rows: 1.2fr 1fr;
+  gap: 92px;
 }
-.dl-door-pane {
-  border: 1.5px solid rgb(var(--cx-deco-rgb) / 0.8);
-  border-radius: 4px;
+.dl-pane {
+  position: relative;
+  border: 1.5px solid rgb(var(--cx-deco-rgb) / 0.9);
+  border-radius: 2px;
   box-shadow:
-    inset 0 0 0 6px rgb(var(--cx-cover-mid-rgb) / 0.35),
-    inset 0 0 0 7px rgb(var(--cx-deco-rgb) / 0.45),
-    0 2px 8px rgb(var(--cx-shadow-rgb) / 0.35);
+    inset 0 0 0 5px rgb(var(--cx-cover-mid-rgb) / 0.3),
+    inset 0 0 0 6px rgb(var(--cx-deco-rgb) / 0.55),
+    0 1px 0 rgb(var(--cx-deco-2-rgb) / 0.5);
 }
-
-/* Vòng gõ cửa đồng, sát mép trong của cánh. */
-.dl-ring {
-  position: absolute;
-  top: calc(50% + 72px);
-  width: 30px;
-  height: 30px;
-  border: 3px solid rgb(var(--cx-deco-rgb));
-  border-radius: 50%;
-  box-shadow: 0 3px 6px rgb(var(--cx-shadow-rgb) / 0.45);
-}
-.dl-ring::before {
+.dl-pane-lattice::before {
   content: "";
   position: absolute;
-  left: 50%;
-  top: -12px;
-  width: 14px;
-  height: 14px;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, rgb(var(--cx-shine-mid-rgb)), rgb(var(--cx-shine-from-rgb)));
+  inset: 11px;
+  background: rgb(var(--cx-deco-rgb) / 0.7);
+  -webkit-mask: var(--dl-lattice) repeat center / 26px 26px;
+  mask: var(--dl-lattice) repeat center / 26px 26px;
 }
-.dl-door-l .dl-ring {
-  right: 30px;
-}
-.dl-door-r .dl-ring {
-  left: 30px;
+.dl-pane-plain {
+  --dl-c: rgb(var(--cx-deco-rgb) / 0.8);
+  background:
+    linear-gradient(var(--dl-c), var(--dl-c)) top 14px left 14px / 18px 1.5px no-repeat,
+    linear-gradient(var(--dl-c), var(--dl-c)) top 14px left 14px / 1.5px 18px no-repeat,
+    linear-gradient(var(--dl-c), var(--dl-c)) top 14px right 14px / 18px 1.5px no-repeat,
+    linear-gradient(var(--dl-c), var(--dl-c)) top 14px right 14px / 1.5px 18px no-repeat,
+    linear-gradient(var(--dl-c), var(--dl-c)) bottom 14px left 14px / 18px 1.5px no-repeat,
+    linear-gradient(var(--dl-c), var(--dl-c)) bottom 14px left 14px / 1.5px 18px no-repeat,
+    linear-gradient(var(--dl-c), var(--dl-c)) bottom 14px right 14px / 18px 1.5px no-repeat,
+    linear-gradient(var(--dl-c), var(--dl-c)) bottom 14px right 14px / 1.5px 18px no-repeat;
 }
 
-/* Con dấu vàng 囍 nằm đúng đường khép cửa — mỗi cánh giữ một nửa. */
+/* Con dấu son chữ nhũ nằm đúng đường khép cửa — mỗi cánh giữ một nửa. */
 .dl-seal {
   position: absolute;
-  top: 50%;
-  width: 124px;
-  height: 124px;
-  margin-top: -62px;
+  top: calc(28px + (100% - 56px - 92px) * 1.2 / 2.2 + 46px);
+  width: 116px;
+  height: 116px;
+  margin-top: -58px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  color: rgb(var(--cx-accent-rgb));
-  background: radial-gradient(circle at 50% 40%, rgb(var(--cx-shine-mid-rgb)), rgb(var(--cx-shine-from-rgb)) 75%);
+  color: rgb(var(--cx-shine-mid-rgb));
+  background: radial-gradient(circle at 50% 38%, rgb(var(--cx-deco-2-rgb)), rgb(var(--cx-cover-rgb)) 70%);
   box-shadow:
-    inset 0 0 0 5px rgb(var(--cx-shine-from-rgb)),
-    inset 0 0 0 7px rgb(var(--cx-shine-mid-rgb)),
-    0 6px 18px rgb(var(--cx-shadow-rgb) / 0.45);
+    inset 0 0 0 3px rgb(var(--cx-shine-mid-rgb)),
+    inset 0 0 0 8px rgb(var(--cx-cover-rgb)),
+    inset 0 0 0 9px rgb(var(--cx-deco-rgb) / 0.8),
+    0 10px 24px rgb(var(--cx-shadow-rgb) / 0.45);
 }
 .dl-seal svg {
-  width: 66px;
-  height: 66px;
+  width: 58px;
+  height: 58px;
 }
 .dl-door-l .dl-seal {
-  right: -62px;
+  right: -58px;
 }
 .dl-door-r .dl-seal {
-  left: -62px;
+  left: -58px;
 }
 
 /* Vệt sáng lọt qua khe cửa khi mở. */
@@ -279,16 +259,18 @@ body {
   }
 }
 
+/* Giữa ô dưới của cửa (cùng công thức chia hàng với .dl-door-frame). */
 .dl-gate-hint {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
+  top: calc(28px + (100% - 148px) * 1.7 / 2.2 + 92px);
+  transform: translateY(-50%);
   z-index: 1;
-  font-size: 12px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: rgb(var(--cx-deco-soft-rgb));
+  font-size: 16px;
+  font-style: italic;
+  color: rgb(var(--cx-shine-mid-rgb));
+  text-shadow: 0 1px 6px rgb(var(--cx-shadow-rgb) / 0.6);
   text-align: center;
   animation: cx-dl-blink 2s ease-in-out infinite;
   transition: opacity 0.3s;
@@ -299,172 +281,113 @@ body {
 }
 @keyframes cx-dl-blink {
   50% {
-    opacity: 0.4;
+    opacity: 0.45;
   }
 }
 
-/* ── Mở đầu: hiện lần lượt khi cửa mở (.dl-in do index.js gắn) ────────── */
+/* ── Mở đầu: cao đúng một màn — ảnh tràn viền trên, tấm son chữ nhũ dưới ── */
+.dl-hero {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% + 48px);
+  margin: 0 -24px;
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
+  min-height: 600px;
+}
+.dl-hero-photo {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.dl-hero-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.dl-hero-band {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 24px calc(env(safe-area-inset-bottom, 0px) + 30px);
+  color: rgb(var(--cx-on-accent-rgb));
+  background: radial-gradient(120% 90% at 50% 0, rgb(var(--cx-deco-2-rgb)), rgb(var(--cx-cover-rgb)) 55%, rgb(var(--cx-cover-mid-rgb)));
+}
+/* Dải ô trám đè đúng mép ảnh với tấm son. */
+.dl-hero-band > .dl-lattice {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -7px;
+  --dl-c: rgb(var(--cx-shine-mid-rgb));
+  background-color: rgb(var(--cx-cover-mid-rgb));
+}
+.dl-hero-xi {
+  width: 34px;
+  height: 34px;
+  color: rgb(var(--cx-shine-mid-rgb));
+}
+.dl-hero-names {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 46px;
+  line-height: 1.1;
+  color: rgb(var(--cx-shine-mid-rgb));
+}
+.dl-hero-amp {
+  font-size: 0.6em;
+  line-height: 1;
+  color: rgb(var(--cx-deco-soft-rgb) / 0.8);
+}
+.dl-hero-date {
+  margin-top: 14px;
+  font-family: "Noto Serif Display", "Noto Serif", serif;
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: 5px;
+  line-height: 1.1;
+}
+.dl-hero-time {
+  margin-top: 6px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14px;
+  color: rgb(var(--cx-on-accent-rgb) / 0.85);
+}
+.dl-hero-guest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 14px;
+  font-family: "Noto Serif", serif;
+  font-size: 14px;
+  font-style: italic;
+  color: rgb(var(--cx-on-accent-rgb) / 0.85);
+}
+.dl-hero-guest-name {
+  font-size: 28px;
+  font-style: normal;
+  color: rgb(var(--cx-shine-mid-rgb));
+}
+
+/* Một nhịp duy nhất: chữ trên tấm son hiện lần lượt khi cửa vừa mở (.dl-in do index.js). */
 #section-hero .dl-up {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(14px);
   transition:
-    opacity 0.9s ease,
-    transform 0.9s ease;
+    opacity 0.8s ease,
+    transform 0.8s ease;
+  transition-delay: calc(var(--d, 0) * 140ms + 300ms);
 }
 #section-hero.dl-in .dl-up {
   opacity: 1;
   transform: none;
-}
-#section-hero.dl-in .dl-up:nth-child(3) {
-  transition-delay: 0.15s;
-}
-#section-hero.dl-in .dl-up:nth-child(4) {
-  transition-delay: 0.3s;
-}
-#section-hero.dl-in .dl-up:nth-child(5),
-#section-hero.dl-in .dl-up:nth-child(6) {
-  transition-delay: 0.45s;
-}
-#section-hero.dl-in .dl-up:nth-child(7) {
-  transition-delay: 0.6s;
-}
-#section-hero.dl-in .dl-up:nth-child(9) {
-  transition-delay: 0.8s;
-}
-
-.dl-eyebrow {
-  font-size: 14px;
-  letter-spacing: 8px;
-  text-transform: uppercase;
-  color: rgb(var(--cx-heading-rgb));
-}
-.dl-amp {
-  display: block;
-  font-size: 0.7em;
-  line-height: 1;
-}
-.dl-xi-mark {
-  width: 54px;
-  height: 54px;
-}
-.dl-hero-date {
-  font-size: 30px;
-  font-weight: 600;
-  letter-spacing: 8px;
-  margin-top: 4px;
-}
-
-/* Dây kết đỏ hạt vàng hai bên chữ Hỷ. */
-.dl-knot {
-  position: relative;
-  display: inline-block;
-  width: 20px;
-  height: 66px;
-  background:
-    linear-gradient(rgb(var(--cx-deco-rgb)), rgb(var(--cx-deco-rgb))) center top / 1.5px 14px no-repeat,
-    repeating-linear-gradient(90deg, rgb(var(--cx-accent-rgb)) 0 1.5px, transparent 1.5px 3px) center bottom / 10px 22px no-repeat;
-}
-.dl-knot::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 14px;
-  width: 15px;
-  height: 15px;
-  transform: translateX(-50%) rotate(45deg);
-  background: rgb(var(--cx-accent-rgb));
-  box-shadow:
-    inset 0 0 0 3px rgb(var(--cx-card-bg-rgb)),
-    inset 0 0 0 5px rgb(var(--cx-accent-rgb));
-}
-.dl-knot::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 36px;
-  width: 8px;
-  height: 8px;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: rgb(var(--cx-deco-rgb));
-}
-
-/* Ảnh mở đầu trong khung vòm viền vàng. */
-.dl-arch {
-  position: relative;
-  width: 280px;
-  height: 392px;
-  padding: 7px;
-  border-radius: 140px 140px 10px 10px;
-  background: linear-gradient(160deg, rgb(var(--cx-shine-from-rgb)), rgb(var(--cx-shine-mid-rgb)) 45%, rgb(var(--cx-shine-to-rgb)));
-  box-shadow: 0 14px 32px rgb(var(--cx-shadow-rgb) / 0.22);
-}
-.dl-arch img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 133px 133px 5px 5px;
-  border: 3px solid rgb(var(--cx-card-bg-rgb));
-}
-
-/* Đèn lồng treo hai vai vòm, đung đưa. */
-.dl-lantern {
-  position: absolute;
-  top: 96px;
-  width: 30px;
-  height: 36px;
-  border-radius: 45%;
-  background: radial-gradient(circle at 42% 38%, rgb(var(--cx-deco-2-soft-rgb)), rgb(var(--cx-deco-2-rgb)) 55%, rgb(var(--cx-accent-rgb)));
-  box-shadow: 0 4px 12px rgb(var(--cx-deco-2-rgb) / 0.45);
-  transform-origin: 50% -44px;
-  animation: cx-dl-sway 3.6s ease-in-out infinite;
-}
-.dl-lantern::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: -44px;
-  width: 1px;
-  height: 44px;
-  background: rgb(var(--cx-deco-rgb));
-}
-.dl-lantern::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -18px;
-  width: 6px;
-  height: 18px;
-  transform: translateX(-50%);
-  background: repeating-linear-gradient(90deg, rgb(var(--cx-deco-rgb)) 0 1px, transparent 1px 2px);
-}
-.dl-lantern i {
-  position: absolute;
-  left: 7px;
-  right: 7px;
-  top: -3px;
-  height: 5px;
-  border-radius: 2px;
-  background: rgb(var(--cx-deco-rgb));
-  box-shadow: 0 37px 0 rgb(var(--cx-deco-rgb));
-}
-.dl-lantern-a {
-  left: -18px;
-}
-.dl-lantern-b {
-  right: -18px;
-  top: 128px;
-  animation-delay: -1.4s;
-}
-@keyframes cx-dl-sway {
-  0%,
-  100% {
-    transform: rotate(-6deg);
-  }
-  50% {
-    transform: rotate(6deg);
-  }
 }
 
 /* ── Gia đình ───────────────────────────────────────────────────────────── */
@@ -797,13 +720,12 @@ body {
   font-size: 64px;
   line-height: 1.2;
 }
-.dl-fret-end {
+.dl-lattice-end {
   position: absolute;
   left: 20px;
   right: 20px;
   bottom: 20px;
-  width: auto;
-  background: rgb(var(--cx-on-image-rgb) / 0.85);
+  --dl-c: rgb(var(--cx-on-image-rgb) / 0.85);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -813,7 +735,9 @@ body {
     opacity: 0;
     transition: opacity 0.5s ease;
   }
-  .dl-lantern,
+  #section-hero .dl-up {
+    transform: none;
+  }
   .dl-cal-day svg {
     animation: none;
   }

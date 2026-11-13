@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+Display:wght@500;600&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../../../styles/themes.css" />
@@ -37,9 +37,9 @@
     <script src="../../../core/helpers/no-inspect.js"></script>
   </head>
 
-  <!-- Duyên Lành Gõ Cửa — thiệp đỏ son chỉ vàng. Không có màn bìa bấm mở: thay vào đó
-       là đôi cửa gỗ son (#dl-gate, vẽ thuần CSS nên hiện ngay từ khung hình đầu) tự mở
-       ra hai bên khi ảnh mở đầu đã tải, khách chạm vào thì mở sớm. -->
+  <!-- Duyên Lành Gõ Cửa — thiệp son tươi chữ nhũ. Không có màn bìa bấm mở: thay vào đó
+       là đôi cửa bức bàn (#dl-gate, vẽ thuần CSS nên hiện ngay từ khung hình đầu) tự
+       trượt ra hai bên khi ảnh mở đầu đã tải, khách chạm vào thì mở sớm. -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
     <div id="cx-music-mount"></div>
@@ -52,21 +52,26 @@
     </svg>
 
     <!-- ═══ Đôi cửa mở đầu ═══════════════════════════════════════════════
-         Chỉ để trang trí: index.js thêm .is-open rồi gỡ hẳn khi cửa mở xong. Con
-         dấu 囍 chia đôi, mỗi nửa nằm trong một cánh (cánh overflow:hidden cắt). -->
+         Cửa bức bàn sơn son: ô trên song chéo ô trám, ô dưới để trơn. Chỉ để trang trí:
+         index.js thêm .is-open (hai cánh trượt ngang) rồi gỡ hẳn khi đã khuất. Con dấu
+         囍 chia đôi, mỗi nửa nằm trong một cánh (cánh overflow:hidden cắt). -->
     <div id="dl-gate" data-no-scan aria-hidden="true">
       <div class="dl-gate-glow"></div>
       <div class="dl-door dl-door-l">
-        <div class="dl-door-frame"><div class="dl-door-pane"></div><div class="dl-door-pane"></div></div>
-        <span class="dl-ring"></span>
+        <div class="dl-door-frame">
+          <div class="dl-pane dl-pane-lattice"></div>
+          <div class="dl-pane dl-pane-plain"></div>
+        </div>
         <div class="dl-seal"><svg><use href="#dl-xi" /></svg></div>
       </div>
       <div class="dl-door dl-door-r">
-        <div class="dl-door-frame"><div class="dl-door-pane"></div><div class="dl-door-pane"></div></div>
-        <span class="dl-ring"></span>
+        <div class="dl-door-frame">
+          <div class="dl-pane dl-pane-lattice"></div>
+          <div class="dl-pane dl-pane-plain"></div>
+        </div>
         <div class="dl-seal"><svg><use href="#dl-xi" /></svg></div>
       </div>
-      <div class="dl-gate-hint cx-t">Chạm để mở cửa</div>
+      <div class="dl-gate-hint cx-h">Chạm để mở cửa</div>
     </div>
 
     <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════ -->
@@ -74,40 +79,32 @@
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
     >
-      <div class="dl-flow flex flex-col gap-16 px-6 pt-10 pb-16 text-center">
-        <!-- ═══ MỤC: Mở đầu ═══════════════════════════════════════════════ -->
+      <div class="dl-flow flex flex-col gap-16 px-6 pb-16 text-center">
+        <!-- ═══ MỤC: Mở đầu — cao đúng một màn: ảnh tràn viền + tấm son chữ nhũ ═══ -->
         <section id="section-hero" class="flex flex-col items-center">
-          <div class="dl-fret w-full"></div>
-          <div class="dl-up cx-t dl-eyebrow mt-8">Thiệp Mời</div>
-
-          <h1 class="dl-up dl-script cx-h text-[44px] leading-[1.25] mt-4">
-            <span id="couple-names-groom">----------</span>
-            <span class="cx-a dl-amp">&</span>
-            <span id="couple-names-bride">----------</span>
-          </h1>
-
-          <div class="dl-up flex items-center justify-center gap-5 mt-4">
-            <span class="dl-knot" aria-hidden="true"></span>
-            <svg class="dl-xi-mark cx-a" aria-hidden="true"><use href="#dl-xi" /></svg>
-            <span class="dl-knot" aria-hidden="true"></span>
+          <div class="dl-hero">
+            <div class="dl-hero-photo">
+              <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" fetchpriority="high" />
+            </div>
+            <div class="dl-hero-band">
+              <div class="dl-lattice" aria-hidden="true"></div>
+              <svg class="dl-up dl-hero-xi" style="--d: 0" aria-hidden="true"><use href="#dl-xi" /></svg>
+              <h1 class="dl-up dl-script dl-hero-names" style="--d: 1">
+                <span id="couple-names-groom">----------</span>
+                <span class="dl-hero-amp">&</span>
+                <span id="couple-names-bride">----------</span>
+              </h1>
+              <div class="dl-up dl-hero-date" style="--d: 2" id="hero-date">--.--.----</div>
+              <div class="dl-up dl-hero-time" style="--d: 3" id="hero-time">------, -- giờ --</div>
+              <!-- Tên khách: chỉ hiện với link riêng (CX_GUEST) hoặc bản xem thử ?guest= -->
+              <div id="cover-guest-wrap" class="hidden dl-up dl-hero-guest" style="--d: 4">
+                <span data-cx-invite>Trân trọng kính mời</span>
+                <span class="dl-script dl-hero-guest-name" id="cover-guest-name">----------</span>
+              </div>
+            </div>
           </div>
 
-          <div class="dl-up cx-t text-[14px] mt-4" id="hero-time">--:-- · ------</div>
-          <div class="dl-up cx-h dl-hero-date" id="hero-date">--.--.----</div>
-
-          <div class="dl-up dl-arch mt-8">
-            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" fetchpriority="high" />
-            <span class="dl-lantern dl-lantern-a" aria-hidden="true"><i></i></span>
-            <span class="dl-lantern dl-lantern-b" aria-hidden="true"><i></i></span>
-          </div>
-
-          <!-- Tên khách: chỉ hiện với link riêng (CX_GUEST) hoặc bản xem thử ?guest= -->
-          <div id="cover-guest-wrap" class="hidden flex-col items-center gap-1 mt-8">
-            <div data-cx-invite class="cx-t text-[13px] tracking-[2px] uppercase">Trân trọng kính mời</div>
-            <div class="cx-h dl-script text-[30px]" id="cover-guest-name">----------</div>
-          </div>
-
-          <div id="story-quote" class="dl-up cx-h italic text-[15px] leading-relaxed px-4 mt-8">
+          <div id="story-quote" class="cx-h italic text-[16px] leading-relaxed px-4 mt-12">
             "Duyên lành gõ cửa, trăm năm một nhà"
           </div>
         </section>
@@ -190,7 +187,7 @@
           <div class="dl-ticket w-full">
             <div id="party-section-label" class="cx-h dl-label">Tiệc Mừng Lễ Thành Hôn</div>
             <div class="cx-a dl-party-time" id="dl-p-time">--:--</div>
-            <div class="cx-t text-[14px] tracking-[1px]" id="dl-p-date">------ · --.--.----</div>
+            <div class="cx-t text-[14px] tracking-[1px]" id="dl-p-date">------, --.--.----</div>
             <div class="cx-h italic text-[13px] opacity-80" id="party-lunar">(Ngày âm lịch)</div>
             <div class="dl-ticket-rule" aria-hidden="true"></div>
             <div class="cx-t text-[11px] tracking-[3px] uppercase">Tổ chức tại</div>
@@ -198,7 +195,7 @@
           </div>
 
           <div class="dl-cal w-full">
-            <div class="cx-h dl-cal-title" id="dl-cal-title">Tháng -- · ----</div>
+            <div class="cx-h dl-cal-title" id="dl-cal-title">Tháng -- năm ----</div>
             <div id="dl-cal-grid" class="dl-cal-grid"></div>
           </div>
         </section>
@@ -305,7 +302,7 @@
               Rất hân hạnh được đón tiếp!
             </div>
           </div>
-          <div class="dl-fret dl-fret-end w-full"></div>
+          <div class="dl-lattice dl-lattice-end" aria-hidden="true"></div>
         </section>
       </div>
     </div>
