@@ -68,6 +68,24 @@
   --sh-berry-rgb: var(--cx-accent-rgb);
   --sh-env-in-a-rgb: var(--cx-accent-rgb); /* lòng phong bì: hai màu pha */
   --sh-env-in-b-rgb: var(--cx-deco-rgb);
+  /* Mục XEN KẼ (.sh-alt, do shStripe ở index.js gắn): nền + bộ chữ riêng. Mặc định trỏ về
+     token chung; bộ nào khai `--sh-alt-bg-rgb` khác nền thẻ thì mục 1, 3, 5… đổi nền. */
+  --sh-alt-bg-rgb: var(--cx-card-bg-rgb);
+  --sh-alt-bg-2-rgb: var(--cx-card-bg-rgb);
+  --sh-alt-heading-rgb: var(--cx-heading-rgb);
+  --sh-alt-body-rgb: var(--cx-body-rgb);
+  --sh-alt-accent-rgb: var(--cx-accent-rgb);
+  --sh-alt-accent-soft-rgb: var(--cx-accent-soft-rgb);
+  --sh-alt-on-accent-rgb: var(--cx-on-accent-rgb);
+  --sh-alt-surface-rgb: var(--cx-surface-rgb);
+  --sh-alt-band-rgb: var(--cx-band-rgb);
+  --sh-alt-panel-rgb: var(--cx-panel-rgb);
+  --sh-alt-panel-warm-rgb: var(--cx-panel-warm-rgb);
+  --sh-alt-line-rgb: var(--cx-line-rgb);
+  --sh-alt-deco-rgb: var(--cx-deco-rgb);
+  --sh-alt-deco-soft-rgb: var(--cx-deco-soft-rgb);
+  --sh-alt-deco-2-rgb: var(--cx-deco-2-rgb);
+  --sh-alt-deco-2-soft-rgb: var(--cx-deco-2-soft-rgb);
 
   /* Nhiễu dùng làm mặt nạ vân giấy (chỉ kênh alpha, #000 không phải màu hiển thị). */
   --sh-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.6 0 0 0 -0.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
@@ -98,6 +116,30 @@ body {
   flex-direction: column;
   gap: 16px;
   text-align: center;
+}
+
+/* Mục xen kẽ: tràn sát hai mép thẻ (bù đúng padding 16px của .sh-body), lấn 16px vào
+   khoảng gap 48px mỗi đầu — nội dung hai bên đều cách mép dải 32px. Token chung đổi ngay
+   trên mục nên mọi thứ bên trong tự lấy bộ chữ/nền xen kẽ. */
+.sh-sec.sh-alt {
+  --cx-card-bg-rgb: var(--sh-alt-bg-rgb);
+  --cx-heading-rgb: var(--sh-alt-heading-rgb);
+  --cx-body-rgb: var(--sh-alt-body-rgb);
+  --cx-accent-rgb: var(--sh-alt-accent-rgb);
+  --cx-accent-soft-rgb: var(--sh-alt-accent-soft-rgb);
+  --cx-on-accent-rgb: var(--sh-alt-on-accent-rgb);
+  --cx-surface-rgb: var(--sh-alt-surface-rgb);
+  --cx-band-rgb: var(--sh-alt-band-rgb);
+  --cx-panel-rgb: var(--sh-alt-panel-rgb);
+  --cx-panel-warm-rgb: var(--sh-alt-panel-warm-rgb);
+  --cx-line-rgb: var(--sh-alt-line-rgb);
+  --cx-deco-rgb: var(--sh-alt-deco-rgb);
+  --cx-deco-soft-rgb: var(--sh-alt-deco-soft-rgb);
+  --cx-deco-2-rgb: var(--sh-alt-deco-2-rgb);
+  --cx-deco-2-soft-rgb: var(--sh-alt-deco-2-soft-rgb);
+  margin: -16px -16px;
+  padding: 32px 16px;
+  background: linear-gradient(160deg, rgb(var(--sh-alt-bg-2-rgb)), rgb(var(--sh-alt-bg-rgb)) 50%, rgb(var(--sh-alt-bg-2-rgb)));
 }
 
 /* .sh-sec/.sh-blk/.sh-row tự khai display nên đè mất .hidden của themes.css (nạp

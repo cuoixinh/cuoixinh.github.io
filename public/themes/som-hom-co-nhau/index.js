@@ -48,77 +48,20 @@
     },
 
     // Biến thể tông của chính mẫu này, hiện ngay sau "Mặc định" ở tab Giao diện →
-    // Bộ màu. "Đỏ đậm" là bộ NỀN ĐỎ (tông hong-duyen): mọi lớp nền thành đỏ thẫm, chữ
-    // thành ngà, nhấn thành nhũ vàng — `dark: true` nên thanh "Độ đậm" ẩn đi. `wishes`
+    // Bộ màu. "Đỏ rượu" là bộ NỀN TỐI (`dark: true` nên thanh "Độ đậm" ẩn đi). `wishes`
     // thay CX_THEME.wishes (vốn chỉ hợp tông tím), khai bằng TÊN khoá bộ màu. `id` lưu
     // xuống DB → đừng đổi; thêm bộ mới thì chạy `npm run check:palette-contrast`.
     palettes: [
-      {
-        id: "som-hom-do-dam",
-        name: "Đỏ đậm",
-        dark: true,
-        heading: "#fbe7c6",
-        body: "#f5d9cf",
-        accent: "#e8c480",
-        accent_soft: "#b31b2e",
-        on_accent: "#8b0014",
-        on_image: "#ffffff",
-        on_lightbox: "#ffffff",
-        card_bg: "#8b0014",
-        page_bg: "#f4eee2",
-        surface: "#96071b",
-        band: "#7a0012",
-        panel: "#9e0f22",
-        panel_warm: "#a3192b",
-        cover: "#8b0014",
-        cover_mid: "#a01024",
-        cover_veil: "#8b0014",
-        lightbox_bg: "#000000",
-        line: "#b8434d",
-        shadow: "#2a0006",
-        scrim: "#170b0c",
-        deco: "#e8c480",
-        deco_soft: "#9a0f20",
-        deco_2: "#e6b3ad",
-        deco_2_soft: "#a8323d",
-        shine_from: "#f8e4be",
-        shine_mid: "#e8c480",
-        shine_to: "#c8a060",
-        wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
-        // Màn bìa + nền trang quanh thẻ là GIẤY KEM như bộ "Đỏ rượu": chữ bìa đỏ thẫm, dấu
-        // sáp vàng, hoa đỏ thẫm + kem, lòng phong bì đỏ sẫm ren vàng.
-        vars: {
-          "--sh-cv-bg-rgb": "#f6f0e4",
-          "--sh-cv-bg-2-rgb": "#f1e9db",
-          "--sh-cv-glow-a-rgb": "#fffaf1",
-          "--sh-cv-glow-b-rgb": "#ece2cf",
-          "--sh-cv-ink-rgb": "#8b0014",
-          "--sh-cv-muted-rgb": "#8f4a4f",
-          "--sh-cv-amp-rgb": "#b8323f",
-          "--sh-cv-btn-rgb": "#fffaf1",
-          "--sh-seal-hi-rgb": "#f6dc8e",
-          "--sh-seal-mid-rgb": "#d0a24a",
-          "--sh-seal-lo-rgb": "#93651f",
-          "--sh-seal-ink-rgb": "#6a4512",
-          "--sh-rose-a-rgb": "#b3192b",
-          "--sh-rose-b-rgb": "#efe2cf",
-          "--sh-rose-c-rgb": "#7a0a18",
-          "--sh-leaf-rgb": "#a89462",
-          "--sh-berry-rgb": "#8b0014",
-          "--sh-env-in-a-rgb": "#a1101f",
-          "--sh-env-in-b-rgb": "#5e0711",
-        },
-      },
-      // "Đỏ rượu": thẻ đỏ rượu sẫm chữ trắng ngà, nhãn phụ hồng phấn, nhấn hồng kem —
-      // trầm hơn "Đỏ đậm", không nhũ vàng. Nền TRANG (page_bg) để giấy ngà sáng như thẻ
-      // đặt trên giấy; không chữ nào nằm trên lớp đó.
+      // "Đỏ rượu": các mục xen kẽ nền giấy kem như bìa (chữ đỏ rượu, `--sh-alt-*` trong vars) và
+      // nền đỏ rượu sẫm (chữ trắng ngà, nhấn vàng cùng dải dấu sáp ở bìa). Nền TRANG (page_bg)
+      // để giấy ngà sáng như thẻ đặt trên giấy; không chữ nào nằm trên lớp đó.
       {
         id: "som-hom-do-ruou",
         name: "Đỏ rượu",
         dark: true,
         heading: "#fbefe6",
         body: "#efdcd5",
-        accent: "#ecc9c1",
+        accent: "#e3c27f",
         accent_soft: "#6a1d25",
         on_accent: "#4e1319",
         on_image: "#ffffff",
@@ -133,16 +76,16 @@
         cover_mid: "#5e1a22",
         cover_veil: "#4e1319",
         lightbox_bg: "#000000",
-        line: "#8a4b51",
+        line: "#8f6440",
         shadow: "#1e0507",
         scrim: "#170a0b",
-        deco: "#ead2c8",
+        deco: "#d9b266",
         deco_soft: "#3f0e13",
         deco_2: "#d4aeab",
         deco_2_soft: "#6b2a31",
-        shine_from: "#f3e3dc",
-        shine_mid: "#ecc9c1",
-        shine_to: "#c99c98",
+        shine_from: "#f6e2ae",
+        shine_mid: "#d9b266",
+        shine_to: "#a87c34",
         wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
         // Màn bìa nền GIẤY NGÀ (như thẻ đặt trên giấy) trong khi thân thiệp nền đỏ rượu:
         // chữ bìa đỏ rượu, dấu sáp vàng, hoa đỏ rượu + kem, lá vàng rêu. Tên biến khai ở
@@ -167,6 +110,23 @@
           "--sh-berry-rgb": "#6a1820",
           "--sh-env-in-a-rgb": "#5e1a23",
           "--sh-env-in-b-rgb": "#2e0a0e",
+          // Mục xen kẽ nền GIẤY KEM như màn bìa, chữ đỏ rượu sẫm (mục 1, 3, 5… — shStripe).
+          "--sh-alt-bg-rgb": "#f1e9db",
+          "--sh-alt-bg-2-rgb": "#f6f0e4",
+          "--sh-alt-heading-rgb": "#4e1319",
+          "--sh-alt-body-rgb": "#4a1c1f",
+          "--sh-alt-accent-rgb": "#7a1c27",
+          "--sh-alt-accent-soft-rgb": "#ece2cf",
+          "--sh-alt-on-accent-rgb": "#fbefe6",
+          "--sh-alt-surface-rgb": "#f1e9db",
+          "--sh-alt-band-rgb": "#ece2cf",
+          "--sh-alt-panel-rgb": "#fffaf1",
+          "--sh-alt-panel-warm-rgb": "#fbf5ea",
+          "--sh-alt-line-rgb": "#d8c6a6",
+          "--sh-alt-deco-rgb": "#8a1d28",
+          "--sh-alt-deco-soft-rgb": "#efe2cf",
+          "--sh-alt-deco-2-rgb": "#7d4a4d",
+          "--sh-alt-deco-2-soft-rgb": "#e8dcc6",
         },
       },
     ],
@@ -361,9 +321,49 @@
     cxToggle("section-footer", cxEnabled(w.enable_footer));
 
     shMotion();
+    shStripeWatch();
   }
 
   window.renderWedding = renderWedding;
+
+  // Bộ màu khai `--sh-alt-bg-rgb` khác nền thẻ → mục đang HIỆN thứ 1, 3, 5… (theo flex
+  // `order`, khối chèn thêm đánh lại order) nhận .sh-alt. Không khai thì gỡ hết.
+  function shStripe() {
+    const card = document.getElementById("main-card");
+    if (!card) return;
+    const root = getComputedStyle(document.documentElement);
+    const on = root.getPropertyValue("--sh-alt-bg-rgb").trim() !== root.getPropertyValue("--cx-card-bg-rgb").trim();
+    const secs = [...card.querySelectorAll(".sh-body > .sh-sec")].map((el, i) => ({ el, i, st: getComputedStyle(el) }));
+    const shown = secs
+      .filter((s) => s.st.display !== "none")
+      .sort((a, b) => (parseInt(a.st.order, 10) || 0) - (parseInt(b.st.order, 10) || 0) || a.i - b.i);
+    secs.forEach((s) => s.el.classList.toggle("sh-alt", on && shown.indexOf(s) % 2 === 0));
+  }
+
+  // Chạy lại khi bộ màu đổi (thẻ <style> trong <head>), khi mục ẩn/hiện hay khối chèn thêm.
+  // toggle không đổi gì thì không sinh mutation nên không tự gọi vòng.
+  let _stripeMo = null;
+  function shStripeWatch() {
+    shStripe();
+    if (_stripeMo) return;
+    let queued = false;
+    _stripeMo = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        shStripe();
+      });
+    });
+    _stripeMo.observe(document.head, { childList: true, subtree: true, characterData: true });
+    const body = document.querySelector("#main-card .sh-body");
+    if (body) {
+      _stripeMo.observe(body, { childList: true });
+      body.querySelectorAll(":scope > .sh-sec").forEach((s) =>
+        _stripeMo.observe(s, { attributes: true, attributeFilter: ["class", "style"] }),
+      );
+    }
+  }
 
   // Ảnh trong #main-card của mẫu có bìa KHÔNG lazy (xem CLAUDE.md).
   function shImg(url, fp) {
