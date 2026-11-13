@@ -245,11 +245,12 @@ body {
   background: rgb(var(--cx-panel-rgb) / 0.8);
 }
 
-/* Ảnh: khung polaroid trắng, viền đáy dày hơn. */
+/* Ảnh: khung polaroid trắng, viền đáy dày hơn. Giấy ảnh lấy on_image (màu sáng luôn đứng
+   cạnh ảnh) chứ không phải panel: ở bộ nền đỏ panel là đỏ, khung sẽ chìm vào nền. */
 .sh-pol {
   position: absolute;
   padding: 6px 6px 16px;
-  background: rgb(var(--cx-panel-rgb));
+  background: rgb(var(--cx-on-image-rgb));
   box-shadow:
     0 1px 2px rgb(var(--cx-shadow-rgb) / 0.1),
     0 16px 32px -10px rgb(var(--cx-shadow-rgb) / 0.3);
@@ -1227,7 +1228,7 @@ body {
   z-index: 1;
   width: 72%;
   padding: 8px 8px 32px;
-  background: rgb(var(--cx-panel-rgb));
+  background: rgb(var(--cx-on-image-rgb));
   box-shadow: 0 12px 32px rgb(var(--cx-shadow-rgb) / 0.12);
   transform: rotate(-3deg);
 }
