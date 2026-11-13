@@ -97,10 +97,21 @@ function _paletteValue(id) {
   return out;
 }
 
+// Thiệp đã chọn một bộ riêng của mẫu từ trước: đổi bản lưu (ảnh chụp lúc chọn) sang bản
+// khai hiện tại, giữ độ đậm — lần lưu kế tiếp ghi bản mới, worker dựng sẵn cũng đúng theo.
+function _refreshOwnPalette() {
+  const cur = _currentPalette();
+  if (!cur?.id || !_themePalettes().some((p) => p.id === cur.id)) return;
+  const fresh = _paletteValue(cur.id);
+  if (cur.strength != null && !fresh.dark) fresh.strength = cur.strength;
+  if (JSON.stringify(fresh) !== JSON.stringify(cur)) _themeSetting.palette = fresh;
+}
+
 // Lưới ô màu: ô đầu "Mặc định" vẽ từ chính bản khai của mẫu đang mở
 // (CX_THEME.palette), để khách thấy ngay mình đang rời khỏi tông nào; kế đó là bộ
 // riêng của mẫu, rồi tới danh mục chung.
 function _renderPaletteGrid() {
+  _refreshOwnPalette();
   const box = document.getElementById("theme-palette");
   if (!box || !window.CX_PALETTES) return;
   box.textContent = "";

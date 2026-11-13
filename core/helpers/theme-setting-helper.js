@@ -304,6 +304,19 @@ const CX_PALETTE_MUSIC = (get) => [
   `--music-art-to-rgb: ${get("accent")}`,
 ];
 
+// Bộ RIÊNG của mẫu (CX_THEME.palettes) lấy bản khai HIỆN TẠI theo id — thiệp chọn bộ đó
+// từ trước vẫn ăn bản thiết kế mới (bản lưu chỉ là ảnh chụp lúc chọn). Bộ chung của danh
+// mục giữ nguyên bản đã lưu. Độ đậm khách đã kéo vẫn giữ. Không có window (worker) → bản lưu.
+function _cxLivePalette(p) {
+  if (!p || typeof p !== "object" || !p.id || typeof window === "undefined") return p;
+  const list = window.CX_THEME && window.CX_THEME.palettes;
+  const own = Array.isArray(list) && list.find((x) => x && x.id === p.id);
+  if (!own) return p;
+  const out = { ...own };
+  if (p.strength != null) out.strength = p.strength;
+  return out;
+}
+
 // Trả về rule `:root { … }` cho bộ màu, hoặc "" nếu không có bộ nào hợp lệ.
 // Khoá thiếu thì bỏ qua để token của mẫu vẫn giữ nguyên — bộ màu khuyết một ô
 // không được phép làm hỏng cả thiệp.
@@ -2408,7 +2421,8 @@ function applyThemeSetting(setting) {
 
   // Bộ màu chỉ đổi token --cx-* ở :root nên mọi rule bên dưới (ghi đè từng dòng
   // chữ, khối văn bản…) vẫn thắng: chọn bộ trước, chỉnh riêng từng chỗ sau.
-  const paletteRule = _cxPaletteRule(setting.palette);
+  const palette = _cxLivePalette(setting.palette);
+  const paletteRule = _cxPaletteRule(palette);
   if (paletteRule) rules.push(paletteRule);
 
   // ── Ghi đè chi tiết TỪNG DÒNG chữ ─────────────────────────────────────────
@@ -2482,8 +2496,7 @@ function applyThemeSetting(setting) {
 
   // Bộ màu riêng của mẫu có thể kèm màu lời chúc (palette.wishes — xem applyWishStyle
   // ở wishes-helper.js): giữ bộ đang áp cho helper đó, mục đã dựng thì tô lại ngay.
-  window.CX_PALETTE_ON =
-    setting.palette && typeof setting.palette === "object" ? setting.palette : null;
+  window.CX_PALETTE_ON = palette && typeof palette === "object" ? palette : null;
   if (typeof applyWishStyle === "function") applyWishStyle();
 
   // Cỡ chữ ghi tạm lúc chụm 2 ngón (inline !important) nay đã nằm trong
