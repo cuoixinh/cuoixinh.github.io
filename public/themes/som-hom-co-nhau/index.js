@@ -48,42 +48,43 @@
     },
 
     // Biến thể tông của chính mẫu này, hiện ngay sau "Mặc định" ở tab Giao diện →
-    // Bộ màu. Mỗi ô thay đúng vai của màu tím gốc (tím than → đỏ rượu, tím nhấn →
-    // đỏ thẫm, nền oải hương → ngà hồng); `wishes` thay CX_THEME.wishes (vốn chỉ hợp
-    // tông tím), khai bằng TÊN khoá để ăn theo cả thanh "Độ đậm". `id` lưu xuống DB →
-    // đừng đổi; thêm bộ mới thì chạy `npm run check:palette-contrast`.
+    // Bộ màu. "Đỏ đậm" là bộ NỀN ĐỎ (tông hong-duyen): mọi lớp nền thành đỏ thẫm, chữ
+    // thành ngà, nhấn thành nhũ vàng — `dark: true` nên thanh "Độ đậm" ẩn đi. `wishes`
+    // thay CX_THEME.wishes (vốn chỉ hợp tông tím), khai bằng TÊN khoá bộ màu. `id` lưu
+    // xuống DB → đừng đổi; thêm bộ mới thì chạy `npm run check:palette-contrast`.
     palettes: [
       {
         id: "som-hom-do-dam",
         name: "Đỏ đậm",
-        heading: "#5a0f1c",
-        body: "#43302f",
-        accent: "#9b1c2c",
-        accent_soft: "#f5e1df",
-        on_accent: "#ffffff",
+        dark: true,
+        heading: "#fbe7c6",
+        body: "#f5d9cf",
+        accent: "#e8c480",
+        accent_soft: "#a8202f",
+        on_accent: "#8b0014",
         on_image: "#ffffff",
         on_lightbox: "#ffffff",
-        card_bg: "#ffffff",
-        page_bg: "#f9f0ed",
-        surface: "#fbf4f2",
-        band: "#f7ece8",
-        panel: "#ffffff",
-        panel_warm: "#fdf8f6",
-        cover: "#ffffff",
-        cover_mid: "#f7ece8",
-        cover_veil: "#ffffff",
+        card_bg: "#8b0014",
+        page_bg: "#6f0010",
+        surface: "#96071b",
+        band: "#7a0012",
+        panel: "#9e0f22",
+        panel_warm: "#a3192b",
+        cover: "#8b0014",
+        cover_mid: "#a01024",
+        cover_veil: "#8b0014",
         lightbox_bg: "#000000",
-        line: "#eedcd7",
-        shadow: "#3d0a12",
-        scrim: "#3d0a12",
-        deco: "#b3263a",
-        deco_soft: "#f4dcdb",
-        deco_2: "#85696a",
-        deco_2_soft: "#eedcd7",
-        shine_from: "#ffffff",
-        shine_mid: "#f7ece8",
-        shine_to: "#eedcd7",
-        wishes: { bubble: "surface", text: "body", accent: "accent", btn: "heading" },
+        line: "#b8434d",
+        shadow: "#2a0006",
+        scrim: "#2a0006",
+        deco: "#e8c480",
+        deco_soft: "#f2d9a8",
+        deco_2: "#e6b3ad",
+        deco_2_soft: "#a8323d",
+        shine_from: "#f8e4be",
+        shine_mid: "#e8c480",
+        shine_to: "#c8a060",
+        wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
       },
     ],
 

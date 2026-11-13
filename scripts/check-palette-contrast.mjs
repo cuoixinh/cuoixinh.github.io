@@ -78,9 +78,12 @@ const PAIRS = [
   ["on_image", "scrim", 4.5, "chữ trên ảnh (qua lớp phủ)"],
 ];
 
-// Nền phải SÁNG: đây là thiệp cưới, không có bộ nền tối.
+// Nền phải SÁNG: đây là thiệp cưới, không có bộ nền tối. Ngoại lệ DUY NHẤT là bộ
+// riêng của mẫu khai `dark: true` (nền đỏ thẫm chữ ngà…): khi đó nền phải TỐI hẳn, và
+// chỉ kiểm ở mức 50 vì runtime bỏ qua thanh "Độ đậm" với bộ đó.
 const LIGHT = ["card_bg", "page_bg", "surface", "panel"];
 const MIN_LIGHT_LUM = 0.7;
+const MAX_DARK_LUM = 0.2;
 
 function check(p, at) {
   const errs = [];
@@ -91,7 +94,10 @@ function check(p, at) {
       errs.push(`${at}% ${what}: ${r.toFixed(2)}:1 < ${min}:1  (${a} ${p[a]} / ${b} ${p[b]})`);
   }
   for (const k of LIGHT) {
-    if (p[k] && lum(p[k]) < MIN_LIGHT_LUM)
+    if (!p[k]) continue;
+    if (p.dark && lum(p[k]) > MAX_DARK_LUM)
+      errs.push(`${at}% ${k} của bộ nền tối không đủ tối: độ sáng ${lum(p[k]).toFixed(2)} > ${MAX_DARK_LUM}  (${p[k]})`);
+    if (!p.dark && lum(p[k]) < MIN_LIGHT_LUM)
       errs.push(`${at}% ${k} không đủ sáng: độ sáng ${lum(p[k]).toFixed(2)} < ${MIN_LIGHT_LUM}  (${p[k]})`);
   }
   if (p.scrim && lum(p.scrim) > 0.2)
@@ -105,8 +111,8 @@ for (const p of PALETTES) {
   // "Sát ngưỡng nhất" = tỉ lệ chia cho chính ngưỡng của cặp đó — mỗi cặp một
   // ngưỡng khác nhau nên so thẳng con số tuyệt đối là đọc nhầm.
   let worst = { slack: Infinity, r: 0, min: 0, at: 50, what: "" };
-  for (const at of STRENGTHS) {
-    const q = cxPaletteAtStrength(p, at);
+  for (const at of p.dark ? [50] : STRENGTHS) {
+    const q = { ...cxPaletteAtStrength(p, at), dark: p.dark };
     errs.push(...check(q, at));
     for (const [a, b, min, what] of PAIRS) {
       const r = ratio(q[a], q[b]);

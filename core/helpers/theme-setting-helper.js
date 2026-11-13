@@ -309,7 +309,9 @@ const CX_PALETTE_MUSIC = (get) => [
 // không được phép làm hỏng cả thiệp.
 function _cxPaletteRule(palette) {
   if (!palette || typeof palette !== "object") return "";
-  const p = cxPaletteAtStrength(palette, palette.strength);
+  // Bộ nền tối (`dark`, chỉ có ở bộ riêng của mẫu) đứng ngoài thanh "Độ đậm": phép tính
+  // đó pha màu về trắng nên kéo xuống là nền đỏ thành hồng nhạt, chữ ngà mất tương phản.
+  const p = cxPaletteAtStrength(palette, palette.dark ? undefined : palette.strength);
   const rgbOf = {};
   CX_PALETTE_KEYS.forEach((k) => {
     const rgb = _cxHexToRgbTriplet(p[k]);

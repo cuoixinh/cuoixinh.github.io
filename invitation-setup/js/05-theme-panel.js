@@ -88,6 +88,7 @@ function _paletteValue(id) {
   const own = _themePalettes().find((p) => p.id === id);
   if (!own) return window.cxPaletteValue(id);
   const out = { id: own.id, name: own.name };
+  if (own.dark === true) out.dark = true;
   (window.CX_PALETTE_KEYS || []).forEach((k) => {
     if (own[k]) out[k] = own[k];
   });
@@ -274,11 +275,12 @@ function _paletteStrength() {
 }
 
 // Thanh kéo chỉ có nghĩa khi ĐANG chọn một bộ: "Mặc định" là màu gốc của mẫu,
-// làm đậm nó lên là sửa mẫu chứ không phải chỉnh bộ màu → giấu cả hàng đi.
+// làm đậm nó lên là sửa mẫu chứ không phải chỉnh bộ màu → giấu cả hàng đi. Bộ nền
+// tối (`dark`) cũng giấu: runtime bỏ qua độ đậm của bộ đó (_cxPaletteRule).
 function _syncPaletteStrength() {
   const el = document.getElementById("theme-palette-strength");
   if (!el) return;
-  const on = !!_currentPalette();
+  const on = !!_currentPalette() && !_currentPalette().dark;
   el.value = _paletteStrength();
   el.disabled = !on;
   window.CXProgress?.attach(el)?.classList.toggle("is-off", !on);
@@ -298,7 +300,7 @@ function onCardPaletteChange(id) {
   // Đổi bộ thì GIỮ độ đậm đang kéo: khách hay so vài bộ ở cùng một mức đậm.
   const strength = _paletteStrength();
   if (val) {
-    if (strength !== PALETTE_STRENGTH_DEFAULT) val.strength = strength;
+    if (strength !== PALETTE_STRENGTH_DEFAULT && !val.dark) val.strength = strength;
     _themeSetting.palette = val;
   } else {
     delete _themeSetting.palette;

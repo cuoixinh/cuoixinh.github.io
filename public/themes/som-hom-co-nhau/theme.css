@@ -1051,7 +1051,8 @@ body {
 .sh-cal-d.is-on span {
   text-shadow: none;
   background: rgb(var(--cx-on-image-rgb));
-  color: rgb(var(--cx-heading-rgb));
+  /* Cặp scrim/on_image luôn tương phản — heading có thể là chữ SÁNG (bộ nền đỏ). */
+  color: rgb(var(--cx-scrim-rgb));
   font-weight: 600;
 }
 
