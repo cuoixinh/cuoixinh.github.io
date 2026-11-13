@@ -95,6 +95,9 @@ function check(p, at) {
   }
   for (const k of LIGHT) {
     if (!p[k]) continue;
+    // page_bg chỉ là nền TRANG quanh thân thiệp (không chữ nào đặt lên): bộ nền tối được
+    // để nó sáng, như thẻ đỏ rượu đặt trên giấy ngà.
+    if (p.dark && k === "page_bg") continue;
     if (p.dark && lum(p[k]) > MAX_DARK_LUM)
       errs.push(`${at}% ${k} của bộ nền tối không đủ tối: độ sáng ${lum(p[k]).toFixed(2)} > ${MAX_DARK_LUM}  (${p[k]})`);
     if (!p.dark && lum(p[k]) < MIN_LIGHT_LUM)
