@@ -33,6 +33,11 @@ export const REWRITE_ATTRS = ["src", "href", "srcset", "poster"];
 
 export const themeDir = (theme) => `/public/themes/${theme}/`;
 
+// Phép tính bộ màu (cả "Độ đậm" + bảng màu nút nhạc) lấy THẲNG từ runtime của thiệp để
+// màu dựng sẵn khớp từng giá trị với màu applyThemeSetting áp sau đó. File đó chỉ chạy
+// lệnh có kiểm `typeof window`, nên nạp ở worker/Node được; nó gán globalThis.cxPaletteRule.
+import "../core/helpers/theme-setting-helper.js";
+
 /** URL tương đối (theo thư mục mẫu) → tuyệt đối; URL tuyệt đối, `#…`, rỗng giữ nguyên. */
 export function absolutize(value, dir) {
   const v = String(value ?? "").trim();
@@ -53,8 +58,7 @@ export function rewriteAttr(name, value, dir) {
     .join(", ");
 }
 
-/** Chủ thiệp bật "xem lớn trên máy tính" (`theme_setting.desktop_wide`) — khi đó theme-boot.js không dựng khung máy. */
-export function desktopWide(w) {
+function themeSetting(w) {
   let ts = w && w.theme_setting;
   if (typeof ts === "string") {
     try {
@@ -63,14 +67,30 @@ export function desktopWide(w) {
       ts = null;
     }
   }
-  return !!(ts && ts.desktop_wide);
+  return ts && typeof ts === "object" ? ts : null;
 }
 
-/** Khối chèn cuối <head>: noindex viết sẵn phía server + slug/mẫu/cờ xem lớn cho JS (`window.__CX_ROUTE`). */
-export function routeHead(slug, theme, wide = false) {
+/** Chủ thiệp bật "xem lớn trên máy tính" (`theme_setting.desktop_wide`) — khi đó theme-boot.js không dựng khung máy. */
+export function desktopWide(w) {
+  return !!themeSetting(w)?.desktop_wide;
+}
+
+/**
+ * Màu của bộ đã chọn (`theme_setting.palette`) dựng sẵn thành `<style>` — đứng sau theme.css
+ * nên khung hình đầu đã đúng màu; applyThemeSetting gỡ nó khi tự áp. Quy tắc chỉ chứa tên
+ * token + bộ ba số nên chèn thẳng vào HTML an toàn. Không có bộ màu → "".
+ */
+export function paletteStyle(w) {
+  const p = themeSetting(w)?.palette;
+  const css = p && typeof p === "object" ? globalThis.cxPaletteRule(p) : "";
+  return css ? `<style id="cx-palette-boot">${css}</style>` : "";
+}
+
+/** Khối chèn cuối <head>: noindex viết sẵn phía server + slug/mẫu/cờ xem lớn cho JS (`window.__CX_ROUTE`) + màu bộ đã chọn. */
+export function routeHead(slug, theme, wide = false, palette = "") {
   const json = JSON.stringify(wide ? { slug, theme, wide: true } : { slug, theme }).replace(/</g, "\\u003c");
   return `
     <meta name="robots" content="noindex,nofollow" />
-    <script>window.__CX_ROUTE=${json}</script>
+    <script>window.__CX_ROUTE=${json}</script>${palette}
 `;
 }

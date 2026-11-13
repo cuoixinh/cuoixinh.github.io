@@ -2496,6 +2496,11 @@ if (typeof window !== "undefined") {
   window.applyElements = applyElements;
 }
 
+// Worker trả link /<slug> và dev server (worker/route-html.mjs) nạp file này — không có
+// window — để dựng sẵn màu của bộ đã chọn vào <head> (#cx-palette-boot): khách mở thiệp
+// thấy ngay đúng màu, không nháy màu gốc của mẫu trong lúc chờ API.
+globalThis.cxPaletteRule = _cxPaletteRule;
+
 // ── EDIT RUNTIME — chỉnh chi tiết từng dòng chữ ────────────────────────────
 // CHỈ chạy trong iframe preview của tab Giao diện (?preview=true&edit=1): rê
 // chuột thì highlight vùng có chữ, click thì gửi selector + style hiện tại về

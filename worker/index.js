@@ -20,6 +20,7 @@ import {
   rewriteAttr,
   routeHead,
   desktopWide,
+  paletteStyle,
   slugSegment,
   themeDir,
 } from "./route-html.mjs";
@@ -593,7 +594,7 @@ async function themePage(env, url, slug, w, guest, rel) {
   }
   rw.on("title", { element: (el) => el.setInnerContent(og.title) });
   rw.on("head", {
-    element: (el) => el.append(og.meta + routeHead(slug, theme, desktopWide(w)), { html: true }),
+    element: (el) => el.append(og.meta + routeHead(slug, theme, desktopWide(w), paletteStyle(w)), { html: true }),
   });
 
   return new Response(rw.transform(tpl).body, {
