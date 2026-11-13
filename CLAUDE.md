@@ -720,7 +720,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   tên mẫu), hiện ngay sau "Mặc định"; kèm `wishes` (giá trị là hex hoặc TÊN khoá bộ màu) để
   thay `CX_THEME.wishes` vốn chỉ hợp màu gốc. Bộ riêng được phép NỀN TỐI nếu khai
   `dark: true` (thanh "Độ đậm" ẩn, runtime bỏ qua `strength`) — khi đó CSS của mẫu không
-  được ngầm coi `heading` là màu tối (chữ trên chấm sáng dùng cặp `scrim`/`on_image`).
+  được ngầm coi `heading` là màu tối (chữ trên chấm sáng dùng cặp `scrim`/`on_image`). Mảng cần màu
+  khác hẳn token chung (bìa nền sáng trên thiệp nền tối…) thì mẫu khai biến riêng `--x-rgb`
+  ở `:root` trỏ về token, bộ riêng ghi đè qua `vars` (chỉ nhận tên `--…-rgb` + hex, không
+  theo "Độ đậm") — xem `--sh-cv-*` của `som-hom-co-nhau`.
   Nút nhạc dùng bảng `--music-*` riêng nên
   `_cxPaletteRule` suy thêm bảng đó từ bộ màu — chỉ khi CÓ bộ, để thiệp không chọn bộ giữ
   nguyên hình thức cũ.

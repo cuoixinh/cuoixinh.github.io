@@ -68,7 +68,17 @@
               <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover" alt="" fetchpriority="high" />
             </div>
           </div>
-          <div class="sh-env-part sh-env-front"></div>
+          <!-- Thân trước: ba vạt gấp (hai bên sẫm, vạt dưới sáng) + đường gấp chạy từ hai góc
+               đáy lên dưới dấu sáp. SVG kéo giãn theo khung; thân bị khoét chữ V nên SVG cũng bị cắt. -->
+          <div class="sh-env-part sh-env-front">
+            <svg class="sh-env-folds" viewBox="0 0 300 192" preserveAspectRatio="none" aria-hidden="true">
+              <polygon class="sh-fold-l" points="0,0 150,120 0,192" />
+              <polygon class="sh-fold-r" points="300,0 150,120 300,192" />
+              <polygon class="sh-fold-b" points="0,192 150,120 300,192" />
+              <polyline class="sh-fold-hi" points="0,193.5 150,121.5 300,193.5" />
+              <polyline class="sh-fold-seam" points="0,192 150,120 300,192" />
+            </svg>
+          </div>
 
           <!-- Bó hoa góc trái: hồng nhiều lớp cánh · hoa nhỏ · lá có gân · nhánh quả mọng.
                Hình khai một lần trong <defs>, <use> mang class tô màu (fill/stroke kế thừa

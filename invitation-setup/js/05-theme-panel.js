@@ -93,6 +93,7 @@ function _paletteValue(id) {
     if (own[k]) out[k] = own[k];
   });
   if (own.wishes && typeof own.wishes === "object") out.wishes = { ...own.wishes };
+  if (own.vars && typeof own.vars === "object") out.vars = { ...own.vars };
   return out;
 }
 
