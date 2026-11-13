@@ -327,7 +327,8 @@
   window.renderWedding = renderWedding;
 
   // Bộ màu khai `--sh-alt-bg-rgb` khác nền thẻ → mục đang HIỆN thứ 1, 3, 5… (theo flex
-  // `order`, khối chèn thêm đánh lại order) nhận .sh-alt. Không khai thì gỡ hết.
+  // `order`, khối chèn thêm đánh lại order) nhận .sh-alt, mục còn lại thành thẻ .sh-solid,
+  // thẻ cả nhận .sh-striped. Không khai thì gỡ hết.
   function shStripe() {
     const card = document.getElementById("main-card");
     if (!card) return;
@@ -337,7 +338,12 @@
     const shown = secs
       .filter((s) => s.st.display !== "none")
       .sort((a, b) => (parseInt(a.st.order, 10) || 0) - (parseInt(b.st.order, 10) || 0) || a.i - b.i);
-    secs.forEach((s) => s.el.classList.toggle("sh-alt", on && shown.indexOf(s) % 2 === 0));
+    card.classList.toggle("sh-striped", on);
+    secs.forEach((s) => {
+      const n = shown.indexOf(s);
+      s.el.classList.toggle("sh-alt", on && n >= 0 && n % 2 === 0);
+      s.el.classList.toggle("sh-solid", on && n % 2 === 1);
+    });
   }
 
   // Chạy lại khi bộ màu đổi (thẻ <style> trong <head>), khi mục ẩn/hiện hay khối chèn thêm.

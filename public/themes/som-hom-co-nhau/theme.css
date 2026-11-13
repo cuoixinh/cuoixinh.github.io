@@ -86,6 +86,23 @@
   --sh-alt-deco-soft-rgb: var(--cx-deco-soft-rgb);
   --sh-alt-deco-2-rgb: var(--cx-deco-2-rgb);
   --sh-alt-deco-2-soft-rgb: var(--cx-deco-2-soft-rgb);
+  /* Bản chụp bộ chữ/nền GỐC (tính ở :root, trước khi #main-card.sh-striped đổi token) để
+     thẻ đỏ (.sh-solid) lấy lại khi nền thẻ đã thành nền xen kẽ. */
+  --sh-red-bg-rgb: var(--cx-card-bg-rgb);
+  --sh-red-heading-rgb: var(--cx-heading-rgb);
+  --sh-red-body-rgb: var(--cx-body-rgb);
+  --sh-red-accent-rgb: var(--cx-accent-rgb);
+  --sh-red-accent-soft-rgb: var(--cx-accent-soft-rgb);
+  --sh-red-on-accent-rgb: var(--cx-on-accent-rgb);
+  --sh-red-surface-rgb: var(--cx-surface-rgb);
+  --sh-red-band-rgb: var(--cx-band-rgb);
+  --sh-red-panel-rgb: var(--cx-panel-rgb);
+  --sh-red-panel-warm-rgb: var(--cx-panel-warm-rgb);
+  --sh-red-line-rgb: var(--cx-line-rgb);
+  --sh-red-deco-rgb: var(--cx-deco-rgb);
+  --sh-red-deco-soft-rgb: var(--cx-deco-soft-rgb);
+  --sh-red-deco-2-rgb: var(--cx-deco-2-rgb);
+  --sh-red-deco-2-soft-rgb: var(--cx-deco-2-soft-rgb);
 
   /* Nhiễu dùng làm mặt nạ vân giấy (chỉ kênh alpha, #000 không phải màu hiển thị). */
   --sh-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.6 0 0 0 -0.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
@@ -118,9 +135,11 @@ body {
   text-align: center;
 }
 
-/* Mục xen kẽ: tràn sát hai mép thẻ (bù đúng padding 16px của .sh-body), lấn 16px vào
-   khoảng gap 48px mỗi đầu — nội dung hai bên đều cách mép dải 32px. Token chung đổi ngay
-   trên mục nên mọi thứ bên trong tự lấy bộ chữ/nền xen kẽ. */
+/* Chế độ xen kẽ (shStripe gắn .sh-striped): cả thẻ lấy nền + bộ chữ xen kẽ (kem), nên
+   khối chèn thêm/lời chúc nằm giữa cũng đọc được; mục còn lại thành THẺ ĐỎ bo góc nổi trên
+   nền đó (lề hai bên = padding 16px của .sh-body), lấy lại bộ chữ gốc. Mục xen kẽ: tràn
+   sát hai mép thẻ, lấn 16px vào gap 48px mỗi đầu — cách thẻ đỏ kế bên 32px. */
+#main-card.sh-striped,
 .sh-sec.sh-alt {
   --cx-card-bg-rgb: var(--sh-alt-bg-rgb);
   --cx-heading-rgb: var(--sh-alt-heading-rgb);
@@ -137,9 +156,34 @@ body {
   --cx-deco-soft-rgb: var(--sh-alt-deco-soft-rgb);
   --cx-deco-2-rgb: var(--sh-alt-deco-2-rgb);
   --cx-deco-2-soft-rgb: var(--sh-alt-deco-2-soft-rgb);
+  background: linear-gradient(160deg, rgb(var(--sh-alt-bg-2-rgb)), rgb(var(--sh-alt-bg-rgb)) 50%, rgb(var(--sh-alt-bg-2-rgb)));
+}
+
+.sh-sec.sh-alt {
   margin: -16px -16px;
   padding: 32px 16px;
-  background: linear-gradient(160deg, rgb(var(--sh-alt-bg-2-rgb)), rgb(var(--sh-alt-bg-rgb)) 50%, rgb(var(--sh-alt-bg-2-rgb)));
+}
+
+#main-card.sh-striped .sh-sec.sh-solid {
+  --cx-card-bg-rgb: var(--sh-red-bg-rgb);
+  --cx-heading-rgb: var(--sh-red-heading-rgb);
+  --cx-body-rgb: var(--sh-red-body-rgb);
+  --cx-accent-rgb: var(--sh-red-accent-rgb);
+  --cx-accent-soft-rgb: var(--sh-red-accent-soft-rgb);
+  --cx-on-accent-rgb: var(--sh-red-on-accent-rgb);
+  --cx-surface-rgb: var(--sh-red-surface-rgb);
+  --cx-band-rgb: var(--sh-red-band-rgb);
+  --cx-panel-rgb: var(--sh-red-panel-rgb);
+  --cx-panel-warm-rgb: var(--sh-red-panel-warm-rgb);
+  --cx-line-rgb: var(--sh-red-line-rgb);
+  --cx-deco-rgb: var(--sh-red-deco-rgb);
+  --cx-deco-soft-rgb: var(--sh-red-deco-soft-rgb);
+  --cx-deco-2-rgb: var(--sh-red-deco-2-rgb);
+  --cx-deco-2-soft-rgb: var(--sh-red-deco-2-soft-rgb);
+  padding: 32px 16px;
+  border-radius: 24px;
+  background: rgb(var(--cx-card-bg-rgb));
+  box-shadow: 0 12px 32px -16px rgb(var(--cx-shadow-rgb) / 0.45);
 }
 
 /* .sh-sec/.sh-blk/.sh-row tự khai display nên đè mất .hidden của themes.css (nạp
