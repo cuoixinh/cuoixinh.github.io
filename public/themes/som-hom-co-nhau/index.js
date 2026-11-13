@@ -65,7 +65,7 @@
         on_image: "#ffffff",
         on_lightbox: "#ffffff",
         card_bg: "#8b0014",
-        page_bg: "#6f0010",
+        page_bg: "#f4eee2",
         surface: "#96071b",
         band: "#7a0012",
         panel: "#9e0f22",
@@ -85,6 +85,29 @@
         shine_mid: "#e8c480",
         shine_to: "#c8a060",
         wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
+        // Màn bìa + nền trang quanh thẻ là GIẤY KEM như bộ "Đỏ rượu": chữ bìa đỏ thẫm, dấu
+        // sáp vàng, hoa đỏ thẫm + kem, lòng phong bì đỏ sẫm ren vàng.
+        vars: {
+          "--sh-cv-bg-rgb": "#f6f0e4",
+          "--sh-cv-bg-2-rgb": "#f1e9db",
+          "--sh-cv-glow-a-rgb": "#fffaf1",
+          "--sh-cv-glow-b-rgb": "#ece2cf",
+          "--sh-cv-ink-rgb": "#8b0014",
+          "--sh-cv-muted-rgb": "#8f4a4f",
+          "--sh-cv-amp-rgb": "#b8323f",
+          "--sh-cv-btn-rgb": "#fffaf1",
+          "--sh-seal-hi-rgb": "#f6dc8e",
+          "--sh-seal-mid-rgb": "#d0a24a",
+          "--sh-seal-lo-rgb": "#93651f",
+          "--sh-seal-ink-rgb": "#6a4512",
+          "--sh-rose-a-rgb": "#b3192b",
+          "--sh-rose-b-rgb": "#efe2cf",
+          "--sh-rose-c-rgb": "#7a0a18",
+          "--sh-leaf-rgb": "#a89462",
+          "--sh-berry-rgb": "#8b0014",
+          "--sh-env-in-a-rgb": "#a1101f",
+          "--sh-env-in-b-rgb": "#5e0711",
+        },
       },
       // "Đỏ rượu": thẻ đỏ rượu sẫm chữ trắng ngà, nhãn phụ hồng phấn, nhấn hồng kem —
       // trầm hơn "Đỏ đậm", không nhũ vàng. Nền TRANG (page_bg) để giấy ngà sáng như thẻ
@@ -126,9 +149,9 @@
         // :root của theme.css (--sh-*), mặc định trỏ về token chung.
         vars: {
           "--sh-cv-bg-rgb": "#f6f0e4",
-          "--sh-cv-bg-2-rgb": "#ece2cf",
+          "--sh-cv-bg-2-rgb": "#f1e9db",
           "--sh-cv-glow-a-rgb": "#fffaf1",
-          "--sh-cv-glow-b-rgb": "#e9dcc4",
+          "--sh-cv-glow-b-rgb": "#ece2cf",
           "--sh-cv-ink-rgb": "#4e1319",
           "--sh-cv-muted-rgb": "#7d4a4d",
           "--sh-cv-amp-rgb": "#9a5a5e",
