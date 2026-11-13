@@ -309,7 +309,9 @@ const CX_PALETTE_MUSIC = (get) => [
 // không được phép làm hỏng cả thiệp.
 function _cxPaletteRule(palette) {
   if (!palette || typeof palette !== "object") return "";
-  const p = cxPaletteAtStrength(palette, palette.strength);
+  // Bộ nền tối (`dark`, chỉ có ở bộ riêng của mẫu) đứng ngoài thanh "Độ đậm": phép tính
+  // đó pha màu về trắng nên kéo xuống là nền đỏ thành hồng nhạt, chữ ngà mất tương phản.
+  const p = cxPaletteAtStrength(palette, palette.dark ? undefined : palette.strength);
   const rgbOf = {};
   CX_PALETTE_KEYS.forEach((k) => {
     const rgb = _cxHexToRgbTriplet(p[k]);
@@ -2466,6 +2468,12 @@ function applyThemeSetting(setting) {
     document.head.appendChild(styleEl);
   }
   styleEl.textContent = rules.join("\n");
+
+  // Bộ màu riêng của mẫu có thể kèm màu lời chúc (palette.wishes — xem applyWishStyle
+  // ở wishes-helper.js): giữ bộ đang áp cho helper đó, mục đã dựng thì tô lại ngay.
+  window.CX_PALETTE_ON =
+    setting.palette && typeof setting.palette === "object" ? setting.palette : null;
+  if (typeof applyWishStyle === "function") applyWishStyle();
 
   // Cỡ chữ ghi tạm lúc chụm 2 ngón (inline !important) nay đã nằm trong
   // text_overrides → gỡ đi, không thì nó đè mọi lần chỉnh cỡ sau ở bảng.

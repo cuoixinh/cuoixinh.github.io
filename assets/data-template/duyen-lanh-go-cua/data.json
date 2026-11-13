@@ -1,0 +1,202 @@
+{
+  "image_focal_points": {
+    "gallery_images": {
+      "gallery-01.jpg": {
+        "x": 57,
+        "y": 32
+      },
+      "gallery-02.jpg": {
+        "x": 53,
+        "y": 0
+      },
+      "gallery-03.jpg": {
+        "x": 50,
+        "y": 12
+      },
+      "gallery-04.jpg": {
+        "x": 54,
+        "y": 5
+      },
+      "gallery-05.jpg": {
+        "x": 40,
+        "y": 8
+      },
+      "gallery-06.jpg": {
+        "x": 56,
+        "y": 14
+      },
+      "gallery-07.jpg": {
+        "x": 46,
+        "y": 19
+      },
+      "gallery-08.jpg": {
+        "x": 45,
+        "y": 9
+      },
+      "gallery-09.jpg": {
+        "x": 17,
+        "y": 27
+      }
+    },
+    "cover_image_url": {
+      "x": 16,
+      "y": 0
+    },
+    "groom_image_url": {
+      "x": 45,
+      "y": 6
+    },
+    "bride_image_url": {
+      "x": 85,
+      "y": 16
+    }
+  },
+  "cover_image_url": "cover.jpg",
+  "groom_image_url": "groom.jpg",
+  "bride_image_url": "bride.jpg",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.jpg",
+    "gallery-02.jpg",
+    "gallery-03.jpg",
+    "gallery-04.jpg",
+    "gallery-05.jpg",
+    "gallery-06.jpg",
+    "gallery-07.jpg",
+    "gallery-08.jpg",
+    "gallery-09.jpg"
+  ],
+  "love_story": [
+    {
+      "date": "10/2019",
+      "title": "Chuyến tàu Nam Định – Hà Nội",
+      "content": "Hai đứa ngồi chung một khoang tàu, anh nhường em ghế cạnh cửa sổ và quên luôn ga mình cần xuống.",
+      "image_url": "love-story-01.jpg",
+      "focal_point": {
+        "x": 47,
+        "y": 21
+      }
+    },
+    {
+      "date": "12/2020",
+      "title": "Phố cổ ngày đông",
+      "content": "Anh đợi em tan làm ở Hàng Bông, hai cốc trà nóng và một chiếc khăn len quàng chung.",
+      "image_url": "love-story-02.jpg",
+      "focal_point": {
+        "x": 67,
+        "y": 19
+      }
+    },
+    {
+      "date": "05/2025",
+      "title": "Ra mắt hai bên gia đình",
+      "content": "Mâm cơm đầu tiên hai nhà ngồi chung, bố mẹ gật đầu và hai đứa thở phào.",
+      "image_url": "love-story-03.jpg",
+      "focal_point": {
+        "x": 0,
+        "y": 16
+      }
+    }
+  ],
+  "content": {
+    "groom_name": "Gia Bảo",
+    "bride_name": "Ngọc Hân",
+    "groom_father": "Nguyễn Văn Hoà",
+    "groom_mother": "Trần Thị Mai",
+    "groom_address": "Số 18 Hàng Bông, Phường Hoàn Kiếm, TP. Hà Nội",
+    "bride_father": "Lê Minh Tâm",
+    "bride_mother": "Phạm Thị Kim Oanh",
+    "bride_address": "Số 46 Trần Hưng Đạo, Phường Nam Định, Tỉnh Ninh Bình",
+    "ceremony_name": "Lễ Thành Hôn",
+    "ceremony_date": "2026-11-22",
+    "ceremony_time": "11:00",
+    "ceremony_lunar": "Tức ngày 14 tháng 10 năm Bính Ngọ",
+    "ceremony_location": "Trung tâm Tiệc cưới Hồng Phúc, 85 Trần Hưng Đạo, Phường Cửa Nam, TP. Hà Nội",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=21.0228,105.8455&output=embed&hl=vi",
+    "vu_quy_enabled": true,
+    "vu_quy_time": "07:30",
+    "vu_quy_location": "Tư gia nhà gái — Số 46 Trần Hưng Đạo, Phường Nam Định, Tỉnh Ninh Bình",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=20.4337,106.1771&output=embed&hl=vi",
+    "groom_party_date": "2026-11-22",
+    "groom_party_time": "11:00",
+    "groom_party_lunar": "Tức ngày 14 tháng 10 năm Bính Ngọ",
+    "groom_party_show_location": true,
+    "groom_party_location": "Trung tâm Tiệc cưới Hồng Phúc, 85 Trần Hưng Đạo, Phường Cửa Nam, TP. Hà Nội",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=21.0228,105.8455&output=embed&hl=vi",
+    "bride_party_date": "2026-11-21",
+    "bride_party_time": "17:00",
+    "bride_party_lunar": "Tức ngày 13 tháng 10 năm Bính Ngọ",
+    "bride_party_show_location": true,
+    "bride_party_location": "Nhà hàng Song Hỷ, 120 Hùng Vương, Phường Nam Định, Tỉnh Ninh Bình",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.4205,106.1700&output=embed&hl=vi",
+    "groom_bank_name": "Vietcombank",
+    "groom_bank_number": "1022846517",
+    "groom_bank_owner": "TRAN DUC MINH",
+    "bride_bank_name": "BIDV",
+    "bride_bank_number": "48510003927",
+    "bride_bank_owner": "DO THU HA",
+    "story_quote": "Duyên lành gõ cửa, trăm năm một nhà",
+    "rsvp_enabled": true,
+    "rsvp_message": "Sự có mặt của bạn là niềm vui của hai gia đình. Bạn xác nhận giúp chúng mình nhé!",
+    "footer_text": "Trân trọng cảm ơn tấm lòng của quý vị. Hẹn gặp nhau trong ngày vui của hai gia đình!",
+    "enable_music": true,
+    "music_url": "https://www.youtube.com/watch?v=Y5VoCfbB6As&t=52",
+    "enable_family": true,
+    "enable_party": true,
+    "enable_photos": true,
+    "enable_timeline": true,
+    "enable_love_story": true,
+    "enable_gift": true,
+    "enable_footer": true,
+    "demo_fill_love_story": false,
+    "timeline": [
+      {
+        "time": "17:00",
+        "title": "Tiệc mừng nhà gái tại Nam Định",
+        "type": "bride-party"
+      },
+      {
+        "time": "18:30",
+        "title": "Hát mừng, nâng ly cùng họ hàng",
+        "type": "bride-party"
+      },
+      {
+        "time": "07:30",
+        "title": "Lễ Vu Quy tại tư gia nhà gái",
+        "type": "ceremony"
+      },
+      {
+        "time": "08:30",
+        "title": "Rước dâu về Hà Nội",
+        "type": "ceremony"
+      },
+      {
+        "time": "10:30",
+        "title": "Lễ gia tiên nhà trai",
+        "type": "ceremony"
+      },
+      {
+        "time": "11:00",
+        "title": "Đón khách tại sảnh tiệc",
+        "type": "party"
+      },
+      {
+        "time": "11:30",
+        "title": "Lễ Thành Hôn trên sân khấu",
+        "type": "party"
+      },
+      {
+        "time": "12:00",
+        "title": "Khai tiệc mừng hạnh phúc",
+        "type": "party"
+      },
+      {
+        "time": "13:30",
+        "title": "Cảm ơn và tiễn khách",
+        "type": "party"
+      }
+    ]
+  },
+  "updated_at": "2026-10-08T17:00:00.000Z"
+}

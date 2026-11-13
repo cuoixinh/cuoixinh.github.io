@@ -60,6 +60,12 @@
       shine_to: "#f5d5d8",
     },
 
+    // Biến thể tông RIÊNG của mẫu (tab Giao diện → Bộ màu, ngay sau "Mặc định"): mỗi
+    // mục đúng khuôn CX_PALETTES (card-palette-helper.js), `id` có tiền tố tên mẫu và
+    // không đổi sau khi phát hành. `wishes` (tuỳ chọn) thay CX_THEME.wishes cho bộ đó —
+    // giá trị là hex hoặc tên khoá bộ màu. Ví dụ: public/themes/som-hom-co-nhau/index.js.
+    //   palettes: [{ id: "base-theme-do-dam", name: "Đỏ đậm", heading: "#…", …, wishes: { btn: "heading" } }],
+
     // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
     // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
     swatches: [
