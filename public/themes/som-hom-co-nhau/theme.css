@@ -21,7 +21,7 @@
   --cx-lightbox-bg-rgb: 0 0 0;
   --cx-line-rgb: 230 221 239;
   --cx-shadow-rgb: 42 29 56;
-  --cx-scrim-rgb: 42 29 56;
+  --cx-scrim-rgb: 20 18 22; /* gần đen trung tính: phủ ảnh cho tối mà không nhuộm màu */
   --cx-deco-rgb: 148 102 201;
   --cx-deco-soft-rgb: 234 223 246;
   --cx-deco-2-rgb: 117 107 128;
@@ -964,11 +964,15 @@ body {
   content: "";
   position: absolute;
   inset: 0;
+  /* Nhiều điểm dừng cho đường tối dần mượt, không thành mảng. */
   background: linear-gradient(
-    rgb(var(--cx-scrim-rgb) / 0.1),
-    rgb(var(--cx-scrim-rgb) / 0.5) 30%,
-    rgb(var(--cx-scrim-rgb) / 0.72) 60%,
-    rgb(var(--cx-scrim-rgb) / 0.82)
+    rgb(var(--cx-scrim-rgb) / 0.16),
+    rgb(var(--cx-scrim-rgb) / 0.3) 14%,
+    rgb(var(--cx-scrim-rgb) / 0.46) 30%,
+    rgb(var(--cx-scrim-rgb) / 0.6) 48%,
+    rgb(var(--cx-scrim-rgb) / 0.68) 66%,
+    rgb(var(--cx-scrim-rgb) / 0.74) 84%,
+    rgb(var(--cx-scrim-rgb) / 0.78)
   );
 }
 
@@ -983,7 +987,7 @@ body {
   gap: 8px;
   padding: 32px 24px;
   color: rgb(var(--cx-on-image-rgb));
-  text-shadow: 0 1px 4px rgb(var(--cx-scrim-rgb) / 0.5);
+  text-shadow: 0 1px 6px rgb(var(--cx-scrim-rgb) / 0.55);
 }
 
 .sh-cal-label {
