@@ -121,6 +121,30 @@
         shine_mid: "#ecc9c1",
         shine_to: "#c99c98",
         wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
+        // Màn bìa nền GIẤY NGÀ (như thẻ đặt trên giấy) trong khi thân thiệp nền đỏ rượu:
+        // chữ bìa đỏ rượu, dấu sáp vàng, hoa đỏ rượu + kem, lá vàng rêu. Tên biến khai ở
+        // :root của theme.css (--sh-*), mặc định trỏ về token chung.
+        vars: {
+          "--sh-cv-bg-rgb": "#f6f0e4",
+          "--sh-cv-bg-2-rgb": "#ece2cf",
+          "--sh-cv-glow-a-rgb": "#fffaf1",
+          "--sh-cv-glow-b-rgb": "#e9dcc4",
+          "--sh-cv-ink-rgb": "#4e1319",
+          "--sh-cv-muted-rgb": "#7d4a4d",
+          "--sh-cv-amp-rgb": "#9a5a5e",
+          "--sh-cv-btn-rgb": "#fffaf1",
+          "--sh-seal-hi-rgb": "#f3dc96",
+          "--sh-seal-mid-rgb": "#c99a3e",
+          "--sh-seal-lo-rgb": "#8a5f1d",
+          "--sh-seal-ink-rgb": "#6a4512",
+          "--sh-rose-a-rgb": "#7a1c27",
+          "--sh-rose-b-rgb": "#efe2cf",
+          "--sh-rose-c-rgb": "#4e1319",
+          "--sh-leaf-rgb": "#a89462",
+          "--sh-berry-rgb": "#6a1820",
+          "--sh-env-in-a-rgb": "#5e1a23",
+          "--sh-env-in-b-rgb": "#2e0a0e",
+        },
       },
     ],
 

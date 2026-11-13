@@ -45,6 +45,32 @@
   --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
   --music-art-from-rgb: var(--cx-accent-rgb);
   --music-art-to-rgb: var(--cx-heading-rgb);
+
+  /* Màu RIÊNG của màn bìa — mặc định trỏ về token chung nên bộ màu nào không khai thì
+     bìa y như cũ. Bộ riêng của mẫu ghi đè qua `vars` (CX_THEME.palettes ở index.js), vd
+     bìa nền giấy sáng trong khi thân thiệp nền đỏ: chữ bìa phải đổi màu theo nền bìa. */
+  --sh-cv-bg-rgb: var(--cx-cover-rgb);
+  --sh-cv-bg-2-rgb: var(--cx-cover-mid-rgb);
+  --sh-cv-glow-a-rgb: var(--cx-accent-soft-rgb);
+  --sh-cv-glow-b-rgb: var(--cx-deco-soft-rgb);
+  --sh-cv-ink-rgb: var(--cx-heading-rgb);
+  --sh-cv-muted-rgb: var(--cx-deco-2-rgb);
+  --sh-cv-amp-rgb: var(--cx-deco-rgb);
+  --sh-cv-btn-rgb: var(--cx-panel-rgb);
+  --sh-seal-hi-rgb: var(--cx-deco-rgb);
+  --sh-seal-mid-rgb: var(--cx-accent-rgb);
+  --sh-seal-lo-rgb: var(--cx-heading-rgb);
+  --sh-seal-ink-rgb: var(--cx-on-accent-rgb);
+  --sh-rose-a-rgb: var(--cx-accent-rgb);
+  --sh-rose-b-rgb: var(--cx-deco-rgb);
+  --sh-rose-c-rgb: var(--cx-heading-rgb);
+  --sh-leaf-rgb: var(--cx-deco-2-rgb);
+  --sh-berry-rgb: var(--cx-accent-rgb);
+  --sh-env-in-a-rgb: var(--cx-accent-rgb); /* lòng phong bì: hai màu pha */
+  --sh-env-in-b-rgb: var(--cx-deco-rgb);
+
+  /* Nhiễu dùng làm mặt nạ vân giấy (chỉ kênh alpha, #000 không phải màu hiển thị). */
+  --sh-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.6 0 0 0 -0.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 }
 
 body {
@@ -158,9 +184,9 @@ body {
 .sh-cover {
   gap: 24px;
   background:
-    radial-gradient(90% 50% at 50% 55%, rgb(var(--cx-accent-soft-rgb) / 0.55), transparent 70%),
-    radial-gradient(60% 40% at 10% 0%, rgb(var(--cx-deco-soft-rgb) / 0.6), transparent 70%),
-    linear-gradient(rgb(var(--cx-cover-rgb)), rgb(var(--cx-cover-mid-rgb)));
+    radial-gradient(90% 50% at 50% 55%, rgb(var(--sh-cv-glow-a-rgb) / 0.55), transparent 70%),
+    radial-gradient(60% 40% at 10% 0%, rgb(var(--sh-cv-glow-b-rgb) / 0.6), transparent 70%),
+    linear-gradient(rgb(var(--sh-cv-bg-rgb)), rgb(var(--sh-cv-bg-2-rgb)));
 }
 
 .sh-cv-top {
@@ -180,7 +206,7 @@ body {
   font-size: 11px;
   letter-spacing: 4px;
   text-transform: uppercase;
-  color: rgb(var(--cx-deco-2-rgb));
+  color: rgb(var(--sh-cv-muted-rgb));
 }
 
 .sh-cv-guest {
@@ -188,13 +214,13 @@ body {
   font-style: italic;
   font-weight: 500;
   line-height: 1.3;
-  color: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--sh-cv-ink-rgb));
 }
 
 .sh-cv-small {
   font-size: 12px;
   letter-spacing: 1px;
-  color: rgb(var(--cx-deco-2-rgb));
+  color: rgb(var(--sh-cv-muted-rgb));
 }
 
 .sh-env {
@@ -220,7 +246,7 @@ body {
   border-radius: 4px;
   background:
     linear-gradient(rgb(var(--cx-shadow-rgb) / 0.04), rgb(var(--cx-shadow-rgb) / 0.16) 60%),
-    linear-gradient(rgb(var(--cx-accent-rgb) / 0.38), rgb(var(--cx-deco-rgb) / 0.3)),
+    linear-gradient(rgb(var(--sh-env-in-a-rgb) / 0.38), rgb(var(--sh-env-in-b-rgb) / 0.3)),
     rgb(var(--cx-panel-rgb));
   box-shadow:
     0 2px 6px rgb(var(--cx-shadow-rgb) / 0.08),
@@ -243,6 +269,67 @@ body {
   inset: 0;
   clip-path: polygon(0 0, 50% 48%, 100% 0, 100% 1.5%, 50% 49.5%, 0 1.5%);
   background: rgb(var(--cx-panel-rgb) / 0.8);
+}
+
+/* Vạt gấp của thân trước (index.html): bóng/sáng phủ lên màu thân nên bộ màu nào cũng hợp. */
+.sh-env-folds {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sh-fold-seam,
+.sh-fold-hi {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.sh-fold-seam {
+  stroke: rgb(var(--cx-shadow-rgb) / 0.22);
+  stroke-width: 0.8;
+}
+
+.sh-fold-hi {
+  stroke: rgb(var(--cx-on-image-rgb) / 0.3);
+  stroke-width: 1;
+}
+
+/* Bóng tiếp xúc: vệt rộng, nhoè, chỉ nằm trên hai vạt bên ngay trên mép vạt dưới. */
+.sh-fold-ao {
+  fill: none;
+  stroke: rgb(var(--cx-shadow-rgb) / 0.3);
+  stroke-width: 7;
+}
+
+/* Vân giấy: nhiễu mịn làm mặt nạ cho một lớp màu bóng — giấy có thớ thay vì phẳng lì. */
+.sh-env-front::after,
+.sh-env-back::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: rgb(var(--cx-shadow-rgb) / 0.5);
+  opacity: 0.22;
+  -webkit-mask: var(--sh-grain) repeat 0 0 / 140px 140px;
+  mask: var(--sh-grain) repeat 0 0 / 140px 140px;
+}
+
+/* Lót ren trong lòng phong bì (phần lộ ra trong chữ V): chấm ren mờ dần xuống đáy. */
+.sh-env-back::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 8px;
+  height: 34%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, rgb(var(--sh-seal-hi-rgb) / 0.45) 0 1.2px, transparent 1.7px) 0 0 / 8px 8px,
+    radial-gradient(circle at 50% 50%, rgb(var(--sh-seal-hi-rgb) / 0.25) 0 0.9px, transparent 1.4px) 4px 4px / 8px 8px;
+  -webkit-mask: linear-gradient(#000, transparent);
+  mask: linear-gradient(#000, transparent);
 }
 
 /* Ảnh: khung polaroid trắng, viền đáy dày hơn. Giấy ảnh lấy on_image (màu sáng luôn đứng
@@ -314,18 +401,18 @@ body {
 
 .sh-fl-sprig path {
   fill: none;
-  stroke: rgb(var(--cx-deco-2-rgb) / 0.7);
+  stroke: rgb(var(--sh-leaf-rgb) / 0.7);
   stroke-width: 1.2;
   stroke-linecap: round;
 }
 
 .sh-fl-sprig circle {
-  fill: rgb(var(--cx-accent-rgb));
+  fill: rgb(var(--sh-berry-rgb));
 }
 
 /* Hình trong <defs> kế thừa fill/stroke từ <use> — mỗi class dưới là một màu hoa/lá. */
 .sh-leaf-u {
-  fill: rgb(var(--cx-deco-2-rgb) / 0.62);
+  fill: rgb(var(--sh-leaf-rgb) / 0.62);
   stroke: rgb(var(--cx-on-accent-rgb) / 0.35);
   stroke-width: 0.7;
 }
@@ -339,15 +426,15 @@ body {
 }
 
 .sh-rose-a {
-  fill: rgb(var(--cx-accent-rgb));
+  fill: rgb(var(--sh-rose-a-rgb));
 }
 
 .sh-rose-b {
-  fill: rgb(var(--cx-deco-rgb));
+  fill: rgb(var(--sh-rose-b-rgb));
 }
 
 .sh-rose-c {
-  fill: rgb(var(--cx-heading-rgb));
+  fill: rgb(var(--sh-rose-c-rgb));
 }
 
 .sh-bloom-u {
@@ -377,11 +464,11 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;
-  background: radial-gradient(circle at 34% 28%, rgb(var(--cx-deco-rgb)), rgb(var(--cx-accent-rgb)) 48%, rgb(var(--cx-heading-rgb)) 100%);
+  background: radial-gradient(circle at 34% 28%, rgb(var(--sh-seal-hi-rgb)), rgb(var(--sh-seal-mid-rgb)) 48%, rgb(var(--sh-seal-lo-rgb)) 100%);
   box-shadow:
     0 6px 14px rgb(var(--cx-shadow-rgb) / 0.28),
     inset 0 -3px 6px rgb(var(--cx-shadow-rgb) / 0.25),
-    inset 0 2px 3px rgb(var(--cx-on-accent-rgb) / 0.3);
+    inset 0 2px 3px rgb(var(--sh-seal-ink-rgb) / 0.3);
   transition:
     transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 0.4s ease 0.1s;
@@ -392,7 +479,7 @@ body {
   position: absolute;
   inset: 7px;
   border-radius: 50%;
-  border: 1px solid rgb(var(--cx-on-accent-rgb) / 0.35);
+  border: 1px solid rgb(var(--sh-seal-ink-rgb) / 0.35);
 }
 
 .sh-seal::after {
@@ -406,7 +493,7 @@ body {
 .sh-seal svg {
   width: 20px;
   height: 20px;
-  fill: rgb(var(--cx-on-accent-rgb) / 0.9);
+  fill: rgb(var(--sh-seal-ink-rgb) / 0.9);
   filter: drop-shadow(0 1px 0 rgb(var(--cx-shadow-rgb) / 0.35));
 }
 
@@ -428,12 +515,12 @@ body {
   font-weight: 500;
   line-height: 1.2;
   text-align: center;
-  color: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--sh-cv-ink-rgb));
 }
 
 .sh-cv-couple em {
   font-style: italic;
-  color: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--sh-cv-amp-rgb));
   margin: 0 4px;
 }
 
@@ -444,7 +531,7 @@ body {
   gap: 12px;
   font-size: 11px;
   letter-spacing: 4px;
-  color: rgb(var(--cx-deco-2-rgb));
+  color: rgb(var(--sh-cv-muted-rgb));
 }
 
 .sh-cv-date::before,
@@ -452,7 +539,7 @@ body {
   content: "";
   width: 32px;
   height: 1px;
-  background: rgb(var(--cx-deco-2-rgb) / 0.4);
+  background: rgb(var(--sh-cv-muted-rgb) / 0.4);
 }
 
 .sh-cv-btn {
@@ -464,9 +551,9 @@ body {
   font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgb(var(--cx-heading-rgb));
-  background: rgb(var(--cx-panel-rgb) / 0.6);
-  border: 1px solid rgb(var(--cx-heading-rgb) / 0.2);
+  color: rgb(var(--sh-cv-ink-rgb));
+  background: rgb(var(--sh-cv-btn-rgb) / 0.6);
+  border: 1px solid rgb(var(--sh-cv-ink-rgb) / 0.2);
   backdrop-filter: blur(4px);
   animation: cx-sh-blink 2.8s ease-in-out infinite;
   transition:

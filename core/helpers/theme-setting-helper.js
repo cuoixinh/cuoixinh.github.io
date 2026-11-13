@@ -325,6 +325,17 @@ function _cxPaletteRule(palette) {
   const need = ["heading", "body", "accent", "accent_soft", "shadow", "panel", "surface"];
   if (need.every((k) => rgbOf[k])) decls.push(...CX_PALETTE_MUSIC((k) => rgbOf[k]));
 
+  // Biến RIÊNG của mẫu (`vars`, chỉ bộ riêng trong CX_THEME.palettes khai): mẫu tự định
+  // nghĩa biến dạng `--x-rgb` trỏ về token chung, bộ của nó ghi đè khi cần màu khác hẳn
+  // (bìa nền sáng trên thiệp nền tối…). Chỉ nhận tên `--…-rgb` + mã hex; không theo "Độ đậm".
+  const vars = palette.vars;
+  if (vars && typeof vars === "object") {
+    Object.entries(vars).forEach(([name, hex]) => {
+      const rgb = /^--[a-z][a-z0-9-]*-rgb$/.test(name) && _cxHexToRgbTriplet(hex);
+      if (rgb) decls.push(`${name}: ${rgb}`);
+    });
+  }
+
   return `:root { ${decls.join("; ")}; }`;
 }
 
