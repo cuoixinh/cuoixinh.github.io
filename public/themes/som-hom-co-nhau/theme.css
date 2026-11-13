@@ -296,11 +296,17 @@ body {
 }
 
 .sh-cv-guest {
-  font-size: 36px;
+  font-size: 28px;
   font-style: italic;
   font-weight: 500;
   line-height: 1.3;
   color: rgb(var(--sh-cv-ink-rgb));
+}
+
+@media (min-width: 768px) {
+  .sh-cv-guest {
+    font-size: 32px;
+  }
 }
 
 .sh-cv-small {
