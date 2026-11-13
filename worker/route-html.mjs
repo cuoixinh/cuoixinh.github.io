@@ -34,9 +34,15 @@ export const REWRITE_ATTRS = ["src", "href", "srcset", "poster"];
 export const themeDir = (theme) => `/public/themes/${theme}/`;
 
 // Phép tính bộ màu (cả "Độ đậm" + bảng màu nút nhạc) lấy THẲNG từ runtime của thiệp để
-// màu dựng sẵn khớp từng giá trị với màu applyThemeSetting áp sau đó. File đó chỉ chạy
-// lệnh có kiểm `typeof window`, nên nạp ở worker/Node được; nó gán globalThis.cxPaletteRule.
-import "../core/helpers/theme-setting-helper.js";
+// màu dựng sẵn khớp từng giá trị với màu applyThemeSetting áp sau đó; file đó gán
+// globalThis.cxPaletteRule. Nạp bằng import() có bắt lỗi chứ không import tĩnh: file
+// đó vỡ lúc nạp thì chỉ mất phần màu dựng sẵn, không kéo sập mọi link /<slug>.
+let _paletteRule = null;
+import("../core/helpers/theme-setting-helper.js")
+  .then(() => {
+    if (typeof globalThis.cxPaletteRule === "function") _paletteRule = globalThis.cxPaletteRule;
+  })
+  .catch(() => {});
 
 /** URL tương đối (theo thư mục mẫu) → tuyệt đối; URL tuyệt đối, `#…`, rỗng giữ nguyên. */
 export function absolutize(value, dir) {
@@ -77,13 +83,22 @@ export function desktopWide(w) {
 
 /**
  * Màu của bộ đã chọn (`theme_setting.palette`) dựng sẵn thành `<style>` — đứng sau theme.css
- * nên khung hình đầu đã đúng màu; applyThemeSetting gỡ nó khi tự áp. Quy tắc chỉ chứa tên
- * token + bộ ba số nên chèn thẳng vào HTML an toàn. Không có bộ màu → "".
+ * nên khung hình đầu đã đúng màu; loadWeddingData gỡ nó khi dữ liệu về. Không có bộ màu,
+ * helper chưa nạp/nạp hỏng, hay tính lỗi → "" (trang như trước đây).
  */
 export function paletteStyle(w) {
   const p = themeSetting(w)?.palette;
-  const css = p && typeof p === "object" ? globalThis.cxPaletteRule(p) : "";
-  return css ? `<style id="cx-palette-boot">${css}</style>` : "";
+  if (!p || typeof p !== "object" || !_paletteRule) return "";
+  let css = "";
+  try {
+    css = _paletteRule(p);
+  } catch (_) {
+    return ""; // lỗi tính màu → trang như trước đây (nháy màu gốc), không hỏng trang
+  }
+  // Chỉ nhận đúng dạng `:root { --cx-…: số số số; … }` — lệch dạng thì thôi, đừng chèn.
+  return typeof css === "string" && /^:root \{[-\w:;\s().\/]*\}$/.test(css)
+    ? `<style id="cx-palette-boot">${css}</style>`
+    : "";
 }
 
 /** Khối chèn cuối <head>: noindex viết sẵn phía server + slug/mẫu/cờ xem lớn cho JS (`window.__CX_ROUTE`) + màu bộ đã chọn. */
