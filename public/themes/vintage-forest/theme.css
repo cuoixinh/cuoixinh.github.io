@@ -543,6 +543,51 @@ html.vf-deep #cx-wish-sec.vf-tint {
   padding: 28px 20px;
 }
 
+/* Xác nhận tham dự + lời chúc gộp một khối (vfStripe gắn cờ khi hai mục liền nhau): lời
+   chúc là phần "viết đôi dòng" của cùng tấm thiệp hồi âm — bỏ lề trên, nối bằng vạch nhấn
+   ngắn như dưới tiêu đề mục, tiêu đề của helper đổi sang chữ nghiêng của mẫu. */
+
+/* Hộp xác nhận nằm trên khối màu thì thành tấm giấy của khối đó, không chìm vào nền. */
+.vf-tint .vf-rsvp {
+  background-color: rgb(var(--cx-panel-rgb));
+}
+
+#rsvp-section.vf-join-down {
+  padding-bottom: 24px;
+}
+
+#cx-wish-sec.vf-join-up {
+  max-width: none;
+  padding: 16px 32px 64px;
+}
+
+#cx-wish-sec.vf-join-up::before {
+  content: "";
+  align-self: center;
+  width: 40px;
+  height: 1px;
+  margin-bottom: 16px;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+#cx-wish-sec.vf-join-up .cx-wsec-head::before,
+#cx-wish-sec.vf-join-up .cx-wsec-head::after {
+  display: none;
+}
+
+#cx-wish-sec.vf-join-up .cx-wsec-head {
+  justify-content: center;
+}
+
+#cx-wish-sec.vf-join-up .cx-wsec-title {
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 /* ── Nút ──────────────────────────────────────────────────────────────────
    Pill cao 48px: nút đặc màu chữ tiêu đề cho hành động chính, nút viền cho
    hành động phụ. Hai lớp lặp tên để thắng style mặc định của <x-button>. */

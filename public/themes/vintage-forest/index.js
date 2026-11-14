@@ -657,10 +657,10 @@
 
   window.renderWedding = renderWedding;
 
-  // Có chọn bộ màu: mục đang HIỆN sau màn mở đầu xen kẽ đều khối màu / trắng theo flex
-  // `order` (lời chúc, khối chèn thêm đánh lại order; ẩn một mục thì các mục sau tự đổi).
-  // Màu "Mặc định" giữ đúng .vf-tint của markup. html.vf-deep đánh dấu bộ có khối xen kẽ
-  // ĐẬM riêng (`--vf-tint-bg-rgb` khác dải nhạt chung, vd Đỏ rượu).
+  // Có chọn bộ màu: mục đang HIỆN sau màn mở đầu xen kẽ đều trắng / khối màu (mục đầu trắng,
+  // nối liền màn mở đầu) theo flex `order` (lời chúc, khối chèn thêm đánh lại order; ẩn một
+  // mục thì các mục sau tự đổi). Màu "Mặc định" giữ đúng .vf-tint của markup. html.vf-deep
+  // đánh dấu bộ có khối xen kẽ ĐẬM riêng (`--vf-tint-bg-rgb` khác dải nhạt, vd Đỏ rượu).
   function vfStripe() {
     const hero = document.getElementById("section-hero");
     const host = hero && hero.parentElement;
@@ -678,9 +678,22 @@
     const shown = secs
       .filter((s) => s.st.display !== "none")
       .sort((a, b) => (parseInt(a.st.order, 10) || 0) - (parseInt(b.st.order, 10) || 0) || a.i - b.i);
+    // Lời chúc đứng ngay sau Xác nhận tham dự → gộp thành MỘT khối (thiệp hồi âm): chung
+    // nền, chung một lượt xen kẽ.
+    const rsvp = shown.findIndex((s) => s.el.id === "rsvp-section");
+    const wish = shown.findIndex((s) => s.el.id === "cx-wish-sec");
+    const joined = rsvp >= 0 && wish === rsvp + 1;
+    const slot = new Map();
+    let k = 0;
+    shown.forEach((s, i) => slot.set(s, joined && i === wish ? k - 1 : k++));
     secs.forEach((s) => {
-      const n = shown.indexOf(s);
-      s.el.classList.toggle("vf-tint", plain ? s.el.dataset.vfTint === "1" : n >= 0 && n % 2 === 0);
+      const n = slot.has(s) ? slot.get(s) : -1;
+      const tint = plain
+        ? (joined && s === shown[wish] ? shown[rsvp].el.dataset.vfTint : s.el.dataset.vfTint) === "1"
+        : n % 2 === 1;
+      s.el.classList.toggle("vf-tint", tint);
+      s.el.classList.toggle("vf-join-down", joined && s === shown[rsvp]);
+      s.el.classList.toggle("vf-join-up", joined && s === shown[wish]);
     });
   }
 
