@@ -647,7 +647,7 @@
           const img = el("img");
           img.loading = "lazy";
           img.alt = t.name;
-          img.src = t.thumbnailUrl || `/assets/images/templates/${t.theme}.jpg`;
+          img.src = t.thumbnailUrl || `/assets/images/templates/${t.theme}.jpg${typeof CX_VERSION !== "undefined" ? "?v=" + CX_VERSION : ""}`;
           const price = Number.isFinite(t.fromPrice)
             ? "Từ " + t.fromPrice.toLocaleString("vi-VN") + "đ"
             : "Liên hệ";

@@ -275,6 +275,8 @@ Host tĩnh sau Cloudflare, HTML cache 10 phút. Chống bản cũ bằng **`CX_V
 - `<link rel=stylesheet>` cùng origin được `config.js` nạp lại kèm `?v=` (bản có dấu tải
   xong mới gỡ thẻ cũ) → đổi `CX_VERSION` là CSS cũng đi theo. Riêng `<script>` viết cứng
   trong HTML thì không cứu được (đã chạy trước rồi) — sửa xong phải Ctrl+F5.
+- Ảnh chụp mẫu `assets/images/templates/*.jpg` cache 3 ngày (`_headers`) → chỗ nào dựng URL
+  ảnh đó bằng JS phải nối `?v=<CX_VERSION>`, không thì chụp lại ảnh xong khách vẫn thấy ảnh cũ.
 
 ### Môi trường
 
