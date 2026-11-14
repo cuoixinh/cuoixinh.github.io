@@ -26,6 +26,20 @@ function cxToggle(id, show) {
 window.cxEnabled = cxEnabled;
 window.cxToggle = cxToggle;
 
+// Lịch trình mà bên đang xem không có mốc nào (chưa nhập, toàn dòng trống, hoặc chỉ có mốc
+// của bên kia) thì giấu cả mục — mẫu tự vẽ lịch trình hay bật mục vô điều kiện, còn trơ
+// tiêu đề. Chạy sau renderWedding nên mẫu không phải tự lo.
+function _cxHideEmptyTimeline(w) {
+  const side = isGroomSide() ? "groom" : "bride";
+  const items = Array.isArray(w?.timeline) ? w.timeline : [];
+  const has = items.some((it) => {
+    if (!it || !(String(it.title || "").trim() || String(it.time || "").trim())) return false;
+    const t = it.type || "ceremony";
+    return t === "ceremony" || t === (side === "groom" ? "party" : "bride-party");
+  });
+  if (!has) cxToggle("section-timeline", false);
+}
+
 // --- CHẶN LƯU ẢNH ---
 // Thiệp thật lẫn bản xem (?preview=true): chặn nhấn giữ (iOS: touch-callout; Android:
 // contextmenu), chuột phải và kéo ảnh ra ngoài. Chỉ làm khó, không chặn được chụp màn hình.
@@ -672,6 +686,7 @@ function _cxMountMusic(decl) {
       return;
     }
     window.renderWedding(w);
+    _cxHideEmptyTimeline(w);
     // Link chung (khách vãn lai) không ứng với hàng khách nào nên không ghi được
     // xác nhận → giấu khối nút, và cả phần mẫu đánh dấu `data-cx-guest-only` (vd cả
     // màn RSVP). Bản xem thử giữ nguyên để chủ thiệp thấy mục này.
