@@ -1512,6 +1512,38 @@ body {
   color: rgb(var(--cx-deco-2-rgb));
 }
 
+/* ── Lời chúc ────────────────────────────────────────────────────────────── */
+/* Tiêu đề, vạch và chấm trang nằm trên NỀN THẺ (giấy kem khi xen kẽ) chứ không trên bong
+   bóng lời chúc → theo màu nhấn/chữ của nền đó; màu lời chúc (vàng) chỉ hợp trong bong bóng. */
+.cx-wsec .cx-wsec-title {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-wsec .cx-wsec-head::before,
+.cx-wsec .cx-wsec-head::after {
+  background: rgb(var(--cx-accent-rgb) / 0.28);
+}
+
+.cx-wsec .cx-wpage-dot::before {
+  background: rgb(var(--cx-body-rgb) / 0.28);
+}
+
+.cx-wsec .cx-wpage-dot.is-on::before {
+  background: rgb(var(--cx-accent-rgb));
+}
+
+/* Bộ nền sáng của danh mục chung (.sh-lite) không khai màu lời chúc → applyWishStyle rơi về
+   CX_THEME.wishes vốn chỉ hợp màu gốc đỏ rượu. Trả về token chung của bộ đang áp; helper gán
+   các biến này inline nên phải !important mới đè được. */
+html.sh-lite #cx-wish-sec,
+html.sh-lite #cx-wish-dock,
+html.sh-lite #cx-wish-all {
+  --cx-wish-text-rgb: var(--cx-body-rgb) !important;
+  --cx-wish-accent-rgb: var(--cx-accent-rgb) !important;
+  --cx-wish-bubble-rgb: var(--cx-panel-rgb) !important;
+  --cx-wish-btn-rgb: var(--cx-accent-rgb) !important;
+}
+
 /* ── Chuyển động khi vuốt (shMotion ở index.js) ─────────────────────────────
    Trạng thái CHỜ khai theo [data-fx], .is-in đưa về chỗ. Ảnh bên trong dùng `scale`
    cho lúc vào, parallax dùng `translate` — hai thuộc tính riêng nên không đè nhau. */
