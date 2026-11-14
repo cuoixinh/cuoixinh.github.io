@@ -207,7 +207,9 @@ tab mà còn thay đổi thì hỏi Lưu lại / Huỷ (Huỷ trả `_themeSetti
 bằng `_cxFrameLoad` — gán thẳng `iframe.src` là thêm mốc, Back lùi trang con thay vì thoát. Nút
 Lịch sử (`js/28-theme-history.js`) dựng từ chính `theme_setting` (mẫu gốc = rỗng) cộng thay
 đổi của lần chỉnh này, theo từng mục khai ở `_thItems` — thêm khoá mới vào `theme_setting`
-phải khai ở đó, không thì lịch sử không thấy và không hoàn tác được.
+phải khai ở đó, không thì lịch sử không thấy và không hoàn tác được. Khung của tab bỏ qua
+màn bìa (`_cxSkipCover`); tab "Ảnh bìa" nhờ `cxCoverEdit(on)` (`wedding-helper.js`) hiện bìa
+ĐỨNG YÊN để chỉnh bằng chính `text_overrides` — mẫu phải đặt bìa ở `#cover-screen`, không có thì tab tự ẩn.
 
 **Xem trực tiếp** (`js/22-live-preview.js`): từ **820px** trở lên (iPad dựng đứng cũng có),
 `#live-dock` là **dải cố định sát mép phải, NGOÀI vùng ứng dụng** — `<body>` chừa
