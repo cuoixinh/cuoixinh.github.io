@@ -26,6 +26,20 @@
   /* Chữ số nằm trên mảng màu nhấn (trái tim đếm ngược, ô ngày cưới): màu gốc là hồng phấn
      nên để chữ tiêu đề; bộ riêng có nhấn đậm thì ghi đè qua `vars` (CX_THEME.palettes). */
   --vf-on-accent-rgb: var(--cx-heading-rgb);
+  /* Mục xen kẽ (.vf-tint) + hộp xác nhận: nền + bộ chữ riêng. Mặc định trùng token chung
+     (dải nhạt chữ tối); bộ riêng cần khối ĐẬM chữ sáng (Đỏ rượu) thì ghi đè qua `vars`. */
+  --vf-tint-bg-rgb: var(--cx-band-rgb);
+  --vf-tint-heading-rgb: var(--cx-heading-rgb);
+  --vf-tint-body-rgb: var(--cx-body-rgb);
+  --vf-tint-accent-rgb: var(--cx-accent-rgb);
+  --vf-tint-line-rgb: var(--cx-line-rgb);
+  --vf-tint-paper-rgb: var(--cx-card-bg-rgb);
+  /* Bản chụp token gốc — thẻ trắng nằm TRONG mục xen kẽ trả chữ về đúng màu thân thiệp. */
+  --vf-ink-heading-rgb: var(--cx-heading-rgb);
+  --vf-ink-body-rgb: var(--cx-body-rgb);
+  --vf-ink-accent-rgb: var(--cx-accent-rgb);
+  --vf-ink-line-rgb: var(--cx-line-rgb);
+  --vf-ink-paper-rgb: var(--cx-card-bg-rgb);
   /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
      thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js) để thiệp
      không chọn bộ màu vẫn khớp với thiệp có chọn. */
@@ -422,8 +436,26 @@ body {
 /* ── Thân thiệp ───────────────────────────────────────────────────────────
    Các mục xen kẽ nền trắng / nền hồng nhạt cho đỡ phẳng khi cuộn dài. */
 
+.vf-tint,
+.vf-rsvp {
+  --cx-heading-rgb: var(--vf-tint-heading-rgb);
+  --cx-body-rgb: var(--vf-tint-body-rgb);
+  --cx-accent-rgb: var(--vf-tint-accent-rgb);
+  --cx-line-rgb: var(--vf-tint-line-rgb);
+  --cx-card-bg-rgb: var(--vf-tint-paper-rgb);
+}
+
 .vf-tint {
-  background-color: rgb(var(--cx-band-rgb));
+  background-color: rgb(var(--vf-tint-bg-rgb));
+}
+
+.vf-tint .vf-pcard,
+.vf-tint .vf-card {
+  --cx-heading-rgb: var(--vf-ink-heading-rgb);
+  --cx-body-rgb: var(--vf-ink-body-rgb);
+  --cx-accent-rgb: var(--vf-ink-accent-rgb);
+  --cx-line-rgb: var(--vf-ink-line-rgb);
+  --cx-card-bg-rgb: var(--vf-ink-paper-rgb);
 }
 
 .vf-card {
@@ -489,7 +521,7 @@ body {
 /* Khối xác nhận tham dự: thẻ hồng nhạt bo góc lớn. */
 
 .vf-rsvp {
-  background-color: rgb(var(--cx-band-rgb));
+  background-color: rgb(var(--vf-tint-bg-rgb));
   border-radius: 24px;
   padding: 28px 20px;
 }

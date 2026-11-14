@@ -141,7 +141,16 @@
         giftBox: "lixi_do_hy",
         wishes: { text: "body", accent: "heading", btn: "heading" },
         hold: ["card_bg", "panel", "panel_warm", "cover"],
-        vars: { "--vf-on-accent-rgb": "#ffffff" },
+        // Khối xen kẽ đỏ rượu chữ ngà nhấn vàng — cùng bảng với màu gốc của som-hom-co-nhau.
+        vars: {
+          "--vf-on-accent-rgb": "#ffffff",
+          "--vf-tint-bg-rgb": "#5a1621",
+          "--vf-tint-heading-rgb": "#fbefe6",
+          "--vf-tint-body-rgb": "#efdcd5",
+          "--vf-tint-accent-rgb": "#e3c27f",
+          "--vf-tint-line-rgb": "#8f6440",
+          "--vf-tint-paper-rgb": "#5a1621",
+        },
       },
       {
         id: "vintage-forest-do-son",
