@@ -102,11 +102,21 @@ body {
   line-height: 1.05;
 }
 
-/* Chữ viết tay màu blush: câu slogan, chú thích ảnh trong album. */
+/* Chữ viết tay màu blush: chữ trang trí tiếng Anh cố định (Save the date, chú thích ảnh). */
 
 .lp-hand {
   font-family: "BethanWhite", cursive;
   font-style: italic;
+  color: rgb(var(--cx-deco-rgb));
+}
+
+/* Chữ khách tự nhập (câu slogan, mốc chuyện tình): cùng màu blush nhưng serif nghiêng —
+   nét viết tay quá mảnh, câu tiếng Việt dài đọc không nổi và thiếu dấu "—". */
+
+.lp-quote {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-weight: 500;
   color: rgb(var(--cx-deco-rgb));
 }
 
@@ -667,10 +677,11 @@ body {
 }
 
 .lp-story-date {
-  font-family: "BethanWhite", cursive;
+  font-family: "Cormorant Garamond", serif;
   font-style: italic;
-  font-size: 22px;
-  line-height: 1.1;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1.2;
   margin-bottom: 4px;
   color: rgb(var(--cx-deco-rgb));
 }
