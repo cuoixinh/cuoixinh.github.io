@@ -18,118 +18,42 @@
     // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
     // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
     palette: {
-      heading: "#3b2a4d",
-      body: "#3a3342",
-      accent: "#7b5ea7",
-      accent_soft: "#e9e1f3",
-      on_accent: "#ffffff",
+      heading: "#fbefe6",
+      body: "#efdcd5",
+      accent: "#e3c27f",
+      accent_soft: "#6a1d25",
+      on_accent: "#4e1319",
       on_image: "#ffffff",
       on_lightbox: "#ffffff",
-      card_bg: "#ffffff",
-      page_bg: "#f5f1f9",
-      surface: "#f7f3fb",
-      band: "#f3edf9",
-      panel: "#ffffff",
-      panel_warm: "#fbf8fd",
-      cover: "#ffffff",
-      cover_mid: "#f3edf9",
-      cover_veil: "#ffffff",
+      card_bg: "#4e1319",
+      page_bg: "#f4eee2",
+      surface: "#571920",
+      band: "#44101a",
+      panel: "#5c1b23",
+      panel_warm: "#62212a",
+      cover: "#4e1319",
+      cover_mid: "#5e1a22",
+      cover_veil: "#4e1319",
       lightbox_bg: "#000000",
-      line: "#e6ddef",
-      shadow: "#2a1d38",
-      scrim: "#141216",
-      deco: "#9466c9",
-      deco_soft: "#eadff6",
-      deco_2: "#756b80",
-      deco_2_soft: "#e6ddef",
-      shine_from: "#ffffff",
-      shine_mid: "#f3edf9",
-      shine_to: "#e6ddef",
+      line: "#8f6440",
+      shadow: "#1e0507",
+      scrim: "#170a0b",
+      deco: "#d9b266",
+      deco_soft: "#3f0e13",
+      deco_2: "#d4aeab",
+      deco_2_soft: "#6b2a31",
+      shine_from: "#f6e2ae",
+      shine_mid: "#d9b266",
+      shine_to: "#a87c34",
     },
 
-    // Biến thể tông của chính mẫu này, hiện ngay sau "Mặc định" ở tab Giao diện →
-    // Bộ màu. "Đỏ rượu", "Tím mận" là bộ NỀN TỐI (`dark: true`: "Độ đậm" chỉ đổi độ sáng mảng sẫm). `wishes`
-    // thay CX_THEME.wishes (vốn chỉ hợp tông tím), khai bằng TÊN khoá bộ màu. `id` lưu
-    // xuống DB → đừng đổi; thêm bộ mới thì chạy `npm run check:palette-contrast`.
+    // Biến thể tông của chính mẫu này, hiện ngay sau "Mặc định" (đỏ rượu) ở tab Giao diện →
+    // Bộ màu. Bộ NỀN TỐI (`dark: true`: "Độ đậm" chỉ đổi độ sáng mảng sẫm) cùng khuôn màu gốc:
+    // `vars` khai lại đủ biến --sh-* của :root ở theme.css. `wishes` thay CX_THEME.wishes, khai
+    // bằng TÊN khoá bộ màu. `id` lưu xuống DB → đừng đổi; thêm bộ mới thì chạy
+    // `npm run check:palette-contrast`. "som-hom-do-ruou" đã thành màu gốc nên không khai lại.
     palettes: [
-      // "Đỏ rượu": các mục xen kẽ nền giấy kem như bìa (chữ đỏ rượu, `--sh-alt-*` trong vars) và
-      // nền đỏ rượu sẫm (chữ trắng ngà, nhấn vàng cùng dải dấu sáp ở bìa). Nền TRANG (page_bg)
-      // để giấy ngà sáng như thẻ đặt trên giấy; không chữ nào nằm trên lớp đó.
-      {
-        id: "som-hom-do-ruou",
-        name: "Đỏ rượu",
-        dark: true,
-        heading: "#fbefe6",
-        body: "#efdcd5",
-        accent: "#e3c27f",
-        accent_soft: "#6a1d25",
-        on_accent: "#4e1319",
-        on_image: "#ffffff",
-        on_lightbox: "#ffffff",
-        card_bg: "#4e1319",
-        page_bg: "#f4eee2",
-        surface: "#571920",
-        band: "#44101a",
-        panel: "#5c1b23",
-        panel_warm: "#62212a",
-        cover: "#4e1319",
-        cover_mid: "#5e1a22",
-        cover_veil: "#4e1319",
-        lightbox_bg: "#000000",
-        line: "#8f6440",
-        shadow: "#1e0507",
-        scrim: "#170a0b",
-        deco: "#d9b266",
-        deco_soft: "#3f0e13",
-        deco_2: "#d4aeab",
-        deco_2_soft: "#6b2a31",
-        shine_from: "#f6e2ae",
-        shine_mid: "#d9b266",
-        shine_to: "#a87c34",
-        wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
-        // Màn bìa nền GIẤY NGÀ (như thẻ đặt trên giấy) trong khi thân thiệp nền đỏ rượu:
-        // chữ bìa đỏ rượu, dấu sáp vàng, hoa đỏ rượu + kem, lá vàng rêu. Tên biến khai ở
-        // :root của theme.css (--sh-*), mặc định trỏ về token chung.
-        vars: {
-          "--sh-cv-bg-rgb": "#f6f0e4",
-          "--sh-cv-bg-2-rgb": "#f1e9db",
-          "--sh-cv-glow-a-rgb": "#fffaf1",
-          "--sh-cv-glow-b-rgb": "#ece2cf",
-          "--sh-cv-ink-rgb": "#4e1319",
-          "--sh-cv-muted-rgb": "#7d4a4d",
-          "--sh-cv-amp-rgb": "#9a5a5e",
-          "--sh-cv-btn-rgb": "#fffaf1",
-          "--sh-seal-hi-rgb": "#f3dc96",
-          "--sh-seal-mid-rgb": "#c99a3e",
-          "--sh-seal-lo-rgb": "#8a5f1d",
-          "--sh-seal-ink-rgb": "#6a4512",
-          "--sh-rose-a-rgb": "#7a1c27",
-          "--sh-rose-b-rgb": "#efe2cf",
-          "--sh-rose-c-rgb": "#4e1319",
-          "--sh-leaf-rgb": "#a89462",
-          "--sh-berry-rgb": "#6a1820",
-          "--sh-env-in-a-rgb": "#5e1a23",
-          "--sh-env-in-b-rgb": "#2e0a0e",
-          // Mục xen kẽ nền GIẤY KEM như màn bìa, chữ đỏ rượu sẫm (mục 1, 3, 5… — shStripe).
-          "--sh-alt-bg-rgb": "#f1e9db",
-          "--sh-alt-bg-2-rgb": "#f6f0e4",
-          "--sh-alt-heading-rgb": "#4e1319",
-          "--sh-alt-body-rgb": "#4a1c1f",
-          "--sh-alt-accent-rgb": "#7a1c27",
-          "--sh-alt-accent-soft-rgb": "#ece2cf",
-          "--sh-alt-on-accent-rgb": "#fbefe6",
-          "--sh-alt-surface-rgb": "#f1e9db",
-          "--sh-alt-band-rgb": "#ece2cf",
-          "--sh-alt-panel-rgb": "#fffaf1",
-          "--sh-alt-panel-warm-rgb": "#fbf5ea",
-          "--sh-alt-line-rgb": "#d8c6a6",
-          "--sh-alt-deco-rgb": "#8a1d28",
-          "--sh-alt-deco-soft-rgb": "#efe2cf",
-          "--sh-alt-deco-2-rgb": "#7d4a4d",
-          "--sh-alt-deco-2-soft-rgb": "#e8dcc6",
-        },
-      },
-      // "Tím mận": đúng khuôn "Đỏ rượu", mọi màu họ đỏ đổi sang tím mận cùng độ sáng;
+      // "Tím mận": đúng khuôn màu gốc đỏ rượu, mọi màu họ đỏ đổi sang tím mận;
       // giấy kem, vàng (nhấn, dấu sáp, ánh kim) và lá giữ nguyên.
       {
         id: "som-hom-tim-man",
@@ -203,13 +127,13 @@
       },
     ],
 
-    swatches: ["#2a1d38", "#3b2a4d", "#7b5ea7", "#9466c9", "#756b80", "#e9e1f3", "#f5f1f9", "#ffffff"],
+    swatches: ["#4e1319", "#7a1c27", "#d9b266", "#e3c27f", "#efdcd5", "#fbefe6", "#f4eee2", "#ffffff"],
 
     wishes: {
-      bubble: "#f7f3fb",
-      text: "#3a3342",
-      accent: "#7b5ea7",
-      btn: "#3b2a4d",
+      bubble: "#5c1b23",
+      text: "#efdcd5",
+      accent: "#e3c27f",
+      btn: "#e3c27f",
     },
 
     // Chuyển động do shMotion() của mẫu lo theo từng phần tử (bay vào + parallax), nên
@@ -398,12 +322,22 @@
 
   window.renderWedding = renderWedding;
 
+  // Màu gốc là đỏ rượu (nền tối) nên :root khai sẵn bìa/mục xen kẽ giấy kem. Bộ NỀN SÁNG
+  // của danh mục chung chỉ đổi --cx-* → gắn .sh-lite để các biến --sh-* trỏ lại token chung.
+  function shLite() {
+    const html = document.documentElement;
+    const bg = getComputedStyle(html).getPropertyValue("--cx-card-bg-rgb").trim().split(/\s+/).map(Number);
+    const lum = (0.2126 * bg[0] + 0.7152 * bg[1] + 0.0722 * bg[2]) / 255;
+    html.classList.toggle("sh-lite", bg.length === 3 && lum > 0.5);
+  }
+
   // Bộ màu khai `--sh-alt-bg-rgb` khác nền thẻ → mục đang HIỆN thứ 1, 3, 5… (theo flex
   // `order`, khối chèn thêm đánh lại order) nhận .sh-alt, mục còn lại thành thẻ .sh-solid,
   // thẻ cả nhận .sh-striped. Không khai thì gỡ hết.
   function shStripe() {
     const card = document.getElementById("main-card");
     if (!card) return;
+    shLite();
     const root = getComputedStyle(document.documentElement);
     const on = root.getPropertyValue("--sh-alt-bg-rgb").trim() !== root.getPropertyValue("--cx-card-bg-rgb").trim();
     const secs = [...card.querySelectorAll(".sh-body > .sh-sec")].map((el, i) => ({ el, i, st: getComputedStyle(el) }));

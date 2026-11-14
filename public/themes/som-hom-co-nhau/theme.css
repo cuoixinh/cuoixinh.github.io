@@ -1,34 +1,34 @@
-/* Mẫu SỚM HÔM CÓ NHAU — nền trắng tối giản, chữ nhỏ giãn dòng rộng, tông tím: chữ và nút
-   tím than, điểm nhấn tím oải hương ở chữ viết tay. CSS thuần, nạp sau styles/themes.css. */
+/* Mẫu SỚM HÔM CÓ NHAU — thiệp trang dài chữ nhỏ giãn dòng rộng, màu gốc ĐỎ RƯỢU: thẻ đỏ
+   rượu chữ ngà nhấn vàng xen mục giấy kem chữ đỏ, bìa giấy kem. CSS thuần, nạp sau styles/themes.css. */
 
 :root {
-  --cx-heading-rgb: 59 42 77;
-  --cx-body-rgb: 58 51 66;
-  --cx-accent-rgb: 123 94 167;
-  --cx-accent-soft-rgb: 233 225 243;
-  --cx-on-accent-rgb: 255 255 255;
+  --cx-heading-rgb: 251 239 230;
+  --cx-body-rgb: 239 220 213;
+  --cx-accent-rgb: 227 194 127;
+  --cx-accent-soft-rgb: 106 29 37;
+  --cx-on-accent-rgb: 78 19 25;
   --cx-on-image-rgb: 255 255 255;
   --cx-on-lightbox-rgb: 255 255 255;
-  --cx-card-bg-rgb: 255 255 255;
-  --cx-page-bg-rgb: 245 241 249;
-  --cx-surface-rgb: 247 243 251;
-  --cx-band-rgb: 243 237 249;
-  --cx-panel-rgb: 255 255 255;
-  --cx-panel-warm-rgb: 251 248 253;
-  --cx-cover-rgb: 255 255 255;
-  --cx-cover-mid-rgb: 243 237 249;
-  --cx-cover-veil-rgb: 255 255 255;
+  --cx-card-bg-rgb: 78 19 25;
+  --cx-page-bg-rgb: 244 238 226;
+  --cx-surface-rgb: 87 25 32;
+  --cx-band-rgb: 68 16 26;
+  --cx-panel-rgb: 92 27 35;
+  --cx-panel-warm-rgb: 98 33 42;
+  --cx-cover-rgb: 78 19 25;
+  --cx-cover-mid-rgb: 94 26 34;
+  --cx-cover-veil-rgb: 78 19 25;
   --cx-lightbox-bg-rgb: 0 0 0;
-  --cx-line-rgb: 230 221 239;
-  --cx-shadow-rgb: 42 29 56;
-  --cx-scrim-rgb: 20 18 22; /* gần đen trung tính: phủ ảnh cho tối mà không nhuộm màu */
-  --cx-deco-rgb: 148 102 201;
-  --cx-deco-soft-rgb: 234 223 246;
-  --cx-deco-2-rgb: 117 107 128;
-  --cx-deco-2-soft-rgb: 230 221 239;
-  --cx-shine-from-rgb: 255 255 255;
-  --cx-shine-mid-rgb: 243 237 249;
-  --cx-shine-to-rgb: 230 221 239;
+  --cx-line-rgb: 143 100 64;
+  --cx-shadow-rgb: 30 5 7;
+  --cx-scrim-rgb: 23 10 11; /* gần đen trung tính: phủ ảnh cho tối mà không nhuộm màu */
+  --cx-deco-rgb: 217 178 102;
+  --cx-deco-soft-rgb: 63 14 19;
+  --cx-deco-2-rgb: 212 174 171;
+  --cx-deco-2-soft-rgb: 107 42 49;
+  --cx-shine-from-rgb: 246 226 174;
+  --cx-shine-mid-rgb: 217 178 102;
+  --cx-shine-to-rgb: 168 124 52;
 
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
@@ -46,46 +46,46 @@
   --music-art-from-rgb: var(--cx-accent-rgb);
   --music-art-to-rgb: var(--cx-heading-rgb);
 
-  /* Màu RIÊNG của màn bìa — mặc định trỏ về token chung nên bộ màu nào không khai thì
-     bìa y như cũ. Bộ riêng của mẫu ghi đè qua `vars` (CX_THEME.palettes ở index.js), vd
-     bìa nền giấy sáng trong khi thân thiệp nền đỏ: chữ bìa phải đổi màu theo nền bìa. */
-  --sh-cv-bg-rgb: var(--cx-cover-rgb);
-  --sh-cv-bg-2-rgb: var(--cx-cover-mid-rgb);
-  --sh-cv-glow-a-rgb: var(--cx-accent-soft-rgb);
-  --sh-cv-glow-b-rgb: var(--cx-deco-soft-rgb);
-  --sh-cv-ink-rgb: var(--cx-heading-rgb);
-  --sh-cv-muted-rgb: var(--cx-deco-2-rgb);
-  --sh-cv-amp-rgb: var(--cx-deco-rgb);
-  --sh-cv-btn-rgb: var(--cx-panel-rgb);
-  --sh-seal-hi-rgb: var(--cx-deco-rgb);
-  --sh-seal-mid-rgb: var(--cx-accent-rgb);
-  --sh-seal-lo-rgb: var(--cx-heading-rgb);
-  --sh-seal-ink-rgb: var(--cx-on-accent-rgb);
-  --sh-rose-a-rgb: var(--cx-accent-rgb);
-  --sh-rose-b-rgb: var(--cx-deco-rgb);
-  --sh-rose-c-rgb: var(--cx-heading-rgb);
-  --sh-leaf-rgb: var(--cx-deco-2-rgb);
-  --sh-berry-rgb: var(--cx-accent-rgb);
-  --sh-env-in-a-rgb: var(--cx-accent-rgb); /* lòng phong bì: hai màu pha */
-  --sh-env-in-b-rgb: var(--cx-deco-rgb);
-  /* Mục XEN KẼ (.sh-alt, do shStripe ở index.js gắn): nền + bộ chữ riêng. Mặc định trỏ về
-     token chung; bộ nào khai `--sh-alt-bg-rgb` khác nền thẻ thì mục 1, 3, 5… đổi nền. */
-  --sh-alt-bg-rgb: var(--cx-card-bg-rgb);
-  --sh-alt-bg-2-rgb: var(--cx-card-bg-rgb);
-  --sh-alt-heading-rgb: var(--cx-heading-rgb);
-  --sh-alt-body-rgb: var(--cx-body-rgb);
-  --sh-alt-accent-rgb: var(--cx-accent-rgb);
-  --sh-alt-accent-soft-rgb: var(--cx-accent-soft-rgb);
-  --sh-alt-on-accent-rgb: var(--cx-on-accent-rgb);
-  --sh-alt-surface-rgb: var(--cx-surface-rgb);
-  --sh-alt-band-rgb: var(--cx-band-rgb);
-  --sh-alt-panel-rgb: var(--cx-panel-rgb);
-  --sh-alt-panel-warm-rgb: var(--cx-panel-warm-rgb);
-  --sh-alt-line-rgb: var(--cx-line-rgb);
-  --sh-alt-deco-rgb: var(--cx-deco-rgb);
-  --sh-alt-deco-soft-rgb: var(--cx-deco-soft-rgb);
-  --sh-alt-deco-2-rgb: var(--cx-deco-2-rgb);
-  --sh-alt-deco-2-soft-rgb: var(--cx-deco-2-soft-rgb);
+  /* Màu RIÊNG của màn bìa: bìa giấy kem trong khi thân thiệp nền đỏ rượu, nên chữ bìa đổi
+     màu theo nền bìa. Bộ riêng của mẫu ghi đè qua `vars` (CX_THEME.palettes ở index.js);
+     bộ nền sáng của danh mục chung thì html.sh-lite trả về token chung. */
+  --sh-cv-bg-rgb: 246 240 228;
+  --sh-cv-bg-2-rgb: 241 233 219;
+  --sh-cv-glow-a-rgb: 255 250 241;
+  --sh-cv-glow-b-rgb: 236 226 207;
+  --sh-cv-ink-rgb: 78 19 25;
+  --sh-cv-muted-rgb: 125 74 77;
+  --sh-cv-amp-rgb: 154 90 94;
+  --sh-cv-btn-rgb: 255 250 241;
+  --sh-seal-hi-rgb: 243 220 150;
+  --sh-seal-mid-rgb: 201 154 62;
+  --sh-seal-lo-rgb: 138 95 29;
+  --sh-seal-ink-rgb: 106 69 18;
+  --sh-rose-a-rgb: 122 28 39;
+  --sh-rose-b-rgb: 239 226 207;
+  --sh-rose-c-rgb: 78 19 25;
+  --sh-leaf-rgb: 168 148 98;
+  --sh-berry-rgb: 106 24 32;
+  --sh-env-in-a-rgb: 94 26 35; /* lòng phong bì: hai màu pha */
+  --sh-env-in-b-rgb: 46 10 14;
+  /* Mục XEN KẼ (.sh-alt, do shStripe ở index.js gắn): nền giấy kem + bộ chữ đỏ rượu. Bộ nào
+     có `--sh-alt-bg-rgb` khác nền thẻ thì mục 1, 3, 5… đổi nền (.sh-lite: trùng → không xen). */
+  --sh-alt-bg-rgb: 241 233 219;
+  --sh-alt-bg-2-rgb: 246 240 228;
+  --sh-alt-heading-rgb: 78 19 25;
+  --sh-alt-body-rgb: 74 28 31;
+  --sh-alt-accent-rgb: 122 28 39;
+  --sh-alt-accent-soft-rgb: 236 226 207;
+  --sh-alt-on-accent-rgb: 251 239 230;
+  --sh-alt-surface-rgb: 241 233 219;
+  --sh-alt-band-rgb: 236 226 207;
+  --sh-alt-panel-rgb: 255 250 241;
+  --sh-alt-panel-warm-rgb: 251 245 234;
+  --sh-alt-line-rgb: 216 198 166;
+  --sh-alt-deco-rgb: 138 29 40;
+  --sh-alt-deco-soft-rgb: 239 226 207;
+  --sh-alt-deco-2-rgb: 125 74 77;
+  --sh-alt-deco-2-soft-rgb: 232 220 198;
   /* Bản chụp bộ chữ/nền GỐC (tính ở :root, trước khi #main-card.sh-striped đổi token) để
      thẻ đỏ (.sh-solid) lấy lại khi nền thẻ đã thành nền xen kẽ. */
   --sh-red-bg-rgb: var(--cx-card-bg-rgb);
@@ -106,6 +106,47 @@
 
   /* Nhiễu dùng làm mặt nạ vân giấy (chỉ kênh alpha, #000 không phải màu hiển thị). */
   --sh-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.6 0 0 0 -0.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+
+/* Bộ màu NỀN SÁNG (bộ chung của danh mục) chỉ đổi token --cx-*: shStripe gắn .sh-lite để
+   biến bìa/mục xen kẽ trỏ lại token chung, không thì bìa kem chữ đỏ rượu nằm giữa thiệp sáng. */
+html.sh-lite {
+  --sh-cv-bg-rgb: var(--cx-cover-rgb);
+  --sh-cv-bg-2-rgb: var(--cx-cover-mid-rgb);
+  --sh-cv-glow-a-rgb: var(--cx-accent-soft-rgb);
+  --sh-cv-glow-b-rgb: var(--cx-deco-soft-rgb);
+  --sh-cv-ink-rgb: var(--cx-heading-rgb);
+  --sh-cv-muted-rgb: var(--cx-deco-2-rgb);
+  --sh-cv-amp-rgb: var(--cx-deco-rgb);
+  --sh-cv-btn-rgb: var(--cx-panel-rgb);
+  --sh-seal-hi-rgb: var(--cx-deco-rgb);
+  --sh-seal-mid-rgb: var(--cx-accent-rgb);
+  --sh-seal-lo-rgb: var(--cx-heading-rgb);
+  --sh-seal-ink-rgb: var(--cx-on-accent-rgb);
+  --sh-rose-a-rgb: var(--cx-accent-rgb);
+  --sh-rose-b-rgb: var(--cx-deco-rgb);
+  --sh-rose-c-rgb: var(--cx-heading-rgb);
+  --sh-leaf-rgb: var(--cx-deco-2-rgb);
+  --sh-berry-rgb: var(--cx-accent-rgb);
+  --sh-env-in-a-rgb: var(--cx-accent-rgb);
+  --sh-env-in-b-rgb: var(--cx-deco-rgb);
+  --sh-alt-bg-rgb: var(--cx-card-bg-rgb);
+  --sh-alt-bg-2-rgb: var(--cx-card-bg-rgb);
+  --sh-alt-heading-rgb: var(--cx-heading-rgb);
+  --sh-alt-body-rgb: var(--cx-body-rgb);
+  --sh-alt-accent-rgb: var(--cx-accent-rgb);
+  --sh-alt-accent-soft-rgb: var(--cx-accent-soft-rgb);
+  --sh-alt-on-accent-rgb: var(--cx-on-accent-rgb);
+  --sh-alt-surface-rgb: var(--cx-surface-rgb);
+  --sh-alt-band-rgb: var(--cx-band-rgb);
+  --sh-alt-panel-rgb: var(--cx-panel-rgb);
+  --sh-alt-panel-warm-rgb: var(--cx-panel-warm-rgb);
+  --sh-alt-line-rgb: var(--cx-line-rgb);
+  --sh-alt-deco-rgb: var(--cx-deco-rgb);
+  --sh-alt-deco-soft-rgb: var(--cx-deco-soft-rgb);
+  --sh-alt-deco-2-rgb: var(--cx-deco-2-rgb);
+  --sh-alt-deco-2-soft-rgb: var(--cx-deco-2-soft-rgb);
 }
 
 body {
