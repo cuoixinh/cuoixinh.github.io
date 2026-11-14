@@ -8,16 +8,16 @@
 --
 -- Thứ tự mới (sort_order = 10, 20, 30…):
 --    1. thuan-vo-thuan-chong
---    2. basic-gold
---    3. romantic-gold
---    4. vintage-forest
---    5. moody-cinematic
---    6. noir-elegance
---    7. romantic-blush
---    8. luminous-pastel
---    9. opulent-contrast
---   10. serene-parchment
---   11. ribbon-love
+--    2. ribbon-love
+--    3. romantic-blush
+--    4. basic-gold
+--    5. romantic-gold
+--    6. vintage-forest
+--    7. moody-cinematic
+--    8. noir-elegance
+--    9. luminous-pastel
+--   10. opulent-contrast
+--   11. serene-parchment
 --   12. pearl-bow
 --   13. hong-duyen
 --   14. hen-uoc
@@ -43,16 +43,16 @@ update public.templates as t
        updated_at = now()
   from (values
        ('thuan-vo-thuan-chong', 10),
-       ('basic-gold', 20),
-       ('romantic-gold', 30),
-       ('vintage-forest', 40),
-       ('moody-cinematic', 50),
-       ('noir-elegance', 60),
-       ('romantic-blush', 70),
-       ('luminous-pastel', 80),
-       ('opulent-contrast', 90),
-       ('serene-parchment', 100),
-       ('ribbon-love', 110),
+       ('ribbon-love', 20),
+       ('romantic-blush', 30),
+       ('basic-gold', 40),
+       ('romantic-gold', 50),
+       ('vintage-forest', 60),
+       ('moody-cinematic', 70),
+       ('noir-elegance', 80),
+       ('luminous-pastel', 90),
+       ('opulent-contrast', 100),
+       ('serene-parchment', 110),
        ('pearl-bow', 120),
        ('hong-duyen', 130),
        ('hen-uoc', 140),
