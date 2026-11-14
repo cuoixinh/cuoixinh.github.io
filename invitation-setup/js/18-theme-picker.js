@@ -63,7 +63,7 @@ async function openThemePicker() {
           .map((t) => {
             const isCurrent = t.theme === WEDDING_THEME;
             const thumb =
-              t.thumbnailUrl || `/assets/images/templates/${t.theme}.jpg`;
+              t.thumbnailUrl || `/assets/images/templates/${t.theme}.jpg${typeof CX_VERSION !== "undefined" ? "?v=" + CX_VERSION : ""}`;
             return `
             <button type="button"
               ${isCurrent ? 'id="theme-picker-current"' : ""}
@@ -116,7 +116,7 @@ function _updateHeaderThemeBadge(displayName) {
   // Thumbnail của mẫu đang dùng
   const thumb = document.getElementById("header-theme-thumb");
   if (thumb && WEDDING_THEME) {
-    thumb.src = `../assets/images/templates/${WEDDING_THEME}.jpg`;
+    thumb.src = `../assets/images/templates/${WEDDING_THEME}.jpg${typeof CX_VERSION !== "undefined" ? "?v=" + CX_VERSION : ""}`;
     thumb.style.display = "";
   }
   const name =

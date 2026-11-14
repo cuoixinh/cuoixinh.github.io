@@ -61,7 +61,7 @@
     return `
     <article class="tt-card${opts.cardClass ? " " + opts.cardClass : ""}" data-id="${esc(t.id)}" data-theme="${esc(t.theme)}">
       <div class="tt-media" role="button" tabindex="0" aria-label="Xem trước ${name}" data-tpl-act="preview">
-        <img src="/assets/images/templates/${esc(t.theme)}.jpg" alt="${name}" loading="lazy" />
+        <img src="/assets/images/templates/${esc(t.theme)}.jpg${typeof CX_VERSION !== "undefined" ? "?v=" + CX_VERSION : ""}" alt="${name}" loading="lazy" />
         <div class="tt-hover"></div>
         ${tagrow}
         ${ai}
