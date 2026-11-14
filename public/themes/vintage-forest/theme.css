@@ -452,9 +452,9 @@ body {
   background-color: rgb(var(--vf-tint-bg-rgb));
 }
 
-/* Lời chúc rơi vào mục xen kẽ: helper gắn màu thẳng lên thẻ (inline) theo màu nền trắng
-   → đè lại bằng bộ chữ của khối màu. */
-#cx-wish-sec.vf-tint {
+/* Lời chúc rơi vào khối xen kẽ ĐẬM: helper gắn màu thẳng lên thẻ (inline) theo màu nền
+   trắng → đè lại bằng bộ chữ của khối màu. */
+html.vf-deep #cx-wish-sec.vf-tint {
   --cx-wish-text-rgb: var(--vf-tint-body-rgb) !important;
   --cx-wish-accent-rgb: var(--vf-tint-heading-rgb) !important;
   --cx-wish-bubble-rgb: var(--vf-tint-panel-rgb) !important;
@@ -541,6 +541,51 @@ body {
   background-color: rgb(var(--vf-tint-bg-rgb));
   border-radius: 24px;
   padding: 28px 20px;
+}
+
+/* Xác nhận tham dự + lời chúc gộp một khối (vfStripe gắn cờ khi hai mục liền nhau): lời
+   chúc là phần "viết đôi dòng" của cùng tấm thiệp hồi âm — bỏ lề trên, nối bằng vạch nhấn
+   ngắn như dưới tiêu đề mục, tiêu đề của helper đổi sang chữ nghiêng của mẫu. */
+
+/* Hộp xác nhận nằm trên khối màu thì thành tấm giấy của khối đó, không chìm vào nền. */
+.vf-tint .vf-rsvp {
+  background-color: rgb(var(--cx-panel-rgb));
+}
+
+#rsvp-section.vf-join-down {
+  padding-bottom: 24px;
+}
+
+#cx-wish-sec.vf-join-up {
+  max-width: none;
+  padding: 16px 32px 64px;
+}
+
+#cx-wish-sec.vf-join-up::before {
+  content: "";
+  align-self: center;
+  width: 40px;
+  height: 1px;
+  margin-bottom: 16px;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+#cx-wish-sec.vf-join-up .cx-wsec-head::before,
+#cx-wish-sec.vf-join-up .cx-wsec-head::after {
+  display: none;
+}
+
+#cx-wish-sec.vf-join-up .cx-wsec-head {
+  justify-content: center;
+}
+
+#cx-wish-sec.vf-join-up .cx-wsec-title {
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 /* ── Nút ──────────────────────────────────────────────────────────────────
