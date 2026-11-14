@@ -9,7 +9,7 @@
     id: "som-hom-co-nhau",
 
     wishesMode: "card",
-    giftBox: "mungcuoi_ivory",
+    giftBox: "lixi_do_hy",
 
     music: { variant: "mini", chrome: "fixed-corner", art: "couple" },
 
