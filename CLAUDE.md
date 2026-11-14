@@ -721,7 +721,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   thay `CX_THEME.wishes` vốn chỉ hợp màu gốc. Bộ riêng được phép NỀN TỐI nếu khai
   `dark: true` ("Độ đậm" đi phép riêng `_cxDarkAtStrength`: chỉ đổi độ sáng các mảng sẫm
   cùng tông `card_bg`, kể cả trong `vars`; giấy kem/vàng/chữ sáng đứng yên) — khi đó CSS của mẫu không
-  được ngầm coi `heading` là màu tối (chữ trên chấm sáng dùng cặp `scrim`/`on_image`). Mảng cần màu
+  được ngầm coi `heading` là màu tối (chữ trên chấm sáng dùng cặp `scrim`/`on_image`). Bộ riêng
+  nền SÁNG được là giấy pastel đậm hơn danh mục chung (ngưỡng sáng 0.45 thay 0.7). Mảng cần màu
   khác hẳn token chung (bìa nền sáng trên thiệp nền tối…) thì mẫu khai biến riêng `--x-rgb`
   ở `:root` trỏ về token, bộ riêng ghi đè qua `vars` (chỉ nhận tên `--…-rgb` + hex; chỉ
   bộ `dark` mới theo "Độ đậm") — xem `--sh-cv-*` của `som-hom-co-nhau`.
