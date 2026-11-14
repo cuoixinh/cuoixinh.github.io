@@ -729,7 +729,7 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   nền SÁNG được là giấy pastel đậm hơn danh mục chung (ngưỡng sáng 0.45 thay 0.7). Mảng cần màu
   khác hẳn token chung (bìa nền sáng trên thiệp nền tối…) thì mẫu khai biến riêng `--x-rgb`
   ở `:root` trỏ về token, bộ riêng ghi đè qua `vars` (chỉ nhận tên `--…-rgb` + hex; chỉ
-  bộ `dark` mới theo "Độ đậm") — xem `--sh-cv-*` của `som-hom-co-nhau`.
+  bộ `dark` mới theo "Độ đậm") — xem `--sh-cv-*` của `som-hom-co-nhau`. Ô nền phối CỐ ĐỊNH (giấy trắng của `vintage-forest`) khai ở `hold` của bộ riêng: "Độ đậm" không nhuộm chúng.
   Nút nhạc dùng bảng `--music-*` riêng nên
   `_cxPaletteRule` suy thêm bảng đó từ bộ màu — chỉ khi CÓ bộ, để thiệp không chọn bộ giữ
   nguyên hình thức cũ.
