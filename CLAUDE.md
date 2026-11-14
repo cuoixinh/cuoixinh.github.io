@@ -719,11 +719,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `som-hom-co-nhau`) thì mẫu tự khai ở **`CX_THEME.palettes`** (cùng khuôn, `id` có tiền tố
   tên mẫu), hiện ngay sau "Mặc định"; kèm `wishes` (giá trị là hex hoặc TÊN khoá bộ màu) để
   thay `CX_THEME.wishes` vốn chỉ hợp màu gốc. Bộ riêng được phép NỀN TỐI nếu khai
-  `dark: true` (thanh "Độ đậm" ẩn, runtime bỏ qua `strength`) — khi đó CSS của mẫu không
+  `dark: true` ("Độ đậm" đi phép riêng `_cxDarkAtStrength`: chỉ đổi độ sáng các mảng sẫm
+  cùng tông `card_bg`, kể cả trong `vars`; giấy kem/vàng/chữ sáng đứng yên) — khi đó CSS của mẫu không
   được ngầm coi `heading` là màu tối (chữ trên chấm sáng dùng cặp `scrim`/`on_image`). Mảng cần màu
   khác hẳn token chung (bìa nền sáng trên thiệp nền tối…) thì mẫu khai biến riêng `--x-rgb`
-  ở `:root` trỏ về token, bộ riêng ghi đè qua `vars` (chỉ nhận tên `--…-rgb` + hex, không
-  theo "Độ đậm") — xem `--sh-cv-*` của `som-hom-co-nhau`.
+  ở `:root` trỏ về token, bộ riêng ghi đè qua `vars` (chỉ nhận tên `--…-rgb` + hex; chỉ
+  bộ `dark` mới theo "Độ đậm") — xem `--sh-cv-*` của `som-hom-co-nhau`.
   Nút nhạc dùng bảng `--music-*` riêng nên
   `_cxPaletteRule` suy thêm bảng đó từ bộ màu — chỉ khi CÓ bộ, để thiệp không chọn bộ giữ
   nguyên hình thức cũ.

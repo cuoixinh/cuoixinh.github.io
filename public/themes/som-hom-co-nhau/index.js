@@ -48,7 +48,7 @@
     },
 
     // Biến thể tông của chính mẫu này, hiện ngay sau "Mặc định" ở tab Giao diện →
-    // Bộ màu. "Đỏ rượu" là bộ NỀN TỐI (`dark: true` nên thanh "Độ đậm" ẩn đi). `wishes`
+    // Bộ màu. "Đỏ rượu", "Tím mận" là bộ NỀN TỐI (`dark: true`: "Độ đậm" chỉ đổi độ sáng mảng sẫm). `wishes`
     // thay CX_THEME.wishes (vốn chỉ hợp tông tím), khai bằng TÊN khoá bộ màu. `id` lưu
     // xuống DB → đừng đổi; thêm bộ mới thì chạy `npm run check:palette-contrast`.
     palettes: [
