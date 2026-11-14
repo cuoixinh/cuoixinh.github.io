@@ -83,8 +83,8 @@
     // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true).
     suggest: "#section-footer",
 
-    // Mẫu vẽ đủ mọi mục nên trang Thiết lập không phải bỏ bước nào.
-    skipSteps: [],
+    // Mẫu không hiện Lịch trình → trang Thiết lập bỏ luôn bước đó.
+    skipSteps: ["timeline"],
 
     // id các mục trùng bảng mặc định của preview-focus-helper.js nên không cần
     // khai `focus`.
@@ -199,17 +199,6 @@
         msg.textContent = w.rsvp_message;
         msg.classList.remove("hidden");
       }
-    }
-
-    // --- Lịch trình ngày cưới ---
-    if (cxEnabled(w.enable_timeline)) {
-      renderTimeline(
-        w.timeline,
-        side,
-        partyDate,
-        ...cxTimelineCeremony(w, ceremonyName),
-      );
-      cxToggle("section-timeline", true);
     }
 
     // --- Chuyện tình yêu ---
