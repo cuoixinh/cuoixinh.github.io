@@ -38,6 +38,9 @@ function _watchThemeFrame() {
   iframe.addEventListener("load", () => {
     // Nạp lại giữa lúc đang kéo thì pointerup của thiệp không bao giờ tới nữa.
     _setCtrlAway(false);
+    // Khung nạp lại luôn mở thẳng thân thiệp → đang ở tab Ảnh bìa thì bật lại bìa.
+    if (_coverEditOn) iframe.contentWindow?.cxCoverEdit?.(true);
+    _syncCoverTab();
     const before = _themeSwatchCache;
     const sw = _themeSwatches();
     // So theo GIÁ TRỊ: mỗi lần nạp lại iframe sinh một mảng mới, so theo tham
@@ -200,6 +203,76 @@ function openDesktopPanel() {
   _resetCtrlScroll();
 }
 window.openDesktopPanel = openDesktopPanel;
+
+// ── ẢNH BÌA ─────────────────────────────────────────────────────────────────
+// Khung chỉnh vốn bỏ qua màn bìa; tab này nhờ thiệp hiện bìa đứng yên (cxCoverEdit ở
+// wedding-helper.js) để bấm chỉnh chữ/chi tiết trên đó bằng đúng bảng chỉnh dòng của thân
+// thiệp — ghi vào text_overrides như mọi chỗ khác, nên thiệp thật mang theo luôn.
+let _coverEditOn = false;
+
+function _coverFrameWin() {
+  return document.getElementById("theme-preview-iframe")?.contentWindow || null;
+}
+
+function openCoverPanel() {
+  _clearCtrlPanels();
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-cover-panel")?.classList.remove("hidden");
+  _resetCtrlScroll();
+}
+window.openCoverPanel = openCoverPanel;
+
+// Bật/tắt bìa theo màn đang mở (gọi từ _syncCtrlHead). Màn chi tiết (chỉnh dòng vừa bấm
+// trên bìa) và lúc chưa chọn tab giữ nguyên, chỉ tab khác mới đưa về thân thiệp.
+function _syncCoverEdit(view) {
+  if (view.back || view.key === "none") return;
+  const on = view.key === "cover";
+  if (on === _coverEditOn) return;
+  _coverEditOn = on;
+  _coverFrameWin()?.cxCoverEdit?.(on);
+}
+
+// Mẫu không có màn bìa (chỉ có màn mở đầu) thì không có tab này. Khung chưa nạp xong thì
+// cứ để tab hiện — lần nạp xong (_watchThemeFrame) sẽ gọi lại.
+function _syncCoverTab() {
+  const doc = document.getElementById("theme-preview-iframe")?.contentDocument;
+  const ready = doc && doc.readyState !== "loading" && doc.getElementById("main-card");
+  const has = !ready || !!doc.getElementById("cover-screen");
+  document
+    .querySelector('#cx-ctrl-tabs-track .cx-ctab[data-ctab="cover"]')
+    ?.classList.toggle("hidden", !has);
+  if (!has && _curCtrlView().key === "cover") _showMainControls();
+}
+
+// Chỉ xoá chỉnh sửa của phần tử NẰM TRÊN BÌA (kể cả phần đã ẩn — vẫn còn trong DOM), để
+// hiện lại chi tiết đã xoá; chỉnh sửa ở thân thiệp giữ nguyên.
+function resetCoverOverrides() {
+  const doc = document.getElementById("theme-preview-iframe")?.contentDocument;
+  const cover = doc?.getElementById("cover-screen");
+  const map = _themeSetting.text_overrides;
+  if (!cover || !map) return;
+  let n = 0;
+  Object.keys(map).forEach((sel) => {
+    let el = null;
+    try {
+      el = doc.querySelector(sel);
+    } catch (e) {}
+    if (el && cover.contains(el)) {
+      delete map[sel];
+      n++;
+    }
+  });
+  if (!n) {
+    showToast("Ảnh bìa đang đúng như mẫu", "info");
+    return;
+  }
+  _scheduleAutoSave("theme");
+  const cw = _coverFrameWin();
+  cw?.applyThemeSetting?.(_themeSetting);
+  cw?.applyTextOverrides?.(_themeSetting);
+  showToast("Đã trả ảnh bìa về như mẫu", "success");
+}
+window.resetCoverOverrides = resetCoverOverrides;
 
 // Tắt cờ thì thiệp trong khung máy (desktopFrame=1 bắt theme-boot dựng khung dù
 // đang trong iframe); bật thì desktopMode=true — đúng hai đường của thiệp thật.
@@ -796,6 +869,7 @@ function openAddTextPanel() {
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -1073,6 +1147,7 @@ function openElementsPanel() {
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -1317,6 +1392,7 @@ function openGiftPanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -1498,6 +1574,7 @@ function openWishPanel() {
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -1695,6 +1772,7 @@ function openElementEditor(msg) {
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-cover-panel")?.classList.add("hidden");
   document.getElementById("theme-element-editor")?.classList.remove("hidden");
   _resetCtrlScroll();
 
@@ -1900,6 +1978,7 @@ function _openLineEditor(msg) {
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -2560,6 +2639,15 @@ const CTRL_VIEWS = [
     reset: "resetDesktopWide",
   },
   {
+    key: "cover",
+    panel: "theme-cover-panel",
+    title: "Ảnh bìa",
+    icon: "book-open",
+    tip: "Chỉnh chữ và chi tiết trên màn bìa",
+    open: "openCoverPanel",
+    reset: "resetCoverOverrides",
+  },
+  {
     key: "elements",
     panel: "theme-elements-panel",
     title: "Thẻ nhạc",
@@ -2601,7 +2689,7 @@ const CTRL_TAB_PANELS = CTRL_VIEWS.filter((v) => v.open).map((v) => v.panel);
 
 // Thứ tự nút ở dải tab dưới (màn con `element`/`line` không có tab: chỉ mở được
 // bằng cú bấm vào thiệp). Nhãn + lời mách lấy từ CTRL_VIEWS nên chỉ khai MỘT chỗ.
-const CTRL_TABS = ["main", "addtext", "elements", "gift", "wishes", "desktop"];
+const CTRL_TABS = ["main", "addtext", "cover", "elements", "gift", "wishes", "desktop"];
 
 // Màn cấp 2 vào được từ nhiều đường: bấm thẳng vào thiệp, hoặc vừa thả một thứ
 // từ bảng cấp 1 ra (thả mẫu văn bản xong là nhảy luôn sang Chỉnh chữ). Ghi lại
@@ -2665,6 +2753,7 @@ function _renderCtrlTabs() {
     track.appendChild(btn);
   });
   window.lucide?.createIcons({ root: track });
+  _syncCoverTab();
   // Nút vừa dựng lại → tô mờ theo công tắc ở tab Thiết lập ngay, không chờ lần
   // mở tab Giao diện kế tiếp.
   cxSyncThemeAddCards();
@@ -2691,6 +2780,7 @@ function _syncCtrlHead() {
   _lastCtrlHead = view.key;
   _ctrlView = view;
   _syncDeskStage(view.key === "desktop");
+  _syncCoverEdit(view);
 
   const title = document.getElementById("cx-ch-title");
   if (title) title.textContent = _ctrlTitle(view);
@@ -2856,6 +2946,11 @@ function _ctrlWide() {
 // Vừa đóng màn chi tiết (bỏ chọn trên thiệp): máy tính thì bật lại "Màu sắc".
 // _clearCtrlPanels gọi closeLineEditor trước rồi mới ẩn nhóm chung nên không vướng.
 function _ctrlIdleMain() {
+  // Vừa chỉnh xong một dòng trên ảnh bìa: về lại bảng Ảnh bìa, bìa vẫn hiện.
+  if (_coverEditOn) {
+    document.getElementById("theme-cover-panel")?.classList.remove("hidden");
+    return;
+  }
   if (_ctrlWide())
     document.getElementById("theme-main-controls")?.classList.remove("hidden");
 }

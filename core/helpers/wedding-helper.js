@@ -329,6 +329,50 @@ function _cxSkipCover() {
   return q.get("source") === "live" || q.get("edit") === "1";
 }
 
+// Bìa của link chung: không mời đích danh, dòng [data-cx-invite] thành lời báo tin.
+function _cxGuestGeneric() {
+  document.documentElement.classList.add("cx-guest-generic");
+  document.querySelectorAll("[data-cx-invite]").forEach((el) => {
+    el.textContent = CX_VISITOR_LINE;
+  });
+  // Chỉ mẫu CÓ màn bìa; mẫu chỉ có hero giữ khối lời mời ẩn như cũ.
+  document.querySelector("#cover-screen #cover-guest-wrap")?.classList.remove("hidden");
+}
+
+// Tab "Ảnh bìa" của trang Thiết lập (khung `edit=1`, vốn bỏ qua bìa): hiện màn bìa ĐỨNG
+// YÊN như link chung để bấm chỉnh từng chữ/chi tiết y như thân thiệp; trong lúc đó mọi cú
+// chạm/vuốt "mở thiệp" trên bìa bị chặn. Trả false khi mẫu không có bìa.
+let _cxCoverEditing = false;
+const CX_COVER_EDIT_BLOCK = ["click", "touchstart", "touchend", "pointerdown", "pointerup", "wheel"];
+function _cxCoverEditGuard(e) {
+  if (_cxCoverEditing) e.stopPropagation();
+}
+
+function cxCoverEdit(on) {
+  const cover = document.getElementById("cover-screen");
+  const main = document.getElementById("main-card");
+  if (!cover || !main || !_cxSkipCover()) return false;
+  // Pha CAPTURE trên chính bìa: chạy SAU bộ chọn-để-chỉnh (capture ở document) nên cú
+  // bấm vẫn chọn được chữ, nhưng không tới được nút/cử chỉ mở thiệp bên trong.
+  if (!cover.dataset.cxEditGuard) {
+    cover.dataset.cxEditGuard = "1";
+    CX_COVER_EDIT_BLOCK.forEach((t) => cover.addEventListener(t, _cxCoverEditGuard, true));
+  }
+  _cxCoverEditing = !!on;
+  if (on) _cxGuestGeneric();
+  cover.classList.remove("closing");
+  cover.style.display = on ? "" : "none";
+  main.style.display = on ? "none" : "";
+  if (!on) main.style.opacity = "1";
+  // Thiệp thật không bao giờ hiện nút nhạc neo màn hình ở màn bìa.
+  document.querySelectorAll("[data-cx-reveal-on-scroll]").forEach((el) => {
+    el.style.visibility = on ? "hidden" : "";
+  });
+  window.scrollTo({ top: 0 });
+  return true;
+}
+window.cxCoverEdit = cxCoverEdit;
+
 function setupPersonalizedGreeting(
   weddingSlug,
   isGroom,
@@ -346,14 +390,7 @@ function setupPersonalizedGreeting(
   // đổi thành lời cảm ơn; cờ .cx-guest-generic trên <html> để _common.css ẩn dòng tên
   // + [data-cx-invite-to], mẫu muốn tạo kiểu thêm cũng nhắm theo cờ này.
   const coverGuestName = document.getElementById("cover-guest-name");
-  const generic = () => {
-    document.documentElement.classList.add("cx-guest-generic");
-    document.querySelectorAll("[data-cx-invite]").forEach((el) => {
-      el.textContent = CX_VISITOR_LINE;
-    });
-    // Chỉ mẫu CÓ màn bìa; mẫu chỉ có hero giữ khối lời mời ẩn như cũ.
-    document.querySelector("#cover-screen #cover-guest-wrap")?.classList.remove("hidden");
-  };
+  const generic = _cxGuestGeneric;
 
   // Bản xem thử giả lập màn khách mời bằng ?name=<tên>&rel=<xưng hô> (hoặc ?guest=;
   // chữ thường, không mã hoá) — chỉ đổ chữ, không đặt CX_GUEST nên không ghi gì lên DB.
@@ -436,6 +473,7 @@ function setupPersonalizedGreeting(
 }
 
 function openInvitation(callback) {
+  if (_cxCoverEditing) return;
   const cover = document.getElementById("cover-screen");
   const main = document.getElementById("main-card");
 
