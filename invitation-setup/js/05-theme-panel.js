@@ -49,7 +49,9 @@ function _watchThemeFrame() {
     if (!sw || JSON.stringify(sw) === JSON.stringify(before)) return;
     // Coloris chỉ nhận swatches lúc khởi tạo → gọi lại để đổi bảng màu gợi ý.
     if (typeof Coloris !== "undefined") Coloris({ swatches: sw });
-    _initThemePanel();
+    // Chỉ làm mới phần ăn theo bảng màu — khách có thể đã bấm sang tab khác trong lúc
+    // khung còn nạp (lần nạp ĐẦU luôn tới đây), mở lại tab đầu là đá họ ra.
+    _initThemePanel({ keepTab: true });
   });
 }
 
@@ -534,7 +536,8 @@ function _alignPickerToChip(chipEl) {
   });
 }
 
-function _initThemePanel() {
+// `keepTab`: dựng lại khi khung vừa nạp xong — giữ nguyên tab đang mở.
+function _initThemePanel(opts) {
   _watchThemeFrame();
   _setCtrlAway(false);
 
@@ -549,10 +552,12 @@ function _initThemePanel() {
 
   // Mở tab Giao diện (kể cả sau F5) → dọn mọi bảng còn mở từ lần trước rồi mở
   // sẵn tab ĐẦU của dải (CTRL_TABS[0]) ở mọi khổ màn.
-  _clearCtrlPanels();
-  const first = CTRL_VIEWS.find((v) => v.key === CTRL_TABS[0]);
-  if (first?.open) window[first.open]?.();
-  else _showMainControls();
+  if (!opts?.keepTab) {
+    _clearCtrlPanels();
+    const first = CTRL_VIEWS.find((v) => v.key === CTRL_TABS[0]);
+    if (first?.open) window[first.open]?.();
+    else _showMainControls();
+  }
   cxSyncThemeAddCards();
 
   // Icon (reset) trong thanh chỉnh
