@@ -248,6 +248,132 @@ function _cxGuard(c, vs, min) {
   return at(lo);
 }
 
+// ── Độ đậm của bộ NỀN TỐI (`dark`, bộ riêng của mẫu) ──────────────────────
+// Phép trên pha màu về trắng nên nền đỏ thẫm thành hồng nhạt. Bộ nền tối chỉ đổi ĐỘ
+// SÁNG của các MẢNG SẪM cùng tông nền thẻ (nền, dải, khung, chữ sẫm trên giấy kem…), cả
+// trong `vars` để bìa/mục xen kẽ đi cùng; giấy kem, vàng, chữ ngà đứng yên. Kéo nhạt có
+// chốt (CX_DARK_GUARD + giấy nền): dừng ở mức nhạt nhất còn đọc được, không đổi màu chữ.
+const CX_DARK_LIFT = { l: 0.6, s: 0.25 }; // mức 0: độ sáng tiến hết về 0.6, bớt 25% độ rực
+const CX_DARK_SINK = 0.45; // mức 100: độ sáng còn 55%
+const CX_DARK_HUE = 30; // lệch tông tối đa so với nền thẻ để tính là "mảng sẫm"
+const CX_DARK_KEEP = ["shadow", "scrim", "lightbox_bg"];
+const CX_DARK_GUARD = [
+  ["heading", ["card_bg", "panel", "band"], 7],
+  ["body", ["card_bg", "panel", "band"], 4.5],
+  ["accent", ["card_bg", "panel", "band"], 3],
+  ["on_accent", ["accent"], 4.5],
+];
+
+function _cxHsl(c) {
+  const [r, g, b] = c.map((v) => v / 255);
+  const mx = Math.max(r, g, b);
+  const mn = Math.min(r, g, b);
+  const l = (mx + mn) / 2;
+  if (mx === mn) return [0, 0, l];
+  const d = mx - mn;
+  const s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+  const h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, s, l];
+}
+
+function _cxFromHsl(h, s, l) {
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => {
+    const k = (n + h / 30) % 12;
+    return 255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)));
+  };
+  return [f(0), f(8), f(4)];
+}
+
+function _cxDarkMass(c, hue) {
+  const [h, s, l] = _cxHsl(c);
+  const d = Math.abs(h - hue) % 360;
+  return s >= 0.15 && l < 0.5 && Math.min(d, 360 - d) <= CX_DARK_HUE;
+}
+
+// t ∈ [-1, 1]: âm = nhạt đi, dương = đậm lên.
+function _cxDarkShift(c, t) {
+  const [h, s, l] = _cxHsl(c);
+  if (t >= 0) return _cxRound(_cxFromHsl(h, s, l * (1 - CX_DARK_SINK * t)));
+  const u = -t;
+  return _cxRound(_cxFromHsl(h, s * (1 - CX_DARK_LIFT.s * u), l + (CX_DARK_LIFT.l - l) * u));
+}
+
+function _cxDarkAtStrength(palette, s) {
+  const base = _cxHexRgb(palette.card_bg);
+  if (!base) return palette;
+  const hue = _cxHsl(base)[0];
+  const vars = palette.vars && typeof palette.vars === "object" ? palette.vars : null;
+  const items = [];
+  CX_PALETTE_KEYS.forEach((k) => {
+    const c = _cxHexRgb(palette[k]);
+    if (c && !CX_DARK_KEEP.includes(k) && _cxDarkMass(c, hue)) items.push([false, k, c]);
+  });
+  if (vars)
+    Object.entries(vars).forEach(([n, hex]) => {
+      const c = _cxHexRgb(hex);
+      if (c && _cxDarkMass(c, hue)) items.push([true, n, c]);
+    });
+
+  // `cap[i]` = mức nhạt tối đa RIÊNG của từng mảng (1 = không giới hạn).
+  const build = (t, cap) => {
+    const out = { ...palette };
+    if (vars) out.vars = { ...vars };
+    items.forEach(([isVar, n, c], i) => {
+      const hex = _cxRgbHex(_cxDarkShift(c, cap ? -Math.min(-t, cap[i]) : t));
+      if (isVar) out.vars[n] = hex;
+      else out[n] = hex;
+    });
+    return out;
+  };
+  const t = (s - 50) / 50;
+  // Đậm lên: mảng sẫm càng sẫm, chữ sáng trên đó càng rõ → không cần chốt.
+  if (t >= 0) return build(t);
+
+  // Nhạt đi, chốt hai tầng. (1) Từng mảng: còn đọc được trên giấy nền (chữ sẫm ở mục
+  // kem…) ≥ min(gốc, 7) — mảng nào chạm trần thì đứng đó, mảng khác vẫn nhạt tiếp.
+  const paper = _cxHexRgb(palette.page_bg);
+  const cap = items.map(([, , c]) => {
+    if (!paper) return 1;
+    const need = Math.min(_cxContrast(c, paper), 7);
+    const ok = (u) => _cxContrast(_cxDarkShift(c, -u), paper) >= need;
+    if (ok(1)) return 1;
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 16; i++) {
+      const m = (lo + hi) / 2;
+      if (ok(m)) lo = m;
+      else hi = m;
+    }
+    return lo;
+  });
+  // (2) Cả bộ: chữ sáng trên nền thẻ (CX_DARK_GUARD) — tìm mức nhạt nhất còn đạt rồi
+  // trải đều nó ra nửa dưới thanh kéo (mức 0 = đúng mức đó), để nấc nào cũng có tác dụng.
+  const ok = (p) =>
+    CX_DARK_GUARD.every(([a, vs, min]) => {
+      const ca = _cxHexRgb(p[a]);
+      return !ca || vs.every((b) => {
+        const cb = _cxHexRgb(p[b]);
+        return !cb || _cxContrast(ca, cb) >= min;
+      });
+    });
+  // Trần của nền thẻ cũng là trần cả thanh: quá đó nền đứng yên, kéo tiếp vô ích.
+  const bg = items.findIndex(([isVar, n]) => !isVar && n === "card_bg");
+  let max = bg >= 0 ? cap[bg] : 1;
+  if (!ok(build(-max, cap))) {
+    if (!ok(build(0, cap))) return palette;
+    let lo = 0; // đạt
+    let hi = max; // chưa đạt
+    for (let i = 0; i < 20; i++) {
+      const m = (lo + hi) / 2;
+      if (ok(build(-m, cap))) lo = m;
+      else hi = m;
+    }
+    max = lo;
+  }
+  return build(t * max, cap);
+}
+
 // Bộ màu sau khi áp độ đậm. Mức 50 (hoặc không khai) → trả về NGUYÊN bộ ban
 // đầu, không đụng một byte nào: đó là điều kiện để thiệp đã lưu giữ đúng màu cũ.
 function cxPaletteAtStrength(palette, strength) {
@@ -255,6 +381,7 @@ function cxPaletteAtStrength(palette, strength) {
   if (strength == null) return palette;
   const s = Number(strength);
   if (!Number.isFinite(s) || Math.round(s) === 50) return palette;
+  if (palette.dark === true) return _cxDarkAtStrength(palette, s);
   const k = _cxStrengthK(s);
 
   const src = {};
@@ -322,9 +449,7 @@ function _cxLivePalette(p) {
 // không được phép làm hỏng cả thiệp.
 function _cxPaletteRule(palette) {
   if (!palette || typeof palette !== "object") return "";
-  // Bộ nền tối (`dark`, chỉ có ở bộ riêng của mẫu) đứng ngoài thanh "Độ đậm": phép tính
-  // đó pha màu về trắng nên kéo xuống là nền đỏ thành hồng nhạt, chữ ngà mất tương phản.
-  const p = cxPaletteAtStrength(palette, palette.dark ? undefined : palette.strength);
+  const p = cxPaletteAtStrength(palette, palette.strength);
   const rgbOf = {};
   CX_PALETTE_KEYS.forEach((k) => {
     const rgb = _cxHexToRgbTriplet(p[k]);
@@ -340,8 +465,9 @@ function _cxPaletteRule(palette) {
 
   // Biến RIÊNG của mẫu (`vars`, chỉ bộ riêng trong CX_THEME.palettes khai): mẫu tự định
   // nghĩa biến dạng `--x-rgb` trỏ về token chung, bộ của nó ghi đè khi cần màu khác hẳn
-  // (bìa nền sáng trên thiệp nền tối…). Chỉ nhận tên `--…-rgb` + mã hex; không theo "Độ đậm".
-  const vars = palette.vars;
+  // (bìa nền sáng trên thiệp nền tối…). Chỉ nhận tên `--…-rgb` + mã hex; chỉ bộ nền tối
+  // mới đổi `vars` theo "Độ đậm" (_cxDarkAtStrength).
+  const vars = p.vars;
   if (vars && typeof vars === "object") {
     Object.entries(vars).forEach(([name, hex]) => {
       const rgb = /^--[a-z][a-z0-9-]*-rgb$/.test(name) && _cxHexToRgbTriplet(hex);

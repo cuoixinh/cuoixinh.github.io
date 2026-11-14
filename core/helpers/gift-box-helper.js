@@ -1,6 +1,6 @@
 // Hộp mừng cưới: che phần mã QR bằng một hộp quà trong CX_GIFT_BOXES, khách chạm
-// mới mở. Chế độ lưu ở theme_setting.gift_box — bỏ trống = hộp mẫu khai ở
-// CX_THEME.giftBox, "none" = bỏ hộp (hiện thẳng QR). Mẫu KHÔNG tự vẽ hộp. Bảng chọn
+// mới mở. Chế độ lưu ở theme_setting.gift_box — bỏ trống = hộp của bộ màu riêng đang áp
+// (`giftBox` trong CX_THEME.palettes) rồi tới CX_THEME.giftBox, "none" = bỏ hộp (hiện thẳng QR). Mẫu KHÔNG tự vẽ hộp. Bảng chọn
 // ở invitation-setup/js/05-theme-panel.js; kiểu dáng ở styles/_common.css (.cx-gb*).
 // Nạp SAU core/x-button.js (hộp là một <x-button>).
 
@@ -223,8 +223,11 @@
     return BOXES.find((b) => b.id === id) || null;
   }
 
-  // Hộp mặc định của mẫu thiệp: id trong BOXES, "none" hoặc bỏ trống = không hộp.
+  // Hộp mặc định: bộ màu riêng của mẫu đang áp có khai `giftBox` (lì xì hồng cho tông hồng…)
+  // thì theo bộ đó, không thì hộp của mẫu thiệp. id trong BOXES, "none" hoặc trống = không hộp.
   function themeDefault() {
+    const pal = window.CX_PALETTE_ON;
+    if (pal && typeof pal.giftBox === "string" && pal.giftBox) return pal.giftBox;
     return String((window.CX_THEME && window.CX_THEME.giftBox) || "");
   }
 

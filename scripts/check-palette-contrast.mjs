@@ -38,7 +38,7 @@ for (const t of fs.readdirSync(THEMES_DIR).sort()) {
     vm.runInNewContext(fs.readFileSync(f, "utf8"), ctx, { timeout: 1000 });
   } catch {}
   for (const p of ctx.window.CX_THEME?.palettes || [])
-    PALETTES.push({ ...p, name: `${p.name} (${t})` });
+    PALETTES.push({ ...p, own: true, name: `${p.name} (${t})` });
 }
 
 const helper = fs.readFileSync(
@@ -79,10 +79,13 @@ const PAIRS = [
 ];
 
 // Nền phải SÁNG: đây là thiệp cưới, không có bộ nền tối. Ngoại lệ DUY NHẤT là bộ
-// riêng của mẫu khai `dark: true` (nền đỏ thẫm chữ ngà…): khi đó nền phải TỐI hẳn, và
-// chỉ kiểm ở mức 50 vì runtime bỏ qua thanh "Độ đậm" với bộ đó.
+// riêng của mẫu khai `dark: true` (nền đỏ thẫm chữ ngà…): khi đó nền phải TỐI hẳn ở MỌI
+// mức đậm (kéo nhạt vẫn là thiệp nền tối).
 const LIGHT = ["card_bg", "page_bg", "surface", "panel"];
 const MIN_LIGHT_LUM = 0.7;
+// Bộ nền sáng RIÊNG của mẫu (giấy màu pastel như thiệp in) được đậm hơn danh mục chung,
+// kéo "Độ đậm" lên vẫn phải còn là nền sáng.
+const MIN_OWN_LIGHT_LUM = 0.45;
 const MAX_DARK_LUM = 0.2;
 
 function check(p, at) {
@@ -100,8 +103,9 @@ function check(p, at) {
     if (p.dark && k === "page_bg") continue;
     if (p.dark && lum(p[k]) > MAX_DARK_LUM)
       errs.push(`${at}% ${k} của bộ nền tối không đủ tối: độ sáng ${lum(p[k]).toFixed(2)} > ${MAX_DARK_LUM}  (${p[k]})`);
-    if (!p.dark && lum(p[k]) < MIN_LIGHT_LUM)
-      errs.push(`${at}% ${k} không đủ sáng: độ sáng ${lum(p[k]).toFixed(2)} < ${MIN_LIGHT_LUM}  (${p[k]})`);
+    const floor = p.own ? MIN_OWN_LIGHT_LUM : MIN_LIGHT_LUM;
+    if (!p.dark && lum(p[k]) < floor)
+      errs.push(`${at}% ${k} không đủ sáng: độ sáng ${lum(p[k]).toFixed(2)} < ${floor}  (${p[k]})`);
   }
   if (p.scrim && lum(p.scrim) > 0.2)
     errs.push(`${at}% scrim phải TỐI: độ sáng ${lum(p.scrim).toFixed(2)} > 0.2  (${p.scrim})`);
@@ -114,8 +118,8 @@ for (const p of PALETTES) {
   // "Sát ngưỡng nhất" = tỉ lệ chia cho chính ngưỡng của cặp đó — mỗi cặp một
   // ngưỡng khác nhau nên so thẳng con số tuyệt đối là đọc nhầm.
   let worst = { slack: Infinity, r: 0, min: 0, at: 50, what: "" };
-  for (const at of p.dark ? [50] : STRENGTHS) {
-    const q = { ...cxPaletteAtStrength(p, at), dark: p.dark };
+  for (const at of STRENGTHS) {
+    const q = { ...cxPaletteAtStrength(p, at), dark: p.dark, own: p.own };
     errs.push(...check(q, at));
     for (const [a, b, min, what] of PAIRS) {
       const r = ratio(q[a], q[b]);

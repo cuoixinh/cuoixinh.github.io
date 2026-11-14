@@ -719,11 +719,13 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `som-hom-co-nhau`) thì mẫu tự khai ở **`CX_THEME.palettes`** (cùng khuôn, `id` có tiền tố
   tên mẫu), hiện ngay sau "Mặc định"; kèm `wishes` (giá trị là hex hoặc TÊN khoá bộ màu) để
   thay `CX_THEME.wishes` vốn chỉ hợp màu gốc. Bộ riêng được phép NỀN TỐI nếu khai
-  `dark: true` (thanh "Độ đậm" ẩn, runtime bỏ qua `strength`) — khi đó CSS của mẫu không
-  được ngầm coi `heading` là màu tối (chữ trên chấm sáng dùng cặp `scrim`/`on_image`). Mảng cần màu
+  `dark: true` ("Độ đậm" đi phép riêng `_cxDarkAtStrength`: chỉ đổi độ sáng các mảng sẫm
+  cùng tông `card_bg`, kể cả trong `vars`; giấy kem/vàng/chữ sáng đứng yên) — khi đó CSS của mẫu không
+  được ngầm coi `heading` là màu tối (chữ trên chấm sáng dùng cặp `scrim`/`on_image`). Bộ riêng
+  nền SÁNG được là giấy pastel đậm hơn danh mục chung (ngưỡng sáng 0.45 thay 0.7). Mảng cần màu
   khác hẳn token chung (bìa nền sáng trên thiệp nền tối…) thì mẫu khai biến riêng `--x-rgb`
-  ở `:root` trỏ về token, bộ riêng ghi đè qua `vars` (chỉ nhận tên `--…-rgb` + hex, không
-  theo "Độ đậm") — xem `--sh-cv-*` của `som-hom-co-nhau`.
+  ở `:root` trỏ về token, bộ riêng ghi đè qua `vars` (chỉ nhận tên `--…-rgb` + hex; chỉ
+  bộ `dark` mới theo "Độ đậm") — xem `--sh-cv-*` của `som-hom-co-nhau`.
   Nút nhạc dùng bảng `--music-*` riêng nên
   `_cxPaletteRule` suy thêm bảng đó từ bộ màu — chỉ khi CÓ bộ, để thiệp không chọn bộ giữ
   nguyên hình thức cũ.
@@ -742,8 +744,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `check:palette-contrast` cắt thẳng đoạn `[strength-math]` trong `theme-setting-helper.js`
   ra quét cả 21 mức: đổi phép tính thì đừng đổi tên hai dòng mốc đó.
 - **Hộp mừng cưới:** danh mục mẫu + runtime ở `core/helpers/gift-box-helper.js`, bảng chọn
-  ở `05-theme-panel.js`. Lưu ở `theme_setting.gift_box` (rỗng = hộp mẫu khai ở
-  `CX_THEME.giftBox`, `"none"` = bỏ hộp, còn lại là id mẫu) nên **không cần changelog DB**;
+  ở `05-theme-panel.js`. Lưu ở `theme_setting.gift_box` (rỗng = hộp của bộ màu riêng đang áp — `giftBox` trong
+  `CX_THEME.palettes` — rồi tới `CX_THEME.giftBox`, `"none"` = bỏ hộp, còn lại là id mẫu) nên **không cần changelog DB**;
   thêm mẫu = bỏ ảnh nền trong suốt vào `assets/gifts/` rồi thêm một mục vào danh mục, **id
   đã phát hành thì đừng đổi**. **Mẫu thiệp không tự vẽ hộp/phong bao** — chỉ chọn một id
   trong danh mục. Helper che khối `data-cx-gift="qr"` (mẫu quên đánh dấu thì dò khối chứa
