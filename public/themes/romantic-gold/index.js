@@ -191,8 +191,9 @@
     // chung — mẫu đó vẽ dòng dọc có chấm, đã dùng cho chuyện tình yêu ngay bên
     // dưới rồi, hai mục liền nhau mà cùng một kiểu thì nhìn lặp.
     if (cxEnabled(w.enable_timeline)) {
-      _renderSchedule(w.timeline, side, partyDate, ...cxTimelineCeremony(w, ceremonyName));
-      cxToggle("section-timeline", true);
+      // Không có mốc nào (chưa nhập, hay toàn dòng trống) thì giấu cả mục, kể cả tiêu đề.
+      const has = _renderSchedule(w.timeline, side, partyDate, ...cxTimelineCeremony(w, ceremonyName));
+      cxToggle("section-timeline", has);
     }
 
     // --- Chuyện tình yêu ---
@@ -283,16 +284,17 @@
 
   function _renderSchedule(items, side, partyDate, ceremonyDate, ceremonyName) {
     const list = document.getElementById("timeline-list-render");
-    if (!list) return;
+    if (!list) return false;
     list.innerHTML = "";
-    if (!Array.isArray(items) || items.length === 0) return;
+    if (!Array.isArray(items) || items.length === 0) return false;
 
     const mine = items.filter((it) => {
+      if (!it || !(String(it.title || "").trim() || String(it.time || "").trim())) return false;
       const t = it.type || "ceremony";
       if (t === "ceremony") return true;
       return side === "groom" ? t === "party" : t === "bride-party";
     });
-    if (!mine.length) return;
+    if (!mine.length) return false;
 
     // Thứ tự nhóm + thứ tự mốc trong nhóm do helper dùng chung quyết định
     // (cxSortTimelineGroups), ở đây chỉ còn phần vẽ riêng của mẫu.
@@ -367,6 +369,7 @@
       .map((g) => group(g.label, g.date, g.items))
       .join("");
     window.lucide?.createIcons({ root: list });
+    return true;
   }
 
   // ============= ĐẾM NGƯỢC TỚI NGÀY CƯỚI =============
