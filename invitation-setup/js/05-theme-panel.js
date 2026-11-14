@@ -321,6 +321,11 @@ function onCardPaletteChange(id) {
   _syncPaletteStrength();
   _scheduleAutoSave("theme");
   _applyThemeToFrame();
+  // Bộ riêng có thể kèm hộp mừng riêng (`giftBox`): khách để hộp "Mặc định" thì đổi theo.
+  if (!_giftBoxId()) {
+    document.getElementById("theme-preview-iframe")?.contentWindow?.applyGiftBox?.(_themeSetting);
+    _syncGiftTiles();
+  }
 }
 
 window.onCardPaletteChange = onCardPaletteChange;
@@ -1445,7 +1450,9 @@ function _renderGiftPalette() {
 
 function _syncGiftTiles() {
   const cur = _giftBoxId();
-  const def = window.cxThemeDecl?.().giftBox;
+  const curPal = _currentPalette()?.id;
+  const def =
+    _themePalettes().find((p) => p.id === curPal)?.giftBox || window.cxThemeDecl?.().giftBox;
   const defRow = document.querySelector('#cx-gift-palette [data-pick-id=""]');
   if (defRow)
     defRow.title =

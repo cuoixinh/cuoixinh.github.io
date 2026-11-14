@@ -744,8 +744,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `check:palette-contrast` cắt thẳng đoạn `[strength-math]` trong `theme-setting-helper.js`
   ra quét cả 21 mức: đổi phép tính thì đừng đổi tên hai dòng mốc đó.
 - **Hộp mừng cưới:** danh mục mẫu + runtime ở `core/helpers/gift-box-helper.js`, bảng chọn
-  ở `05-theme-panel.js`. Lưu ở `theme_setting.gift_box` (rỗng = hộp mẫu khai ở
-  `CX_THEME.giftBox`, `"none"` = bỏ hộp, còn lại là id mẫu) nên **không cần changelog DB**;
+  ở `05-theme-panel.js`. Lưu ở `theme_setting.gift_box` (rỗng = hộp của bộ màu riêng đang áp — `giftBox` trong
+  `CX_THEME.palettes` — rồi tới `CX_THEME.giftBox`, `"none"` = bỏ hộp, còn lại là id mẫu) nên **không cần changelog DB**;
   thêm mẫu = bỏ ảnh nền trong suốt vào `assets/gifts/` rồi thêm một mục vào danh mục, **id
   đã phát hành thì đừng đổi**. **Mẫu thiệp không tự vẽ hộp/phong bao** — chỉ chọn một id
   trong danh mục. Helper che khối `data-cx-gift="qr"` (mẫu quên đánh dấu thì dò khối chứa

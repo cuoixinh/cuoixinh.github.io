@@ -52,6 +52,7 @@
     // `vars` khai lại đủ biến --sh-* của :root ở theme.css. `wishes` thay CX_THEME.wishes, khai
     // bằng TÊN khoá bộ màu. `id` lưu xuống DB → đừng đổi; thêm bộ mới thì chạy
     // `npm run check:palette-contrast`. "som-hom-do-ruou" đã thành màu gốc nên không khai lại.
+    // `giftBox` (tuỳ chọn) = hộp mừng khi khách để hộp "Mặc định" (tông hồng → lì xì hồng).
     palettes: [
       // "Hồng phấn": bộ NỀN SÁNG kiểu thiệp giấy — mục thẻ hồng phấn chữ đen, mục xen kẽ giấy
       // trắng, bìa giấy trắng phong bì hồng, dấu sáp trắng in hoa hồng, lá xanh như cành tulip.
@@ -86,6 +87,7 @@
         shine_from: "#ffffff",
         shine_mid: "#f6e3e6",
         shine_to: "#e3c0c7",
+        giftBox: "lixi_hong_mai",
         wishes: { bubble: "panel", text: "body", accent: "heading", btn: "accent" },
         vars: {
           "--sh-cv-bg-rgb": "#f9f6f5",
@@ -231,6 +233,7 @@
         shine_from: "#f6e2ae",
         shine_mid: "#d9b266",
         shine_to: "#a87c34",
+        giftBox: "lixi_hong_mai",
         wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
         vars: {
           "--sh-cv-bg-rgb": "#f6f0e4",
