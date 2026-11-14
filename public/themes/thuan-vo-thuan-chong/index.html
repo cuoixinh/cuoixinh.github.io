@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Thuận Vợ Thuận Chồng</title>
+    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
+         địa chỉ, số điện thoại và QR tài khoản của khách. Bản MẪU (không có slug)
+         thì vẫn cho lập chỉ mục vì đó là hàng đang bán. Phải xét lúc chạy: hai bản
+         dùng CHUNG một URL, khác nhau đúng tham số này — đặt meta tĩnh vào file là
+         chặn nhầm cả bản mẫu. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,300;0,400;1,300;1,400&family=Be+Vietnam+Pro:wght@300;400;500&family=Great+Vibes&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <!-- Markup trình phát nhạc. Dạng dùng ở mẫu này khai tại CX_THEME.music
+         (index.js), theme-boot.js dựng vào #cx-music-mount. -->
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+    <script src="../../../core/helpers/no-inspect.js"></script>
+  </head>
+
+  <!-- Thuận Vợ Thuận Chồng — đỏ rượu + xanh olive, bìa là bàn ảnh ghép kèm vé "Save the date".
+       Nội dung gọn: không có Lịch trình và Chuyện tình (skipSteps ở index.js). -->
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <div id="cx-music-mount"></div>
+
+    <!-- ═══ MỤC: Màn bìa — phong bì mở: hai ảnh + vé cắm từ trong ra, con dấu sáp ở đỉnh nếp V là nút mở thiệp ═══ -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
+      <div class="tv-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px] flex flex-col items-center justify-center px-4 text-center">
+        <div class="tv-cover-guest">
+          <div data-cx-invite class="tv-eyebrow cx-t">Trân trọng kính mời</div>
+          <div class="cx-h text-[24px] leading-tight" id="cover-guest-name">----------</div>
+        </div>
+
+        <div class="tv-desk">
+          <!-- Lòng phong bì (mặt sau, sẫm hơn) -->
+          <div class="tv-env-back" aria-hidden="true"></div>
+
+          <!-- Ảnh trái: ảnh bìa · ảnh phải: ảnh đầu album (không có thì ảnh bìa) -->
+          <div class="tv-print tv-print--l">
+            <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" fetchpriority="high" />
+          </div>
+          <div class="tv-print tv-print--r">
+            <img id="tv-cover-photo-2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+          </div>
+
+          <!-- Vé: cuống ghi tên gọi hai người (dọc) · đường đục lỗ · Save the date + ngày + chữ viết tay -->
+          <div class="tv-ticket">
+            <div class="tv-ticket-card">
+              <div class="tv-ticket-stub cx-h">
+                <span id="tv-stub-groom">----</span>
+                <span>+</span>
+                <span id="tv-stub-bride">----</span>
+              </div>
+              <div class="tv-ticket-main">
+                <div class="tv-ticket-kicker cx-h">Save the date</div>
+                <div class="tv-ticket-date cx-h" id="tv-cover-date">--.--.--</div>
+                <div class="tv-ticket-script">We're getting married!</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mặt trước: hai vạt bên + vạt đáy, cắt chữ V ở miệng -->
+          <div class="tv-env-front" aria-hidden="true">
+            <div class="tv-env-sides"></div>
+            <div class="tv-env-flapwrap"><div class="tv-env-flap"></div></div>
+          </div>
+
+          <x-button variant="bare" onclick="openInvitation()" aria-label="Mở thiệp" class="open-btn tv-wax touch-manipulation [-webkit-tap-highlight-color:transparent]">
+            <span data-tv-mono class="pointer-events-none">&</span>
+          </x-button>
+        </div>
+
+        <div class="tv-cover-hint cx-t">Chạm vào con dấu để mở thiệp</div>
+      </div>
+    </div>
+
+    <!-- ═══ THÂN THIỆP — #main-card + ĐÚNG MỘT thẻ con flex-column ═══ -->
+    <div id="main-card" class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden" style="display: none">
+      <div class="tv-body flex flex-col text-center">
+        <!-- ═══ MỤC: Mở đầu — ảnh rời trong phong bì xếp chéo trên bàn ═══ -->
+        <section id="section-hero" class="tv-sec tv-hero">
+          <div class="tv-eyebrow tv-hero-kicker cx-t">Thiệp mời</div>
+          <h1 class="tv-hero-names cx-h">
+            <span id="couple-names-groom">----------</span>
+            <span class="tv-hero-heart cx-a" aria-hidden="true"><i data-lucide="heart"></i></span>
+            <span id="couple-names-bride">----------</span>
+          </h1>
+          <div class="tv-hero-when cx-t">
+            <span id="tv-hero-weekday">------</span>
+            <span id="tv-hero-date" class="cx-a">--.--.----</span>
+            <span id="tv-hero-time">--:--</span>
+          </div>
+          <!-- Ba lớp sâu: xa (nhỏ, dịu) · giữa · gần (ảnh chính + một ảnh nhỏ đè trước). Ảnh dựng thẳng. -->
+          <div class="tv-scatter">
+            <div class="tv-snap tv-snap--far tv-snap--p1"><img id="tv-hero-p1" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" /></div>
+            <div class="tv-snap tv-snap--far tv-snap--p2"><img id="tv-hero-p2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" /></div>
+            <div class="tv-snap tv-snap--far tv-snap--p5"><img id="tv-hero-p5" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" /></div>
+            <div class="tv-snap tv-snap--mid tv-snap--p3"><img id="tv-hero-p3" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" /></div>
+            <div class="tv-snap tv-snap--main">
+              <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" />
+            </div>
+            <div class="tv-snap tv-snap--near tv-snap--p4"><img id="tv-hero-p4" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" /></div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Lịch — ảnh lồng khung giấy + lịch tháng cưới trên tấm vải lanh sẫm ═══ -->
+        <section id="section-calendar" class="tv-sec">
+          <div class="tv-calcard">
+            <div class="tv-calphoto">
+              <img id="tv-cal-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+              <div class="tv-calphoto-note">My Love</div>
+            </div>
+            <div id="mini-calendar" class="tv-cal"></div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Gia đình — hai bên ngay dưới lịch, không ghi địa chỉ ═══ -->
+        <section id="section-family" class="tv-sec">
+          <div class="tv-family">
+            <div class="tv-person">
+              <div class="tv-side cx-h">Nhà trai</div>
+              <div class="tv-parents cx-h">
+                <div id="groom-father">--------------------</div>
+                <div id="groom-mother">--------------------</div>
+              </div>
+            </div>
+            <div class="tv-person">
+              <div class="tv-side cx-h">Nhà gái</div>
+              <div class="tv-parents cx-h">
+                <div id="bride-father">--------------------</div>
+                <div id="bride-mother">--------------------</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Thư mời — dải lanh đỏ rượu như lòng phong bì ═══ -->
+        <section id="section-ceremony" class="tv-sec tv-band">
+          <div class="tv-eyebrow cx-t">Trân trọng kính mời dự</div>
+          <h2 class="tv-h2 cx-h" id="ceremony-event-name">Lễ Thành Hôn</h2>
+          <div class="tv-date">
+            <div class="tv-date-side cx-t" id="invite-weekday">------</div>
+            <div class="tv-date-day cx-h" id="invite-day">--</div>
+            <div class="tv-date-side cx-t" id="invite-month-year">Tháng -- · ----</div>
+          </div>
+          <div class="tv-time cx-t">Vào lúc <span class="cx-h" id="invite-time">--:--</span></div>
+          <div class="tv-lunar cx-h" id="invite-lunar">--------------------</div>
+          <div id="ceremony-location-wrap" class="hidden tv-addr cx-t">
+            <span id="ceremony-location-text"></span>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Tiệc cưới — vé mời có cuống ═══ -->
+        <section id="section-party" class="tv-sec">
+          <div class="tv-pass">
+            <div class="tv-pass-card">
+              <div class="tv-pass-stub cx-t">Vé mời</div>
+              <div class="tv-pass-main">
+                <div id="party-section-label" class="tv-label cx-t cx-a">Tiệc mừng</div>
+                <div class="tv-party-dt cx-h" id="party-datetime">--:-- - --.--.----</div>
+                <div class="tv-lunar cx-h" id="party-lunar">(Ngày âm lịch)</div>
+                <div class="tv-addr cx-t" id="party-location">------------------------</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Hồi âm — xác nhận tham dự + lời chúc chung một tấm thiệp.
+             #cx-wish-sec do wishes-helper dựng ở cuối thân thiệp; index.js dời nó vào .tv-reply-wish. ═══ -->
+        <section id="section-rsvp" class="tv-sec tv-reply">
+          <div id="rsvp-section" class="tv-rsvp" style="display: none">
+            <div class="tv-label cx-t">Bạn sẽ đến chứ?</div>
+            <div class="tv-choices">
+              <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="tv-choice cx-t">Mình sẽ đến</x-button>
+              <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="tv-choice cx-t">Tiếc quá, không đến được</x-button>
+            </div>
+            <div id="attend-msg" class="cx-a cx-h italic text-[16px] hidden"></div>
+          </div>
+          <div class="tv-reply-wish"></div>
+        </section>
+
+        <!-- ═══ MỤC: Album ảnh ═══ -->
+        <section id="section-photos" class="tv-sec">
+          <h2 class="tv-h2 cx-h">Khoảnh khắc</h2>
+          <div id="gallery-grid" class="tv-gallery"></div>
+        </section>
+
+        <!-- ═══ MỤC: Hộp mừng cưới — hộp do gift-box-helper.js vẽ ═══ -->
+        <section id="section-gift" class="tv-sec">
+          <h2 class="tv-h2 cx-h">Gửi quà mừng</h2>
+          <div data-cx-gift="qr" class="grid grid-cols-2 gap-4">
+            <div class="tv-bank">
+              <div class="tv-label cx-t">Chú rể · <span id="groom-bank-label">----------</span></div>
+              <div class="tv-qr cx-bg-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="QR chú rể" /></div>
+              <div class="tv-bank-line cx-t" id="groom-bank-name">----------------</div>
+              <div class="tv-bank-num cx-h" id="groom-bank-number">------------</div>
+              <div class="tv-bank-line cx-t" id="groom-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="tv-save cx-t">Lưu mã QR</x-button>
+            </div>
+            <div class="tv-bank">
+              <div class="tv-label cx-t">Cô dâu · <span id="bride-bank-label">----------</span></div>
+              <div class="tv-qr cx-bg-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="QR cô dâu" /></div>
+              <div class="tv-bank-line cx-t" id="bride-bank-name">----------------</div>
+              <div class="tv-bank-num cx-h" id="bride-bank-number">------------</div>
+              <div class="tv-bank-line cx-t" id="bride-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="tv-save cx-t">Lưu mã QR</x-button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Địa điểm — #map-location-name + #map-link phải đứng CUỐI mục ═══ -->
+        <section id="section-map" class="tv-sec">
+          <h2 class="tv-h2 cx-h">Đường đến</h2>
+          <div class="tv-addr cx-t" id="map-location-name">------------------------</div>
+          <a id="map-link" href="#" target="_blank" class="tv-map block">
+            <div class="tv-map-view relative overflow-hidden">
+              <iframe id="map-thumbnail-iframe" src="" width="100%" height="100%" class="border-0 pointer-events-none" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
+                <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
+                <span class="cx-t text-[11px] uppercase tracking-[2px]">Chưa có bản đồ</span>
+              </div>
+            </div>
+            <div class="tv-map-bar cx-t">
+              <span>Chỉ đường</span>
+              <i data-lucide="arrow-up-right" class="cx-ic cx-a"></i>
+            </div>
+          </a>
+        </section>
+
+        <!-- ═══ MỤC: Lời cảm ơn — nắp phong bì gập lại, con dấu đóng ở mép ═══ -->
+        <section id="section-footer" class="tv-sec tv-footer">
+          <div class="tv-seal" aria-hidden="true"><span data-tv-mono>&</span></div>
+          <p id="footer-text" class="tv-quote cx-h">Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi</p>
+          <div class="tv-footer-sign">Thank you!</div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
+      </x-button>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
+      <div class="w-full h-full flex items-center justify-center px-[8px]">
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
+      </div>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — GIỮ NGUYÊN khi chép sang mẫu mới ═══════════ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- DAL → BL → khởi tạo instance -->
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <!-- Helper dùng chung -->
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper
+         (runtime thành phần ở đó đọc window.CX_ELEMENTS) -->
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <!-- Bản khai của mẫu + renderWedding -->
+    <script src="index.js"></script>
+    <!-- Chrome giả lập điện thoại của khung xem thử trên máy tính. -->
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <!-- Khởi động. Phải nạp SAU index.js. -->
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>
