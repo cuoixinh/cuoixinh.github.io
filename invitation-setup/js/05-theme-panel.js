@@ -99,6 +99,7 @@ function _paletteValue(id) {
   });
   if (own.wishes && typeof own.wishes === "object") out.wishes = { ...own.wishes };
   if (own.vars && typeof own.vars === "object") out.vars = { ...own.vars };
+  if (Array.isArray(own.hold)) out.hold = [...own.hold];
   return out;
 }
 

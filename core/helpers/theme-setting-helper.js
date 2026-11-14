@@ -400,9 +400,11 @@ function cxPaletteAtStrength(palette, strength) {
     if (rgb[key] && others.length) rgb[key] = _cxGuard(rgb[key], others, min);
   });
 
+  // `hold` (bộ riêng của mẫu): những ô nền phối CỐ ĐỊNH (giấy trắng…) đứng yên ở mọi mức.
+  const hold = Array.isArray(palette.hold) ? palette.hold : [];
   const out = { ...palette };
   Object.keys(rgb).forEach((key) => {
-    out[key] = _cxRgbHex(rgb[key]);
+    if (!hold.includes(key)) out[key] = _cxRgbHex(rgb[key]);
   });
   return out;
 }
