@@ -150,6 +150,7 @@
           "--vf-tint-accent-rgb": "#e3c27f",
           "--vf-tint-line-rgb": "#8f6440",
           "--vf-tint-paper-rgb": "#5a1621",
+          "--vf-tint-panel-rgb": "#6b2230",
         },
       },
       {
@@ -650,9 +651,60 @@
     // --- Lời cảm ơn ---
     if (w.footer_text) setText("footer-text", w.footer_text);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
+
+    vfStripeWatch();
   }
 
   window.renderWedding = renderWedding;
+
+  // Bộ màu có khối xen kẽ RIÊNG (`--vf-tint-bg-rgb` khác dải nhạt chung, vd Đỏ rượu): mục
+  // đang HIỆN sau màn mở đầu xen kẽ đều màu / trắng theo flex `order` (lời chúc, khối chèn
+  // thêm đánh lại order). Không có thì trả .vf-tint về đúng markup gốc.
+  function vfStripe() {
+    const hero = document.getElementById("section-hero");
+    const host = hero && hero.parentElement;
+    if (!host) return;
+    const root = getComputedStyle(document.documentElement);
+    const on = root.getPropertyValue("--vf-tint-bg-rgb").trim() !== root.getPropertyValue("--cx-band-rgb").trim();
+    const secs = [...host.children]
+      .filter((el) => el.tagName === "SECTION" && el !== hero)
+      .map((el, i) => {
+        if (el.dataset.vfTint == null) el.dataset.vfTint = el.classList.contains("vf-tint") ? "1" : "0";
+        return { el, i, st: getComputedStyle(el) };
+      });
+    const shown = secs
+      .filter((s) => s.st.display !== "none")
+      .sort((a, b) => (parseInt(a.st.order, 10) || 0) - (parseInt(b.st.order, 10) || 0) || a.i - b.i);
+    secs.forEach((s) => {
+      const n = shown.indexOf(s);
+      s.el.classList.toggle("vf-tint", on ? n >= 0 && n % 2 === 0 : s.el.dataset.vfTint === "1");
+    });
+  }
+
+  // Chạy lại khi bộ màu đổi (thẻ <style> trong <head>), khi mục ẩn/hiện hay khối chèn thêm.
+  // toggle không đổi gì thì không sinh mutation nên không tự gọi vòng.
+  let _stripeMo = null;
+  function vfStripeWatch() {
+    vfStripe();
+    if (_stripeMo) return;
+    let queued = false;
+    _stripeMo = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        vfStripe();
+      });
+    });
+    _stripeMo.observe(document.head, { childList: true, subtree: true, characterData: true });
+    const host = document.getElementById("section-hero")?.parentElement;
+    if (host) {
+      _stripeMo.observe(host, { childList: true });
+      host.querySelectorAll(":scope > section").forEach((s) =>
+        _stripeMo.observe(s, { attributes: true, attributeFilter: ["class", "style"] }),
+      );
+    }
+  }
 
   // ============= CHỈ ĐƯỜNG + LƯU LỊCH Ở PHẦN LỄ / TIỆC =============
   // Chỉ đường: toạ độ/tên trong `q=` của link bản đồ, không có thì lấy tên địa điểm.
