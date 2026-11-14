@@ -452,9 +452,9 @@ body {
   background-color: rgb(var(--vf-tint-bg-rgb));
 }
 
-/* Lời chúc rơi vào mục xen kẽ: helper gắn màu thẳng lên thẻ (inline) theo màu nền trắng
-   → đè lại bằng bộ chữ của khối màu. */
-#cx-wish-sec.vf-tint {
+/* Lời chúc rơi vào khối xen kẽ ĐẬM: helper gắn màu thẳng lên thẻ (inline) theo màu nền
+   trắng → đè lại bằng bộ chữ của khối màu. */
+html.vf-deep #cx-wish-sec.vf-tint {
   --cx-wish-text-rgb: var(--vf-tint-body-rgb) !important;
   --cx-wish-accent-rgb: var(--vf-tint-heading-rgb) !important;
   --cx-wish-bubble-rgb: var(--vf-tint-panel-rgb) !important;

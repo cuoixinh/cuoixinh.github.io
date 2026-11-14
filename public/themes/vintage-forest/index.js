@@ -657,27 +657,25 @@
 
   window.renderWedding = renderWedding;
 
-  // Bộ màu có khối xen kẽ RIÊNG (`--vf-tint-bg-rgb` khác dải nhạt chung, vd Đỏ rượu): mục
-  // đang HIỆN sau màn mở đầu xen kẽ đều màu / trắng theo flex `order` (lời chúc, khối chèn
-  // thêm đánh lại order). Không có thì trả .vf-tint về đúng markup gốc.
+  // Mục đang HIỆN sau màn mở đầu xen kẽ đều khối màu / trắng theo flex `order` (lời chúc,
+  // khối chèn thêm đánh lại order; ẩn một mục thì các mục sau tự đổi). html.vf-deep đánh
+  // dấu bộ có khối xen kẽ ĐẬM riêng (`--vf-tint-bg-rgb` khác dải nhạt chung, vd Đỏ rượu).
   function vfStripe() {
     const hero = document.getElementById("section-hero");
     const host = hero && hero.parentElement;
     if (!host) return;
     const root = getComputedStyle(document.documentElement);
-    const on = root.getPropertyValue("--vf-tint-bg-rgb").trim() !== root.getPropertyValue("--cx-band-rgb").trim();
+    const deep = root.getPropertyValue("--vf-tint-bg-rgb").trim() !== root.getPropertyValue("--cx-band-rgb").trim();
+    document.documentElement.classList.toggle("vf-deep", deep);
     const secs = [...host.children]
       .filter((el) => el.tagName === "SECTION" && el !== hero)
-      .map((el, i) => {
-        if (el.dataset.vfTint == null) el.dataset.vfTint = el.classList.contains("vf-tint") ? "1" : "0";
-        return { el, i, st: getComputedStyle(el) };
-      });
+      .map((el, i) => ({ el, i, st: getComputedStyle(el) }));
     const shown = secs
       .filter((s) => s.st.display !== "none")
       .sort((a, b) => (parseInt(a.st.order, 10) || 0) - (parseInt(b.st.order, 10) || 0) || a.i - b.i);
     secs.forEach((s) => {
       const n = shown.indexOf(s);
-      s.el.classList.toggle("vf-tint", on ? n >= 0 && n % 2 === 0 : s.el.dataset.vfTint === "1");
+      s.el.classList.toggle("vf-tint", n >= 0 && n % 2 === 0);
     });
   }
 
