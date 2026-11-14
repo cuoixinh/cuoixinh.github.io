@@ -951,12 +951,25 @@ body {
   gap: 4px;
 }
 
+/* Viền ảnh vẽ PHÍA TRONG khung: `ring-1` (setImageWithRing) là bóng nằm ngoài khung,
+   iOS cắt nó theo khung vuông của lớp đang có hiệu ứng zoom → vòng tròn đứt ở đỉnh/đáy. */
 .sh-ava {
+  position: relative;
   width: 104px;
   height: 104px;
   border-radius: 50%;
   overflow: hidden;
   margin-bottom: 12px;
+  box-shadow: none;
+}
+
+.sh-ava.ring-1::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(var(--cx-on-image-rgb) / 0.8);
+  pointer-events: none;
 }
 
 .sh-role {
