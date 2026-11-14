@@ -105,51 +105,95 @@ async function loadTemplates() {
     renderTemplates(data);
   } catch (e) {
     document.getElementById("template-list").innerHTML =
-      `<tr><td colspan="7" class="text-center py-8 text-red-500">${e.message}</td></tr>`;
+      `<p class="col-span-full text-center py-8 text-red-500">${escapeHtml(e.message)}</p>`;
   }
 }
 
+// Theo THỨ TỰ ĐANG THẤY trên lưới (kéo thả là đổi luôn mảng này) — "Tạo ảnh bìa"
+// ghép theo đúng thứ tự đó.
 window.adminTemplates = [];
+// template_id theo thứ tự DB lúc tải — mốc để biết lưới đã bị kéo lệch chưa.
+let tplOrderOrig = [];
+
+const TPL_STATUS = {
+  active: ["Đang bán", "bg-green-100 text-green-700"],
+  coming_soon: ["Sắp ra mắt", "bg-yellow-100 text-yellow-700"],
+  inactive: ["Ngừng bán", "bg-gray-100 text-gray-600"],
+};
+const TPL_CATEGORY = {
+  traditional: "Truyền thống",
+  modern: "Hiện đại",
+  vintage: "Vintage",
+  cinematic: "Điện ảnh",
+  historical: "Cổ trang",
+};
+
+const tplKey = (t) => t.template_id || t.template_name;
+
+function tplCardHTML(t) {
+  const [statusLabel, statusCls] = TPL_STATUS[t.status] || [
+    t.status || "—",
+    "bg-gray-100 text-gray-600",
+  ];
+  const name = escapeHtml(t.template_name);
+  const img = `../assets/images/templates/${encodeURIComponent(t.template_name)}.jpg?v=${encodeURIComponent(CONFIG.version || "")}`;
+  return `
+    <div class="tpl-card group relative flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden cursor-grab active:cursor-grabbing select-none hover:shadow-md hover:border-gray-300 transition-shadow ${t.is_active ? "" : "opacity-60"}"
+      draggable="true" data-key="${escapeHtml(tplKey(t))}">
+      <div class="relative aspect-[391/722] bg-gray-100 overflow-hidden">
+        <div class="absolute inset-0 flex items-center justify-center text-gray-300">
+          <i data-lucide="image-off" style="width:24px;height:24px"></i>
+        </div>
+        <img src="${img}" alt="" loading="lazy" draggable="false" onerror="this.remove()"
+          class="absolute inset-0 w-full h-full object-cover object-top pointer-events-none" />
+        <div class="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/40 to-transparent pointer-events-none"></div>
+        <label class="absolute top-2 left-2 flex items-center justify-center w-7 h-7 rounded-lg bg-white/90 shadow-sm cursor-pointer" title="Chọn để Scan / Tạo ảnh bìa">
+          <input type="checkbox" name="tpl-scan" value="${name}" onchange="updateScanBtn()"
+            class="w-4 h-4 accent-violet-500 cursor-pointer" />
+        </label>
+        <span data-tpl-pos class="absolute top-2 right-2 min-w-[28px] h-7 px-2 rounded-full bg-black/60 text-white text-xs font-semibold flex items-center justify-center backdrop-blur-sm"></span>
+        <div class="absolute left-2 bottom-2 flex flex-wrap gap-1">
+          <span class="px-2 py-0.5 rounded-full text-[11px] font-medium ${statusCls}">${statusLabel}</span>
+          ${t.is_active ? "" : `<span class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-gray-800 text-white">Đã tắt</span>`}
+        </div>
+        <div class="absolute right-2 bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+          <x-button variant="overlay" size="xs" icon-only icon="arrow-up-to-line" title="Đẩy lên đầu" aria-label="Đẩy lên đầu" onclick="tplMoveToTop(this)"></x-button>
+          <x-button variant="overlay" size="xs" icon-only icon="pencil" title="Sửa" aria-label="Sửa" onclick="editTemplate('${t.id}')"></x-button>
+          <x-button variant="overlay" tone="danger" size="xs" icon-only icon="trash-2" title="Xoá" aria-label="Xoá" onclick="deleteTemplate('${t.id}')"></x-button>
+        </div>
+      </div>
+      <div class="p-2.5 min-w-0">
+        <p class="text-sm font-medium text-gray-800 truncate" title="${escapeHtml(t.display_name)}">${escapeHtml(t.display_name)}</p>
+        <p class="text-xs text-gray-500 font-mono truncate" title="${name}">${name}</p>
+        <p class="mt-1 flex items-center justify-between gap-2 text-[11px] text-gray-400">
+          <span class="truncate">${escapeHtml(TPL_CATEGORY[t.category] || t.category || "—")}</span>
+          <span data-tpl-sort class="shrink-0 font-mono"></span>
+        </p>
+      </div>
+    </div>`;
+}
 
 function renderTemplates(templates) {
   window.adminTemplates = templates || [];
-  const tbody = document.getElementById("template-list");
+  tplOrderOrig = window.adminTemplates.map(tplKey);
+  const grid = document.getElementById("template-list");
+  tplBindDnd(grid);
+
   if (!templates || templates.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">Chưa có template nào</td></tr>`;
-    return;
+    grid.innerHTML = `<p class="col-span-full text-center py-8 text-gray-400">Chưa có template nào</p>`;
+  } else {
+    grid.innerHTML = templates.map(tplCardHTML).join("");
+    window.lucide?.createIcons({ root: grid });
   }
 
-  tbody.innerHTML = templates
-    .map(
-      (t) => `
-    <tr class="border-b border-gray-100 hover:bg-gray-50">
-      <td class="py-3 px-4 w-10">
-        <input type="checkbox" name="tpl-scan" value="${t.template_name}"
-          onchange="updateScanBtn()"
-          class="w-3.5 h-3.5 accent-violet-500 cursor-pointer" />
-      </td>
-      <td class="py-3 px-4 text-sm text-gray-800 font-medium">${t.display_name}</td>
-      <td class="py-3 px-4 text-sm text-gray-600 font-mono">${t.template_name}</td>
-      <td class="py-3 px-4 text-sm">
-        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">${t.category || "-"}</span>
-      </td>
-      <td class="py-3 px-4 text-sm">
-        <span class="px-2 py-1 ${getStatusColor(t.status)} rounded text-xs">${t.status}</span>
-      </td>
-      <td class="py-3 px-4 text-sm">
-        <div class="w-2 h-2 rounded-full ${t.is_active ? "bg-green-500" : "bg-gray-400"}"></div>
-      </td>
-      <td class="py-3 px-4 text-sm text-gray-600">${t.sort_order}</td>
-      <td class="py-3 px-4 text-sm">
-        <div class="flex gap-2">
-          <x-button variant="ghost" onclick="editTemplate('${t.id}')" title="Sửa" class="text-blue-600">✏️</x-button>
-          <x-button variant="ghost" tone="danger" onclick="deleteTemplate('${t.id}', '${t.display_name}')" title="Xóa">🗑️</x-button>
-        </div>
-      </td>
-    </tr>`,
-    )
-    .join("");
+  tplSyncOrder();
+  updateScanBtn();
+}
 
+function tplToggleAll(on) {
+  document
+    .querySelectorAll("input[name=tpl-scan]")
+    .forEach((cb) => (cb.checked = on));
   updateScanBtn();
 }
 
@@ -160,26 +204,182 @@ function updateScanBtn() {
   const btn = document.getElementById("scan-images-btn");
   if (btn) btn.disabled = checked === 0;
 
-  // Sync "select all" header checkbox state
   const all = document.querySelectorAll("input[name='tpl-scan']").length;
   const allCb = document.getElementById("tpl-scan-all");
   if (allCb) {
     allCb.checked = all > 0 && checked === all;
     allCb.indeterminate = checked > 0 && checked < all;
   }
+
+  // Thẻ được tick viền tím — lưới không có hàng để tô nền như bảng.
+  document.querySelectorAll(".tpl-card").forEach((card) => {
+    const on = card.querySelector("input[name='tpl-scan']")?.checked;
+    card.classList.toggle("ring-2", !!on);
+    card.classList.toggle("ring-violet-400", !!on);
+  });
 }
 
-function getStatusColor(status) {
-  switch (status) {
-    case "active":
-      return "bg-green-100 text-green-700";
-    case "coming_soon":
-      return "bg-yellow-100 text-yellow-700";
-    case "inactive":
-      return "bg-gray-100 text-gray-700";
-    default:
-      return "bg-gray-100 text-gray-700";
+// ---- Kéo thả sắp xếp (HTML5 drag & drop, chỉ chạy trên chuột — admin là trang máy tính) ----
+
+let tplDragEl = null;
+
+/** sort_order sẽ ghi cho vị trí `i` — bước 10 như các changelog cũ, chừa chỗ chen mẫu mới. */
+const tplSortValue = (i) => (i + 1) * 10;
+
+// Gắn MỘT lần lên khung lưới (uỷ quyền sự kiện) — renderTemplates chỉ thay thẻ con.
+function tplBindDnd(grid) {
+  if (grid.dataset.dnd) return;
+  grid.dataset.dnd = "1";
+
+  grid.addEventListener("dragstart", (e) => {
+    const card = e.target.closest?.(".tpl-card");
+    if (!card) return;
+    tplDragEl = card;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", card.dataset.key);
+    // Để trình duyệt chụp ảnh kéo từ thẻ nguyên vẹn rồi mới làm mờ chỗ trống.
+    requestAnimationFrame(() => (card.style.opacity = "0.3"));
+  });
+
+  grid.addEventListener("dragover", (e) => {
+    if (!tplDragEl) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const over = e.target.closest?.(".tpl-card");
+    if (!over || over === tplDragEl) return;
+    const r = over.getBoundingClientRect();
+    const after = e.clientX > r.left + r.width / 2;
+    const ref = after ? over.nextElementSibling : over;
+    if (ref === tplDragEl || ref === tplDragEl.nextElementSibling) return;
+    tplFlip(grid, () => grid.insertBefore(tplDragEl, ref));
+  });
+
+  grid.addEventListener("drop", (e) => {
+    if (tplDragEl) e.preventDefault();
+  });
+
+  grid.addEventListener("dragend", () => {
+    if (tplDragEl) tplDragEl.style.opacity = "";
+    tplDragEl = null;
+    tplSyncOrder();
+  });
+}
+
+// Đổi chỗ DOM rồi cho các thẻ khác trượt từ chỗ cũ về chỗ mới (FLIP).
+function tplFlip(grid, mutate) {
+  const cards = [...grid.children];
+  const before = new Map(cards.map((c) => [c, c.getBoundingClientRect()]));
+  mutate();
+  cards.forEach((c) => {
+    if (c === tplDragEl) return;
+    const a = before.get(c);
+    const b = c.getBoundingClientRect();
+    const dx = a.left - b.left;
+    const dy = a.top - b.top;
+    if (!dx && !dy) return;
+    c.style.transition = "none";
+    c.style.transform = `translate(${dx}px, ${dy}px)`;
+    void c.offsetWidth;
+    c.style.transition = "transform 180ms ease";
+    c.style.transform = "";
+  });
+}
+
+/** Đọc thứ tự từ DOM → cập nhật adminTemplates, số thứ tự trên thẻ và hai nút. */
+function tplSyncOrder() {
+  const grid = document.getElementById("template-list");
+  const cards = [...grid.querySelectorAll(".tpl-card")];
+  const byKey = new Map(window.adminTemplates.map((t) => [tplKey(t), t]));
+  window.adminTemplates = cards
+    .map((c) => byKey.get(c.dataset.key))
+    .filter(Boolean);
+
+  let moved = 0;
+  cards.forEach((card, i) => {
+    const t = byKey.get(card.dataset.key);
+    const changed = tplOrderOrig[i] !== card.dataset.key;
+    if (changed) moved++;
+    const pos = card.querySelector("[data-tpl-pos]");
+    pos.textContent = `#${i + 1}`;
+    pos.classList.toggle("bg-amber-500", changed);
+    pos.classList.toggle("bg-black/60", !changed);
+    card.querySelector("[data-tpl-sort]").textContent = changed
+      ? `${t?.sort_order ?? "—"} → ${tplSortValue(i)}`
+      : `#${t?.sort_order ?? "—"}`;
+  });
+
+  const hint = document.getElementById("tpl-order-hint");
+  if (hint) {
+    hint.lastChild.textContent = moved
+      ? ` Đã đổi vị trí ${moved} mẫu — chưa ghi, bấm "Sinh Script Sắp xếp"`
+      : " Kéo thả thẻ để sắp xếp thứ tự hiển thị";
+    hint.classList.toggle("text-amber-700", !!moved);
+    hint.classList.toggle("text-gray-500", !moved);
   }
+  const sqlBtn = document.getElementById("tpl-order-sql-btn");
+  const resetBtn = document.getElementById("tpl-order-reset-btn");
+  if (sqlBtn) sqlBtn.disabled = !moved;
+  if (resetBtn) resetBtn.disabled = !moved;
+}
+
+/** Nút "Đẩy lên đầu" trên thẻ — lối tắt cho lúc phải kéo qua cả lưới dài. */
+function tplMoveToTop(btn) {
+  const card = btn.closest(".tpl-card");
+  const grid = card?.parentElement;
+  if (!grid || grid.firstElementChild === card) return;
+  tplFlip(grid, () => grid.prepend(card));
+  tplSyncOrder();
+  card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function tplResetOrder() {
+  const grid = document.getElementById("template-list");
+  const byKey = new Map(
+    [...grid.querySelectorAll(".tpl-card")].map((c) => [c.dataset.key, c]),
+  );
+  tplFlip(grid, () =>
+    tplOrderOrig.forEach((k) => byKey.get(k) && grid.appendChild(byKey.get(k))),
+  );
+  tplSyncOrder();
+}
+
+/** Ghi thứ tự đang thấy ra changelog: đặt lại sort_order = 10, 20, 30… cho mọi mẫu. */
+async function tplGenerateSortScript() {
+  const list = window.adminTemplates || [];
+  if (!list.length) return;
+
+  const rows = list
+    .map((t, i) => `       (${tplQ(tplKey(t))}, ${tplSortValue(i)})`)
+    .join(",\n");
+  const body =
+    `update public.templates as t\n` +
+    `   set sort_order = v.sort_order,\n` +
+    `       updated_at = now()\n` +
+    `  from (values\n${rows}\n       ) as v(template_id, sort_order)\n` +
+    ` where t.template_id = v.template_id\n` +
+    `   and t.sort_order is distinct from v.sort_order;`;
+
+  const order = list
+    .map((t, i) => `--   ${String(i + 1).padStart(2)}. ${tplKey(t)}`)
+    .join("\n");
+  const file = await tplWriteSqlFile(
+    "reorder_templates",
+    "Sắp xếp lại thứ tự hiển thị mẫu thiệp",
+    `--\n-- Thứ tự mới (sort_order = 10, 20, 30…):\n${order}\n--\n` +
+      `-- Mẫu không có trong danh sách này (chỉ có ở một môi trường) giữ nguyên\n` +
+      `-- sort_order cũ; mẫu đã đúng số thì không bị đụng tới.\n`,
+    body,
+  );
+  if (!file) return;
+
+  // Thứ tự đã nằm trong changelog — coi đây là mốc mới để nút tắt đi.
+  tplOrderOrig = list.map(tplKey);
+  tplSyncOrder();
+  alert(
+    `✅ Đã tạo changelog: ${file}\n\nChạy file này ở Supabase → SQL Editor trên CẢ HAI` +
+      ` project (staging trước, rồi production), xong purge cache ở production và` +
+      ` commit file vào repo.`,
+  );
 }
 
 function openTemplateModal(templateId = null) {
@@ -441,7 +641,7 @@ async function editTemplate(templateId) {
   openTemplateModal(templateId);
 }
 
-async function deleteTemplate(templateId, displayName) {
+async function deleteTemplate(templateId) {
   // `templateId` là uuid của hàng, còn changelog khớp theo `template_id` — tra
   // ngược trong danh sách vừa render.
   const row = (window.adminTemplates || []).find((t) => t.id === templateId);
@@ -450,7 +650,7 @@ async function deleteTemplate(templateId, displayName) {
 
   if (
     !confirm(
-      `Tạo changelog XOÁ mẫu "${displayName}"?\n\nFile .sql sẽ được ghi vào changelogs/ — mẫu chỉ thực sự mất sau khi bạn chạy file đó trên Supabase.`,
+      `Tạo changelog XOÁ mẫu "${row.display_name}"?\n\nFile .sql sẽ được ghi vào changelogs/ — mẫu chỉ thực sự mất sau khi bạn chạy file đó trên Supabase.`,
     )
   )
     return;
@@ -899,6 +1099,32 @@ function tplPricingSql(p) {
  * Trả về tên file, hoặc null nếu không ghi được (đã báo lỗi cho người dùng).
  */
 async function tplWriteChangelog(action, payload, oldKey) {
+  const key = action === "delete" ? oldKey : payload.template_id;
+  const verb = { insert: "add", update: "update", delete: "delete" }[action];
+  const title = {
+    insert: `Thêm mẫu thiệp ${key}`,
+    update: `Cập nhật mẫu thiệp ${oldKey}`,
+    delete: `Xoá mẫu thiệp ${oldKey}`,
+  }[action];
+  const note =
+    action === "delete"
+      ? `--\n-- ⚠️ XOÁ DỮ LIỆU. Hàng template_pricing (nếu có) KHÔNG bị xoá theo.\n`
+      : payload?.pricing
+        ? `--\n-- Gồm cả giá bán (bảng template_pricing).\n`
+        : "";
+  return tplWriteSqlFile(
+    `${verb}_template_${tplSlug(key)}`,
+    title,
+    note,
+    tplSqlBody(action, payload, oldKey),
+  );
+}
+
+/**
+ * Ghi `dqvinh_<số>_<name>.sql` (kèm khối đầu file chuẩn) vào nhóm đang chọn.
+ * Trả về tên file, hoặc null nếu không ghi được (đã báo lỗi cho người dùng).
+ */
+async function tplWriteSqlFile(name, title, note, body) {
   const dir = await tplClDir();
   if (!dir) {
     alert(
@@ -908,34 +1134,22 @@ async function tplWriteChangelog(action, payload, oldKey) {
   }
 
   const seq = String(await tplNextSeq(dir)).padStart(3, "0");
-  const key = action === "delete" ? oldKey : payload.template_id;
-  const verb = { insert: "add", update: "update", delete: "delete" }[action];
-  const filename = `${TPL_PREFIX}_${seq}_${verb}_template_${tplSlug(key)}.sql`;
-
-  const title = {
-    insert: `Thêm mẫu thiệp \`${key}\``,
-    update: `Cập nhật mẫu thiệp \`${oldKey}\``,
-    delete: `Xoá mẫu thiệp \`${oldKey}\``,
-  }[action];
+  const filename = `${TPL_PREFIX}_${seq}_${name}.sql`;
   const today = new Date().toISOString().slice(0, 10);
 
   const sql =
     `-- ============================================================\n` +
-    `-- ${title.replace(/`/g, "")}\n` +
+    `-- ${title}\n` +
     `-- Ngày: ${today}\n` +
     `-- ------------------------------------------------------------\n` +
     `-- Sinh tự động từ tab "Templates" của admin. Mẫu thiệp là dữ liệu phải có\n` +
     `-- GIỐNG NHAU ở cả staging lẫn production nên đi bằng changelog, không ghi\n` +
     `-- thẳng vào một project.\n` +
-    (action === "delete"
-      ? `--\n-- ⚠️ XOÁ DỮ LIỆU. Hàng template_pricing (nếu có) KHÔNG bị xoá theo.\n`
-      : payload?.pricing
-        ? `--\n-- Gồm cả giá bán (bảng template_pricing).\n`
-        : "") +
+    note +
     `--\n-- Cách chạy: dán vào Supabase → SQL Editor → Run (idempotent, chạy lại an toàn).\n` +
     `--            Chạy trên CẢ HAI project: staging trước, rồi production.\n` +
     `-- ============================================================\n\n` +
-    tplSqlBody(action, payload, oldKey) +
+    body +
     `\n`;
 
   try {
@@ -952,4 +1166,3 @@ async function tplWriteChangelog(action, payload, oldKey) {
   await tplRefreshNextFile();
   return filename;
 }
-

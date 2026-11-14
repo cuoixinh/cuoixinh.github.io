@@ -24,6 +24,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://cuoixinh.com/public/themes/thuan-vo-thuan-chong/</loc>
+    <lastmod>2026-11-14</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://cuoixinh.com/public/themes/luminous-pastel/</loc>
     <lastmod>2026-09-10</lastmod>
     <priority>0.8</priority>
@@ -126,11 +131,6 @@
   <url>
     <loc>https://cuoixinh.com/public/themes/chung-mot-giai-dieu/</loc>
     <lastmod>2026-10-28</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://cuoixinh.com/public/themes/duyen-lanh-go-cua/</loc>
-    <lastmod>2026-11-13</lastmod>
     <priority>0.8</priority>
   </url>
 </urlset>
