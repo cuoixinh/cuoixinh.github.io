@@ -23,18 +23,16 @@ function closeCoverMaker() {
   m.classList.remove("flex");
 }
 
-// Có tick ở bảng thì chỉ lấy mẫu đã tick, không thì lấy hết; xếp theo sort_order.
+// Có tick ở lưới thì chỉ lấy mẫu đã tick, không thì lấy hết; theo thứ tự đang thấy trên lưới.
 function coverTemplates() {
   const ticked = new Set(
     [...document.querySelectorAll("input[name='tpl-scan']:checked")].map(
       (cb) => cb.value,
     ),
   );
-  return (window.adminTemplates || [])
-    .filter((t) => !ticked.size || ticked.has(t.template_name))
-    .map((t, i) => ({ t, i }))
-    .sort((a, b) => (a.t.sort_order ?? 0) - (b.t.sort_order ?? 0) || a.i - b.i)
-    .map(({ t }) => t);
+  return (window.adminTemplates || []).filter(
+    (t) => !ticked.size || ticked.has(t.template_name),
+  );
 }
 
 function coverLoadImage(src) {

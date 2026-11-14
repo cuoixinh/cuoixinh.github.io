@@ -2,53 +2,53 @@
   "image_focal_points": {
     "gallery_images": {
       "gallery-01.jpg": {
-        "x": 50,
-        "y": 50
+        "x": 51,
+        "y": 49
       },
       "gallery-02.jpg": {
-        "x": 54,
-        "y": 35
-      },
-      "gallery-03.jpg": {
-        "x": 41,
-        "y": 49
+        "x": 44,
+        "y": 38
       },
       "gallery-04.jpg": {
         "x": 53,
-        "y": 47
+        "y": 57
       },
       "gallery-05.jpg": {
-        "x": 44,
-        "y": 34
+        "x": 63,
+        "y": 36
       },
-      "gallery-06.jpg": {
-        "x": 61,
-        "y": 26
-      },
-      "gallery-07.jpg": {
-        "x": 55,
-        "y": 34
-      },
-      "gallery-08.jpg": {
-        "x": 45,
-        "y": 10
+      "gallery-03.jpg": {
+        "x": 72,
+        "y": 58
       },
       "gallery-09.jpg": {
         "x": 48,
-        "y": 40
+        "y": 33
+      },
+      "gallery-06.jpg": {
+        "x": 61,
+        "y": 18
+      },
+      "gallery-07.jpg": {
+        "x": 51,
+        "y": 29
+      },
+      "gallery-08.jpg": {
+        "x": 73,
+        "y": 23
       }
     },
     "cover_image_url": {
-      "x": 74,
-      "y": 13
+      "x": 39,
+      "y": 39
     },
     "groom_image_url": {
-      "x": 51,
-      "y": 14
+      "x": 50,
+      "y": 45
     },
     "bride_image_url": {
-      "x": 92,
-      "y": 59
+      "x": 29,
+      "y": 40
     }
   },
   "cover_image_url": "cover.jpg",
@@ -59,19 +59,18 @@
   "gallery_images": [
     "gallery-01.jpg",
     "gallery-02.jpg",
-    "gallery-03.jpg",
     "gallery-04.jpg",
     "gallery-05.jpg",
+    "gallery-03.jpg",
+    "gallery-09.jpg",
     "gallery-06.jpg",
     "gallery-07.jpg",
-    "gallery-08.jpg",
-    "gallery-09.jpg"
+    "gallery-08.jpg"
   ],
-  "love_story": [],
   "content": {
     "groom_name": "Quang Huy",
     "bride_name": "Thanh Tâm",
-    "groom_father": "Nguyễn Quang Lực",
+    "groom_father": "Hà Văn Lực",
     "groom_mother": "Đỗ Thị Mến",
     "groom_address": "Thôn Phù Lưu, Xã Tân Hồng, Tỉnh Bắc Ninh",
     "bride_father": "Vũ Văn Toản",
@@ -118,7 +117,7 @@
     "enable_love_story": false,
     "enable_gift": true,
     "enable_footer": true,
-    "timeline": []
+    "demo_fill_love_story": false
   },
-  "updated_at": "2026-10-23T16:25:47.097Z"
+  "updated_at": "2026-11-14T17:22:49.196Z"
 }

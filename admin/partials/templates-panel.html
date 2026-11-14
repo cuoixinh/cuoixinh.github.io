@@ -93,55 +93,61 @@
       </div>
     </div>
 
-    <!-- Templates Table -->
-    <div class="p-3 sm:p-4 md:p-6 overflow-x-auto">
-      <table class="w-full min-w-[800px] lg:min-w-0">
-        <thead>
-          <tr class="border-b border-gray-200">
-            <th class="py-3 px-4 w-10 text-left">
-              <input
-                type="checkbox"
-                id="tpl-scan-all"
-                class="w-3.5 h-3.5 accent-violet-500 cursor-pointer"
-                onchange="
-                  document
-                    .querySelectorAll('input[name=tpl-scan]')
-                    .forEach((cb) => (cb.checked = this.checked));
-                  updateScanBtn();
-                "
-              />
-            </th>
-            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">
-              Tên hiển thị
-            </th>
-            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">
-              Template Name
-            </th>
-            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">
-              Danh mục
-            </th>
-            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">
-              Trạng thái
-            </th>
-            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">
-              Kích hoạt
-            </th>
-            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">
-              Thứ tự
-            </th>
-            <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">
-              Thao tác
-            </th>
-          </tr>
-        </thead>
-        <tbody id="template-list">
-          <tr>
-            <td colspan="8" class="text-center py-8 text-gray-400">
-              Đang tải...
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Lưới mẫu — kéo thả thẻ để đổi thứ tự hiển thị (js/02-templates.js). Thứ
+         tự mới chỉ là bản nháp trên trang; "Sinh script sắp xếp" ghi nó ra một
+         changelog .sql đặt lại sort_order cho cả hai môi trường. -->
+    <div
+      class="px-3 sm:px-4 md:px-6 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-4 gap-y-2"
+    >
+      <label
+        class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none"
+      >
+        <input
+          type="checkbox"
+          id="tpl-scan-all"
+          class="w-4 h-4 accent-violet-500 cursor-pointer"
+          onchange="tplToggleAll(this.checked)"
+        />
+        Chọn tất cả
+      </label>
+      <p
+        id="tpl-order-hint"
+        class="text-xs text-gray-500 flex items-center gap-1.5"
+      >
+        <i data-lucide="grip-vertical" style="width: 16px; height: 16px"></i>
+        Kéo thả thẻ để sắp xếp thứ tự hiển thị
+      </p>
+      <div class="flex-1"></div>
+      <x-button
+        id="tpl-order-reset-btn"
+        size="sm"
+        variant="ghost"
+        tone="neutral"
+        icon="undo-2"
+        onclick="tplResetOrder()"
+        disabled
+      >
+        Hoàn tác
+      </x-button>
+      <x-button
+        id="tpl-order-sql-btn"
+        size="sm"
+        icon="file-code"
+        onclick="tplGenerateSortScript()"
+        disabled
+        title="Ghi thứ tự đang thấy thành changelog .sql đặt lại sort_order"
+      >
+        Sinh Script Sắp xếp
+      </x-button>
+    </div>
+
+    <div class="p-3 sm:p-4 md:p-6 bg-gray-50/60">
+      <div
+        id="template-list"
+        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4"
+      >
+        <p class="col-span-full text-center py-8 text-gray-400">Đang tải...</p>
+      </div>
     </div>
   </div>
 </div>
@@ -527,7 +533,7 @@
         <p class="text-xs text-gray-500 mt-0.5">
           Ghép ảnh màn đầu của từng mẫu (<code class="font-mono"
             >assets/images/templates/</code
-          >) theo thứ tự hiển thị: trên xuống dưới, rồi trái qua phải. Có tick trong bảng thì chỉ ghép mẫu đã tick.
+          >) theo thứ tự hiển thị: trên xuống dưới, rồi trái qua phải. Có tick trong lưới thì chỉ ghép mẫu đã tick.
         </p>
       </div>
       <x-button
