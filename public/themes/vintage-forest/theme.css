@@ -23,6 +23,9 @@
   --cx-deco-rgb: 190 44 52; /* đỏ phong bao lì xì */
   --cx-on-image-rgb: 255 255 255; /* chữ nằm trên ảnh */
   --cx-scrim-rgb: 0 0 0; /* lớp phủ + bóng chữ trên ảnh */
+  /* Chữ số nằm trên mảng màu nhấn (trái tim đếm ngược, ô ngày cưới): màu gốc là hồng phấn
+     nên để chữ tiêu đề; bộ riêng có nhấn đậm thì ghi đè qua `vars` (CX_THEME.palettes). */
+  --vf-on-accent-rgb: var(--cx-heading-rgb);
   /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
      thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js) để thiệp
      không chọn bộ màu vẫn khớp với thiệp có chọn. */
@@ -378,11 +381,8 @@ body {
   z-index: 1;
   font-size: 26px;
   line-height: 1.2;
-  color: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--vf-on-accent-rgb));
 }
-
-/* Chữ số trên trái tim vẫn màu chữ tiêu đề: chữ trắng trên hồng phấn quá nhạt
-   để đọc. */
 
 .vf-cd-lb {
   font-size: 13px;
@@ -805,7 +805,7 @@ body {
 
 .vf-cal-on {
   background-color: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--vf-on-accent-rgb));
   font-weight: 600;
   box-shadow: 0 4px 12px rgb(var(--cx-accent-rgb) / 0.45);
 }
