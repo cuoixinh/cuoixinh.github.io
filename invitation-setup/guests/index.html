@@ -173,6 +173,39 @@
     <x-popover id="gs-more-pop" anchor="#gs-more" placement="bottom" align="end" width="232"></x-popover>
     <x-popover id="gs-row-pop" placement="bottom" align="end" width="216"></x-popover>
 
+    <!-- Chọn bên lần đầu mở trang (localStorage chưa nhớ bên nào, thiệp không khoá một
+         bên) — _openSidePick() ở index.js. Chỉ đóng bằng cách chọn: không có nút ✕. -->
+    <div id="side-pick-modal" class="gs-modal hidden" role="dialog" aria-modal="true"
+      aria-labelledby="side-pick-title" aria-describedby="side-pick-sub">
+      <div class="gs-sheet sm:max-w-[440px] focus:outline-none" tabindex="-1">
+        <div class="gs-sheet-head">
+          <span class="gs-sheet-ico"><i data-lucide="users" style="width:20px;height:20px"></i></span>
+          <div class="flex-1 min-w-0">
+            <h2 id="side-pick-title" class="gs-sheet-title">Bạn quản lý khách bên nào?</h2>
+            <p id="side-pick-sub" class="gs-sheet-sub">Những lần sau sẽ mở sẵn danh sách bên này.</p>
+          </div>
+        </div>
+        <div class="gs-sidepick">
+          <button type="button" class="gs-sidepick-opt gs-sidepick-opt--groom" data-side="groom"
+            onclick="pickGuestSide('groom')">
+            <span class="gs-sidepick-ico"><i data-lucide="mars"></i></span>
+            <span class="gs-sidepick-name">Nhà trai</span>
+            <span id="side-pick-n-groom" class="gs-sidepick-n"></span>
+          </button>
+          <button type="button" class="gs-sidepick-opt gs-sidepick-opt--bride" data-side="bride"
+            onclick="pickGuestSide('bride')">
+            <span class="gs-sidepick-ico"><i data-lucide="venus"></i></span>
+            <span class="gs-sidepick-name">Nhà gái</span>
+            <span id="side-pick-n-bride" class="gs-sidepick-n"></span>
+          </button>
+        </div>
+        <p class="gs-sidepick-note">
+          <i data-lucide="arrow-left-right" style="width:14px;height:14px"></i>
+          <span>Đổi bên lúc nào cũng được ở thanh Nhà trai / Nhà gái.</span>
+        </p>
+      </div>
+    </div>
+
     <!-- Popup thêm/sửa 1 khách (JS: _gmOpen ở index.js). Dưới sm là bottom sheet.
          Chip #add-guest-side cho biết đang thêm vào nhà trai hay nhà gái. -->
     <div id="add-guest-modal"
@@ -240,12 +273,15 @@
 
         <!-- "Lưu" là nút chính (lưu CHÍNH khách đang mở); "Thêm người khác" chỉ bật khi
              khách này đã lưu và mở form trống — khác "Lưu" cả kiểu nút lẫn icon. -->
-        <div class="gs-sheet-foot">
-          <x-button variant="ghost" tone="neutral" type="button" onclick="closeAddGuestModal()" class="-ml-2">Đóng</x-button>
-          <div class="flex-1"></div>
+        <!-- Dưới 400px (.gs-gm-foot ở _setup.css): bỏ "Đóng" (đã có ✕ ở đầu popup), hai nút
+             còn lại chia đôi hàng và rút nhãn — đủ ba nút là tràn trên máy 360px. -->
+        <div class="gs-sheet-foot gs-gm-foot">
+          <x-button variant="ghost" tone="neutral" type="button" onclick="closeAddGuestModal()" class="gs-gm-close -ml-2">Đóng</x-button>
+          <div class="gs-gm-gap flex-1"></div>
           <x-button id="add-guest-new" variant="outline" tone="neutral" type="button" onclick="resetAddGuestForm()" disabled>
             <i data-lucide="user-plus" style="width:16px;height:16px"></i>
-            <span>Thêm người khác</span>
+            <span class="gs-gm-long">Thêm người khác</span>
+            <span class="gs-gm-short">Thêm người</span>
           </x-button>
           <x-button id="add-guest-save" type="button" onclick="saveAddGuest()" class="min-w-[88px]">
             <i data-lucide="check" style="width:16px;height:16px"></i>

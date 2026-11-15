@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("getWedding error:", e);
   }
   _applySideLock();
+  _initGuestSide();
   _syncTopSub(w);
   const only = _lockedSide();
   await Promise.all((only ? [only] : ["groom", "bride"]).map((s) => loadGuestList(s)));
@@ -51,6 +52,57 @@ document.addEventListener("DOMContentLoaded", async () => {
 function _lockedSide() {
   const s = _wedding?.free_side || _wedding?.member_side;
   return s === "groom" || s === "bride" ? s : null;
+}
+
+// Bên đang quản lý nhớ ở localStorage theo từng thiệp — lần đầu mở trang (chưa nhớ
+// gì, thiệp không khoá một bên) thì hỏi bằng #side-pick-modal; từ đó dải Nhà trai /
+// Nhà gái đổi bên nào là ghi lại bên đó.
+const _sideKey = () => `cx_guest_side:${WEDDING_ID}`;
+
+function _readGuestSide() {
+  try {
+    const s = localStorage.getItem(_sideKey());
+    return s === "groom" || s === "bride" ? s : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function _saveGuestSide(side) {
+  try {
+    localStorage.setItem(_sideKey(), side);
+  } catch (e) {}
+}
+
+function _initGuestSide() {
+  if (_lockedSide()) return;
+  const saved = _readGuestSide();
+  if (saved) switchTab(saved);
+  else _openSidePick();
+}
+
+function _openSidePick() {
+  const modal = document.getElementById("side-pick-modal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  _syncSidePickCounts();
+  // Focus vào khung chứ không vào một ô: ô có viền focus trông như đã chọn sẵn bên đó.
+  modal.querySelector(".gs-sheet")?.focus({ preventScroll: true });
+}
+
+function pickGuestSide(side) {
+  switchTab(side);
+  document.getElementById("side-pick-modal")?.classList.add("hidden");
+}
+
+// Số khách trên hai ô chọn — danh sách tải song song nên điền dần khi từng bên về.
+function _syncSidePickCounts() {
+  ["groom", "bride"].forEach((s) => {
+    const el = document.getElementById(`side-pick-n-${s}`);
+    if (!el) return;
+    const n = _allGuests[s].length;
+    el.textContent = !_loaded[s] ? "" : n ? `${n} khách` : "Chưa có khách";
+  });
 }
 
 // Có bên khoá thì ẩn hẳn dải chọn bên và đứng yên ở bên đó.
@@ -162,6 +214,7 @@ function switchTab(side) {
   if (only) side = only;
   if (_sel.side && _sel.side !== side) exitGuestSelect();
   _currentTab = side;
+  if (!only) _saveGuestSide(side);
   const seg = document.getElementById("guest-seg");
 
   ["groom", "bride"].forEach((s, i) => {
@@ -292,13 +345,14 @@ function _syncStats() {
   });
   // Bên đang mở chưa có khách: ẩn cả thanh công cụ (chưa có gì để tìm, màn trống đã
   // có đủ ba cách thêm khách). Chỉ ẩn khi đã tải xong (đang tải/lỗi vẫn giữ).
-  const bar = document.querySelector(".gs-toolbar");
-  bar?.classList.toggle("is-empty", _loaded[_currentTab] && !list.length);
+  const empty = _loaded[_currentTab] && !list.length;
+  document.querySelector(".gs-toolbar")?.classList.toggle("is-empty", empty);
   _syncSelBar();
   ["groom", "bride"].forEach((s) => {
     const el = document.getElementById(`tab-${s}-n`);
     if (el) el.textContent = _loaded[s] ? _allGuests[s].length : "";
   });
+  _syncSidePickCounts();
 }
 
 // ─── Add Single Guest ─────────────────────────────────────────────────────────
@@ -1396,12 +1450,12 @@ function _buildPageBtns(side, cur, total) {
     </x-button>`).join("");
 }
 
-function _emptyHTML(icon, title, desc, actions = "") {
+function _emptyHTML(icon, title, desc, actions = "", cls = "") {
   return `
-    <div class="gs-empty">
+    <div class="gs-empty${cls ? ` ${cls}` : ""}">
       <span class="gs-empty-ico">${_ico(icon, 24)}</span>
       <p class="gs-empty-title">${title}</p>
-      <p class="gs-empty-desc">${desc}</p>
+      ${desc ? `<p class="gs-empty-desc">${desc}</p>` : ""}
       ${actions ? `<div class="gs-empty-acts">${actions}</div>` : ""}
     </div>`;
 }
@@ -1418,10 +1472,10 @@ function _emptyPathsHTML(side) {
       </span>
     </button>`;
   return `<div class="gs-paths">
-    ${card("ai", `<i data-icon="xuxi" data-size="28"></i>`, "Nhập khẩu với AI",
-      "Hỗ trợ văn bản, ảnh chụp, PDF, Word, Excel. Tự động tách tên, xưng hô từng khách.", `switchTab('${side}'); openAiImport()`)}
     ${card("one", _ico("user-plus", 20), "Thêm từng khách",
       "Gõ tên và xưng hô cho một người.", `openAddGuestModal('${side}')`)}
+    ${card("ai", `<i data-icon="xuxi" data-size="28"></i>`, "Nhập khẩu với AI",
+      "Hỗ trợ văn bản, ảnh chụp, PDF, Word, Excel. Tự động tách tên, xưng hô từng khách.", `switchTab('${side}'); openAiImport()`)}
     ${card("excel", _ico("file-spreadsheet", 20), "Nhập từ Excel",
       "Dùng file có cột Họ tên, Tên trên thiệp, Xưng hô.", "pickExcel()")}
   </div>`;
@@ -1502,8 +1556,9 @@ function _renderGuestList(side) {
     container.innerHTML = _emptyHTML(
       "users",
       `Chưa có khách ${_SIDE_LABEL[side]}`,
-      "Mỗi khách sẽ có một link mời gọi đúng tên. Chọn cách thêm khách tiện nhất với bạn.",
+      "",
       _emptyPathsHTML(side),
+      "gs-empty--start",
     ) + `<p class="gs-empty-note">Chưa có file Excel? <button type="button" class="gs-link" onclick="downloadGuestTemplate()">Tải file mẫu</button></p>`;
     lucide.createIcons({ root: container });
     return;

@@ -4386,6 +4386,87 @@ html.cx-rail-off {
   display: none;
 }
 
+/* Dưới sm: bốn ô thống kê gộp thành MỘT dải mảnh 4 cột ngăn bằng vạch (lưới 2×2 chiếm
+   gần nửa màn ngắn). Ô đang lọc (aria-pressed) là mảng nền bo góc trong dải — vạch hai
+   bên nó ẩn đi. Màn trống (.gs-empty--start) bỏ icon tròn + bớt đệm. */
+@media (max-width: 639px) {
+  .gs-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 12px;
+    padding: 4px;
+    border-radius: 16px;
+    border: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
+    background: rgb(var(--white-rgb));
+  }
+  .gs-stats .gs-stat {
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 4px;
+    text-align: center;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    box-shadow: none;
+  }
+  .gs-stats .gs-stat + .gs-stat {
+    border-left: 1px solid rgb(var(--brand-primary-rgb) / 0.3);
+    border-radius: 0;
+  }
+  .gs-stats .gs-stat[aria-pressed="true"],
+  .gs-stats .gs-stat[aria-pressed="true"] + .gs-stat {
+    border-left-color: transparent;
+  }
+  .gs-stats .gs-stat[aria-pressed="true"] {
+    border-radius: 12px;
+    background: rgb(var(--surface-section-rgb));
+  }
+  .gs-stats .gs-stat[aria-pressed="true"] .gs-stat-n {
+    color: rgb(var(--action-primary-rgb));
+  }
+  .gs-stats .gs-stat[aria-pressed="true"] .gs-stat-ico {
+    background: rgb(var(--white-rgb));
+  }
+  .gs-stats .gs-stat-ico {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+  .gs-stats .gs-stat-txt {
+    align-items: center;
+    max-width: 100%;
+  }
+  .gs-stats .gs-stat-n {
+    font-size: 14px;
+  }
+  .gs-stats .gs-stat-label {
+    max-width: 100%;
+    font-size: 11px;
+  }
+  /* Khung xương: cả dải là một khối xám, không phải bốn ô xám rời. */
+  .gs-booting .gs-stats {
+    border-color: transparent;
+    background: rgb(var(--skeleton-base-rgb));
+    animation: cx-gs-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  .gs-booting .gs-stats .gs-stat {
+    background: none !important;
+    border-left-color: transparent;
+    animation: none;
+  }
+  .gs-empty--start {
+    margin-top: 12px;
+    padding-top: 20px;
+  }
+  .gs-empty--start .gs-empty-ico {
+    display: none;
+  }
+  .gs-empty--start .gs-empty-title {
+    margin-top: 0;
+  }
+}
+
 /* Ba thẻ "cách thêm khách" ở màn trống: dưới sm xếp dọc (icon trái, chữ phải),
    từ sm thành ba cột. Thẻ là vùng bấm trọn; tông AI chỉ ở thẻ XuXi. */
 .gs-paths {
@@ -4555,6 +4636,101 @@ html.cx-rail-off {
   padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid rgb(var(--divider-rgb));
   background: rgb(var(--surface-tint-rgb) / 0.6);
+}
+
+/* Chân popup thêm khách: dưới 400px bỏ "Đóng", hai nút chia đôi hàng, nhãn ngắn. */
+.gs-gm-short {
+  display: none;
+}
+@media (max-width: 399px) {
+  .gs-gm-foot .gs-gm-close,
+  .gs-gm-foot .gs-gm-gap,
+  .gs-gm-foot .gs-gm-long {
+    display: none;
+  }
+  .gs-gm-foot .gs-gm-short {
+    display: inline;
+  }
+  .gs-gm-foot > button {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+/* Popup chọn bên lần đầu (#side-pick-modal): hai ô lớn theo tông của từng bên — xanh
+   nhà trai, hồng nhà gái, cùng tông với chip bên ở popup thêm khách (_GM_SIDE). */
+.gs-sidepick {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 20px 20px;
+}
+.gs-sidepick-opt {
+  @apply flex flex-col items-center text-center;
+  gap: 4px;
+  min-height: 156px;
+  padding: 20px 12px 16px;
+  border: 1px solid;
+  border-radius: 20px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+.gs-sidepick-opt:active {
+  transform: scale(0.98);
+}
+.gs-sidepick-opt--groom {
+  @apply border-sky-100 bg-sky-50 text-sky-800;
+}
+.gs-sidepick-opt--groom:hover {
+  @apply border-sky-300;
+  box-shadow: 0 8px 20px -10px rgb(2 132 199 / 0.45);
+}
+.gs-sidepick-opt--bride {
+  @apply border-rose-100 bg-rose-50 text-rose-800;
+}
+.gs-sidepick-opt--bride:hover {
+  @apply border-rose-300;
+  box-shadow: 0 8px 20px -10px rgb(225 29 72 / 0.4);
+}
+.gs-sidepick-ico {
+  @apply flex items-center justify-center rounded-full bg-white;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 8px;
+  font-size: 28px;
+  box-shadow: 0 2px 8px rgb(var(--scrim-rgb) / 0.06);
+}
+.gs-sidepick-opt--groom .gs-sidepick-ico {
+  @apply text-sky-600;
+}
+.gs-sidepick-opt--bride .gs-sidepick-ico {
+  @apply text-rose-500;
+}
+.gs-sidepick-name {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.gs-sidepick-n {
+  min-height: 16px;
+  font-size: 12px;
+  line-height: 16px;
+  opacity: 0.75;
+}
+.gs-sidepick-note {
+  @apply flex items-center;
+  gap: 8px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgb(var(--text-caption-rgb));
+  border-top: 1px solid rgb(var(--border-subtle-rgb));
+  background: rgb(var(--surface-tint-rgb) / 0.6);
+}
+.gs-sidepick-note svg {
+  flex-shrink: 0;
 }
 
 .gs-label {
