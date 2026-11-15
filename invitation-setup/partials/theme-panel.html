@@ -502,6 +502,25 @@
             </div>
             <!-- /theme-desktop-panel -->
 
+            <!-- Bảng TỰ CUỘN: theme_setting.auto_scroll — mở thiệp xong 2 giây thiệp tự
+                 trôi xuống, khách chạm/cuộn là dừng (_cxAutoScroll ở theme-boot.js).
+                 Khung chỉnh ở đây không chạy tự cuộn. -->
+            <div id="theme-autoscroll-panel" class="hidden space-y-2">
+              <label class="cx-le-check">
+                <input
+                  type="checkbox"
+                  id="theme-auto-scroll"
+                  onchange="onAutoScrollToggle(this.checked)"
+                />
+                <span>Cho phép tự cuộn khi mở thiệp</span>
+              </label>
+              <p class="text-[12px] leading-snug text-gray-500">
+                Mở thiệp được 2 giây, thiệp tự trôi chầm chậm xuống dưới. Khách chạm hoặc
+                tự cuộn là thiệp dừng lại để khách xem theo ý mình.
+              </p>
+            </div>
+            <!-- /theme-autoscroll-panel -->
+
             <!-- Bảng ẢNH BÌA: chỉ là lời dẫn — mở bảng là khung xem trước hiện màn bìa
                  (openCoverPanel), việc chỉnh làm thẳng trên bìa bằng bảng chỉnh dòng. -->
             <div id="theme-cover-panel" class="hidden space-y-2">
