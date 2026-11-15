@@ -207,6 +207,37 @@ function openDesktopPanel() {
 }
 window.openDesktopPanel = openDesktopPanel;
 
+// ── TỰ CUỘN ─────────────────────────────────────────────────────────────────
+// theme_setting.auto_scroll (mặc định tắt) — thiệp thật đọc ở theme-boot.js.
+function _syncAutoScroll() {
+  const el = document.getElementById("theme-auto-scroll");
+  if (el) el.checked = !!_themeSetting.auto_scroll;
+}
+
+function onAutoScrollToggle(on) {
+  if (on) _themeSetting.auto_scroll = true;
+  else delete _themeSetting.auto_scroll;
+  _scheduleAutoSave("theme");
+}
+window.onAutoScrollToggle = onAutoScrollToggle;
+
+function resetAutoScroll() {
+  delete _themeSetting.auto_scroll;
+  _syncAutoScroll();
+  _scheduleAutoSave("theme");
+  showToast("Đã tắt tự cuộn", "success");
+}
+window.resetAutoScroll = resetAutoScroll;
+
+function openAutoScrollPanel() {
+  _clearCtrlPanels();
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-autoscroll-panel")?.classList.remove("hidden");
+  _syncAutoScroll();
+  _resetCtrlScroll();
+}
+window.openAutoScrollPanel = openAutoScrollPanel;
+
 // ── ẢNH BÌA ─────────────────────────────────────────────────────────────────
 // Khung chỉnh vốn bỏ qua màn bìa; tab này nhờ thiệp hiện bìa đứng yên (cxCoverEdit ở
 // wedding-helper.js) để bấm chỉnh chữ/chi tiết trên đó bằng đúng bảng chỉnh dòng của thân
@@ -550,6 +581,7 @@ function _initThemePanel(opts) {
   _renderPaletteGrid();
   _syncPaletteStrength();
   _syncDesktopWide();
+  _syncAutoScroll();
 
   // Mở tab Giao diện (kể cả sau F5) → dọn mọi bảng còn mở từ lần trước rồi mở
   // sẵn tab ĐẦU của dải (CTRL_TABS[0]) ở mọi khổ màn.
@@ -2645,6 +2677,15 @@ const CTRL_VIEWS = [
     reset: "resetDesktopWide",
   },
   {
+    key: "autoscroll",
+    panel: "theme-autoscroll-panel",
+    title: "Tự cuộn",
+    icon: "chevrons-down",
+    tip: "Thiệp tự cuộn xuống sau khi khách mở",
+    open: "openAutoScrollPanel",
+    reset: "resetAutoScroll",
+  },
+  {
     key: "cover",
     panel: "theme-cover-panel",
     title: "Ảnh bìa",
@@ -2695,7 +2736,7 @@ const CTRL_TAB_PANELS = CTRL_VIEWS.filter((v) => v.open).map((v) => v.panel);
 
 // Thứ tự nút ở dải tab dưới (màn con `element`/`line` không có tab: chỉ mở được
 // bằng cú bấm vào thiệp). Nhãn + lời mách lấy từ CTRL_VIEWS nên chỉ khai MỘT chỗ.
-const CTRL_TABS = ["main", "addtext", "cover", "elements", "gift", "wishes", "desktop"];
+const CTRL_TABS = ["main", "addtext", "cover", "elements", "gift", "wishes", "desktop", "autoscroll"];
 
 // Màn cấp 2 vào được từ nhiều đường: bấm thẳng vào thiệp, hoặc vừa thả một thứ
 // từ bảng cấp 1 ra (thả mẫu văn bản xong là nhảy luôn sang Chỉnh chữ). Ghi lại

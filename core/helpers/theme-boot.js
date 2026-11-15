@@ -219,8 +219,8 @@ function _cxDeviceMinW() {
   return w && h ? Math.min(w, h) : 0;
 }
 
-// theme_setting.desktop_wide — bản sao desktopWide() ở worker/route-html.mjs.
-function _cxDesktopWide(ts) {
+// Đọc một cờ của theme_setting (cột có thể về dạng chuỗi JSON).
+function _cxTsFlag(ts, key) {
   if (typeof ts === "string") {
     try {
       ts = JSON.parse(ts);
@@ -228,7 +228,12 @@ function _cxDesktopWide(ts) {
       ts = null;
     }
   }
-  return !!(ts && ts.desktop_wide);
+  return !!(ts && ts[key]);
+}
+
+// theme_setting.desktop_wide — bản sao desktopWide() ở worker/route-html.mjs.
+function _cxDesktopWide(ts) {
+  return _cxTsFlag(ts, "desktop_wide");
 }
 
 // Tên mẫu suy từ đường dẫn: /public/themes/romantic-gold/ → "Romantic Gold"; link
@@ -655,6 +660,51 @@ function _cxMountMusic(decl) {
   window.setupMusicPlayer?.(node);
 }
 
+// Tự cuộn sau khi mở thiệp (theme_setting.auto_scroll, tab Giao diện "Tự cuộn"): chờ
+// CX_AUTOSCROLL_DELAY rồi trôi xuống đều tới cuối; khách chạm/lăn chuột/bấm phím/kéo
+// thanh cuộn là DỪNG HẲN. Cuộn trên window — mẫu không cuộn trang thì tự thành no-op.
+const CX_AUTOSCROLL_DELAY = 2000;
+const CX_AUTOSCROLL_SPEED = 48; // px mỗi giây
+const CX_AUTOSCROLL_STOP = ["wheel", "touchstart", "pointerdown", "keydown"];
+
+function _cxAutoScroll() {
+  const se = document.scrollingElement || document.documentElement;
+  let raf = 0;
+  let timer = 0;
+  let pos = 0;
+  let last = 0;
+  let prev = 0;
+  const stop = () => {
+    clearTimeout(timer);
+    cancelAnimationFrame(raf);
+    raf = -1;
+    CX_AUTOSCROLL_STOP.forEach((ev) => window.removeEventListener(ev, stop, true));
+  };
+  CX_AUTOSCROLL_STOP.forEach((ev) =>
+    window.addEventListener(ev, stop, { capture: true, passive: true }),
+  );
+  const step = (now) => {
+    if (raf === -1) return;
+    // Vị trí lệch khỏi chỗ mình vừa đặt = khách tự kéo (thanh cuộn, nút trong thiệp…).
+    if (Math.abs(se.scrollTop - last) > 2) return stop();
+    const dt = Math.min(100, now - (prev || now)); // tab ẩn rồi quay lại: không nhảy cóc
+    prev = now;
+    const max = se.scrollHeight - se.clientHeight;
+    pos = Math.min(max, pos + (CX_AUTOSCROLL_SPEED * dt) / 1000);
+    // "instant": vài mẫu khai `scroll-behavior: smooth` cho <html>, mỗi bước sẽ thành một animation.
+    window.scrollTo({ top: pos, behavior: "instant" });
+    last = se.scrollTop;
+    if (pos >= max) return stop();
+    raf = requestAnimationFrame(step);
+  };
+  timer = setTimeout(() => {
+    if (raf === -1) return;
+    pos = last = se.scrollTop;
+    if (se.scrollHeight - se.clientHeight <= 0) return stop();
+    raf = requestAnimationFrame(step);
+  }, CX_AUTOSCROLL_DELAY);
+}
+
 (function () {
   const T = window.CX_THEME;
   if (!T || typeof window.renderWedding !== "function") return;
@@ -674,6 +724,23 @@ function _cxMountMusic(decl) {
   // --- TRÌNH PHÁT NHẠC ---
   _cxMountMusic(T.music);
 
+  // --- TỰ CUỘN ---
+  // Chạy khi đủ CẢ HAI: thiệp đã mở (onOpen) và dữ liệu đã về có bật cờ — mẫu không bìa
+  // mở thiệp ngay lúc nạp, trước khi biết cờ. Khung chỉnh của trang Thiết lập
+  // (_cxSkipCover) và mẫu slide (deck) không chạy.
+  const auto = { on: false, opened: false, done: false };
+  const _autoTry = () => {
+    if (auto.done || !auto.on || !auto.opened) return;
+    auto.done = true;
+    if (!T.deck && !_cxSkipCover()) _cxAutoScroll();
+  };
+  const _onOpen = () => {
+    const fn = T.onOpen;
+    if (fn) fn();
+    auto.opened = true;
+    _autoTry();
+  };
+
   // --- NẠP DỮ LIỆU ---
   // Thiệp thật lẫn bản xem (?preview=true) đều qua đây (xem wedding-helper.js).
   // Trong khung máy thì gửi tên đôi uyên ương ra cho chrome của trang cha
@@ -687,6 +754,10 @@ function _cxMountMusic(decl) {
     }
     window.renderWedding(w);
     _cxHideEmptyTimeline(w);
+    auto.on = _cxTsFlag(w?.theme_setting, "auto_scroll");
+    // Mẫu không có màn bìa: thiệp coi như mở ngay khi có dữ liệu.
+    if (!document.getElementById("cover-screen")) auto.opened = true;
+    _autoTry();
     // Link chung (khách vãn lai) không ứng với hàng khách nào nên không ghi được
     // xác nhận → giấu khối nút, và cả phần mẫu đánh dấu `data-cx-guest-only` (vd cả
     // màn RSVP). Bản xem thử giữ nguyên để chủ thiệp thấy mục này.
@@ -716,13 +787,13 @@ function _cxMountMusic(decl) {
   // Gọi cxMusicOnOpen TRƯỚC, ngay trong cú bấm: nhạc mượn cú bấm này để được phát.
   window.openInvitation = function () {
     if (window.cxMusicOnOpen) window.cxMusicOnOpen();
-    _openInvitation(T.onOpen);
+    _openInvitation(_onOpen);
   };
 
   // --- LỜI CHÀO RIÊNG ---
   const _greetNow = () =>
     setupPersonalizedGreeting(getSlugFromUrl(), isGroomSide(), () =>
-      _openInvitation(T.onOpen),
+      _openInvitation(_onOpen),
     );
   // Link mã ngắn (?g=): chờ tra tên khách xong mới chào — mẫu bọc hàm chào kiểm
   // CX_GUEST ngay sau lời gọi, gọi sớm là khối tên khách không bao giờ hiện.

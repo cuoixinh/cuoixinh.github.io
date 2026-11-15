@@ -16,9 +16,10 @@ const TH_GROUPS = [
   { id: "gift", ctab: "gift" },
   { id: "wishes", ctab: "wishes" },
   { id: "desktop", ctab: "desktop" },
+  { id: "autoscroll", ctab: "autoscroll" },
 ];
 
-const TH_TOP = { palette: "main", gift_box: "gift", wishes_mode: "wishes", desktop_wide: "desktop" };
+const TH_TOP = { palette: "main", gift_box: "gift", wishes_mode: "wishes", desktop_wide: "desktop", auto_scroll: "autoscroll" };
 
 let _thBase = null; // { key, items:{k:v}, idx:{k:n}, at:{k:ms}, sample:{k:str} }
 let _thLast = null; // { k: chuỗi ổn định } ở lần ghi nhận trước
@@ -313,6 +314,15 @@ function _thDescribe(k, before, after) {
       tile: { type: "icon", name: "monitor" },
       diff: { type: "note", text: after ? "Thiệp phủ cả màn hình máy tính" : "Thiệp hiện trong khung điện thoại" },
     };
+  if (k === "auto_scroll")
+    return {
+      group: "autoscroll",
+      kind: "edit",
+      title: after ? "Bật tự cuộn khi mở thiệp" : "Tắt tự cuộn khi mở thiệp",
+      detail: "",
+      tile: { type: "icon", name: "chevrons-down" },
+      diff: { type: "note", text: after ? "Mở thiệp 2 giây là tự cuộn xuống" : "Khách tự cuộn" },
+    };
 
   if (k.startsWith("ov:")) {
     const sel = k.slice(3);
@@ -432,6 +442,11 @@ function _thApply(k, target) {
   if (k === "desktop_wide") {
     onDesktopWideToggle(!!v);
     _syncDesktopWide();
+    return false;
+  }
+  if (k === "auto_scroll") {
+    onAutoScrollToggle(!!v);
+    _syncAutoScroll();
     return false;
   }
   if (k.startsWith("ov:")) {
