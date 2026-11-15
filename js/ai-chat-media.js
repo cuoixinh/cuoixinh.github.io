@@ -9,7 +9,7 @@
     { id: "theme", label: "Mẫu thiệp", icon: "layout-template", hint: "Chọn một mẫu — trước khi thanh toán đổi lại lúc nào cũng được." },
     { id: "photos", label: "Ảnh cưới", icon: "image", hint: "Ảnh bìa và ảnh chân dung chú rể, cô dâu." },
     { id: "gallery", label: "Album", icon: "images", hint: "Tối đa 10 ảnh cho album cưới, chọn nhiều ảnh một lúc được." },
-    { id: "music", label: "Nhạc nền", icon: "music", hint: "Chọn bài trong thư viện nhạc, hoặc tìm trên YouTube / dán link bài hát." },
+    { id: "music", label: "Nhạc nền", icon: "music", hint: "Chọn bài trong thư viện nhạc của CuoiXinh." },
     { id: "map", label: "Bản đồ", icon: "map-pin", hint: "Ghim chỉ đường để khách mời tìm tới nơi làm lễ, tổ chức tiệc." },
     { id: "qr", label: "QR mừng cưới", icon: "qr-code", hint: "Ảnh mã QR tài khoản ngân hàng hai bên cho hộp mừng cưới." },
   ];
@@ -677,8 +677,8 @@
     };
   }
 
-  // Nhạc nền: hai tab Thư viện nhạc / YouTube y tab Cấu hình của trang Thiết lập (cxMusicSrc ở
-  // invitation-setup/js/11-youtube.js). Bài thư viện lưu "lib:<file>", YouTube lưu link.
+  // Nhạc nền: chỉ hiện Thư viện nhạc — tab YouTube đang ẨN (dải tab + ghi chú không gắn vào
+  // khung), phần xử lý giữ nguyên cho bài YouTube đã chọn. Bài thư viện lưu "lib:<file>".
   // Thư viện = kho cloudflare-media/ (CONFIG.slideMusic.library). Trang Thiết lập có sẵn
   // cxMusicLibrary (core/utils.js); trang chủ không nạp utils nên tự đọc danh mục, lọc y hệt.
   const LIB_PREFIX = "lib:"; // khớp CX_LIB_PREFIX ở core/utils.js
@@ -739,14 +739,9 @@
       return b;
     });
     seg.append(...tabs);
-    const note = el(
-      "p",
-      "aichat-kit-sub",
-      "Nên chọn bài trong thư viện nhạc để thiệp tải nhanh hơn. Thư viện chưa có bài bạn cần thì tìm trên YouTube.",
-    );
     const libPane = el("div", "aichat-music-pane");
     const ytPane = el("div", "aichat-music-pane");
-    body.append(cur, seg, note, libPane, ytPane);
+    body.append(cur, libPane, ytPane);
     const lib = musicLibPane(libPane);
     const yt = musicYtPane(ytPane);
 
@@ -770,10 +765,9 @@
     let first = true;
     return (st) => {
       const url = st.music?.url || "";
-      // Mở lần đầu: đang có bài YouTube thì mở tab YouTube, còn lại tab Thư viện.
       if (first) {
         first = false;
-        show(url && !url.startsWith(LIB_PREFIX) ? "yt" : "lib");
+        show("lib");
       }
       cur.hidden = !url;
       cur.textContent = "";

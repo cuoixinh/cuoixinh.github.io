@@ -44,7 +44,8 @@ let _ytSuggestionsCache = null;
 
 async function _showYouTubeSuggestions() {
   const results = document.getElementById("youtube-search-results");
-  if (!results) return;
+  // Khung tìm YouTube đang ẩn (trang Thiết lập) thì khỏi gọi tìm kiếm.
+  if (!results || results.closest(".hidden")) return;
 
   if (_ytSuggestionsCache) {
     results.innerHTML = _ytSuggestionsCache;
@@ -508,7 +509,6 @@ function renderExistingYouTubeMusic(musicUrl) {
     return; // Not a YouTube URL
   }
 
-  cxMusicSrc("yt");
   // Load từ DB: chỉ có URL → selectYouTubeSong tự lấy tên bài (oEmbed), hiện tag + preview.
   // Không gọi _scheduleAutoSave để tránh đánh dấu "dirty" khi vừa nạp.
   selectYouTubeSong(musicUrl, "");
@@ -623,8 +623,8 @@ function _musicStartLib(yt) {
 }
 
 _onDomReady(function () {
-  // Thư viện là tab mở sẵn; thiệp đang dùng bài YouTube thì renderExistingYouTubeMusic chuyển tab.
-  if (document.getElementById("music-src-seg")) cxMusicSrc(cxIsLibMusic(_currentMusicUrl) || !_currentMusicUrl ? "lib" : "yt");
+  // Luôn mở khung Thư viện: tab YouTube đang ẩn, bài YouTube đã lưu chỉ hiện ở thẻ bài đang chọn.
+  if (document.getElementById("music-src-seg")) cxMusicSrc("lib");
   document.getElementById("music-src-seg")?.addEventListener("click", (e) => {
     const b = e.target.closest("[data-music-src]");
     if (b) cxMusicSrc(b.dataset.musicSrc);

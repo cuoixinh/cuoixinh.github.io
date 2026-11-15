@@ -14,7 +14,7 @@ const FEATURES_DATA = [
   { icon: "images",        title: "Album ảnh cưới",          desc: "Tối đa 10 ảnh, trình chiếu ngay trong thiệp." },
   { icon: "calendar",      title: "Lịch trình ngày cưới",    desc: "Lễ vu quy, thành hôn, tiệc hai nhà — đủ từng mốc giờ." },
   { icon: "map-pin",       title: "Bản đồ chỉ đường",        desc: "Google Maps dẫn thẳng tới nơi làm lễ và đãi tiệc." },
-  { icon: "music",         title: "Nhạc nền lãng mạn",       desc: "Chọn bài hát yêu thích từ YouTube làm nền cho thiệp." },
+  { icon: "music",         title: "Nhạc nền lãng mạn",       desc: "Chọn bài hát yêu thích trong thư viện nhạc làm nền cho thiệp." },
   { icon: "qr-code",       title: "Hộp mừng cưới",           desc: "QR ngân hàng để khách gửi lì xì trực tuyến.", demo: "gift" },
 ];
 

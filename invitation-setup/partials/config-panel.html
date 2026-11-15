@@ -259,15 +259,15 @@
             <p id="music-start-error" class="hidden text-xs text-red-600" role="alert"></p>
           </div>
 
-          <!-- Hai nguồn nhạc (11-youtube.js, cxMusicSrc): chỉ đổi khung tìm bên dưới,
-               bài đang chọn (thẻ + #music-url-input) giữ nguyên tới khi chọn bài khác. -->
-          <div id="music-src-seg" class="cx-seg" role="tablist" aria-label="Nguồn nhạc" style="--n: 2; --i: 0">
-            <button type="button" class="cx-seg-btn is-on" role="tab" data-music-src="lib" aria-selected="true">Thư viện nhạc</button>
-            <button type="button" class="cx-seg-btn" role="tab" data-music-src="yt" aria-selected="false">YouTube</button>
+          <!-- Nguồn YouTube đang ẨN với khách: chỉ chọn được bài thư viện. Dải tab + khung tìm
+               YouTube vẫn nằm trong DOM (11-youtube.js cần), thiệp đã lưu bài YouTube vẫn hiện
+               ở thẻ bài đang chọn và phát bình thường. -->
+          <div class="hidden">
+            <div id="music-src-seg" class="cx-seg" role="tablist" aria-label="Nguồn nhạc" style="--n: 2; --i: 0">
+              <button type="button" class="cx-seg-btn is-on" role="tab" data-music-src="lib" aria-selected="true">Thư viện nhạc</button>
+              <button type="button" class="cx-seg-btn" role="tab" data-music-src="yt" aria-selected="false">YouTube</button>
+            </div>
           </div>
-          <p class="text-xs text-gray-500">
-            Nên chọn bài trong thư viện nhạc để thiệp tải nhanh hơn. Thư viện chưa có bài bạn cần thì tìm trên YouTube.
-          </p>
           <input type="hidden" id="music-url-input" name="music_url" />
           <div id="music-src-yt" class="hidden space-y-3">
             <!-- Ô TÌM KIẾM thuần: chọn bài xong thì trống lại, bài đang chọn hiện
