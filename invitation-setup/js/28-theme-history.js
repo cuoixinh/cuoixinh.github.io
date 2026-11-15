@@ -314,15 +314,21 @@ function _thDescribe(k, before, after) {
       tile: { type: "icon", name: "monitor" },
       diff: { type: "note", text: after ? "Thiệp phủ cả màn hình máy tính" : "Thiệp hiện trong khung điện thoại" },
     };
-  if (k === "auto_scroll")
+  if (k === "auto_scroll") {
+    const txt = (v) => {
+      if (!v) return "Tắt";
+      const o = v === true ? {} : v;
+      return `Chờ ${o.delay ?? AUTOSCROLL_DEF.delay} giây · ${o.speed ?? AUTOSCROLL_DEF.speed} px/s`;
+    };
     return {
       group: "autoscroll",
       kind: "edit",
-      title: after ? "Bật tự cuộn khi mở thiệp" : "Tắt tự cuộn khi mở thiệp",
-      detail: "",
+      title: !after ? "Tắt tự cuộn khi mở thiệp" : before ? "Đổi tự cuộn" : "Bật tự cuộn khi mở thiệp",
+      detail: `${txt(before)} → ${txt(after)}`,
       tile: { type: "icon", name: "chevrons-down" },
-      diff: { type: "note", text: after ? "Mở thiệp 2 giây là tự cuộn xuống" : "Khách tự cuộn" },
+      diff: { type: "swap", from: { label: txt(before) }, to: { label: txt(after) } },
     };
+  }
 
   if (k.startsWith("ov:")) {
     const sel = k.slice(3);
@@ -445,8 +451,10 @@ function _thApply(k, target) {
     return false;
   }
   if (k === "auto_scroll") {
-    onAutoScrollToggle(!!v);
+    if (v) _themeSetting.auto_scroll = v;
+    else delete _themeSetting.auto_scroll;
     _syncAutoScroll();
+    _scheduleAutoSave("theme");
     return false;
   }
   if (k.startsWith("ov:")) {

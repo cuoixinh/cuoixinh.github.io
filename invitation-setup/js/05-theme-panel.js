@@ -208,18 +208,61 @@ function openDesktopPanel() {
 window.openDesktopPanel = openDesktopPanel;
 
 // ── TỰ CUỘN ─────────────────────────────────────────────────────────────────
-// theme_setting.auto_scroll (mặc định tắt) — thiệp thật đọc ở theme-boot.js.
+// theme_setting.auto_scroll (mặc định tắt) — thiệp thật đọc ở theme-boot.js. Lưu `true`
+// khi để mặc định, chỉnh thì `{speed?, delay?}` chỉ chứa khoá khác mặc định.
+// Bản sao CX_AUTOSCROLL_DEF ở core/helpers/theme-boot.js; khoảng kéo khai ở theme-panel.html.
+const AUTOSCROLL_DEF = { speed: 48, delay: 2 };
+const AUTOSCROLL_FMT = { speed: (v) => `${v} px/s`, delay: (v) => `${v} giây` };
+
+function _autoScrollOpts() {
+  const v = _themeSetting.auto_scroll;
+  const o = v && typeof v === "object" ? v : {};
+  return { speed: o.speed ?? AUTOSCROLL_DEF.speed, delay: o.delay ?? AUTOSCROLL_DEF.delay };
+}
+
+function _setAutoScrollOpts(opts) {
+  const diff = {};
+  Object.keys(AUTOSCROLL_DEF).forEach((k) => {
+    if (opts[k] !== AUTOSCROLL_DEF[k]) diff[k] = opts[k];
+  });
+  _themeSetting.auto_scroll = Object.keys(diff).length ? diff : true;
+}
+
 function _syncAutoScroll() {
+  const on = !!_themeSetting.auto_scroll;
   const el = document.getElementById("theme-auto-scroll");
-  if (el) el.checked = !!_themeSetting.auto_scroll;
+  if (el) el.checked = on;
+  document.getElementById("theme-auto-scroll-opts")?.classList.toggle("hidden", !on);
+  if (!on) return;
+  const opts = _autoScrollOpts();
+  Object.keys(AUTOSCROLL_DEF).forEach((k) => {
+    const input = document.getElementById(`theme-auto-scroll-${k}`);
+    if (!input) return;
+    input.value = opts[k];
+    const wrap = window.CXProgress?.attach(input, { format: AUTOSCROLL_FMT[k] });
+    // Ô số mặc định 36px không đủ chỗ cho đơn vị.
+    const val = wrap?.querySelector(".cx-prog-val");
+    if (val) val.style.width = "56px";
+  });
 }
 
 function onAutoScrollToggle(on) {
   if (on) _themeSetting.auto_scroll = true;
   else delete _themeSetting.auto_scroll;
+  _syncAutoScroll();
   _scheduleAutoSave("theme");
 }
 window.onAutoScrollToggle = onAutoScrollToggle;
+
+// Kéo chỉ ghi vào _themeSetting; thả tay (`done`) mới hẹn lưu.
+function onAutoScrollOpt(key, value, done) {
+  if (!_themeSetting.auto_scroll) return;
+  const opts = _autoScrollOpts();
+  opts[key] = Number(value);
+  _setAutoScrollOpts(opts);
+  if (done) _scheduleAutoSave("theme");
+}
+window.onAutoScrollOpt = onAutoScrollOpt;
 
 function resetAutoScroll() {
   delete _themeSetting.auto_scroll;
@@ -907,6 +950,7 @@ function openAddTextPanel() {
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-autoscroll-panel")?.classList.add("hidden");
   document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
@@ -1185,6 +1229,7 @@ function openElementsPanel() {
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-autoscroll-panel")?.classList.add("hidden");
   document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
@@ -1430,6 +1475,7 @@ function openGiftPanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-autoscroll-panel")?.classList.add("hidden");
   document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
@@ -1612,6 +1658,7 @@ function openWishPanel() {
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-autoscroll-panel")?.classList.add("hidden");
   document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
@@ -1810,6 +1857,7 @@ function openElementEditor(msg) {
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-autoscroll-panel")?.classList.add("hidden");
   document.getElementById("theme-cover-panel")?.classList.add("hidden");
   document.getElementById("theme-element-editor")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -2016,6 +2064,7 @@ function _openLineEditor(msg) {
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
   document.getElementById("theme-desktop-panel")?.classList.add("hidden");
+  document.getElementById("theme-autoscroll-panel")?.classList.add("hidden");
   document.getElementById("theme-cover-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
