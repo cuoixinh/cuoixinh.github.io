@@ -345,8 +345,8 @@ function _syncStats() {
   });
   // Bên đang mở chưa có khách: ẩn cả thanh công cụ (chưa có gì để tìm, màn trống đã
   // có đủ ba cách thêm khách). Chỉ ẩn khi đã tải xong (đang tải/lỗi vẫn giữ).
-  const bar = document.querySelector(".gs-toolbar");
-  bar?.classList.toggle("is-empty", _loaded[_currentTab] && !list.length);
+  const empty = _loaded[_currentTab] && !list.length;
+  document.querySelector(".gs-toolbar")?.classList.toggle("is-empty", empty);
   _syncSelBar();
   ["groom", "bride"].forEach((s) => {
     const el = document.getElementById(`tab-${s}-n`);
@@ -1450,12 +1450,12 @@ function _buildPageBtns(side, cur, total) {
     </x-button>`).join("");
 }
 
-function _emptyHTML(icon, title, desc, actions = "") {
+function _emptyHTML(icon, title, desc, actions = "", cls = "") {
   return `
-    <div class="gs-empty">
+    <div class="gs-empty${cls ? ` ${cls}` : ""}">
       <span class="gs-empty-ico">${_ico(icon, 24)}</span>
       <p class="gs-empty-title">${title}</p>
-      <p class="gs-empty-desc">${desc}</p>
+      ${desc ? `<p class="gs-empty-desc">${desc}</p>` : ""}
       ${actions ? `<div class="gs-empty-acts">${actions}</div>` : ""}
     </div>`;
 }
@@ -1472,10 +1472,10 @@ function _emptyPathsHTML(side) {
       </span>
     </button>`;
   return `<div class="gs-paths">
-    ${card("ai", `<i data-icon="xuxi" data-size="28"></i>`, "Nhập khẩu với AI",
-      "Hỗ trợ văn bản, ảnh chụp, PDF, Word, Excel. Tự động tách tên, xưng hô từng khách.", `switchTab('${side}'); openAiImport()`)}
     ${card("one", _ico("user-plus", 20), "Thêm từng khách",
       "Gõ tên và xưng hô cho một người.", `openAddGuestModal('${side}')`)}
+    ${card("ai", `<i data-icon="xuxi" data-size="28"></i>`, "Nhập khẩu với AI",
+      "Hỗ trợ văn bản, ảnh chụp, PDF, Word, Excel. Tự động tách tên, xưng hô từng khách.", `switchTab('${side}'); openAiImport()`)}
     ${card("excel", _ico("file-spreadsheet", 20), "Nhập từ Excel",
       "Dùng file có cột Họ tên, Tên trên thiệp, Xưng hô.", "pickExcel()")}
   </div>`;
@@ -1556,8 +1556,9 @@ function _renderGuestList(side) {
     container.innerHTML = _emptyHTML(
       "users",
       `Chưa có khách ${_SIDE_LABEL[side]}`,
-      "Mỗi khách sẽ có một link mời gọi đúng tên. Chọn cách thêm khách tiện nhất với bạn.",
+      "",
       _emptyPathsHTML(side),
+      "gs-empty--start",
     ) + `<p class="gs-empty-note">Chưa có file Excel? <button type="button" class="gs-link" onclick="downloadGuestTemplate()">Tải file mẫu</button></p>`;
     lucide.createIcons({ root: container });
     return;

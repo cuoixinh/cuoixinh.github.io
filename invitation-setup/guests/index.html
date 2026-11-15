@@ -273,12 +273,15 @@
 
         <!-- "Lưu" là nút chính (lưu CHÍNH khách đang mở); "Thêm người khác" chỉ bật khi
              khách này đã lưu và mở form trống — khác "Lưu" cả kiểu nút lẫn icon. -->
-        <div class="gs-sheet-foot">
-          <x-button variant="ghost" tone="neutral" type="button" onclick="closeAddGuestModal()" class="-ml-2">Đóng</x-button>
-          <div class="flex-1"></div>
+        <!-- Dưới 400px (.gs-gm-foot ở _setup.css): bỏ "Đóng" (đã có ✕ ở đầu popup), hai nút
+             còn lại chia đôi hàng và rút nhãn — đủ ba nút là tràn trên máy 360px. -->
+        <div class="gs-sheet-foot gs-gm-foot">
+          <x-button variant="ghost" tone="neutral" type="button" onclick="closeAddGuestModal()" class="gs-gm-close -ml-2">Đóng</x-button>
+          <div class="gs-gm-gap flex-1"></div>
           <x-button id="add-guest-new" variant="outline" tone="neutral" type="button" onclick="resetAddGuestForm()" disabled>
             <i data-lucide="user-plus" style="width:16px;height:16px"></i>
-            <span>Thêm người khác</span>
+            <span class="gs-gm-long">Thêm người khác</span>
+            <span class="gs-gm-short">Thêm người</span>
           </x-button>
           <x-button id="add-guest-save" type="button" onclick="saveAddGuest()" class="min-w-[88px]">
             <i data-lucide="check" style="width:16px;height:16px"></i>
