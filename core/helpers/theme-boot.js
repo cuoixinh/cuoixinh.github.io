@@ -219,8 +219,8 @@ function _cxDeviceMinW() {
   return w && h ? Math.min(w, h) : 0;
 }
 
-// Đọc một cờ của theme_setting (cột có thể về dạng chuỗi JSON).
-function _cxTsFlag(ts, key) {
+// Đọc một khoá của theme_setting (cột có thể về dạng chuỗi JSON).
+function _cxTsGet(ts, key) {
   if (typeof ts === "string") {
     try {
       ts = JSON.parse(ts);
@@ -228,7 +228,11 @@ function _cxTsFlag(ts, key) {
       ts = null;
     }
   }
-  return !!(ts && ts[key]);
+  return ts && typeof ts === "object" ? ts[key] : undefined;
+}
+
+function _cxTsFlag(ts, key) {
+  return !!_cxTsGet(ts, key);
 }
 
 // theme_setting.desktop_wide — bản sao desktopWide() ở worker/route-html.mjs.
@@ -661,13 +665,27 @@ function _cxMountMusic(decl) {
 }
 
 // Tự cuộn sau khi mở thiệp (theme_setting.auto_scroll, tab Giao diện "Tự cuộn"): chờ
-// CX_AUTOSCROLL_DELAY rồi trôi xuống đều tới cuối; khách chạm/lăn chuột/bấm phím/kéo
-// thanh cuộn là DỪNG HẲN. Cuộn trên window — mẫu không cuộn trang thì tự thành no-op.
-const CX_AUTOSCROLL_DELAY = 2000;
-const CX_AUTOSCROLL_SPEED = 48; // px mỗi giây
+// `delay` giây rồi trôi xuống đều `speed` px/giây tới cuối; khách chạm/lăn chuột/bấm
+// phím/kéo thanh cuộn là DỪNG HẲN. Cuộn trên window — mẫu không cuộn trang thì no-op.
+// Giá trị lưu: `true` (mặc định) hoặc `{speed?, delay?}` — chỉ chứa khoá khác mặc định;
+// mặc định + khoảng cho phép là bản sao AUTOSCROLL_* ở invitation-setup/js/05-theme-panel.js.
+const CX_AUTOSCROLL_DEF = { speed: 48, delay: 2 };
+const CX_AUTOSCROLL_RANGE = { speed: [16, 160], delay: [0, 10] };
 const CX_AUTOSCROLL_STOP = ["wheel", "touchstart", "pointerdown", "keydown"];
 
-function _cxAutoScroll() {
+function _cxAutoScrollOpts(v) {
+  if (!v) return null;
+  const o = typeof v === "object" ? v : {};
+  const out = {};
+  Object.keys(CX_AUTOSCROLL_DEF).forEach((k) => {
+    const n = Number(o[k]);
+    const [lo, hi] = CX_AUTOSCROLL_RANGE[k];
+    out[k] = Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : CX_AUTOSCROLL_DEF[k];
+  });
+  return out;
+}
+
+function _cxAutoScroll(opts) {
   const se = document.scrollingElement || document.documentElement;
   let raf = 0;
   let timer = 0;
@@ -690,7 +708,7 @@ function _cxAutoScroll() {
     const dt = Math.min(100, now - (prev || now)); // tab ẩn rồi quay lại: không nhảy cóc
     prev = now;
     const max = se.scrollHeight - se.clientHeight;
-    pos = Math.min(max, pos + (CX_AUTOSCROLL_SPEED * dt) / 1000);
+    pos = Math.min(max, pos + (opts.speed * dt) / 1000);
     // "instant": vài mẫu khai `scroll-behavior: smooth` cho <html>, mỗi bước sẽ thành một animation.
     window.scrollTo({ top: pos, behavior: "instant" });
     last = se.scrollTop;
@@ -702,7 +720,7 @@ function _cxAutoScroll() {
     pos = last = se.scrollTop;
     if (se.scrollHeight - se.clientHeight <= 0) return stop();
     raf = requestAnimationFrame(step);
-  }, CX_AUTOSCROLL_DELAY);
+  }, opts.delay * 1000);
 }
 
 (function () {
@@ -728,11 +746,11 @@ function _cxAutoScroll() {
   // Chạy khi đủ CẢ HAI: thiệp đã mở (onOpen) và dữ liệu đã về có bật cờ — mẫu không bìa
   // mở thiệp ngay lúc nạp, trước khi biết cờ. Khung chỉnh của trang Thiết lập
   // (_cxSkipCover) và mẫu slide (deck) không chạy.
-  const auto = { on: false, opened: false, done: false };
+  const auto = { opts: null, opened: false, done: false };
   const _autoTry = () => {
-    if (auto.done || !auto.on || !auto.opened) return;
+    if (auto.done || !auto.opts || !auto.opened) return;
     auto.done = true;
-    if (!T.deck && !_cxSkipCover()) _cxAutoScroll();
+    if (!T.deck && !_cxSkipCover()) _cxAutoScroll(auto.opts);
   };
   const _onOpen = () => {
     const fn = T.onOpen;
@@ -754,7 +772,7 @@ function _cxAutoScroll() {
     }
     window.renderWedding(w);
     _cxHideEmptyTimeline(w);
-    auto.on = _cxTsFlag(w?.theme_setting, "auto_scroll");
+    auto.opts = _cxAutoScrollOpts(_cxTsGet(w?.theme_setting, "auto_scroll"));
     // Mẫu không có màn bìa: thiệp coi như mở ngay khi có dữ liệu.
     if (!document.getElementById("cover-screen")) auto.opened = true;
     _autoTry();

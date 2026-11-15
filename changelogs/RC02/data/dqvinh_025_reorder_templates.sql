@@ -1,6 +1,6 @@
 -- ============================================================
 -- Sắp xếp lại thứ tự hiển thị mẫu thiệp
--- Ngày: 2026-11-14
+-- Ngày: 2026-11-15
 -- ------------------------------------------------------------
 -- Sinh tự động từ tab "Templates" của admin. Mẫu thiệp là dữ liệu phải có
 -- GIỐNG NHAU ở cả staging lẫn production nên đi bằng changelog, không ghi
@@ -8,15 +8,15 @@
 --
 -- Thứ tự mới (sort_order = 10, 20, 30…):
 --    1. thuan-vo-thuan-chong
---    2. ribbon-love
---    3. romantic-blush
---    4. basic-gold
---    5. romantic-gold
---    6. vintage-forest
---    7. moody-cinematic
---    8. noir-elegance
---    9. luminous-pastel
---   10. opulent-contrast
+--    2. romantic-blush
+--    3. basic-gold
+--    4. romantic-gold
+--    5. vintage-forest
+--    6. moody-cinematic
+--    7. noir-elegance
+--    8. luminous-pastel
+--    9. opulent-contrast
+--   10. ribbon-love
 --   11. serene-parchment
 --   12. pearl-bow
 --   13. hong-duyen
@@ -27,9 +27,6 @@
 --   18. som-hom-co-nhau
 --   19. tinh-tham-nghia-trong
 --   20. messenger-iphone
---   21. dong-hanh-tram-nam
---   22. chung-mot-giai-dieu
---   23. anh-sang-doi-ta
 --
 -- Mẫu không có trong danh sách này (chỉ có ở một môi trường) giữ nguyên
 -- sort_order cũ; mẫu đã đúng số thì không bị đụng tới.
@@ -43,15 +40,15 @@ update public.templates as t
        updated_at = now()
   from (values
        ('thuan-vo-thuan-chong', 10),
-       ('ribbon-love', 20),
-       ('romantic-blush', 30),
-       ('basic-gold', 40),
-       ('romantic-gold', 50),
-       ('vintage-forest', 60),
-       ('moody-cinematic', 70),
-       ('noir-elegance', 80),
-       ('luminous-pastel', 90),
-       ('opulent-contrast', 100),
+       ('romantic-blush', 20),
+       ('basic-gold', 30),
+       ('romantic-gold', 40),
+       ('vintage-forest', 50),
+       ('moody-cinematic', 60),
+       ('noir-elegance', 70),
+       ('luminous-pastel', 80),
+       ('opulent-contrast', 90),
+       ('ribbon-love', 100),
        ('serene-parchment', 110),
        ('pearl-bow', 120),
        ('hong-duyen', 130),
@@ -61,10 +58,7 @@ update public.templates as t
        ('red-carpet', 170),
        ('som-hom-co-nhau', 180),
        ('tinh-tham-nghia-trong', 190),
-       ('messenger-iphone', 200),
-       ('dong-hanh-tram-nam', 210),
-       ('chung-mot-giai-dieu', 220),
-       ('anh-sang-doi-ta', 230)
+       ('messenger-iphone', 200)
        ) as v(template_id, sort_order)
  where t.template_id = v.template_id
    and t.sort_order is distinct from v.sort_order;
