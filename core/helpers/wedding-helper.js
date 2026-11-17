@@ -204,7 +204,12 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     }
     await guestReady;
 
+    // Bản xem bấm-để-sửa (?pick=1, preview-pick.js): bọc dữ liệu để biết dòng chữ nào
+    // lấy từ cột nào. Cần bản GỐC vì các bước dưới đổi chỗ cột (vu quy, tiệc báo hỷ).
+    if (window.__cxPickReady) await window.__cxPickReady;
+    const original = wedding;
     wedding = cxVuQuyAsCeremony(cxPartyOnly(cxTidyAddr(wedding)));
+    if (window.CXPick) wedding = window.CXPick.wrap(wedding, original);
 
     // Bộ màu worker dựng sẵn vào <head> (#cx-palette-boot, route-html.mjs) xong vai: dữ liệu
     // vừa về quyết định — kể cả khi thiệp không còn theme_setting mà trang cũ còn giữ bộ màu.
@@ -243,6 +248,7 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     if (typeof initWishes === "function") {
       initWishes(wedding);
     }
+    window.CXPick?.done();
   } catch (error) {
     // Hết hạn dùng thử: edge function trả 403 TRIAL_EXPIRED. Đây KHÔNG phải lỗi —
     // hiện màn khoá thay vì đá về trang chủ, nếu không khách mời (và cả chủ thiệp)

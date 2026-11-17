@@ -272,11 +272,21 @@
     <!-- Vỏ máy nằm ĐÈ lên iframe (vùng màn hình của ảnh là trong suốt). -->
     <img src="../assets/images/iphone_mockup.svg" alt="" class="cx-phone-frame" />
   </div>
-  <!-- Nhãn "Xem trực tiếp" + nút tải lại, treo DƯỚI máy. -->
+  <!-- Nhãn "Xem trực tiếp" + bộ đếm mục còn thiếu + nút tải lại, treo DƯỚI máy.
+       #live-todo / #live-hint do js/29-preview-pick.js bật tắt. -->
   <div class="cx-live-head">
     <div class="cx-live-bar">
       <span class="cx-live-dot"></span>
       <span class="cx-live-title">Xem trực tiếp</span>
+      <x-button
+        type="button"
+        id="live-todo"
+        variant="bare"
+        class="cx-live-todo hidden"
+        onclick="cxPickNextTodo()"
+      >
+        <span></span>
+      </x-button>
       <x-button
         type="button"
         id="live-reload"
@@ -287,6 +297,21 @@
         title="Tải lại"
       >
         <i data-lucide="rotate-cw"></i>
+      </x-button>
+    </div>
+  </div>
+  <!-- Lớp ngoài chỉ để ẩn/hiện: .cx-live-hint khai display nên đè mất .hidden. -->
+  <div id="live-hint" class="hidden" role="note">
+    <div class="cx-live-hint">
+      <span>Bấm vào chữ hoặc ảnh trên thiệp để sửa nhanh</span>
+      <x-button
+        type="button"
+        variant="bare"
+        class="cx-live-hint-x"
+        onclick="cxPickHintDone()"
+        aria-label="Tắt gợi ý"
+      >
+        <i data-lucide="x"></i>
       </x-button>
     </div>
   </div>

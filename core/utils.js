@@ -27,12 +27,15 @@ function setText(id, value, placeholder = "") {
   // trực tiếp (muốn đổi phải vào tab Thiết lập). setText dùng chung mọi theme nên
   // 1 chỗ này phủ gần hết text bound.
   el.setAttribute("data-cx-bound", "1");
+  // Bản xem bấm-để-sửa: ghi dòng này ứng với cột nào (core/helpers/preview-pick.js).
+  window.__cxPickTrace?.(el, value);
 }
 
 function setAttr(id, attr, value, placeholder = "") {
   const el = document.getElementById(id);
   if (!el) return;
   el.setAttribute(attr, value || placeholder);
+  if (attr === "src") window.__cxPickTraceImg?.(el);
 }
 
 function setImageWithRing(id, filename) {
@@ -41,6 +44,7 @@ function setImageWithRing(id, filename) {
 
   const url = getImageUrl(filename);
   el.setAttribute("src", url);
+  window.__cxPickTraceImg?.(el);
 
   // Get parent container
   const container = el.parentElement;

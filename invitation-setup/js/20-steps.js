@@ -486,6 +486,7 @@ function cxRenderSteps() {
   cxRenderStepBar();
   _cxRenderPanels();
   _cxRenderNav();
+  window.cxPickSyncTodo?.(); // bộ đếm "Còn N mục" dưới khung xem trực tiếp
 }
 window.cxRenderSteps = cxRenderSteps;
 
@@ -493,6 +494,7 @@ window.cxRenderSteps = cxRenderSteps;
 function cxRefreshStepStatus() {
   cxRenderStepBar();
   _cxRenderNav();
+  window.cxPickSyncTodo?.();
 }
 window.cxRefreshStepStatus = cxRefreshStepStatus;
 

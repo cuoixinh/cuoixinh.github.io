@@ -226,6 +226,17 @@ máy thật** rồi thu bằng `--cx-scr-scale`. Cuộn tới phần đang chỉ
 (key = `data-step`; field/text = ô sửa GẦN NHẤT trong bước đang mở, thiệp dò đúng chuỗi đó
 rồi mới lùi về đoán id, về đầu mục), `core/helpers/preview-focus-helper.js` trong thiệp lo phần còn lại.
 
+**Bấm lên thiệp để sửa** (`?pick=1`, CHỈ dải Xem trực tiếp + tab Xem trước — `_previewIframeSrc`
+bỏ cờ cho khung có `edit=1`/`desktop*` của tab Giao diện): `preview-focus-helper.js` nạp
+`core/helpers/pick-fields.js` (danh mục cột → nhãn + bước, dùng CHUNG hai phía) + `preview-pick.js`,
+`loadWeddingData` chờ rồi bọc dữ liệu bằng Proxy. Ánh xạ ghi LÚC DỰNG: `setText` gắn
+`data-cx-field`, `setAttr(…,"src")`/`setImageWithRing` gắn `data-cx-img` — mẫu tự gán `textContent`
+/`src` thì chỗ đó không ánh xạ được (bấm vào chỉ mở bước). `cxToggle(…, false)` lên khung mục thì mục
+hiện BÓNG MỜ có nút "+ Thêm". Bấm → thẻ nổi trong thiệp → `{type:"cx-pick"}` → `js/29-preview-pick.js`
+chỉ DẪN tới ô form / bộ chọn ảnh / công tắc mục: không có đường ghi thứ hai. Thêm cột sửa được thì
+khai ở `pick-fields.js`. Gác: **`npm run check:inline-map`** (24 mẫu, so `scripts/inline-map-baseline.json`;
+cố ý đổi thì `-- --write`).
+
 **Khung điện thoại `.cx-phone`** dùng ở BA chỗ: dải xem trực tiếp, tab Xem trước
 (`#cx-preview-stage`) và tab Giao diện (`#theme-preview-stage`) — mọi khổ màn, kể cả đang
 xem trên điện thoại thật. Vì các khung cùng

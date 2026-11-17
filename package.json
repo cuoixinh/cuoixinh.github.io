@@ -25,6 +25,7 @@
     "check:units": "node scripts/check-units.mjs",
     "check:lint": "node scripts/check-lint.mjs",
     "check:api": "node scripts/check-api.mjs",
+    "check:inline-map": "node scripts/check-inline-map.mjs",
     "production": "bash scripts/promote-production.sh",
     "deploy:media": "node scripts/media-guard.mjs",
     "sync-production": "bash scripts/sync-production.sh",

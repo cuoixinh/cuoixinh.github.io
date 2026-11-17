@@ -103,11 +103,14 @@ function _mobilePreviewUrl() {
 let _cxPreviewSide = "groom";
 
 // src iframe preview. extra: tham số riêng của từng tab (vd "&edit=1").
+// pick=1: bấm lên thiệp để sửa (js/29-preview-pick.js) — chỉ dải Xem trực tiếp và tab Xem
+// trước; khung của tab Giao diện (edit=1, desktop*) có cách chỉnh riêng.
 function _previewIframeSrc(extra = "") {
   const qrUrl = _mobilePreviewUrl();
   const qrParam = qrUrl ? `&qr=${encodeURIComponent(qrUrl)}` : "";
   const isGroom = _cxPreviewSide === "groom";
-  return `/public/themes/${WEDDING_THEME}/?preview=true&source=live${extra}&isGroom=${isGroom}${qrParam}&t=${Date.now()}`;
+  const pick = /edit=1|desktop/.test(extra) ? "" : "&pick=1";
+  return `/public/themes/${WEDDING_THEME}/?preview=true&source=live${extra}${pick}&isGroom=${isGroom}${qrParam}&t=${Date.now()}`;
 }
 
 // Nút "Xem trước": hỏi xem thiệp nhà trai hay nhà gái rồi mới mở tab.

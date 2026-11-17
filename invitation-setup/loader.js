@@ -130,6 +130,10 @@
     // Đọc CX_THEME của mẫu đang chọn (bước nào mẫu không có). Sau 20-steps:
     // chỉ phát sự kiện, không ai gọi lúc nạp.
     "js/25-theme-decl.js",
+    // Bấm lên thiệp để sửa: danh mục cột dùng chung với thiệp + bộ nhận tin từ khung xem.
+    // Sau 20-steps (cxGoStep, _cxStepState), 10-images (chỉnh khung ảnh), 04 (switchTab).
+    "../core/helpers/pick-fields.js",
+    "js/29-preview-pick.js",
     // Popup kiểm tra trước khi xuất bản — dùng _cxSteps/_cxStepState của 20-steps.
     "js/26-publish-check.js",
     // Phiên chỉnh tab Giao diện — gắn listener vào #theme-panel lúc nạp.

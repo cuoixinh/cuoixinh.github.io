@@ -3491,6 +3491,29 @@ html.cx-rail-off {
   @apply text-[11px] font-semibold tracking-tight text-gray-500;
 }
 
+/* "Còn N mục": bấm là mở lần lượt bước còn thiếu (js/29-preview-pick.js). */
+.cx-live-todo {
+  @apply h-6 shrink-0 px-2 text-[11px] font-semibold;
+
+  background: rgb(var(--state-warning-bg-rgb));
+  color: rgb(var(--state-warning-text-rgb));
+}
+
+/* Gợi ý lần đầu: bấm lên thiệp để sửa. */
+.cx-live-hint {
+  @apply flex max-w-[260px] items-center gap-1 rounded-2xl bg-gray-900 py-2 pl-3 pr-1
+         text-xs leading-snug text-white;
+}
+
+.cx-live-hint-x {
+  @apply h-6 w-6 shrink-0 text-gray-300;
+}
+
+.cx-live-hint-x svg {
+  width: 12px;
+  height: 12px;
+}
+
 /* Nút tải lại: tròn, chìm trong pill; icon quay một vòng mỗi lần bấm. */
 .cx-live-reload {
   @apply h-6 w-6 shrink-0 text-gray-400;

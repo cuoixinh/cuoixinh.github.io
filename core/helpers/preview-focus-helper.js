@@ -3,6 +3,26 @@
 // trùng `data-step` của bước (riêng "map" là mục Địa điểm), field/text là ô sửa gần
 // nhất — có thì tới thẳng dòng chữ đó. Thiệp thật không ai gửi gì nên file này nằm im.
 
+// Bản xem có ?pick=1 (dải Xem trực tiếp, tab Xem trước) thì bấm lên thiệp để sửa: nạp
+// pick-fields.js + preview-pick.js, loadWeddingData chờ xong mới dựng. Hỏng thì vẫn dựng.
+(function () {
+  const q = new URLSearchParams(location.search);
+  if (q.get("preview") !== "true" || q.get("pick") !== "1") return;
+  const v = typeof CX_VERSION !== "undefined" ? `?v=${CX_VERSION}` : "";
+  const load = (src) =>
+    new Promise((ok) => {
+      const s = document.createElement("script");
+      s.src = src + v;
+      s.async = false;
+      s.onload = s.onerror = ok;
+      document.head.appendChild(s);
+    });
+  window.__cxPickReady = Promise.all([
+    load("/core/helpers/pick-fields.js"),
+    load("/core/helpers/preview-pick.js"),
+  ]);
+})();
+
 // Mỗi vai trò một danh sách ứng viên vì id không thống nhất giữa các theme —
 // lấy phần tử ĐẦU TIÊN có thật và đang hiện. Theme đặt id khác thì khai
 // CX_THEME.focus trong index.js của mình (được ưu tiên trước bảng dưới đây),
