@@ -42,14 +42,31 @@ export function freeSide(row: FreeRow): 'groom' | 'bride' | null {
   return isFreePlan(row) ? (row.free_side as 'groom' | 'bride') : null
 }
 
+// Phần CHỈ link của một bên mới thấy: tiệc của bên đó, lễ vu quy (nhà gái), mốc lịch trình.
+const SIDE_ONLY = ['party_date', 'party_time', 'party_lunar', 'party_location', 'party_map_embed_url', 'party_use_embed']
+const VU_QUY = ['vu_quy_date', 'vu_quy_time', 'vu_quy_lunar', 'vu_quy_location', 'vu_quy_map_embed_url', 'vu_quy_use_embed']
+const TIMELINE_OF = { groom: ['party'], bride: ['bride-party', 'vu-quy'] }
+
 /**
- * Cắt dữ liệu thiệp Free trước khi trả cho trang công khai: hộp mừng cưới chỉ còn QR của
- * bên được mở — thông tin ngân hàng bên kia bị GỠ hẳn (giấu bằng giao diện thì xem nguồn
- * vẫn lấy được). Ảnh, xác nhận tham dự và lời chúc giữ như gói trả phí.
+ * Cắt dữ liệu thiệp Free trước khi trả cho trang công khai: GỠ hẳn mọi phần chỉ link bên
+ * bị khoá mới thấy (ngân hàng, tiệc, vu quy, mốc lịch trình). Trang chỉ chuyển hướng về bên
+ * được mở bằng JS — chặn lệnh đó hay gọi thẳng API thì chỉ còn dữ liệu đã gỡ.
  */
 export function applyFreeLimits(data: Record<string, unknown>, open: 'groom' | 'bride') {
   const closed = open === 'groom' ? 'bride' : 'groom'
-  for (const k of ['bank_name', 'bank_number', 'bank_owner', 'qr_url']) data[`${closed}_${k}`] = null
+  for (const k of ['bank_name', 'bank_number', 'bank_owner', 'qr_url', ...SIDE_ONLY]) data[`${closed}_${k}`] = null
+  if (closed === 'bride') {
+    for (const k of VU_QUY) data[k] = null
+    data.vu_quy_enabled = false
+  }
+  let tl = data.timeline
+  if (typeof tl === 'string') {
+    try { tl = JSON.parse(tl) } catch { tl = null }
+  }
+  if (Array.isArray(tl)) {
+    const drop = TIMELINE_OF[closed]
+    data.timeline = tl.filter((i) => !drop.includes((i as { type?: string } | null)?.type ?? ''))
+  }
 }
 
 export function isPlanId(v: unknown): v is PlanId {
