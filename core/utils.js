@@ -328,7 +328,7 @@ function showPreviewAlert() {
 // Khách đang xem thử mẫu được đổi bộ màu để hình dung — CHỈ bản xem thử: thiệp thật luôn
 // dựng theo theme_setting.palette chủ thiệp đã lưu. Lựa chọn nằm ở ?pal= của URL nên nạp
 // lại khung (bật "khách mời") vẫn giữ; áp bằng chính applyThemeSetting như thiệp thật.
-// Lối vào: menu ba chấm (điện thoại, initPreviewSuggest) và thẻ cạnh khung máy (theme-boot.js).
+// Lối vào: nút màu neo mép phải (điện thoại, initPreviewSuggest) và thẻ cạnh khung máy (theme-boot.js).
 const CX_PREV_PAL_DEFAULT = "Mặc định";
 let _cxPrevPalBase; // theme_setting của dữ liệu xem thử, chưa trộn ?pal= (undefined = chưa nạp)
 let _cxPrevPalCat = null;
@@ -437,7 +437,7 @@ function cxPreviewPaletteSwatches(list, cur, cls) {
         ? ` style="background:conic-gradient(${c[0]} 0 50%, ${c[1]} 0 66.6%, ${c[2]} 0 83.3%, ${c[3]} 0)"`
         : "";
       return (
-        `<button type="button" class="${cls}" data-pal="${esc(o.id)}" title="${esc(o.name)}"` +
+        `<button type="button" class="${cls}" data-pal="${esc(o.id)}" title="${esc(o.name)}" aria-label="${esc(o.name)}"` +
         ` aria-pressed="${o.id === cur ? "true" : "false"}">` +
         `<span class="cx-ppal-dot"${bg}></span><span class="cx-ppal-lb">${esc(o.name)}</span></button>`
       );
@@ -1720,15 +1720,13 @@ function closeTimePicker() {
     // pen-line: "Tạo ngay" trong menu ba chấm — cùng hình với thẻ cạnh khung máy.
     pen:
       '<path d="M13 21h8"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
-    // palette: mục "Đổi màu thiệp" trong menu ba chấm.
+    // palette: nút đổi màu thiệp neo mép phải (bản xem thử trên điện thoại).
     palette:
       '<path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/>' +
       '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>' +
       '<circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>' +
       '<circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>' +
       '<circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>',
-    // x: nút đóng tấm chọn màu.
-    close: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
     // ellipsis: nút ba chấm góc trên phải (bản xem thử trên điện thoại).
     more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
     // eye-off: nút "Ẩn" ở góc trên phải, đúng glyph YouTube dùng cho việc tắt
@@ -2244,11 +2242,6 @@ function closeTimePicker() {
           onClick: _guest,
         },
         {
-          icon: _sugIcon("palette", 16),
-          label: row("Đổi màu thiệp", "Thử bộ màu khác cho mẫu này"),
-          onClick: _openPalette,
-        },
-        {
           icon: _sugIcon("pen", 16),
           label: row("Tạo ngay", "Tự điền từng bước"),
           onClick: function () { _use(); },
@@ -2276,52 +2269,59 @@ function closeTimePicker() {
     });
   }
 
-  // Tấm chọn màu neo đáy màn (điện thoại): dải ô màu vuốt ngang, thiệp phía trên đổi
-  // ngay khi bấm nên tấm đứng yên tới khi khách đóng. Đổi màu đi qua cxPreviewPalette.
-  let palSheet = null;
-  function _openPalette() {
-    if (palSheet) return palSheet.classList.add("is-open");
-    palSheet = document.createElement("div");
-    palSheet.className = "cx-ppal";
-    palSheet.setAttribute("data-no-scan", "");
-    palSheet.setAttribute("role", "dialog");
-    palSheet.setAttribute("aria-label", "Đổi màu thiệp");
-    palSheet.innerHTML =
-      '<div class="cx-ppal-head">' +
-      '<span class="cx-ppal-title">Màu thiệp · <b class="cx-ppal-cur"></b></span>' +
-      '<x-button variant="bare" class="cx-ppal-close" aria-label="Đóng">' + _sugIcon("close", 18) + "</x-button>" +
-      "</div>" +
-      '<div class="cx-ppal-row"></div>' +
-      '<p class="cx-ppal-note">Chỉ để xem thử. Tạo thiệp xong bạn chọn màu ở mục Giao diện.</p>';
-    document.body.appendChild(palSheet);
-    const rowEl = palSheet.querySelector(".cx-ppal-row");
+  // Chọn bộ màu trên điện thoại (trang mẫu chạy thẳng, không khung máy): một nút tròn nhỏ
+  // neo mép phải, bấm thì bung cột chấm màu — thấy 4 chấm, cuộn dọc xem tiếp, mép còn màu
+  // phía sau thì mờ dần (.is-up/.is-down). Đổi màu đi qua cxPreviewPalette (ghi ?pal= lên URL).
+  function _mountPalette() {
+    if (IN_SHELL) return;
+    const box = document.createElement("div");
+    box.className = "cx-ppal";
+    box.setAttribute("data-no-scan", "");
+    box.innerHTML =
+      '<x-button variant="bare" class="cx-ppal-btn" aria-label="Đổi màu thiệp" aria-expanded="false">' +
+      _sugIcon("palette", 18) +
+      "</x-button>" +
+      '<div class="cx-ppal-list" hidden></div>';
+    document.body.appendChild(box);
+    const list = box.querySelector(".cx-ppal-list");
+    let built = false;
+
+    const fade = function () {
+      list.classList.toggle("is-up", list.scrollTop > 2);
+      list.classList.toggle("is-down", list.scrollTop + list.clientHeight < list.scrollHeight - 2);
+    };
     const sync = function () {
       const cur = cxPreviewPaletteId();
-      let name = CX_PREV_PAL_DEFAULT;
-      rowEl.querySelectorAll("[data-pal]").forEach(function (b) {
-        const on = b.dataset.pal === cur;
-        b.setAttribute("aria-pressed", on ? "true" : "false");
-        if (on) name = b.title;
+      list.querySelectorAll("[data-pal]").forEach(function (b) {
+        b.setAttribute("aria-pressed", b.dataset.pal === cur ? "true" : "false");
       });
-      palSheet.querySelector(".cx-ppal-cur").textContent = name;
     };
-    palSheet.addEventListener("click", function (e) {
-      if (e.target.closest(".cx-ppal-close")) return palSheet.classList.remove("is-open");
+    const toggle = function (open) {
+      list.hidden = !open;
+      box.classList.toggle("is-open", open);
+      box.querySelector(".cx-ppal-btn")?.setAttribute("aria-expanded", open ? "true" : "false");
+      if (!open) return;
+      if (built) return fade();
+      built = true;
+      cxPreviewPalettes().then(function (items) {
+        list.innerHTML = cxPreviewPaletteSwatches(items, cxPreviewPaletteId(), "cx-ppal-sw");
+        const on = list.querySelector('[aria-pressed="true"]');
+        if (on) list.scrollTop = on.offsetTop - (list.clientHeight - on.offsetHeight) / 2;
+        fade();
+      });
+    };
+
+    list.addEventListener("scroll", fade, { passive: true });
+    box.addEventListener("click", function (e) {
+      if (e.target.closest(".cx-ppal-btn")) return toggle(list.hidden);
       const b = e.target.closest("[data-pal]");
-      if (!b) return;
-      cxPreviewPalette(b.dataset.pal).then(sync);
+      if (b) cxPreviewPalette(b.dataset.pal).then(sync);
+    });
+    document.addEventListener("click", function (e) {
+      if (!list.hidden && !box.contains(e.target)) toggle(false);
     });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") palSheet.classList.remove("is-open");
-    });
-    cxPreviewPalettes().then(function (list) {
-      rowEl.innerHTML = cxPreviewPaletteSwatches(list, cxPreviewPaletteId(), "cx-ppal-sw");
-      sync();
-      const on = rowEl.querySelector('[aria-pressed="true"]');
-      if (on) rowEl.scrollLeft = on.offsetLeft - (rowEl.clientWidth - on.offsetWidth) / 2;
-    });
-    requestAnimationFrame(function () {
-      palSheet.classList.add("is-open");
+      if (e.key === "Escape" && !list.hidden) toggle(false);
     });
   }
 
@@ -2330,6 +2330,7 @@ function closeTimePicker() {
       return _listenShell();
     }
     _mountMenu();
+    _mountPalette();
     document.body.appendChild(panel);
 
     function _dismiss() {

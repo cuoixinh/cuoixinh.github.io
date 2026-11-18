@@ -2751,85 +2751,101 @@ x-button {
   text-overflow: ellipsis;
 }
 
-/* Tấm chọn màu neo đáy màn ở bản xem thử trên điện thoại (mục "Đổi màu thiệp" của menu ba
-   chấm). Trên nút nhạc/dải lời chúc (z 61 như nút ba chấm); trượt lên khi .is-open. */
+/* Nút đổi màu ở bản xem thử trên điện thoại (core/utils.js _mountPalette): viên kính
+   trắng neo mép phải giữa màn, cùng trục dọc với nút ba chấm. Đóng = một nút tròn; mở =
+   cột chấm màu cao vừa 4 chấm (28 × 4 + gap 8 × 4 + nửa chấm thứ năm), cuộn dọc xem tiếp.
+   Mép còn màu phía sau mờ dần (cờ .is-up/.is-down do JS đặt theo vị trí cuộn). */
 .cx-ppal {
   position: fixed;
-  left: 8px;
-  right: 8px;
-  bottom: 8px;
+  top: calc(var(--vh, 1vh) * 50 - 24px);
+  right: 16px;
   z-index: 61;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 12px 0 12px;
-  border-radius: 20px;
-  background: rgb(255 255 255 / 0.96);
-  color: #1f2430;
-  font-family: Quicksand, system-ui, sans-serif;
-  box-shadow: 0 0 0 1px rgb(31 36 48 / 0.08), 0 12px 32px -8px rgb(31 36 48 / 0.45);
-  transform: translateY(calc(100% + 16px));
-  transition: transform 0.28s ease;
-}
-
-.cx-ppal.is-open {
-  transform: none;
-}
-
-.cx-ppal-head {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 8px 0 16px;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.88);
+  box-shadow: 0 0 0 1px rgb(31 36 48 / 0.08), 0 8px 20px -8px rgb(31 36 48 / 0.4);
 }
 
-.cx-ppal-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: #5b6372;
+@media (min-width: 768px) {
+  .cx-ppal {
+    right: max(16px, calc(50% - var(--cx-card-max) / 2 + 16px));
+  }
 }
 
-.cx-ppal-title b {
-  font-weight: 700;
+.cx-ppal .cx-ppal-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   color: #1f2430;
-}
-
-.cx-ppal .cx-ppal-close {
-  width: 36px;
-  height: 36px;
-  color: #5b6372;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.cx-ppal-row {
+.cx-ppal .cx-ppal-btn:active {
+  transform: scale(0.92);
+}
+
+.cx-ppal .cx-ppal-btn:focus-visible {
+  outline: 2px solid #b4536a;
+  outline-offset: 2px;
+}
+
+.cx-ppal-list {
   position: relative;
   display: flex;
-  gap: 4px;
-  padding: 8px 12px 4px;
-  overflow-x: auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-height: 164px;
+  padding: 4px 4px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
 
-.cx-ppal-row::-webkit-scrollbar {
+.cx-ppal-list[hidden] {
   display: none;
 }
 
-.cx-ppal-row .cx-ppal-sw {
+.cx-ppal-list::-webkit-scrollbar {
+  display: none;
+}
+
+.cx-ppal-list.is-down {
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 48px), transparent);
+}
+
+.cx-ppal-list.is-up {
+  -webkit-mask-image: linear-gradient(transparent, #000 32px);
+  mask-image: linear-gradient(transparent, #000 32px);
+}
+
+.cx-ppal-list.is-up.is-down {
+  -webkit-mask-image: linear-gradient(transparent, #000 32px, #000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(transparent, #000 32px, #000 calc(100% - 48px), transparent);
+}
+
+.cx-ppal-list .cx-ppal-sw {
   flex: none;
+  padding: 0;
+  border-radius: 999px;
 }
 
-.cx-ppal-note {
-  margin: 4px 16px 0;
-  font-size: 12px;
-  line-height: 1.4;
-  color: #7a8291;
+.cx-ppal-list .cx-ppal-dot {
+  width: 28px;
+  height: 28px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cx-ppal {
-    transition: none;
-  }
+.cx-ppal-list .cx-ppal-lb {
+  display: none;
 }
 
 /* Mục "Màu thiệp" ở thẻ cạnh khung máy (máy tính) — lưới ô màu dưới công tắc khách mời. */

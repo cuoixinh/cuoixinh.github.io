@@ -518,6 +518,12 @@ function _cxShellPalette(box, frame) {
       if (on) name = b.title;
     });
     box.querySelector(".cx-pside-pal-cur").textContent = name;
+    // URL của trang ngoài cũng mang ?pal= (iframe dựng từ chính query đó) → copy link gửi
+    // người khác là mở sẵn đúng màu.
+    const u = new URL(location.href);
+    if (cur) u.searchParams.set("pal", cur);
+    else u.searchParams.delete("pal");
+    if (u.href !== location.href) history.replaceState(history.state, "", u);
   };
   frame.addEventListener("load", () => {
     const cw = frame.contentWindow;
