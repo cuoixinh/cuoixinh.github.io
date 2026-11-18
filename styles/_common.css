@@ -2696,6 +2696,178 @@ x-button {
   opacity: 0.65;
 }
 
+/* Ô màu của bản xem thử mẫu (cxPreviewPaletteSwatches ở core/utils.js): chấm chia bốn
+   (nền dải · nhấn nhạt · nhấn · tiêu đề) + tên. Dùng chung cho tấm đáy màn (.cx-ppal-sw,
+   điện thoại) và thẻ cạnh khung máy (.cx-pside-sw). Màu khung viết cứng như vỏ máy. */
+.cx-ppal-dot {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #d9dde4;
+  box-shadow: inset 0 0 0 1px rgb(31 36 48 / 0.12);
+}
+
+.cx-ppal-sw,
+.cx-pside-sw {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  color: #5b6372;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cx-ppal-sw[aria-pressed="true"] .cx-ppal-dot,
+.cx-pside-sw[aria-pressed="true"] .cx-ppal-dot {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #b4536a;
+}
+
+.cx-ppal-sw[aria-pressed="true"],
+.cx-pside-sw[aria-pressed="true"] {
+  color: #1f2430;
+  font-weight: 600;
+}
+
+.cx-ppal-sw:focus-visible,
+.cx-pside-sw:focus-visible {
+  outline: 2px solid #b4536a;
+  outline-offset: 0;
+}
+
+.cx-ppal-lb {
+  max-width: 64px;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tấm chọn màu neo đáy màn ở bản xem thử trên điện thoại (mục "Đổi màu thiệp" của menu ba
+   chấm). Trên nút nhạc/dải lời chúc (z 61 như nút ba chấm); trượt lên khi .is-open. */
+.cx-ppal {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 61;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 0 12px;
+  border-radius: 20px;
+  background: rgb(255 255 255 / 0.96);
+  color: #1f2430;
+  font-family: Quicksand, system-ui, sans-serif;
+  box-shadow: 0 0 0 1px rgb(31 36 48 / 0.08), 0 12px 32px -8px rgb(31 36 48 / 0.45);
+  transform: translateY(calc(100% + 16px));
+  transition: transform 0.28s ease;
+}
+
+.cx-ppal.is-open {
+  transform: none;
+}
+
+.cx-ppal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px 0 16px;
+}
+
+.cx-ppal-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #5b6372;
+}
+
+.cx-ppal-title b {
+  font-weight: 700;
+  color: #1f2430;
+}
+
+.cx-ppal .cx-ppal-close {
+  width: 36px;
+  height: 36px;
+  color: #5b6372;
+  cursor: pointer;
+}
+
+.cx-ppal-row {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cx-ppal-row::-webkit-scrollbar {
+  display: none;
+}
+
+.cx-ppal-row .cx-ppal-sw {
+  flex: none;
+}
+
+.cx-ppal-note {
+  margin: 4px 16px 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #7a8291;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-ppal {
+    transition: none;
+  }
+}
+
+/* Mục "Màu thiệp" ở thẻ cạnh khung máy (máy tính) — lưới ô màu dưới công tắc khách mời. */
+.cx-pside-pal {
+  margin-top: 16px;
+}
+
+.cx-pside-pal[hidden] {
+  display: none;
+}
+
+.cx-pside-pal-head {
+  margin: 0 0 4px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5b6372;
+}
+
+.cx-pside-pal-head b {
+  font-weight: 700;
+  color: #1f2430;
+}
+
+.cx-pside-pal-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+}
+
+.cx-pside-sw .cx-ppal-dot {
+  width: 32px;
+  height: 32px;
+}
+
+.cx-pside-sw .cx-ppal-lb {
+  display: none;
+}
+
 /* Nhãn thời lượng "5 phút" — con tem viền chỉ hồng; dùng chung cho thẻ cạnh máy và mục
    menu ba chấm. Font Quicksand của thẻ, không ăn serif của tên nút. */
 .cx-pside-tag {

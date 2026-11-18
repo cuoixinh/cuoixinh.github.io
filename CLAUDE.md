@@ -717,7 +717,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 - **Bộ màu thiệp (`theme_setting.palette`):** danh mục ở `core/helpers/card-palette-helper.js`
   (**chỉ trang Thiết lập nạp** — thiệp lưu sẵn màu nên không cần danh mục), áp ở
   `applyThemeSetting` bằng cách đổ vào `:root { --cx-*-rgb }`, bảng chọn ở
-  `05-theme-panel.js`. Lưu trong `theme_setting` nên **không cần changelog DB**. Thêm bộ
+  `05-theme-panel.js`. Bản xem thử MẪU (`?preview=true`) cũng cho khách thử bộ màu (menu ba
+  chấm / thẻ cạnh khung máy, lõi `cxPreviewPalette` ở `core/utils.js`): chỉ nằm ở `?pal=` của
+  URL, trộn vào dữ liệu xem thử ở `loadWeddingData` — thiệp thật không bao giờ đọc nó.
+  Lưu trong `theme_setting` nên **không cần changelog DB**. Thêm bộ
   mới phải qua **`npm run check:palette-contrast`** (nền sáng + đủ tương phản chữ/nền);
   `id` đã phát hành thì đừng đổi. Biến thể tông CHỈ cho một mẫu (vd đỏ đậm của
   `som-hom-co-nhau`) thì mẫu tự khai ở **`CX_THEME.palettes`** (cùng khuôn, `id` có tiền tố

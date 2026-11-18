@@ -189,6 +189,10 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     } else {
       if (typeof cxPreviewWedding !== "function") return;
       wedding = await cxPreviewWedding();
+      // Bộ màu khách đang thử ở bản xem thử mẫu (?pal=, core/utils.js) — không có ở thiệp thật.
+      if (typeof cxPreviewPaletteSetting === "function" && wedding) {
+        wedding.theme_setting = await cxPreviewPaletteSetting(wedding.theme_setting);
+      }
     }
 
     // Dữ liệu xem trước có ngay tức thì — chờ parse xong để <x-button> kịp thay

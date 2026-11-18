@@ -7,7 +7,8 @@
 // token khai ở styles/_common.css). Danh sách khoá là CX_PALETTE_TOKENS trong
 // file đó → nạp file này SAU nó.
 //
-// File này CHỈ trang Thiết lập nạp: thiệp lưu nguyên bộ màu đã chọn trong
+// File này chỉ trang Thiết lập nạp (và bản xem thử mẫu nạp lúc khách mở mục đổi màu —
+// cxPreviewPalettes ở core/utils.js): thiệp lưu nguyên bộ màu đã chọn trong
 // theme_setting.palette nên trang thiệp dựng lại được mà không cần danh mục.
 // Nhờ vậy thêm/sửa/bỏ một bộ ở đây không làm đổi màu thiệp đã xuất bản, và
 // trang thiệp cũng không phải tải thêm file nào.
