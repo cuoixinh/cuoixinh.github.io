@@ -40,8 +40,9 @@
   /* Lòng phong bì: có bộ màu thì là khối tô sẫm đi một nấc; không có bộ thì biến này vô hiệu
      (var thiếu, không fallback) → dòng dùng nó rơi về --tv-env-in-rgb. */
   --tv-env-in: color-mix(in srgb, rgb(var(--cx-fill-rgb)) 80%, #000);
-  --tv-wax-rgb: var(--cx-accent-rgb);
-  --tv-wax-ink-rgb: var(--cx-on-accent-rgb);
+  /* Dấu sáp: bộ có khối tô sáng (pastel) thì dấu cùng màu khối tô, chữ nhấn (--cx-fill-mark-*). */
+  --tv-wax-rgb: var(--cx-fill-mark-rgb, var(--cx-accent-rgb));
+  --tv-wax-ink-rgb: var(--cx-fill-mark-ink-rgb, var(--cx-on-accent-rgb));
 
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
@@ -363,58 +364,87 @@ body {
   clip-path: polygon(0 100%, 0 96%, 46% 46%, 50% 44%, 54% 46%, 100% 96%, 100% 100%);
 }
 
-/* Dấu sáp = nút mở thiệp, tâm đặt đúng đỉnh chữ V (75% khung). Mép sáp chảy không đều =
-   bo góc lệch + các bóng cùng màu đẩy lồi ra ngoài; gờ ép quanh chữ lồng ở ::before. */
+/* Dấu sáp = nút mở thiệp, tâm đặt đúng đỉnh chữ V (75% khung). Ba lớp: giọt sáp chảy
+   (.tv-wax-body, cắt dáng bằng mask SVG) · đĩa khuôn ép lõm có viền khía (::before/::after) ·
+   chữ lồng khắc chìm. Bóng pha từ màu dấu + --cx-shadow-rgb để dấu pastel không bị xám. */
 .tv-wax {
   position: absolute;
   z-index: 5;
-  left: 39%;
-  top: 64%;
-  width: 22%;
+  left: 38.5%;
+  top: 63.5%;
+  width: 23%;
   aspect-ratio: 1;
-  border-radius: 47% 53% 44% 56% / 55% 45% 55% 45%;
-  background:
-    radial-gradient(circle at 38% 32%, rgb(255 255 255 / 0.14), transparent 55%),
-    rgb(var(--tv-wax-rgb));
-  box-shadow:
-    1.4cqw 0.4cqw 0 -0.5cqw rgb(var(--tv-wax-rgb)),
-    -1.2cqw 1cqw 0 -0.6cqw rgb(var(--tv-wax-rgb)),
-    0.2cqw -1.3cqw 0 -0.7cqw rgb(var(--tv-wax-rgb)),
-    -0.6cqw -1cqw 0 -0.8cqw rgb(var(--tv-wax-rgb)),
-    0.9cqw 1.2cqw 0 -0.7cqw rgb(var(--tv-wax-rgb)),
-    inset 0 -0.8cqw 1.2cqw rgb(0 0 0 / 0.28),
-    inset 0 0.5cqw 0.8cqw rgb(255 255 255 / 0.12),
-    0 1cqw 2cqw rgb(0 0 0 / 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  filter:
+    drop-shadow(0 0.4cqw 0.5cqw rgb(var(--cx-shadow-rgb) / 0.28))
+    drop-shadow(0 1.6cqw 2.4cqw rgb(var(--cx-shadow-rgb) / 0.22));
 }
 
+.tv-wax-body {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 34% 26%,
+    color-mix(in srgb, rgb(var(--tv-wax-rgb)) 70%, #fff) 0%,
+    rgb(var(--tv-wax-rgb)) 42%,
+    color-mix(in srgb, rgb(var(--tv-wax-rgb)) 80%, rgb(var(--cx-shadow-rgb))) 100%
+  );
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3C60 3 66 8 74 9C84 10 92 18 93 28C94 36 98 42 97 52C96 61 92 66 91 74C89 85 80 93 69 94C61 95 56 98 47 97C38 96 32 92 24 90C13 87 6 79 5 68C4 60 2 55 3 46C4 36 8 30 10 22C13 12 22 5 33 5C40 4 44 3 50 3Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3C60 3 66 8 74 9C84 10 92 18 93 28C94 36 98 42 97 52C96 61 92 66 91 74C89 85 80 93 69 94C61 95 56 98 47 97C38 96 32 92 24 90C13 87 6 79 5 68C4 60 2 55 3 46C4 36 8 30 10 22C13 12 22 5 33 5C40 4 44 3 50 3Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+
+/* Đĩa khuôn ép: lõm xuống (tối mép trên, sáng mép dưới), gờ nổi quanh miệng. */
 .tv-wax::before {
   content: "";
   position: absolute;
   inset: 15%;
   border-radius: 50%;
-  background: rgb(0 0 0 / 0.06);
+  background: color-mix(in srgb, rgb(var(--tv-wax-rgb)) 94%, rgb(var(--cx-shadow-rgb)));
   box-shadow:
-    inset 0 0.6cqw 0.9cqw rgb(0 0 0 / 0.35),
-    inset 0 -0.3cqw 0.4cqw rgb(255 255 255 / 0.15),
-    0 0.3cqw 0.3cqw rgb(255 255 255 / 0.12);
+    inset 0 0.7cqw 0.9cqw rgb(var(--cx-shadow-rgb) / 0.26),
+    inset 0 -0.4cqw 0.5cqw rgb(255 255 255 / 0.32),
+    0 0.3cqw 0 rgb(255 255 255 / 0.3),
+    0 -0.3cqw 0.4cqw rgb(var(--cx-shadow-rgb) / 0.14);
 }
 
+/* Viền khía như mép đồng xu, chạy sát trong miệng đĩa. */
+.tv-wax::after {
+  content: "";
+  position: absolute;
+  inset: 19%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgb(var(--tv-wax-ink-rgb) / 0.5) 0deg 2.5deg, transparent 2.5deg 9deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 0.7cqw), #000 calc(100% - 0.6cqw));
+  mask: radial-gradient(closest-side, transparent calc(100% - 0.7cqw), #000 calc(100% - 0.6cqw));
+}
+
+/* Chữ lồng: serif nghiêng, chữ sau chồng chéo xuống dưới chữ trước, khắc chìm. */
 .tv-wax span[data-tv-mono] {
   position: relative;
+  z-index: 1;
   display: flex;
   align-items: baseline;
-  font-family: "Great Vibes", cursive;
-  font-size: 6.4cqw;
+  font-family: "Noto Serif Display", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 8cqw;
   line-height: 1;
-  color: rgb(var(--tv-wax-ink-rgb) / 0.82);
+  color: rgb(var(--tv-wax-ink-rgb) / 0.9);
   text-shadow:
-    0 -0.2cqw 0 rgb(0 0 0 / 0.35),
-    0 0.2cqw 0 rgb(255 255 255 / 0.2);
+    0 -0.15cqw 0 rgb(var(--cx-shadow-rgb) / 0.3),
+    0 0.2cqw 0 rgb(255 255 255 / 0.35);
+}
+
+.tv-wax span[data-tv-mono] span:first-child {
+  translate: 0 -1cqw;
 }
 
 .tv-wax span[data-tv-mono] span + span {
-  margin-left: -0.6cqw;
-  translate: 0 1.4cqw;
+  margin-left: -1.8cqw;
+  translate: 0 1cqw;
 }
 
 /* Bìa hiện ra: phong bì đặt xuống, ảnh và vé trồi lên khỏi miệng, rồi đóng dấu. */

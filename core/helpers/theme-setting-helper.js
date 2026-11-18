@@ -475,6 +475,14 @@ function _cxPaletteRule(palette) {
   const need = ["heading", "body", "accent", "accent_soft", "shadow", "panel", "surface"];
   if (need.every((k) => rgbOf[k])) decls.push(...CX_PALETTE_MUSIC((k) => rgbOf[k]));
 
+  // Dấu/nút nổi trên khối tô SÁNG (pastel): đổ màu nhấn lên đó ra mảng đục, nên dùng chính màu
+  // khối tô, chữ nhấn. Khối tô đậm thì không sinh → mẫu lùi về màu riêng của nó.
+  const _tri = (s) => s.split(" ").map(Number);
+  if (rgbOf.fill && rgbOf.on_fill && rgbOf.accent &&
+      _cxLum(_tri(rgbOf.fill)) > _cxLum(_tri(rgbOf.on_fill))) {
+    decls.push(`--cx-fill-mark-rgb: ${rgbOf.fill}`, `--cx-fill-mark-ink-rgb: ${rgbOf.accent}`);
+  }
+
   // `vars`: chỉ còn trong bản lưu của thiệp từng chọn bộ RIÊNG của mẫu (nay đã gỡ, danh mục
   // chung không khai) — biến `--x-rgb` mẫu tự định nghĩa, giữ để thiệp đó không đổi màu.
   // Chỉ nhận tên `--…-rgb` + mã hex; chỉ bộ nền tối mới đổi `vars` theo "Độ đậm".
