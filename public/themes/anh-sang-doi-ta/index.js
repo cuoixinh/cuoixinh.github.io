@@ -201,7 +201,7 @@
       .map((t) => {
         const d = multiDay ? _date(t.date) : null;
         const lunar = d ? _lunar(t.lunar) : "";
-        return `<div class="t4-gl"><b class="cx-h">${escapeHtml(t.time || "--:--")}</b><span class="cx-t">${escapeHtml(t.title)}</span>${
+        return `<div class="t4-gl cx-fill"><b class="cx-h">${escapeHtml(t.time || "--:--")}</b><span class="cx-t">${escapeHtml(t.title)}</span>${
           d ? `<small class="t4-tdate cx-t">${WD[d.getDay()]}, ${pad(d.getDate())}.${pad(d.getMonth() + 1)}</small>` : ""
         }${lunar ? `<small class="t4-tlunar cx-t">${escapeHtml(lunar)}</small>` : ""}</div>`;
       })

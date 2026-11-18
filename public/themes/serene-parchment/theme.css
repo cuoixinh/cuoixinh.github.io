@@ -618,16 +618,16 @@ body {
 
 .sp-rsvp {
   border-radius: 24px;
-  color: rgb(var(--cx-on-accent-rgb) / 0.82);
-  background-color: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)) / 0.82);
+  background-color: rgb(var(--cx-fill-rgb, var(--cx-heading-rgb)));
 }
 
 .sp-rsvp .cx-h {
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 
 .sp-rsvp .sp-sec {
-  color: rgb(var(--cx-accent-soft-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-accent-soft-rgb)));
 }
 
 /* Nút viên thuốc cao 48px (đủ vùng chạm). Đè justify/inline-flex của
@@ -652,14 +652,19 @@ body {
   background-color: rgb(var(--cx-heading-rgb));
 }
 
+/* Thẻ sự kiện thành khối tô (có bộ màu): nút mực đảo thành nền chữ-trên-khối, chữ màu khối. */
+.cx-fill .sp-btn-ink {
+  color: rgb(var(--cx-fill-rgb, var(--cx-card-bg-rgb)));
+}
+
 .sp-btn-solid {
   color: rgb(var(--cx-heading-rgb));
   background-color: rgb(var(--cx-panel-rgb));
 }
 
 .sp-btn-ghost {
-  color: rgb(var(--cx-on-accent-rgb));
-  border: 1px solid rgb(var(--cx-on-accent-rgb) / 0.5);
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
+  border: 1px solid rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)) / 0.5);
 }
 
 /* Nút nhỏ trên nền sáng (Lưu QR). */

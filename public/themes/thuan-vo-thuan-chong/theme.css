@@ -30,6 +30,19 @@
   --cx-shine-mid-rgb: 232 196 200;
   --cx-shine-to-rgb: 246 232 233;
 
+  /* Mảng tô (dải, lịch, con dấu, nút) + chữ trên nó, phong bì ở bìa: theo khối tô của bộ màu
+     (`fill`/`on_fill`, chỉ có khi chọn bộ), không có thì màu nhấn. Thiệp lưu bộ riêng cũ của
+     mẫu ("Hồng pastel") vẫn ghi đè thẳng các biến --tv-* qua `vars` đã lưu. */
+  --tv-fill-rgb: var(--cx-fill-rgb, var(--cx-accent-rgb));
+  --tv-fill-ink-rgb: var(--cx-on-fill-rgb, var(--cx-on-accent-rgb));
+  --tv-env-rgb: var(--cx-fill-rgb, var(--cx-accent-rgb));
+  --tv-env-in-rgb: var(--cx-heading-rgb);
+  /* Lòng phong bì: có bộ màu thì là khối tô sẫm đi một nấc; không có bộ thì biến này vô hiệu
+     (var thiếu, không fallback) → dòng dùng nó rơi về --tv-env-in-rgb. */
+  --tv-env-in: color-mix(in srgb, rgb(var(--cx-fill-rgb)) 80%, #000);
+  --tv-wax-rgb: var(--cx-accent-rgb);
+  --tv-wax-ink-rgb: var(--cx-on-accent-rgb);
+
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
   --music-widget-fg-rgb: var(--cx-heading-rgb);
@@ -124,16 +137,16 @@ body {
   width: 64px;
   height: 64px;
   border-radius: 6px;
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--tv-fill-rgb));
   transform: rotate(-6deg);
-  box-shadow: 0 4px 12px rgb(var(--cx-accent-rgb) / 0.24);
+  box-shadow: 0 4px 12px rgb(var(--tv-fill-rgb) / 0.24);
 }
 
 .tv-seal::before {
   content: "";
   position: absolute;
   inset: 4px;
-  border: 1px solid rgb(var(--cx-on-accent-rgb) / 0.85);
+  border: 1px solid rgb(var(--tv-fill-ink-rgb) / 0.85);
   border-radius: 3px;
 }
 
@@ -141,7 +154,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
   font-family: "Noto Serif Display", serif;
   font-size: 20px;
   font-weight: 400;
@@ -191,7 +204,7 @@ body {
   top: 22%;
   bottom: 2%;
   border-radius: 1.6cqw 1.6cqw 1cqw 1cqw;
-  background-color: rgb(var(--cx-heading-rgb));
+  background-color: var(--tv-env-in, rgb(var(--tv-env-in-rgb)));
 }
 
 .tv-print {
@@ -331,7 +344,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 0 0 1cqw 1cqw;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-env-rgb));
   clip-path: polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%);
 }
 
@@ -345,7 +358,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 0 0 1cqw 1cqw;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-env-rgb));
   background-blend-mode: normal;
   clip-path: polygon(0 100%, 0 96%, 46% 46%, 50% 44%, 54% 46%, 100% 96%, 100% 100%);
 }
@@ -362,13 +375,13 @@ body {
   border-radius: 47% 53% 44% 56% / 55% 45% 55% 45%;
   background:
     radial-gradient(circle at 38% 32%, rgb(255 255 255 / 0.14), transparent 55%),
-    rgb(var(--cx-accent-rgb));
+    rgb(var(--tv-wax-rgb));
   box-shadow:
-    1.4cqw 0.4cqw 0 -0.5cqw rgb(var(--cx-accent-rgb)),
-    -1.2cqw 1cqw 0 -0.6cqw rgb(var(--cx-accent-rgb)),
-    0.2cqw -1.3cqw 0 -0.7cqw rgb(var(--cx-accent-rgb)),
-    -0.6cqw -1cqw 0 -0.8cqw rgb(var(--cx-accent-rgb)),
-    0.9cqw 1.2cqw 0 -0.7cqw rgb(var(--cx-accent-rgb)),
+    1.4cqw 0.4cqw 0 -0.5cqw rgb(var(--tv-wax-rgb)),
+    -1.2cqw 1cqw 0 -0.6cqw rgb(var(--tv-wax-rgb)),
+    0.2cqw -1.3cqw 0 -0.7cqw rgb(var(--tv-wax-rgb)),
+    -0.6cqw -1cqw 0 -0.8cqw rgb(var(--tv-wax-rgb)),
+    0.9cqw 1.2cqw 0 -0.7cqw rgb(var(--tv-wax-rgb)),
     inset 0 -0.8cqw 1.2cqw rgb(0 0 0 / 0.28),
     inset 0 0.5cqw 0.8cqw rgb(255 255 255 / 0.12),
     0 1cqw 2cqw rgb(0 0 0 / 0.35);
@@ -393,7 +406,7 @@ body {
   font-family: "Great Vibes", cursive;
   font-size: 6.4cqw;
   line-height: 1;
-  color: rgb(var(--cx-on-accent-rgb) / 0.82);
+  color: rgb(var(--tv-wax-ink-rgb) / 0.82);
   text-shadow:
     0 -0.2cqw 0 rgb(0 0 0 / 0.35),
     0 0.2cqw 0 rgb(255 255 255 / 0.2);
@@ -477,21 +490,21 @@ body {
 .tv-footer {
   margin: 0 -24px;
   padding: 64px 24px;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-fill-rgb));
   background-image:
     repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(90deg, rgb(0 0 0 / 0.05) 0 1px, transparent 1px 3px);
-  color: rgb(var(--cx-on-accent-rgb) / 0.82);
+  color: rgb(var(--tv-fill-ink-rgb) / 0.82);
 }
 
 .tv-band .cx-h,
 .tv-band .cx-t,
 .tv-footer .cx-h {
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-band .tv-h2::after {
-  background: rgb(var(--cx-on-accent-rgb) / 0.6);
+  background: rgb(var(--tv-fill-ink-rgb) / 0.6);
 }
 
 /* Ảnh rời: viền giấy ảnh trắng, dựng thẳng. Lớp sâu do --tv-depth (hệ số trôi khi cuộn,
@@ -705,11 +718,11 @@ body {
   width: calc(100% + 16px);
   padding: 18px 14px 18px 16px;
   border-radius: 16px;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-fill-rgb));
   background-image:
     repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(90deg, rgb(0 0 0 / 0.06) 0 1px, transparent 1px 3px);
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-calphoto {
@@ -736,7 +749,7 @@ body {
   margin-bottom: 10px;
   font-size: 17px;
   text-align: right;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-cal-grid {
@@ -749,7 +762,7 @@ body {
   margin-bottom: 4px;
   font-size: 9px;
   font-weight: 400;
-  color: rgb(var(--cx-on-accent-rgb) / 0.7);
+  color: rgb(var(--tv-fill-ink-rgb) / 0.7);
 }
 
 .tv-cal-d {
@@ -759,7 +772,7 @@ body {
   justify-content: center;
   height: 24px;
   font-size: 12px;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-cal-d b {
@@ -774,15 +787,15 @@ body {
   width: 26px;
   height: 26px;
   translate: -50% -48%;
-  color: rgb(var(--cx-on-accent-rgb));
-  fill: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
+  fill: rgb(var(--tv-fill-ink-rgb));
   stroke-width: 1.5;
 }
 
-/* Trái tim nền trắng → số ngày cưới đổi sang màu đỏ rượu. */
+/* Số ngày cưới trên trái tim (màu chữ của mảng) lấy màu mảng — luôn là cặp đảo của tim. */
 .tv-cal-d.is-wed b {
   font-weight: 500;
-  color: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--tv-fill-rgb));
 }
 
 .tv-cal-d.is-party::after {
@@ -844,8 +857,8 @@ body {
 
 .tv-date-side {
   padding: 8px 0;
-  border-top: 1px solid rgb(var(--cx-on-accent-rgb) / 0.4);
-  border-bottom: 1px solid rgb(var(--cx-on-accent-rgb) / 0.4);
+  border-top: 1px solid rgb(var(--tv-fill-ink-rgb) / 0.4);
+  border-bottom: 1px solid rgb(var(--tv-fill-ink-rgb) / 0.4);
   font-size: 11px;
   font-weight: 400;
   letter-spacing: 2px;
@@ -867,7 +880,7 @@ body {
 }
 
 .tv-band .tv-addr {
-  color: rgb(var(--cx-on-accent-rgb) / 0.82);
+  color: rgb(var(--tv-fill-ink-rgb) / 0.82);
 }
 
 /* ── Tiệc: vé mời — cuống chữ dọc, đường đục lỗ, hai khấc bán nguyệt ──
@@ -970,10 +983,10 @@ body {
   transition: border-color 0.2s, background-color 0.2s;
 }
 
+/* Giữ viền của .tv-choice: mảng tô nhạt (Hồng pastel) mới tách khỏi nền; bản gốc viền chìm vào nền đỏ. */
 #btn-attend.tv-choice {
-  border-color: rgb(var(--cx-accent-rgb));
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--tv-fill-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-reply-wish {
@@ -1186,7 +1199,9 @@ body {
   clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 
+/* Con dấu cuối thiệp nền màu tiêu đề (sẫm) → chữ/viền trong nó dùng chữ sáng, không theo mảng tô. */
 .tv-footer .tv-seal {
+  --tv-fill-ink-rgb: var(--cx-on-accent-rgb);
   position: absolute;
   top: 40px;
   left: 50%;
@@ -1203,7 +1218,7 @@ body {
   font-family: "KattyDiona", cursive;
   font-size: 32px;
   line-height: 1;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 /* ── Hiện dần khi cuộn: chỉ trượt ngang + mờ dần, không bay dọc ──

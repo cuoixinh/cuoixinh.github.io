@@ -93,9 +93,22 @@ const CX_PALETTE_TOKENS = {
   shine_from: "--cx-shine-from-rgb",
   shine_mid: "--cx-shine-mid-rgb",
   shine_to: "--cx-shine-to-rgb",
+
+  // — Khối tô (CHỈ có khi chọn bộ màu, mẫu không khai mặc định) — xem CX_FILL_INK —
+  fill: "--cx-fill-rgb",
+  on_fill: "--cx-on-fill-rgb",
 };
 
 const CX_PALETTE_KEYS = Object.keys(CX_PALETTE_TOKENS);
+
+// Khối tô `.cx-fill`: mẫu gắn class này lên những khối muốn ĐỔ MÀU chủ đạo khi khách chọn
+// bộ màu (dải ngày cưới, lịch, chân thiệp…). Không chọn bộ thì rule không tồn tại → khối giữ
+// đúng hình thức gốc. Trong khối, token chữ/nét/nhấn quy hết về `on_fill`, còn nhấn đảo về
+// `fill` (nút trong khối thành nút đảo màu); thẻ con nền giấy trong khối gắn `.cx-unfill`
+// để lấy lại token gốc của bộ.
+const CX_FILL_INK = [
+  "heading", "body", "accent", "accent_soft", "line", "deco", "deco_soft", "deco_2", "deco_2_soft",
+];
 
 // Token viết dạng bộ ba "r g b" (không phải mã hex) để chỗ dùng còn chèn được
 // alpha: rgb(var(--cx-accent-rgb) / 0.2). Trả "" nếu chuỗi không phải hex.
@@ -248,7 +261,7 @@ function _cxGuard(c, vs, min) {
   return at(lo);
 }
 
-// ── Độ đậm của bộ NỀN TỐI (`dark`, bộ riêng của mẫu) ──────────────────────
+// ── Độ đậm của bộ NỀN TỐI (`dark` — chỉ còn trong bản lưu của bộ riêng cũ của mẫu) ──────────────────────
 // Phép trên pha màu về trắng nên nền đỏ thẫm thành hồng nhạt. Bộ nền tối chỉ đổi ĐỘ
 // SÁNG của các MẢNG SẪM cùng tông nền thẻ (nền, dải, khung, chữ sẫm trên giấy kem…), cả
 // trong `vars` để bìa/mục xen kẽ đi cùng; giấy kem, vàng, chữ ngà đứng yên. Kéo nhạt có
@@ -399,8 +412,13 @@ function cxPaletteAtStrength(palette, strength) {
     const others = vs.map((o) => rgb[o]).filter(Boolean);
     if (rgb[key] && others.length) rgb[key] = _cxGuard(rgb[key], others, min);
   });
+  // Khối tô ↔ chữ trên khối: khối có thể đậm chữ trắng hoặc pastel chữ sẫm → làm đậm vế TỐI.
+  if (rgb.fill && rgb.on_fill) {
+    const dk = _cxLum(rgb.fill) < _cxLum(rgb.on_fill) ? "fill" : "on_fill";
+    rgb[dk] = _cxGuard(rgb[dk], [rgb[dk === "fill" ? "on_fill" : "fill"]], 4.5);
+  }
 
-  // `hold` (bộ riêng của mẫu): những ô nền phối CỐ ĐỊNH (giấy trắng…) đứng yên ở mọi mức.
+  // `hold` (bản lưu của bộ riêng cũ của mẫu): những ô nền phối CỐ ĐỊNH (giấy trắng…) đứng yên ở mọi mức.
   const hold = Array.isArray(palette.hold) ? palette.hold : [];
   const out = { ...palette };
   Object.keys(rgb).forEach((key) => {
@@ -433,19 +451,6 @@ const CX_PALETTE_MUSIC = (get) => [
   `--music-art-to-rgb: ${get("accent")}`,
 ];
 
-// Bộ RIÊNG của mẫu (CX_THEME.palettes) lấy bản khai HIỆN TẠI theo id — thiệp chọn bộ đó
-// từ trước vẫn ăn bản thiết kế mới (bản lưu chỉ là ảnh chụp lúc chọn). Bộ chung của danh
-// mục giữ nguyên bản đã lưu. Độ đậm khách đã kéo vẫn giữ. Không có window (worker) → bản lưu.
-function _cxLivePalette(p) {
-  if (!p || typeof p !== "object" || !p.id || typeof window === "undefined") return p;
-  const list = window.CX_THEME && window.CX_THEME.palettes;
-  const own = Array.isArray(list) && list.find((x) => x && x.id === p.id);
-  if (!own) return p;
-  const out = { ...own };
-  if (p.strength != null) out.strength = p.strength;
-  return out;
-}
-
 // Trả về rule `:root { … }` cho bộ màu, hoặc "" nếu không có bộ nào hợp lệ.
 // Khoá thiếu thì bỏ qua để token của mẫu vẫn giữ nguyên — bộ màu khuyết một ô
 // không được phép làm hỏng cả thiệp.
@@ -457,6 +462,11 @@ function _cxPaletteRule(palette) {
     const rgb = _cxHexToRgbTriplet(p[k]);
     if (rgb) rgbOf[k] = rgb;
   });
+  // Bộ lưu từ trước khi có khối tô: khối lấy màu nhấn, chữ trên nhấn.
+  if (!rgbOf.fill && rgbOf.accent && rgbOf.on_accent) {
+    rgbOf.fill = rgbOf.accent;
+    rgbOf.on_fill = rgbOf.on_accent;
+  }
   const decls = Object.keys(rgbOf).map((k) => `${CX_PALETTE_TOKENS[k]}: ${rgbOf[k]}`);
   if (!decls.length) return "";
 
@@ -465,10 +475,9 @@ function _cxPaletteRule(palette) {
   const need = ["heading", "body", "accent", "accent_soft", "shadow", "panel", "surface"];
   if (need.every((k) => rgbOf[k])) decls.push(...CX_PALETTE_MUSIC((k) => rgbOf[k]));
 
-  // Biến RIÊNG của mẫu (`vars`, chỉ bộ riêng trong CX_THEME.palettes khai): mẫu tự định
-  // nghĩa biến dạng `--x-rgb` trỏ về token chung, bộ của nó ghi đè khi cần màu khác hẳn
-  // (bìa nền sáng trên thiệp nền tối…). Chỉ nhận tên `--…-rgb` + mã hex; chỉ bộ nền tối
-  // mới đổi `vars` theo "Độ đậm" (_cxDarkAtStrength).
+  // `vars`: chỉ còn trong bản lưu của thiệp từng chọn bộ RIÊNG của mẫu (nay đã gỡ, danh mục
+  // chung không khai) — biến `--x-rgb` mẫu tự định nghĩa, giữ để thiệp đó không đổi màu.
+  // Chỉ nhận tên `--…-rgb` + mã hex; chỉ bộ nền tối mới đổi `vars` theo "Độ đậm".
   const vars = p.vars;
   if (vars && typeof vars === "object") {
     Object.entries(vars).forEach(([name, hex]) => {
@@ -477,7 +486,21 @@ function _cxPaletteRule(palette) {
     });
   }
 
-  return `:root { ${decls.join("; ")}; }`;
+  let rule = `:root { ${decls.join("; ")}; }`;
+  if (rgbOf.fill && rgbOf.on_fill) {
+    const ink = CX_FILL_INK.map((k) => `${CX_PALETTE_TOKENS[k]}: ${rgbOf.on_fill}`);
+    const back = CX_FILL_INK.filter((k) => rgbOf[k]).map((k) => `${CX_PALETTE_TOKENS[k]}: ${rgbOf[k]}`);
+    if (rgbOf.on_accent) back.push(`--cx-on-accent-rgb: ${rgbOf.on_accent}`);
+    // !important: khối của mẫu tự khai nền bằng selector id/nhiều class, rule này phải thắng.
+    rule +=
+      ` .cx-fill { ${ink.join("; ")}; --cx-on-accent-rgb: ${rgbOf.fill};` +
+      ` background-color: rgb(${rgbOf.fill}) !important; background-image: none !important;` +
+      ` color: rgb(${rgbOf.on_fill}); }` +
+      // Khối vốn không có khung (mục chữ trần) gắn thêm .cx-fill-box: có bộ màu mới thành thẻ.
+      ` .cx-fill.cx-fill-box { padding: 32px 20px; border-radius: 16px; }` +
+      (back.length ? ` .cx-fill .cx-unfill { ${back.join("; ")}; }` : "");
+  }
+  return rule;
 }
 
 let _loadedFonts = new Set();
@@ -2549,7 +2572,7 @@ function applyThemeSetting(setting) {
 
   // Bộ màu chỉ đổi token --cx-* ở :root nên mọi rule bên dưới (ghi đè từng dòng
   // chữ, khối văn bản…) vẫn thắng: chọn bộ trước, chỉnh riêng từng chỗ sau.
-  const palette = _cxLivePalette(setting.palette);
+  const palette = setting.palette;
   const paletteRule = _cxPaletteRule(palette);
   if (paletteRule) rules.push(paletteRule);
 

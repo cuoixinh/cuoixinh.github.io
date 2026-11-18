@@ -211,7 +211,7 @@
         const ph = ev.image_url
           ? `<img src="${cxImgSrc(ev.image_url)}" alt="" loading="lazy" style="object-position:${cxFocal(ev.focal_point)}">`
           : "";
-        return `<li${ph ? "" : ' class="no-ph"'}>${ph}<div>
+        return `<li class="cx-fill${ph ? "" : " no-ph"}">${ph}<div>
           ${ev.date ? `<time>${escapeHtml(ev.date)}</time>` : ""}
           ${ev.title ? `<b>${escapeHtml(ev.title)}</b>` : ""}
           ${ev.content ? `<span>${escapeHtml(ev.content)}</span>` : ""}

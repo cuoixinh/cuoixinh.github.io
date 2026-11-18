@@ -1,6 +1,8 @@
-// Danh mục BỘ MÀU của thiệp (tab Giao diện → "Bộ màu"). Một bộ = cả bảng màu
-// của thiệp, không phải một màu lẻ: đổi bộ là chữ, nền, vạch kẻ, màn bìa, hoạ
-// tiết và gradient đều đổi theo.
+// Danh mục BỘ MÀU của thiệp (tab Giao diện → "Bộ màu") — NƠI DUY NHẤT khai bộ màu, mọi
+// mẫu dùng chung (mẫu không tự khai bộ riêng). Một bộ = cả bảng màu của thiệp: chữ, nền,
+// vạch kẻ, màn bìa, hoạ tiết, gradient, và KHỐI TÔ (`fill` + chữ trên nó `on_fill`) đổ
+// lên những khối mẫu gắn `.cx-fill` — dải ngày cưới, lịch, chân thiệp… như Thuận Vợ Thuận
+// Chồng. `giftBox` (tuỳ chọn) = hộp mừng cưới mặc định khi áp bộ này.
 //
 // Chỉ là bản khai. Người áp là theme-setting-helper.js: nó đổ giá trị vào các
 // token --cx-*-rgb ở :root, mà mọi mẫu trong public/themes/* đều vẽ theo (bảng
@@ -17,12 +19,90 @@
 //   1. TONE SÁNG. Nền thiệp (card_bg, page_bg, surface, panel) phải sáng; đây
 //      là thiệp cưới, không làm bộ nền tối.
 //   2. Đủ tương phản: heading/card_bg ≥ 7:1 · body/card_bg ≥ 4.5:1 ·
-//      accent/card_bg ≥ 3:1 · on_accent/accent ≥ 4.5:1 · on_image/scrim ≥ 4.5:1.
+//      accent/card_bg ≥ 3:1 · on_accent/accent ≥ 4.5:1 · on_image/scrim ≥ 4.5:1 ·
+//      on_fill/fill ≥ 4.5:1 (khối đậm chữ trắng, hoặc khối pastel chữ sẫm).
 //   3. `scrim` phải TỐI và `on_image` phải SÁNG — đó là lớp giữ cho chữ đọc
 //      được khi nằm trên ảnh cưới, ảnh nào cũng khác nhau.
 //   4. `id` được lưu xuống DB → ĐỪNG đổi id của bộ đã phát hành.
 
 const CX_PALETTES = [
+  {
+    id: "do-ruou",
+    name: "Đỏ rượu",
+    tone: "ấm",
+    heading: "#3e1f24", body: "#6e5256", accent: "#7b1e2f", accent_soft: "#e8c4c8",
+    on_accent: "#ffffff", on_image: "#ffffff", on_lightbox: "#ffffff",
+    card_bg: "#fbf7f5", page_bg: "#f3ece9", surface: "#f5efec", band: "#f7eeec",
+    panel: "#ffffff", panel_warm: "#fdf9f6",
+    cover: "#f8f3f1", cover_mid: "#efe5e2", cover_veil: "#efe5e2", lightbox_bg: "#000000",
+    line: "#e6d6d4", shadow: "#3e1f24", scrim: "#000000",
+    deco: "#9b3a4b", deco_soft: "#ecd2d6", deco_2: "#7b1e2f", deco_2_soft: "#e8c4c8",
+    shine_from: "#7b1e2f", shine_mid: "#e8c4c8", shine_to: "#f6e8e9",
+    fill: "#7b1e2f", on_fill: "#ffffff",
+    giftBox: "phongbi_do_hy",
+  },
+  // Hồng pastel = #ffe0e5 (rgb 255 224 229): khối tô + mọi mảng hồng nhạt. Chữ nhấn/nút cần
+  // đọc được trên nền sáng nên là hồng tro cùng tông, không phải hồng rực.
+  {
+    id: "hong-pastel",
+    name: "Hồng pastel",
+    tone: "ấm",
+    heading: "#3e1f24", body: "#6e5256", accent: "#985a67", accent_soft: "#ffe0e5",
+    on_accent: "#ffffff", on_image: "#ffffff", on_lightbox: "#ffffff",
+    card_bg: "#fbf7f5", page_bg: "#f3ece9", surface: "#f5efec", band: "#f7eeec",
+    panel: "#ffffff", panel_warm: "#fdf9f6",
+    cover: "#f8f3f1", cover_mid: "#efe5e2", cover_veil: "#efe5e2", lightbox_bg: "#000000",
+    line: "#e6d6d4", shadow: "#3e1f24", scrim: "#000000",
+    deco: "#985a67", deco_soft: "#ffe0e5", deco_2: "#8a6a70", deco_2_soft: "#ffe0e5",
+    shine_from: "#985a67", shine_mid: "#ffe0e5", shine_to: "#fff0f2",
+    fill: "#ffe0e5", on_fill: "#3e1f24",
+    giftBox: "phongbi_hong_no",
+  },
+  {
+    id: "hong-phan",
+    name: "Hồng phấn",
+    tone: "ấm",
+    heading: "#29191c", body: "#655054", accent: "#bd5167", accent_soft: "#f2b0bd",
+    on_accent: "#ffffff", on_image: "#ffffff", on_lightbox: "#ffffff",
+    card_bg: "#ffffff", page_bg: "#fcedf0", surface: "#fcedf0", band: "#f7cfd7",
+    panel: "#ffffff", panel_warm: "#fdfbfc",
+    cover: "#ffffff", cover_mid: "#f7cfd7", cover_veil: "#f7cfd7", lightbox_bg: "#000000",
+    line: "#f1c6ce", shadow: "#29191c", scrim: "#181012",
+    deco: "#bd5167", deco_soft: "#f2b0bd", deco_2: "#bd5167", deco_2_soft: "#f2b0bd",
+    shine_from: "#ffffff", shine_mid: "#f8d3da", shine_to: "#ee96a7",
+    fill: "#bd5167", on_fill: "#ffffff",
+    giftBox: "lixi_hong_mai",
+  },
+  {
+    id: "do-son",
+    name: "Đỏ son",
+    tone: "ấm",
+    heading: "#29191b", body: "#6f585b", accent: "#d13d51", accent_soft: "#eeb5bc",
+    on_accent: "#ffffff", on_image: "#ffffff", on_lightbox: "#ffffff",
+    card_bg: "#ffffff", page_bg: "#fdeef0", surface: "#fdeef0", band: "#fae1e4",
+    panel: "#ffffff", panel_warm: "#fdfbfc",
+    cover: "#ffffff", cover_mid: "#fae1e4", cover_veil: "#fae1e4", lightbox_bg: "#000000",
+    line: "#f1c6cc", shadow: "#29191b", scrim: "#181011",
+    deco: "#d13d51", deco_soft: "#eeb5bc", deco_2: "#d13d51", deco_2_soft: "#eeb5bc",
+    shine_from: "#ffffff", shine_mid: "#f5d6da", shine_to: "#e89ca6",
+    fill: "#d13d51", on_fill: "#ffffff",
+    giftBox: "lixi_do_hy",
+  },
+  {
+    id: "xanh-duong",
+    name: "Xanh dương",
+    tone: "lạnh",
+    heading: "#192129", body: "#56616e", accent: "#4377b1", accent_soft: "#bcd0e6",
+    on_accent: "#ffffff", on_image: "#ffffff", on_lightbox: "#ffffff",
+    card_bg: "#ffffff", page_bg: "#eef3fa", surface: "#eef3fa", band: "#e3ecf7",
+    panel: "#ffffff", panel_warm: "#fbfcfd",
+    cover: "#ffffff", cover_mid: "#e3ecf7", cover_veil: "#e3ecf7", lightbox_bg: "#000000",
+    line: "#c9daed", shadow: "#192129", scrim: "#101418",
+    deco: "#4377b1", deco_soft: "#bcd0e6", deco_2: "#4377b1", deco_2_soft: "#bcd0e6",
+    shine_from: "#ffffff", shine_mid: "#dae5f1", shine_to: "#a6c0dd",
+    fill: "#4377b1", on_fill: "#ffffff",
+    giftBox: "hop_navy_vang",
+  },
   {
     id: "blush-white",
     name: "Trắng hồng",
@@ -35,6 +115,7 @@ const CX_PALETTES = [
     line: "#f2dcd9", shadow: "#4a3229", scrim: "#2b1a1c",
     deco: "#c07f84", deco_soft: "#eccfd0", deco_2: "#c9928c", deco_2_soft: "#f0dbd7",
     shine_from: "#ffffff", shine_mid: "#fbe9e6", shine_to: "#e3c3bf",
+    fill: "#9d686c", on_fill: "#ffffff",
   },
   {
     id: "champagne-cream",
@@ -48,6 +129,7 @@ const CX_PALETTES = [
     line: "#e8dcc5", shadow: "#3a322a", scrim: "#241d14",
     deco: "#a5793a", deco_soft: "#e2cda2", deco_2: "#b98f52", deco_2_soft: "#ecdcbb",
     shine_from: "#a5793a", shine_mid: "#eed6a4", shine_to: "#c69b56",
+    fill: "#986f35", on_fill: "#ffffff",
   },
   {
     id: "peach-sun",
@@ -61,6 +143,7 @@ const CX_PALETTES = [
     line: "#f2ddcc", shadow: "#4d2f24", scrim: "#2e1b13",
     deco: "#c26a45", deco_soft: "#f0cbb4", deco_2: "#cf8259", deco_2_soft: "#f5dcc9",
     shine_from: "#ffffff", shine_mid: "#fbe5d3", shine_to: "#e0b494",
+    fill: "#b1603f", on_fill: "#ffffff",
   },
   {
     id: "latte",
@@ -74,6 +157,7 @@ const CX_PALETTES = [
     line: "#e6d6c5", shadow: "#3f312a", scrim: "#281e18",
     deco: "#9a6b4b", deco_soft: "#dcc3ac", deco_2: "#ab7f5f", deco_2_soft: "#e6d2be",
     shine_from: "#ffffff", shine_mid: "#f4e6d5", shine_to: "#d3b89e",
+    fill: "#9a6b4b", on_fill: "#ffffff",
   },
   {
     id: "cool-grey",
@@ -87,6 +171,7 @@ const CX_PALETTES = [
     line: "#dbe3ea", shadow: "#2c333b", scrim: "#161c22",
     deco: "#4d6b85", deco_soft: "#bcccd9", deco_2: "#63809a", deco_2_soft: "#cfdbe4",
     shine_from: "#ffffff", shine_mid: "#e9eff4", shine_to: "#b9c8d5",
+    fill: "#4d6b85", on_fill: "#ffffff",
   },
   {
     id: "seafoam",
@@ -100,6 +185,7 @@ const CX_PALETTES = [
     line: "#d4e6e6", shadow: "#1f3a3d", scrim: "#122123",
     deco: "#3d7a80", deco_soft: "#b3d5d7", deco_2: "#579196", deco_2_soft: "#c8e1e2",
     shine_from: "#ffffff", shine_mid: "#e6f2f2", shine_to: "#aacfd1",
+    fill: "#3d7a80", on_fill: "#ffffff",
   },
   {
     id: "mint",
@@ -113,6 +199,7 @@ const CX_PALETTES = [
     line: "#d7e9de", shadow: "#223b2e", scrim: "#13231b",
     deco: "#3f7d5c", deco_soft: "#b6d8c4", deco_2: "#5a9375", deco_2_soft: "#cbe4d6",
     shine_from: "#ffffff", shine_mid: "#e8f4ed", shine_to: "#aed3bf",
+    fill: "#3f7d5c", on_fill: "#ffffff",
   },
   {
     id: "sage",
@@ -126,6 +213,7 @@ const CX_PALETTES = [
     line: "#e0e4d5", shadow: "#33392f", scrim: "#1d2019",
     deco: "#7d8b62", deco_soft: "#cdd4bb", deco_2: "#8e9b76", deco_2_soft: "#dde1cf",
     shine_from: "#ffffff", shine_mid: "#eff1e7", shine_to: "#c7cfb2",
+    fill: "#6e7a56", on_fill: "#ffffff",
   },
   {
     id: "lavender",
@@ -139,6 +227,7 @@ const CX_PALETTES = [
     line: "#e2dcef", shadow: "#3a3346", scrim: "#201a2a",
     deco: "#7a68a3", deco_soft: "#cec5e2", deco_2: "#8d7db1", deco_2_soft: "#ded7ec",
     shine_from: "#ffffff", shine_mid: "#efeaf8", shine_to: "#c6bcdd",
+    fill: "#7a68a3", on_fill: "#ffffff",
   },
   {
     id: "pearl",
@@ -152,6 +241,7 @@ const CX_PALETTES = [
     line: "#e2dbd0", shadow: "#38332f", scrim: "#211d18",
     deco: "#9a8468", deco_soft: "#d8ccba", deco_2: "#a9957c", deco_2_soft: "#e4dacb",
     shine_from: "#ffffff", shine_mid: "#f0ebe2", shine_to: "#cdc0ad",
+    fill: "#86735a", on_fill: "#ffffff",
   },
 ];
 
@@ -168,6 +258,7 @@ function cxPaletteValue(id) {
   (window.CX_PALETTE_KEYS || []).forEach((k) => {
     if (p[k]) out[k] = p[k];
   });
+  if (p.giftBox) out.giftBox = p.giftBox;
   return out;
 }
 

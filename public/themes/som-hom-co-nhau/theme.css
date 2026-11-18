@@ -110,7 +110,8 @@
 
 
 /* Bộ màu NỀN SÁNG (bộ chung của danh mục) chỉ đổi token --cx-*: shStripe gắn .sh-lite để
-   biến bìa/mục xen kẽ trỏ lại token chung, không thì bìa kem chữ đỏ rượu nằm giữa thiệp sáng. */
+   biến bìa/mục xen kẽ trỏ lại token chung, không thì bìa kem chữ đỏ rượu nằm giữa thiệp sáng.
+   Mục xen kẽ lấy nền trang (khác nền thẻ → vẫn xen), mục còn lại thành THẺ KHỐI TÔ (`fill`). */
 html.sh-lite {
   --sh-cv-bg-rgb: var(--cx-cover-rgb);
   --sh-cv-bg-2-rgb: var(--cx-cover-mid-rgb);
@@ -131,8 +132,8 @@ html.sh-lite {
   --sh-berry-rgb: var(--cx-accent-rgb);
   --sh-env-in-a-rgb: var(--cx-accent-rgb);
   --sh-env-in-b-rgb: var(--cx-deco-rgb);
-  --sh-alt-bg-rgb: var(--cx-card-bg-rgb);
-  --sh-alt-bg-2-rgb: var(--cx-card-bg-rgb);
+  --sh-alt-bg-rgb: var(--cx-page-bg-rgb);
+  --sh-alt-bg-2-rgb: var(--cx-page-bg-rgb);
   --sh-alt-heading-rgb: var(--cx-heading-rgb);
   --sh-alt-body-rgb: var(--cx-body-rgb);
   --sh-alt-accent-rgb: var(--cx-accent-rgb);
@@ -147,6 +148,21 @@ html.sh-lite {
   --sh-alt-deco-soft-rgb: var(--cx-deco-soft-rgb);
   --sh-alt-deco-2-rgb: var(--cx-deco-2-rgb);
   --sh-alt-deco-2-soft-rgb: var(--cx-deco-2-soft-rgb);
+  --sh-red-bg-rgb: var(--cx-fill-rgb, var(--cx-card-bg-rgb));
+  --sh-red-heading-rgb: var(--cx-on-fill-rgb, var(--cx-heading-rgb));
+  --sh-red-body-rgb: var(--cx-on-fill-rgb, var(--cx-body-rgb));
+  --sh-red-accent-rgb: var(--cx-on-fill-rgb, var(--cx-accent-rgb));
+  --sh-red-accent-soft-rgb: var(--cx-on-fill-rgb, var(--cx-accent-soft-rgb));
+  --sh-red-on-accent-rgb: var(--cx-fill-rgb, var(--cx-on-accent-rgb));
+  --sh-red-surface-rgb: var(--cx-fill-rgb, var(--cx-surface-rgb));
+  --sh-red-band-rgb: var(--cx-fill-rgb, var(--cx-band-rgb));
+  --sh-red-panel-rgb: var(--cx-fill-rgb, var(--cx-panel-rgb));
+  --sh-red-panel-warm-rgb: var(--cx-fill-rgb, var(--cx-panel-warm-rgb));
+  --sh-red-line-rgb: var(--cx-on-fill-rgb, var(--cx-line-rgb));
+  --sh-red-deco-rgb: var(--cx-on-fill-rgb, var(--cx-deco-rgb));
+  --sh-red-deco-soft-rgb: var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb));
+  --sh-red-deco-2-rgb: var(--cx-on-fill-rgb, var(--cx-deco-2-rgb));
+  --sh-red-deco-2-soft-rgb: var(--cx-on-fill-rgb, var(--cx-deco-2-soft-rgb));
 }
 
 body {
@@ -1542,6 +1558,42 @@ html.sh-lite #cx-wish-all {
   --cx-wish-accent-rgb: var(--cx-accent-rgb) !important;
   --cx-wish-bubble-rgb: var(--cx-panel-rgb) !important;
   --cx-wish-btn-rgb: var(--cx-accent-rgb) !important;
+}
+
+/* Bộ nền sáng (.sh-lite): bìa + nút đi theo TÔNG của bộ, không mượn màu chữ sẫm (đỏ rượu gốc
+   tối nên chữ tiêu đề làm được mảng sẫm; bộ sáng mà lấy nó là dấu sáp, hoa, nút ra nâu đen). */
+html.sh-lite #main-card.sh-striped,
+html.sh-lite .sh-sec.sh-alt {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, rgb(var(--cx-page-bg-rgb)) 72%, rgb(var(--cx-accent-soft-rgb))),
+    color-mix(in srgb, rgb(var(--cx-page-bg-rgb)) 84%, rgb(var(--cx-accent-soft-rgb))) 50%,
+    color-mix(in srgb, rgb(var(--cx-page-bg-rgb)) 72%, rgb(var(--cx-accent-soft-rgb)))
+  );
+}
+
+html.sh-lite .sh-seal {
+  background: rgb(var(--cx-accent-rgb));
+}
+
+html.sh-lite .sh-rose-b {
+  fill: rgb(var(--cx-accent-soft-rgb));
+}
+
+html.sh-lite .sh-rose-c {
+  fill: color-mix(in srgb, rgb(var(--cx-accent-rgb)) 72%, #000);
+}
+
+html.sh-lite .sh-btn,
+html.sh-lite .sh-map-bar {
+  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-accent-rgb));
+  border-color: rgb(var(--cx-accent-rgb));
+}
+
+html.sh-lite .sh-btn-line {
+  color: rgb(var(--cx-accent-rgb));
+  background: transparent;
 }
 
 /* ── Chuyển động khi vuốt (shMotion ở index.js) ─────────────────────────────

@@ -153,8 +153,8 @@ function _cxWishColor(v) {
 /**
  * Áp bảng màu của MẪU lên mục lời chúc. Màu là phần cố định của mẫu thiệp — khách
  * không chỉnh được — nên chỉ đọc CX_THEME.wishes, khoá nào mẫu không khai thì token
- * chung của thiệp lo (xem .cx-wsec ở styles/_common.css). Ngoại lệ: bộ màu riêng của
- * mẫu (CX_THEME.palettes) đang chọn mà kèm `wishes` thì bản đó thay CX_THEME.wishes.
+ * chung của thiệp lo (xem .cx-wsec ở styles/_common.css). Đang áp một bộ màu thì
+ * CX_THEME.wishes (chỉ hợp màu gốc) nhường cho `wishes` của bộ, bộ không khai thì token chung.
  */
 function applyWishStyle() {
   // Ba gốc rời nhau: dải nổi, mục trong thân thiệp và bảng "Xem tất cả" (bảng nằm
@@ -164,10 +164,11 @@ function applyWishStyle() {
     .filter(Boolean);
   if (!targets.length) return;
 
-  const palWishes = window.CX_PALETTE_ON?.wishes;
+  const pal = window.CX_PALETTE_ON;
+  const palWishes = pal?.wishes;
   const decl =
     (palWishes && typeof palWishes === "object" && palWishes) ||
-    (window.CX_THEME && window.CX_THEME.wishes) ||
+    (!pal && window.CX_THEME && window.CX_THEME.wishes) ||
     {};
 
   Object.entries(CX_WISH_COLORS).forEach(([key, def]) => {

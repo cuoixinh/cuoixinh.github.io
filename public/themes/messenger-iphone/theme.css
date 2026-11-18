@@ -54,6 +54,9 @@
   --music-art-to-rgb: var(--cx-heading-rgb);
 
   --mi-grad: linear-gradient(135deg, rgb(var(--cx-accent-rgb)), rgb(var(--cx-accent-soft-rgb)));
+  /* Có bộ màu: bong bóng gửi đi + icon thông báo là khối tô; không có bộ thì biến này vô hiệu
+     (var thiếu, không fallback) → chỗ dùng rơi về --mi-grad. */
+  --mi-fill: linear-gradient(135deg, rgb(var(--cx-fill-rgb)), color-mix(in srgb, rgb(var(--cx-fill-rgb)) 80%, #fff));
 }
 
 body {
@@ -208,8 +211,8 @@ body {
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: var(--mi-grad);
-  color: rgb(var(--cx-on-accent-rgb));
+  background: var(--mi-fill, var(--mi-grad));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 
 .mi-n b {
@@ -397,8 +400,8 @@ body {
 }
 
 .mi-me .mi-b {
-  background: var(--mi-grad);
-  color: rgb(var(--cx-on-accent-rgb));
+  background: var(--mi-fill, var(--mi-grad));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   border-radius: 20px 20px 6px 20px;
 }
 
