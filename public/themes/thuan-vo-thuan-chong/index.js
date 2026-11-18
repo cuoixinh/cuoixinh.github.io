@@ -42,6 +42,53 @@
       shine_to: "#f6e8e9",
     },
 
+    // Biến thể tông riêng của mẫu, hiện ngay sau "Mặc định" ở tab Giao diện → Bộ màu. `id` lưu
+    // xuống DB → đừng đổi; thêm bộ mới thì chạy `npm run check:palette-contrast`.
+    palettes: [
+      // "Hồng pastel": thiệp giấy hồng nhạt — nền/bìa hồng phấn, thẻ nội dung trắng ngà, chữ than
+      // chì, nhấn hồng đất, lá xanh dịu như cành tulip; bìa phong bì hồng nhạt dấu sáp trắng
+      // (`vars` ghi đè --tv-env-*/--tv-wax-* của theme.css); hộp mừng là phong bì nơ hồng.
+      {
+        id: "thuan-vo-hong-pastel",
+        name: "Hồng pastel",
+        heading: "#2b2426",
+        body: "#5e5054",
+        accent: "#a4566a",
+        accent_soft: "#f4d6dd",
+        on_accent: "#ffffff",
+        on_image: "#ffffff",
+        on_lightbox: "#ffffff",
+        card_bg: "#fdf8f9",
+        page_bg: "#f6e2e6",
+        surface: "#f9e7ea",
+        band: "#fbeef0",
+        panel: "#ffffff",
+        panel_warm: "#fffafb",
+        cover: "#f8e4e8",
+        cover_mid: "#f2d2d9",
+        cover_veil: "#f2d2d9",
+        lightbox_bg: "#000000",
+        line: "#efd4da",
+        shadow: "#5a3f46",
+        scrim: "#1f1719",
+        deco: "#8a9a7b",
+        deco_soft: "#e3e9dc",
+        deco_2: "#a4566a",
+        deco_2_soft: "#f4d6dd",
+        shine_from: "#a4566a",
+        shine_mid: "#f4d6dd",
+        shine_to: "#fbeef0",
+        giftBox: "phongbi_hong_no",
+        wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
+        vars: {
+          "--tv-env-rgb": "#f3cbd3",
+          "--tv-env-in-rgb": "#e2a9b5",
+          "--tv-wax-rgb": "#fbf8f6",
+          "--tv-wax-ink-rgb": "#b46d80",
+        },
+      },
+    ],
+
     swatches: ["#7b1e2f", "#a64a5a", "#3e1f24", "#6e5256", "#e8c4c8", "#8f9a5e", "#e6d6d4", "#f3ece9", "#ffffff"],
 
     wishes: { bubble: "#ffffff", text: "#6e5256", accent: "#7b1e2f", btn: "#7b1e2f" },

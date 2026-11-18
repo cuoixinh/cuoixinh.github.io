@@ -30,6 +30,13 @@
   --cx-shine-mid-rgb: 232 196 200;
   --cx-shine-to-rgb: 246 232 233;
 
+  /* Phong bì + dấu sáp ở bìa: mặc định theo token chung; bộ màu riêng (CX_THEME.palettes)
+     đổi qua `vars` khi cần màu khác hẳn (phong bì hồng nhạt + sáp trắng của "Hồng pastel"). */
+  --tv-env-rgb: var(--cx-accent-rgb);
+  --tv-env-in-rgb: var(--cx-heading-rgb);
+  --tv-wax-rgb: var(--cx-accent-rgb);
+  --tv-wax-ink-rgb: var(--cx-on-accent-rgb);
+
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
   --music-widget-fg-rgb: var(--cx-heading-rgb);
@@ -191,7 +198,7 @@ body {
   top: 22%;
   bottom: 2%;
   border-radius: 1.6cqw 1.6cqw 1cqw 1cqw;
-  background-color: rgb(var(--cx-heading-rgb));
+  background-color: rgb(var(--tv-env-in-rgb));
 }
 
 .tv-print {
@@ -331,7 +338,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 0 0 1cqw 1cqw;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-env-rgb));
   clip-path: polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%);
 }
 
@@ -345,7 +352,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 0 0 1cqw 1cqw;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-env-rgb));
   background-blend-mode: normal;
   clip-path: polygon(0 100%, 0 96%, 46% 46%, 50% 44%, 54% 46%, 100% 96%, 100% 100%);
 }
@@ -362,13 +369,13 @@ body {
   border-radius: 47% 53% 44% 56% / 55% 45% 55% 45%;
   background:
     radial-gradient(circle at 38% 32%, rgb(255 255 255 / 0.14), transparent 55%),
-    rgb(var(--cx-accent-rgb));
+    rgb(var(--tv-wax-rgb));
   box-shadow:
-    1.4cqw 0.4cqw 0 -0.5cqw rgb(var(--cx-accent-rgb)),
-    -1.2cqw 1cqw 0 -0.6cqw rgb(var(--cx-accent-rgb)),
-    0.2cqw -1.3cqw 0 -0.7cqw rgb(var(--cx-accent-rgb)),
-    -0.6cqw -1cqw 0 -0.8cqw rgb(var(--cx-accent-rgb)),
-    0.9cqw 1.2cqw 0 -0.7cqw rgb(var(--cx-accent-rgb)),
+    1.4cqw 0.4cqw 0 -0.5cqw rgb(var(--tv-wax-rgb)),
+    -1.2cqw 1cqw 0 -0.6cqw rgb(var(--tv-wax-rgb)),
+    0.2cqw -1.3cqw 0 -0.7cqw rgb(var(--tv-wax-rgb)),
+    -0.6cqw -1cqw 0 -0.8cqw rgb(var(--tv-wax-rgb)),
+    0.9cqw 1.2cqw 0 -0.7cqw rgb(var(--tv-wax-rgb)),
     inset 0 -0.8cqw 1.2cqw rgb(0 0 0 / 0.28),
     inset 0 0.5cqw 0.8cqw rgb(255 255 255 / 0.12),
     0 1cqw 2cqw rgb(0 0 0 / 0.35);
@@ -393,7 +400,7 @@ body {
   font-family: "Great Vibes", cursive;
   font-size: 6.4cqw;
   line-height: 1;
-  color: rgb(var(--cx-on-accent-rgb) / 0.82);
+  color: rgb(var(--tv-wax-ink-rgb) / 0.82);
   text-shadow:
     0 -0.2cqw 0 rgb(0 0 0 / 0.35),
     0 0.2cqw 0 rgb(255 255 255 / 0.2);
