@@ -2752,12 +2752,13 @@ x-button {
 }
 
 /* Nút đổi màu ở bản xem thử trên điện thoại (core/utils.js _mountPalette): viên kính
-   trắng neo mép phải giữa màn, cùng trục dọc với nút ba chấm. Đóng = một nút tròn; mở =
+   trắng ngay dưới nút ba chấm, cùng trục dọc (tâm cách mép 36px) — nút nhạc dời xuống
+   dưới nó (cờ .cx-ppal-on, styles/_music-player.css). Đóng = một nút tròn; mở =
    cột chấm màu cao vừa 4 chấm (28 × 4 + gap 8 × 4 + nửa chấm thứ năm), cuộn dọc xem tiếp.
    Mép còn màu phía sau mờ dần (cờ .is-up/.is-down do JS đặt theo vị trí cuộn). */
 .cx-ppal {
   position: fixed;
-  top: calc(var(--vh, 1vh) * 50 - 24px);
+  top: 68px;
   right: 16px;
   z-index: 61;
   display: flex;
@@ -2770,8 +2771,14 @@ x-button {
   box-shadow: 0 0 0 1px rgb(31 36 48 / 0.08), 0 8px 20px -8px rgb(31 36 48 / 0.4);
 }
 
+/* Mở thì cột đè lên nút nhạc ngay dưới → nền đặc, không để lộ bóng nút nhạc. */
+.cx-ppal.is-open {
+  background: #fff;
+}
+
 @media (min-width: 768px) {
   .cx-ppal {
+    top: 88px;
     right: max(16px, calc(50% - var(--cx-card-max) / 2 + 16px));
   }
 }

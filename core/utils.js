@@ -2270,7 +2270,7 @@ function closeTimePicker() {
   }
 
   // Chọn bộ màu trên điện thoại (trang mẫu chạy thẳng, không khung máy): một nút tròn nhỏ
-  // neo mép phải, bấm thì bung cột chấm màu — thấy 4 chấm, cuộn dọc xem tiếp, mép còn màu
+  // ngay dưới nút ba chấm, bấm thì bung cột chấm màu — thấy 4 chấm, cuộn dọc xem tiếp, mép còn màu
   // phía sau thì mờ dần (.is-up/.is-down). Đổi màu đi qua cxPreviewPalette (ghi ?pal= lên URL).
   function _mountPalette() {
     if (IN_SHELL) return;
@@ -2283,6 +2283,7 @@ function closeTimePicker() {
       "</x-button>" +
       '<div class="cx-ppal-list" hidden></div>';
     document.body.appendChild(box);
+    document.documentElement.classList.add("cx-ppal-on");
     const list = box.querySelector(".cx-ppal-list");
     let built = false;
 
@@ -2299,6 +2300,7 @@ function closeTimePicker() {
     const toggle = function (open) {
       list.hidden = !open;
       box.classList.toggle("is-open", open);
+      document.documentElement.classList.toggle("cx-ppal-open", open);
       box.querySelector(".cx-ppal-btn")?.setAttribute("aria-expanded", open ? "true" : "false");
       if (!open) return;
       if (built) return fade();
