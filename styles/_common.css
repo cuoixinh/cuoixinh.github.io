@@ -2696,6 +2696,194 @@ x-button {
   opacity: 0.65;
 }
 
+/* Ô màu của bản xem thử mẫu (cxPreviewPaletteSwatches ở core/utils.js): chấm chia bốn
+   (nền dải · nhấn nhạt · nhấn · tiêu đề) + tên. Dùng chung cho tấm đáy màn (.cx-ppal-sw,
+   điện thoại) và thẻ cạnh khung máy (.cx-pside-sw). Màu khung viết cứng như vỏ máy. */
+.cx-ppal-dot {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #d9dde4;
+  box-shadow: inset 0 0 0 1px rgb(31 36 48 / 0.12);
+}
+
+.cx-ppal-sw,
+.cx-pside-sw {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  color: #5b6372;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cx-ppal-sw[aria-pressed="true"] .cx-ppal-dot,
+.cx-pside-sw[aria-pressed="true"] .cx-ppal-dot {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #b4536a;
+}
+
+.cx-ppal-sw[aria-pressed="true"],
+.cx-pside-sw[aria-pressed="true"] {
+  color: #1f2430;
+  font-weight: 600;
+}
+
+.cx-ppal-sw:focus-visible,
+.cx-pside-sw:focus-visible {
+  outline: 2px solid #b4536a;
+  outline-offset: 0;
+}
+
+.cx-ppal-lb {
+  max-width: 64px;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Nút đổi màu ở bản xem thử trên điện thoại (core/utils.js _mountPalette): viên kính
+   trắng neo mép phải giữa màn, cùng trục dọc với nút ba chấm. Đóng = một nút tròn; mở =
+   cột chấm màu cao vừa 4 chấm (28 × 4 + gap 8 × 4 + nửa chấm thứ năm), cuộn dọc xem tiếp.
+   Mép còn màu phía sau mờ dần (cờ .is-up/.is-down do JS đặt theo vị trí cuộn). */
+.cx-ppal {
+  position: fixed;
+  top: calc(var(--vh, 1vh) * 50 - 24px);
+  right: 16px;
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.88);
+  box-shadow: 0 0 0 1px rgb(31 36 48 / 0.08), 0 8px 20px -8px rgb(31 36 48 / 0.4);
+}
+
+@media (min-width: 768px) {
+  .cx-ppal {
+    right: max(16px, calc(50% - var(--cx-card-max) / 2 + 16px));
+  }
+}
+
+.cx-ppal .cx-ppal-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: #1f2430;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cx-ppal .cx-ppal-btn:active {
+  transform: scale(0.92);
+}
+
+.cx-ppal .cx-ppal-btn:focus-visible {
+  outline: 2px solid #b4536a;
+  outline-offset: 2px;
+}
+
+.cx-ppal-list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-height: 164px;
+  padding: 4px 4px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cx-ppal-list[hidden] {
+  display: none;
+}
+
+.cx-ppal-list::-webkit-scrollbar {
+  display: none;
+}
+
+.cx-ppal-list.is-down {
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(#000 calc(100% - 48px), transparent);
+}
+
+.cx-ppal-list.is-up {
+  -webkit-mask-image: linear-gradient(transparent, #000 32px);
+  mask-image: linear-gradient(transparent, #000 32px);
+}
+
+.cx-ppal-list.is-up.is-down {
+  -webkit-mask-image: linear-gradient(transparent, #000 32px, #000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(transparent, #000 32px, #000 calc(100% - 48px), transparent);
+}
+
+.cx-ppal-list .cx-ppal-sw {
+  flex: none;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.cx-ppal-list .cx-ppal-dot {
+  width: 28px;
+  height: 28px;
+}
+
+.cx-ppal-list .cx-ppal-lb {
+  display: none;
+}
+
+/* Mục "Màu thiệp" ở thẻ cạnh khung máy (máy tính) — lưới ô màu dưới công tắc khách mời. */
+.cx-pside-pal {
+  margin-top: 16px;
+}
+
+.cx-pside-pal[hidden] {
+  display: none;
+}
+
+.cx-pside-pal-head {
+  margin: 0 0 4px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5b6372;
+}
+
+.cx-pside-pal-head b {
+  font-weight: 700;
+  color: #1f2430;
+}
+
+.cx-pside-pal-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+}
+
+.cx-pside-sw .cx-ppal-dot {
+  width: 32px;
+  height: 32px;
+}
+
+.cx-pside-sw .cx-ppal-lb {
+  display: none;
+}
+
 /* Nhãn thời lượng "5 phút" — con tem viền chỉ hồng; dùng chung cho thẻ cạnh máy và mục
    menu ba chấm. Font Quicksand của thẻ, không ăn serif của tên nút. */
 .cx-pside-tag {

@@ -324,6 +324,127 @@ function showPreviewAlert() {
   return true;
 }
 
+// ============= BỘ MÀU Ở BẢN XEM THỬ MẪU =============
+// Khách đang xem thử mẫu được đổi bộ màu để hình dung — CHỈ bản xem thử: thiệp thật luôn
+// dựng theo theme_setting.palette chủ thiệp đã lưu. Lựa chọn nằm ở ?pal= của URL nên nạp
+// lại khung (bật "khách mời") vẫn giữ; áp bằng chính applyThemeSetting như thiệp thật.
+// Lối vào: nút màu neo mép phải (điện thoại, initPreviewSuggest) và thẻ cạnh khung máy (theme-boot.js).
+const CX_PREV_PAL_DEFAULT = "Mặc định";
+let _cxPrevPalBase; // theme_setting của dữ liệu xem thử, chưa trộn ?pal= (undefined = chưa nạp)
+let _cxPrevPalCat = null;
+
+// Bản xem thử mẫu thật sự: không phải khung của trang Thiết lập (source=live) hay iframe
+// của trang khác — chỉ trang đứng riêng hoặc nằm trong khung máy của chính nó (shell=0).
+function _cxPrevPalOn() {
+  const q = new URLSearchParams(window.location.search);
+  if (q.get("preview") !== "true" || q.get("source") === "live") return false;
+  return window.self === window.top || q.get("shell") === "0";
+}
+
+// Danh mục chung chỉ trang Thiết lập nạp sẵn; ở đây nạp lúc cần (khai `const` nên chỉ một lần).
+function _cxPrevPalCatalog() {
+  if (window.CX_PALETTES) return Promise.resolve(window.CX_PALETTES);
+  if (!_cxPrevPalCat) {
+    _cxPrevPalCat = new Promise((done) => {
+      const s = document.createElement("script");
+      const v = typeof CX_VERSION !== "undefined" ? "?v=" + CX_VERSION : "";
+      s.src = "/core/helpers/card-palette-helper.js" + v;
+      s.onload = () => done(window.CX_PALETTES || []);
+      s.onerror = () => {
+        _cxPrevPalCat = null;
+        done([]);
+      };
+      document.head.appendChild(s);
+    });
+  }
+  return _cxPrevPalCat;
+}
+
+function _cxPrevPalOwn() {
+  const list = window.CX_THEME && window.CX_THEME.palettes;
+  return Array.isArray(list) ? list.filter((p) => p && typeof p.id === "string" && p.name) : [];
+}
+
+/** Các lựa chọn: "Mặc định" (màu khai của mẫu) · bộ riêng của mẫu · danh mục chung. */
+async function cxPreviewPalettes() {
+  const cat = await _cxPrevPalCatalog();
+  const own = _cxPrevPalOwn();
+  return [
+    { id: "", name: CX_PREV_PAL_DEFAULT, p: (window.CX_THEME && window.CX_THEME.palette) || null },
+    ...own.map((p) => ({ id: p.id, name: p.name, p })),
+    ...cat.filter((p) => !own.some((o) => o.id === p.id)).map((p) => ({ id: p.id, name: p.name, p })),
+  ];
+}
+
+// Bộ riêng của mẫu đưa nguyên bản khai (applyThemeSetting tự tra lại theo id); bộ chung
+// lấy đúng phần đem lưu như trang Thiết lập.
+async function _cxPrevPalValue(id) {
+  if (!id) return null;
+  const own = _cxPrevPalOwn().find((p) => p.id === id);
+  if (own) return own;
+  await _cxPrevPalCatalog();
+  return typeof cxPaletteValue === "function" ? cxPaletteValue(id) : null;
+}
+
+function cxPreviewPaletteId() {
+  return _cxPrevPalOn() ? new URLSearchParams(window.location.search).get("pal") || "" : "";
+}
+
+/** wedding-helper gọi ở nhánh xem thử: nhớ bản gốc, trả bản đã trộn bộ màu của ?pal=. */
+async function cxPreviewPaletteSetting(setting) {
+  if (!_cxPrevPalOn()) return setting;
+  if (typeof setting === "string") {
+    try {
+      setting = JSON.parse(setting);
+    } catch (e) {
+      setting = null;
+    }
+  }
+  const base = setting && typeof setting === "object" ? setting : {};
+  _cxPrevPalBase = base;
+  const pal = await _cxPrevPalValue(cxPreviewPaletteId());
+  return pal ? { ...base, palette: pal } : base;
+}
+
+/** Đổi bộ màu tại chỗ (id rỗng = màu của mẫu). Hộp mừng cưới chỉ dựng lại khi hộp mặc định đổi. */
+async function cxPreviewPalette(id) {
+  if (!_cxPrevPalOn()) return;
+  const pal = await _cxPrevPalValue(id);
+  if (id && !pal) return;
+  const url = new URL(window.location.href);
+  if (pal) url.searchParams.set("pal", id);
+  else url.searchParams.delete("pal");
+  history.replaceState(history.state, "", url);
+  // Dữ liệu chưa về: lượt nạp đó tự đọc ?pal= vừa ghi.
+  if (_cxPrevPalBase === undefined || typeof applyThemeSetting !== "function") return;
+  const s = pal ? { ..._cxPrevPalBase, palette: pal } : _cxPrevPalBase;
+  const boxBefore = window.CX_PALETTE_ON && window.CX_PALETTE_ON.giftBox;
+  applyThemeSetting(s);
+  const boxAfter = window.CX_PALETTE_ON && window.CX_PALETTE_ON.giftBox;
+  if (boxBefore !== boxAfter && typeof applyGiftBox === "function") applyGiftBox(s);
+}
+
+/** Dãy ô màu dùng chung cho hai lối vào; trang gắn click theo data-pal. */
+function cxPreviewPaletteSwatches(list, cur, cls) {
+  const hex = (v) => (typeof v === "string" && /^#[0-9a-f]{3,8}$/i.test(v) ? v : "");
+  const esc = (s) =>
+    String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  return list
+    .map((o) => {
+      const p = o.p || {};
+      const c = [hex(p.band || p.surface || p.card_bg), hex(p.accent_soft), hex(p.accent), hex(p.heading)];
+      const bg = c.every(Boolean)
+        ? ` style="background:conic-gradient(${c[0]} 0 50%, ${c[1]} 0 66.6%, ${c[2]} 0 83.3%, ${c[3]} 0)"`
+        : "";
+      return (
+        `<button type="button" class="${cls}" data-pal="${esc(o.id)}" title="${esc(o.name)}" aria-label="${esc(o.name)}"` +
+        ` aria-pressed="${o.id === cur ? "true" : "false"}">` +
+        `<span class="cx-ppal-dot"${bg}></span><span class="cx-ppal-lb">${esc(o.name)}</span></button>`
+      );
+    })
+    .join("");
+}
+
 // ============= VIEWPORT HELPERS =============
 // Khoá --vh đã chuyển sang core/helpers/vh-lock.js — trang chủ cũng cần nó mà
 // lại không nạp file này. File đó tự chạy khi nạp, không phải gọi gì.
@@ -1599,6 +1720,13 @@ function closeTimePicker() {
     // pen-line: "Tạo ngay" trong menu ba chấm — cùng hình với thẻ cạnh khung máy.
     pen:
       '<path d="M13 21h8"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>',
+    // palette: nút đổi màu thiệp neo mép phải (bản xem thử trên điện thoại).
+    palette:
+      '<path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/>' +
+      '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>' +
+      '<circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>' +
+      '<circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>' +
+      '<circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>',
     // ellipsis: nút ba chấm góc trên phải (bản xem thử trên điện thoại).
     more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
     // eye-off: nút "Ẩn" ở góc trên phải, đúng glyph YouTube dùng cho việc tắt
@@ -2141,11 +2269,68 @@ function closeTimePicker() {
     });
   }
 
+  // Chọn bộ màu trên điện thoại (trang mẫu chạy thẳng, không khung máy): một nút tròn nhỏ
+  // neo mép phải, bấm thì bung cột chấm màu — thấy 4 chấm, cuộn dọc xem tiếp, mép còn màu
+  // phía sau thì mờ dần (.is-up/.is-down). Đổi màu đi qua cxPreviewPalette (ghi ?pal= lên URL).
+  function _mountPalette() {
+    if (IN_SHELL) return;
+    const box = document.createElement("div");
+    box.className = "cx-ppal";
+    box.setAttribute("data-no-scan", "");
+    box.innerHTML =
+      '<x-button variant="bare" class="cx-ppal-btn" aria-label="Đổi màu thiệp" aria-expanded="false">' +
+      _sugIcon("palette", 18) +
+      "</x-button>" +
+      '<div class="cx-ppal-list" hidden></div>';
+    document.body.appendChild(box);
+    const list = box.querySelector(".cx-ppal-list");
+    let built = false;
+
+    const fade = function () {
+      list.classList.toggle("is-up", list.scrollTop > 2);
+      list.classList.toggle("is-down", list.scrollTop + list.clientHeight < list.scrollHeight - 2);
+    };
+    const sync = function () {
+      const cur = cxPreviewPaletteId();
+      list.querySelectorAll("[data-pal]").forEach(function (b) {
+        b.setAttribute("aria-pressed", b.dataset.pal === cur ? "true" : "false");
+      });
+    };
+    const toggle = function (open) {
+      list.hidden = !open;
+      box.classList.toggle("is-open", open);
+      box.querySelector(".cx-ppal-btn")?.setAttribute("aria-expanded", open ? "true" : "false");
+      if (!open) return;
+      if (built) return fade();
+      built = true;
+      cxPreviewPalettes().then(function (items) {
+        list.innerHTML = cxPreviewPaletteSwatches(items, cxPreviewPaletteId(), "cx-ppal-sw");
+        const on = list.querySelector('[aria-pressed="true"]');
+        if (on) list.scrollTop = on.offsetTop - (list.clientHeight - on.offsetHeight) / 2;
+        fade();
+      });
+    };
+
+    list.addEventListener("scroll", fade, { passive: true });
+    box.addEventListener("click", function (e) {
+      if (e.target.closest(".cx-ppal-btn")) return toggle(list.hidden);
+      const b = e.target.closest("[data-pal]");
+      if (b) cxPreviewPalette(b.dataset.pal).then(sync);
+    });
+    document.addEventListener("click", function (e) {
+      if (!list.hidden && !box.contains(e.target)) toggle(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !list.hidden) toggle(false);
+    });
+  }
+
   function _mount() {
     if (document.documentElement.classList.contains("cx-pshell-host")) {
       return _listenShell();
     }
     _mountMenu();
+    _mountPalette();
     document.body.appendChild(panel);
 
     function _dismiss() {

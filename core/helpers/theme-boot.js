@@ -320,6 +320,7 @@ function _cxPreviewShell() {
 
   window.CXPhoneChrome?.wire(stage.querySelector(".cx-pchrome"), opts);
   _cxShellSideWire(stage.querySelector(".cx-pside"), slug);
+  _cxShellPalette(stage.querySelector(".cx-pside-pal"), stage.querySelector("iframe"));
   if (live) _cxShellNameLive(src);
   else _cxShellName(slug);
 
@@ -454,6 +455,10 @@ function _cxShellSideHtml(slug) {
         </span>
         <span class="cx-pside-switch" aria-hidden="true"></span>
       </x-button>
+      <section class="cx-pside-pal" hidden>
+        <p class="cx-pside-pal-head">Màu thiệp · <b class="cx-pside-pal-cur"></b></p>
+        <div class="cx-pside-pal-row"></div>
+      </section>
       <fieldset class="cx-pside-acts">
         <legend class="cx-pside-acts-lg">Chọn cách tạo thiệp</legend>
         <x-button variant="bare" class="cx-pside-route is-manual" data-act="choose">
@@ -495,6 +500,44 @@ function _cxShellSideWire(side, slug) {
     if (act === "guest") _cxShellGuestToggle();
     else if (act === "choose") _cxShellChoose(slug);
     else if (act === "ai") _cxShellAi(slug);
+  });
+}
+
+// Mục "Màu thiệp" ở thẻ cạnh máy: danh sách và việc đổi màu đều nhờ chính trang trong
+// iframe (cxPreviewPalettes/cxPreviewPalette ở core/utils.js — cùng origin); dựng lại mỗi
+// lần iframe nạp (bật "khách mời"), ?pal= của iframe giữ lựa chọn.
+function _cxShellPalette(box, frame) {
+  if (!box || !frame) return;
+  const row = box.querySelector(".cx-pside-pal-row");
+  const sync = () => {
+    const cur = frame.contentWindow?.cxPreviewPaletteId?.() || "";
+    let name = "";
+    row.querySelectorAll("[data-pal]").forEach((b) => {
+      const on = b.dataset.pal === cur;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      if (on) name = b.title;
+    });
+    box.querySelector(".cx-pside-pal-cur").textContent = name;
+    // URL của trang ngoài cũng mang ?pal= (iframe dựng từ chính query đó) → copy link gửi
+    // người khác là mở sẵn đúng màu.
+    const u = new URL(location.href);
+    if (cur) u.searchParams.set("pal", cur);
+    else u.searchParams.delete("pal");
+    if (u.href !== location.href) history.replaceState(history.state, "", u);
+  };
+  frame.addEventListener("load", () => {
+    const cw = frame.contentWindow;
+    if (!cw || typeof cw.cxPreviewPalettes !== "function") return;
+    cw.cxPreviewPalettes().then((list) => {
+      row.innerHTML = cxPreviewPaletteSwatches(list, cw.cxPreviewPaletteId(), "cx-pside-sw");
+      box.hidden = list.length < 2;
+      sync();
+    });
+  });
+  row.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-pal]");
+    const cw = frame.contentWindow;
+    if (b && cw?.cxPreviewPalette) cw.cxPreviewPalette(b.dataset.pal).then(sync);
   });
 }
 
