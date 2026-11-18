@@ -332,6 +332,16 @@
   top: 68px;
 }
 
+/* Có thêm nút đổi màu dưới nút ba chấm (.cx-ppal, cao 40px) → nút nhạc lùi xuống dưới nó. */
+.cx-ppal-on .cx-mw-fixed {
+  top: 116px;
+}
+
+/* Cột chấm màu đang mở phủ lên chỗ nút nhạc → giấu tạm nút nhạc. */
+.cx-ppal-open .cx-mw-fixed {
+  visibility: hidden;
+}
+
 /* Nút neo góc chưa được hiện (màn bìa / chưa cuộn — data-cx-reveal-on-scroll):
    ẩn cả nút, không dùng `display` vì setupMusic() đang quản thuộc tính đó. */
 
@@ -367,6 +377,10 @@
 @media (min-width: 768px) {
   .cx-pmenu-on .cx-mw-fixed {
     top: 88px;
+  }
+
+  .cx-ppal-on .cx-mw-fixed {
+    top: 136px;
   }
 }
 

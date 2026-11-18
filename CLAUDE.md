@@ -718,7 +718,7 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   (**chỉ trang Thiết lập nạp** — thiệp lưu sẵn màu nên không cần danh mục), áp ở
   `applyThemeSetting` bằng cách đổ vào `:root { --cx-*-rgb }`, bảng chọn ở
   `05-theme-panel.js`. Bản xem thử MẪU (`?preview=true`) cũng cho khách thử bộ màu (nút
-  màu neo mép phải trên điện thoại / thẻ cạnh khung máy, lõi `cxPreviewPalette` ở
+  màu dưới nút ba chấm trên điện thoại / thẻ cạnh khung máy, lõi `cxPreviewPalette` ở
   `core/utils.js`): chỉ nằm ở `?pal=` của URL (cả URL trang ngoài khung máy — link copy mở
   sẵn đúng màu), trộn vào dữ liệu xem thử ở `loadWeddingData`; thiệp thật không đọc nó.
   Lưu trong `theme_setting` nên **không cần changelog DB**. Thêm bộ
