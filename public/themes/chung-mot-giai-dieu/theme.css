@@ -339,8 +339,8 @@ body {
    chưa tới chìm; hai mép khung mờ dần nên dải lời như trôi qua một ô cửa. */
 .cm-ly {
   border-radius: 14px;
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   padding: 18px 18px 6px;
 }
 

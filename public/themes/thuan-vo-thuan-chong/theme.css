@@ -30,13 +30,16 @@
   --cx-shine-mid-rgb: 232 196 200;
   --cx-shine-to-rgb: 246 232 233;
 
-  /* Mảng tô (dải, lịch, con dấu, nút) + chữ trên nó, phong bì + dấu sáp ở bìa: mặc định theo
-     token chung; bộ màu riêng (CX_THEME.palettes) đổi qua `vars` khi mảng tô cần màu khác chữ
-     nhấn (hồng pastel tô mảng nhưng không đọc được khi làm chữ trên nền sáng). */
-  --tv-fill-rgb: var(--cx-accent-rgb);
-  --tv-fill-ink-rgb: var(--cx-on-accent-rgb);
-  --tv-env-rgb: var(--cx-accent-rgb);
+  /* Mảng tô (dải, lịch, con dấu, nút) + chữ trên nó, phong bì ở bìa: theo khối tô của bộ màu
+     (`fill`/`on_fill`, chỉ có khi chọn bộ), không có thì màu nhấn. Thiệp lưu bộ riêng cũ của
+     mẫu ("Hồng pastel") vẫn ghi đè thẳng các biến --tv-* qua `vars` đã lưu. */
+  --tv-fill-rgb: var(--cx-fill-rgb, var(--cx-accent-rgb));
+  --tv-fill-ink-rgb: var(--cx-on-fill-rgb, var(--cx-on-accent-rgb));
+  --tv-env-rgb: var(--cx-fill-rgb, var(--cx-accent-rgb));
   --tv-env-in-rgb: var(--cx-heading-rgb);
+  /* Lòng phong bì: có bộ màu thì là khối tô sẫm đi một nấc; không có bộ thì biến này vô hiệu
+     (var thiếu, không fallback) → dòng dùng nó rơi về --tv-env-in-rgb. */
+  --tv-env-in: color-mix(in srgb, rgb(var(--cx-fill-rgb)) 80%, #000);
   --tv-wax-rgb: var(--cx-accent-rgb);
   --tv-wax-ink-rgb: var(--cx-on-accent-rgb);
 
@@ -201,7 +204,7 @@ body {
   top: 22%;
   bottom: 2%;
   border-radius: 1.6cqw 1.6cqw 1cqw 1cqw;
-  background-color: rgb(var(--tv-env-in-rgb));
+  background-color: var(--tv-env-in, rgb(var(--tv-env-in-rgb)));
 }
 
 .tv-print {

@@ -194,7 +194,7 @@ body {
 }
 .hu-block {
   position: absolute;
-  background: rgb(var(--cx-band-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
 }
 .hu-stage {
   position: relative;
@@ -427,7 +427,7 @@ body {
   gap: min(6px, calc(var(--hu-screen) * 0.008));
   width: 100%;
   padding: calc(var(--hu-cv-sink) + min(28px, calc(var(--hu-screen) * 0.034))) 28px min(40px, calc(var(--hu-screen) * 0.048));
-  background: rgb(var(--cx-band-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
   clip-path: polygon(0 28px, 100% 0, 100% 100%, 0 100%);
   text-align: center;
   animation: cx-hu-cv-rise 1s 0.35s var(--hu-ease) both;
@@ -437,7 +437,7 @@ body {
 }
 .hu-cover-text .cx-t,
 .hu-cover-text .cx-h {
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 .hu-cv-date {
   display: flex;
@@ -555,8 +555,8 @@ body {
   gap: 12px;
   width: 44px;
   padding: calc(var(--hu-screen) * 0.03 + 8px) 0 32px;
-  background: rgb(var(--cx-band-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 14px), 0 100%);
   box-shadow: 0 8px 16px -8px rgb(var(--cx-shadow-rgb) / 0.5);
 }
@@ -570,7 +570,7 @@ body {
   font-size: 15px;
   letter-spacing: 4px;
   writing-mode: vertical-rl;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 .hu-on .hu-drop {
   transform: translateY(-100%);
@@ -1005,17 +1005,17 @@ body {
   width: 48px;
   height: 54px;
   border-radius: 4px;
-  background: rgb(var(--cx-band-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
   box-shadow: 0 8px 16px -8px rgb(var(--cx-accent-rgb) / 0.6);
 }
 .hu-cd span {
   font-size: 20px;
   line-height: 1.1;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 .hu-cd small {
   font-size: 10px;
-  color: rgb(var(--cx-on-accent-rgb) / 0.85);
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)) / 0.85);
 }
 .hu-count .hu-line {
   margin-top: calc(var(--hu-screen) * 0.022);
@@ -1278,7 +1278,7 @@ body {
   right: 0;
   top: calc(var(--hu-screen) * 0.25);
   height: calc(var(--hu-screen) * 0.14 + 12px);
-  background: rgb(var(--cx-band-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
 }
 .hu-rsvp-pair {
   position: relative;

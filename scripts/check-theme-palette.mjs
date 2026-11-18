@@ -57,8 +57,11 @@ if (!block) {
   console.error("Không đọc được CX_PALETTE_TOKENS trong theme-setting-helper.js");
   process.exit(2);
 }
+// Khối tô (fill/on_fill) chỉ có khi khách chọn bộ màu — mẫu không khai mặc định.
+const PALETTE_ONLY = ["fill", "on_fill"];
 const KEYS = [...block[1].matchAll(/(\w+):\s*"(--[\w-]+)"/g)]
-  .map((m) => ({ key: m[1], token: m[2] }));
+  .map((m) => ({ key: m[1], token: m[2] }))
+  .filter(({ key }) => !PALETTE_ONLY.includes(key));
 
 const colors = readRootVars("styles/_colors.css");
 const common = readRootVars("styles/_common.css");

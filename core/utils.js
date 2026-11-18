@@ -360,28 +360,18 @@ function _cxPrevPalCatalog() {
   return _cxPrevPalCat;
 }
 
-function _cxPrevPalOwn() {
-  const list = window.CX_THEME && window.CX_THEME.palettes;
-  return Array.isArray(list) ? list.filter((p) => p && typeof p.id === "string" && p.name) : [];
-}
-
-/** Các lựa chọn: "Mặc định" (màu khai của mẫu) · bộ riêng của mẫu · danh mục chung. */
+/** Các lựa chọn: "Mặc định" (màu khai của mẫu) rồi danh mục chung. */
 async function cxPreviewPalettes() {
   const cat = await _cxPrevPalCatalog();
-  const own = _cxPrevPalOwn();
   return [
     { id: "", name: CX_PREV_PAL_DEFAULT, p: (window.CX_THEME && window.CX_THEME.palette) || null },
-    ...own.map((p) => ({ id: p.id, name: p.name, p })),
-    ...cat.filter((p) => !own.some((o) => o.id === p.id)).map((p) => ({ id: p.id, name: p.name, p })),
+    ...cat.map((p) => ({ id: p.id, name: p.name, p })),
   ];
 }
 
-// Bộ riêng của mẫu đưa nguyên bản khai (applyThemeSetting tự tra lại theo id); bộ chung
-// lấy đúng phần đem lưu như trang Thiết lập.
+// Lấy đúng phần đem lưu như trang Thiết lập.
 async function _cxPrevPalValue(id) {
   if (!id) return null;
-  const own = _cxPrevPalOwn().find((p) => p.id === id);
-  if (own) return own;
   await _cxPrevPalCatalog();
   return typeof cxPaletteValue === "function" ? cxPaletteValue(id) : null;
 }
