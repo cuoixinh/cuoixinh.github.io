@@ -336,6 +336,12 @@ Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `
 - [x] **A40. Thư dội ngược khi gửi OTP tới `@account.cuoixinh.com`** — gọi thẳng API là tạo
       bounce, hại uy tín gửi thư. Chấp nhận: cùng loại với mọi tên miền giả từ trước; giao diện
       đã tự chuyển sang bước tài khoản thay vì gửi mã. Chặn hẳn phải dùng Auth Hook.
+- [x] **A41. Gói Free xem được thiệp bên bị khoá bằng cách đổi `?isGroom=`.** Trang chỉ chuyển
+      hướng về bên được mở bằng JS (`loadWeddingData`), còn `?slug=` trả trọn dữ liệu hai bên →
+      chặn lệnh chuyển hướng hay gọi thẳng API là đọc được tiệc/vu quy/lịch trình bên kia. **Đã
+      vá:** `applyFreeLimits` (`_shared/plans.ts`) gỡ hẳn ngân hàng, `<bên>_party_*`, `vu_quy_*`
+      (khi khoá nhà gái) và mốc lịch trình của bên bị khoá. Tên, gia đình, địa chỉ nhà giữ vì
+      link nào cũng hiện. Thêm cột chỉ một bên thấy thì khai vào đó.
 - [x] **A33. Khách tự tạo tài khoản Cưới Xinh hàng loạt.** Khách không có đường tạo:
       nút chỉ ĐĂNG NHẬP. Endpoint công khai `/auth/v1/signup` vẫn mở (OTP cần
       `shouldCreateUser`), nên ai cũng gọi được với email đuôi `@account.cuoixinh.com` — nhưng
