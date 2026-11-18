@@ -980,8 +980,8 @@ body {
   transition: border-color 0.2s, background-color 0.2s;
 }
 
+/* Giữ viền của .tv-choice: mảng tô nhạt (Hồng pastel) mới tách khỏi nền; bản gốc viền chìm vào nền đỏ. */
 #btn-attend.tv-choice {
-  border-color: rgb(var(--tv-fill-rgb));
   background: rgb(var(--tv-fill-rgb));
   color: rgb(var(--tv-fill-ink-rgb));
 }
