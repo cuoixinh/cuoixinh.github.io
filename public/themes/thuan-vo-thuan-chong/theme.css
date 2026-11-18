@@ -1091,6 +1091,12 @@ body {
 
 /* ── Mừng cưới ── */
 
+/* .tv-sec canh giữa nên lưới phải tự giãn đủ bề ngang, không thì co theo nội dung. */
+.tv-gifts {
+  width: 100%;
+  --cx-gift-solo-w: min(100%, 280px);
+}
+
 .tv-bank {
   display: flex;
   flex-direction: column;
@@ -1104,6 +1110,10 @@ body {
   margin: 6px 0;
   padding: 10px;
   border-radius: 8px;
+}
+
+.cx-gift-solo .tv-qr {
+  max-width: 220px;
 }
 
 .tv-qr img {
