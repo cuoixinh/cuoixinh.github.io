@@ -2,10 +2,18 @@
 
 let currentTemplateId = null;
 
+// "Xem trước" ở thẻ mẫu: khung Xem nhanh (core/components/quick-preview.js) — bản đầy đủ
+// mở từ đó, ngay trong tab này.
 function openPreview(templateId) {
   const template = templates.find((t) => t.id === templateId);
   if (!template) return;
-  window.open(template.previewUrl, "_blank", "noopener");
+  if (!window.CXQuickPreview) return void (window.location.href = template.previewUrl);
+  CXQuickPreview.open({
+    theme: template.theme,
+    name: template.name,
+    previewUrl: template.previewUrl,
+    onUse: () => createDraft(template.id),
+  });
 }
 
 function closePreview() {

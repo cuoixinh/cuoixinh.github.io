@@ -683,6 +683,7 @@
     <!-- Logo XuXi trên nút "Tạo với AI" của thẻ mẫu. -->
     <script src="../core/helpers/icon.js"></script>
     <script src="../core/components/item-template.js"></script>
+    <script src="../core/components/quick-preview.js"></script>
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
          Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
@@ -893,8 +894,16 @@
         });
       }
 
-      function openPreview(url) {
-        window.open(url, "_blank");
+      // Khung Xem nhanh (core/components/quick-preview.js); bản đầy đủ mở ngay trong tab này.
+      function openPreview(t) {
+        if (!t.theme) return;
+        if (!window.CXQuickPreview) return void (window.location.href = t.previewUrl);
+        CXQuickPreview.open({
+          theme: t.theme,
+          name: t.name,
+          previewUrl: t.previewUrl,
+          onUse: () => startDraft(t.theme, t.name),
+        });
       }
 
       /* ── Lọc + vẽ lưới ── */
@@ -954,7 +963,7 @@
         window.lucide?.createIcons({ root: gallery });
         // Uỷ quyền sự kiện: gắn một lần cho cả lưới, thẻ vẽ lại vẫn chạy.
         CXItemTemplate.bind(gallery, {
-          onPreview: (id) => openPreview(byId(id).previewUrl),
+          onPreview: (id) => openPreview(byId(id)),
           onUse: (id) => startDraft(byId(id).theme, byId(id).name),
           onFav: (id, theme, card) => toggleFav(theme, card),
           // Mở XuXi tại chỗ, chọn sẵn mẫu này (khung chat nạp ở cuối <body>).

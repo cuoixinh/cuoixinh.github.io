@@ -647,7 +647,11 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   (`CXItemTemplate.cardHTML/bind`), style `.tt-*` ở `styles/tailwind-src.css` — dùng CHUNG
   cho dải "Mẫu thiệp" ở trang chủ và lưới `/theme-template`, sửa hình thức thẻ là sửa một
   chỗ. Hành vi gắn bằng `bind(khung, {onPreview,onUse,onFav})` (uỷ quyền sự kiện), đừng
-  viết `onclick` vào markup.
+  viết `onclick` vào markup. "Xem trước" mở khung **Xem nhanh** (`core/components/quick-preview.js`)
+  tự cuộn ảnh trọn thiệp `assets/images/templates-scroll/<mẫu>.jpg`; bản đầy đủ mở NGAY trong tab
+  (không tab mới — menu ba chấm của bản xem thử có "Về trang chủ"). Ảnh đó do cùng lượt quét với ảnh
+  màn đầu (`scripts/capture.js`, nút quét ở admin) chụp ra: mẫu không cuộn trang phải khai
+  `CX_THEME.deck` thì mới được chụp đủ từng màn. Mẫu chưa có ảnh thì khung chỉ hiện màn đầu.
 - **Danh sách thư viện nhạc:** `core/components/music-lib.js` (`CXMusicLib.render/bind/setPlaying`),
   style `.cx-mlib-*`/`.cx-disc` ở `styles/_music-lib.css` — dùng CHUNG cho tab Cấu hình của trang
   Thiết lập và bảng thư viện của Slide cưới; trang chỉ khai hai cú bấm (`onPick`, `onPreview`).
