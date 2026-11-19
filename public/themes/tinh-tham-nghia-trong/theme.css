@@ -272,6 +272,16 @@ body {
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
+
+/* Kính mờ trên ảnh: có bộ màu thì thành khối tô — chữ phải theo chữ-trên-khối (khối pastel
+   đi với chữ sẫm), .cx-on-image để nguyên là chữ trắng trên hồng nhạt. */
+.tt-veil.cx-fill,
+.tt-veil.cx-fill .cx-on-image {
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-image-rgb)));
+}
+.tt-veil.cx-fill {
+  box-shadow: 0 0 0 calc(var(--u) * 0.14) rgb(var(--cx-fill-rgb, var(--cx-scrim-rgb) / 0.32));
+}
 .tt-over-cap {
   font-size: calc(var(--u) * 0.2);
   letter-spacing: calc(var(--u) * 0.14);

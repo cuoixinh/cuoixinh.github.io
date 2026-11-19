@@ -596,6 +596,7 @@
     if (!wrap || wrap._tt) return;
     wrap._tt = true;
     const rings = [...wrap.querySelectorAll(".tt-ring")];
+    const paints = [];
     let finished = false;
     const hole = new Image();
     hole.src = TT_RING_HOLE;
@@ -724,8 +725,21 @@
 
       // Khổ lòng nhẫn đổi (xoay máy, --vh khoá xong) → vẽ lại lớp phủ khi khách CHƯA tô.
       if (window.ResizeObserver) new ResizeObserver(paint).observe(cv);
+      paints.push(paint);
       paint();
     });
+
+    // Lớp phủ lấy màu nhấn lúc vẽ, mà script này chạy TRƯỚC khi bộ màu được áp (dữ liệu về
+    // sau, tab Giao diện đổi bộ tại chỗ) → style trong <head> đổi thì vẽ lại (paint tự bỏ qua
+    // nhẫn khách đã tô).
+    let queued = 0;
+    new MutationObserver(() => {
+      if (finished || queued) return;
+      queued = requestAnimationFrame(() => {
+        queued = 0;
+        paints.forEach((fn) => fn());
+      });
+    }).observe(document.head, { childList: true, subtree: true, characterData: true });
   }
 
   ttScratch();
