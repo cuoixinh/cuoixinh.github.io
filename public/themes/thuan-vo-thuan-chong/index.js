@@ -44,7 +44,8 @@
 
     swatches: ["#7b1e2f", "#a64a5a", "#3e1f24", "#6e5256", "#e8c4c8", "#8f9a5e", "#e6d6d4", "#f3ece9", "#ffffff"],
 
-    wishes: { bubble: "#ffffff", text: "#6e5256", accent: "#7b1e2f", btn: "#7b1e2f" },
+    // Tên khoá bộ màu thay mã hex → lời chúc đổi tông theo bộ màu khách chọn.
+    wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
 
     reveal: [".tv-body > section"],
     revealItems: ["#gallery-grid > div"],
