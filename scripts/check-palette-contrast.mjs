@@ -64,13 +64,20 @@ const PAIRS = [
   ["on_fill", "fill", 4.5, "chữ trên khối tô"],
 ];
 
+// Chỉ xét ở mức 50 (đúng bộ đã khai): hoạ tiết không có chốt WCAG ở runtime nên kéo
+// "Độ đậm" xuống thì chúng nhạt theo — đó là ý khách. Mẫu dùng deco làm chữ trang trí.
+const PAIRS_AT50 = [
+  ["deco", "band", 3, "chữ trang trí (deco) trên dải nền"],
+  ["deco_2", "band", 3, "chữ trang trí (deco_2) trên dải nền"],
+];
+
 // Nền phải SÁNG: đây là thiệp cưới, danh mục không có bộ nền tối.
 const LIGHT = ["card_bg", "page_bg", "surface", "panel"];
 const MIN_LIGHT_LUM = 0.7;
 
 function check(p, at) {
   const errs = [];
-  for (const [a, b, min, what] of PAIRS) {
+  for (const [a, b, min, what] of at === 50 ? [...PAIRS, ...PAIRS_AT50] : PAIRS) {
     if (!p[a] || !p[b]) { errs.push(`thiếu khoá ${!p[a] ? a : b}`); continue; }
     const r = ratio(p[a], p[b]);
     if (r < min)
