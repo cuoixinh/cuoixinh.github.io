@@ -70,6 +70,24 @@ function _initNavHeightWatcher() {
   }
 }
 
+// Bộ màu chọn ở bản xem thử mẫu → theme_setting.palette, đúng giá trị bảng chọn ở tab
+// Giao diện lưu (cxPaletteValue). Nháp đã có bộ màu thì giữ: đó là bộ khách tự chọn.
+function _withDraftPalette(data, id) {
+  const pal = id && window.cxPaletteValue?.(id);
+  if (!pal) return data;
+  let ts = data.theme_setting;
+  if (typeof ts === "string") {
+    try {
+      ts = JSON.parse(ts);
+    } catch (e) {
+      ts = null;
+    }
+  }
+  ts = ts && typeof ts === "object" ? ts : {};
+  if (ts.palette) return data;
+  return { ...data, theme_setting: { ...ts, palette: pal } };
+}
+
 async function loadData() {
   // Chốt IS_LOGIN trước khi fillForm() — fillForm gọi _syncAdvancedSection(), mà
   // bộ nút Lưu nháp / Xuất bản phụ thuộc cờ này.
@@ -90,8 +108,12 @@ async function loadData() {
     // Nháp chỉ nằm trên máy thì CHƯA xuất bản được, dù bản lưu mang cờ đó.
     // `_seed` (ô điền sẵn lúc tạo nháp, core/helpers/draft-start.js) đổ SAU dữ liệu
     // mẫu để nháp vẫn tính là trắng; lần autosave đầu ghi đè key nên nó tự mất.
-    const { _seed, ...draft } = localData;
-    const filled = await _withDemoFill({ ...draft, is_published: false });
+    // `_pal` (bộ màu khách đang thử ở bản xem thử mẫu) cũng vậy: áp sau dữ liệu mẫu.
+    const { _seed, _pal, ...draft } = localData;
+    const filled = _withDraftPalette(
+      await _withDemoFill({ ...draft, is_published: false }),
+      _pal,
+    );
     fillForm(_seed ? { ...filled, ..._seed } : filled);
     _showContent();
     _cxFormLoaded(await _idbRestoreAll());

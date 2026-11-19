@@ -414,6 +414,24 @@ async function cxPreviewPalette(id) {
   if (boxBefore !== boxAfter && typeof applyGiftBox === "function") applyGiftBox(s);
 }
 
+/** Bộ màu đang thử — trang đã hoá khung máy (theme-boot.js) thì hỏi iframe bên trong. */
+function cxPreviewPaletteNow() {
+  const f = document.querySelector("iframe.cx-pshell-view");
+  try {
+    const id = f && f.contentWindow && f.contentWindow.cxPreviewPaletteId && f.contentWindow.cxPreviewPaletteId();
+    if (typeof id === "string") return id;
+  } catch (e) {
+    /* khác origin: lùi về URL của trang này */
+  }
+  return cxPreviewPaletteId();
+}
+
+/** "Tạo với AI" từ bản xem thử: sang kho mẫu, mang theo bộ màu đang thử để nháp dựng đúng màu đó. */
+function cxPreviewAiHref(theme) {
+  const pal = cxPreviewPaletteNow();
+  return "/theme-template/?ai=" + encodeURIComponent(theme) + (pal ? "&pal=" + encodeURIComponent(pal) : "");
+}
+
 /** Dãy ô màu dùng chung cho hai lối vào; trang gắn click theo data-pal. */
 function cxPreviewPaletteSwatches(list, cur, cls) {
   const hex = (v) => (typeof v === "string" && /^#[0-9a-f]{3,8}$/i.test(v) ? v : "");
@@ -1596,7 +1614,9 @@ function closeTimePicker() {
       return;
     }
     const slug = theme || themeName;
-    cxStartDraft(slug, display || _display(slug));
+    // Bộ màu đang thử chỉ đi theo đúng mẫu đang xem (thẻ đề xuất mẫu khác hiện màu gốc).
+    const palette = slug === themeName ? cxPreviewPaletteNow() : "";
+    cxStartDraft(slug, display || _display(slug), { palette: palette });
   }
 
   // Trang đã hoá thành khung máy (_cxPreviewShell ở theme-boot.js, cờ
@@ -1657,8 +1677,8 @@ function closeTimePicker() {
   // ở đầu bảng — nút đặc DUY NHẤT của lớp phủ; ba lối phụ nằm chung thanh kính
   // ở đáy (.cx-sug-sec).
   // `go` = đường dẫn nội bộ; nút `primary` tạo nháp bằng mẫu ĐANG XEM.
-  // "Tạo với AI" sang kho mẫu kèm ?ai= — XuXi chỉ nạp ở đó (js/ai-assistant.js
-  // openFromUrl) và mở sẵn khung chat với mẫu đang xem.
+  // "Tạo với AI" sang kho mẫu kèm ?ai= (cxPreviewAiHref, dựng lúc bấm vì bộ màu còn đổi)
+  // — XuXi chỉ nạp ở đó (js/ai-assistant.js openFromUrl) và mở sẵn khung chat với mẫu đang xem.
   const SUG_ACTS = [
     { id: "sug-home", label: "Trang chủ", icon: "home", go: "/" },
     {
@@ -1666,7 +1686,7 @@ function closeTimePicker() {
       label: "Tạo với AI",
       img: "/assets/icons/XuXi.webp",
       aria: "Tạo thiệp với mẫu này cùng trợ lý XuXi",
-      go: "/theme-template/?ai=" + encodeURIComponent(themeName),
+      go: function () { return cxPreviewAiHref(themeName); },
     },
     {
       id: "sug-use",
@@ -2239,7 +2259,7 @@ function closeTimePicker() {
         {
           icon: '<img src="/assets/icons/XuXi.webp" alt="" width="22" height="22" />',
           label: row("Tạo với AI", "Kể cho XuXi, thiệp tự điền sẵn", "5 phút"),
-          onClick: function () { _go("/theme-template/?ai=" + encodeURIComponent(themeName)); },
+          onClick: function () { _go(cxPreviewAiHref(themeName)); },
         },
       ]);
     }
@@ -2342,7 +2362,7 @@ function closeTimePicker() {
       if (!el) return;
       el.addEventListener("click", function () {
         if (it.primary) return _use();
-        _go(it.go);
+        _go(typeof it.go === "function" ? it.go() : it.go);
       });
     });
 

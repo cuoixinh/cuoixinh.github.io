@@ -1794,7 +1794,7 @@
     const pick = media?.theme?.theme ? media.theme : null;
     if (pick) {
       syncDraftTheme(id, pick.theme);
-      window.cxStartDraft?.(pick.theme, pick.name, { id, params });
+      window.cxStartDraft?.(pick.theme, pick.name, { id, params, palette: pick.pal });
       return;
     }
     const first =
@@ -2911,7 +2911,7 @@
 
   // ── Khởi động ─────────────────────────────────────────────────────────────
 
-  // Link "Tạo với AI" từ màn xem thử mẫu (?ai=<mẫu>): mở chat như nút cùng tên trên thẻ
+  // Link "Tạo với AI" từ màn xem thử mẫu (?ai=<mẫu>&pal=<bộ màu>): mở chat như nút cùng tên trên thẻ
   // mẫu. Tên + phép kiểm mẫu tra từ danh sách mẫu, không tin chuỗi trên URL. Gỡ tham số
   // ngay, không thì F5 lại xoá cuộc chat đang làm (`history` ở đây là lịch sử chat).
   function openFromUrl() {
@@ -2919,7 +2919,9 @@
     const url = new URL(location.href);
     const slug = url.searchParams.get("ai");
     if (!slug) return;
+    const pal = url.searchParams.get("pal") || "";
     url.searchParams.delete("ai");
+    url.searchParams.delete("pal");
     window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
     const plain = () => window.cxOpenAiChat({ pick: "create" });
     if (!window.templatesDAL) return plain();
@@ -2928,7 +2930,8 @@
       .then((rows) => {
         const t = rows.find((r) => r.theme === slug);
         if (!t) return plain();
-        window.cxOpenAiChat({ pick: "create", theme: { theme: t.theme, name: t.name } });
+        const theme = { theme: t.theme, name: t.name, ...(pal ? { pal } : {}) };
+        window.cxOpenAiChat({ pick: "create", theme });
       })
       .catch(plain);
   }
@@ -3123,12 +3126,13 @@
   // `mic` = bật luôn micro, thay cho luồng "nói cho AI nghe" trước đây.
   // `ask` = câu hỏi gửi luôn khi vừa mở (khách đã gõ ở ô ngoài, đừng bắt gõ lại).
   // `mode` = "create" khi câu đó là việc tạo thiệp (chip ở màn mở đầu trang chủ).
-  // `theme` = {theme, name} chọn sẵn mẫu (thẻ mẫu thiệp) cho một thiệp MỚI: cuộc đang
+  // `theme` = {theme, name, pal?} chọn sẵn mẫu (thẻ mẫu thiệp; `pal` = bộ màu đang thử ở
+  // bản xem thử) cho một thiệp MỚI: cuộc đang
   // dở bị xoá trước (không hỏi lại), rồi mới đặt mẫu — clearChat dọn cả mẫu cũ.
   window.cxOpenAiChat = function (opt) {
     if (opt?.theme?.theme && window.CXChatMedia?.setTheme) {
       if (history.length || mode) clearChat();
-      window.CXChatMedia.setTheme(opt.theme.theme, opt.theme.name);
+      window.CXChatMedia.setTheme(opt.theme.theme, opt.theme.name, opt.theme.pal);
       // Đánh dấu đã qua ô mẫu, không thì luồng dẫn (CXChatMedia.next) mời chọn mẫu lại
       // sau khi khách kể xong thông tin.
       window.CXChatMedia.visit?.("theme");

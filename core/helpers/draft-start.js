@@ -109,7 +109,7 @@
     return true;
   }
 
-  function _create(theme, displayName, params, id, seed) {
+  function _create(theme, displayName, params, id, seed, palette) {
     var u = window.CXAuth && window.CXAuth.getUserSync && window.CXAuth.getUserSync();
     if (_limitReached((u && u.email) || "")) return;
     id = id || _uuid();
@@ -123,6 +123,9 @@
     // Ô điền sẵn (vd tên gõ ở trang chủ) — khoá `_` để nháp vẫn tính là trắng và
     // được fill dữ liệu mẫu; trang thiết lập đổ nó vào form sau bước đó (13-data.js).
     if (seed) draft._seed = seed;
+    // Bộ màu khách đang thử ở bản xem thử mẫu (id trong danh mục) — trang thiết lập
+    // đổi thành theme_setting.palette lúc mở (13-data.js); để `_` vì lý do như _seed.
+    if (palette) draft._pal = palette;
     // Người tạo (xem saveLocalDraft ở invitation-setup/js/01-state.js).
     if (u && u.email) draft._owner = u.email;
     setCache(buildCacheKey("draft", id), draft);
@@ -141,7 +144,7 @@
   // không tự dựng popup: nó đã lo tiêu đề canh trái + vạch ngăn + chân thẻ có
   // nền, và tự vẽ bằng biến --cx nên chạy được cả ở trang thiệp (chỉ có
   // themes.css). Trang nào gọi cxStartDraft cũng phải nạp alert.js.
-  function _askThenStart(existing, theme, displayName, chosen, params, seed) {
+  function _askThenStart(existing, theme, displayName, chosen, params, seed, palette) {
     var oldTheme = existing.data.theme;
     var oldName = _titleOf(oldTheme);
     var newName = displayName || _titleOf(theme);
@@ -175,7 +178,7 @@
       // null = bấm ra ngoài / Esc → đóng suông, không đi đâu cả. Đây là ngã ba chỉ
       // khách quyết được, đừng coi việc đóng là đã chọn "thiệp mới".
       if (r === null) return;
-      if (r) return _create(theme, displayName, params, null, seed);
+      if (r) return _create(theme, displayName, params, null, seed, palette);
       // Mẫu cũ: KHÔNG ghi đè draft_theme — bản nháp tự mang theme của nó, cũng
       // không đổ seed vào (khách chọn giữ bản đang viết dở).
       sessionStorage.setItem("draft_template_name", oldName);
@@ -194,6 +197,9 @@
   //   không tạo đè lên (đè là mất nội dung của lần vào trước).
   // opts.seed: ô form điền sẵn cho thiệp MỚI ({groom_name, bride_name}) — chỉ dùng
   //   khi tạo nháp mới, đi vào nháp có sẵn thì bỏ qua.
+  // opts.palette: id bộ màu (card-palette-helper.js) khách đang thử ở bản xem thử.
+  //   Nháp mới mang nó; nháp có sẵn theo `opts.id` cũng nhận, nhưng trang thiết lập
+  //   chỉ áp khi nháp CHƯA có bộ màu — bộ khách đã tự chọn luôn thắng.
   // Trả về mã nháp sẽ mở, hoặc undefined khi còn phải hỏi khách.
   window.cxStartDraft = function (theme, displayName, opts) {
     if (!theme) return;
@@ -202,7 +208,11 @@
 
     if (o.id) {
       var kept = getCache(buildCacheKey("draft", o.id));
-      if (!kept) return _create(theme, displayName, o.params, o.id, o.seed);
+      if (!kept) return _create(theme, displayName, o.params, o.id, o.seed, o.palette);
+      if (o.palette && kept._localOnly) {
+        kept._pal = o.palette;
+        setCache(buildCacheKey("draft", o.id), kept);
+      }
       // Nháp cũ tự mang theme của nó → không ghi đè draft_theme.
       sessionStorage.setItem(
         "draft_template_name",
@@ -214,8 +224,8 @@
 
     var existing = _findDraft();
     if (existing)
-      return _askThenStart(existing, theme, displayName, chosen, o.params, o.seed);
-    return _create(theme, displayName, o.params, null, o.seed);
+      return _askThenStart(existing, theme, displayName, chosen, o.params, o.seed, o.palette);
+    return _create(theme, displayName, o.params, null, o.seed, o.palette);
   };
 
   // Sinh mã nháp để bên gọi giữ trước (khung chat AI cần nhớ mã qua nhiều lần bấm).

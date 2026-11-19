@@ -721,6 +721,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   màu dưới nút ba chấm trên điện thoại / thẻ cạnh khung máy, lõi `cxPreviewPalette` ở
   `core/utils.js`): chỉ nằm ở `?pal=` của URL (cả URL trang ngoài khung máy — link copy mở
   sẵn đúng màu), trộn vào dữ liệu xem thử ở `loadWeddingData`; thiệp thật không đọc nó.
+  "Tạo ngay"/"Tạo với AI" ở bản xem thử mang bộ đó sang nháp mới (`opts.palette` của
+  `cxStartDraft` → khoá `_pal` của nháp → `_withDraftPalette` ở `13-data.js` đổi thành
+  `theme_setting.palette`); đường AI đi qua `?ai=&pal=` của kho mẫu rồi mẫu chọn sẵn của khung chat.
   Lưu trong `theme_setting` nên **không cần changelog DB**. Thêm bộ
   mới phải qua **`npm run check:palette-contrast`** (nền sáng + đủ tương phản chữ/nền);
   `id` đã phát hành thì đừng đổi. **Danh mục này là NƠI DUY NHẤT khai bộ màu** — mẫu
