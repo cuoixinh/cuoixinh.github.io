@@ -131,6 +131,13 @@ body {
   padding: 16px;
 }
 
+/* Thẻ giấy (lịch, nút hồi âm) nằm trong khối tô: nền đặc — giấy trong 70% chồng lên khối
+   đậm của bộ màu ra một mảng đục. */
+.cx-fill .rg-card,
+.cx-fill .rg-paper {
+  background-color: rgb(var(--cx-panel-rgb));
+}
+
 /* Tiêu đề mục: chữ hoa giãn nét, kèm hai vạch vàng hai bên. */
 
 /* Không khai font ở đây: thẻ tiêu đề mang sẵn .cx-h, để một nguồn font duy nhất
