@@ -172,12 +172,6 @@
         box-shadow: 0 0 0 2px rgb(var(--white-rgb));
       }
 
-      /* Ô xám lúc chờ tải — phải cùng khổ với .tt-media, nếu không lưới nhảy
-         chiều cao khi dữ liệu về. */
-      .tt-skel-media {
-        aspect-ratio: 391 / 722;
-        width: 100%;
-      }
 
       /* Nút nổi "Bắt đầu miễn phí" giữa đáy (chỉ mobile; desktop không có nút
          này). Khổ do size của <x-button> quyết; ở đây chỉ lo màu. */
@@ -405,34 +399,59 @@
           id="template-gallery"
           class="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4"
         >
-          <!-- Skeletons -->
+          <!-- Khung xương: dựng bằng chính lớp của thẻ thật (.tt-card…) nên lưới không
+               nhảy chiều cao khi dữ liệu về. -->
           <div>
-            <div class="skeleton tt-skel-media"></div>
-            <div class="mt-3 space-y-3">
-              <div class="skeleton h-3.5 rounded w-2/3"></div>
-              <div class="skeleton h-7 rounded-full w-full"></div>
-            </div>
+            <article class="tt-card" aria-hidden="true">
+              <div class="skeleton tt-media"></div>
+              <div class="tt-cardbody">
+                <div class="skeleton h-[20px] w-2/3 rounded"></div>
+                <div class="tt-cardbtns">
+                  <div class="skeleton h-[34px] rounded-full"></div>
+                  <div class="skeleton h-[34px] rounded-full"></div>
+                </div>
+              </div>
+              <div class="tt-ai"><div class="skeleton h-[26px] w-1/2 rounded-full"></div></div>
+            </article>
           </div>
           <div>
-            <div class="skeleton tt-skel-media"></div>
-            <div class="mt-3 space-y-3">
-              <div class="skeleton h-3.5 rounded w-2/3"></div>
-              <div class="skeleton h-7 rounded-full w-full"></div>
-            </div>
+            <article class="tt-card" aria-hidden="true">
+              <div class="skeleton tt-media"></div>
+              <div class="tt-cardbody">
+                <div class="skeleton h-[20px] w-2/3 rounded"></div>
+                <div class="tt-cardbtns">
+                  <div class="skeleton h-[34px] rounded-full"></div>
+                  <div class="skeleton h-[34px] rounded-full"></div>
+                </div>
+              </div>
+              <div class="tt-ai"><div class="skeleton h-[26px] w-1/2 rounded-full"></div></div>
+            </article>
           </div>
           <div class="hidden md:block">
-            <div class="skeleton tt-skel-media"></div>
-            <div class="mt-3 space-y-3">
-              <div class="skeleton h-3.5 rounded w-2/3"></div>
-              <div class="skeleton h-7 rounded-full w-full"></div>
-            </div>
+            <article class="tt-card" aria-hidden="true">
+              <div class="skeleton tt-media"></div>
+              <div class="tt-cardbody">
+                <div class="skeleton h-[20px] w-2/3 rounded"></div>
+                <div class="tt-cardbtns">
+                  <div class="skeleton h-[34px] rounded-full"></div>
+                  <div class="skeleton h-[34px] rounded-full"></div>
+                </div>
+              </div>
+              <div class="tt-ai"><div class="skeleton h-[26px] w-1/2 rounded-full"></div></div>
+            </article>
           </div>
           <div class="hidden xl:block">
-            <div class="skeleton tt-skel-media"></div>
-            <div class="mt-3 space-y-3">
-              <div class="skeleton h-3.5 rounded w-2/3"></div>
-              <div class="skeleton h-7 rounded-full w-full"></div>
-            </div>
+            <article class="tt-card" aria-hidden="true">
+              <div class="skeleton tt-media"></div>
+              <div class="tt-cardbody">
+                <div class="skeleton h-[20px] w-2/3 rounded"></div>
+                <div class="tt-cardbtns">
+                  <div class="skeleton h-[34px] rounded-full"></div>
+                  <div class="skeleton h-[34px] rounded-full"></div>
+                </div>
+              </div>
+              <div class="tt-ai"><div class="skeleton h-[26px] w-1/2 rounded-full"></div></div>
+            </article>
           </div>
         </div>
 

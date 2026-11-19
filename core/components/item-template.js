@@ -1,7 +1,7 @@
 // Thẻ MỘT mẫu thiệp (.tt-card) — dùng ở dải "Mẫu thiệp" của trang chủ
 // (js/section-templates.js) và lưới của /theme-template. Style ở
-// styles/tailwind-src.css (mục "THẺ MẪU THIỆP"). Thẻ chỉ có ảnh, tên và cặp nút
-// — không hiện giá/mô tả. Nút "Tạo với AI" (opts.ai) đè góc dưới ảnh.
+// styles/tailwind-src.css (mục "THẺ MẪU THIỆP"). Ảnh mẫu lọt trong khung như màn
+// máy, dưới là tên + cặp nút; "Tạo với AI" (opts.ai) là dải chân thẻ, không đè ảnh.
 // Hành vi KHÔNG viết vào onclick: trang gọi CXItemTemplate.bind(khung, {…}) một
 // lần rồi mọi thẻ chèn về sau tự chạy (uỷ quyền sự kiện).
 (function () {
@@ -10,7 +10,8 @@
   const ICON_EYE = `<i data-lucide="eye"></i>`;
   const ICON_USE = `<i data-lucide="play"></i>`;
   const ICON_TAG = `<i data-lucide="tag"></i>`;
-  const ICON_STAR = `<i data-lucide="star"></i>`;
+  const ICON_FAV = `<i data-lucide="heart"></i>`;
+  const ICON_GO = `<i data-lucide="chevron-right"></i>`;
   // Logo XuXi là nhãn hình của mọi chức năng AI (core/helpers/icon.js) — trang
   // chưa nạp file đó thì lùi về lucide.
   const iconAi = () =>
@@ -47,7 +48,7 @@
       opts.fav === undefined
         ? ""
         : `<button type="button" class="tt-fav${opts.fav ? " is-on" : ""}" aria-pressed="${!!opts.fav}"
-                   aria-label="Lưu vào yêu thích" data-tpl-act="fav">${ICON_STAR}</button>`;
+                   aria-label="Lưu vào yêu thích" data-tpl-act="fav">${ICON_FAV}</button>`;
     // Hàng nhãn ĐÈ lên ảnh (ảnh tràn hết bề ngang thẻ nên không còn dải trống ở
     // trên); rỗng thì bỏ hẳn, không để một hàng trong suốt ăn cú bấm xem trước.
     const tagrow =
@@ -55,25 +56,26 @@
     const ai = opts.ai
       ? `<button type="button" class="tt-ai" data-tpl-act="ai" aria-label="Tạo thiệp với AI bằng mẫu ${name}">
            <span class="tt-ai-ico">${iconAi()}</span><span class="tt-ai-t">Tạo với AI</span>
+           <span class="tt-ai-tag">5 phút</span><span class="tt-ai-go">${ICON_GO}</span>
          </button>`
       : "";
 
     return `
     <article class="tt-card${opts.cardClass ? " " + opts.cardClass : ""}" data-id="${esc(t.id)}" data-theme="${esc(t.theme)}">
-      <div class="tt-media" role="button" tabindex="0" aria-label="Xem trước ${name}" data-tpl-act="preview">
+      <div class="tt-media" role="button" tabindex="0" aria-label="Xem nhanh ${name}" data-tpl-act="preview">
         <img src="/assets/images/templates/${esc(t.theme)}.jpg${typeof CX_VERSION !== "undefined" ? "?v=" + CX_VERSION : ""}" alt="${name}" loading="lazy" />
-        <div class="tt-hover"></div>
+        <span class="tt-peek" aria-hidden="true">${ICON_EYE}Xem nhanh</span>
         ${tagrow}
-        ${ai}
       </div>
 
       <div class="tt-cardbody">
-        <h3 class="tt-name">${name}</h3>
-        <div class="tt-cardbtns mt-3">
+        <h3 class="tt-name" title="${name}">${name}</h3>
+        <div class="tt-cardbtns">
           <x-button size="xs" variant="bare" class="tt-btn-preview" data-tpl-act="preview">${ICON_EYE}Xem trước</x-button>
           <x-button size="xs" variant="bare" class="tt-btn-use" data-tpl-act="use">${ICON_USE}Tạo ngay</x-button>
         </div>
       </div>
+      ${ai}
     </article>`;
   }
 

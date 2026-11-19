@@ -2036,87 +2036,186 @@ html.cx-landing {
    Biến màu cục bộ của theme-template (--fg/--muted/--primary) đã thay bằng
    token chung, đừng đưa chúng trở lại: trang chủ không khai mấy biến đó. */
 
-/* ─── Thẻ mẫu thiệp ─── Vỏ có viền + nền riêng để mỗi mẫu là một khối
-   tách bạch: ảnh mẫu nào cũng sáng màu, thả trần trên nền trắng thì hai
-   thẻ liền nhau dính vào nhau, không thấy đâu là ranh giới. */
+/* ─── Vỏ thẻ ─── Nền trắng, viền tóc + bóng mềm; ảnh mẫu lọt trong lề 6px như
+   màn máy để mẫu sáng màu nào cũng có ranh giới với thẻ bên cạnh. `container`
+   để chữ/nút co theo bề ngang THẺ (lưới 2 cột điện thoại ~170px → máy tính
+   ~260px) chứ không theo màn hình. */
 .tt-card {
   display: flex;
   flex-direction: column;
-  /* KHÔNG có lề: ảnh tràn sát mép trái/phải/trên của thẻ (overflow: hidden cắt
-     ảnh theo góc bo). Phần chữ tự chừa lề bằng .tt-cardbody. */
   overflow: hidden;
+  padding: 6px 6px 0;
   border-radius: 20px;
   background: rgb(var(--white-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
-  box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.06);
+  border: 1px solid rgb(var(--scrim-plum-rgb) / 0.08);
+  box-shadow:
+    0 1px 2px rgb(var(--scrim-plum-rgb) / 0.04),
+    0 8px 24px -16px rgb(var(--scrim-plum-rgb) / 0.22);
+  container-type: inline-size;
   transition:
-    border-color 0.22s ease,
-    box-shadow 0.22s ease,
-    transform 0.22s ease;
+    box-shadow 0.25s ease,
+    transform 0.25s ease,
+    border-color 0.25s ease;
 }
 .tt-card:hover {
-  transform: translateY(-3px);
-  border-color: rgb(var(--brand-accent-rgb) / 0.45);
-  box-shadow: 0 14px 30px -16px rgb(var(--preview-shadow-rgb) / 0.35);
+  transform: translateY(-4px);
+  border-color: rgb(var(--brand-primary-rgb) / 0.5);
+  box-shadow:
+    0 2px 4px rgb(var(--scrim-plum-rgb) / 0.04),
+    0 20px 40px -18px rgb(var(--preview-shadow-rgb) / 0.45);
 }
 .tt-card:active {
-  transform: translateY(0) scale(0.995);
+  transform: translateY(-1px) scale(0.995);
 }
-/* Khung xem trước TRÀN HẾT bề ngang thẻ, tỉ lệ CỐ ĐỊNH 391:722 = lõi màn của
-   mockup điện thoại (không theo chiều cao màn hình); phần tên + nút bên dưới
-   cao bao nhiêu thì thẻ dài thêm bấy nhiêu. Ảnh chụp bởi scripts/capture.js
-   cùng tỉ lệ này — đổi thì sửa cả ở đó lẫn skeleton ở /theme-template. */
+
+/* Ô ảnh mẫu, tỉ lệ CỐ ĐỊNH 391:722 = lõi màn mockup điện thoại — ảnh chụp bởi
+   scripts/capture.js cùng tỉ lệ; đổi thì sửa cả ở đó lẫn skeleton ở /theme-template.
+   Bấm vào ảnh = Xem nhanh. */
 .tt-media {
   position: relative;
   overflow: hidden;
   aspect-ratio: 391 / 722;
   width: 100%;
+  border-radius: 14px;
+  cursor: pointer;
   background: rgb(var(--preview-bg-from-rgb));
+  /* Viền tóc VẼ ĐÈ lên ảnh (::after) — mẫu nền trắng không loang vào thẻ trắng. */
+  isolation: isolate;
+}
+.tt-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgb(var(--scrim-plum-rgb) / 0.08);
+}
+.tt-media > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tt-card:hover .tt-media > img {
+  transform: scale(1.04);
+}
+.tt-media:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
 }
 
-/* Hàng nhãn ĐÈ lên ảnh (ảnh đã tràn hết thẻ nên không còn dải trống ở trên).
-   Mỗi mẫu một sắc nền nên nhãn/sao phải tự mang nền trắng mờ mới đọc được. */
+/* "Xem nhanh" giữa ảnh — chỉ khi rê chuột (máy cảm ứng bấm thẳng vào ảnh). */
+.tt-peek {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgb(var(--scrim-plum-rgb));
+  background: rgb(var(--white-rgb) / 0.92);
+  box-shadow: 0 8px 24px -8px rgb(var(--scrim-rgb) / 0.45);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translate(-50%, -40%);
+  pointer-events: none;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+.tt-peek svg.lucide {
+  width: 16px;
+  height: 16px;
+}
+.tt-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgb(var(--scrim-plum-rgb) / 0.04), rgb(var(--scrim-plum-rgb) / 0.28));
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tt-card:hover .tt-peek {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  .tt-card:hover .tt-media::before {
+    opacity: 1;
+  }
+}
+
+/* Hàng nhãn ĐÈ góc trên ảnh — kính mờ trắng để đọc được trên mẫu tối lẫn sáng. */
 .tt-tagrow {
   position: absolute;
   top: 8px;
   left: 8px;
   right: 8px;
-  z-index: 1;
+  z-index: 3;
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.tt-tagrow .tt-chip {
-  background: rgb(var(--white-rgb) / 0.92);
+.tt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgb(var(--scrim-plum-rgb));
+  background: rgb(var(--white-rgb) / 0.94);
   box-shadow: 0 1px 4px rgb(var(--scrim-rgb) / 0.12);
 }
-
-/* Sao yêu thích — đứng cuối hàng nhãn, nền trắng tròn để tách khỏi ảnh. */
+.tt-chip svg {
+  width: 11px;
+  height: 11px;
+  flex: none;
+  color: rgb(var(--brand-accent-rgb));
+}
 .tt-fav {
   margin-left: auto;
   flex: none;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
-  color: rgb(var(--text-heading-rgb) / 0.55);
-  background: rgb(var(--white-rgb) / 0.92);
+  color: rgb(var(--scrim-plum-rgb) / 0.6);
+  background: rgb(var(--white-rgb) / 0.94);
   box-shadow: 0 1px 4px rgb(var(--scrim-rgb) / 0.12);
   transition:
     transform 0.16s ease,
     color 0.16s ease;
 }
 .tt-fav svg {
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 2;
 }
 .tt-fav:hover {
-  color: rgb(var(--brand-accent-rgb));
+  color: rgb(var(--action-primary-rgb));
 }
 .tt-fav:active {
   transform: scale(0.85);
@@ -2128,136 +2227,36 @@ html.cx-landing {
   fill: currentColor;
 }
 
-/* Nút "Tạo với AI" — viên thuốc trắng đè góc dưới phải ảnh (góc trên đã có
-   hàng nhãn/sao). Logo XuXi trong ô tròn hồng nhạt; rê chuột thì cả viên đổ
-   hồng đặc như nút "Tạo ngay". Luôn có chữ, kể cả thẻ hẹp ở lưới 2 cột điện thoại. */
-.tt-ai {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 3px 12px 3px 3px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-  color: rgb(var(--action-primary-deep-rgb));
-  background: rgb(var(--white-rgb) / 0.94);
-  box-shadow:
-    0 0 0 1px rgb(var(--brand-primary-rgb) / 0.5),
-    0 6px 16px -6px rgb(var(--scrim-rgb) / 0.35);
-  transition:
-    background-color 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.16s ease;
-}
-.tt-ai-ico {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  background: rgb(var(--action-primary-rgb) / 0.12);
-  transition: transform 0.24s ease;
-}
-.tt-ai-ico svg.lucide {
-  width: 16px;
-  height: 16px;
-}
-.tt-ai:hover {
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 8px 20px -6px rgb(var(--action-primary-rgb) / 0.6);
-}
-.tt-ai:hover .tt-ai-ico {
-  background: rgb(var(--white-rgb));
-  transform: rotate(-12deg) scale(1.08);
-}
-.tt-ai:active {
-  transform: scale(0.94);
-}
-.tt-ai:focus-visible {
-  outline: 2px solid rgb(var(--action-primary-rgb));
-  outline-offset: 2px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .tt-ai,
-  .tt-ai-ico {
-    transition: none;
-  }
-  .tt-ai:hover .tt-ai-ico {
-    transform: none;
-  }
-}
-
-/* Phần chữ + nút dưới ảnh: lề của riêng nó, vì vỏ thẻ không còn padding.
-   Viền trên là ranh giới ảnh ↔ phần chữ: ảnh mẫu nào cũng sáng màu nên không có
-   nó thì đáy ảnh loang thẳng vào nền trắng của thân thẻ. */
+/* ─── Tên + cặp nút ─── */
+/* Thân giãn hết phần còn lại (thẻ cùng hàng lưới cao bằng nhau) và cặp nút dính
+   đáy, nên tên một dòng hay hai dòng thì nút các thẻ vẫn thẳng hàng. */
 .tt-cardbody {
-  padding: 12px 12px 12px;
-  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.22);
-  /* Bóng INSET đổ xuống ngay dưới viền (không phải bóng ngoài — thân thẻ nằm
-     trong vỏ `overflow: hidden` nên bóng ngoài bị cắt mất). */
-  box-shadow: inset 0 8px 8px -6px rgb(var(--brand-primary-rgb) / 0.16);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 6px 10px;
 }
 .tt-name {
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 1.35;
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(14px, 8cqw, 18px);
+  font-weight: 500;
+  line-height: 1.3;
   color: rgb(var(--scrim-plum-rgb));
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tt-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.4;
-  white-space: nowrap;
-  color: rgb(var(--scrim-plum-rgb));
-  background: rgb(var(--brand-primary-rgb) / 0.1);
-}
-.tt-chip svg {
-  width: 11px;
-  height: 11px;
-  flex: none;
-}
-/* `>`: chỉ ảnh mẫu, không trúng logo trong nút .tt-ai. */
-.tt-media > img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
-  transition: transform 0.45s ease;
-}
-.tt-card:hover .tt-media > img {
-  transform: scale(1.045);
 }
 
-/* Cặp nút ở chân thẻ — variant="bare" nên <x-button> chỉ giữ hình pill,
-   màu do đây quyết (đúng màu cặp nút cùng tên ở trang chủ).
-   LUÔN một hàng, kể cả thẻ hẹp ~150px ở lưới 2 cột: hai nút chia đôi
-   (`flex: 1 1 0` + `min-width: 0`) và co chữ/lề theo bề ngang THẺ bằng
-   clamp — không dùng breakpoint vì khổ thẻ do lưới quyết chứ không phải
-   bề ngang màn hình. Thẻ hẹp quá thì giấu icon, giữ lại chữ. */
+/* Cặp nút — variant="bare" nên <x-button> chỉ giữ hình pill, màu do đây quyết.
+   LUÔN một hàng: hai nút chia đôi, chữ/lề co theo bề ngang thẻ (cqw); thẻ hẹp
+   quá thì giấu icon, giữ chữ. */
 .tt-cardbtns {
   display: flex;
   gap: 6px;
-  container-type: inline-size;
+  margin-top: auto;
 }
 .tt-cardbtns > * {
   flex: 1 1 0;
@@ -2265,28 +2264,25 @@ html.cx-landing {
 }
 .tt-cardbtns button {
   width: 100%;
+  height: clamp(32px, 15cqw, 38px);
   gap: 4px;
   padding-inline: clamp(6px, 4cqw, 14px);
-  /* Sàn 10px là cỡ chữ ở lưới 2 cột trên điện thoại; thẻ rộng ra (máy
-     tính) thì chữ tự lớn dần tới 13px. */
-  font-size: clamp(10px, 3.6cqw, 13px);
+  font-size: clamp(11px, 5.2cqw, 13px);
 }
-/* Icon ăn theo cỡ chữ của nút (nhắm kèm .lucide để thắng luật 1em ở
-   _setup.css), nhờ vậy hai thứ lớn nhỏ cùng nhau và không so le. */
+/* Icon ăn theo cỡ chữ của nút (nhắm kèm .lucide để thắng luật 1em ở _setup.css). */
 .tt-cardbtns svg.lucide {
   width: 1.15em;
   height: 1.15em;
   flex: none;
 }
-@container (max-width: 170px) {
+@container (max-width: 176px) {
   .tt-cardbtns svg {
     display: none;
   }
 }
 
-/* Cùng tông với bảng chat AI (styles/_ai-chat.css): "Xem trước" là chip trắng
-   viền hồng (.aichat-chip), "Tạo ngay" là nút hồng đặc (.aichat-send). Đổi tông
-   ở đây thì đổi luôn bên đó, hai chỗ cố ý nhìn như một bộ. */
+/* "Xem trước" chip trắng viền hồng, "Tạo ngay" hồng đặc — cùng bộ với bảng chat AI
+   (.aichat-chip / .aichat-send) và khung Xem nhanh; đổi tông thì đổi cả bên đó. */
 .tt-btn-preview {
   background: rgb(var(--white-rgb));
   color: rgb(var(--brand-accent-rgb));
@@ -2321,22 +2317,104 @@ html.cx-landing {
   box-shadow: 0 2px 8px rgb(var(--action-primary-rgb) / 0.35);
 }
 
-/* Bấm vào ảnh là mở bản xem thử — không còn nút nào trên ảnh. Lớp phủ chỉ
-   để báo "bấm được" khi rê chuột, KHÔNG bắt click: cú bấm do chính
-   .tt-media nhận. */
-.tt-media {
-  cursor: pointer;
+/* ─── Dải chân "Tạo với AI" ─── Tràn sát hai mép + đáy thẻ (bù lề 6px của vỏ),
+   nền hồng nhạt; rê chuột đổ hồng đặc như "Tạo ngay". Nhãn "5 phút" lùi khi thẻ hẹp. */
+.tt-ai {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 -6px;
+  padding: 8px 12px 8px 10px;
+  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.3);
+  font-size: clamp(12px, 5.6cqw, 13px);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-align: left;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: linear-gradient(90deg, rgb(var(--surface-brand-rgb)), rgb(var(--white-rgb)));
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
 }
-.tt-hover {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: rgb(var(--scrim-plum-rgb) / 0.18);
-  opacity: 0;
-  transition: opacity 0.2s ease;
+.tt-ai-ico {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 0 0 1px rgb(var(--brand-primary-rgb) / 0.45);
+  transition: transform 0.24s ease;
 }
-.tt-card:hover .tt-hover {
+.tt-ai-ico svg.lucide {
+  width: 16px;
+  height: 16px;
+}
+.tt-ai-t {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tt-ai-tag {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgb(var(--action-primary-rgb));
+  background: rgb(var(--action-primary-rgb) / 0.1);
+}
+.tt-ai-go {
+  display: grid;
+  margin-left: auto;
+  flex: none;
+  opacity: 0.6;
+  transition: transform 0.18s ease;
+}
+.tt-ai-go svg.lucide {
+  width: 16px;
+  height: 16px;
+}
+.tt-ai:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+}
+.tt-ai:hover .tt-ai-tag {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--white-rgb) / 0.22);
+}
+.tt-ai:hover .tt-ai-ico {
+  transform: rotate(-12deg) scale(1.08);
+}
+.tt-ai:hover .tt-ai-go {
   opacity: 1;
+  transform: translateX(2px);
+}
+.tt-ai:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: -2px;
+}
+@container (max-width: 176px) {
+  .tt-ai-tag {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-card,
+  .tt-media > img,
+  .tt-peek,
+  .tt-ai-ico,
+  .tt-ai-go {
+    transition: none;
+  }
+  .tt-card:hover,
+  .tt-card:hover .tt-media > img,
+  .tt-ai:hover .tt-ai-ico {
+    transform: none;
+  }
 }
 
 /* ══ MỤC "THIỆP CỦA KHÁCH" Ở TRANG CHỦ (#showcase, js/section-showcase.js) ══
