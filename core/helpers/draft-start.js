@@ -198,8 +198,8 @@
   // opts.seed: ô form điền sẵn cho thiệp MỚI ({groom_name, bride_name}) — chỉ dùng
   //   khi tạo nháp mới, đi vào nháp có sẵn thì bỏ qua.
   // opts.palette: id bộ màu (card-palette-helper.js) khách đang thử ở bản xem thử.
-  //   Nháp mới mang nó; nháp có sẵn theo `opts.id` cũng nhận, nhưng trang thiết lập
-  //   chỉ áp khi nháp CHƯA có bộ màu — bộ khách đã tự chọn luôn thắng.
+  //   Nháp mới mang nó; nháp có sẵn theo `opts.id` chỉ nhận khi chưa từng mở ở trang
+  //   thiết lập. Nháp khác trên máy không bao giờ bị đụng tới.
   // Trả về mã nháp sẽ mở, hoặc undefined khi còn phải hỏi khách.
   window.cxStartDraft = function (theme, displayName, opts) {
     if (!theme) return;
@@ -209,7 +209,9 @@
     if (o.id) {
       var kept = getCache(buildCacheKey("draft", o.id));
       if (!kept) return _create(theme, displayName, o.params, o.id, o.seed, o.palette);
-      if (o.palette && kept._localOnly) {
+      // Chỉ nháp CHƯA từng mở ở trang thiết lập (autosave ở đó luôn ghi theme_setting):
+      // mở rồi thì giao diện là việc khách đã quyết, kể cả để "Mặc định".
+      if (o.palette && kept._localOnly && !("theme_setting" in kept)) {
         kept._pal = o.palette;
         setCache(buildCacheKey("draft", o.id), kept);
       }
