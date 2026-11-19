@@ -118,7 +118,7 @@ html.sh-lite {
   --sh-cv-glow-a-rgb: var(--cx-accent-soft-rgb);
   --sh-cv-glow-b-rgb: var(--cx-deco-soft-rgb);
   --sh-cv-ink-rgb: var(--cx-heading-rgb);
-  --sh-cv-muted-rgb: var(--cx-deco-2-rgb);
+  --sh-cv-muted-rgb: var(--cx-body-rgb); /* chữ nhỏ 11px nằm trên quầng sáng: deco_2 chỉ ~2.4:1 */
   --sh-cv-amp-rgb: var(--cx-deco-rgb);
   --sh-cv-btn-rgb: var(--cx-panel-rgb);
   --sh-seal-hi-rgb: var(--cx-deco-rgb);
