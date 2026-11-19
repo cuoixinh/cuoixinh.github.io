@@ -355,8 +355,8 @@ html.cx-pshell-host.rb-stack body {
 
 .rb-nav-chip.is-cur {
   border-color: transparent;
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 
 .rb-nav-chip:focus-visible,
@@ -391,7 +391,7 @@ html.cx-pshell-host.rb-stack body {
 }
 
 .rb-nav-bar i.is-done {
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
 }
 
 .rb-nav.is-open .rb-nav-bar i {
@@ -412,7 +412,7 @@ html.cx-pshell-host.rb-stack body {
 }
 
 .rb-nav.is-open .rb-nav-bar i.is-done {
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
 }
 
 .cx-h,
@@ -480,8 +480,8 @@ html.cx-pshell-host.rb-stack body {
 .rb-band {
   margin: -24px -16px 16px;
   padding: 20px 16px 16px;
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   text-align: center;
 }
 
@@ -532,7 +532,7 @@ html.cx-pshell-host.rb-stack body {
 }
 
 .rb-sign-light {
-  color: rgb(var(--cx-on-accent-rgb) / 0.9);
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)) / 0.9);
 }
 
 .rb-bw {
@@ -591,8 +591,8 @@ html.cx-pshell-host.rb-stack body {
 
 .rb-call:active,
 .rb-qr-save:active {
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 
 .rb-call:focus-visible,
@@ -917,7 +917,7 @@ html.cx-pshell-host.rb-stack body {
   right: 0;
   width: 38%;
   height: 92%;
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
 }
 
 .rb-fv-a {
@@ -1052,7 +1052,7 @@ html.cx-pshell-host.rb-stack body {
   left: 12%;
   width: 80%;
   height: 100%;
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
 }
 
 .rb-pt-a,
@@ -1084,7 +1084,7 @@ html.cx-pshell-host.rb-stack body {
   line-height: 1;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 
 .rb-pt-w1 {
@@ -1136,11 +1136,11 @@ html.cx-pshell-host.rb-stack body {
   flex-direction: column;
   margin: -24px -16px 0;
   padding: 20px 16px 0;
-  background: linear-gradient(rgb(var(--cx-accent-rgb)), rgb(var(--cx-accent-rgb))) top / 100% 62% no-repeat;
+  background: linear-gradient(rgb(var(--cx-fill-rgb, var(--cx-accent-rgb))), rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)))) top / 100% 62% no-repeat;
 }
 
 .rb-ad-head .rb-title {
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 
 .rb-ad-ph {
@@ -1227,8 +1227,8 @@ html.cx-pshell-host.rb-stack body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   font-size: 18px;
   box-shadow: 0 6px 16px rgb(var(--cx-shadow-rgb) / 0.25);
 }
@@ -1266,7 +1266,7 @@ html.cx-pshell-host.rb-stack body {
   left: 10%;
   width: 56%;
   height: 50%;
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
 }
 
 .rb-fr-b {
@@ -1399,7 +1399,7 @@ html.cx-pshell-host.rb-stack body {
   right: -16px;
   bottom: 0;
   width: 46%;
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
 }
 
 .rb-cal {
@@ -1471,8 +1471,8 @@ html.cx-pshell-host.rb-stack body {
 }
 
 .rb-cal-c.is-day span {
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   font-weight: 400;
 }
 
@@ -1549,8 +1549,8 @@ html.cx-pshell-host.rb-stack body {
 
 .rb-rv-yes {
   border-color: transparent;
-  background: rgb(var(--cx-accent-rgb) / 0.92);
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)) / 0.92);
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 
 .rb-rv-msg {
@@ -1563,7 +1563,7 @@ html.cx-pshell-host.rb-stack body {
 .rb-count {
   position: relative;
   padding: 20px 16px var(--rb-foot);
-  background: rgb(var(--cx-accent-rgb) / 0.94);
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)) / 0.94);
   text-align: center;
 }
 
@@ -1580,11 +1580,11 @@ html.cx-pshell-host.rb-stack body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
 }
 
 .rb-cd-box + .rb-cd-box {
-  border-left: 1px solid rgb(var(--cx-on-accent-rgb) / 0.3);
+  border-left: 1px solid rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)) / 0.3);
 }
 
 .rb-cd-box b {
@@ -1648,7 +1648,7 @@ html.cx-pshell-host.rb-stack body {
   right: 0;
   width: 70%;
   height: 80%;
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
 }
 
 .rb-st-ph img {
@@ -1792,8 +1792,8 @@ html.cx-pshell-host.rb-stack body {
   flex-direction: column;
   margin: -24px -16px 0;
   padding: 20px 16px 0;
-  background: linear-gradient(rgb(var(--cx-accent-rgb)), rgb(var(--cx-accent-rgb))) top / 100% 58% no-repeat;
-  color: rgb(var(--cx-on-accent-rgb));
+  background: linear-gradient(rgb(var(--cx-fill-rgb, var(--cx-accent-rgb))), rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)))) top / 100% 58% no-repeat;
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   text-align: center;
 }
 
@@ -1954,7 +1954,7 @@ html.cx-pshell-host.rb-stack body {
   right: 0;
   width: 60%;
   height: 85%;
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
 }
 
 .rb-ft-ph img {
@@ -2175,14 +2175,6 @@ html.cx-pshell-host.rb-stack body {
 
 .rb-cover .rb-hero-event {
   animation: cx-rb-cv-in 1s ease-out 0.4s both;
-}
-
-.rb-cover .rb-hero-date {
-  animation: cx-rb-cv-in 1s ease-out 0.6s both;
-}
-
-.rb-cover .rb-hero-time {
-  animation: cx-rb-cv-in 1s ease-out 0.75s both;
 }
 
 /* Chữ ký đã xoay bằng transform → chỉ mờ dần, đụng transform là mất góc nghiêng. */

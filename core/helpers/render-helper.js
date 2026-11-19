@@ -161,7 +161,8 @@ function renderQRCodes(wedding) {
 // Thẻ QR của một bên = tổ tiên cao nhất của ảnh QR bên đó mà KHÔNG chứa ảnh QR bên kia
 // (đúng với mọi mẫu, không phụ thuộc markup). Thẻ còn lại được canh giữa, giữ khổ một
 // cột theo gap + số cột THẬT của mẫu — chạy lúc #main-card có thể còn display:none nên
-// không đo px được, chỉ đọc khai báo CSS.
+// không đo px được, chỉ đọc khai báo CSS. Mẫu muốn thẻ lẻ khổ khác thì khai
+// `--cx-gift-solo-w` (thẻ còn lại mang cờ `.cx-gift-solo`).
 function _cxHideGiftSide(side) {
   const img = document.getElementById(`${side}-qr-img`);
   const other = document.getElementById(`${side === "groom" ? "bride" : "groom"}-qr-img`);
@@ -173,6 +174,7 @@ function _cxHideGiftSide(side) {
   const row = card.parentElement;
   card.style.display = "none";
   if (!row || keep.parentElement !== row) return;
+  keep.classList.add("cx-gift-solo");
   const cs = getComputedStyle(row);
   const gap = parseFloat(cs.columnGap) || 0;
   const oneCol = (n) => `calc((100% - ${gap * (n - 1)}px) / ${n})`;
@@ -181,10 +183,10 @@ function _cxHideGiftSide(side) {
     if (n < 2) return; // xếp dọc (vd mobile) — bỏ một thẻ là xong
     keep.style.gridColumn = "1 / -1";
     keep.style.justifySelf = "center";
-    keep.style.width = oneCol(n);
+    keep.style.width = `var(--cx-gift-solo-w, ${oneCol(n)})`;
   } else if (cs.display.includes("flex") && !cs.flexDirection.startsWith("column")) {
     row.style.justifyContent = "center";
-    keep.style.maxWidth = oneCol(2);
+    keep.style.maxWidth = `var(--cx-gift-solo-w, ${oneCol(2)})`;
   }
 }
 

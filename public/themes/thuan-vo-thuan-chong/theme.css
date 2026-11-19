@@ -30,6 +30,24 @@
   --cx-shine-mid-rgb: 232 196 200;
   --cx-shine-to-rgb: 246 232 233;
 
+  /* Mảng tô (dải, lịch, con dấu, nút) + chữ trên nó, phong bì ở bìa: theo khối tô của bộ màu
+     (`fill`/`on_fill`, chỉ có khi chọn bộ), không có thì màu nhấn. Thiệp lưu bộ riêng cũ của
+     mẫu ("Hồng pastel") vẫn ghi đè thẳng các biến --tv-* qua `vars` đã lưu. */
+  --tv-fill-rgb: var(--cx-fill-rgb, var(--cx-accent-rgb));
+  --tv-fill-ink-rgb: var(--cx-on-fill-rgb, var(--cx-on-accent-rgb));
+  --tv-env-rgb: var(--cx-fill-rgb, var(--cx-accent-rgb));
+  --tv-env-in-rgb: var(--cx-heading-rgb);
+  /* Lòng phong bì: có bộ màu thì là khối tô sẫm đi một nấc; không có bộ thì biến này vô hiệu
+     (var thiếu, không fallback) → dòng dùng nó rơi về --tv-env-in-rgb. */
+  --tv-env-in: color-mix(in srgb, rgb(var(--cx-fill-rgb)) 80%, #000);
+  /* Dấu sáp: bộ có khối tô sáng (pastel) thì dấu cùng màu khối tô, chữ nhấn (--cx-fill-mark-*). */
+  --tv-wax-rgb: var(--cx-fill-mark-rgb, var(--cx-accent-rgb));
+  --tv-wax-ink-rgb: var(--cx-fill-mark-ink-rgb, var(--cx-on-accent-rgb));
+  /* Màu sọc vân gai trên khối tô (phong bì, dải, lịch): khối tô sáng (pastel — helper sinh
+     --cx-fill-mark-rgb = chính màu khối) thì sọc trùng màu khối → khối trơn, không vân. */
+  --tv-weave-hi-rgb: var(--cx-fill-mark-rgb, 255 255 255);
+  --tv-weave-lo-rgb: var(--cx-fill-mark-rgb, 0 0 0);
+
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
   --music-widget-fg-rgb: var(--cx-heading-rgb);
@@ -124,16 +142,16 @@ body {
   width: 64px;
   height: 64px;
   border-radius: 6px;
-  background: rgb(var(--cx-accent-rgb));
+  background: rgb(var(--tv-fill-rgb));
   transform: rotate(-6deg);
-  box-shadow: 0 4px 12px rgb(var(--cx-accent-rgb) / 0.24);
+  box-shadow: 0 4px 12px rgb(var(--tv-fill-rgb) / 0.24);
 }
 
 .tv-seal::before {
   content: "";
   position: absolute;
   inset: 4px;
-  border: 1px solid rgb(var(--cx-on-accent-rgb) / 0.85);
+  border: 1px solid rgb(var(--tv-fill-ink-rgb) / 0.85);
   border-radius: 3px;
 }
 
@@ -141,7 +159,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
   font-family: "Noto Serif Display", serif;
   font-size: 20px;
   font-weight: 400;
@@ -180,8 +198,8 @@ body {
 .tv-env-sides,
 .tv-env-flap {
   background-image:
-    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.05) 0 1px, transparent 1px 3px);
+    repeating-linear-gradient(0deg, rgb(var(--tv-weave-hi-rgb) / 0.04) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(var(--tv-weave-lo-rgb) / 0.05) 0 1px, transparent 1px 3px);
 }
 
 .tv-env-back {
@@ -191,7 +209,12 @@ body {
   top: 22%;
   bottom: 2%;
   border-radius: 1.6cqw 1.6cqw 1cqw 1cqw;
-  background-color: rgb(var(--cx-heading-rgb));
+  background-color: var(--tv-env-in, rgb(var(--tv-env-in-rgb)));
+  /* Lòng phong bì sẫm hơn khối tô một nấc (--tv-env-in) → sọc cũng sẫm đúng nấc đó, để khối
+     tô pastel thì sọc trùng màu lòng (trơn); sọc trắng/đen giữ gần y như vải lanh ở trên. */
+  background-image:
+    repeating-linear-gradient(0deg, color-mix(in srgb, color-mix(in srgb, rgb(var(--tv-weave-hi-rgb)) 80%, #000) 5%, transparent) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, color-mix(in srgb, color-mix(in srgb, rgb(var(--tv-weave-lo-rgb)) 80%, #000) 5%, transparent) 0 1px, transparent 1px 3px);
 }
 
 .tv-print {
@@ -331,7 +354,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 0 0 1cqw 1cqw;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-env-rgb));
   clip-path: polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%);
 }
 
@@ -345,63 +368,92 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 0 0 1cqw 1cqw;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-env-rgb));
   background-blend-mode: normal;
   clip-path: polygon(0 100%, 0 96%, 46% 46%, 50% 44%, 54% 46%, 100% 96%, 100% 100%);
 }
 
-/* Dấu sáp = nút mở thiệp, tâm đặt đúng đỉnh chữ V (75% khung). Mép sáp chảy không đều =
-   bo góc lệch + các bóng cùng màu đẩy lồi ra ngoài; gờ ép quanh chữ lồng ở ::before. */
+/* Dấu sáp = nút mở thiệp, tâm đặt đúng đỉnh chữ V (75% khung). Ba lớp: giọt sáp chảy
+   (.tv-wax-body, cắt dáng bằng mask SVG) · đĩa khuôn ép lõm có viền khía (::before/::after) ·
+   chữ lồng khắc chìm. Bóng pha từ màu dấu + --cx-shadow-rgb để dấu pastel không bị xám. */
 .tv-wax {
   position: absolute;
   z-index: 5;
-  left: 39%;
-  top: 64%;
-  width: 22%;
+  left: 38.5%;
+  top: 63.5%;
+  width: 23%;
   aspect-ratio: 1;
-  border-radius: 47% 53% 44% 56% / 55% 45% 55% 45%;
-  background:
-    radial-gradient(circle at 38% 32%, rgb(255 255 255 / 0.14), transparent 55%),
-    rgb(var(--cx-accent-rgb));
-  box-shadow:
-    1.4cqw 0.4cqw 0 -0.5cqw rgb(var(--cx-accent-rgb)),
-    -1.2cqw 1cqw 0 -0.6cqw rgb(var(--cx-accent-rgb)),
-    0.2cqw -1.3cqw 0 -0.7cqw rgb(var(--cx-accent-rgb)),
-    -0.6cqw -1cqw 0 -0.8cqw rgb(var(--cx-accent-rgb)),
-    0.9cqw 1.2cqw 0 -0.7cqw rgb(var(--cx-accent-rgb)),
-    inset 0 -0.8cqw 1.2cqw rgb(0 0 0 / 0.28),
-    inset 0 0.5cqw 0.8cqw rgb(255 255 255 / 0.12),
-    0 1cqw 2cqw rgb(0 0 0 / 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  filter:
+    drop-shadow(0 0.4cqw 0.5cqw rgb(var(--cx-shadow-rgb) / 0.28))
+    drop-shadow(0 1.6cqw 2.4cqw rgb(var(--cx-shadow-rgb) / 0.22));
 }
 
+.tv-wax-body {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 34% 26%,
+    color-mix(in srgb, rgb(var(--tv-wax-rgb)) 70%, #fff) 0%,
+    rgb(var(--tv-wax-rgb)) 42%,
+    color-mix(in srgb, rgb(var(--tv-wax-rgb)) 80%, rgb(var(--cx-shadow-rgb))) 100%
+  );
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3C60 3 66 8 74 9C84 10 92 18 93 28C94 36 98 42 97 52C96 61 92 66 91 74C89 85 80 93 69 94C61 95 56 98 47 97C38 96 32 92 24 90C13 87 6 79 5 68C4 60 2 55 3 46C4 36 8 30 10 22C13 12 22 5 33 5C40 4 44 3 50 3Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 3C60 3 66 8 74 9C84 10 92 18 93 28C94 36 98 42 97 52C96 61 92 66 91 74C89 85 80 93 69 94C61 95 56 98 47 97C38 96 32 92 24 90C13 87 6 79 5 68C4 60 2 55 3 46C4 36 8 30 10 22C13 12 22 5 33 5C40 4 44 3 50 3Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+
+/* Đĩa khuôn ép: lõm xuống (tối mép trên, sáng mép dưới), gờ nổi quanh miệng. */
 .tv-wax::before {
   content: "";
   position: absolute;
   inset: 15%;
   border-radius: 50%;
-  background: rgb(0 0 0 / 0.06);
+  background: color-mix(in srgb, rgb(var(--tv-wax-rgb)) 94%, rgb(var(--cx-shadow-rgb)));
   box-shadow:
-    inset 0 0.6cqw 0.9cqw rgb(0 0 0 / 0.35),
-    inset 0 -0.3cqw 0.4cqw rgb(255 255 255 / 0.15),
-    0 0.3cqw 0.3cqw rgb(255 255 255 / 0.12);
+    inset 0 0.7cqw 0.9cqw rgb(var(--cx-shadow-rgb) / 0.26),
+    inset 0 -0.4cqw 0.5cqw rgb(255 255 255 / 0.32),
+    0 0.3cqw 0 rgb(255 255 255 / 0.3),
+    0 -0.3cqw 0.4cqw rgb(var(--cx-shadow-rgb) / 0.14);
 }
 
+/* Viền khía như mép đồng xu, chạy sát trong miệng đĩa. */
+.tv-wax::after {
+  content: "";
+  position: absolute;
+  inset: 19%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgb(var(--tv-wax-ink-rgb) / 0.5) 0deg 2.5deg, transparent 2.5deg 9deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 0.7cqw), #000 calc(100% - 0.6cqw));
+  mask: radial-gradient(closest-side, transparent calc(100% - 0.7cqw), #000 calc(100% - 0.6cqw));
+}
+
+/* Chữ lồng: serif nghiêng, chữ sau chồng chéo xuống dưới chữ trước, khắc chìm. */
 .tv-wax span[data-tv-mono] {
   position: relative;
+  z-index: 1;
   display: flex;
   align-items: baseline;
-  font-family: "Great Vibes", cursive;
-  font-size: 6.4cqw;
+  font-family: "Noto Serif Display", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 8cqw;
   line-height: 1;
-  color: rgb(var(--cx-on-accent-rgb) / 0.82);
+  color: rgb(var(--tv-wax-ink-rgb) / 0.9);
   text-shadow:
-    0 -0.2cqw 0 rgb(0 0 0 / 0.35),
-    0 0.2cqw 0 rgb(255 255 255 / 0.2);
+    0 -0.15cqw 0 rgb(var(--cx-shadow-rgb) / 0.3),
+    0 0.2cqw 0 rgb(255 255 255 / 0.35);
+}
+
+.tv-wax span[data-tv-mono] span:first-child {
+  translate: 0 -1cqw;
 }
 
 .tv-wax span[data-tv-mono] span + span {
-  margin-left: -0.6cqw;
-  translate: 0 1.4cqw;
+  margin-left: -1.8cqw;
+  translate: 0 1cqw;
 }
 
 /* Bìa hiện ra: phong bì đặt xuống, ảnh và vé trồi lên khỏi miệng, rồi đóng dấu. */
@@ -477,21 +529,21 @@ body {
 .tv-footer {
   margin: 0 -24px;
   padding: 64px 24px;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-fill-rgb));
   background-image:
-    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.05) 0 1px, transparent 1px 3px);
-  color: rgb(var(--cx-on-accent-rgb) / 0.82);
+    repeating-linear-gradient(0deg, rgb(var(--tv-weave-hi-rgb) / 0.04) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(var(--tv-weave-lo-rgb) / 0.05) 0 1px, transparent 1px 3px);
+  color: rgb(var(--tv-fill-ink-rgb) / 0.82);
 }
 
 .tv-band .cx-h,
 .tv-band .cx-t,
 .tv-footer .cx-h {
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-band .tv-h2::after {
-  background: rgb(var(--cx-on-accent-rgb) / 0.6);
+  background: rgb(var(--tv-fill-ink-rgb) / 0.6);
 }
 
 /* Ảnh rời: viền giấy ảnh trắng, dựng thẳng. Lớp sâu do --tv-depth (hệ số trôi khi cuộn,
@@ -705,11 +757,11 @@ body {
   width: calc(100% + 16px);
   padding: 18px 14px 18px 16px;
   border-radius: 16px;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--tv-fill-rgb));
   background-image:
-    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.06) 0 1px, transparent 1px 3px);
-  color: rgb(var(--cx-on-accent-rgb));
+    repeating-linear-gradient(0deg, rgb(var(--tv-weave-hi-rgb) / 0.04) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(var(--tv-weave-lo-rgb) / 0.06) 0 1px, transparent 1px 3px);
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-calphoto {
@@ -736,7 +788,7 @@ body {
   margin-bottom: 10px;
   font-size: 17px;
   text-align: right;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-cal-grid {
@@ -749,7 +801,7 @@ body {
   margin-bottom: 4px;
   font-size: 9px;
   font-weight: 400;
-  color: rgb(var(--cx-on-accent-rgb) / 0.7);
+  color: rgb(var(--tv-fill-ink-rgb) / 0.7);
 }
 
 .tv-cal-d {
@@ -759,7 +811,7 @@ body {
   justify-content: center;
   height: 24px;
   font-size: 12px;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-cal-d b {
@@ -774,15 +826,15 @@ body {
   width: 26px;
   height: 26px;
   translate: -50% -48%;
-  color: rgb(var(--cx-on-accent-rgb));
-  fill: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
+  fill: rgb(var(--tv-fill-ink-rgb));
   stroke-width: 1.5;
 }
 
-/* Trái tim nền trắng → số ngày cưới đổi sang màu đỏ rượu. */
+/* Số ngày cưới trên trái tim (màu chữ của mảng) lấy màu mảng — luôn là cặp đảo của tim. */
 .tv-cal-d.is-wed b {
   font-weight: 500;
-  color: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--tv-fill-rgb));
 }
 
 .tv-cal-d.is-party::after {
@@ -844,8 +896,8 @@ body {
 
 .tv-date-side {
   padding: 8px 0;
-  border-top: 1px solid rgb(var(--cx-on-accent-rgb) / 0.4);
-  border-bottom: 1px solid rgb(var(--cx-on-accent-rgb) / 0.4);
+  border-top: 1px solid rgb(var(--tv-fill-ink-rgb) / 0.4);
+  border-bottom: 1px solid rgb(var(--tv-fill-ink-rgb) / 0.4);
   font-size: 11px;
   font-weight: 400;
   letter-spacing: 2px;
@@ -867,7 +919,7 @@ body {
 }
 
 .tv-band .tv-addr {
-  color: rgb(var(--cx-on-accent-rgb) / 0.82);
+  color: rgb(var(--tv-fill-ink-rgb) / 0.82);
 }
 
 /* ── Tiệc: vé mời — cuống chữ dọc, đường đục lỗ, hai khấc bán nguyệt ──
@@ -970,10 +1022,10 @@ body {
   transition: border-color 0.2s, background-color 0.2s;
 }
 
+/* Giữ viền của .tv-choice: mảng tô nhạt (Hồng pastel) mới tách khỏi nền; bản gốc viền chìm vào nền đỏ. */
 #btn-attend.tv-choice {
-  border-color: rgb(var(--cx-accent-rgb));
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--tv-fill-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 .tv-reply-wish {
@@ -1091,6 +1143,12 @@ body {
 
 /* ── Mừng cưới ── */
 
+/* .tv-sec canh giữa nên lưới phải tự giãn đủ bề ngang, không thì co theo nội dung. */
+.tv-gifts {
+  width: 100%;
+  --cx-gift-solo-w: min(100%, 280px);
+}
+
 .tv-bank {
   display: flex;
   flex-direction: column;
@@ -1104,6 +1162,10 @@ body {
   margin: 6px 0;
   padding: 10px;
   border-radius: 8px;
+}
+
+.cx-gift-solo .tv-qr {
+  max-width: 220px;
 }
 
 .tv-qr img {
@@ -1176,7 +1238,9 @@ body {
   clip-path: polygon(0 0, 100% 0, 50% 100%);
 }
 
+/* Con dấu cuối thiệp nền màu tiêu đề (sẫm) → chữ/viền trong nó dùng chữ sáng, không theo mảng tô. */
 .tv-footer .tv-seal {
+  --tv-fill-ink-rgb: var(--cx-on-accent-rgb);
   position: absolute;
   top: 40px;
   left: 50%;
@@ -1193,7 +1257,7 @@ body {
   font-family: "KattyDiona", cursive;
   font-size: 32px;
   line-height: 1;
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--tv-fill-ink-rgb));
 }
 
 /* ── Hiện dần khi cuộn: chỉ trượt ngang + mờ dần, không bay dọc ──

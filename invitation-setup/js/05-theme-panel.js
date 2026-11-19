@@ -78,52 +78,30 @@ function _fillFontCombo(el, types) {
 // mẫu (đã khai sẵn ở :root của theme.css nên không phải áp gì).
 const PALETTE_DEFAULT_LABEL = "Mặc định";
 
-// Bộ màu RIÊNG của mẫu đang mở (CX_THEME.palettes, đọc qua bản khai) — biến thể tông
-// do chính mẫu thiết kế, chỉ hiện ở mẫu đó. Đúng khuôn mục trong CX_PALETTES; có thể
-// kèm `wishes` (màu lời chúc, xem applyWishStyle) vì CX_THEME.wishes chỉ hợp màu gốc.
-function _themePalettes() {
-  const list = window.cxThemeDecl?.().palettes;
-  return Array.isArray(list)
-    ? list.filter((p) => p && typeof p.id === "string" && typeof p.name === "string")
-    : [];
-}
-
-// Giá trị đem lưu của một bộ: id + tên + các khoá runtime biết áp (+ wishes của bộ riêng).
+// Giá trị đem lưu của một bộ trong danh mục chung (mẫu không có bộ riêng).
 function _paletteValue(id) {
-  const own = _themePalettes().find((p) => p.id === id);
-  if (!own) return window.cxPaletteValue(id);
-  const out = { id: own.id, name: own.name };
-  if (own.dark === true) out.dark = true;
-  (window.CX_PALETTE_KEYS || []).forEach((k) => {
-    if (own[k]) out[k] = own[k];
-  });
-  if (own.wishes && typeof own.wishes === "object") out.wishes = { ...own.wishes };
-  if (own.vars && typeof own.vars === "object") out.vars = { ...own.vars };
-  if (Array.isArray(own.hold)) out.hold = [...own.hold];
-  return out;
+  return window.cxPaletteValue(id);
 }
 
-// Thiệp đã chọn một bộ riêng của mẫu từ trước: đổi bản lưu (ảnh chụp lúc chọn) sang bản
-// khai hiện tại, giữ độ đậm — lần lưu kế tiếp ghi bản mới, worker dựng sẵn cũng đúng theo.
-function _refreshOwnPalette() {
+// Bộ đã lưu là ẢNH CHỤP lúc chọn → danh mục sửa màu thì thiệp vẫn giữ màu cũ. Bộ còn trong
+// danh mục thì đổi sang bản khai hiện tại (giữ độ đậm); lần lưu kế tiếp ghi bản mới.
+function _refreshCatalogPalette() {
   const cur = _currentPalette();
-  if (!cur?.id || !_themePalettes().some((p) => p.id === cur.id)) return;
+  if (!cur?.id || !window.cxPaletteById?.(cur.id)) return;
   const fresh = _paletteValue(cur.id);
   if (cur.strength != null) fresh.strength = cur.strength;
   if (JSON.stringify(fresh) !== JSON.stringify(cur)) _themeSetting.palette = fresh;
 }
 
 // Lưới ô màu: ô đầu "Mặc định" vẽ từ chính bản khai của mẫu đang mở
-// (CX_THEME.palette), để khách thấy ngay mình đang rời khỏi tông nào; kế đó là bộ
-// riêng của mẫu, rồi tới danh mục chung.
+// (CX_THEME.palette), để khách thấy ngay mình đang rời khỏi tông nào; kế đó là danh mục chung.
 function _renderPaletteGrid() {
-  _refreshOwnPalette();
+  _refreshCatalogPalette();
   const box = document.getElementById("theme-palette");
   if (!box || !window.CX_PALETTES) return;
   box.textContent = "";
   [
     { id: "", name: PALETTE_DEFAULT_LABEL, p: _themeCardPalette() },
-    ..._themePalettes().map((p) => ({ id: p.id, name: p.name, p })),
     ...window.CX_PALETTES.map((p) => ({ id: p.id, name: p.name, p })),
   ].forEach((o) => {
     const btn = document.createElement("button");
@@ -471,7 +449,7 @@ function onCardPaletteChange(id) {
   _syncPaletteStrength();
   _scheduleAutoSave("theme");
   _applyThemeToFrame();
-  // Bộ riêng có thể kèm hộp mừng riêng (`giftBox`): khách để hộp "Mặc định" thì đổi theo.
+  // Bộ màu có thể kèm hộp mừng riêng (`giftBox`): khách để hộp "Mặc định" thì đổi theo.
   if (!_giftBoxId()) {
     document.getElementById("theme-preview-iframe")?.contentWindow?.applyGiftBox?.(_themeSetting);
     _syncGiftTiles();
@@ -1610,9 +1588,7 @@ function _renderGiftPalette() {
 
 function _syncGiftTiles() {
   const cur = _giftBoxId();
-  const curPal = _currentPalette()?.id;
-  const def =
-    _themePalettes().find((p) => p.id === curPal)?.giftBox || window.cxThemeDecl?.().giftBox;
+  const def = _currentPalette()?.giftBox || window.cxThemeDecl?.().giftBox;
   const defRow = document.querySelector('#cx-gift-palette [data-pick-id=""]');
   if (defRow)
     defRow.title =
@@ -1790,7 +1766,7 @@ function pickWishMode(id) {
 window.pickWishMode = pickWishMode;
 
 // Bản khai mẫu về muộn (hoặc vừa đổi mẫu) → ô đang chọn có thể đổi theo mặc định mới,
-// lưới bộ màu thêm/bớt bộ riêng của mẫu, và tab Lời chúc có thể phải ẩn/hiện lại
+// ô "Mặc định" của lưới bộ màu vẽ lại theo mẫu, và tab Lời chúc có thể phải ẩn/hiện lại
 // (wishesFixed) — đang mở mà bị ẩn thì đóng.
 document.addEventListener("cx-theme-decl", () => {
   _syncWishTiles();

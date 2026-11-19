@@ -215,7 +215,7 @@
           : "";
         return `<article class="rc-ch${i % 2 ? " is-rev" : ""}${ph ? "" : " no-ph"}">
           ${ph}
-          <div class="rc-ch-txt">
+          <div class="rc-ch-txt cx-fill">
             <span class="rc-cap">Chương ${pad(i + 1)}${ev.date ? ` · ${escapeHtml(ev.date)}` : ""}</span>
             ${ev.title ? `<h3 class="rc-ch-title">${escapeHtml(ev.title)}</h3>` : ""}
             ${ev.content ? `<p class="rc-ch-body cx-t">${escapeHtml(ev.content)}</p>` : ""}

@@ -11,7 +11,7 @@
   --cx-body-rgb: 110 50 56;
   --cx-line-rgb: 236 214 204;
   --cx-surface-rgb: 250 245 242;
-  --cx-band-rgb: 139 0 20; /* MẢNG ĐỎ ĐÔ khối sau ảnh mỗi trang */
+  --cx-band-rgb: 139 0 20; /* MẢNG ĐỎ ĐÔ khối sau ảnh mỗi trang — có bộ màu thì là khối tô (--cx-fill-rgb) */
   --cx-panel-rgb: 255 255 255;
   --cx-panel-warm-rgb: 255 247 242;
   --cx-cover-rgb: 255 255 255;
@@ -20,7 +20,7 @@
   --cx-card-bg-rgb: 255 255 255;
   --cx-page-bg-rgb: 248 240 236;
   --cx-deco-rgb: 232 196 128; /* VÀNG nhạt — chỉ viền, chấm hoạ tiết */
-  --cx-deco-soft-rgb: 248 228 190; /* chữ nằm trên mảng đỏ */
+  --cx-deco-soft-rgb: 248 228 190; /* chữ nằm trên mảng đỏ — có bộ màu thì --cx-on-fill-rgb */
   --cx-deco-2-rgb: 200 160 96; 
   --cx-deco-2-soft-rgb: 244 226 192;
   --cx-shine-from-rgb: 255 255 255;
@@ -167,7 +167,7 @@ body {
   position: absolute;
   inset: 8px;
   z-index: 2;
-  border: 1px solid rgb(var(--cx-deco-soft-rgb) / 0.75);
+  border: 1px solid rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)) / 0.75);
   pointer-events: none;
 }
 /* Nút thoi giữa hai nét chỉ dưới tiêu đề — mask nên ăn theo màu chữ (currentColor). */
@@ -216,7 +216,7 @@ html.hd-on {
   height: var(--band-h, 0);
   background:
     radial-gradient(circle, rgb(var(--cx-deco-rgb) / 0.1) 1px, transparent 1.6px) 0 0 / 18px 18px,
-    rgb(var(--cx-band-rgb));
+    rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
   box-shadow:
     inset 0 1px rgb(var(--cx-deco-rgb) / 0.55),
     inset 0 -1px rgb(var(--cx-deco-rgb) / 0.55);
@@ -241,7 +241,7 @@ html.hd-on {
   height: 46%;
   background:
     radial-gradient(circle, rgb(var(--cx-deco-rgb) / 0.1) 1px, transparent 1.6px) 0 0 / 18px 18px,
-    rgb(var(--cx-band-rgb));
+    rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
   box-shadow: inset 0 -1px rgb(var(--cx-deco-rgb) / 0.55);
   pointer-events: none;
 }
@@ -263,7 +263,7 @@ html.hd-on {
   font-style: italic;
   letter-spacing: 0;
   text-transform: none;
-  color: rgb(var(--cx-deco-soft-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
 #main-card .cx-wsec-list {
   margin-top: auto;
@@ -408,8 +408,8 @@ html.hd-on {
   padding: calc(var(--hd-cv-h) * 0.05) 0 calc(var(--hd-cv-h) * 0.04);
   background:
     radial-gradient(circle, rgb(var(--cx-deco-rgb) / 0.1) 1px, transparent 1.6px) 0 0 / 18px 18px,
-    rgb(var(--cx-band-rgb));
-  color: rgb(var(--cx-deco-soft-rgb));
+    rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
 /* Ảnh bìa tràn ngang, ăn hết chỗ thừa giữa hai mảng đỏ; mép trên/dưới là đôi chỉ vàng
    (border + ::after lùi vào 4px). */
@@ -428,7 +428,7 @@ html.hd-on {
   content: "";
   position: absolute;
   inset: 4px 0;
-  border-block: 1px solid rgb(var(--cx-deco-soft-rgb) / 0.7);
+  border-block: 1px solid rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)) / 0.7);
   pointer-events: none;
 }
 .hd-cv-photo {
@@ -445,7 +445,7 @@ html.hd-on {
   border-radius: 50%;
   outline: 1px solid rgb(var(--cx-deco-rgb) / 0.55);
   outline-offset: 3px;
-  background: rgb(var(--cx-band-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
   font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-size: 32px;
   line-height: 1;
@@ -501,14 +501,14 @@ html.hd-on {
   font-size: 13px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgb(var(--cx-deco-soft-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
 /* Chữ "Wedding" serif trang trí (font tự host ở styles/_fonts.css). */
 .hd-cv-word {
   font-family: "MadamGhea", "Playfair Display", serif;
   font-size: clamp(44px, 15vw, 64px);
   line-height: 1.2;
-  color: rgb(var(--cx-deco-soft-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
 .hd-cover-text {
   position: relative;
@@ -524,17 +524,17 @@ html.hd-on {
   font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgb(var(--cx-deco-soft-rgb) / 0.85);
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)) / 0.85);
 }
 .hd-cover-guest {
   font-size: 24px;
   line-height: 1.3;
-  color: rgb(var(--cx-deco-soft-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
 .hd-cover-names {
   font-size: 26px;
   line-height: 1.3;
-  color: rgb(var(--cx-deco-soft-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
 .hd-cover-names .hd-amp {
   color: rgb(var(--cx-deco-rgb));
@@ -556,7 +556,7 @@ html.hd-on {
   background: rgb(var(--cx-deco-rgb) / 0.7);
 }
 .hd-cv-btn {
-  background: rgb(var(--cx-deco-soft-rgb));
+  background: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
   border-color: rgb(var(--cx-deco-rgb));
   color: rgb(var(--cx-accent-rgb));
   margin-top: min(12px, calc(var(--hd-cv-h) * 0.015));
@@ -1297,11 +1297,11 @@ html.hd-on {
 .hd-gift > .hd-sub,
 .hd-thanks,
 .hd-footer .hd-poem {
-  color: rgb(var(--cx-deco-soft-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
 /* Nút "Sẽ tham dự" nằm trên mảng đỏ: nền vàng nhạt, chữ đỏ. */
 .hd-rsvp #btn-attend {
-  background: rgb(var(--cx-deco-soft-rgb));
+  background: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
   border-color: rgb(var(--cx-deco-rgb));
   color: rgb(var(--cx-accent-rgb));
 }

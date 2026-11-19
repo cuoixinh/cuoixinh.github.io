@@ -173,6 +173,8 @@ const MAX_TEXT = 2000
 
 // Số thẻ tối đa của mục "Thiệp của khách" ở trang chủ (resource=public-showcase).
 const SHOWCASE_LIMIT = 12
+// Trần offset khi cuộn tiếp — chặn ai đó dò sâu bằng offset lớn.
+const SHOWCASE_MAX_OFFSET = 600
 
 function cleanText(v: unknown, max = MAX_TEXT): string {
   return typeof v === 'string' ? v.slice(0, max) : ''
@@ -1212,8 +1214,14 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // ── Public: thiệp khách đã thanh toán cho mục "Thiệp của khách" ở trang chủ ──
     // Chỉ thiệp khách ĐỒNG Ý (showcase_consent, chốt ở màn thanh toán). Chỉ trả cột đủ
     // vẽ thẻ — không SĐT/địa chỉ/ngân hàng. Bỏ thiệp hết hạn gói và thiệp chưa có ảnh.
+    // Có `offset` = trang cuộn tiếp: trả `{ items, next }` (next = offset trang sau, null là hết);
+    // không có thì giữ dạng mảng 12 thẻ cho trang chủ bản cũ còn trong cache.
     if (resource === 'public-showcase') {
       const nowIso = new Date().toISOString()
+      const offRaw = url.searchParams.get('offset')
+      const paged = offRaw !== null
+      const offset = paged ? Math.min(Math.max(0, Math.floor(Number(offRaw)) || 0), SHOWCASE_MAX_OFFSET) : 0
+      const take = paged ? SHOWCASE_LIMIT : SHOWCASE_LIMIT * 2
       const { data, error } = await supabase
         .from('weddings')
         .select('slug, groom_name, bride_name, theme, ceremony_date, enable_ceremony, groom_party_date, bride_party_date, cover_image_url, gallery_images, image_focal_points')
@@ -1224,9 +1232,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         .not('slug', 'is', null)
         .or(`plan_expires_at.is.null,plan_expires_at.gt.${nowIso}`)
         .order('payment_time', { ascending: false, nullsFirst: false })
-        .limit(SHOWCASE_LIMIT * 2)
+        .order('id', { ascending: true })
+        .range(offset, offset + take - 1)
       if (error) {
-        log.error('wedding.showcase_query_failed', { code: error.code, message: error.message })
+        log.error('wedding.showcase_query_failed', { code: error.code, message: error.message, offset })
         return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
       }
       const rows = (data ?? [])
@@ -1248,8 +1257,11 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
           }
         })
         .filter((w) => w.cover)
-        .slice(0, SHOWCASE_LIMIT)
-      return new Response(JSON.stringify(rows), {
+      // Trang lọc bớt thiệp không ảnh nên có thể ít hơn SHOWCASE_LIMIT thẻ; `next` tính theo
+      // số HÀNG DB đã đọc, không theo số thẻ, để trang sau không lặp/bỏ sót.
+      const next = (data?.length ?? 0) < take || offset + take > SHOWCASE_MAX_OFFSET ? null : offset + take
+      const body = paged ? { items: rows, next } : rows.slice(0, SHOWCASE_LIMIT)
+      return new Response(JSON.stringify(body), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
       })
     }

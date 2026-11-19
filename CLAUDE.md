@@ -717,19 +717,22 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 - **Bộ màu thiệp (`theme_setting.palette`):** danh mục ở `core/helpers/card-palette-helper.js`
   (**chỉ trang Thiết lập nạp** — thiệp lưu sẵn màu nên không cần danh mục), áp ở
   `applyThemeSetting` bằng cách đổ vào `:root { --cx-*-rgb }`, bảng chọn ở
-  `05-theme-panel.js`. Lưu trong `theme_setting` nên **không cần changelog DB**. Thêm bộ
+  `05-theme-panel.js`. Bản xem thử MẪU (`?preview=true`) cũng cho khách thử bộ màu (nút
+  màu dưới nút ba chấm trên điện thoại / thẻ cạnh khung máy, lõi `cxPreviewPalette` ở
+  `core/utils.js`): chỉ nằm ở `?pal=` của URL (cả URL trang ngoài khung máy — link copy mở
+  sẵn đúng màu), trộn vào dữ liệu xem thử ở `loadWeddingData`; thiệp thật không đọc nó.
+  Lưu trong `theme_setting` nên **không cần changelog DB**. Thêm bộ
   mới phải qua **`npm run check:palette-contrast`** (nền sáng + đủ tương phản chữ/nền);
-  `id` đã phát hành thì đừng đổi. Biến thể tông CHỈ cho một mẫu (vd đỏ đậm của
-  `som-hom-co-nhau`) thì mẫu tự khai ở **`CX_THEME.palettes`** (cùng khuôn, `id` có tiền tố
-  tên mẫu), hiện ngay sau "Mặc định"; kèm `wishes` (giá trị là hex hoặc TÊN khoá bộ màu) để
-  thay `CX_THEME.wishes` vốn chỉ hợp màu gốc. Bộ riêng được phép NỀN TỐI nếu khai
-  `dark: true` ("Độ đậm" đi phép riêng `_cxDarkAtStrength`: chỉ đổi độ sáng các mảng sẫm
-  cùng tông `card_bg`, kể cả trong `vars`; giấy kem/vàng/chữ sáng đứng yên) — khi đó CSS của mẫu không
-  được ngầm coi `heading` là màu tối (chữ trên chấm sáng dùng cặp `scrim`/`on_image`). Bộ riêng
-  nền SÁNG được là giấy pastel đậm hơn danh mục chung (ngưỡng sáng 0.45 thay 0.7). Mảng cần màu
-  khác hẳn token chung (bìa nền sáng trên thiệp nền tối…) thì mẫu khai biến riêng `--x-rgb`
-  ở `:root` trỏ về token, bộ riêng ghi đè qua `vars` (chỉ nhận tên `--…-rgb` + hex; chỉ
-  bộ `dark` mới theo "Độ đậm") — xem `--sh-cv-*` của `som-hom-co-nhau`. Ô nền phối CỐ ĐỊNH (giấy trắng của `vintage-forest`) khai ở `hold` của bộ riêng: "Độ đậm" không nhuộm chúng.
+  `id` đã phát hành thì đừng đổi. **Danh mục này là NƠI DUY NHẤT khai bộ màu** — mẫu
+  KHÔNG có bộ riêng (`CX_THEME.palettes` đã gỡ; thiệp từng chọn bộ riêng vẫn giữ màu nhờ bản
+  lưu, kể cả `vars`/`dark`/`hold` mà runtime vẫn đọc). Mỗi bộ có **khối tô** `fill` + `on_fill`
+  (khối đậm chữ trắng hoặc pastel chữ sẫm) và có thể kèm `giftBox`. Mẫu gắn **`.cx-fill`**
+  lên những khối muốn đổ màu chủ đạo khi có bộ (dải ngày cưới, lịch, chân thiệp… — chuẩn là
+  `thuan-vo-thuan-chong`); rule `.cx-fill` CHỈ sinh khi có bộ màu (`_cxPaletteRule`) nên
+  thiệp không chọn bộ giữ y hình thức gốc. Trong khối, token chữ/nét/nhấn quy về `on_fill`,
+  thẻ giấy con gắn `.cx-unfill` để lấy lại token của bộ. Mẫu cần màu khối cho CSS riêng thì
+  viết `var(--cx-fill-rgb, <màu gốc>)` — token này không có mặc định ở `:root`. Đang áp bộ
+  màu thì `CX_THEME.wishes` (chỉ hợp màu gốc) nhường cho token chung.
   Nút nhạc dùng bảng `--music-*` riêng nên
   `_cxPaletteRule` suy thêm bảng đó từ bộ màu — chỉ khi CÓ bộ, để thiệp không chọn bộ giữ
   nguyên hình thức cũ.
@@ -748,8 +751,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `check:palette-contrast` cắt thẳng đoạn `[strength-math]` trong `theme-setting-helper.js`
   ra quét cả 21 mức: đổi phép tính thì đừng đổi tên hai dòng mốc đó.
 - **Hộp mừng cưới:** danh mục mẫu + runtime ở `core/helpers/gift-box-helper.js`, bảng chọn
-  ở `05-theme-panel.js`. Lưu ở `theme_setting.gift_box` (rỗng = hộp của bộ màu riêng đang áp — `giftBox` trong
-  `CX_THEME.palettes` — rồi tới `CX_THEME.giftBox`, `"none"` = bỏ hộp, còn lại là id mẫu) nên **không cần changelog DB**;
+  ở `05-theme-panel.js`. Lưu ở `theme_setting.gift_box` (rỗng = hộp của bộ màu đang áp — `giftBox` của bộ trong
+  danh mục — rồi tới `CX_THEME.giftBox`, `"none"` = bỏ hộp, còn lại là id mẫu) nên **không cần changelog DB**;
   thêm mẫu = bỏ ảnh nền trong suốt vào `assets/gifts/` rồi thêm một mục vào danh mục, **id
   đã phát hành thì đừng đổi**. **Mẫu thiệp không tự vẽ hộp/phong bao** — chỉ chọn một id
   trong danh mục. Helper che khối `data-cx-gift="qr"` (mẫu quên đánh dấu thì dò khối chứa
