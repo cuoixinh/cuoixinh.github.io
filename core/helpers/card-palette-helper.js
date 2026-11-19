@@ -116,6 +116,7 @@ const CX_PALETTES = [
     deco: "#c07f84", deco_soft: "#eccfd0", deco_2: "#c9928c", deco_2_soft: "#f0dbd7",
     shine_from: "#ffffff", shine_mid: "#fbe9e6", shine_to: "#e3c3bf",
     fill: "#9d686c", on_fill: "#ffffff",
+    giftBox: "floral_pink",
   },
   {
     id: "champagne-cream",
@@ -130,6 +131,7 @@ const CX_PALETTES = [
     deco: "#a5793a", deco_soft: "#e2cda2", deco_2: "#b98f52", deco_2_soft: "#ecdcbb",
     shine_from: "#a5793a", shine_mid: "#eed6a4", shine_to: "#c69b56",
     fill: "#986f35", on_fill: "#ffffff",
+    giftBox: "mungcuoi_ivory",
   },
   {
     id: "peach-sun",
@@ -144,6 +146,7 @@ const CX_PALETTES = [
     deco: "#c26a45", deco_soft: "#f0cbb4", deco_2: "#cf8259", deco_2_soft: "#f5dcc9",
     shine_from: "#ffffff", shine_mid: "#fbe5d3", shine_to: "#e0b494",
     fill: "#b1603f", on_fill: "#ffffff",
+    giftBox: "phongbi_kraft",
   },
   {
     id: "latte",
@@ -158,6 +161,7 @@ const CX_PALETTES = [
     deco: "#9a6b4b", deco_soft: "#dcc3ac", deco_2: "#ab7f5f", deco_2_soft: "#e6d2be",
     shine_from: "#ffffff", shine_mid: "#f4e6d5", shine_to: "#d3b89e",
     fill: "#9a6b4b", on_fill: "#ffffff",
+    giftBox: "minimalism_brown",
   },
   {
     id: "cool-grey",
@@ -172,6 +176,7 @@ const CX_PALETTES = [
     deco: "#4d6b85", deco_soft: "#bcccd9", deco_2: "#63809a", deco_2_soft: "#cfdbe4",
     shine_from: "#ffffff", shine_mid: "#e9eff4", shine_to: "#b9c8d5",
     fill: "#4d6b85", on_fill: "#ffffff",
+    giftBox: "hop_navy_vang",
   },
   {
     id: "seafoam",
@@ -186,6 +191,7 @@ const CX_PALETTES = [
     deco: "#3d7a80", deco_soft: "#b3d5d7", deco_2: "#579196", deco_2_soft: "#c8e1e2",
     shine_from: "#ffffff", shine_mid: "#e6f2f2", shine_to: "#aacfd1",
     fill: "#3d7a80", on_fill: "#ffffff",
+    giftBox: "phongbi_trang_vang",
   },
   {
     id: "mint",
@@ -200,6 +206,7 @@ const CX_PALETTES = [
     deco: "#3f7d5c", deco_soft: "#b6d8c4", deco_2: "#5a9375", deco_2_soft: "#cbe4d6",
     shine_from: "#ffffff", shine_mid: "#e8f4ed", shine_to: "#aed3bf",
     fill: "#3f7d5c", on_fill: "#ffffff",
+    giftBox: "phongbi_xanh_la",
   },
   {
     id: "sage",
@@ -214,6 +221,7 @@ const CX_PALETTES = [
     deco: "#7d8b62", deco_soft: "#cdd4bb", deco_2: "#8e9b76", deco_2_soft: "#dde1cf",
     shine_from: "#ffffff", shine_mid: "#eff1e7", shine_to: "#c7cfb2",
     fill: "#6e7a56", on_fill: "#ffffff",
+    giftBox: "phongbi_xanh_la",
   },
   {
     id: "lavender",
@@ -228,6 +236,7 @@ const CX_PALETTES = [
     deco: "#7a68a3", deco_soft: "#cec5e2", deco_2: "#8d7db1", deco_2_soft: "#ded7ec",
     shine_from: "#ffffff", shine_mid: "#efeaf8", shine_to: "#c6bcdd",
     fill: "#7a68a3", on_fill: "#ffffff",
+    giftBox: "phongbi_trang_vang",
   },
   {
     id: "pearl",
@@ -242,6 +251,7 @@ const CX_PALETTES = [
     deco: "#9a8468", deco_soft: "#d8ccba", deco_2: "#a9957c", deco_2_soft: "#e4dacb",
     shine_from: "#ffffff", shine_mid: "#f0ebe2", shine_to: "#cdc0ad",
     fill: "#86735a", on_fill: "#ffffff",
+    giftBox: "phongbi_kem_sap",
   },
 ];
 
