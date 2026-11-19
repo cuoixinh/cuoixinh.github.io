@@ -65,12 +65,16 @@ body {
   font-family: "Chakra Petch", sans-serif;
 }
 
-/* ── Mở đầu: nền xanh, đường ray dưới đáy ── */
+/* ── Mở đầu: nền xanh, đường ray dưới đáy ──
+   Chữ ở đây thiết kế cho nền ĐẬM; nền bìa (cover) của bộ màu lại nhạt → có bộ màu thì cả màn
+   là khối tô (fill/on_fill), không có thì giữ xanh ga tàu. */
 .t3-cover {
+  --t3-cv-rgb: var(--cx-fill-rgb, var(--cx-cover-rgb));
+  --t3-cv-ink-rgb: var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb));
   position: relative;
   min-height: calc(var(--vh, 1vh) * 95);
   min-height: calc(var(--vh, 1svh) * 95);
-  background: rgb(var(--cx-cover-rgb));
+  background: rgb(var(--t3-cv-rgb));
   padding: 64px 22px 120px;
   overflow: hidden;
 }
@@ -85,16 +89,21 @@ body {
   background:
     linear-gradient(
       transparent 30px,
-      rgb(var(--cx-deco-2-soft-rgb)) 30px 34px,
+      rgb(var(--cx-on-fill-rgb, var(--cx-deco-2-soft-rgb))) 30px 34px,
       transparent 34px 62px,
-      rgb(var(--cx-deco-2-soft-rgb)) 62px 66px,
+      rgb(var(--cx-on-fill-rgb, var(--cx-deco-2-soft-rgb))) 62px 66px,
       transparent 66px
     ),
-    repeating-linear-gradient(90deg, rgb(var(--cx-cover-mid-rgb)) 0 12px, transparent 12px 36px);
+    repeating-linear-gradient(90deg, rgb(var(--cx-scrim-rgb) / 0.2) 0 12px, transparent 12px 36px); /* tà vẹt: sẫm hơn nền màn một nấc, bộ màu nào cũng vậy */
 }
 
+/* Bảng giờ tàu: màu gốc là bảng đen số vàng (deco_2/deco); có bộ màu thì deco và deco_2
+   cùng tông nên thành khối tô — nền fill, số + nhãn on_fill. */
 .t3-board {
-  background: rgb(var(--cx-deco-2-rgb));
+  --t3-board-rgb: var(--cx-fill-rgb, var(--cx-deco-2-rgb));
+  --t3-digit-rgb: var(--cx-on-fill-rgb, var(--cx-deco-rgb));
+  --t3-label-rgb: var(--cx-on-fill-rgb, var(--cx-deco-2-soft-rgb));
+  background: rgb(var(--t3-board-rgb));
   border-radius: 10px;
   padding: 10px 16px;
   box-shadow:
@@ -108,7 +117,7 @@ body {
   align-items: center;
   padding: 8px 0;
   border-top: 1px solid rgb(var(--cx-on-image-rgb) / 0.08);
-  color: rgb(var(--cx-deco-2-soft-rgb));
+  color: rgb(var(--t3-label-rgb));
   font-size: 13px;
 }
 
@@ -128,9 +137,9 @@ body {
   width: 22px;
   height: 30px;
   background:
-    linear-gradient(rgb(var(--cx-on-image-rgb) / 0.07) 50%, rgb(var(--cx-on-image-rgb) / 0.03) 50%),
-    rgb(var(--cx-deco-2-rgb));
-  color: rgb(var(--cx-deco-rgb));
+    linear-gradient(rgb(var(--t3-digit-rgb) / 0.12) 50%, rgb(var(--t3-digit-rgb) / 0.06) 50%),
+    rgb(var(--t3-board-rgb));
+  color: rgb(var(--t3-digit-rgb));
   font: 700 22px "Big Shoulders Display", sans-serif;
   border-radius: 3px;
   position: relative;
@@ -143,7 +152,7 @@ body {
   right: 0;
   top: 50%;
   height: 1px;
-  background: rgb(var(--cx-shadow-rgb) / 0.5);
+  background: rgb(var(--t3-board-rgb));
 }
 
 .t3-fl.is-sep {
@@ -170,7 +179,7 @@ body {
 
 .t3-dest {
   font: 700 22px "Big Shoulders Display", sans-serif;
-  color: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--t3-digit-rgb));
   letter-spacing: 0.03em;
 }
 
@@ -259,7 +268,7 @@ body {
 }
 
 .t3-punch {
-  background: rgb(var(--cx-cover-rgb));
+  background: rgb(var(--t3-cv-rgb));
   box-shadow: inset 1px 2px 3px rgb(var(--cx-shadow-rgb) / 0.45);
   transform: scale(0);
 }
@@ -295,7 +304,7 @@ body {
 }
 
 .t3-guest {
-  color: rgb(var(--cx-deco-soft-rgb));
+  color: rgb(var(--t3-cv-ink-rgb));
   font-size: 14px;
   text-align: center;
   margin-top: 36px;
@@ -308,12 +317,12 @@ body {
 }
 
 .t3-guest b {
-  color: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-rgb)));
   font-weight: 600;
 }
 
 .t3-intro {
-  color: rgb(var(--cx-deco-soft-rgb));
+  color: rgb(var(--t3-cv-ink-rgb));
   font-size: 16px;
   line-height: 1.5;
   text-align: center;
