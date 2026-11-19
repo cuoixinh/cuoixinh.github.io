@@ -117,8 +117,9 @@ body {
   color: rgb(var(--cx-deco-2-rgb));
 }
 
+/* Chữ phụ (địa chỉ, câu phụ): body nhạt bớt nhưng vẫn ~3:1 với body sáng của bộ màu chung. */
 .oc-muted {
-  color: rgb(var(--cx-body-rgb) / 0.6);
+  color: rgb(var(--cx-body-rgb) / 0.72);
 }
 
 /* Cụm tiêu đề "Thiệp Cưới": chữ viết tay xanh mực nghiêng đè lên dòng chữ in giãn rộng. */
