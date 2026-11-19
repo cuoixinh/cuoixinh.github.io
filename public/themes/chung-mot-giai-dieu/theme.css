@@ -340,7 +340,8 @@ body {
 .cm-ly {
   border-radius: 14px;
   background: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
-  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
+  --cm-ink-rgb: var(--cx-on-fill-rgb, var(--cx-on-accent-rgb));
+  color: rgb(var(--cm-ink-rgb));
   padding: 18px 18px 6px;
 }
 
@@ -365,12 +366,12 @@ body {
   grid-template-columns: 40px 1fr;
   gap: 12px;
   padding: 10px 0;
-  color: rgb(var(--cx-on-accent-rgb) / 0.42);
+  color: rgb(var(--cm-ink-rgb) / 0.42);
   transition: color 0.5s;
 }
 
 .cm-v.is-past {
-  color: rgb(var(--cx-on-accent-rgb) / 0.68);
+  color: rgb(var(--cm-ink-rgb) / 0.68);
 }
 
 .cm-v time {
@@ -402,14 +403,14 @@ body {
 
 .cm-v.is-on,
 .cm-v.is-on time {
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cm-ink-rgb));
 }
 
 /* Tô chữ: nền hai nửa (sáng | mờ) cắt theo nét chữ, trượt từ phải về trái. Nền inline
    trải liền qua các dòng nên chữ sáng dần theo đúng thứ tự đọc. */
 .cm-v.is-on p span {
   color: transparent;
-  background: linear-gradient(90deg, rgb(var(--cx-on-accent-rgb)) 50%, rgb(var(--cx-on-accent-rgb) / 0.42) 50%) 100% 0 / 200% 100% no-repeat;
+  background: linear-gradient(90deg, rgb(var(--cm-ink-rgb)) 50%, rgb(var(--cm-ink-rgb) / 0.42) 50%) 100% 0 / 200% 100% no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
   animation: cx-cm-sweep var(--cm-dur, 3000ms) linear forwards;
@@ -437,7 +438,7 @@ body {
 }
 
 .cm-ly.is-static .cm-v {
-  color: rgb(var(--cx-on-accent-rgb));
+  color: rgb(var(--cm-ink-rgb));
 }
 
 /* Sự kiện sắp tới */
