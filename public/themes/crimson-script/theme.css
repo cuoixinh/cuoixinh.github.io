@@ -24,7 +24,10 @@
   --cx-scrim-rgb: 0 0 0;
   --cx-deco-rgb: 168 50 58;
   --cx-deco-soft-rgb: 240 220 221;
-  --cx-deco-2-rgb: 246 220 130; /* chữ ký vàng đè lên ảnh */
+  --cx-deco-2-rgb: 246 220 130;
+  /* Chữ ký vàng đè lên ẢNH — biến riêng, cố ý ngoài bộ màu: ảnh cưới tối/sáng tuỳ tấm, màu
+     nhấn của bộ (đỏ, xanh đậm…) đè lên là chìm; vàng sáng + bóng đọc được trên mọi ảnh. */
+  --cs-sig-rgb: 246 220 130;
   --cx-deco-2-soft-rgb: 251 240 204;
   --cx-shine-from-rgb: 168 50 58;
   --cx-shine-mid-rgb: 217 154 158;
@@ -144,7 +147,7 @@ body {
   font-size: 48px;
   line-height: 1;
   text-align: center;
-  color: rgb(var(--cx-deco-2-rgb));
+  color: rgb(var(--cs-sig-rgb));
   text-shadow: 0 2px 8px rgb(var(--cx-scrim-rgb) / 0.2);
   transform: rotate(-6deg);
   pointer-events: none;
@@ -875,7 +878,7 @@ body {
   font-family: "KattyDiona", cursive;
   font-size: 44px;
   line-height: 1;
-  color: rgb(var(--cx-deco-2-rgb));
+  color: rgb(var(--cs-sig-rgb));
   text-shadow: 0 2px 12px rgb(var(--cx-scrim-rgb) / 0.35);
   transform: rotate(-6deg);
   pointer-events: none;
