@@ -401,13 +401,16 @@ html.hd-on {
 
 /* ── Màn bìa ba tầng: mảng đỏ + tiêu đề · ảnh tràn ngang · mảng đỏ + lời mời ── */
 #cover-screen .hd-cover {
+  /* Chỉ vàng của bìa (ngày, dấu 囍, viền ảnh, kim tuyến) nằm trên khối tô: có bộ màu thì
+     theo chữ-trên-khối — `deco` của bộ thường trùng màu khối nên sẽ chìm mất. */
+  --hd-gold-rgb: var(--cx-on-fill-rgb, var(--cx-deco-rgb));
   --hd-cv-h: calc(var(--vh, 1svh) * 100);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: calc(var(--hd-cv-h) * 0.05) 0 calc(var(--hd-cv-h) * 0.04);
   background:
-    radial-gradient(circle, rgb(var(--cx-deco-rgb) / 0.1) 1px, transparent 1.6px) 0 0 / 18px 18px,
+    radial-gradient(circle, rgb(var(--hd-gold-rgb) / 0.1) 1px, transparent 1.6px) 0 0 / 18px 18px,
     rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
   color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
@@ -421,7 +424,7 @@ html.hd-on {
   margin-top: calc(var(--hd-cv-h) * 0.03);
   overflow: hidden;
   background: rgb(var(--cx-surface-rgb));
-  border-block: 1px solid rgb(var(--cx-deco-rgb));
+  border-block: 1px solid rgb(var(--hd-gold-rgb));
   animation: cx-hd-cv-fade 1.4s 0.3s ease both;
 }
 .hd-cv-window::after {
@@ -441,15 +444,15 @@ html.hd-on {
   width: 64px;
   height: 64px;
   margin: -32px 0 calc(var(--hd-cv-h) * 0.012);
-  border: 1px solid rgb(var(--cx-deco-rgb));
+  border: 1px solid rgb(var(--hd-gold-rgb));
   border-radius: 50%;
-  outline: 1px solid rgb(var(--cx-deco-rgb) / 0.55);
+  outline: 1px solid rgb(var(--hd-gold-rgb) / 0.55);
   outline-offset: 3px;
   background: rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
   font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
   font-size: 32px;
   line-height: 1;
-  color: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--hd-gold-rgb));
   box-shadow: 0 8px 16px -8px rgb(var(--cx-shadow-rgb) / 0.6);
 }
 /* Kim tuyến vàng rơi: ba lớp chấm khác khổ ô, mỗi lớp trôi đúng bội số chiều cao ô
@@ -458,9 +461,9 @@ html.hd-on {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle, rgb(var(--cx-deco-rgb) / 0.9) 1.2px, transparent 2px),
+    radial-gradient(circle, rgb(var(--hd-gold-rgb) / 0.9) 1.2px, transparent 2px),
     radial-gradient(circle, rgb(var(--cx-shine-mid-rgb) / 0.85) 1.6px, transparent 2.4px),
-    radial-gradient(circle, rgb(var(--cx-deco-rgb) / 0.55) 2.4px, transparent 3.2px);
+    radial-gradient(circle, rgb(var(--hd-gold-rgb) / 0.55) 2.4px, transparent 3.2px);
   background-size:
     97px 131px,
     151px 197px,
@@ -537,7 +540,7 @@ html.hd-on {
   color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
 .hd-cover-names .hd-amp {
-  color: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--hd-gold-rgb));
 }
 .hd-cv-date {
   display: flex;
@@ -546,21 +549,21 @@ html.hd-on {
   margin-bottom: min(16px, calc(var(--hd-cv-h) * 0.02));
   font-size: 14px;
   letter-spacing: 4px;
-  color: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--hd-gold-rgb));
 }
 .hd-cv-date::before,
 .hd-cv-date::after {
   content: "";
   width: 24px;
   height: 1px;
-  background: rgb(var(--cx-deco-rgb) / 0.7);
+  background: rgb(var(--hd-gold-rgb) / 0.7);
 }
 .hd-cv-btn {
   background: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
-  border-color: rgb(var(--cx-deco-rgb));
-  color: rgb(var(--cx-accent-rgb));
+  border-color: rgb(var(--hd-gold-rgb));
+  color: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
   margin-top: min(12px, calc(var(--hd-cv-h) * 0.015));
-  box-shadow: 0 0 0 4px rgb(var(--cx-deco-rgb) / 0.2);
+  box-shadow: 0 0 0 4px rgb(var(--hd-gold-rgb) / 0.2);
 }
 /* Ngày chỉ hiện ở link chung (cờ .cx-guest-generic do wedding-helper đặt); bìa có tên khách
    nhường chỗ cho tên — trang đầu thiệp đã có ngày. Ẩn là MẶC ĐỊNH để khách có tên, người xem
@@ -1299,11 +1302,12 @@ html.hd-on {
 .hd-footer .hd-poem {
   color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
 }
-/* Nút "Sẽ tham dự" nằm trên mảng đỏ: nền vàng nhạt, chữ đỏ. */
+/* Nút "Sẽ tham dự" nằm trên mảng đỏ: nền vàng nhạt, chữ đỏ — có bộ màu thì đảo màu khối tô
+   (nền chữ-trên-khối, chữ màu khối), vì khối pastel đi với chữ SẪM. */
 .hd-rsvp #btn-attend {
   background: rgb(var(--cx-on-fill-rgb, var(--cx-deco-soft-rgb)));
-  border-color: rgb(var(--cx-deco-rgb));
-  color: rgb(var(--cx-accent-rgb));
+  border-color: rgb(var(--cx-on-fill-rgb, var(--cx-deco-rgb)));
+  color: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
 }
 /* Mốc so le có tiêu đề trên nền trắng → giữ màu đỏ. */
 .hd-ls.is-flip .hd-title {

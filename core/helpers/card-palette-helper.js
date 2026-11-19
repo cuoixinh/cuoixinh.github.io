@@ -20,7 +20,8 @@
 //      là thiệp cưới, không làm bộ nền tối.
 //   2. Đủ tương phản: heading/card_bg ≥ 7:1 · body/card_bg ≥ 4.5:1 ·
 //      accent/card_bg ≥ 3:1 · on_accent/accent ≥ 4.5:1 · on_image/scrim ≥ 4.5:1 ·
-//      on_fill/fill ≥ 4.5:1 (khối đậm chữ trắng, hoặc khối pastel chữ sẫm).
+//      on_fill/fill ≥ 4.5:1 (khối đậm chữ trắng, hoặc khối pastel chữ sẫm) ·
+//      deco, deco_2/band ≥ 3:1 (mẫu dùng chúng làm chữ trang trí: viết tay, nhãn phụ).
 //   3. `scrim` phải TỐI và `on_image` phải SÁNG — đó là lớp giữ cho chữ đọc
 //      được khi nằm trên ảnh cưới, ảnh nào cũng khác nhau.
 //   4. `id` được lưu xuống DB → ĐỪNG đổi id của bộ đã phát hành.
@@ -113,9 +114,10 @@ const CX_PALETTES = [
     panel: "#ffffff", panel_warm: "#fffcfa",
     cover: "#fdf3f1", cover_mid: "#f8e2df", cover_veil: "#f8e2df", lightbox_bg: "#1b1214",
     line: "#f2dcd9", shadow: "#4a3229", scrim: "#2b1a1c",
-    deco: "#c07f84", deco_soft: "#eccfd0", deco_2: "#c9928c", deco_2_soft: "#f0dbd7",
+    deco: "#b4777b", deco_soft: "#eccfd0", deco_2: "#ab7b74", deco_2_soft: "#f0dbd7",
     shine_from: "#ffffff", shine_mid: "#fbe9e6", shine_to: "#e3c3bf",
     fill: "#9d686c", on_fill: "#ffffff",
+    giftBox: "floral_pink",
   },
   {
     id: "champagne-cream",
@@ -127,9 +129,10 @@ const CX_PALETTES = [
     panel: "#ffffff", panel_warm: "#fffcf4",
     cover: "#faf5ec", cover_mid: "#f0e4cf", cover_veil: "#f0e4cf", lightbox_bg: "#171410",
     line: "#e8dcc5", shadow: "#3a322a", scrim: "#241d14",
-    deco: "#a5793a", deco_soft: "#e2cda2", deco_2: "#b98f52", deco_2_soft: "#ecdcbb",
+    deco: "#a5793a", deco_soft: "#e2cda2", deco_2: "#a5804c", deco_2_soft: "#ecdcbb",
     shine_from: "#a5793a", shine_mid: "#eed6a4", shine_to: "#c69b56",
     fill: "#986f35", on_fill: "#ffffff",
+    giftBox: "mungcuoi_ivory",
   },
   {
     id: "peach-sun",
@@ -141,9 +144,10 @@ const CX_PALETTES = [
     panel: "#ffffff", panel_warm: "#fffaf3",
     cover: "#fdf1e8", cover_mid: "#f7ddca", cover_veil: "#f7ddca", lightbox_bg: "#1d130e",
     line: "#f2ddcc", shadow: "#4d2f24", scrim: "#2e1b13",
-    deco: "#c26a45", deco_soft: "#f0cbb4", deco_2: "#cf8259", deco_2_soft: "#f5dcc9",
+    deco: "#c26a45", deco_soft: "#f0cbb4", deco_2: "#b8734f", deco_2_soft: "#f5dcc9",
     shine_from: "#ffffff", shine_mid: "#fbe5d3", shine_to: "#e0b494",
     fill: "#b1603f", on_fill: "#ffffff",
+    giftBox: "phongbi_kraft",
   },
   {
     id: "latte",
@@ -155,9 +159,10 @@ const CX_PALETTES = [
     panel: "#ffffff", panel_warm: "#fffbf5",
     cover: "#f7efe6", cover_mid: "#ebdccb", cover_veil: "#ebdccb", lightbox_bg: "#1a1512",
     line: "#e6d6c5", shadow: "#3f312a", scrim: "#281e18",
-    deco: "#9a6b4b", deco_soft: "#dcc3ac", deco_2: "#ab7f5f", deco_2_soft: "#e6d2be",
+    deco: "#9a6b4b", deco_soft: "#dcc3ac", deco_2: "#a57a5c", deco_2_soft: "#e6d2be",
     shine_from: "#ffffff", shine_mid: "#f4e6d5", shine_to: "#d3b89e",
     fill: "#9a6b4b", on_fill: "#ffffff",
+    giftBox: "minimalism_brown",
   },
   {
     id: "cool-grey",
@@ -172,6 +177,7 @@ const CX_PALETTES = [
     deco: "#4d6b85", deco_soft: "#bcccd9", deco_2: "#63809a", deco_2_soft: "#cfdbe4",
     shine_from: "#ffffff", shine_mid: "#e9eff4", shine_to: "#b9c8d5",
     fill: "#4d6b85", on_fill: "#ffffff",
+    giftBox: "hop_navy_vang",
   },
   {
     id: "seafoam",
@@ -186,6 +192,7 @@ const CX_PALETTES = [
     deco: "#3d7a80", deco_soft: "#b3d5d7", deco_2: "#579196", deco_2_soft: "#c8e1e2",
     shine_from: "#ffffff", shine_mid: "#e6f2f2", shine_to: "#aacfd1",
     fill: "#3d7a80", on_fill: "#ffffff",
+    giftBox: "phongbi_trang_vang",
   },
   {
     id: "mint",
@@ -200,6 +207,7 @@ const CX_PALETTES = [
     deco: "#3f7d5c", deco_soft: "#b6d8c4", deco_2: "#5a9375", deco_2_soft: "#cbe4d6",
     shine_from: "#ffffff", shine_mid: "#e8f4ed", shine_to: "#aed3bf",
     fill: "#3f7d5c", on_fill: "#ffffff",
+    giftBox: "phongbi_xanh_la",
   },
   {
     id: "sage",
@@ -211,9 +219,10 @@ const CX_PALETTES = [
     panel: "#ffffff", panel_warm: "#fdfdfb",
     cover: "#f4f5ef", cover_mid: "#e5e8da", cover_veil: "#e5e8da", lightbox_bg: "#14160f",
     line: "#e0e4d5", shadow: "#33392f", scrim: "#1d2019",
-    deco: "#7d8b62", deco_soft: "#cdd4bb", deco_2: "#8e9b76", deco_2_soft: "#dde1cf",
+    deco: "#7d8b62", deco_soft: "#cdd4bb", deco_2: "#7f8b6b", deco_2_soft: "#dde1cf",
     shine_from: "#ffffff", shine_mid: "#eff1e7", shine_to: "#c7cfb2",
     fill: "#6e7a56", on_fill: "#ffffff",
+    giftBox: "phongbi_xanh_la",
   },
   {
     id: "lavender",
@@ -228,6 +237,7 @@ const CX_PALETTES = [
     deco: "#7a68a3", deco_soft: "#cec5e2", deco_2: "#8d7db1", deco_2_soft: "#ded7ec",
     shine_from: "#ffffff", shine_mid: "#efeaf8", shine_to: "#c6bcdd",
     fill: "#7a68a3", on_fill: "#ffffff",
+    giftBox: "phongbi_trang_vang",
   },
   {
     id: "pearl",
@@ -239,9 +249,10 @@ const CX_PALETTES = [
     panel: "#ffffff", panel_warm: "#fdfcfa",
     cover: "#f4f1ec", cover_mid: "#e5dfd5", cover_veil: "#e5dfd5", lightbox_bg: "#16140f",
     line: "#e2dbd0", shadow: "#38332f", scrim: "#211d18",
-    deco: "#9a8468", deco_soft: "#d8ccba", deco_2: "#a9957c", deco_2_soft: "#e4dacb",
+    deco: "#947f65", deco_soft: "#d8ccba", deco_2: "#92816d", deco_2_soft: "#e4dacb",
     shine_from: "#ffffff", shine_mid: "#f0ebe2", shine_to: "#cdc0ad",
     fill: "#86735a", on_fill: "#ffffff",
+    giftBox: "phongbi_kem_sap",
   },
 ];
 

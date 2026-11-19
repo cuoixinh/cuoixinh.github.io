@@ -21,7 +21,7 @@
   --cx-accent-soft-rgb: 232 220 200; /* vàng nhạt — chữ trên ảnh */
   --cx-on-image-rgb: 255 255 255; /* chữ nằm trên ảnh poster */
   --cx-scrim-rgb: 0 0 0; /* lớp phủ + bóng chữ trên ảnh */
-  --cx-deco-rgb: 0 0 0; /* nền mờ của nút phóng ảnh */
+  --cx-deco-rgb: 168 153 104; /* hoạ tiết — cùng vàng đồng với nhấn */
   /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
      thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js) để thiệp
      không chọn bộ màu vẫn khớp với thiệp có chọn. */
@@ -129,6 +129,13 @@ body {
   border-radius: 16px;
   background-color: rgb(var(--cx-panel-rgb) / 0.7);
   padding: 16px;
+}
+
+/* Thẻ giấy (lịch, nút hồi âm) nằm trong khối tô: nền đặc — giấy trong 70% chồng lên khối
+   đậm của bộ màu ra một mảng đục. */
+.cx-fill .rg-card,
+.cx-fill .rg-paper {
+  background-color: rgb(var(--cx-panel-rgb));
 }
 
 /* Tiêu đề mục: chữ hoa giãn nét, kèm hai vạch vàng hai bên. */
@@ -512,8 +519,8 @@ body {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgb(var(--cx-deco-rgb) / 0.05),
-    rgb(var(--cx-deco-rgb) / 0.3)
+    rgb(var(--cx-scrim-rgb) / 0.05),
+    rgb(var(--cx-scrim-rgb) / 0.3)
   );
 }
 

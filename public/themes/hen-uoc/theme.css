@@ -186,7 +186,7 @@ body {
   z-index: 1;
 }
 .hu-framed {
-  border: 8px solid rgb(var(--cx-band-rgb));
+  border: 8px solid rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
 }
 .hu-fill {
   position: absolute;
@@ -453,7 +453,7 @@ body {
   content: "";
   width: 28px;
   height: 1px;
-  background: rgb(var(--cx-on-accent-rgb) / 0.5);
+  background: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)) / 0.5);
 }
 .hu-cover-invite {
   font-size: 11px;
@@ -480,16 +480,16 @@ body {
   font-family: "FaugllinBalseyn", "Dancing Script", cursive;
   font-size: 1.5em;
   line-height: 0.8;
-  color: rgb(var(--cx-accent-soft-rgb));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-accent-soft-rgb)) / 0.8);
 }
 /* Nút kem trên dải đỏ rượu, viền kép như mép thiệp in. */
 #cover-screen .hu-btn {
   padding: 11px 36px;
-  border-color: rgb(var(--cx-on-accent-rgb));
+  border-color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   border-radius: 2px;
-  background: rgb(var(--cx-on-accent-rgb));
-  color: rgb(var(--cx-accent-rgb));
-  outline: 1px solid rgb(var(--cx-on-accent-rgb) / 0.45);
+  background: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
+  color: rgb(var(--cx-fill-rgb, var(--cx-accent-rgb)));
+  outline: 1px solid rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)) / 0.45);
   outline-offset: 4px;
 }
 @keyframes cx-hu-cv-drop {
@@ -1204,8 +1204,8 @@ body {
   z-index: 1;
   width: 66%;
   padding: 10px 14px;
-  background: rgb(var(--cx-band-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   font-size: 13px;
   line-height: 1.6;
   text-align: center;
@@ -1215,7 +1215,7 @@ body {
   z-index: 1;
   display: block;
   width: 66%;
-  border: 6px solid rgb(var(--cx-band-rgb));
+  border: 6px solid rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
   border-top: 0;
   background: rgb(var(--cx-surface-rgb));
 }
@@ -1231,8 +1231,8 @@ body {
   justify-content: space-between;
   gap: 8px;
   padding: 8px 6px 2px;
-  background: rgb(var(--cx-band-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-fill-rgb, var(--cx-band-rgb)));
+  color: rgb(var(--cx-on-fill-rgb, var(--cx-on-accent-rgb)));
   font-family: "Noto Serif", serif;
   font-size: 10px;
   letter-spacing: 1px;

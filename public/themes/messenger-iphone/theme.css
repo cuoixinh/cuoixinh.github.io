@@ -7,7 +7,8 @@
   --cx-heading-rgb: 28 26 39;
   --cx-body-rgb: 106 102 128;
   --cx-accent-rgb: 108 76 245; /* tím: tin của khách, nút, viền chọn */
-  --cx-accent-soft-rgb: 168 85 247; /* đầu kia của dải đổ màu */
+  --cx-accent-soft-rgb: 168 85 247;
+  --cx-accent-deep-rgb: 168 85 247; /* đầu kia của dải đổ màu (bộ màu tự suy ra) */
   --cx-on-accent-rgb: 255 255 255;
   --cx-on-image-rgb: 255 255 255;
   --cx-on-lightbox-rgb: 255 255 255;
@@ -53,7 +54,7 @@
   --music-art-from-rgb: var(--cx-accent-rgb);
   --music-art-to-rgb: var(--cx-heading-rgb);
 
-  --mi-grad: linear-gradient(135deg, rgb(var(--cx-accent-rgb)), rgb(var(--cx-accent-soft-rgb)));
+  --mi-grad: linear-gradient(135deg, rgb(var(--cx-accent-rgb)), rgb(var(--cx-accent-deep-rgb)));
   /* Có bộ màu: bong bóng gửi đi + icon thông báo là khối tô; không có bộ thì biến này vô hiệu
      (var thiếu, không fallback) → chỗ dùng rơi về --mi-grad. */
   --mi-fill: linear-gradient(135deg, rgb(var(--cx-fill-rgb)), color-mix(in srgb, rgb(var(--cx-fill-rgb)) 80%, #fff));
@@ -717,7 +718,7 @@ body {
   gap: 12px;
   padding: 14px 16px;
   border-radius: 0;
-  background: linear-gradient(135deg, rgb(var(--cx-deco-rgb)), rgb(var(--cx-accent-soft-rgb)));
+  background: linear-gradient(135deg, rgb(var(--cx-deco-rgb)), rgb(var(--cx-accent-deep-rgb)));
   color: rgb(var(--cx-on-accent-rgb));
   text-align: left;
 }

@@ -398,6 +398,11 @@ body {
   z-index: 1;
   font-size: 26px;
   line-height: 1.2;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Chỉ chữ số nằm trên trái tim (ô Ngày) là chữ-trên-nhấn; ba ô kia đứng trên nền thiệp. */
+.vf-heart + .vf-cd-num {
   color: rgb(var(--vf-on-accent-rgb));
 }
 

@@ -27,9 +27,10 @@
      góc trong mẫu này đều đi qua .mc-soft dưới đây. */
   --mc-r: 12px;
 
-  /* Đen của thanh letterbox — CỐ ĐỊNH, cố ý không nằm trong bảng màu: khách
-     đổi màu ở tab Giao diện thì hai thanh này vẫn phải đen mới ra chất phim. */
-  --cx-deco-rgb: 12 14 18;
+  /* Đen PHIM (thanh letterbox, lớp tối trên ảnh, bóng chữ) — biến riêng, cố ý KHÔNG
+     dùng token chung: bộ màu nào cũng ghi đè token, mà thanh phải đen mới ra chất phim. */
+  --mc-film-rgb: 12 14 18;
+  --cx-deco-rgb: 42 61 88; /* hoạ tiết — cùng xanh than với nhấn */
 
   /* Trắng của thẻ QR, vệt sáng quét ngang và số khung ảnh. */
   --cx-panel-rgb: 255 255 255;
@@ -114,7 +115,7 @@ body,
 .mc-cine {
   position: relative;
   overflow: hidden;
-  background-color: rgb(var(--cx-deco-rgb));
+  background-color: rgb(var(--mc-film-rgb));
   --mc-bar-h: 9%;
 }
 
@@ -127,7 +128,7 @@ body,
   /* Trần 24px: khung cao cả trang (ảnh album lẻ cuối cùng) mà lấy đủ % thì
      hai thanh dày tới 60px, nuốt mất ảnh. */
   height: min(var(--mc-bar-h), 24px);
-  background-color: rgb(var(--cx-deco-rgb));
+  background-color: rgb(var(--mc-film-rgb));
   z-index: 2;
   pointer-events: none;
 }
@@ -281,9 +282,9 @@ body,
   z-index: 1;
   background: linear-gradient(
     to top,
-    rgb(var(--cx-deco-rgb) / 0.62) 0%,
-    rgb(var(--cx-deco-rgb) / 0.22) 36%,
-    rgb(var(--cx-deco-rgb) / 0) 60%
+    rgb(var(--mc-film-rgb) / 0.62) 0%,
+    rgb(var(--mc-film-rgb) / 0.22) 36%,
+    rgb(var(--mc-film-rgb) / 0) 60%
   );
   pointer-events: none;
 }
@@ -301,7 +302,7 @@ body,
     /* Font viết tay: giãn chữ là đứt nét nối giữa các con chữ. */
     letter-spacing: 1px;
     color: rgb(var(--cx-on-image-rgb));
-    text-shadow: 0 1px 12px rgb(var(--cx-deco-rgb) / 0.7);
+    text-shadow: 0 1px 12px rgb(var(--mc-film-rgb) / 0.7);
 }
 
 /* Mỗi dòng lệch trái/phải khác nhau — mô phỏng nét tay viết nghiêng ngả, KHÔNG
@@ -632,15 +633,15 @@ body,
   z-index: 1;
   background: linear-gradient(
     to bottom,
-    rgb(var(--cx-deco-rgb) / 0) 18%,
-    rgb(var(--cx-deco-rgb) / 0.34) 48%,
-    rgb(var(--cx-deco-rgb) / 0.86) 100%
+    rgb(var(--mc-film-rgb) / 0) 18%,
+    rgb(var(--mc-film-rgb) / 0.34) 48%,
+    rgb(var(--mc-film-rgb) / 0.86) 100%
   );
   pointer-events: none;
 }
 
 .mc-ph-veil-flat {
-  background: rgb(var(--cx-deco-rgb) / 0.42);
+  background: rgb(var(--mc-film-rgb) / 0.42);
 }
 
 /* Chữ đè ảnh: phải nổi trên cả hai thanh đen (z-index 2 của .mc-cine::after). */
@@ -675,7 +676,7 @@ body,
   font-size: 36px;
   line-height: 1.12;
   color: rgb(var(--cx-on-image-rgb));
-  text-shadow: 0 2px 18px rgb(var(--cx-deco-rgb) / 0.45);
+  text-shadow: 0 2px 18px rgb(var(--mc-film-rgb) / 0.45);
 }
 
 .mc-ph-amp {
@@ -805,11 +806,11 @@ body,
   position: relative;
   overflow: hidden;
   margin-top: 2px;
-  background-color: rgb(var(--cx-deco-rgb));
+  background-color: rgb(var(--mc-film-rgb));
   color: rgb(var(--cx-on-image-rgb));
   /* Lớp phủ để nhạt cho còn thấy ảnh nền, nên chữ phải tự lo phần tương phản:
      bóng đổ mềm là thứ giữ chữ đọc được khi trúng mảng sáng của ảnh. */
-  text-shadow: 0 1px 10px rgb(var(--cx-deco-rgb) / 0.75);
+  text-shadow: 0 1px 10px rgb(var(--mc-film-rgb) / 0.75);
 }
 
 .mc-ph-fam-bg {
@@ -1876,13 +1877,13 @@ body,
 }
 
 /* ── MÀN BÌA: khung hình mở đầu phim ─────────────────────────────────────
-   Hai thanh letterbox DÀY (đen cố định --cx-deco) trượt vào kẹp ảnh bìa; thanh
+   Hai thanh letterbox DÀY (đen cố định --mc-film) trượt vào kẹp ảnh bìa; thanh
    trên = dòng tên lễ + ngày, thanh dưới = nút phát. Lời mời khách là PHỤ ĐỀ ở
    đáy khung — nét nhận dạng của màn này. Mọi chữ hiện gần như CÙNG LÚC (lệch
    nhau ≤ 0.45s, xong hết trong 1.2s) để nút mở thiệp có ngay, ảnh trôi chậm suốt lúc chờ. */
 
 #cover-screen {
-  background: rgb(var(--cx-deco-rgb));
+  background: rgb(var(--mc-film-rgb));
 }
 
 .mc-cv {
@@ -1903,7 +1904,7 @@ body,
   justify-content: center;
   gap: 8px;
   height: clamp(96px, 17%, 160px);
-  background: rgb(var(--cx-deco-rgb));
+  background: rgb(var(--mc-film-rgb));
   animation: cx-mc-bar-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -1935,7 +1936,7 @@ body,
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: rgb(var(--cx-deco-rgb));
+  background: rgb(var(--mc-film-rgb));
 }
 
 .mc-cv-img {
@@ -1953,8 +1954,8 @@ body,
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgb(var(--cx-deco-rgb) / 0) 40%,
-    rgb(var(--cx-deco-rgb) / 0.72) 100%
+    rgb(var(--mc-film-rgb) / 0) 40%,
+    rgb(var(--mc-film-rgb) / 0.72) 100%
   );
 }
 
@@ -1975,7 +1976,7 @@ body,
   font-family: "TheHamstter", cursive;
   font-size: 44px;
   line-height: 1.08;
-  text-shadow: 0 2px 20px rgb(var(--cx-deco-rgb) / 0.5);
+  text-shadow: 0 2px 20px rgb(var(--mc-film-rgb) / 0.5);
   animation: cx-mc-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
 }
 
@@ -1996,7 +1997,7 @@ body,
 
 .mc-cv-sub > span {
   padding: 2px 8px;
-  background: rgb(var(--cx-deco-rgb) / 0.62);
+  background: rgb(var(--mc-film-rgb) / 0.62);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
@@ -2035,7 +2036,7 @@ body,
   height: 36px;
   border-radius: 999px;
   background: rgb(var(--cx-on-image-rgb));
-  color: rgb(var(--cx-deco-rgb));
+  color: rgb(var(--mc-film-rgb));
   font-size: 16px;
 }
 

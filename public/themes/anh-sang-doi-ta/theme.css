@@ -29,6 +29,7 @@
   --cx-shine-from-rgb: 124 92 255; /* nút: đầu dải màu */
   --cx-shine-mid-rgb: 207 196 255; /* đường lớn trên bản đồ */
   --cx-shine-to-rgb: 255 122 198; /* nút: cuối dải màu */
+  --cx-accent-deep-rgb: 255 122 198; /* nút chữ trắng: cuối dải màu (bộ màu tự suy ra) */
 
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
@@ -669,7 +670,7 @@ body {
   display: inline-flex;
   padding: 13px 24px;
   border-radius: 999px;
-  background: linear-gradient(120deg, rgb(var(--cx-shine-from-rgb)), rgb(var(--cx-shine-to-rgb)));
+  background: linear-gradient(120deg, rgb(var(--cx-accent-rgb)), rgb(var(--cx-accent-deep-rgb)));
   color: rgb(var(--cx-on-accent-rgb));
   font: 700 15px "Bricolage Grotesque", sans-serif;
   text-decoration: none;
