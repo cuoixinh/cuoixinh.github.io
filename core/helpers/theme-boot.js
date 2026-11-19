@@ -415,10 +415,13 @@ function _cxShellOpts(slug, live) {
   };
 }
 
-// "Tạo với AI": sang kho mẫu kèm ?ai= — XuXi chỉ nạp ở đó và tự mở khung chat với
-// mẫu này (openFromUrl ở js/ai-assistant.js).
+// "Tạo với AI": sang kho mẫu kèm ?ai= (+ ?pal= bộ màu đang thử) — XuXi chỉ nạp ở đó và
+// tự mở khung chat với mẫu này (openFromUrl ở js/ai-assistant.js).
 function _cxShellAi(slug) {
-  location.href = "/theme-template/?ai=" + encodeURIComponent(slug);
+  location.href =
+    typeof cxPreviewAiHref === "function"
+      ? cxPreviewAiHref(slug)
+      : "/theme-template/?ai=" + encodeURIComponent(slug);
 }
 
 // Cùng đường tạo nháp với nút "Dùng mẫu" ở bảng đề xuất: hỏi trước nếu khách
@@ -429,7 +432,8 @@ function _cxShellChoose(slug) {
     return;
   }
   const el = document.querySelector(".cx-pchrome-name");
-  cxStartDraft(slug, (el && el.textContent) || _cxThemeTitle(slug));
+  const palette = typeof cxPreviewPaletteNow === "function" ? cxPreviewPaletteNow() : "";
+  cxStartDraft(slug, (el && el.textContent) || _cxThemeTitle(slug), { palette });
 }
 
 // Nét lucide (bản 1.26.0) nhúng thẳng: thẻ dựng ngoài lượt quét icon của trang.

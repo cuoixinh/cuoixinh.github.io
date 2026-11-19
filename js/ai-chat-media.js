@@ -464,8 +464,9 @@
       emit();
     },
 
-    setTheme(theme, name) {
-      homeSave({ theme: { theme, name } });
+    // pal = bộ màu khách đang thử ở bản xem thử mẫu (?pal=); chọn mẫu khác ở ô chọn là bỏ.
+    setTheme(theme, name, pal) {
+      homeSave({ theme: pal ? { theme, name, pal } : { theme, name } });
       emit();
     },
   };
@@ -1358,7 +1359,7 @@
     // sẵn trong IndexedDB). Trang Thiết lập đã đổ thẳng vào form nên trả null.
     partySame,
     // Chọn mẫu từ ngoài khung chat (nút "Tạo với AI" trên thẻ mẫu).
-    setTheme: (theme, name) => sink().setTheme(theme, name),
+    setTheme: (theme, name, pal) => sink().setTheme(theme, name, pal),
     handoff() {
       if (window.cxAiMediaSink) return null;
       const st = homeStore();
