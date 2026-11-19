@@ -26,6 +26,7 @@
   --cx-body-rgb: var(--card-stone-400-rgb); /* chữ đọc */
   --cx-accent-rgb: var(--card-blush-300-rgb); /* nhấn: chấm mốc, ngày cưới, icon */
   --cx-accent-soft-rgb: var(--card-blush-200-rgb); /* nấc nhấn nhạt hơn */
+  --cx-accent-deep-rgb: var(--cx-accent-rgb); /* nấc nhấn SẪM: đầu kia dải đổ màu có chữ on-accent (bộ màu tự suy ra) */
   --cx-on-accent-rgb: var(--white-rgb); /* chữ nằm TRÊN nền nhấn */
   --cx-on-image-rgb: var(--white-rgb); /* chữ nằm TRÊN ảnh cưới */
   --cx-on-lightbox-rgb: 255 255 255; /* chữ/nút trong khung xem ảnh */

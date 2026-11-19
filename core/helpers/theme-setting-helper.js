@@ -483,6 +483,14 @@ function _cxPaletteRule(palette) {
     decls.push(`--cx-fill-mark-rgb: ${rgbOf.fill}`, `--cx-fill-mark-ink-rgb: ${rgbOf.accent}`);
   }
 
+  // Nhấn SẪM (--cx-accent-deep-rgb): đầu kia của dải đổ màu đậm có chữ on_accent nằm trên
+  // (bong bóng chat, nút gradient). Bộ màu không có ô này — accent_soft của bộ là pastel, đổ
+  // từ accent về đó là chữ trắng trên nền nhạt — nên suy ra: accent pha 30% về heading.
+  if (rgbOf.accent && rgbOf.heading) {
+    const a = _tri(rgbOf.accent), h = _tri(rgbOf.heading);
+    decls.push(`--cx-accent-deep-rgb: ${a.map((v, i) => Math.round(v * 0.7 + h[i] * 0.3)).join(" ")}`);
+  }
+
   // `vars`: chỉ còn trong bản lưu của thiệp từng chọn bộ RIÊNG của mẫu (nay đã gỡ, danh mục
   // chung không khai) — biến `--x-rgb` mẫu tự định nghĩa, giữ để thiệp đó không đổi màu.
   // Chỉ nhận tên `--…-rgb` + mã hex; chỉ bộ nền tối mới đổi `vars` theo "Độ đậm".
