@@ -15,6 +15,20 @@
   const { createClient } = window.supabase;
   const sb = createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
 
+  // Link "Đăng nhập thay" của nhân viên (/admin-support): #cx_signin=<token_hash> — vé dùng MỘT
+  // lần do wedding-admin (resource=accounts) sinh SAU chốt quyền nhân viên. Để ở hash nên token
+  // không đi tới server/log của Cloudflare; gỡ khỏi thanh địa chỉ ngay khi đọc.
+  const _signinToken = new URLSearchParams(location.hash.slice(1)).get("cx_signin");
+  if (_signinToken) {
+    history.replaceState(null, "", location.pathname + location.search);
+    sb.auth
+      .verifyOtp({ token_hash: _signinToken, type: "magiclink" })
+      .then(({ error }) => {
+        if (error) _toast("Link đăng nhập đã hết hạn hoặc đã dùng. Tạo link mới ở trang hỗ trợ.", "error");
+        else location.reload();
+      });
+  }
+
   const _toast = (m, t) =>
     (typeof showToast === "function" ? showToast(m, t) : console.log("[auth]", m));
 

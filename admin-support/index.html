@@ -30,13 +30,15 @@
     <main class="mx-auto max-w-5xl px-4 py-6 sm:px-6 space-y-4">
       <header class="flex items-center justify-between gap-3">
         <a href="/" class="flex items-center gap-3 min-w-0">
-          <x-logo size="32"></x-logo>
-          <span class="text-lg font-semibold text-gray-800 truncate">Hỗ trợ khách</span>
+          <span class="shrink-0"><x-logo size="32"></x-logo></span>
+          <span class="hidden sm:inline text-lg font-semibold text-gray-800 truncate">Hỗ trợ khách</span>
         </a>
+        <!-- Điện thoại: chỉ còn nút đăng xuất dạng icon (email chiếm chỗ của logo). -->
         <div id="sup-who" class="hidden min-w-0">
           <div class="flex items-center gap-2">
-            <span id="sup-email" class="text-xs text-gray-500 truncate"></span>
-            <x-button variant="outline" tone="neutral" size="sm" icon="log-out" onclick="supSignOut()">Đăng xuất</x-button>
+            <span id="sup-email" class="hidden sm:inline text-xs text-gray-500 truncate"></span>
+            <x-button variant="outline" tone="neutral" size="sm" icon="log-out" onclick="supSignOut()" class="sm:hidden" icon-only aria-label="Đăng xuất" title="Đăng xuất"></x-button>
+            <x-button variant="outline" tone="neutral" size="sm" icon="log-out" onclick="supSignOut()" class="hidden sm:inline-flex">Đăng xuất</x-button>
           </div>
         </div>
       </header>
@@ -73,11 +75,17 @@
           <!-- Thanh toán hộ: khách chuyển khoản thẳng / trả tiền mặt → nhân viên xác nhận (support-pay.ts) -->
           <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div class="p-4 sm:p-6 border-b border-gray-100">
-              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tra thiệp · Thanh toán hộ</h2>
-              <p class="text-xs text-gray-500 mt-1">
-                Khách chuyển khoản thẳng hoặc trả tiền mặt cho mình. <strong>Kiểm tra đã nhận đủ tiền</strong> rồi mới xác nhận:
-                không qua PayOS nên không có đối soát tự động, mọi lượt đều ghi lại email người xác nhận.
-              </p>
+              <!-- Giải thích dài để trong ⓘ (x-popover sau nút, cùng markup với supInfoHtml ở index.js). -->
+              <div class="flex items-center gap-1">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tra thiệp · Thanh toán hộ</h2>
+                <x-button variant="ghost" tone="neutral" size="xs" icon-only aria-label="Giải thích" title="Giải thích"
+                  onclick="this.nextElementSibling.toggle(this)"><i data-lucide="info" style="width:16px;height:16px"></i></x-button><x-popover
+                  placement="bottom" align="start" arrow width="288" keep-open role="dialog"><div class="p-3 text-xs leading-relaxed text-gray-600 space-y-2">
+                    <p>Dùng khi khách chuyển khoản thẳng hoặc trả tiền mặt cho mình.</p>
+                    <p>Không qua PayOS nên không có đối soát tự động. Mọi lượt xác nhận đều ghi lại email người xác nhận.</p>
+                  </div></x-popover>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Chỉ xác nhận khi đã nhận <strong>đủ tiền</strong>.</p>
             </div>
             <div class="p-4 sm:p-6 flex flex-col sm:flex-row gap-3">
               <input id="pay-slug" type="text" placeholder="Dán link thiệp hoặc slug" autocomplete="off" spellcheck="false" autocapitalize="none"
@@ -90,14 +98,17 @@
 
           <section class="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div class="p-4 sm:p-6 border-b border-gray-100">
-              <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo tài khoản cho khách</h2>
-              <p class="text-xs text-gray-500 mt-1">
-                Dành cho khách không tự đăng nhập Google/email được. Tạo xong thì mở trang web ở cửa sổ ẩn danh,
-                bấm <strong>Đăng nhập bằng tài khoản Cưới Xinh</strong> để tạo thiệp hộ, rồi gửi tên đăng nhập + mật khẩu cho khách.
-              </p>
-              <p class="text-xs text-gray-400 mt-1">
-                Mật khẩu chỉ hiện <strong>một lần</strong> ngay sau khi tạo. Khách quên thì bấm "Đặt lại mật khẩu" ở bảng dưới.
-              </p>
+              <div class="flex items-center gap-1">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800">Tạo tài khoản cho khách</h2>
+                <x-button variant="ghost" tone="neutral" size="xs" icon-only aria-label="Giải thích" title="Giải thích"
+                  onclick="this.nextElementSibling.toggle(this)"><i data-lucide="info" style="width:16px;height:16px"></i></x-button><x-popover
+                  placement="bottom" align="start" arrow width="288" keep-open role="dialog"><div class="p-3 text-xs leading-relaxed text-gray-600 space-y-2">
+                    <p>Dành cho khách không tự đăng nhập Google/email được.</p>
+                    <p>Tạo xong thì mở trang web ở cửa sổ ẩn danh, bấm <strong>Đăng nhập bằng tài khoản Cưới Xinh</strong> để tạo thiệp hộ, rồi gửi tên đăng nhập + mật khẩu cho khách.</p>
+                    <p>Khách quên mật khẩu thì bấm "Đặt lại mật khẩu" ở danh sách tài khoản.</p>
+                  </div></x-popover>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Mật khẩu chỉ hiện <strong>một lần</strong> ngay sau khi tạo.</p>
             </div>
 
             <div class="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -111,13 +122,11 @@
                 <label class="block text-xs font-medium text-gray-600 mb-1">Tên hiển thị</label>
                 <input id="acc-fullname" type="text" placeholder="Tên cô dâu & chú rể"
                   class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
-                <p class="text-[11px] text-gray-400 mt-1">Hiện ở lời chào và menu tài khoản</p>
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Mật khẩu</label>
                 <input id="acc-password" type="text" placeholder="Để trống = tự sinh" autocomplete="off" spellcheck="false" autocapitalize="none"
                   class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
-                <p class="text-[11px] text-gray-400 mt-1">Tự sinh 8 ký tự dễ đọc</p>
               </div>
               <div class="flex items-start sm:pt-5">
                 <x-button id="acc-create-btn" onclick="accCreate()" icon="user-plus" full>Tạo tài khoản</x-button>
@@ -138,20 +147,38 @@
               <h2 class="text-base sm:text-lg font-semibold text-gray-800">Danh sách tài khoản</h2>
               <x-button variant="outline" onclick="loadAccounts()" icon="refresh-cw">Tải lại</x-button>
             </div>
-            <div class="p-4 sm:p-6 overflow-x-auto">
-              <table class="w-full min-w-[760px] lg:min-w-0">
-                <thead>
-                  <tr class="border-b border-gray-200">
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Tên đăng nhập</th>
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Tên hiển thị</th>
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Số thiệp</th>
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Người tạo</th>
-                    <th class="py-3 px-4 text-left text-xs font-semibold text-gray-500 uppercase">Đăng nhập gần nhất</th>
-                    <th class="py-3 px-4 text-right text-xs font-semibold text-gray-500 uppercase">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody id="acc-list"></tbody>
-              </table>
+            <!-- Link "Đăng nhập thay" (accSignin) — chỉ cho NHÂN VIÊN dùng, không gửi khách. -->
+            <div id="acc-signin" class="hidden px-4 sm:px-6 pt-4">
+              <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+                <div class="flex items-center gap-1">
+                  <p class="text-sm text-gray-800">Link đăng nhập vào <strong id="acc-signin-name"></strong></p>
+                  <x-button variant="ghost" tone="neutral" size="xs" icon-only aria-label="Lưu ý" title="Lưu ý"
+                    onclick="this.nextElementSibling.toggle(this)"><i data-lucide="info" style="width:16px;height:16px"></i></x-button><x-popover
+                    placement="bottom" align="start" arrow width="288" keep-open role="dialog"><div class="p-3 text-xs leading-relaxed text-gray-600 space-y-2">
+                      <p>Mở ngay trình duyệt đang dùng sẽ thay phiên nhân viên của bạn.</p>
+                      <p>Link chỉ dùng được một lần, hết hạn sau khoảng một giờ. Không gửi link cho khách.</p>
+                      <p>Xong việc thì đăng xuất rồi đóng cửa sổ ẩn danh.</p>
+                    </div></x-popover>
+                </div>
+                <p class="text-xs text-amber-700">Mở bằng cửa sổ ẩn danh.</p>
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <input id="acc-signin-link" type="text" readonly onfocus="this.select()"
+                    class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-amber-200 bg-white text-xs text-gray-600 outline-none" />
+                  <x-button variant="outline" size="sm" onclick="accCopySignin()" icon="copy" class="shrink-0">Chép link</x-button>
+                </div>
+              </div>
+            </div>
+            <!-- Một danh sách cho mọi khổ: điện thoại mỗi tài khoản là một khối xếp dọc; từ lg các
+                 khối dàn thành hàng 5 cột cùng lưới với hàng tiêu đề (ACC_GRID ở index.js). -->
+            <div class="px-4 sm:px-6 pb-2 sm:pb-4">
+              <div class="hidden lg:grid lg:grid-cols-[minmax(0,1.4fr)_64px_minmax(0,1.3fr)_minmax(0,1fr)_312px] gap-4 py-3 border-b border-gray-200 text-xs font-semibold text-gray-500">
+                <span>Tài khoản</span>
+                <span>Số thiệp</span>
+                <span>Người tạo</span>
+                <span>Đăng nhập gần nhất</span>
+                <span class="text-right">Thao tác</span>
+              </div>
+              <ul id="acc-list" class="divide-y divide-gray-100"></ul>
             </div>
           </section>
         </div>

@@ -26,7 +26,9 @@ const isAccountEmail = (email: unknown) =>
 
 // Chỉ tài khoản do nhân viên tạo mới mang cờ này (app_metadata chỉ service_role ghi được).
 // Hàng cùng tên miền mà thiếu cờ là ai đó tự gọi /auth/v1/signup giữ chỗ trước.
-const isAdminMade = (u: Record<string, any>) => u?.app_metadata?.cx_account === true
+export const isAdminMade = (u: Record<string, any>) => u?.app_metadata?.cx_account === true
+export { isAccountEmail }
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 // Quét hết user rồi lọc theo tên miền — Admin API không lọc được theo email.
 async function listAccountUsers(db: Db): Promise<Record<string, any>[]> {
@@ -91,6 +93,31 @@ export async function handleAccounts(
   const password = typeof body.password === 'string' && body.password.trim()
     ? body.password.trim()
     : randomPassword()
+
+  // POST {action:'signin', id} — "Đăng nhập thay": vé đăng nhập dùng MỘT lần (magic link, hết
+  // hạn theo OTP expiry của project) để nhân viên vào thẳng tài khoản khách, mật khẩu giữ nguyên.
+  // Chốt nhân viên đã chạy ở index.ts; kiểm lại staffEmail ở đây để nhánh này không bao giờ mở
+  // được nếu ai đó gọi handleAccounts từ đường khác. Chỉ tài khoản Cưới Xinh do nhân viên tạo —
+  // không bao giờ tài khoản Google/email thật. Token KHÔNG được ghi log.
+  if (req.method === 'POST' && body.action === 'signin') {
+    if (!staffEmail) return json({ error: 'Forbidden' }, 403)
+    const id = String(body.id ?? '')
+    if (!UUID_RE.test(id)) return json({ error: 'Thiếu tài khoản' }, 400)
+    const { data: got, error: getErr } = await db.auth.admin.getUserById(id)
+    if (getErr || !got?.user) return json({ error: 'Không tìm thấy tài khoản' }, 404)
+    if (!isAccountEmail(got.user.email) || !isAdminMade(got.user)) {
+      log.warn('account.signin_as_denied', { user_id: id, by: staffEmail })
+      return json({ error: 'Chỉ đăng nhập thay được tài khoản Cưới Xinh do nhân viên tạo' }, 403)
+    }
+    const { data, error } = await db.auth.admin.generateLink({ type: 'magiclink', email: got.user.email })
+    const tokenHash = data?.properties?.hashed_token
+    if (error || !tokenHash) {
+      log.error('account.signin_link_failed', { user_id: id, code: error?.code, message: error?.message })
+      return json({ error: 'Không tạo được link đăng nhập' }, 500)
+    }
+    log.info('account.signin_as', { user_id: id, by: staffEmail })
+    return json({ username: String(got.user.email).split('@')[0], token_hash: tokenHash })
+  }
 
   // POST — tạo tài khoản. Trả lại mật khẩu đúng MỘT lần để admin đưa cho khách.
   if (req.method === 'POST') {

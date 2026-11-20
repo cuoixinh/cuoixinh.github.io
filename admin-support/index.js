@@ -5,7 +5,13 @@
 let accLastResult = "";
 
 const ACC_SITE = CONFIG.env === "staging" ? "https://staging.cuoixinh.com" : "https://cuoixinh.com";
-const accFmtTime = (t) => (t ? new Date(t).toLocaleString("vi-VN") : "—");
+// "20/11/2026 21:29" — bỏ giây cho vừa cột ở bảng máy tính.
+const accFmtTime = (t) => {
+  if (!t) return "—";
+  const d = new Date(t);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
 
 class AccError extends Error {
   constructor(message, status) {
@@ -123,34 +129,48 @@ async function loadAccounts() {
       return;
     }
     supShow("sup-app");
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">${escapeHtml(e.message)}</td></tr>`;
+    tbody.innerHTML = `<li class="text-center py-8 text-sm text-red-500">${escapeHtml(e.message)}</li>`;
     return;
   }
   supShow("sup-app");
   supAfterGate();
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">Chưa có tài khoản nào</td></tr>`;
+    tbody.innerHTML = `<li class="text-center py-8 text-sm text-gray-400">Chưa có tài khoản nào</li>`;
     return;
   }
-  tbody.innerHTML = list
-    .map(
-      (a) => `
-    <tr class="border-b border-gray-100">
-      <td class="py-3 px-4 text-sm font-medium text-gray-800">
-        ${escapeHtml(a.username)}
-        ${a.admin_made ? "" : '<span class="ml-1 text-[11px] text-amber-600">(tự đăng ký, giữ chỗ)</span>'}
-      </td>
-      <td class="py-3 px-4 text-sm text-gray-600">${escapeHtml(a.full_name || "—")}</td>
-      <td class="py-3 px-4 text-sm text-gray-600">${a.weddings}</td>
-      <td class="py-3 px-4 text-sm text-gray-500">${escapeHtml(a.created_by || "—")}<br><span class="text-[11px] text-gray-400">${accFmtTime(a.created_at)}</span></td>
-      <td class="py-3 px-4 text-sm text-gray-500">${accFmtTime(a.last_sign_in_at)}</td>
-      <td class="py-3 px-4 text-right">
-        ${a.admin_made ? `<x-button variant="outline" size="sm" icon="key-round" data-id="${escapeHtml(a.id)}" data-name="${escapeHtml(a.username)}" onclick="accReset(this.dataset.id, this.dataset.name)">Đặt lại mật khẩu</x-button>` : ""}
-      </td>
-    </tr>`,
-    )
-    .join("");
+  tbody.innerHTML = list.map(accRowHtml).join("");
   window.lucide?.createIcons({ root: tbody });
+}
+
+// Một tài khoản. Điện thoại: tên → lưới 2 cột thông tin phụ → hai nút chia đôi. Từ lg: hàng
+// cùng lưới với tiêu đề ở index.html (`lg:contents` thả ba ô phụ vào lưới của hàng).
+function accRowHtml(a) {
+  const meta = (label, value, sub) => `
+    <div class="min-w-0">
+      <p class="lg:hidden text-[11px] text-gray-400">${label}</p>
+      <p class="text-sm text-gray-600 truncate">${value}</p>
+      ${sub ? `<p class="text-[11px] text-gray-400 truncate">${sub}</p>` : ""}
+    </div>`;
+  const btn = (act, icon, text) =>
+    `<x-button variant="outline" size="sm" icon="${icon}" class="flex-1 lg:flex-none" data-id="${escapeHtml(a.id)}" data-name="${escapeHtml(a.username)}"
+      onclick="${act}(this.dataset.id, this.dataset.name)">${text}</x-button>`;
+  return `
+    <li class="py-4 lg:py-3 grid gap-3 lg:gap-4 lg:items-center lg:grid-cols-[minmax(0,1.4fr)_64px_minmax(0,1.3fr)_minmax(0,1fr)_312px]">
+      <div class="min-w-0">
+        <p class="text-sm font-medium text-gray-800 truncate">${escapeHtml(a.username)}</p>
+        ${
+          a.admin_made
+            ? `<p class="text-xs text-gray-500 truncate">${escapeHtml(a.full_name || "Chưa có tên hiển thị")}</p>`
+            : '<p class="text-xs text-amber-600">Tự đăng ký, giữ chỗ</p>'
+        }
+      </div>
+      <div class="grid grid-cols-2 gap-x-4 gap-y-2 lg:contents">
+        ${meta("Số thiệp", a.weddings)}
+        <div class="order-last col-span-2 min-w-0 lg:order-none lg:col-span-1">${meta("Người tạo", escapeHtml(a.created_by || "—"), accFmtTime(a.created_at))}</div>
+        ${meta("Đăng nhập gần nhất", accFmtTime(a.last_sign_in_at))}
+      </div>
+      ${a.admin_made ? `<div class="flex gap-2 lg:justify-end">${btn("accSignin", "log-in", "Đăng nhập thay")}${btn("accReset", "key-round", "Đặt lại mật khẩu")}</div>` : "<div></div>"}
+    </li>`;
 }
 
 // Lời nhắn chép sẵn để gửi khách qua Zalo/Messenger — xưng "em", gọi khách "anh/chị".
@@ -212,6 +232,44 @@ async function accReset(id, username) {
   }
 }
 
+// "Đăng nhập thay": server (accounts.ts) kiểm quyền nhân viên + tài khoản do nhân viên tạo rồi
+// trả vé dùng một lần; trang chỉ dựng link (core/auth-ui.js đọc #cx_signin). Không tự mở tab:
+// cùng trình duyệt là phiên khách đè phiên nhân viên — nhân viên mở bằng cửa sổ ẩn danh.
+async function accSignin(id, username) {
+  const ok = await showConfirm(
+    "Đăng nhập thay?",
+    `Tạo link đăng nhập vào tài khoản ${username} mà không cần mật khẩu. Lượt này được ghi lại kèm email của bạn.`,
+    { confirmText: "Tạo link" },
+  );
+  if (!ok) return;
+  try {
+    const data = await accRequest("POST", { action: "signin", id });
+    const link = `${location.origin}/my-invitations/#cx_signin=${encodeURIComponent(data.token_hash)}`;
+    document.getElementById("acc-signin-name").textContent = data.username || username;
+    document.getElementById("acc-signin-link").value = link;
+    const box = document.getElementById("acc-signin");
+    box.classList.remove("hidden");
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+  } catch (e) {
+    showAlert("Không tạo được link", e.message);
+  }
+}
+
+function accCopySignin() {
+  navigator.clipboard
+    .writeText(document.getElementById("acc-signin-link").value)
+    .then(() => showToast("Đã chép link — mở bằng cửa sổ ẩn danh", "success"))
+    .catch(() => showToast("Trình duyệt chặn chép tự động", "error"));
+}
+
+// Nút ⓘ + thẻ giải thích (x-popover ngay sau nút) cho đoạn giải thích dài — chữ trên màn
+// chỉ giữ phần phải thấy lúc thao tác. Bản viết tay trong index.html dùng đúng markup này.
+function supInfoHtml(html, label = "Giải thích") {
+  return `<x-button variant="ghost" tone="neutral" size="xs" icon-only aria-label="${label}" title="${label}"
+      onclick="this.nextElementSibling.toggle(this)"><i data-lucide="info" style="width:16px;height:16px"></i></x-button><x-popover
+      placement="bottom" align="start" arrow width="288" keep-open role="dialog"><div class="p-3 text-xs leading-relaxed text-gray-600 space-y-2">${html}</div></x-popover>`;
+}
+
 // ── Thanh toán hộ (wedding-admin?resource=support-pay) ──────────────────────
 // Server tự tính gói được phép + giá; trang chỉ hiện báo giá và gửi gói + số tiền thực nhận.
 
@@ -271,18 +329,25 @@ function payRender() {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
         <p><span class="text-gray-500">Thiệp:</span> <strong>${escapeHtml(w.couple || "(chưa có tên)")}</strong></p>
         <p><span class="text-gray-500">Link:</span> <a href="${escapeHtml(ACC_SITE)}/${escapeHtml(w.slug)}" target="_blank" rel="noopener" class="text-rose-600 underline">/${escapeHtml(w.slug)}</a>${w.is_published ? "" : ' <span class="text-[11px] text-amber-600">(chưa xuất bản)</span>'}</p>
-        <p><span class="text-gray-500">Chủ thiệp:</span> ${escapeHtml(w.owner || "—")}</p>
+        <div class="sm:col-span-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <p class="min-w-0 break-all"><span class="text-gray-500">Chủ thiệp:</span> ${escapeHtml(w.owner || "—")}</p>
+          ${
+            w.owner_account_id
+              ? `<x-button variant="outline" size="xs" icon="log-in" data-id="${escapeHtml(w.owner_account_id)}" data-name="${escapeHtml(String(w.owner).split("@")[0])}" onclick="accSignin(this.dataset.id, this.dataset.name)">Đăng nhập thay</x-button>`
+              : ""
+          }
+        </div>
         <p><span class="text-gray-500">Mẫu:</span> ${escapeHtml(w.theme || "—")}</p>
         <p class="sm:col-span-2"><span class="text-gray-500">Trạng thái:</span> ${escapeHtml(payStatusText(w))}</p>
       </div>
-      <label class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2">
-        <span class="text-sm text-gray-800">
-          Hiện ở mục "Thiệp của khách" trang chủ
-          <span class="block text-[11px] text-gray-400">Người xem trang chủ mở được cả thiệp (bản nhà trai). Khách chọn lúc thanh toán; chỉ đổi khi khách yêu cầu, thiệp chưa thanh toán thì chưa hiện dù bật.</span>
+      <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2">
+        <span class="flex items-center gap-1 text-sm text-gray-800">
+          <label for="pay-showcase-switch" class="cursor-pointer">Hiện ở mục "Thiệp của khách" trang chủ</label>
+          ${supInfoHtml("<p>Người xem trang chủ mở được cả thiệp (bản nhà trai).</p><p>Khách chọn lúc thanh toán; chỉ đổi khi khách yêu cầu. Thiệp chưa thanh toán thì chưa hiện dù bật.</p>")}
         </span>
-        <input type="checkbox" role="switch" class="cx-switch shrink-0" ${w.showcase_consent ? "checked" : ""}
+        <input id="pay-showcase-switch" type="checkbox" role="switch" class="cx-switch shrink-0" ${w.showcase_consent ? "checked" : ""}
           onchange="payShowcase(this)" />
-      </label>
+      </div>
       ${
         w.pending_payos
           ? `<p class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
@@ -299,13 +364,17 @@ function payRender() {
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Số tiền thực nhận (đ)</label>
+                <div class="flex items-center gap-1 h-7 mb-1">
+                  <label for="pay-amount" class="text-xs font-medium text-gray-600">Số tiền thực nhận (đ)</label>
+                  ${supInfoHtml("<p>Chỉ để ghi sổ đối soát. Giảm tay cho khách thì sửa số ở đây.</p>")}
+                </div>
                 <input id="pay-amount" type="number" min="0" step="1000" value="${first.amount}"
                   class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
-                <p class="text-[11px] text-gray-400 mt-1">Chỉ để ghi sổ; giảm tay cho khách thì sửa ở đây</p>
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Ghi chú</label>
+                <div class="flex items-center h-7 mb-1">
+                  <label for="pay-note" class="text-xs font-medium text-gray-600">Ghi chú</label>
+                </div>
                 <input id="pay-note" type="text" maxlength="300" placeholder="vd. CK Vietcombank lúc 14:20"
                   class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
               </div>
@@ -313,12 +382,13 @@ function payRender() {
             ${
               w.current_plan
                 ? ""
-                : `<label class="flex items-start gap-2 text-sm text-gray-800 cursor-pointer">
-                    <input id="pay-showcase" type="checkbox" class="mt-1 accent-rose-500" />
-                    <span>Khách cho phép hiện thiệp ở trang chủ
-                      <span class="block text-[11px] text-gray-400">Hỏi khách trước khi xác nhận — người xem trang chủ mở được cả thiệp (bản nhà trai)</span>
-                    </span>
-                  </label>`
+                : `<div class="flex items-center gap-1">
+                    <label class="flex items-center gap-2 text-sm text-gray-800 cursor-pointer">
+                      <input id="pay-showcase" type="checkbox" class="accent-rose-500" />
+                      Khách cho phép hiện thiệp ở trang chủ
+                    </label>
+                    ${supInfoHtml("<p>Hỏi khách trước khi xác nhận: người xem trang chủ mở được cả thiệp (bản nhà trai).</p>")}
+                  </div>`
             }
             <x-button id="pay-confirm-btn" icon="badge-check" onclick="payConfirm()">Xác nhận đã nhận tiền</x-button>`
           : `<p class="text-sm text-gray-500">${
