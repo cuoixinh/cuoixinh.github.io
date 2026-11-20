@@ -1,7 +1,7 @@
 // Đổ kết quả AI vào form thiệp. Tách khỏi khung chat vì chat chỉ lo hội thoại,
 // còn việc bind vào control là chuyện riêng của trang thiết lập.
 //
-// Nạp SAU các file dựng form (cần _loveStoryItems, _timelineItems, SECTION_VIS_FIELDS,
+// Nạp SAU các file dựng form (cần _loveStoryItems, _tlLoad, SECTION_VIS_FIELDS,
 // BANK_LIST, flatpickrInstances) và TRƯỚC js/ai-assistant.js. Cũng khai cxAiMediaSink —
 // đích ghi của các ô chọn ảnh/nhạc/bản đồ/mẫu trong khung chat (js/ai-chat-media.js).
 
@@ -27,21 +27,16 @@ function cxApplyAiCard(result, only) {
     applyLoveStoryText(result.love_story);
   }
 
-  // 3) Lịch trình → thay danh sách hiện tại
-  if (Array.isArray(result.timeline) && result.timeline.length) {
-    _timelineItems = result.timeline.map((it) => ({
-      time: it.time || "",
-      title: it.title || "",
-      type: it.type || "ceremony",
-    }));
-    _syncTimelineHidden();
-    renderTimelineList();
-  }
-
-  // 4) Các field trích xuất/sinh khác (gồm ngày & giờ cưới AI trích từ Thông tin) → đổ vào form
+  // 3) Các field trích xuất/sinh khác (gồm ngày & giờ cưới AI trích từ Thông tin) → đổ vào form
   const f = result.fields || {};
   Object.keys(f).forEach((key) => _aiSetField(key, f[key]));
   (result.cleared || []).forEach(_aiClearField);
+
+  // 4) Lịch trình → thay danh sách hiện tại. AI trả kiểu cũ (type lễ/tiệc, không có ngày):
+  // _tlLoad lấy ngày từ form nên phải chạy SAU bước 3.
+  if (Array.isArray(result.timeline) && result.timeline.length) {
+    _tlLoad(result.timeline, null);
+  }
 
   // 5) Bật hiển thị các section tương ứng khi có nội dung
   if ((result.love_story || []).length) _aiEnableSection("love_story");
@@ -257,8 +252,6 @@ function _aiEnableSection(section) {
     hidden.dispatchEvent(new Event("input", { bubbles: true }));
   }
   if (typeof _updateVisUI === "function") _updateVisUI(section, true);
-  if (section === "party" && typeof _updateTimelinePartySection === "function")
-    _updateTimelinePartySection();
 }
 
 // ── Ngân hàng: mã/tên viết tắt AI trả về → chuỗi đầy đủ trong BANK_LIST ───────

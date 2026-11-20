@@ -17,186 +17,42 @@
       ></x-switch>
     </div>
   </div>
-  <div id="section-timeline-body">
-    <!-- Tab bar — chỉ toggle phần riêng từng nhà (tiệc, lễ vu quy). Dải segmented có con trượt chạy
-         (.cx-seg ở styles/_common.css). -->
-    <div class="px-4 pt-4">
-      <div id="timeline-seg" class="cx-seg" style="--n: 2" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected="true"
-          onclick="switchTimelineTab('groom')"
-          id="timeline-tab-groom"
-          class="cx-seg-btn is-on"
-        >
-          <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected="false"
-          onclick="switchTimelineTab('bride')"
-          id="timeline-tab-bride"
-          class="cx-seg-btn"
-        >
-          <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
-        </button>
-      </div>
-    </div>
-
-    <!-- Tiệc nhà trai -->
-    <div id="timeline-panel-groom" class="px-6 pt-4 pb-2 space-y-3">
-      <div id="timeline-party-sub" class="space-y-3">
-        <p
-          class="text-xs font-semibold text-amber-600 uppercase tracking-wide"
-        >
-          Tiệc cưới
-        </p>
-        <div
-          id="timeline-party-date-badge"
-          class="hidden flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl"
-        >
-          <i
-            data-lucide="calendar-days"
-            class="w-4 h-4 text-amber-500 flex-shrink-0"
-          ></i>
-          <span
-            id="timeline-party-date-text"
-            class="text-sm font-medium text-amber-700"
-          ></span>
-        </div>
-        <div id="timeline-party-list" class="space-y-3"></div>
-        <p
-          id="timeline-party-no-date"
-          class="hidden text-sm text-gray-400 italic py-1"
-        >
-          Hãy
-          <a
-            onclick="_openSectionAndScroll('party')"
-            class="text-amber-500 not-italic font-medium underline cursor-pointer"
-            >thiết lập</a
-          >
-          ngày tổ chức tiệc nhà trai để thêm sự kiện
-        </p>
-        <x-button id="btn-add-party" variant="outline" type="button" onclick="addTimelineItem('party')" class="mt-1">
-          <i data-lucide="plus"></i> Thêm sự kiện
-        </x-button>
-      </div>
-    </div>
-
-    <!-- Tiệc nhà gái -->
-    <div
-      id="timeline-panel-bride"
-      class="hidden px-6 pt-4 pb-2 space-y-3"
-    >
-      <div id="timeline-bride-party-sub" class="space-y-3">
-        <p
-          class="text-xs font-semibold text-amber-600 uppercase tracking-wide"
-        >
-          Tiệc cưới
-        </p>
-        <div
-          id="timeline-bride-party-date-badge"
-          class="hidden flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl"
-        >
-          <i
-            data-lucide="calendar-days"
-            class="w-4 h-4 text-amber-500 flex-shrink-0"
-          ></i>
-          <span
-            id="timeline-bride-party-date-text"
-            class="text-sm font-medium text-amber-700"
-          ></span>
-        </div>
-        <div id="timeline-bride-party-list" class="space-y-3"></div>
-        <p
-          id="timeline-bride-party-no-date"
-          class="hidden text-sm text-gray-400 italic py-1"
-        >
-          Hãy
-          <a
-            onclick="
-              _openSectionAndScroll('party');
-              switchPartyTab('bride');
-            "
-            class="text-amber-500 not-italic font-medium underline cursor-pointer"
-            >thiết lập</a
-          >
-          ngày tổ chức tiệc nhà gái để thêm sự kiện
-        </p>
-        <x-button id="btn-add-bride-party" variant="outline" type="button" onclick="addTimelineItem('bride-party')" class="mt-1">
-          <i data-lucide="plus"></i> Thêm sự kiện
-        </x-button>
-      </div>
-
-      <!-- Lễ vu quy — chỉ link nhà gái thấy, chỉ hiện khi bật vu quy (_updateTimelineVuQuySection). -->
-      <div id="timeline-vu-quy-sub" class="hidden space-y-3 pt-2">
-        <p
-          class="text-xs font-semibold text-cyan-600 uppercase tracking-wide"
-        >
-          Lễ vu quy
-        </p>
-        <div
-          id="timeline-vu-quy-date-badge"
-          class="hidden flex items-center gap-2 px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-xl"
-        >
-          <i
-            data-lucide="calendar-days"
-            class="w-4 h-4 text-cyan-500 flex-shrink-0"
-          ></i>
-          <span
-            id="timeline-vu-quy-date-text"
-            class="text-sm font-medium text-cyan-700"
-          ></span>
-        </div>
-        <div id="timeline-vu-quy-list" class="space-y-3"></div>
-        <p class="text-sm text-gray-400 italic">
-          Bỏ trống thì link nhà gái dùng lịch trình lễ thành hôn bên dưới
-        </p>
-        <x-button variant="outline" type="button" onclick="addTimelineItem('vu-quy')" class="mt-1">
-          <i data-lucide="plus"></i> Thêm sự kiện
-        </x-button>
-      </div>
-    </div>
-
-    <!-- Lễ cưới — dùng chung, luôn hiển thị (nhà gái có lịch vu quy riêng thì chỉ còn nhà trai dùng) -->
-    <div id="timeline-ceremony-sub" class="px-6 pt-2 pb-6 space-y-4 border-t border-gray-100">
-      <p
-        id="timeline-ceremony-label"
-        class="text-xs font-semibold text-cyan-600 uppercase tracking-wide pt-2"
+  <div id="section-timeline-body" class="px-4 pt-4 pb-6 space-y-3">
+    <!-- Tick = MỘT lịch trình cho cả hai link; bỏ tick = dải Nhà trai / Nhà gái, mỗi bên một
+         danh sách riêng (js/14-timeline-story.js). Mỗi ngày tự đặt tên + ngày. -->
+    <x-check
+      key="timeline-shared"
+      label="Dùng chung cho cả hai nhà"
+      checked
+      onchange="toggleTimelineShared(event)"
+    ></x-check>
+    <div id="timeline-seg-wrap" class="hidden">
+    <div id="timeline-seg" class="cx-seg" style="--n: 2" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        aria-selected="true"
+        onclick="switchTimelineSide('groom')"
+        id="timeline-tab-groom"
+        class="cx-seg-btn is-on"
       >
-        Lễ cưới
-      </p>
-      <div
-        id="timeline-date-badge"
-        class="hidden flex items-center gap-2 px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-xl"
+        <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected="false"
+        onclick="switchTimelineSide('bride')"
+        id="timeline-tab-bride"
+        class="cx-seg-btn"
       >
-        <i
-          data-lucide="calendar-days"
-          class="w-4 h-4 text-cyan-500 flex-shrink-0"
-        ></i>
-        <span
-          id="timeline-date-text"
-          class="text-sm font-medium text-cyan-700"
-        ></span>
-      </div>
-      <div id="timeline-list" class="space-y-3"></div>
-      <p
-        id="timeline-ceremony-no-date"
-        class="hidden text-sm text-gray-400 italic py-1"
-      >
-        Hãy
-        <a
-          onclick="_openSectionAndScroll('ceremony')"
-          class="text-cyan-500 not-italic font-medium underline cursor-pointer"
-          >thiết lập</a
-        >
-        ngày lễ cưới để thêm sự kiện
-      </p>
-      <x-button id="btn-add-ceremony" variant="outline" type="button" onclick="addTimelineItem('ceremony')" class="mt-1">
-        <i data-lucide="plus"></i> Thêm sự kiện
-      </x-button>
+        <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+      </button>
     </div>
+    </div>
+    <div id="timeline-days" class="space-y-3"></div>
+    <x-button variant="outline" type="button" onclick="addTimelineDay()">
+      <i data-lucide="calendar-plus"></i> Thêm ngày
+    </x-button>
   </div>
 </div>

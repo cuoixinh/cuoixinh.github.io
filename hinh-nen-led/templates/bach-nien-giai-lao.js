@@ -1,4 +1,4 @@
-// Hình nền LED "Bách Niên Giai Lão" (1280×720): màn chờ tông hổ phách — nền nâu đen có quầng ấm
+// Nền sân khấu "Bách Niên Giai Lão" (1280×720): màn chờ tông hổ phách — nền nâu đen có quầng ấm
 // thở nhẹ, bụi vàng bay lên; ảnh cắt tròn, quanh ảnh là vòng sóng vàng lan ra liên tục; chữ serif
 // nghiêng. Bốn cảnh nối vòng (vầng sáng · đôi uyên ương · lời mời an toạ · chuỗi ảnh vòng cung),
 // chuyển cảnh đẩy lên. Chỉ KHAI cảnh (đăng ký vào CX_LED_TEMPLATES).

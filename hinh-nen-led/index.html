@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Hình nền LED - Cưới Xinh</title>
+    <title>Nền sân khấu - Cưới Xinh</title>
     <!-- Trang ứng dụng (lấy thiệp của tài khoản): không đưa lên kết quả tìm kiếm. -->
     <meta name="robots" content="noindex" />
     <meta
@@ -32,12 +32,12 @@
     <script src="../core/helpers/no-inspect.js"></script>
   </head>
   <body class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20">
-    <!-- "Hình nền LED": cùng bố cục + tông màu với Slide cưới (lớp .sc-* dùng chung) — đầu trang ·
+    <!-- "Nền sân khấu": cùng bố cục + tông màu với Slide cưới (lớp .sc-* dùng chung) — đầu trang ·
          sân khấu (màn LED vẽ mẫu đang chọn + nút chiếu/tải, GHIM khi cuộn) · bảng chỉnh ba tab
          (Cảnh · Mẫu · Thiệp — mới vào mở Mẫu). Từ lg sân khấu bên trái, bảng chỉnh bên phải. Logic ở index.js. -->
     <main id="led-app" class="sc-app led-app">
       <header class="sc-head">
-        <h1 class="tg-title">Hình nền LED</h1>
+        <h1 class="tg-title">Nền sân khấu</h1>
         <p class="sc-sub">Màn chờ chiếu lặp lên LED sân khấu trong lúc đón khách.</p>
       </header>
 
@@ -198,7 +198,7 @@
             count: true,
           },
           { id: "guests", label: "Khách mời", icon: "users", href: "/guest-list/", login: true },
-          { id: "led", label: "Hình nền LED", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
+          { id: "led", label: "Nền sân khấu", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
           { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
           { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/", feature: "slides" },
           { id: "account", label: "Tài khoản", icon: "user", onClick: "CXAccount.open(this)" },

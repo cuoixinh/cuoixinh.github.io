@@ -384,9 +384,21 @@ function renderLoveStory(events) {
  * nhóm tăng dần theo `date` (ISO yyyy-mm-dd, nhóm không có ngày xuống cuối; cùng
  * ngày thì nhóm có mốc sớm hơn đứng trước), trong nhóm tăng dần theo `time`.
  * Nhóm rỗng bị bỏ. Mốc thiếu giờ luôn xuống cuối nhóm.
+ * Lịch trình kiểu NGÀY (mốc mang cx_day/cx_date, cxTimelineForSide ở wedding-helper.js)
+ * bỏ hai nhóm lễ/tiệc mẫu truyền vào, gom lại theo đúng ngày khách đã khai.
  */
 function cxSortTimelineGroups(groups) {
   const _t = (v) => String(v || "").trim();
+  const all = groups.flatMap((g) => (Array.isArray(g.items) ? g.items : []));
+  if (all.some((i) => i && i.cx_date !== undefined)) {
+    const days = new Map();
+    all.forEach((i) => {
+      const k = `${_t(i.cx_date)}|${_t(i.cx_day)}`;
+      if (!days.has(k)) days.set(k, { label: _t(i.cx_day), date: _t(i.cx_date), items: [] });
+      days.get(k).items.push(i);
+    });
+    groups = [...days.values()];
+  }
   const byTime = (arr) =>
     [...arr].sort((a, b) => {
       const x = _t(a.time), y = _t(b.time);

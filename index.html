@@ -255,7 +255,7 @@
           icon-only
           onclick="scrollTemplates(-1)"
           aria-label="Mẫu trước"
-          class="hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
+          class="relative z-10 hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
         >
           <i data-lucide="chevron-left" style="width:16px;height:16px"></i>
         </x-button>
@@ -266,52 +266,48 @@
              hết bề ngang ở màn rộng; dải cuộn ngang nên thừa cũng không sao. -->
         <div id="templatesRow" class="cx-tplrow scroll-fade min-w-0 flex-1">
           <article class="tt-card cx-tplcard" aria-hidden="true">
-            <div class="animate-pulse">
-              <div class="tt-media"></div>
-              <div class="tt-cardbody">
-                <div class="h-[20px] w-2/3 rounded bg-gray-100"></div>
-                <div class="tt-cardbtns mt-3">
-                  <div class="h-7 rounded-full bg-gray-100"></div>
-                  <div class="h-7 rounded-full bg-gray-100"></div>
-                </div>
+            <div class="tt-media animate-pulse"></div>
+            <div class="tt-cardbody animate-pulse">
+              <div class="h-[20px] w-2/3 rounded bg-gray-100"></div>
+              <div class="tt-cardbtns">
+                <div class="h-[34px] rounded-full bg-gray-100"></div>
+                <div class="h-[34px] rounded-full bg-gray-100"></div>
               </div>
             </div>
+            <div class="tt-ai"><div class="h-[26px] w-1/2 rounded-full bg-gray-100"></div></div>
           </article>
           <article class="tt-card cx-tplcard" aria-hidden="true">
-            <div class="animate-pulse">
-              <div class="tt-media"></div>
-              <div class="tt-cardbody">
-                <div class="h-[20px] w-2/3 rounded bg-gray-100"></div>
-                <div class="tt-cardbtns mt-3">
-                  <div class="h-7 rounded-full bg-gray-100"></div>
-                  <div class="h-7 rounded-full bg-gray-100"></div>
-                </div>
+            <div class="tt-media animate-pulse"></div>
+            <div class="tt-cardbody animate-pulse">
+              <div class="h-[20px] w-2/3 rounded bg-gray-100"></div>
+              <div class="tt-cardbtns">
+                <div class="h-[34px] rounded-full bg-gray-100"></div>
+                <div class="h-[34px] rounded-full bg-gray-100"></div>
               </div>
             </div>
+            <div class="tt-ai"><div class="h-[26px] w-1/2 rounded-full bg-gray-100"></div></div>
           </article>
           <article class="tt-card cx-tplcard" aria-hidden="true">
-            <div class="animate-pulse">
-              <div class="tt-media"></div>
-              <div class="tt-cardbody">
-                <div class="h-[20px] w-2/3 rounded bg-gray-100"></div>
-                <div class="tt-cardbtns mt-3">
-                  <div class="h-7 rounded-full bg-gray-100"></div>
-                  <div class="h-7 rounded-full bg-gray-100"></div>
-                </div>
+            <div class="tt-media animate-pulse"></div>
+            <div class="tt-cardbody animate-pulse">
+              <div class="h-[20px] w-2/3 rounded bg-gray-100"></div>
+              <div class="tt-cardbtns">
+                <div class="h-[34px] rounded-full bg-gray-100"></div>
+                <div class="h-[34px] rounded-full bg-gray-100"></div>
               </div>
             </div>
+            <div class="tt-ai"><div class="h-[26px] w-1/2 rounded-full bg-gray-100"></div></div>
           </article>
           <article class="tt-card cx-tplcard" aria-hidden="true">
-            <div class="animate-pulse">
-              <div class="tt-media"></div>
-              <div class="tt-cardbody">
-                <div class="h-[20px] w-2/3 rounded bg-gray-100"></div>
-                <div class="tt-cardbtns mt-3">
-                  <div class="h-7 rounded-full bg-gray-100"></div>
-                  <div class="h-7 rounded-full bg-gray-100"></div>
-                </div>
+            <div class="tt-media animate-pulse"></div>
+            <div class="tt-cardbody animate-pulse">
+              <div class="h-[20px] w-2/3 rounded bg-gray-100"></div>
+              <div class="tt-cardbtns">
+                <div class="h-[34px] rounded-full bg-gray-100"></div>
+                <div class="h-[34px] rounded-full bg-gray-100"></div>
               </div>
             </div>
+            <div class="tt-ai"><div class="h-[26px] w-1/2 rounded-full bg-gray-100"></div></div>
           </article>
         </div>
 
@@ -320,7 +316,7 @@
           icon-only
           onclick="scrollTemplates(1)"
           aria-label="Mẫu tiếp theo"
-          class="hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
+          class="relative z-10 hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
         >
           <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
         </x-button>
@@ -361,7 +357,7 @@
           icon-only
           onclick="scrollTemplates(-1, 'showcaseRow')"
           aria-label="Thiệp trước"
-          class="hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
+          class="relative z-10 hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
         >
           <i data-lucide="chevron-left" style="width:16px;height:16px"></i>
         </x-button>
@@ -371,7 +367,7 @@
           icon-only
           onclick="scrollTemplates(1, 'showcaseRow')"
           aria-label="Thiệp tiếp theo"
-          class="hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
+          class="relative z-10 hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
         >
           <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
         </x-button>
@@ -946,7 +942,7 @@
             count: true,
           },
           { id: "guests", label: "Khách mời", icon: "users", href: "/guest-list/", login: true },
-          { id: "led", label: "Hình nền LED", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
+          { id: "led", label: "Nền sân khấu", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
           { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
           { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/", feature: "slides" },
           {

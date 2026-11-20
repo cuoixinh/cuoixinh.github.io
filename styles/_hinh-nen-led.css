@@ -1,4 +1,4 @@
-/* ── Trang "Hình nền LED" (hinh-nen-led/) ─────────────────────────────────────
+/* ── Trang "Nền sân khấu" (hinh-nen-led/) ─────────────────────────────────────
    Bố cục + tông màu là của Slide cưới (lớp .sc-* ở _slide-cuoi.css — file này nạp SAU nó). Ở đây
    chỉ có phần riêng: màn là canvas thay vì iframe, và chế độ toàn màn tự làm. */
 .led-screen {

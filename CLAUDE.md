@@ -49,7 +49,7 @@ assets/background/       Ảnh nền WebP do tab "Ảnh nền" của admin chụ
 supabase/functions/      Edge Functions
 changelogs/              Lịch sử thay đổi DB
 cloudflare-worker/       Workers proxy/cache
-hinh-nen-led/            "Hình nền LED" — mẫu màn chờ chiếu lặp lên LED sân khấu, tải video/ảnh (vẽ bằng bộ vẽ của slide-cuoi/)
+hinh-nen-led/            "Nền sân khấu" — mẫu màn chờ chiếu lặp lên LED sân khấu, tải video/ảnh (vẽ bằng bộ vẽ của slide-cuoi/)
 poster/                  "Ảnh TikTok" — loạt ảnh ghép lời lên ảnh cưới để đăng bài nhiều ảnh (canvas riêng, không dùng bộ vẽ slide)
 cloudflare-media/        Kho nhạc thư viện của Slide cưới (Worker file tĩnh ở tài khoản Cloudflare phụ, cuoixinh-media.cx-music.workers.dev) — file nhạc KHÔNG vào git
 worker/                  Worker của site chính — trả trang thiệp tại /<slug> + thẻ og:*
@@ -521,6 +521,9 @@ tên thư mục là `weddings.theme` + khoá của `template_pricing`, đổi l�
   `renderVenueMaps(w, side)` (`render-helper.js`) — lễ và tiệc ở hai nơi thì nó nhân cặp
   đó thành bản đồ thứ hai (id đuôi `-2`, cờ `.cx-map-dual` trên mục). `theme.css` nhắm
   theo id thì khai luôn id `-2`, không thì bản đồ thứ hai lệch kiểu.
+- Mục Lịch trình: mốc có thể mang ngày riêng (kiểu NGÀY, `cxTimelineForSide` ở
+  `wedding-helper.js` gắn `cx_day`/`cx_date`) — mẫu tự vẽ phải gom nhóm qua
+  `cxSortTimelineGroups` hoặc đọc `it.cx_date` trước ngày lễ/tiệc, không thì mọi mốc dồn về ngày lễ.
 - Mục Hộp mừng cưới: khối chứa mã QR đánh dấu `data-cx-gift="qr"`, hộp chọn ở
   `CX_THEME.giftBox` — **mẫu không tự vẽ hộp/phong bao**, xem mục "Hộp mừng cưới" ở dưới.
 
@@ -666,7 +669,7 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   phải nạp `config.js` TRƯỚC navbar) — chỉ ẩn lối vào, URL vẫn mở được. Ảnh phải tải `crossOrigin="anonymous"`,
   thiếu là không xuất được video. Slide là màn SÂN KHẤU, không phải bản sao thiệp. Xem
   `docs/PLAN-slide-cuoi.md`.
-- **Hình nền LED (`hinh-nen-led/`):** phân hệ RIÊNG (mục navbar `feature: "led"`), chỉ có lấy
+- **Nền sân khấu (`hinh-nen-led/`):** phân hệ RIÊNG (mục navbar `feature: "led"`), chỉ có lấy
   thông tin từ thiệp + màn xem to + dải mẫu, tải video MP4 4K NỐI VÒNG (máy không mã hoá nổi 4K thì 1080p) (`loop` của `CXSlideExport.run`:
   khung đầu là lúc cảnh cuối chuyển sang cảnh đầu), video dọc TikTok y như Slide cưới (nút "Màn chiếu" xem trước cùng khung) hoặc ảnh PNG 4K. Mẫu là MỘT file
   `templates/<id>.js` tự đăng ký vào `CX_LED_TEMPLATES` + một thẻ `<script>` ở `index.html`

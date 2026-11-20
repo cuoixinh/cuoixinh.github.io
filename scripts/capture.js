@@ -97,14 +97,15 @@ async function captureAll(onProgress = console.log, selected = null) {
     onProgress("🚀 Khởi động Chromium...");
     browser = await puppeteer.launch({
       headless: true,
-      channel: "chrome",
+      // CHROME_PATH: máy không cài Google Chrome (CI, container) thì chỉ thẳng tới một bản Chromium.
+      ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : { channel: "chrome" }),
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
     });
 
     const results = [];
 
     for (const name of templates) {
-      const url = `http://127.0.0.1:${STATIC_PORT}/public/themes/${name}/index.html?preview=true`;
+      const url = `http://127.0.0.1:${STATIC_PORT}/public/themes/${name}/index.html?preview=true&nosug=1`;
       const outPath = path.join(OUT_DIR, `${name}.jpg`);
       const outRel = path.relative(ROOT, outPath).split(path.sep).join("/");
 

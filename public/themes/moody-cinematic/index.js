@@ -102,6 +102,20 @@
     // Sách dựng lúc #main-card còn display:none (sau màn bìa) nên mọi phép đo
     // trang ra 0 — mở bìa xong phải đo lại.
     onOpen: () => refreshBook(),
+
+    // Sách lật ngang, không cuộn trang: bộ quay video quảng cáo lật từng trang qua
+    // đây. Trang = mục đang hiện.
+    deck: {
+      slides: () => {
+        const p = document.getElementById("cx-pages");
+        return p ? Array.from(p.children).filter((el) => el.offsetParent !== null) : [];
+      },
+      show: (el) => {
+        const p = document.getElementById("cx-pages");
+        const i = p ? window.CX_THEME.deck.slides().indexOf(el) : -1;
+        if (i >= 0) p.scrollTo({ left: i * p.clientWidth, behavior: "auto" });
+      },
+    },
   };
 
   const _isGroom = isGroomSide();

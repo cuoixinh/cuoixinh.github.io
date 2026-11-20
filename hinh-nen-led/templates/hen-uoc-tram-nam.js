@@ -1,4 +1,4 @@
-// Hình nền LED "Hẹn Ước Trăm Năm" (1280×720): màn chờ chiếu LẶP lên LED sân khấu trong lúc khách
+// Nền sân khấu "Hẹn Ước Trăm Năm" (1280×720): màn chờ chiếu LẶP lên LED sân khấu trong lúc khách
 // tới — nền đen có dải ngân hà chạy chéo, sao sáng trôi chậm + sao băng; bốn cảnh nối vòng (chào đón trên
 // ảnh bìa · tên + trái tim tự vẽ · lời mời an toạ · ba ảnh album). Giữa hai tên là trái tim vẽ
 // bằng nét vàng, không dùng chữ "&". Chỉ KHAI cảnh (đăng ký vào CX_LED_TEMPLATES).

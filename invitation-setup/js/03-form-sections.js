@@ -52,12 +52,6 @@ function toggleSectionVis(section, event) {
   window.cxRenderSteps?.();
   // Tắt mục là khoá luôn thẻ chức năng tương ứng ở tab Giao diện.
   window.cxSyncThemeAddCards?.();
-  if (
-    section === "party" &&
-    typeof _updateTimelinePartySection === "function"
-  ) {
-    _updateTimelinePartySection();
-  }
   if (section === "ceremony" || section === "party") _onPartyOnlyToggle(section);
 }
 
@@ -143,6 +137,5 @@ function _switchTab(prefix, side) {
 }
 window.switchPartyTab = (side) => _switchTab("party", side);
 window.switchFamilyTab = (side) => _switchTab("family", side);
-window.switchTimelineTab = (side) => _switchTab("timeline", side);
 
 

@@ -46,7 +46,7 @@ function cxHeroMenu(btn) {
         ? [{ icon: _cxHeroMenuIcon("users"), label: "Khách mời", onClick: go("/guest-list/") }]
         : []),
       ...(typeof CONFIG === "undefined" || CONFIG.features?.led !== false
-        ? [{ icon: _cxHeroMenuIcon("monitor"), label: "Hình nền LED", onClick: go("/hinh-nen-led/") }]
+        ? [{ icon: _cxHeroMenuIcon("monitor"), label: "Nền sân khấu", onClick: go("/hinh-nen-led/") }]
         : []),
       // Cùng trang: đóng menu rồi cuộn tới mục, không tải lại trang.
       { icon: _cxHeroMenuIcon("tag"), label: "Bảng giá", onClick: () => {

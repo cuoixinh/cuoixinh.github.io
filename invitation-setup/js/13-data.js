@@ -597,9 +597,7 @@ function _fillForm(data) {
       } catch (e) {
         items = [];
       }
-      _timelineItems = items;
-      _syncTimelineHidden();
-      renderTimelineList();
+      _tlLoad(items, data);
       return;
     }
 

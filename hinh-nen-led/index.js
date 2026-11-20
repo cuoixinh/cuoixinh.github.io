@@ -1,4 +1,4 @@
-// Trang "Hình nền LED": màn LED to chạy mẫu đang chọn (bộ vẽ slide dùng chung), nguồn thông tin là
+// Trang "Nền sân khấu": màn LED to chạy mẫu đang chọn (bộ vẽ slide dùng chung), nguồn thông tin là
 // thiệp của tài khoản (getWeddingById, chỉ chủ thiệp) hoặc dữ liệu mẫu; tải xuống ảnh PNG
 // 3840×2160, video MP4 4K nối vòng liền mạch, hoặc video dọc 2K đăng TikTok (hình nền trên màn
 // chiếu của ảnh hội trường). Mọi thứ dựng trên máy khách.

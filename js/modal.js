@@ -5,7 +5,7 @@ let currentTemplateId = null;
 function openPreview(templateId) {
   const template = templates.find((t) => t.id === templateId);
   if (!template) return;
-  window.open(template.previewUrl, "_blank", "noopener");
+  window.location.href = template.previewUrl;
 }
 
 function closePreview() {

@@ -1,4 +1,4 @@
-// Hình nền LED "Kết Tóc Xe Tơ" (1280×720): màn chờ dàn trang kiểu tạp chí — nền than đậm, một màu
+// Nền sân khấu "Kết Tóc Xe Tơ" (1280×720): màn chờ dàn trang kiểu tạp chí — nền than đậm, một màu
 // nhấn đỏ son, chữ serif cao + nhãn không chân in hoa, đường kẻ mảnh; ảnh mở dần từ mép rồi phóng
 // chậm (Ken Burns). Bốn cảnh nối vòng (trang bìa · ảnh chính có dải than · ảnh ghép · ngày cưới số
 // lớn), chuyển cảnh trượt ngang. Chỉ KHAI cảnh (đăng ký vào CX_LED_TEMPLATES).

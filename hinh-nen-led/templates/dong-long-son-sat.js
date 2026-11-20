@@ -1,4 +1,4 @@
-// Hình nền LED "Đồng Lòng Son Sắt" (1280×720): màn chờ kiểu sân khấu hoà nhạc — nền đen, sáu luồng
+// Nền sân khấu "Đồng Lòng Son Sắt" (1280×720): màn chờ kiểu sân khấu hoà nhạc — nền đen, sáu luồng
 // đèn rọi từ trần lắc qua lại, bụi sáng bay lên trong luồng đèn; chữ không chân đậm in hoa.
 // Năm cảnh nối vòng (chào đón · ảnh dưới đèn · ngày cưới số lớn · ba ảnh dọc · mời an toạ),
 // chuyển cảnh kiểu lao xuyên (zoom). Chỉ KHAI cảnh (đăng ký vào CX_LED_TEMPLATES).
