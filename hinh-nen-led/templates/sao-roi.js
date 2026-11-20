@@ -1,4 +1,4 @@
-// Hình nền LED "Sao Rơi" (1280×720): ĐÚNG MỘT cảnh chạy vòng — nền đen dải ngân hà, sao sáng trôi
+// Nền sân khấu "Sao Rơi" (1280×720): ĐÚNG MỘT cảnh chạy vòng — nền đen dải ngân hà, sao sáng trôi
 // chậm + sao băng; tên hai người nối bằng trái tim tự vẽ, ngày cưới bên dưới. Cùng kiểu cảnh "Tên và
 // ngày cưới" của Hẹn Ước Trăm Năm. Chữ mờ dần cuối cảnh (anim.out) rồi hiện lại, bầu trời chạy liền
 // qua chỗ nối vòng. Chỉ KHAI cảnh (đăng ký vào CX_LED_TEMPLATES).

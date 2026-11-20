@@ -216,7 +216,7 @@ const CONFIG = {
   // trang vẫn mở được bằng URL. Mục navbar khai `feature: "<khoá>"` để đi theo cờ này.
   features: {
     slides: false, // "Slide cưới" (/slide-cuoi/)
-    led: true, // "Hình nền LED" (/hinh-nen-led/)
+    led: true, // "Nền sân khấu" (/hinh-nen-led/)
   },
 
   // Thư viện nhạc (Slide cưới + nhạc nền thiệp) — Worker file tĩnh ở tài khoản Cloudflare PHỤ

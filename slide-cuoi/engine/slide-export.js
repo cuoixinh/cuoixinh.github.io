@@ -221,7 +221,7 @@ window.CXSlideExport = (() => {
   }
 
   // opts: { height: 1080|2160|"tiktok" (video dọc 2K, slide trên màn chiếu hội trường), audioUrl (URL hoặc Blob nhạc), voices (đoạn giọng đọc, xem _mix),
-  // duck, loop (video nối vòng liền mạch — Hình nền LED), signal, onProgress(p 0..1), onAudio({ok, reason: "codec"|"decode"|"", music, voices, lost})
+  // duck, loop (video nối vòng liền mạch — Nền sân khấu), signal, onProgress(p 0..1), onAudio({ok, reason: "codec"|"decode"|"", music, voices, lost})
   // — báo trước khi mã hoá: ghép được những tiếng nào } → Blob MP4.
   async function run(P, opts) {
     const vcfg = await pickCodec(opts.height);

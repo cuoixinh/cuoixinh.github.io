@@ -21,7 +21,7 @@
   padding: 20px 16px 16px;
 }
 /* Dưới md (điện thoại) giấu đầu trang cho sân khấu lên sát mép trên — giấu kiểu "chỉ cho máy đọc
-   màn hình" chứ không display:none, trang vẫn giữ tiêu đề h1. Dùng cho cả Slide cưới lẫn Hình nền LED. */
+   màn hình" chứ không display:none, trang vẫn giữ tiêu đề h1. Dùng cho cả Slide cưới lẫn Nền sân khấu. */
 @media (max-width: 767px) {
   .sc-head {
     position: absolute;
@@ -94,7 +94,7 @@
   border-radius: inherit;
 }
 /* Chế độ "Màn chiếu" (.sc-stage.is-hall, nút ở hàng dưới slide): khung thành ảnh hội trường
-   dọc 941×1672, iframe (Slide) / canvas (Hình nền LED) nằm đúng ô màn chiếu — số khớp HALL ở
+   dọc 941×1672, iframe (Slide) / canvas (Nền sân khấu) nằm đúng ô màn chiếu — số khớp HALL ở
    engine/slide-export.js (video TikTok dựng y bố cục này). Toàn màn hình vẫn phủ kín: .is-full ở
    dưới (và ở _hinh-nen-led.css) đè lại. */
 .sc-stage.is-hall .sc-screen {
@@ -169,7 +169,7 @@ html.sc-lock .cx-navmore-pop {
    đang chiếu / tổng ở cuối (như thanh tiến độ trình phát video); hàng dưới là cụm phát (trái) và
    các nút hành động (phải, "Trình chiếu" là nút chính đứng cuối). Hết chỗ thì cụm nút hành động
    xuống dòng, vẫn dồn phải. Dưới sm (điện thoại) nút hành động chỉ còn biểu tượng tròn để cả bàn
-   gọn trong hai dòng. Dùng chung cho Slide cưới và Hình nền LED. */
+   gọn trong hai dòng. Dùng chung cho Slide cưới và Nền sân khấu. */
 .sc-bar {
   position: relative;
   z-index: 1;

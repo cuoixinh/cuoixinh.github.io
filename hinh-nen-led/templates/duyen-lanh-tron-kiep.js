@@ -1,4 +1,4 @@
-// Hình nền LED "Duyên Lành Trọn Kiếp" (1280×720): màn chờ kiểu Art Deco — nền xanh navy, giấy kim
+// Nền sân khấu "Duyên Lành Trọn Kiếp" (1280×720): màn chờ kiểu Art Deco — nền xanh navy, giấy kim
 // tuyến vàng rơi xoay suốt vòng, khung vát góc + tia nắng + hình thoi vẽ nét vàng tự vẽ dần; chữ
 // hình học in hoa dãn rộng. Bốn cảnh nối vòng (chào đón trong khung · chân dung · ngày trong ba
 // hình thoi · bốn ảnh vát góc), chuyển cảnh mở từ giữa. Chỉ KHAI cảnh (đăng ký vào CX_LED_TEMPLATES).

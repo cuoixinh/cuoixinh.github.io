@@ -1,4 +1,4 @@
-// Hình nền LED "Nguyện Ước Chung Đôi" (1280×720): màn chờ kiểu cực quang — nền xanh đêm có quầng
+// Nền sân khấu "Nguyện Ước Chung Đôi" (1280×720): màn chờ kiểu cực quang — nền xanh đêm có quầng
 // sáng xanh ngọc/tím trôi chậm, bó sóng sáng mảnh chảy ngang nửa dưới; tên viết nét chữ ký.
 // Bốn cảnh nối vòng (chào đón · ảnh vòm · ba ảnh tròn · lời cảm ơn), chuyển cảnh mờ chồng chậm.
 // Chỉ KHAI cảnh (đăng ký vào CX_LED_TEMPLATES).
