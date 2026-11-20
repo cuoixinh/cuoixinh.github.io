@@ -66,6 +66,7 @@ window._weddingFpOptions = function (input) {
     // diễn ra vẫn phải mở lại chỉnh được — minDate khiến setDate lúc bind bị bỏ).
     onReady: function (selectedDates, dateStr, instance) {
       instance.altInput.placeholder = "Chọn ngày...";
+      _fpAddSteppers(instance);
     },
     onChange: function (selectedDates, dateStr, instance) {
       const event = new Event("change", { bubbles: true });
@@ -77,6 +78,44 @@ window._weddingFpOptions = function (input) {
     },
   };
 };
+
+// Bọc ô tháng và ô năm ở đầu lịch bằng cặp nút ‹ › riêng; hai mũi tên mép của flatpickr ẩn ở CSS.
+function _fpAddSteppers(fp) {
+  const head = fp.monthNav?.querySelector(".flatpickr-current-month");
+  if (!head || head.querySelector(".cx-fp-step")) return;
+  const arrow = (d) =>
+    `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+  const step = (label, dir, fn) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "cx-fp-step";
+    b.setAttribute("aria-label", label);
+    b.innerHTML = arrow(dir < 0 ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6");
+    b.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      fn();
+    });
+    return b;
+  };
+  const group = (el, prev, next) => {
+    if (!el) return;
+    const g = document.createElement("div");
+    g.className = "cx-fp-group";
+    el.before(g);
+    g.append(prev, el, next);
+  };
+  group(
+    head.querySelector(".flatpickr-monthDropdown-months") || head.querySelector(".cur-month"),
+    step("Tháng trước", -1, () => fp.changeMonth(-1)),
+    step("Tháng sau", 1, () => fp.changeMonth(1)),
+  );
+  group(
+    head.querySelector(".numInputWrapper"),
+    step("Năm trước", -1, () => fp.changeYear(fp.currentYear - 1)),
+    step("Năm sau", 1, () => fp.changeYear(fp.currentYear + 1)),
+  );
+}
 
 // Khởi tạo flatpickr cho 1 ô ngày bằng cấu hình chung + đăng ký instance theo name.
 window.createWeddingDatepicker = function (input) {
