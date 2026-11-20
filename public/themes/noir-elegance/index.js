@@ -103,8 +103,9 @@
   // TỰ MỞ. Bọc ở đây được vì index.js nạp sau wedding-helper.js và trước
   // theme-boot.js (nơi gọi hàm này).
   const _greetOriginal = window.setupPersonalizedGreeting;
-  window.setupPersonalizedGreeting = function (slug, isGroom) {
-    _greetOriginal(slug, isGroom, () => {});
+  window.setupPersonalizedGreeting = function (slug, isGroom, onOpen) {
+    // onOpen chỉ được gọi ở khung Thiết lập (_cxSkipCover) — nuốt nó là bìa kẹt ở tab Giao diện.
+    _greetOriginal(slug, isGroom, onOpen);
     // Không phải link riêng thì màn bìa sạch như tấm thiệp giấy, khỏi để lại
     // dãy gạch ngang chỗ tên khách.
     const wrap = document.getElementById("cover-guest-wrap");

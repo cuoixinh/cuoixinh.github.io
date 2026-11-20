@@ -80,12 +80,12 @@
 
   const _isGroom = isGroomSide();
 
-  // Con dấu trên phong bì là nét nhận dạng của mẫu → luôn hiện màn bìa, kể cả
-  // link chung (mặc định wedding-helper mở thẳng thiệp). Vẫn điền tên khách +
-  // bật phiếu hồi âm, chỉ bỏ phần TỰ MỞ. Bọc được vì index.js nạp sau wedding-helper.
+  // Khối tên khách chỉ hiện với link riêng (CX_GUEST). Phải chuyển tiếp onOpen:
+  // khung Thiết lập (_cxSkipCover) mở thiệp qua đúng callback đó, nuốt nó là bìa
+  // kẹt lại ở tab Giao diện. Bọc được vì index.js nạp sau wedding-helper.
   const _greetOriginal = window.setupPersonalizedGreeting;
-  window.setupPersonalizedGreeting = function (slug, isGroom) {
-    _greetOriginal(slug, isGroom, () => {});
+  window.setupPersonalizedGreeting = function (slug, isGroom, onOpen) {
+    _greetOriginal(slug, isGroom, onOpen);
     const wrap = document.getElementById("cover-guest-wrap");
     if (wrap && window.CX_GUEST) {
       wrap.classList.remove("hidden");
