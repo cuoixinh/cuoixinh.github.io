@@ -13,7 +13,7 @@ function cxVuQuyAsCeremony(w) {
   const on = w.vu_quy_enabled === true || w.vu_quy_enabled === "true";
   const bride = on && !isGroomSide();
   const out = { ...w };
-  if (Array.isArray(w.timeline)) {
+  if (Array.isArray(w.timeline) && !cxTimelineIsDays(w.timeline)) {
     const own = bride && w.timeline.some((i) => i?.type === "vu-quy");
     out.timeline = own
       ? w.timeline
@@ -56,13 +56,32 @@ function cxPartyOnly(w) {
     vu_quy_enabled: false,
     enable_party: false,
   };
-  if (Array.isArray(w.timeline)) {
+  if (Array.isArray(w.timeline) && !cxTimelineIsDays(w.timeline)) {
     const type = side === "groom" ? "party" : "bride-party";
     out.timeline = w.timeline
       .filter((i) => i?.type === type)
       .map((i) => ({ ...i, type: "ceremony" }));
   }
   return out;
+}
+
+// Lịch trình kiểu NGÀY (trang Thiết lập, js/14-timeline-story.js): mỗi mốc mang `day`
+// (tên ngày), `date`, `side` = "all" (dùng chung) | "groom" | "bride". Mẫu chỉ biết kiểu
+// cũ, nên ở đây lọc đúng bên đang xem rồi gắn type "ceremony" (mẫu nào cũng vẽ) cùng
+// cx_day/cx_date — cxSortTimelineGroups (render-helper.js) gom lại theo đó. Dữ liệu kiểu
+// cũ (không có mốc v=2) đi nguyên đường cũ.
+function cxTimelineIsDays(tl) {
+  return Array.isArray(tl) && tl.some((i) => i?.v === 2);
+}
+function cxTimelineForSide(w) {
+  if (!w || !cxTimelineIsDays(w.timeline)) return w;
+  const mine = isGroomSide() ? "groom" : "bride";
+  return {
+    ...w,
+    timeline: w.timeline
+      .filter((i) => i && (i.side === "all" || i.side === mine))
+      .map((i) => ({ time: i.time || "", title: i.title || "", type: "ceremony", cx_day: i.day || "", cx_date: i.date || "" })),
+  };
 }
 
 // Sáu ô địa chỉ nhập được NHIỀU DÒNG (textarea ở trang Thiết lập), vd "Xã A, huyện B
@@ -204,7 +223,7 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     }
     await guestReady;
 
-    wedding = cxVuQuyAsCeremony(cxPartyOnly(cxTidyAddr(wedding)));
+    wedding = cxTimelineForSide(cxVuQuyAsCeremony(cxPartyOnly(cxTidyAddr(wedding))));
 
     // Bộ màu worker dựng sẵn vào <head> (#cx-palette-boot, route-html.mjs) xong vai: dữ liệu
     // vừa về quyết định — kể cả khi thiệp không còn theme_setting mà trang cũ còn giữ bộ màu.

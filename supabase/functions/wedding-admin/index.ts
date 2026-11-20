@@ -212,17 +212,32 @@ function cleanTimeline(raw: unknown): Record<string, unknown>[] | null {
   if (!Array.isArray(arr)) return null
   // 'vu-quy' = lịch lễ vu quy riêng của link nhà gái (cxVuQuyAsCeremony ở core/helpers/wedding-helper.js).
   const TYPES = ['ceremony', 'party', 'bride-party', 'vu-quy']
-  // Trang Thiết lập cho mỗi loại tối đa 10 mốc (maxLoveStoryItems) → trần tổng = 10 × số loại.
-  return arr.slice(0, 10 * TYPES.length).map((it) => {
+  // Kiểu NGÀY (v=2, trang Thiết lập js/14-timeline-story.js): mỗi mốc thêm tên ngày, ngày
+  // và bên (all/groom/bride); type vẫn giữ (ceremony/party/bride-party) để applyFreeLimits
+  // lọc đúng bên bị khoá. Trần: hai danh sách × TIMELINE_MAX_PER_LIST mốc.
+  const SIDES = ['all', 'groom', 'bride']
+  return arr.slice(0, 2 * TIMELINE_MAX_PER_LIST).map((it) => {
     const o = (it && typeof it === 'object' ? it : {}) as Record<string, unknown>
     const type = cleanText(o.type, 20)
-    return {
+    const out: Record<string, unknown> = {
       time: cleanText(o.time, 20),
       title: cleanText(o.title, 300),
       type: TYPES.includes(type) ? type : 'ceremony',
     }
+    if (o.v === 2) {
+      const side = cleanText(o.side, 10)
+      const date = cleanText(o.date, 10)
+      out.v = 2
+      out.side = SIDES.includes(side) ? side : 'all'
+      out.day = cleanText(o.day, 100)
+      out.date = /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : ''
+    }
+    return out
   })
 }
+
+// Bằng TL_MAX_PER_LIST ở invitation-setup/js/14-timeline-story.js — đổi phải đổi cả hai.
+const TIMELINE_MAX_PER_LIST = 40
 
 function safeParse(s: string): unknown {
   try { return JSON.parse(s) } catch { return null }

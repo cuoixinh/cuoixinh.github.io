@@ -19,7 +19,6 @@ function toggleVuQuy(event) {
   // Nguồn "trùng địa điểm" của tiệc nhà gái đổi theo lễ vu quy.
   _syncPartySameLabel();
   _syncPartyIfSame();
-  _updateTimelineVuQuySection();
 }
 
 // Ô tick "Chỉ hiển thị QR của thiệp tương ứng" (bước Hộp mừng cưới) — giá trị
@@ -141,7 +140,6 @@ function initCeremonySection(data) {
   document.getElementById("vis-btn-vu-quy")?.setAttribute("aria-checked", String(vuQuyEnabled));
   if (fields) fields.classList.toggle("hidden", !vuQuyEnabled);
   _syncPartySameLabel();
-  _updateTimelineVuQuySection();
 
   // Ô "Trùng địa điểm" không có cột DB: suy lại từ dữ liệu — tiệc chưa có nơi riêng
   // hoặc nơi tiệc bằng đúng nơi nguồn thì coi là đang trùng.
@@ -179,7 +177,7 @@ function _onPartyOnlyToggle(section) {
   _syncPartyOnly();
 }
 
-// Tiệc không còn "trùng địa điểm lễ", lịch trình bỏ nhóm lễ.
+// Tiệc không còn "trùng địa điểm lễ".
 function _syncPartyOnly() {
   const off = _isPartyOnly();
   ["groom", "bride"].forEach((side) => {
@@ -188,8 +186,6 @@ function _syncPartyOnly() {
     if (off && check.checked) togglePartySameLoc(side, null, false);
     check.parentElement?.classList.toggle("hidden", off);
   });
-  document.getElementById("timeline-ceremony-sub")?.classList.toggle("hidden", off);
-  _updateTimelineVuQuySection();
 }
 
 window.applySlug = applySlug;

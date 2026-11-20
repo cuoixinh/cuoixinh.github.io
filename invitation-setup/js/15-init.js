@@ -4,39 +4,6 @@
 
 // ============= INITIALIZATION =============
 
-const WEEKDAYS_VI = [
-  "Chủ Nhật",
-  "Thứ Hai",
-  "Thứ Ba",
-  "Thứ Tư",
-  "Thứ Năm",
-  "Thứ Sáu",
-  "Thứ Bảy",
-];
-
-function _updateTimelineDateBadge() {
-  const badge = document.getElementById("timeline-date-badge");
-  const text = document.getElementById("timeline-date-text");
-  const btn = document.getElementById("btn-add-ceremony");
-  const noDate = document.getElementById("timeline-ceremony-no-date");
-  if (!badge || !text) return;
-  const val =
-    document.querySelector('input[name="ceremony_date"]')?.value || "";
-  if (!val) {
-    badge.classList.add("hidden");
-    if (btn) btn.style.display = "none";
-    if (noDate) noDate.classList.remove("hidden");
-    return;
-  }
-  const d = new Date(val + "T00:00:00");
-  text.textContent = `${WEEKDAYS_VI[d.getDay()]}, ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-  badge.classList.remove("hidden");
-  if (btn) btn.style.display = "";
-  if (noDate) noDate.classList.add("hidden");
-  _ensureTimelineDefault("ceremony");
-  if (typeof lucide !== "undefined") lucide.createIcons();
-}
-
 function setupLunarDateListeners() {
   // Helper function to update lunar display
   const updateLunarDisplay = (
@@ -322,47 +289,6 @@ function initializePage() {
 
   // Setup lunar date auto-fill
   setupLunarDateListeners();
-
-  // Bind ceremony date → timeline heading badge
-  _updateTimelineDateBadge();
-  const ceremonyDateInput = document.querySelector(
-    'input[name="ceremony_date"]',
-  );
-  if (ceremonyDateInput) {
-    ceremonyDateInput.addEventListener("change", _updateTimelineDateBadge);
-    ceremonyDateInput.addEventListener("input", _updateTimelineDateBadge);
-  }
-
-  // Lịch lễ vu quy (tab Nhà gái): ngày theo ngày vu quy, trống thì ngày lễ
-  _updateTimelineVuQuySection();
-  ["ceremony_date", "vu_quy_date"].forEach((n) => {
-    const el = document.querySelector(`input[name="${n}"]`);
-    el?.addEventListener("change", _updateTimelineVuQuySection);
-    el?.addEventListener("input", _updateTimelineVuQuySection);
-  });
-
-  // Party sub-section visibility + date badge
-  _updateTimelinePartySection();
-  const groomPartyDateEl = document.querySelector(
-    'input[name="groom_party_date"]',
-  );
-  if (groomPartyDateEl) {
-    groomPartyDateEl.addEventListener("change", _updateTimelinePartyDateBadge);
-    groomPartyDateEl.addEventListener("input", _updateTimelinePartyDateBadge);
-  }
-  const bridePartyDateEl = document.querySelector(
-    'input[name="bride_party_date"]',
-  );
-  if (bridePartyDateEl) {
-    bridePartyDateEl.addEventListener(
-      "change",
-      _updateTimelineBridePartyDateBadge,
-    );
-    bridePartyDateEl.addEventListener(
-      "input",
-      _updateTimelineBridePartyDateBadge,
-    );
-  }
 
   // Setup form submit handler
   const form = document.getElementById("wedding-form");

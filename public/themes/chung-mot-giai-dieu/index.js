@@ -385,12 +385,14 @@
           if (t === "bride-party" && side !== "bride") return false;
           return !!it.title;
         });
-    const key = (it) => `${dateOf[it.type || "ceremony"] || "9999"}T${it.time || "99:99"}`;
+    // cx_date: lịch trình kiểu ngày (cxTimelineForSide) — mỗi mốc mang ngày riêng.
+    const dayOf = (it) => it.cx_date || dateOf[it.type || "ceremony"];
+    const key = (it) => `${dayOf(it) || "9999"}T${it.time || "99:99"}`;
     items.sort((a, b) => key(a).localeCompare(key(b)));
     cxToggle("section-timeline", items.length > 0);
     list.innerHTML = items
       .map((it, i) => {
-        const d = _date(dateOf[it.type || "ceremony"]);
+        const d = _date(dayOf(it));
         return `<li><i>${i + 1}</i><div><b>${escapeHtml(it.title)}</b>${
           d ? `<small>${WD[d.getDay()]} ${pad(d.getDate())}.${pad(d.getMonth() + 1)}</small>` : ""
         }</div><time>${escapeHtml(it.time || "")}</time></li>`;

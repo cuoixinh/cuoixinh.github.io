@@ -123,7 +123,7 @@
     // Sau 04 (dùng _savePreviewData/_previewIframeSrc và cờ _isPreviewActive).
     "js/22-live-preview.js",
     "js/23-pull-refresh.js",
-    // Sau các file dựng form: cần _loveStoryItems/_timelineItems/BANK_LIST.
+    // Sau các file dựng form: cần _loveStoryItems/_tlLoad/BANK_LIST.
     "js/24-ai-apply.js",
     // Bộ đọc CX_THEME dùng chung (25-theme-decl.js + khung chat XuXi).
     "../core/helpers/theme-decl.js",

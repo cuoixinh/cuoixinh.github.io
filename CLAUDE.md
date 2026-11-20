@@ -521,6 +521,9 @@ tên thư mục là `weddings.theme` + khoá của `template_pricing`, đổi l�
   `renderVenueMaps(w, side)` (`render-helper.js`) — lễ và tiệc ở hai nơi thì nó nhân cặp
   đó thành bản đồ thứ hai (id đuôi `-2`, cờ `.cx-map-dual` trên mục). `theme.css` nhắm
   theo id thì khai luôn id `-2`, không thì bản đồ thứ hai lệch kiểu.
+- Mục Lịch trình: mốc có thể mang ngày riêng (kiểu NGÀY, `cxTimelineForSide` ở
+  `wedding-helper.js` gắn `cx_day`/`cx_date`) — mẫu tự vẽ phải gom nhóm qua
+  `cxSortTimelineGroups` hoặc đọc `it.cx_date` trước ngày lễ/tiệc, không thì mọi mốc dồn về ngày lễ.
 - Mục Hộp mừng cưới: khối chứa mã QR đánh dấu `data-cx-gift="qr"`, hộp chọn ở
   `CX_THEME.giftBox` — **mẫu không tự vẽ hộp/phong bao**, xem mục "Hộp mừng cưới" ở dưới.
 

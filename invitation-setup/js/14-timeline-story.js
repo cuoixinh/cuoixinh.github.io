@@ -3,11 +3,22 @@
 // Tách từ index.js (dòng 3889–4239 bản gốc). Thứ tự nạp khai báo ở loader.js.
 
 // ============= TIMELINE =============
-// Mỗi item: { time, title, type }  type = "ceremony" | "party" | "bride-party" | "vu-quy"
-// ("vu-quy" chỉ link nhà gái thấy, thay nhóm "ceremony" — cxVuQuyAsCeremony ở
-// core/helpers/wedding-helper.js). Item không có type → coi là "ceremony".
+// Lịch trình kiểu NGÀY: mỗi danh sách là các ngày { label, date, items: [{time, title}] },
+// bao nhiêu ngày cũng được. "Dùng chung" = một danh sách cho cả hai link; bỏ tick = hai
+// danh sách riêng nhà trai / nhà gái. Lưu PHẲNG vào cột timeline, mỗi mốc mang v=2 + side
+// + day + date (thiệp đọc ở cxTimelineForSide, core/helpers/wedding-helper.js). Dữ liệu
+// kiểu cũ (type ceremony/party/bride-party/vu-quy, ngày lấy từ bước Lễ/Tiệc) chuyển sang
+// lúc nạp bằng _tlFromLegacy, giữ y nhóm + ngày thiệp đang hiện.
 
-let _timelineItems = [];
+// Bằng TIMELINE_MAX_PER_LIST ở supabase/functions/wedding-admin — đổi phải đổi cả hai.
+const TL_MAX_PER_LIST = 40;
+const TL_MAX_DAYS = 8;
+const TL_SIDES = ["all", "groom", "bride"];
+// type giữ cho server: applyFreeLimits (gói Free) gỡ mốc của bên bị khoá theo type.
+const TL_TYPE = { all: "ceremony", groom: "party", bride: "bride-party" };
+
+const _tl = { shared: true, side: "groom", lists: { all: [], groom: [], bride: [] } };
+let _tlPickers = [];
 
 // Lịch trình và chuyện tình yêu sống trong hai ô ẩn (#timeline-value,
 // #love-story-value) mà CHỈ code ghi vào → không phát event nào, listener autosave ở
@@ -20,12 +31,50 @@ function _listChanged() {
     _scheduleAutoSave("edit");
 }
 
+const _tlHas = (it) => !!(String(it?.time || "").trim() || String(it?.title || "").trim());
+const _tlDayHas = (d) => d.items.some(_tlHas);
+const _tlClone = (days) => JSON.parse(JSON.stringify(days));
+
+// Giá trị một ô của form; lúc fillForm nạp thì đọc thẳng từ dữ liệu (ô chưa kịp điền).
+function _tlVal(name, data) {
+  if (data && data[name] !== undefined && data[name] !== null) return String(data[name]);
+  return (
+    document.querySelector(`#wedding-form :is(input, textarea)[name="${name}"]`)?.value || ""
+  );
+}
+
+function _tlBlankDay(date = "", label = "") {
+  return { label, date, items: [{ time: "", title: "" }] };
+}
+
+// Danh sách đang sửa; rỗng thì mở sẵn một ngày (ngày cưới nếu đã chọn).
+function _tlDays() {
+  const k = _tl.shared ? "all" : _tl.side;
+  if (!_tl.lists[k].length) _tl.lists[k].push(_tlBlankDay(_tlVal("ceremony_date")));
+  return _tl.lists[k];
+}
+
 // Mốc chưa nhập gì (cả giờ lẫn việc đều trống) chỉ sống trong form — không ra ô ẩn
 // (dữ liệu lưu + bước "đã xong") và không lên thiệp.
 function _timelineFilled() {
-  return _timelineItems.filter(
-    (it) => String(it.time || "").trim() || String(it.title || "").trim(),
+  const out = [];
+  (_tl.shared ? ["all"] : ["groom", "bride"]).forEach((side) =>
+    _tl.lists[side].forEach((d) =>
+      d.items.forEach((it) => {
+        if (!_tlHas(it)) return;
+        out.push({
+          v: 2,
+          side,
+          type: TL_TYPE[side],
+          day: String(d.label || "").trim(),
+          date: d.date || "",
+          time: it.time || "",
+          title: it.title || "",
+        });
+      }),
+    ),
   );
+  return out;
 }
 
 function _syncTimelineHidden() {
@@ -34,176 +83,218 @@ function _syncTimelineHidden() {
   _listChanged();
 }
 
-function _ensureTimelineDefault(type) {
-  const has = _timelineItems.some((i) => (i.type || "ceremony") === type);
-  if (!has) {
-    _timelineItems.push({ time: "", title: "", type });
-    _syncTimelineHidden();
-    renderTimelineList();
+// Lịch trình kiểu cũ của MỘT bên → các ngày, đúng như thiệp đang vẽ cho link bên đó
+// (cxPartyOnly + cxVuQuyAsCeremony + nhóm lễ/tiệc của renderTimeline).
+function _tlFromLegacy(arr, side, data) {
+  const v = (n) => _tlVal(n, data);
+  const of = (t) =>
+    arr
+      .filter((i) => i && (i.type || "ceremony") === t && _tlHas(i))
+      .map((i) => ({ time: i.time || "", title: i.title || "" }));
+  const cerName = v("ceremony_name") || "Lễ Thành Hôn";
+  const days = [];
+  const add = (label, date, items) => items.length && days.push({ label, date, items });
+
+  if (v("enable_ceremony") === "false") {
+    const other = side === "groom" ? "bride" : "groom";
+    const ps = !v(`${side}_party_date`) && v(`${other}_party_date`) ? other : side;
+    add(cerName, v(`${ps}_party_date`), of(ps === "groom" ? "party" : "bride-party"));
+    return days;
   }
+  const vuQuy = side === "bride" && v("vu_quy_enabled") === "true";
+  const vqDate = v("vu_quy_date");
+  if (vuQuy && of("vu-quy").length) {
+    add("Lễ Vu Quy", vqDate || v("ceremony_date"), of("vu-quy"));
+  } else {
+    const label = vuQuy && !(vqDate && vqDate !== v("ceremony_date")) ? "Lễ Vu Quy" : cerName;
+    add(label, v("ceremony_date"), of("ceremony"));
+  }
+  add("Tiệc Cưới", v(`${side}_party_date`), of(side === "groom" ? "party" : "bride-party"));
+  return days;
 }
 
-function _renderTimelineRows(listEl, type, colorClass) {
-  listEl.innerHTML = "";
-  _timelineItems.forEach((item, idx) => {
-    if ((item.type || "ceremony") !== type) return;
-    const div = document.createElement("div");
-    div.className = `flex items-center gap-2 ${colorClass} rounded-2xl p-3 border`;
-    div.innerHTML = `
-      <input
-        type="text"
-        value="${escapeHtml(item.time || "")}"
-        placeholder="Chọn giờ"
-        aria-label="Giờ"
-        readonly
-        class="w-24 flex-shrink-0 h-10 px-2 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none cursor-pointer text-center hover:border-gray-300 focus:border-gray-400"
-        onclick="openTimePicker(this, this.value, v => { _timelineItems[${idx}].time=v; this.value=v; _syncTimelineHidden(); })"
-      />
-      <input
-        type="text"
-        value="${escapeHtml(item.title || "")}"
-        placeholder="Mô tả sự kiện"
-        aria-label="Mô tả sự kiện"
-        class="flex-1 min-w-0 h-10 px-3 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none focus:border-gray-400"
-        oninput="_timelineItems[${idx}].title=this.value;_syncTimelineHidden();"
-      />
-      <x-button variant="soft" tone="danger" size="sm" icon-only type="button" onclick="removeTimelineItem(${idx})" title="Xóa" class="flex-shrink-0">
-        <i data-lucide="trash-2" class="w-4 h-4"></i>
+// Nạp lịch trình (fillForm, AI, dữ liệu mẫu). `data` = bản ghi đang nạp, null = đọc form.
+function _tlLoad(items, data) {
+  const arr = Array.isArray(items) ? items : [];
+  _tl.lists = { all: [], groom: [], bride: [] };
+  _tl.side = "groom";
+  if (arr.some((i) => i?.v === 2)) {
+    arr.forEach((i) => {
+      if (i?.v !== 2) return;
+      const list = _tl.lists[TL_SIDES.includes(i.side) ? i.side : "all"];
+      const label = i.day || "";
+      const date = i.date || "";
+      let d = list.find((x) => x.label === label && x.date === date);
+      if (!d) list.push((d = { label, date, items: [] }));
+      d.items.push({ time: i.time || "", title: i.title || "" });
+    });
+    _tl.shared = !_tl.lists.groom.length && !_tl.lists.bride.length;
+  } else {
+    const g = _tlFromLegacy(arr, "groom", data);
+    const b = _tlFromLegacy(arr, "bride", data);
+    _tl.shared = JSON.stringify(g) === JSON.stringify(b);
+    if (_tl.shared) _tl.lists.all = g;
+    else Object.assign(_tl.lists, { groom: g, bride: b });
+  }
+  _syncTimelineHidden();
+  renderTimelineList();
+}
+
+const _TL_INPUT =
+  "h-10 px-3 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none focus:border-gray-400";
+
+function _tlRowHtml(it, di, ii) {
+  return `
+    <div class="flex items-center gap-2">
+      <input type="text" value="${escapeHtml(it.time || "")}" placeholder="Giờ" aria-label="Giờ" readonly
+        class="${_TL_INPUT} w-20 flex-shrink-0 px-2 text-center cursor-pointer hover:border-gray-300"
+        onclick="openTimePicker(this, this.value, v => { this.value = v; _tlSetItem(${di}, ${ii}, 'time', v); })" />
+      <input type="text" value="${escapeHtml(it.title || "")}" placeholder="Mô tả sự kiện" aria-label="Mô tả sự kiện"
+        class="${_TL_INPUT} flex-1 min-w-0" oninput="_tlSetItem(${di}, ${ii}, 'title', this.value)" />
+      <x-button variant="ghost" tone="danger" size="sm" icon-only type="button" onclick="removeTimelineItem(${di}, ${ii})"
+        aria-label="Xoá mốc" title="Xoá mốc" class="flex-shrink-0">
+        <i data-lucide="x" style="width:16px;height:16px"></i>
       </x-button>
-    `;
-    listEl.appendChild(div);
-  });
+    </div>`;
 }
 
 function renderTimelineList() {
-  const cList = document.getElementById("timeline-list");
-  if (cList)
-    _renderTimelineRows(cList, "ceremony", "bg-cyan-50 border-cyan-100");
-  const pList = document.getElementById("timeline-party-list");
-  if (pList)
-    _renderTimelineRows(pList, "party", "bg-amber-50 border-amber-100");
-  const bpList = document.getElementById("timeline-bride-party-list");
-  if (bpList)
-    _renderTimelineRows(bpList, "bride-party", "bg-amber-50 border-amber-100");
-  const vqList = document.getElementById("timeline-vu-quy-list");
-  if (vqList)
-    _renderTimelineRows(vqList, "vu-quy", "bg-cyan-50 border-cyan-100");
-  if (typeof lucide !== "undefined") lucide.createIcons();
-}
+  const box = document.getElementById("timeline-days");
+  if (!box) return;
+  _tlPickers.forEach((fp) => fp.destroy());
+  _tlPickers = [];
 
-// escapeHtml() dùng chung từ core/utils.js (loader nạp trước các file js/).
-// Bản cũ khai báo ở đây ghi đè bản chung bằng phiên bản thiếu escape dấu nháy đơn.
-
-function addTimelineItem(type = "ceremony") {
-  const max = CONFIG.maxLoveStoryItems || 10;
-  if (
-    _timelineItems.filter((i) => (i.type || "ceremony") === type).length >= max
-  ) {
-    showToast(`Tối đa ${max} mốc`, "warning");
-    return;
-  }
-  _timelineItems.push({ time: "", title: "", type });
-  _syncTimelineHidden();
-  renderTimelineList();
-  const listId =
-    {
-      "bride-party": "timeline-bride-party-list",
-      party: "timeline-party-list",
-      "vu-quy": "timeline-vu-quy-list",
-    }[type] || "timeline-list";
-  const list = document.getElementById(listId);
-  if (list) {
-    const inputs = list.querySelectorAll("input[type=text]");
-    if (inputs.length >= 2) inputs[inputs.length - 2]?.focus();
-  }
-}
-
-function removeTimelineItem(idx) {
-  _timelineItems.splice(idx, 1);
-  _syncTimelineHidden();
-  renderTimelineList();
-}
-
-function _updateTimelinePartySection() {
-  const enabled = document.getElementById("enable_party")?.value === "true";
-  ["timeline-party-sub", "timeline-bride-party-sub"].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = enabled ? "" : "none";
+  const check = document.querySelector('x-check[key="timeline-shared"]');
+  if (check) check.checked = _tl.shared;
+  const seg = document.getElementById("timeline-seg");
+  document.getElementById("timeline-seg-wrap")?.classList.toggle("hidden", _tl.shared);
+  ["groom", "bride"].forEach((s, i) => {
+    const tab = document.getElementById(`timeline-tab-${s}`);
+    if (!tab) return;
+    const on = s === _tl.side;
+    tab.classList.toggle("is-on", on);
+    tab.setAttribute("aria-selected", String(on));
+    if (on) seg?.style.setProperty("--i", String(i));
   });
-  if (enabled) {
-    _updateTimelinePartyDateBadge();
-    _updateTimelineBridePartyDateBadge();
-  }
+
+  const days = _tlDays();
+  box.innerHTML = days
+    .map(
+      (d, di) => `
+    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-3 space-y-2">
+      <div class="flex items-center gap-2">
+        <input type="text" value="${escapeHtml(d.label || "")}" placeholder="Tên ngày, ví dụ: Lễ ăn hỏi"
+          aria-label="Tên ngày" class="${_TL_INPUT} flex-1 min-w-0 font-medium"
+          oninput="_tlSetDay(${di}, 'label', this.value)" />
+        <x-button variant="ghost" tone="danger" size="sm" icon-only type="button" onclick="removeTimelineDay(${di})"
+          aria-label="Xoá ngày này" title="Xoá ngày này" class="flex-shrink-0">
+          <i data-lucide="trash-2" style="width:16px;height:16px"></i>
+        </x-button>
+      </div>
+      <input type="date" data-tl-date="${di}" aria-label="Ngày" class="${_TL_INPUT} w-full" />
+      <div class="space-y-2 pt-1">${d.items.map((it, ii) => _tlRowHtml(it, di, ii)).join("")}</div>
+      <x-button variant="ghost" size="sm" type="button" onclick="addTimelineItem(${di})">
+        <i data-lucide="plus" style="width:16px;height:16px"></i> Thêm mốc
+      </x-button>
+    </div>`,
+    )
+    .join("");
+
+  box.querySelectorAll("input[data-tl-date]").forEach((inp) => {
+    const di = Number(inp.dataset.tlDate);
+    inp.value = days[di]?.date || "";
+    const fp = window.createWeddingDatepicker?.(inp);
+    if (fp) {
+      fp.setDate(inp.value || null, false);
+      _tlPickers.push(fp);
+    }
+    inp.addEventListener("change", () => {
+      if ((days[di]?.date || "") !== inp.value) _tlSetDay(di, "date", inp.value);
+    });
+  });
+  window.lucide?.createIcons({ root: box });
 }
 
-function _updateTimelinePartyDateBadge() {
-  const badge = document.getElementById("timeline-party-date-badge");
-  const text = document.getElementById("timeline-party-date-text");
-  const btn = document.getElementById("btn-add-party");
-  const noDate = document.getElementById("timeline-party-no-date");
-  if (!badge || !text) return;
-  const val =
-    document.querySelector('input[name="groom_party_date"]')?.value || "";
-  if (!val) {
-    badge.classList.add("hidden");
-    if (btn) btn.style.display = "none";
-    if (noDate) noDate.classList.remove("hidden");
+function _tlSetDay(di, key, val) {
+  const d = _tlDays()[di];
+  if (!d) return;
+  d[key] = val;
+  _syncTimelineHidden();
+}
+
+function _tlSetItem(di, ii, key, val) {
+  const it = _tlDays()[di]?.items[ii];
+  if (!it) return;
+  it[key] = val;
+  _syncTimelineHidden();
+}
+
+// Ngày mới mặc định là hôm sau của ngày cuối danh sách.
+function addTimelineDay() {
+  const days = _tlDays();
+  if (days.length >= TL_MAX_DAYS) {
+    showToast(`Tối đa ${TL_MAX_DAYS} ngày`, "warning");
     return;
   }
-  const d = new Date(val + "T00:00:00");
-  text.textContent = `${WEEKDAYS_VI[d.getDay()]}, ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-  badge.classList.remove("hidden");
-  if (btn) btn.style.display = "";
-  if (noDate) noDate.classList.add("hidden");
-  _ensureTimelineDefault("party");
-  if (typeof lucide !== "undefined") lucide.createIcons();
+  let next = "";
+  const last = days[days.length - 1]?.date;
+  if (last) {
+    const t = new Date(last + "T00:00:00");
+    t.setDate(t.getDate() + 1);
+    next = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+  }
+  days.push(_tlBlankDay(next));
+  _syncTimelineHidden();
+  renderTimelineList();
+  document.querySelector("#timeline-days > div:last-child input[type=text]")?.focus();
 }
 
-function _updateTimelineBridePartyDateBadge() {
-  const badge = document.getElementById("timeline-bride-party-date-badge");
-  const text = document.getElementById("timeline-bride-party-date-text");
-  const btn = document.getElementById("btn-add-bride-party");
-  const noDate = document.getElementById("timeline-bride-party-no-date");
-  if (!badge || !text) return;
-  const val =
-    document.querySelector('input[name="bride_party_date"]')?.value || "";
-  if (!val) {
-    badge.classList.add("hidden");
-    if (btn) btn.style.display = "none";
-    if (noDate) noDate.classList.remove("hidden");
+function removeTimelineDay(di) {
+  _tlDays().splice(di, 1);
+  _syncTimelineHidden();
+  renderTimelineList();
+}
+
+function addTimelineItem(di) {
+  const days = _tlDays();
+  const d = days[di];
+  if (!d) return;
+  if (days.reduce((n, x) => n + x.items.length, 0) >= TL_MAX_PER_LIST) {
+    showToast(`Tối đa ${TL_MAX_PER_LIST} mốc`, "warning");
     return;
   }
-  const d = new Date(val + "T00:00:00");
-  text.textContent = `${WEEKDAYS_VI[d.getDay()]}, ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-  badge.classList.remove("hidden");
-  if (btn) btn.style.display = "";
-  if (noDate) noDate.classList.add("hidden");
-  _ensureTimelineDefault("bride-party");
-  if (typeof lucide !== "undefined") lucide.createIcons();
+  d.items.push({ time: "", title: "" });
+  _syncTimelineHidden();
+  renderTimelineList();
+  const rows = document.querySelectorAll(`#timeline-days > div:nth-child(${di + 1}) .space-y-2 > div`);
+  rows[rows.length - 1]?.querySelectorAll("input")[1]?.focus();
 }
 
-// Lịch lễ vu quy chỉ có khi bật vu quy; ngày = ngày vu quy, trống thì ngày lễ thành hôn.
-// Gọi lại khi công tắc vu quy, ngày vu quy hoặc ngày lễ đổi.
-function _updateTimelineVuQuySection() {
-  // Tiệc báo hỷ thì không có lễ nào, kể cả vu quy (_syncPartyOnly ở 16-ceremony.js).
-  const on =
-    document.getElementById("vu_quy_enabled")?.value === "true" &&
-    document.getElementById("enable_ceremony")?.value !== "false";
-  document.getElementById("timeline-vu-quy-sub")?.classList.toggle("hidden", !on);
-  const head = document.getElementById("timeline-ceremony-label");
-  if (head) head.textContent = on ? "Lễ thành hôn" : "Lễ cưới";
-  if (!on) return;
-  const val = (n) => document.querySelector(`input[name="${n}"]`)?.value || "";
-  const date = val("vu_quy_date") || val("ceremony_date");
-  const badge = document.getElementById("timeline-vu-quy-date-badge");
-  const text = document.getElementById("timeline-vu-quy-date-text");
-  if (badge) badge.classList.toggle("hidden", !date);
-  if (date && text) {
-    const d = new Date(date + "T00:00:00");
-    text.textContent = `${WEEKDAYS_VI[d.getDay()]}, ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+function removeTimelineItem(di, ii) {
+  _tlDays()[di]?.items.splice(ii, 1);
+  _syncTimelineHidden();
+  renderTimelineList();
+}
+
+// Bỏ tick → mỗi nhà bắt đầu từ bản chung (bên nào chưa có gì); tick lại → bản chung
+// chưa có gì thì lấy theo nhà đang mở. Danh sách bên kia vẫn giữ trong phiên này.
+function toggleTimelineShared(event) {
+  const on = !!event?.target?.checked;
+  _tl.shared = on;
+  if (!on) {
+    ["groom", "bride"].forEach((s) => {
+      if (!_tl.lists[s].some(_tlDayHas)) _tl.lists[s] = _tlClone(_tl.lists.all);
+    });
+  } else if (!_tl.lists.all.some(_tlDayHas)) {
+    _tl.lists.all = _tlClone(_tl.lists[_tl.side]);
   }
-  _ensureTimelineDefault("vu-quy");
-  if (typeof lucide !== "undefined") lucide.createIcons();
+  _syncTimelineHidden();
+  renderTimelineList();
+}
+
+function switchTimelineSide(side) {
+  _tl.side = side;
+  renderTimelineList();
 }
 
 // ============= LOVE STORY =============

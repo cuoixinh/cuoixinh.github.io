@@ -257,7 +257,8 @@
         if (t !== "ceremony" && !partyOn) return;
         if (t === "party" && side !== "groom") return;
         if (t === "bride-party" && side !== "bride") return;
-        const date = dateOf[t];
+        // cx_date: lịch trình kiểu ngày (cxTimelineForSide) — mỗi mốc mang ngày riêng.
+        const date = it.cx_date || dateOf[t];
         if (!it.title || stops.some((s) => s.date === date && s.time === it.time)) return;
         stops.push({ date, time: it.time, title: it.title });
       });
