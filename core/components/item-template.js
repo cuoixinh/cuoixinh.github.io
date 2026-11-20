@@ -8,7 +8,7 @@
   // Không khai cỡ ở đây: `.tt-cardbtns svg.lucide` cho icon ăn theo font-size của
   // nút, nhờ vậy icon và chữ cùng lớn/nhỏ theo khổ thẻ và luôn thẳng hàng.
   const ICON_EYE = `<i data-lucide="eye"></i>`;
-  const ICON_USE = `<i data-lucide="play"></i>`;
+  const ICON_USE = `<i data-lucide="pen-line"></i>`;
   const ICON_TAG = `<i data-lucide="tag"></i>`;
   const ICON_FAV = `<i data-lucide="heart"></i>`;
   const ICON_GO = `<i data-lucide="chevron-right"></i>`;
@@ -62,9 +62,8 @@
 
     return `
     <article class="tt-card${opts.cardClass ? " " + opts.cardClass : ""}" data-id="${esc(t.id)}" data-theme="${esc(t.theme)}">
-      <div class="tt-media" role="button" tabindex="0" aria-label="Xem nhanh ${name}" data-tpl-act="preview">
+      <div class="tt-media" role="button" tabindex="0" aria-label="Xem trước ${name}" data-tpl-act="preview">
         <img src="/assets/images/templates/${esc(t.theme)}.jpg${typeof CX_VERSION !== "undefined" ? "?v=" + CX_VERSION : ""}" alt="${name}" loading="lazy" />
-        <span class="tt-peek" aria-hidden="true">${ICON_EYE}Xem nhanh</span>
         ${tagrow}
       </div>
 

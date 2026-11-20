@@ -1960,7 +1960,13 @@ html.cx-landing {
    Giấu thanh cuộn: dải chỉ cao hơn thẻ vài px nên thanh cuộn ngang của Chrome/
    Windows ăn mất một khoảng ngay dưới ảnh, trông như thẻ bị cắt chân. */
 .cx-tplrow {
-  @apply flex gap-4 overflow-x-auto px-5 pb-2 pt-1;
+  @apply flex gap-4 overflow-x-auto px-5;
+  /* overflow cắt bóng thẻ theo mép dải → lề dọc đủ chứa bóng (kể cả lúc rê chuột),
+     margin âm trả lại đúng chỗ cũ (net 4px trên, 8px dưới). */
+  padding-top: 40px;
+  padding-bottom: 44px;
+  margin-top: -36px;
+  margin-bottom: -36px;
   /* Mờ hai mép (`.scroll-fade`, js/scroll-fade.js gán --fade-left/right) chỉ
      bật từ lg: dưới ngưỡng đó dải chạm mép màn nên cắt thẳng trông tự nhiên,
      còn ở khổ máy tính dải dừng giữa trang, cạnh sắc nhìn như thẻ bị xén.
@@ -1990,10 +1996,13 @@ html.cx-landing {
     /* Từ lg hai nút mũi tên đứng ngoài dải (hàng flex ở index.html, gap 16px):
        bỏ lề trong để 16px đó đo từ chính mép thẻ. Dưới lg giữ px-5 vì dải chạy
        sát mép màn. scroll-padding phải đi theo, nếu không thẻ snap tới đứng
-       thụt vào 20px giữa dải. */
-    padding-left: 0;
-    padding-right: 0;
-    scroll-padding: 0;
+       thụt vào 20px giữa dải. Lề 40px + margin âm cùng cỡ: chỗ cho bóng thẻ hai
+       đầu mà mép thẻ vẫn đứng y chỗ cũ. */
+    padding-left: 40px;
+    padding-right: 40px;
+    margin-left: -40px;
+    margin-right: -40px;
+    scroll-padding: 0 40px;
   }
 }
 
@@ -2049,28 +2058,20 @@ html.cx-landing {
   background: rgb(var(--white-rgb));
   border: 1px solid rgb(var(--scrim-plum-rgb) / 0.08);
   box-shadow:
-    0 1px 2px rgb(var(--scrim-plum-rgb) / 0.04),
-    0 8px 24px -16px rgb(var(--scrim-plum-rgb) / 0.22);
+    0 4px 24px -4px rgb(var(--scrim-plum-rgb) / 0.07);
   container-type: inline-size;
   transition:
     box-shadow 0.25s ease,
-    transform 0.25s ease,
     border-color 0.25s ease;
 }
 .tt-card:hover {
-  transform: translateY(-4px);
   border-color: rgb(var(--brand-primary-rgb) / 0.5);
-  box-shadow:
-    0 2px 4px rgb(var(--scrim-plum-rgb) / 0.04),
-    0 20px 40px -18px rgb(var(--preview-shadow-rgb) / 0.45);
-}
-.tt-card:active {
-  transform: translateY(-1px) scale(0.995);
+  box-shadow: 0 4px 32px rgb(var(--preview-shadow-rgb) / 0.1);
 }
 
 /* Ô ảnh mẫu, tỉ lệ CỐ ĐỊNH 391:722 = lõi màn mockup điện thoại — ảnh chụp bởi
    scripts/capture.js cùng tỉ lệ; đổi thì sửa cả ở đó lẫn skeleton ở /theme-template.
-   Bấm vào ảnh = Xem nhanh. */
+   Bấm vào ảnh = Xem trước. */
 .tt-media {
   position: relative;
   overflow: hidden;
@@ -2101,61 +2102,11 @@ html.cx-landing {
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .tt-card:hover .tt-media > img {
-  transform: scale(1.04);
+  transform: scale(1.015);
 }
 .tt-media:focus-visible {
   outline: 2px solid rgb(var(--action-primary-rgb));
   outline-offset: 2px;
-}
-
-/* "Xem nhanh" giữa ảnh — chỉ khi rê chuột (máy cảm ứng bấm thẳng vào ảnh). */
-.tt-peek {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  color: rgb(var(--scrim-plum-rgb));
-  background: rgb(var(--white-rgb) / 0.92);
-  box-shadow: 0 8px 24px -8px rgb(var(--scrim-rgb) / 0.45);
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  transform: translate(-50%, -40%);
-  pointer-events: none;
-  transition:
-    opacity 0.22s ease,
-    transform 0.22s ease;
-}
-.tt-peek svg.lucide {
-  width: 16px;
-  height: 16px;
-}
-.tt-media::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgb(var(--scrim-plum-rgb) / 0.04), rgb(var(--scrim-plum-rgb) / 0.28));
-  opacity: 0;
-  transition: opacity 0.22s ease;
-}
-@media (hover: hover) and (pointer: fine) {
-  .tt-card:hover .tt-peek {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-  .tt-card:hover .tt-media::before {
-    opacity: 1;
-  }
 }
 
 /* Hàng nhãn ĐÈ góc trên ảnh — kính mờ trắng để đọc được trên mẫu tối lẫn sáng. */
@@ -2234,15 +2185,18 @@ html.cx-landing {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 6px 10px;
+  gap: 12px;
+  padding: 14px 6px 12px;
 }
+/* Tên mẫu là điểm nhấn của thân thẻ — như dòng chú thích in dưới ảnh album cưới. */
 .tt-name {
   margin: 0;
+  padding-inline: 4px;
   font-family: "Playfair Display", serif;
-  font-size: clamp(14px, 8cqw, 18px);
+  font-size: clamp(15px, 8.2cqw, 19px);
   font-weight: 500;
-  line-height: 1.3;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   color: rgb(var(--scrim-plum-rgb));
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -2251,23 +2205,23 @@ html.cx-landing {
 }
 
 /* Cặp nút — variant="bare" nên <x-button> chỉ giữ hình pill, màu do đây quyết.
-   LUÔN một hàng: hai nút chia đôi, chữ/lề co theo bề ngang thẻ (cqw); thẻ hẹp
-   quá thì giấu icon, giữ chữ. */
+   LUÔN một hàng: "Xem trước" vừa khít chữ, "Tạo ngay" lấy phần còn lại; chữ/lề co
+   theo bề ngang thẻ (cqw), thẻ hẹp quá thì giấu icon, giữ chữ. */
 .tt-cardbtns {
   display: flex;
   gap: 6px;
   margin-top: auto;
 }
 .tt-cardbtns > * {
-  flex: 1 1 0;
   min-width: 0;
 }
 .tt-cardbtns button {
-  width: 100%;
   height: clamp(32px, 15cqw, 38px);
-  gap: 4px;
-  padding-inline: clamp(6px, 4cqw, 14px);
+  gap: 6px;
+  padding-inline: clamp(10px, 5cqw, 16px);
   font-size: clamp(11px, 5.2cqw, 13px);
+  font-weight: 600;
+  white-space: nowrap;
 }
 /* Icon ăn theo cỡ chữ của nút (nhắm kèm .lucide để thắng luật 1em ở _setup.css). */
 .tt-cardbtns svg.lucide {
@@ -2281,40 +2235,38 @@ html.cx-landing {
   }
 }
 
-/* "Xem trước" chip trắng viền hồng, "Tạo ngay" hồng đặc — cùng bộ với bảng chat AI
-   (.aichat-chip / .aichat-send) và khung Xem nhanh; đổi tông thì đổi cả bên đó. */
+/* Lưới nhiều thẻ thì đỏ tươi lặp lại thành ồn → "Tạo ngay" màu mận (sáp niêm thư),
+   rê chuột ngả đỏ rượu; "Xem trước" lùi thành nền hồng phấn không viền. Đỏ tươi để
+   dành cho nút chính của trang và dải "Tạo với AI" lúc rê chuột. */
 .tt-btn-preview {
-  background: rgb(var(--white-rgb));
-  color: rgb(var(--brand-accent-rgb));
-  font-weight: 600;
-  white-space: nowrap;
-  border: 1px solid rgb(var(--brand-primary-rgb));
+  flex: none;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--surface-brand-rgb));
+  border: 1px solid transparent;
   transition:
     background-color 0.18s ease,
-    border-color 0.18s ease;
+    color 0.18s ease;
 }
 .tt-btn-preview:hover {
-  border-color: rgb(var(--brand-accent-rgb));
-  background: rgb(var(--surface-brand-rgb));
+  color: rgb(var(--scrim-plum-rgb));
+  background: rgb(var(--surface-blossom-rgb));
 }
 .tt-btn-use {
+  flex: 1 1 0;
   color: rgb(var(--white-rgb));
-  font-weight: 600;
-  white-space: nowrap;
-  background: rgb(var(--action-primary-rgb));
+  background: rgb(var(--text-heading-rgb));
   border: 1px solid transparent;
-  box-shadow: 0 4px 12px rgb(var(--action-primary-rgb) / 0.32);
-  transition:
-    background-color 0.18s ease,
-    box-shadow 0.18s ease;
+  transition: background-color 0.18s ease;
 }
 .tt-btn-use:hover {
-  background: rgb(var(--action-primary-hover-rgb));
-  box-shadow: 0 6px 16px rgb(var(--action-primary-rgb) / 0.4);
+  background: rgb(var(--preview-shadow-rgb));
 }
 .tt-btn-use:active {
-  background: rgb(var(--action-primary-deep-rgb));
-  box-shadow: 0 2px 8px rgb(var(--action-primary-rgb) / 0.35);
+  background: rgb(var(--shadow-panel-rgb));
+}
+.tt-cardbtns button:focus-visible {
+  outline: 2px solid rgb(var(--focus-ring-rgb));
+  outline-offset: 2px;
 }
 
 /* ─── Dải chân "Tạo với AI" ─── Tràn sát hai mép + đáy thẻ (bù lề 6px của vỏ),
@@ -2405,12 +2357,10 @@ html.cx-landing {
 @media (prefers-reduced-motion: reduce) {
   .tt-card,
   .tt-media > img,
-  .tt-peek,
   .tt-ai-ico,
   .tt-ai-go {
     transition: none;
   }
-  .tt-card:hover,
   .tt-card:hover .tt-media > img,
   .tt-ai:hover .tt-ai-ico {
     transform: none;
@@ -2451,6 +2401,8 @@ html.cx-landing {
 .cx-show-row {
   padding-top: 8px;
   padding-bottom: 40px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 /* Một thẻ: viền trắng, ảnh bo trong, tên + ngày cưới bên dưới; rê chuột / focus thì nhấc lên. */
