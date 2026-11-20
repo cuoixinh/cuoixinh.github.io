@@ -103,8 +103,8 @@
     // trang ra 0 — mở bìa xong phải đo lại.
     onOpen: () => refreshBook(),
 
-    // Sách lật ngang, không cuộn trang: bộ quay video quảng cáo và ảnh chụp trọn
-    // thiệp (scripts/capture.js) lật từng trang qua đây. Trang = mục đang hiện.
+    // Sách lật ngang, không cuộn trang: bộ quay video quảng cáo lật từng trang qua
+    // đây. Trang = mục đang hiện.
     deck: {
       slides: () => {
         const p = document.getElementById("cx-pages");

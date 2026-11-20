@@ -25,7 +25,6 @@
 @import "./_hinh-nen-led.css";
 @import "./_poster.css";
 @import "./_support.css";
-@import "./_quick-preview.css";
 
 /* Ô ảnh bìa bài hát của thanh nhạc (core/components/music-player.js) — nền dự
    phòng khi chưa có thumbnail. `rose-pastel` ở hai bản build là hai màu khác
