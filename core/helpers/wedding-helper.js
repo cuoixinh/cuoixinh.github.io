@@ -38,7 +38,8 @@ function cxVuQuyAsCeremony(w) {
 // xem (trống thì bên kia) đứng vào chỗ của lễ, rồi tắt mục Tiệc + vu quy để mẫu không
 // vẽ lặp — mẫu chỉ biết ceremony_* nên mọi chỗ (thư mời, đếm ngược, lịch, bản đồ) tự
 // ra ngày tiệc. Lịch trình: mốc tiệc của bên đó thành mốc "ceremony", mốc lễ bỏ đi.
-// Tên sự kiện giữ ceremony_name của khách. Phải chạy TRƯỚC cxVuQuyAsCeremony.
+// Tên sự kiện luôn là "Tiệc Cưới": ceremony_name là tên LỄ (ô nằm trong bước đã tắt).
+// Phải chạy TRƯỚC cxVuQuyAsCeremony.
 function cxPartyOnly(w) {
   if (!w || (w.enable_ceremony !== false && w.enable_ceremony !== "false")) return w;
   const groom = isGroomSide();
@@ -48,6 +49,7 @@ function cxPartyOnly(w) {
   const p = (k) => w[`${side}_party_${k}`];
   const out = {
     ...w,
+    ceremony_name: "Tiệc Cưới",
     ceremony_date: p("date") || null,
     ceremony_time: p("time") || "",
     ceremony_lunar: p("lunar") || "",

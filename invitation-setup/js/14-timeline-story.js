@@ -98,7 +98,7 @@ function _tlFromLegacy(arr, side, data) {
   if (v("enable_ceremony") === "false") {
     const other = side === "groom" ? "bride" : "groom";
     const ps = !v(`${side}_party_date`) && v(`${other}_party_date`) ? other : side;
-    add(cerName, v(`${ps}_party_date`), of(ps === "groom" ? "party" : "bride-party"));
+    add("Tiệc Cưới", v(`${ps}_party_date`), of(ps === "groom" ? "party" : "bride-party"));
     return days;
   }
   const vuQuy = side === "bride" && v("vu_quy_enabled") === "true";
@@ -140,22 +140,23 @@ function _tlLoad(items, data) {
   renderTimelineList();
 }
 
-const _TL_INPUT =
-  "h-10 px-3 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none focus:border-gray-400";
+// Ô không viền, không đổi nền khi rê; đang gõ thì hiện viền mảnh. Để thẻ đọc như một danh sách chứ không phải lưới ô nhập.
+const _TL_BARE =
+  "bg-transparent outline-none rounded-lg focus:ring-1 focus:ring-rose-200";
 
 function _tlRowHtml(it, di, ii) {
   return `
-    <div class="flex items-center gap-2">
-      <input type="text" value="${escapeHtml(it.time || "")}" placeholder="Giờ" aria-label="Giờ" readonly
-        class="${_TL_INPUT} w-20 flex-shrink-0 px-2 text-center cursor-pointer hover:border-gray-300"
+    <li class="flex items-center gap-2 py-1.5 pl-3 pr-1">
+      <input type="text" value="${escapeHtml(it.time || "")}" placeholder="--:--" aria-label="Giờ" readonly
+        class="h-8 w-16 flex-shrink-0 rounded-lg bg-rose-50 text-center text-sm font-semibold tabular-nums text-rose-700 outline-none cursor-pointer placeholder:text-rose-300 hover:bg-rose-100 focus:ring-2 focus:ring-rose-200"
         onclick="openTimePicker(this, this.value, v => { this.value = v; _tlSetItem(${di}, ${ii}, 'time', v); })" />
       <input type="text" value="${escapeHtml(it.title || "")}" placeholder="Mô tả sự kiện" aria-label="Mô tả sự kiện"
-        class="${_TL_INPUT} flex-1 min-w-0" oninput="_tlSetItem(${di}, ${ii}, 'title', this.value)" />
+        class="${_TL_BARE} h-10 flex-1 min-w-0 px-2 text-sm text-gray-800" oninput="_tlSetItem(${di}, ${ii}, 'title', this.value)" />
       <x-button variant="ghost" tone="danger" size="sm" icon-only type="button" onclick="removeTimelineItem(${di}, ${ii})"
         aria-label="Xoá mốc" title="Xoá mốc" class="flex-shrink-0">
         <i data-lucide="x" style="width:16px;height:16px"></i>
       </x-button>
-    </div>`;
+    </li>`;
 }
 
 function renderTimelineList() {
@@ -181,21 +182,29 @@ function renderTimelineList() {
   box.innerHTML = days
     .map(
       (d, di) => `
-    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-3 space-y-2">
-      <div class="flex items-center gap-2">
-        <input type="text" value="${escapeHtml(d.label || "")}" placeholder="Tên ngày, ví dụ: Lễ ăn hỏi"
-          aria-label="Tên ngày" class="${_TL_INPUT} flex-1 min-w-0 font-medium"
-          oninput="_tlSetDay(${di}, 'label', this.value)" />
+    <div class="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+      <div class="flex items-start gap-2 border-b border-gray-200 bg-gray-50 px-3 py-2.5">
+        <div class="flex-1 min-w-0">
+          <input type="text" value="${escapeHtml(d.label || "")}" placeholder="Tên ngày, ví dụ: Lễ ăn hỏi"
+            aria-label="Tên ngày" class="${_TL_BARE} h-9 w-full px-2 text-base font-semibold text-gray-900"
+            oninput="_tlSetDay(${di}, 'label', this.value)" />
+          <label class="flex items-center gap-1.5 pl-2 text-gray-500">
+            <i data-lucide="calendar" style="width:14px;height:14px" class="flex-shrink-0"></i>
+            <input type="date" data-tl-date="${di}" aria-label="Ngày"
+              class="${_TL_BARE} h-7 w-32 px-1 text-sm text-gray-600 cursor-pointer" />
+          </label>
+        </div>
         <x-button variant="ghost" tone="danger" size="sm" icon-only type="button" onclick="removeTimelineDay(${di})"
           aria-label="Xoá ngày này" title="Xoá ngày này" class="flex-shrink-0">
           <i data-lucide="trash-2" style="width:16px;height:16px"></i>
         </x-button>
       </div>
-      <input type="date" data-tl-date="${di}" aria-label="Ngày" class="${_TL_INPUT} w-full" />
-      <div class="space-y-2 pt-1">${d.items.map((it, ii) => _tlRowHtml(it, di, ii)).join("")}</div>
-      <x-button variant="ghost" size="sm" type="button" onclick="addTimelineItem(${di})">
-        <i data-lucide="plus" style="width:16px;height:16px"></i> Thêm mốc
-      </x-button>
+      <ul class="divide-y divide-gray-100">${d.items.map((it, ii) => _tlRowHtml(it, di, ii)).join("")}</ul>
+      <div class="border-t border-gray-100 px-2 py-1.5">
+        <x-button variant="ghost" size="sm" type="button" onclick="addTimelineItem(${di})">
+          <i data-lucide="plus" style="width:16px;height:16px"></i> Thêm mốc
+        </x-button>
+      </div>
     </div>`,
     )
     .join("");
