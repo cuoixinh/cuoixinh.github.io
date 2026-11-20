@@ -90,25 +90,18 @@ function parentName(title, name) {
   return bare ? `${title} ${bare}` : "";
 }
 
+// Bố/mẹ, địa chỉ khách cố ý xoá (bố/mẹ đã mất…) thì để TRỐNG, không vẽ gạch giữ chỗ.
 function renderCoupleInfo(wedding) {
   // Groom info
-  setText("groom-father", parentName("Ông", wedding.groom_father), "--------------------");
-  setText("groom-mother", parentName("Bà", wedding.groom_mother), "--------------------");
-  setText(
-    "groom-address",
-    wedding.groom_address,
-    "----------------------------------------",
-  );
+  setText("groom-father", parentName("Ông", wedding.groom_father));
+  setText("groom-mother", parentName("Bà", wedding.groom_mother));
+  setText("groom-address", wedding.groom_address);
   setText("groom-name-label", wedding.groom_name, "----------");
 
   // Bride info
-  setText("bride-father", parentName("Ông", wedding.bride_father), "--------------------");
-  setText("bride-mother", parentName("Bà", wedding.bride_mother), "--------------------");
-  setText(
-    "bride-address",
-    wedding.bride_address,
-    "----------------------------------------",
-  );
+  setText("bride-father", parentName("Ông", wedding.bride_father));
+  setText("bride-mother", parentName("Bà", wedding.bride_mother));
+  setText("bride-address", wedding.bride_address);
   setText("bride-name-label", wedding.bride_name, "----------");
 
   // Photos - check if template uses setImageWithRing or setAttr

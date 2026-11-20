@@ -300,7 +300,8 @@ Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `
       Danh sách rỗng = không ai vào (fail-closed). Mã admin KHÔNG mở được resource này.
 - [ ] **A37. Tài khoản Google trong `SUPPORT_EMAILS` là chìa khoá chung** — mất một cái là
       đặt lại được mật khẩu mọi khách, và (A41) bật gói trả phí cho thiệp bất kỳ mà không thu
-      tiền, (A42) phát mã giảm 100%. Phải bật xác minh 2 bước cho từng tài khoản (ngoài repo).
+      tiền, (A42) phát mã giảm 100%, (A44) đăng nhập lặng lẽ vào mọi tài khoản Cưới Xinh. Phải bật
+      xác minh 2 bước cho từng tài khoản (ngoài repo).
 - [x] **A41. Thanh toán hộ (`wedding-admin?resource=support-pay`, 2026-11-02, chưa deploy).**
       Nhân viên xác nhận "đã nhận tiền" → thiệp `completed` + gói, KHÔNG qua PayOS. Chốt quyền
       dùng chung với `accounts` (cùng nhánh ở `index.ts`, mã admin không mở được). Client chỉ gửi
@@ -319,6 +320,16 @@ Luồng: nhân viên vào trang công khai `/admin-support/` bằng Google → `
       giới thiệu) chỉ đọc, tháng kiểm định dạng, đọc lượt dùng hỏng là trả 500 chứ không trả nửa
       danh sách (căn cứ trả tiền). Kéo theo A37: mất một tài khoản trong `SUPPORT_EMAILS` là
       phát được mã giảm 100%.
+- [x] **A44. "Đăng nhập thay" ở `/admin-support` (`resource=accounts`, POST `action: signin`,
+      2026-11-20).** Cùng nhánh chốt quyền nhân viên ở `index.ts` (JWT qua `auth.getUser` + phiên
+      Google + `SUPPORT_EMAILS`) — gọi thẳng API không có phiên nhân viên là 401/403; `accounts.ts`
+      kiểm lại `staffEmail`. Chỉ tài khoản đuôi `@account.cuoixinh.com` CÓ cờ `cx_account` (không bao
+      giờ tài khoản Google/email thật, không hàng giữ chỗ). Server trả `hashed_token` của magic link
+      (`auth.admin.generateLink`, dùng một lần, hết hạn theo OTP expiry), trang dựng link
+      `/my-invitations/#cx_signin=` — ở hash nên không vào log server; `auth-ui.js` gỡ khỏi URL rồi
+      `verifyOtp`. Token không ghi log; mỗi lượt log Axiom `account.signin_as` (`user_id`, `by`).
+      Kéo theo A37: mất tài khoản nhân viên = vào LẶNG LẼ mọi tài khoản Cưới Xinh (khác đặt lại mật
+      khẩu, khách còn thấy). Khách đăng nhập bằng Google/email thì KHÔNG có lối này.
 - [x] **A43. Số liệu thiệp ở `/admin-support` (`wedding-admin?resource=support-weddings`, 2026-11-11,
       chưa deploy).** Chỉ GET, cùng nhánh chốt quyền nhân viên ở `index.ts`. Trả về mọi thiệp nhưng chỉ
       các cột phân tích (tên cô dâu chú rể, slug, mẫu, trạng thái, lượt xem, số tiền, hạn, ngày tạo) +

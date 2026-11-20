@@ -6,6 +6,7 @@
 
 import type { Logger } from '../_shared/axiom.ts'
 import { currentPlan, isPlanId, planExpiry, quotePlans } from '../_shared/plans.ts'
+import { isAccountEmail, isAdminMade } from './accounts.ts'
 
 // deno-lint-ignore no-explicit-any
 type Db = any
@@ -66,10 +67,14 @@ export async function handleSupportPay(
     if (!w) return json({ error: 'Không có thiệp nào ở link này' }, 404)
 
     let owner: string | null = null
+    // Chủ thiệp là tài khoản Cưới Xinh do nhân viên tạo → trang hiện nút "Đăng nhập thay"
+    // (server vẫn kiểm lại ở accounts.ts, cờ này chỉ để vẽ nút).
+    let ownerAccountId: string | null = null
     if (w.user_id) {
       const { data: u, error: uErr } = await db.auth.admin.getUserById(w.user_id)
       if (uErr) log.warn('support_pay.owner_lookup_failed', { slug, message: uErr.message })
       owner = u?.user?.email ?? null
+      if (u?.user && isAccountEmail(u.user.email) && isAdminMade(u.user)) ownerAccountId = u.user.id
     }
 
     const from = currentPlan(w)
@@ -84,6 +89,7 @@ export async function handleSupportPay(
       theme: w.theme,
       couple: [w.groom_name, w.bride_name].filter(Boolean).join(' & '),
       owner,
+      owner_account_id: ownerAccountId,
       is_published: !!w.is_published,
       payment_status: w.payment_status ?? null,
       current_plan: from,

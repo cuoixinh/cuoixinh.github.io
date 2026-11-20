@@ -4,6 +4,18 @@
 
 // ============= DATA FUNCTIONS =============
 
+// Ô văn bản khách hay phải XOÁ HẲN (bố/mẹ đã mất, bỏ địa chỉ): để trống thì lưu gửi ""
+// để DB ghi đè — ô trống khác bị bỏ khỏi payload nên DB giữ giá trị cũ. Chỉ khai cột
+// text: gửi "" vào cột kiểu khác là lỗi.
+const CX_CLEARABLE_TEXT = new Set([
+  "groom_father",
+  "groom_mother",
+  "bride_father",
+  "bride_mother",
+  "groom_address",
+  "bride_address",
+]);
+
 function _showContent() {
   document.getElementById("skeleton-loader")?.classList.add("hidden");
   document.getElementById("actual-content")?.classList.remove("hidden");
@@ -876,6 +888,8 @@ async function _saveAllOnce(overrides, label) {
         // Ô ngày xoá trắng phải ghi null — bỏ qua là DB giữ ngày cũ (vu quy rỗng
         // nghĩa là "cùng ngày lễ thành hôn").
         payload[key] = null;
+      } else if (CX_CLEARABLE_TEXT.has(key)) {
+        payload[key] = "";
       }
     });
 
