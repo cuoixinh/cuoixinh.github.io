@@ -396,6 +396,9 @@ function cxCoverEdit(on) {
     el.style.visibility = on ? "hidden" : "";
   });
   window.scrollTo({ top: 0 });
+  // Mẫu đo bìa lúc nạp (co tên cho vừa một dòng…) gặp bìa đang ẩn thì bỏ qua — phát
+  // resize để chúng đo lại khi bìa vừa hiện, như lúc thiệp thật mở ra.
+  requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
   return true;
 }
 window.cxCoverEdit = cxCoverEdit;
