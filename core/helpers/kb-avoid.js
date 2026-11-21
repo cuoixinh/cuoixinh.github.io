@@ -9,6 +9,9 @@
   const TYPING_SEL =
     "textarea, [contenteditable], input:not([readonly]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden])";
   const GAP = 16; // khoảng hở giữa ô và mép bàn phím
+  const IOS =
+    /iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
   // Trang gốc cùng origin: chỉ visualViewport của nó mới co theo bàn phím — iframe
   // (tab Khách mời) giữ nguyên khổ nên phải đo qua trang cha.
@@ -106,6 +109,9 @@
     // Lớp nền không đổi khung khi nâng nên phần chồng lên bàn phím đo thẳng; đã nâng thì
     // giữ tới khi bàn phím thu (đổi ô không làm popup lên xuống), chưa thì chỉ nâng khi ô bị che.
     lift(s, el, kbTop) {
+      // Safari iOS tự đưa lớp `fixed` của trang gốc lên trên bàn phím (số đo vẫn như cũ) —
+      // nâng thêm là popup bị đẩy hai lần. Trong iframe (tab Khách mời của Thiết lập) thì không.
+      if (IOS && TOP === window) return set(s, 0);
       const overlap = Math.max(0, Math.round(s.host.getBoundingClientRect().bottom - kbTop));
       const covered = !!el && el.getBoundingClientRect().bottom > kbTop - GAP;
       set(s, overlap && (s.px || covered) ? overlap : 0);
