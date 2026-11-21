@@ -10,24 +10,31 @@ let _importState = { headers: [], data: [], side: "" };
 let _currentTab = "groom";
 
 // ─── Ghim trang ở gốc (mở thẳng, không qua iframe) ───────────────────────────
-// Cùng cách _cxPinPage của trang Thiết lập: .gs-shell là app shell, trang không bao giờ
-// cuộn. Không ghim thì focus ô trong popup là iOS cuộn cả trang, lớp `fixed` trôi theo
-// trong khi kb-avoid vẫn nâng popup → popup bay quá đầu màn. Trong iframe trang cha ghim.
+// Như _cxPinPage của trang Thiết lập: .gs-shell là app shell, trang không bao giờ cuộn.
+// Khác ở một chỗ: ô trong popup `data-kb="lift"` thì kb-avoid đã nâng popup lên trên bàn
+// phím, nên độ dịch iOS tự thêm để lộ ô (dịch cả trang lên) phải trả về NGAY cả lúc đang
+// gõ — để nguyên là bị đẩy hai lần, popup bay quá đầu màn. Trong iframe trang cha ghim.
 if (window.parent === window) {
   const vv = window.visualViewport;
+  const inLift = () => !!window.cxKb?.typingEl()?.closest('[data-kb="lift"]');
   const reset = () => {
-    // Đang gõ thì để iOS giữ con trỏ trong tầm nhìn; thu bàn phím rồi mới kéo khung nhìn về.
-    const vvShifted = vv && (vv.offsetTop || vv.offsetLeft) && !window.cxKb?.typingEl();
-    if (window.scrollX || window.scrollY || vvShifted) window.scrollTo(0, 0);
+    const typing = !!window.cxKb?.typingEl();
+    const vvShifted = vv && (vv.offsetTop || vv.offsetLeft) && !typing;
+    // Trong popup: gọi luôn — iOS có lúc dịch khung nhìn mà offsetTop vẫn báo 0.
+    if (window.scrollX || window.scrollY || vvShifted || inLift()) window.scrollTo(0, 0);
     if (document.body?.scrollTop) document.body.scrollTop = 0;
   };
-  window.addEventListener("scroll", reset, { passive: true });
-  // iOS cuộn bù SAU khi bàn phím thu lại → chờ vài nhịp rồi mới trả.
-  document.addEventListener("focusout", () => {
+  // iOS dịch trang SAU khi bàn phím bung/thu xong → trả thêm vài nhịp sau.
+  const later = () => {
+    reset();
     setTimeout(reset, 60);
-    setTimeout(reset, 400);
-  });
-  vv?.addEventListener("resize", reset);
+    setTimeout(reset, 300);
+    setTimeout(reset, 600);
+  };
+  window.addEventListener("scroll", reset, { passive: true });
+  document.addEventListener("focusin", () => inLift() && later());
+  document.addEventListener("focusout", later);
+  vv?.addEventListener("resize", later);
   vv?.addEventListener("scroll", reset);
 }
 

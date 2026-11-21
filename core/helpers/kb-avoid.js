@@ -144,45 +144,6 @@
     }
     // Thứ `fixed` bám theo ô (danh sách x-combobox) nghe sự kiện này để đặt lại chỗ.
     window.dispatchEvent(new Event("cx-kb"));
-    if (DEBUG) debugPaint(el);
-  }
-
-  // Bảng số đo để soi lỗi bàn phím trên máy thật: mở trang với ?kbdebug=1 (nhớ theo tab).
-  let DEBUG = false;
-  try {
-    if (new URLSearchParams(location.search).get("kbdebug") === "1") sessionStorage.cxKbDebug = "1";
-    DEBUG = sessionStorage.cxKbDebug === "1";
-  } catch (_) {}
-  function debugPaint(el) {
-    // Đặt TRONG đáy popup (phần chắc chắn còn thấy), không thì vào góc màn — nơi có thể đã bị đẩy khuất.
-    const anchor = cur?.host.querySelector("[data-kb-box]") || document.body;
-    let box = document.getElementById("cx-kb-debug");
-    if (!box) {
-      box = document.createElement("pre");
-      box.id = "cx-kb-debug";
-      box.style.cssText =
-        "left:4px;bottom:4px;z-index:2147483647;margin:0;padding:6px 8px;max-width:96%;" +
-        "font:11px/1.35 monospace;color:#fff;background:rgba(0,0,0,.8);border-radius:8px;pointer-events:none;white-space:pre-wrap";
-    }
-    if (box.parentNode !== anchor) {
-      if (anchor !== document.body && getComputedStyle(anchor).position === "static") anchor.style.position = "relative";
-      box.style.position = anchor === document.body ? "fixed" : "absolute";
-      anchor.appendChild(box);
-    }
-    const vv = TOP.visualViewport;
-    const r = (n) => (n ? n.getBoundingClientRect() : null);
-    const fmt = (b) => (b ? `${Math.round(b.top)}→${Math.round(b.bottom)}` : "-");
-    const hb = cur && r(cur.host);
-    const sb = cur && r(cur.host.querySelector("[data-kb-box]"));
-    box.textContent = [
-      `inner ${window.innerHeight} · docH ${document.documentElement.clientHeight}`,
-      `vv h ${vv ? Math.round(vv.height) : "-"} · off ${vv ? Math.round(vv.offsetTop) : "-"} · pageTop ${vv ? Math.round(vv.pageTop) : "-"}`,
-      `scrollY ${Math.round(window.scrollY)} · se ${document.scrollingElement?.scrollTop} · bodyTop ${document.body.scrollTop}`,
-      `scrollH ${document.scrollingElement?.scrollHeight} · bodyH ${document.body.scrollHeight}`,
-      `kbTop ${Math.round(visibleBottom())} · mode ${cur ? cur.mode : "-"} · px ${cur ? cur.px : "-"}`,
-      `host ${fmt(hb)} · box ${fmt(sb)}`,
-      `el ${el?.tagName || "-"} ${fmt(r(el?.matches?.(TYPING_SEL) ? el : null))}`,
-    ].join("\n");
   }
 
   function safeUpdate() {
