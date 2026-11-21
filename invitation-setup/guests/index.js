@@ -9,6 +9,28 @@ const FROM_TAB = FROM === "tab";
 let _importState = { headers: [], data: [], side: "" };
 let _currentTab = "groom";
 
+// ─── Ghim trang ở gốc (mở thẳng, không qua iframe) ───────────────────────────
+// Cùng cách _cxPinPage của trang Thiết lập: .gs-shell là app shell, trang không bao giờ
+// cuộn. Không ghim thì focus ô trong popup là iOS cuộn cả trang, lớp `fixed` trôi theo
+// trong khi kb-avoid vẫn nâng popup → popup bay quá đầu màn. Trong iframe trang cha ghim.
+if (window.parent === window) {
+  const vv = window.visualViewport;
+  const reset = () => {
+    // Đang gõ thì để iOS giữ con trỏ trong tầm nhìn; thu bàn phím rồi mới kéo khung nhìn về.
+    const vvShifted = vv && (vv.offsetTop || vv.offsetLeft) && !window.cxKb?.typingEl();
+    if (window.scrollX || window.scrollY || vvShifted) window.scrollTo(0, 0);
+    if (document.body?.scrollTop) document.body.scrollTop = 0;
+  };
+  window.addEventListener("scroll", reset, { passive: true });
+  // iOS cuộn bù SAU khi bàn phím thu lại → chờ vài nhịp rồi mới trả.
+  document.addEventListener("focusout", () => {
+    setTimeout(reset, 60);
+    setTimeout(reset, 400);
+  });
+  vv?.addEventListener("resize", reset);
+  vv?.addEventListener("scroll", reset);
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", async () => {
