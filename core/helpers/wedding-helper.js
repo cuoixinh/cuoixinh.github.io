@@ -355,9 +355,11 @@ function _cxSkipCover() {
 }
 
 // Bìa của link chung: không mời đích danh, dòng [data-cx-invite] thành lời báo tin.
+// Dòng chủ thiệp đã sửa tay (data-cx-orig của applyTextOverrides) thì giữ chữ đã sửa.
 function _cxGuestGeneric() {
   document.documentElement.classList.add("cx-guest-generic");
   document.querySelectorAll("[data-cx-invite]").forEach((el) => {
+    if (el.hasAttribute("data-cx-orig")) return;
     el.textContent = CX_VISITOR_LINE;
   });
   // Chỉ mẫu CÓ màn bìa; mẫu chỉ có hero giữ khối lời mời ẩn như cũ.
