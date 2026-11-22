@@ -115,6 +115,19 @@
             </button>
           </div>
 
+          <!-- Sức chứa của bên đang mở: số khách / trần của bên đó (side_caps do server suy
+               từ gói). _syncCap() đổ số + đặt cờ is-warn (≥80%) / is-full; ẩn tới khi tải xong. -->
+          <div id="gs-cap" class="gs-cap hidden">
+            <div class="gs-cap-row">
+              <span class="gs-cap-txt">Đã mời <b id="gs-cap-n">0</b><span class="gs-cap-max">/<span id="gs-cap-max">0</span></span> khách</span>
+              <span id="gs-cap-left" class="gs-cap-left"></span>
+            </div>
+            <div class="gs-cap-bar" role="progressbar" aria-label="Số khách đã mời so với giới hạn" aria-valuemin="0">
+              <span id="gs-cap-fill" class="gs-cap-fill"></span>
+            </div>
+            <p id="gs-cap-hint" class="gs-cap-hint hidden"></p>
+          </div>
+
           <!-- Thanh công cụ dùng chung cho cả hai bên: mọi thao tác nhắm vào bên
                đang mở (_currentTab). Dưới sm ô tìm chiếm trọn một hàng. -->
           <div class="gs-toolbar">
