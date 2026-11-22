@@ -312,6 +312,58 @@ function renderVenueMaps(w, side) {
   return true;
 }
 
+// Cặp tên theo bên đang xem: thiệp nhà gái tên cô dâu đứng TRƯỚC, nhà trai ngược lại.
+// Dùng cho chữ ghép sẵn ("A & B", chữ lồng). Trả [trước, sau].
+function cxCouple(groomVal, brideVal) {
+  return isGroomSide() ? [groomVal, brideVal] : [brideVal, groomVal];
+}
+
+// Xếp lại một CẶP ô tên đã điền (gọi SAU setText) để tên của bên đang xem đứng trước.
+// KHÔNG đổi thứ tự DOM (selector :nth-child của text_overrides sẽ lệch): hai khối
+// chỉ chứa chữ tên ("A & B") thì tráo chữ; tên đi kèm nhãn/ảnh (mỗi tên một
+// khối) thì tráo `order` của hai khối — cha phải là flex/grid. Gọi lại lần hai không đổi gì.
+// Ô tên chuẩn (cover-*-name, couple-names-*, invite-*) theme-boot.js tự xếp; mẫu có
+// cặp ô riêng thì tự gọi trong renderWedding.
+function cxCoupleOrder(groomId, brideId) {
+  const g = document.getElementById(groomId);
+  const b = document.getElementById(brideId);
+  if (!g || !b || g === b || g.hasAttribute("data-cx-couple")) return;
+  g.setAttribute("data-cx-couple", "");
+  let p = g.parentElement;
+  while (p && !p.contains(b)) p = p.parentElement;
+  if (!p) return;
+  const branch = (el) => {
+    while (el.parentElement !== p) el = el.parentElement;
+    return el;
+  };
+  const gb = branch(g);
+  const bb = branch(b);
+  const cs = getComputedStyle(p);
+  const flex = /flex|grid/.test(cs.display);
+  const reversed = flex && /reverse/.test(cs.flexDirection);
+  const groomFirst =
+    !!(gb.compareDocumentPosition(bb) & Node.DOCUMENT_POSITION_FOLLOWING) !== reversed;
+  if (groomFirst === isGroomSide()) return;
+  // Khối chỉ chứa đúng cái tên (cùng lắm thêm dấu "&") → tráo chữ là đủ, giữ nguyên bố cục.
+  const strip = (s) => s.replace(/[\s&+]/g, "");
+  const bare = (br, el) => !br.querySelector("img") && strip(br.textContent) === strip(el.textContent);
+  if (bare(gb, g) && bare(bb, b)) {
+    const t = g.textContent;
+    g.textContent = b.textContent;
+    b.textContent = t;
+    return;
+  }
+  // Khối tên là cả một mục/thân thiệp thì để yên: order ở đó do khối văn bản/lời chúc giữ.
+  if (!flex || p.id === "main-card" || gb.tagName === "SECTION") return;
+  const kids = [...p.children];
+  kids.forEach((k, i) => {
+    if (!k.style.order) k.style.order = String(i);
+  });
+  const o = gb.style.order;
+  gb.style.order = bb.style.order;
+  bb.style.order = o;
+}
+
 function renderCover(wedding) {
   const coverBgImg = document.getElementById("cover-bg-img");
   if (coverBgImg) {
@@ -618,6 +670,8 @@ window.renderPartyDate = renderPartyDate;
 window.renderCoupleInfo = renderCoupleInfo;
 window.renderQRCodes = renderQRCodes;
 window.renderMap = renderMap;
+window.cxCouple = cxCouple;
+window.cxCoupleOrder = cxCoupleOrder;
 window.renderCover = renderCover;
 window.renderHero = renderHero;
 window.renderStoryQuote = renderStoryQuote;

@@ -102,6 +102,7 @@
     renderCover(w);
     setText("oc-mono-groom", _initial(w.groom_name), "-");
     setText("oc-mono-bride", _initial(w.bride_name), "-");
+    cxCoupleOrder("oc-mono-groom", "oc-mono-bride");
     renderHero(w, false);
     setText("oc-hero-date", _fmtDMY(w.ceremony_date), "--.--.----");
     // Dấu ngoặc kép do CSS vẽ (.oc-quote) nên đổ nguyên câu, không qua renderStoryQuote.

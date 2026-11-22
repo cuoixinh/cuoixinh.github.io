@@ -98,7 +98,7 @@
       if (!isNaN(d)) setText("hd-cover-date", `${_pad(d.getDate())} · ${_pad(d.getMonth() + 1)} · ${d.getFullYear()}`);
     }
     if (w.story_quote) setText("story-quote", w.story_quote);
-    const mono = `${hdInitial(w.groom_name)} & ${hdInitial(w.bride_name)}`;
+    const mono = cxCouple(hdInitial(w.groom_name), hdInitial(w.bride_name)).join(" & ");
     setText("hd-mono-2", mono);
 
     hdFillShots(gallery, galleryFp);

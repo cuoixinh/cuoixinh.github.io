@@ -125,6 +125,7 @@
     setText("hero-date", _posterDate(w.ceremony_date), "--.--.----");
     setText("monogram-groom", _initial(w.groom_name), "M");
     setText("monogram-bride", _initial(w.bride_name), "H");
+    cxCoupleOrder("monogram-groom", "monogram-bride");
 
     // --- Nhạc nền ---
     setupMusic(w.music_url, w.enable_music);

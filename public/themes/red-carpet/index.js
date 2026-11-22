@@ -158,6 +158,7 @@
     // --- Lời cảm ơn + danh đề cuối phim ---
     setText("rc-cr-groom", w.groom_name, "----------");
     setText("rc-cr-bride", w.bride_name, "----------");
+    cxCoupleOrder("rc-cr-groom", "rc-cr-bride");
     if (w.footer_text) setText("footer-text", w.footer_text);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
   }
