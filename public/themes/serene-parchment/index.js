@@ -223,6 +223,8 @@
 
     // --- Gia đình ---
     renderCoupleInfo(w);
+    // Thiệp nhà gái: khối cô dâu lên trước khối chú rể (đảo order, DOM giữ nguyên).
+    cxCoupleOrder("groom-name-label", "bride-name-label");
     cxToggle("groom-addr-row", !!w.groom_address);
     cxToggle("bride-addr-row", !!w.bride_address);
     cxToggle("section-family", cxEnabled(w.enable_family));
