@@ -68,7 +68,7 @@
     renderHero(w, false);
     _watchNames();
     _renderHeroSnaps(w);
-    _renderMonogram(w.groom_name, w.bride_name);
+    _renderMonogram(...cxCouple(w.groom_name, w.bride_name));
 
     setupMusic(w.music_url, w.enable_music);
 
@@ -304,6 +304,7 @@
     const given = (n) => String(n || "").trim().split(/\s+/).pop();
     setText("tv-stub-groom", given(w.groom_name), "----");
     setText("tv-stub-bride", given(w.bride_name), "----");
+    cxCoupleOrder("tv-stub-groom", "tv-stub-bride");
   }
 
   function _fmtDMY(d) {

@@ -96,7 +96,7 @@
     setText("mi-lock-time", ceremonyTime, "--:--");
     setText(
       "mi-n3-text",
-      `${ceremonyName} ${w.bride_name || "----"} & ${w.groom_name || "----"}` +
+      `${ceremonyName} ${cxCouple(w.groom_name || "----", w.bride_name || "----").join(" & ")}` +
         (cd ? `, ${WD[cd.getDay()]} ${_fmtDMY(w.ceremony_date)}` : "") +
         (ceremonyTime ? ` lúc ${ceremonyTime}` : ""),
     );
@@ -337,7 +337,7 @@
     const stamp = (hh) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(hh)}${pad(m)}00`;
     const q = new URLSearchParams({
       action: "TEMPLATE",
-      text: `${name} ${w.bride_name || ""} & ${w.groom_name || ""}`.trim(),
+      text: `${name} ${cxCouple(w.groom_name || "", w.bride_name || "").join(" & ")}`.trim(),
       dates: `${stamp(h)}/${stamp(Math.min(23, h + 2))}`,
       ctz: "Asia/Ho_Chi_Minh",
       location: loc || "",

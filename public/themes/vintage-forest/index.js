@@ -163,7 +163,7 @@
       cxToggle("ceremony-location-wrap", true);
     }
 
-    _vfCouple = [w.bride_name, w.groom_name].filter(Boolean).join(" & ");
+    _vfCouple = cxCouple(w.groom_name, w.bride_name).filter(Boolean).join(" & ");
     _vfSetActions("ceremony", {
       title: ceremonyName,
       date: w.ceremony_date,

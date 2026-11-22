@@ -259,15 +259,17 @@ function imageUrl(env, filename) {
 
 /* ─────────────────────────────── nội dung thẻ ─────────────────────────── */
 
-function couple(w) {
-  return [w?.groom_name, w?.bride_name]
+// Link nhà gái (?isGroom=false) thì tên cô dâu đứng trước, như trên thiệp (cxCouple).
+function couple(w, bride) {
+  const pair = [w?.groom_name, w?.bride_name];
+  return (bride ? pair.reverse() : pair)
     .filter(Boolean)
     .map((s) => String(s).trim().toUpperCase())
     .join(" & ");
 }
 
-function ogTitle(w, guest) {
-  const pair = couple(w);
+function ogTitle(w, guest, bride) {
+  const pair = couple(w, bride);
   const head = guest ? `Kính mời ${guest} cùng gia đình` : "Thiệp mời cưới";
   return pair ? `${head} | ${pair}` : head;
 }
@@ -617,7 +619,7 @@ const esc = (s) =>
 
 /** Thẻ og:* (+ tiêu đề) của một thiệp; không có thiệp thì rỗng. */
 async function ogMeta(env, w, guest, url, rel) {
-  const title = w ? ogTitle(w, guest) : "Cưới Xinh";
+  const title = w ? ogTitle(w, guest, url?.searchParams?.get("isGroom") === "false") : "Cưới Xinh";
   const desc = w ? ogDesc(w, guest, rel) : "";
   const ref = w ? coverRef(w) : "";
   const src = imageUrl(env, ref);

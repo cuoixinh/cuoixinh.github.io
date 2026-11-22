@@ -100,7 +100,7 @@
       const el = document.getElementById(id);
       if (el && md) el.innerHTML = md;
     });
-    setText("tt-mono", `${ttInitial(w.groom_name)} & ${ttInitial(w.bride_name)}`);
+    setText("tt-mono", cxCouple(ttInitial(w.groom_name), ttInitial(w.bride_name)).join(" & "));
     setText("couple-names-groom", w.groom_name, "----------");
     setText("couple-names-bride", w.bride_name, "----------");
     if (w.story_quote) setText("story-quote", w.story_quote);

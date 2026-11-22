@@ -64,7 +64,7 @@
     // Ảnh màn đầu nhận src TRƯỚC setupMusic (YouTube API đi sau).
     renderCover(w);
     setText("cs-cover-date", _fmtDMY(w.ceremony_date), "--.--.----");
-    setText("cs-seal-mono", _monogram(w.groom_name, w.bride_name), "&");
+    setText("cs-seal-mono", _monogram(...cxCouple(w.groom_name, w.bride_name)), "&");
     renderHero(w, false);
     setText("story-quote", w.story_quote ? `"${w.story_quote}"` : "");
     cxToggle("story-quote", !!w.story_quote);
@@ -75,6 +75,7 @@
     renderCoupleInfo(w);
     setText("cs-sig-bride", w.bride_name, "----------");
     setText("cs-sig-groom", w.groom_name, "----------");
+    cxCoupleOrder("cs-sig-groom", "cs-sig-bride");
     _call("cs-groom-call", w.groom_phone);
     _call("cs-bride-call", w.bride_phone);
 

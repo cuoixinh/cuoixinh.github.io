@@ -287,7 +287,8 @@ async function loadWeddingData(weddingSlug, renderCallback) {
 function showLockedInvitation(info) {
   if (document.getElementById("cx-locked")) return;
 
-  const names = [info && info.groom_name, info && info.bride_name]
+  const pair = [info && info.groom_name, info && info.bride_name];
+  const names = (isGroomSide() ? pair : pair.reverse())
     .filter(Boolean)
     .join(" & ");
   const esc = (s) =>

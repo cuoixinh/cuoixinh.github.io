@@ -209,6 +209,7 @@
     setAttr("sp-cover-2", "src", getImageUrl(second));
     setText("sp-mono-g", _initial(w.groom_name), "P");
     setText("sp-mono-b", _initial(w.bride_name), "Q");
+    cxCoupleOrder("sp-mono-g", "sp-mono-b");
 
     // --- Mở đầu ---
     renderHero(w, false);
@@ -239,7 +240,7 @@
       cxToggle("ceremony-location-wrap", true);
     }
     _spCountdown(w.ceremony_date, ceremonyTime);
-    _spCouple = `${w.groom_name || ""} & ${w.bride_name || ""}`;
+    _spCouple = cxCouple(w.groom_name || "", w.bride_name || "").join(" & ");
     _spSetActions("ceremony", {
       title: ceremonyName,
       date: w.ceremony_date,
@@ -322,6 +323,7 @@
     if (w.footer_text) setText("footer-text", w.footer_text);
     setText("sign-groom", w.groom_name, "----------");
     setText("sign-bride", w.bride_name, "----------");
+    cxCoupleOrder("sign-groom", "sign-bride");
     setText("footer-date", _fmtDMY(w.ceremony_date), "--.--.----");
     cxToggle("section-footer", cxEnabled(w.enable_footer));
 
@@ -509,6 +511,7 @@
     section.style.display = "";
 
     const esc = escapeHtml;
+    const [n1, n2] = cxCouple(w.groom_name, w.bride_name);
     const img = (ev, cls) =>
       ev.image_url
         ? `<img src="${cxImgSrc(ev.image_url)}" alt="" class="${cls}" style="object-position:${cxFocal(ev.focal_point)}">`
@@ -520,8 +523,8 @@
       <div class="sp-sty">
         <div class="sp-sty-bars">${events.map(() => "<i></i>").join("")}</div>
         <div class="sp-sty-head">
-          <span class="sp-sty-av">${esc(_initial(w.groom_name))}&amp;${esc(_initial(w.bride_name))}</span>
-          <span class="truncate">${esc(w.groom_name || "")} &amp; ${esc(w.bride_name || "")}</span>
+          <span class="sp-sty-av">${esc(_initial(n1))}&amp;${esc(_initial(n2))}</span>
+          <span class="truncate">${esc(n1 || "")} &amp; ${esc(n2 || "")}</span>
           <small class="sp-sty-yr"></small>
         </div>
         ${events

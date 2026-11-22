@@ -818,6 +818,9 @@ function _cxAutoScroll(opts) {
       return;
     }
     window.renderWedding(w);
+    // Ô tên chuẩn của mọi mẫu: thiệp bên nào thì tên bên đó đứng trước (render-helper.js).
+    [["cover-groom-name", "cover-bride-name"], ["couple-names-groom", "couple-names-bride"], ["invite-groom", "invite-bride"]]
+      .forEach(([g, b]) => cxCoupleOrder(g, b));
     _cxHideEmptyTimeline(w);
     auto.opts = _cxAutoScrollOpts(_cxTsGet(w?.theme_setting, "auto_scroll"));
     // Mẫu không có màn bìa: thiệp coi như mở ngay khi có dữ liệu.
@@ -836,7 +839,7 @@ function _cxAutoScroll(opts) {
     if (T.music?.art)
       window.cxMusicApplyArt?.(document.getElementById("music-toggle"));
     if (!inShell) return;
-    const name = [w?.groom_name, w?.bride_name].filter(Boolean).join(" & ");
+    const name = cxCouple(w?.groom_name, w?.bride_name).filter(Boolean).join(" & ");
     if (name) {
       window.parent.postMessage(
         { type: "cx-shell-title", title: name },
