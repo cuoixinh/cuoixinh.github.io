@@ -375,6 +375,40 @@ function _syncStats() {
     if (el) el.textContent = _loaded[s] ? _allGuests[s].length : "";
   });
   _syncSidePickCounts();
+  _syncCap();
+}
+
+// Dải sức chứa: khách của bên đang mở / trần bên đó. Trần thấp hơn mức trả phí là thiệp
+// chưa thanh toán hoặc gói Miễn phí → thêm dòng nhắc nâng gói (câu khớp capMessage ở
+// guest-handler). Trần 0 (bên gói Free không mở) thì trang đã khoá bên đó nên ẩn luôn.
+function _syncCap() {
+  const box = document.getElementById("gs-cap");
+  if (!box) return;
+  const side = _currentTab;
+  const max = _maxPerSide(side);
+  const n = _allGuests[side].length;
+  const show = _loaded[side] && max > 0;
+  box.classList.toggle("hidden", !show);
+  if (!show) return;
+  const ratio = Math.min(1, n / max);
+  const full = n >= max;
+  box.classList.toggle("is-full", full);
+  box.classList.toggle("is-warn", !full && ratio >= 0.8);
+  document.getElementById("gs-cap-n").textContent = n;
+  document.getElementById("gs-cap-max").textContent = max;
+  document.getElementById("gs-cap-left").textContent = full ? "Đã đủ" : `Còn ${max - n} chỗ`;
+  document.getElementById("gs-cap-fill").style.width = `${Math.round(ratio * 100)}%`;
+  const bar = box.querySelector(".gs-cap-bar");
+  bar.setAttribute("aria-valuemax", String(max));
+  bar.setAttribute("aria-valuenow", String(Math.min(n, max)));
+  const paid = CONFIG.guestImport.maxPerSide;
+  const hint = document.getElementById("gs-cap-hint");
+  const limited = max < paid;
+  hint.classList.toggle("hidden", !limited);
+  if (limited)
+    hint.textContent = _wedding?.is_free
+      ? `Gói Free mời được tối đa ${max} khách. Nâng gói để mời tới ${paid} khách mỗi bên.`
+      : `Thiệp chưa thanh toán chỉ thêm được ${max} khách mỗi bên. Thanh toán để mở tới ${paid} khách.`;
 }
 
 // ─── Add Single Guest ─────────────────────────────────────────────────────────

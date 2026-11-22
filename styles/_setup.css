@@ -4430,6 +4430,75 @@ html.cx-rail-off {
   display: none;
 }
 
+/* Dải sức chứa dưới ô thống kê (_syncCap): số khách / trần của bên đang mở + vạch
+   tiến độ. Cờ is-warn (≥80%) nhuộm vàng, is-full nhuộm đỏ. */
+.gs-cap {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgb(var(--surface-section-rgb));
+}
+.gs-cap-row {
+  @apply flex items-baseline justify-between;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgb(var(--text-body-rgb));
+}
+.gs-cap-txt b {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-cap-max {
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-muted-rgb));
+}
+.gs-cap-left {
+  flex-shrink: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.gs-cap-bar {
+  height: 8px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(var(--brand-primary-rgb) / 0.25);
+}
+.gs-cap-fill {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: inherit;
+  background: rgb(var(--action-primary-rgb));
+  transition: width 0.4s ease;
+}
+.gs-cap-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-muted-rgb));
+}
+.gs-cap.is-warn .gs-cap-left {
+  color: rgb(var(--state-warning-text-rgb));
+}
+.gs-cap.is-warn .gs-cap-fill {
+  background: rgb(var(--state-warning-text-rgb));
+}
+.gs-cap.is-full {
+  background: rgb(var(--state-error-bg-rgb));
+}
+.gs-cap.is-full .gs-cap-left,
+.gs-cap.is-full .gs-cap-hint {
+  color: rgb(var(--state-error-text-rgb));
+}
+.gs-cap.is-full .gs-cap-fill {
+  background: rgb(var(--state-error-text-rgb));
+}
+
 /* Dưới sm: bốn ô thống kê gộp thành MỘT dải mảnh 4 cột ngăn bằng vạch (lưới 2×2 chiếm
    gần nửa màn ngắn). Ô đang lọc (aria-pressed) là mảng nền bo góc trong dải — vạch hai
    bên nó ẩn đi. Màn trống (.gs-empty--start) bỏ icon tròn + bớt đệm. */
