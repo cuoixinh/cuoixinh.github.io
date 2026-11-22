@@ -223,6 +223,10 @@
 
     // --- Gia đình ---
     renderCoupleInfo(w);
+    // Thiệp nhà gái: khối cô dâu lên trước khối chú rể (đảo order, DOM giữ nguyên),
+    // và khối đứng trước luôn căn trái — tráo luôn kiểu căn của hai khối.
+    cxCoupleOrder("groom-name-label", "bride-name-label");
+    if (!_isGroom) ["groom", "bride"].forEach(_spFlipAlign);
     cxToggle("groom-addr-row", !!w.groom_address);
     cxToggle("bride-addr-row", !!w.bride_address);
     cxToggle("section-family", cxEnabled(w.enable_family));
@@ -329,6 +333,17 @@
 
     // Đo lần đầu (bìa đang hiện nên đo được tên ở bìa); thân thiệp đo lại ở onOpen.
     _fitAllNames();
+  }
+
+  // Lật căn trái ↔ phải một khối của mục Cặp đôi: hàng ảnh + tên, dòng tên, dải địa chỉ.
+  function _spFlipAlign(side) {
+    const fit = document.getElementById(`${side}-name-label`)?.closest(".sp-fit");
+    const row = fit?.closest(".items-end");
+    if (!fit || !row) return;
+    row.classList.toggle("flex-row-reverse");
+    row.classList.toggle("text-right");
+    fit.classList.toggle("is-end");
+    document.getElementById(`${side}-addr-row`)?.classList.toggle("is-r");
   }
 
   window.renderWedding = renderWedding;
