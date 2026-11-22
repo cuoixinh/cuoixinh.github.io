@@ -196,6 +196,53 @@
     // --- Lời cảm ơn ---
     if (w.footer_text) setText("footer-text", w.footer_text);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
+    pbWatchNames();
+  }
+
+  // Tên đôi luôn MỘT dòng (theme.css đặt nowrap): tên dài thì thu cỡ chữ cho vừa khổ.
+  // Cỡ gốc lấy lại từ CSS mỗi lần đo nên đổi khổ rộng ra thì chữ to lại.
+  const PB_NAMES = [".pb-cover-names", ".pb-names", ".pb-time-names"];
+  function pbFitNames() {
+    PB_NAMES.forEach((sel) => {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      el.style.fontSize = "";
+      const room = el.clientWidth;
+      if (!room) return;
+      const base = parseFloat(getComputedStyle(el).fontSize);
+      // Hai lượt: lề quanh dấu & là px nên không co đúng tỉ lệ theo cỡ chữ.
+      for (let i = 0; i < 2 && el.scrollWidth > room; i++) {
+        const size = parseFloat(el.style.fontSize || base);
+        el.style.fontSize = Math.max(base * 0.4, Math.floor((size * room) / el.scrollWidth)) + "px";
+      }
+    });
+  }
+
+  // Đo lại khi: thiệp mở (#main-card hết display:none), đổi khổ màn, font chữ ký tải
+  // xong, hoặc tên bị đổi (xếp lại theo bên, sửa trực tiếp). Chỉ đổi style nên không tự gọi lại.
+  let _pbNamesOn = false;
+  function pbWatchNames() {
+    if (_pbNamesOn) return;
+    _pbNamesOn = true;
+    const els = PB_NAMES.map((s) => document.querySelector(s)).filter(Boolean);
+    const widths = new Map();
+    if (typeof ResizeObserver === "function") {
+      const ro = new ResizeObserver((entries) => {
+        if (entries.some((e) => widths.get(e.target) !== e.target.clientWidth)) {
+          entries.forEach((e) => widths.set(e.target, e.target.clientWidth));
+          pbFitNames();
+        }
+      });
+      els.forEach((el) => ro.observe(el));
+    }
+    if (typeof MutationObserver === "function") {
+      const mo = new MutationObserver(pbFitNames);
+      els.forEach((el) => mo.observe(el, { subtree: true, childList: true, characterData: true }));
+    }
+    document.fonts?.load('36px "FashionSignature"').then(pbFitNames, () => {});
+    document.fonts?.load('24px "PerfectBeloved"').then(pbFitNames, () => {});
+    document.fonts?.addEventListener?.("loadingdone", pbFitNames);
+    pbFitNames();
   }
 
   window.renderWedding = renderWedding;
