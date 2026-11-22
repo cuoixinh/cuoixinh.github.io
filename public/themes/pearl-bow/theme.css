@@ -334,6 +334,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: min(8px, calc(var(--pb-cv-h) * 0.01));
+  max-width: 100%;
   padding: 0 40px;
   text-align: center;
   animation: cx-pb-cv-fade 1s 0.7s ease backwards;
@@ -355,6 +356,8 @@ body {
   font-size: 36px;
   line-height: 1.3;
   letter-spacing: 0;
+  max-width: 100%;
+  white-space: nowrap;
   color: rgb(var(--cx-heading-rgb));
 }
 /* Chữ ký không có dấu & đẹp → giữ & ở serif, nhỏ hơn tên. */
@@ -492,7 +495,8 @@ body {
   font-size: 40px;
   line-height: 1.3;
   text-align: center;
-  text-wrap: balance;
+  max-width: 100%;
+  white-space: nowrap;
   color: rgb(var(--cx-heading-rgb));
 }
 /* Chữ ký không có dấu & đẹp → giữ & ở serif, nhỏ hơn tên (giống bìa). */
@@ -866,6 +870,10 @@ body {
   color: rgb(var(--cx-body-rgb));
 }
 .pb-time-names {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
+  white-space: nowrap;
   font-family: "PerfectBeloved", "Noto Serif", serif;
   font-size: 24px;
   line-height: 1.4;
