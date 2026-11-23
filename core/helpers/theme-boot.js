@@ -411,6 +411,12 @@ function _cxShellOpts(slug, live) {
             tag: "5 phút",
             onClick: () => _cxShellAi(slug),
           },
+          {
+            label: "Trang chủ",
+            desc: "Về trang chủ Cưới Xinh",
+            icon: "house",
+            onClick: () => (location.href = "/"),
+          },
         ],
   };
 }
