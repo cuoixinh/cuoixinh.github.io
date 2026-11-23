@@ -237,8 +237,8 @@ function renderWedding(w) {
 
 window.renderWedding = renderWedding;
 
-// Album băng chuyền (riêng mẫu này): ảnh chia lần lượt vào các dải, dải lẻ chạy
-// trái → phải, dải chẵn phải → trái, lặp vô tận. Mỗi dải chép nối ảnh cho đủ dài
+// Album băng chuyền (riêng mẫu này): ảnh chia lần lượt vào HAI dải (một ảnh thì một
+// dải), dải trên chạy trái → phải, dải dưới phải → trái, lặp vô tận. Mỗi dải chép nối ảnh cho đủ dài
 // rồi NHÂN ĐÔI: chạy đúng -50% là về khớp điểm đầu nên vòng lặp không đứt.
 const MARQ_MIN = 5; // số ảnh tối thiểu của một nửa dải để phủ kín bề ngang thẻ
 const MARQ_SEC = 5; // giây cho mỗi ảnh đi qua
@@ -253,7 +253,7 @@ function renderMarquee(images, focalPoints) {
   lightboxImages.length = 0;
   lightboxImages.push(...urls);
 
-  const nRows = urls.length >= 6 ? 3 : urls.length > 1 ? 2 : 1;
+  const nRows = urls.length > 1 ? 2 : 1;
   const rows = Array.from({ length: nRows }, () => []);
   urls.forEach((_, i) => rows[i % nRows].push(i));
 
