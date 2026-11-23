@@ -1891,12 +1891,39 @@ html.cx-pshell-host.rb-stack body {
   text-align: center;
 }
 
+/* Hai thẻ chung 6 hàng của lưới cha (subgrid): nhãn bên này xuống 2 dòng thì bên kia
+   cũng chừa đủ chỗ, mã QR + số tài khoản + nút hai bên luôn thẳng hàng. Nhãn dồn đáy
+   hàng cho sát mã QR. Trình duyệt chưa có subgrid giữ cột flex như cũ. */
+@supports (grid-template-rows: subgrid) {
+  .rb-qr-grid {
+    row-gap: 0;
+  }
+  .rb-qr {
+    display: grid;
+    grid-row: span 6;
+    grid-template-rows: subgrid;
+    justify-items: center;
+    row-gap: 6px;
+  }
+  .rb-qr-who {
+    align-self: end;
+  }
+}
+
 .rb-qr-who {
   font-family: var(--rb-sans);
   font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: rgb(var(--cx-accent-rgb));
+}
+
+/* Vai một dòng, tên một dòng riêng ngay dưới: tên không bị ngắt giữa chừng kiểu
+   "HOÀNG / DŨNG"; chỉ xuống dòng khi tự nó dài quá một cột. */
+.rb-qr-name {
+  display: block;
+  margin-top: 2px;
+  color: rgb(var(--cx-heading-rgb));
 }
 
 .rb-qr-bank {

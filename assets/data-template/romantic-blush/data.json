@@ -5,9 +5,9 @@
         "x": 50,
         "y": 50
       },
-      "gallery-02.jpg": {
-        "x": 54,
-        "y": 35
+      "cover.jpg": {
+        "x": 40,
+        "y": 44
       },
       "gallery-03.jpg": {
         "x": 41,
@@ -39,8 +39,8 @@
       }
     },
     "cover_image_url": {
-      "x": 40,
-      "y": 44
+      "x": 50,
+      "y": 30
     },
     "groom_image_url": {
       "x": 51,
@@ -51,14 +51,14 @@
       "y": 59
     }
   },
-  "cover_image_url": "cover.jpg",
+  "cover_image_url": "gallery-02.jpg",
   "groom_image_url": "groom.jpg",
   "bride_image_url": "bride.jpg",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
     "gallery-01.jpg",
-    "gallery-02.jpg",
+    "cover.jpg",
     "gallery-03.jpg",
     "gallery-04.jpg",
     "gallery-05.jpg",
@@ -132,10 +132,10 @@
     "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.9550,107.0400&output=embed&hl=vi",
     "groom_bank_name": "MB Bank",
     "groom_bank_number": "0888110220266",
-    "groom_bank_owner": "VU TUAN KHANG",
+    "groom_bank_owner": "VU HOANG DUNG",
     "bride_bank_name": "TPBank",
     "bride_bank_number": "03456677889",
-    "bride_bank_owner": "BUI MAI CHI",
+    "bride_bank_owner": "BUI HAI ANH",
     "story_quote": "Yêu là chọn nhau mỗi ngày — và hôm nay, chúng mình chọn nhau trọn đời.",
     "rsvp_enabled": true,
     "rsvp_message": "Chúng mình sẽ vui lắm nếu bạn dành một phút bấm xác nhận, để hôm ấy không thiếu bạn.",
