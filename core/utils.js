@@ -2261,6 +2261,11 @@ function closeTimePicker() {
           label: row("Tạo với AI", "Kể cho XuXi, thiệp tự điền sẵn", "5 phút"),
           onClick: function () { _go(cxPreviewAiHref(themeName)); },
         },
+        {
+          icon: _sugIcon("home", 16),
+          label: row("Trang chủ", "Về trang chủ Cưới Xinh"),
+          onClick: function () { _go("/"); },
+        },
       ]);
     }
     // x-popover.js không nằm trong bộ script của mẫu thiệp — nạp lúc bấm lần đầu.
