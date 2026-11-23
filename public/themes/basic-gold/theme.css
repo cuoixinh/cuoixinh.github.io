@@ -819,21 +819,26 @@ body {
   animation-play-state: running;
 }
 
-/* Dải lẻ: trái → phải */
+/* Dải lẻ: trái → phải — keyframe RIÊNG chạy ngược, đừng dùng animation-direction:
+   reverse: Safari iOS không vẽ dải đó (chỉ còn khoảng trắng đúng cỡ dải). */
 .cg-marq[data-dir="a"] .cg-marq-track {
-  animation-direction: reverse;
+  animation-name: cx-cg-marq-r;
 }
 
+/* Khổ ô khai CỨNG cả ngang lẫn dọc (3:4), không suy từ aspect-ratio: Safari iOS mới
+   tính bề ngang ô theo ảnh gốc (2160px) → dải dài gấp nhiều lần, -50% không còn
+   khớp điểm đầu (chạy vụt, không lặp) và dải bị đẩy ra ngoài khung (trắng). */
 .cg-marq-item {
-  flex-shrink: 0;
+  flex: none;
+  width: 180px;
   height: 240px;
-  aspect-ratio: 3 / 4;
   margin-right: 12px;
   overflow: hidden;
   cursor: pointer;
 }
 
 .cg-marq:nth-child(even) .cg-marq-item {
+  width: 152px;
   height: 200px;
 }
 
@@ -841,6 +846,7 @@ body {
   display: block;
   width: 100%;
   height: 100%;
+  max-width: none;
   object-fit: cover;
 }
 
@@ -850,6 +856,15 @@ body {
   }
   to {
     transform: translateX(-50%);
+  }
+}
+
+@keyframes cx-cg-marq-r {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
   }
 }
 
