@@ -210,9 +210,9 @@
     // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
     setupMiniCalendar(w.ceremony_date, partyDate);
 
-    // Ảnh trên đầu cuốn lịch: lấy tấm THỨ HAI của album (tấm đầu đã chạy ở màn
-    // mở đầu), không có thì lùi về ảnh bìa.
-    const archKey = w.gallery_images?.[1] || w.gallery_images?.[0] || w.cover_image_url;
+    // Ảnh trên đầu cuốn lịch: tấm ĐẦU của album (album sẽ bỏ tấm này ra), album
+    // trống thì lùi về ảnh bìa.
+    const archKey = w.gallery_images?.[0] || w.cover_image_url;
     if (archKey) {
       setAttr("party-photo", "src", getImageUrl(archKey));
       applyFocalPoint("party-photo", w.image_focal_points?.gallery_images?.[archKey]);
@@ -244,7 +244,19 @@
         gd && !isNaN(gd)
           ? [`${gd.getDate()}.`, `Tháng ${gd.getMonth() + 1}`, String(gd.getFullYear())]
           : null;
-      renderGallery(w.gallery_images, w.image_focal_points?.gallery_images, dateParts);
+      // Ảnh đã hiện ở lịch (mục Tiệc bật) và ở chuyện tình (mục bật) thì không lặp lại
+      // trong album; màn bìa + phần mở đầu được phép trùng. Bỏ ra hết sạch thì giữ nguyên.
+      const used = new Set(
+        [
+          cxEnabled(w.enable_party) && archKey,
+          ...(cxEnabled(w.enable_love_story) && Array.isArray(w.love_story)
+            ? w.love_story.map((ev) => ev?.image_url)
+            : []),
+        ].filter(Boolean),
+      );
+      const all = Array.isArray(w.gallery_images) ? w.gallery_images : [];
+      const album = all.filter((k) => !used.has(k));
+      renderGallery(album.length ? album : all, w.image_focal_points?.gallery_images, dateParts);
     } else {
       cxToggle("section-photos", false);
     }
@@ -315,7 +327,9 @@
     // Dựng lại từ đầu: renderWedding có thể chạy nhiều lần trong khung xem trực tiếp.
     track.querySelectorAll("[data-ne-slide]").forEach((el) => el.remove());
 
+    // Ảnh trượt lấy từ tấm THỨ HAI của album: tấm đầu đã dành cho lịch.
     const extras = (w.gallery_images || [])
+      .slice(1)
       .filter((k) => k && k !== w.cover_image_url)
       .slice(0, 5);
 
