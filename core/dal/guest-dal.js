@@ -71,6 +71,30 @@ class GuestDAL {
     return this._get('wedding', { wedding_id: weddingId });
   }
 
+  // ── Mua thêm khách (payment-handler, đơn PayOS riêng — không qua guest-handler) ──
+
+  async createGuestAddon(weddingId, side, packs) {
+    const res = await fetch(`${CONFIG.supabase.paymentUrl}/create-guest-addon`, {
+      method: 'POST',
+      headers: await this._authHeaders(),
+      body: JSON.stringify({ manage_id: weddingId, side, packs }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || 'Không tạo được đơn, vui lòng thử lại');
+    return json;
+  }
+
+  /** Trạng thái đơn: pending · completed · failed · not_found. */
+  async guestAddonStatus(orderId) {
+    const res = await fetch(
+      `${CONFIG.supabase.paymentUrl}/check-payment-status?order_id=${encodeURIComponent(orderId)}`,
+      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
+    );
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok && res.status !== 404) throw new Error(json.error || 'Lỗi máy chủ');
+    return json.status || 'not_found';
+  }
+
   /** Thiệp người khác mời mình cùng quản lý khách (hàng cùng dạng listMyWeddings + member_side). */
   async listSharedWeddings() {
     return this._get('shared');

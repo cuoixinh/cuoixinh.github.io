@@ -126,6 +126,9 @@
               <span id="gs-cap-fill" class="gs-cap-fill"></span>
             </div>
             <p id="gs-cap-hint" class="gs-cap-hint hidden"></p>
+            <!-- Chỉ hiện khi bên đang mở mua thêm khách được (guest_addon.sides, server suy từ gói). -->
+            <x-button id="gs-cap-buy" variant="soft" size="sm" icon="user-round-plus" class="gs-cap-buy hidden"
+              onclick="openAddonModal()">Mua thêm khách</x-button>
           </div>
 
           <!-- Thanh công cụ dùng chung cho cả hai bên: mọi thao tác nhắm vào bên
@@ -216,6 +219,65 @@
           <i data-lucide="arrow-left-right" style="width:14px;height:14px"></i>
           <span>Đổi bên lúc nào cũng được ở thanh Nhà trai / Nhà gái.</span>
         </p>
+      </div>
+    </div>
+
+    <!-- Mua thêm khách cho bên đang mở (JS: openAddonModal ở index.js). Ba bước trong cùng
+         một khung: chọn số gói (#addon-pick) → quét QR (#addon-pay) → xong (#addon-done). -->
+    <div id="addon-modal" class="gs-modal hidden" role="dialog" aria-modal="true" aria-labelledby="addon-title">
+      <div class="gs-sheet sm:max-w-[400px] focus:outline-none" tabindex="-1">
+        <div class="gs-sheet-head">
+          <span class="gs-sheet-ico"><i data-lucide="user-round-plus" style="width:20px;height:20px"></i></span>
+          <div class="flex-1 min-w-0">
+            <h2 id="addon-title" class="gs-sheet-title">Mua thêm khách mời</h2>
+            <p id="addon-sub" class="gs-sheet-sub"></p>
+          </div>
+          <x-button variant="ghost" tone="neutral" icon-only type="button" onclick="closeAddonModal()"
+            aria-label="Đóng" class="-mr-2 -mt-1">
+            <i data-lucide="x" style="width:18px;height:18px"></i>
+          </x-button>
+        </div>
+
+        <div class="flex-1 min-h-0 overflow-y-auto px-5 pb-5">
+          <div id="addon-pick">
+            <div class="gs-addon-step">
+              <x-button variant="outline" tone="neutral" icon-only type="button" onclick="addonStep(-1)"
+                id="addon-minus" aria-label="Bớt một gói"><i data-lucide="minus" style="width:16px;height:16px"></i></x-button>
+              <div class="gs-addon-n">
+                <b id="addon-guests">50</b>
+                <span>khách</span>
+              </div>
+              <x-button variant="outline" tone="neutral" icon-only type="button" onclick="addonStep(1)"
+                id="addon-plus" aria-label="Thêm một gói"><i data-lucide="plus" style="width:16px;height:16px"></i></x-button>
+            </div>
+            <p id="addon-cap" class="gs-addon-cap"></p>
+            <div class="gs-addon-total">
+              <span>Tổng thanh toán</span>
+              <b id="addon-amount"></b>
+            </div>
+            <p class="gs-addon-note">Thanh toán một lần, chỗ thêm dùng đến hết thời hạn thiệp.</p>
+          </div>
+
+          <div id="addon-pay" class="hidden">
+            <div id="addon-qr" class="gs-addon-qr"></div>
+            <p class="gs-addon-paytxt">Quét mã bằng ứng dụng ngân hàng để chuyển <b id="addon-pay-amount"></b></p>
+            <p id="addon-pay-status" class="gs-addon-wait">
+              <span class="gs-addon-dot" aria-hidden="true"></span>Đang chờ thanh toán…
+            </p>
+          </div>
+
+          <div id="addon-done" class="hidden gs-addon-done">
+            <span class="gs-sheet-ico gs-sheet-ico--ok"><i data-lucide="check" style="width:20px;height:20px"></i></span>
+            <p id="addon-done-txt"></p>
+          </div>
+          <p id="addon-err" class="gs-addon-err hidden"></p>
+        </div>
+
+        <div id="addon-foot" class="gs-sheet-foot">
+          <div class="flex-1"></div>
+          <x-button variant="ghost" tone="neutral" type="button" onclick="closeAddonModal()">Huỷ</x-button>
+          <x-button id="addon-go" type="button" icon="qr-code" onclick="addonPay()">Thanh toán</x-button>
+        </div>
       </div>
     </div>
 

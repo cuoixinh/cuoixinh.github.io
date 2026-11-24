@@ -6219,6 +6219,177 @@ button.cx-ok-close:hover {
   font-weight: 600;
   color: rgb(var(--text-heading-rgb));
 }
+/* Thêm khách mời kèm gói (_syncAddon ở core/payment.js), cuối bước 1. Thẻ nền hoa nhạt
+   cùng họ với phiếu mã giảm giá; mỗi bên một hàng trắng: sức chứa + vạch (phần có sẵn
+   nhạt, phần mua thêm màu nhấn) + bộ đếm viên thuốc. Hàng có mua thêm gắn .is-on. */
+.cx-ord-addon {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgb(var(--surface-brand-soft-rgb));
+}
+.cx-ord-addon-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.cx-ord-addon-ico {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 0 0 1px rgb(var(--brand-accent-light-rgb) / 0.5);
+}
+.cx-ord-addon-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ord-addon-hint {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-caption-rgb));
+}
+.cx-ord-addon-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cx-ord-addon-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 16px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 12px;
+  background: rgb(var(--white-rgb));
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cx-ord-addon-row.is-on {
+  border-color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 0 0 1px rgb(var(--brand-accent-rgb));
+}
+/* Tên · sức chứa · vạch xếp DỌC ở mọi khổ: cột này chỉ còn phần bề ngang bộ đếm chừa lại,
+   đặt tên với sức chứa chung một dòng là gãy chữ "Nhà trai" và bộ đếm đè lên số. */
+.cx-ord-addon-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+.cx-ord-addon-name {
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgb(var(--text-heading-rgb));
+}
+.cx-ord-addon-cap {
+  white-space: nowrap;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.cx-ord-addon-cap span {
+  margin: 0 4px;
+  color: rgb(var(--brand-accent-rgb));
+}
+.cx-ord-addon-cap b {
+  font-weight: 700;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+/* Vạch sức chứa: ::before = 100 khách có sẵn, <i> = phần mua thêm (width do JS đặt, cùng
+   thước đo cho cả hai bên: tối đa = có sẵn + max_packs gói). */
+.cx-ord-addon-meter {
+  display: flex;
+  margin-top: 6px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(var(--surface-tint-rgb));
+}
+.cx-ord-addon-meter::before {
+  content: "";
+  flex: 0 0 var(--cx-addon-base, 16%);
+  border-radius: 999px 0 0 999px;
+  background: rgb(var(--brand-primary-rgb) / 0.6);
+}
+.cx-ord-addon-meter i {
+  display: block;
+  width: 0;
+  background: linear-gradient(90deg, rgb(var(--brand-accent-rgb)), rgb(var(--action-primary-rgb)));
+  transition: width 0.25s ease-out;
+}
+/* Bộ đếm: một viên thuốc − số + ; nút là phần của control nên dùng <button> thường. */
+.cx-ord-addon-step {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid rgb(var(--border-subtle-rgb));
+  border-radius: 999px;
+  background: rgb(var(--white-rgb));
+}
+.cx-ord-addon-step button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: rgb(var(--text-heading-rgb));
+  transition: background-color 0.15s, color 0.15s;
+}
+.cx-ord-addon-step button:hover {
+  background: rgb(var(--surface-brand-subtle-rgb));
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.cx-ord-addon-step button:focus-visible {
+  outline: 2px solid rgb(var(--focus-ring-rgb));
+  outline-offset: 1px;
+}
+.cx-ord-addon-step button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: transparent;
+  color: rgb(var(--text-heading-rgb));
+}
+/* Ô số giữa bộ đếm: chỉ con số; chưa thêm gì (.is-zero) thì xám nhạt. */
+.cx-ord-addon-n {
+  min-width: 44px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.cx-ord-addon-n.is-zero {
+  color: rgb(var(--text-tertiary-rgb));
+}
+
+.cx-ord-addon-note {
+  margin: 12px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgb(var(--text-tertiary-rgb));
+}
+@media (prefers-reduced-motion: reduce) {
+  .cx-ord-addon-meter i,
+  .cx-ord-addon-row {
+    transition: none;
+  }
+}
+
 /* Hai ô radio Nhà trai / Nhà gái: ô đang chọn thêm .is-on (_syncFree). */
 .cx-ord-free-opts {
   display: grid;

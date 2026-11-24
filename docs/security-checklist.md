@@ -429,6 +429,9 @@ Rà bằng cách đọc mã ngày **2026-09-15**, trừ dòng ghi rõ nguồn kh
 - [x] Mã giảm 100% (đơn 0đ) bắt buộc `uid:` từ JWT, không nhận email gõ tay.
 - [x] `used_count` và `code` không sửa tay được qua PATCH admin.
 - [x] Mã đã có đơn chốt thì chỉ TẮT được, không xoá.
+- [x] Đơn mua thêm khách (`payment-handler/create-guest-addon`): chỉ CHỦ thiệp (JWT), bên phải nằm
+  trong `addonSides`, tiền = số gói × `GUEST_ADDON.price` tính ở server; webhook đối chiếu
+  `guest_addons.amount` và chỉ chuyển từ `pending` (gửi lặp không cộng chỗ hai lần).
 
 ### XSS đã chặn đúng từ trước
 

@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Duyên Lành Gõ Cửa</title>
+    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
+         địa chỉ, số điện thoại và QR tài khoản của khách. Bản MẪU (không có slug)
+         thì vẫn cho lập chỉ mục vì đó là hàng đang bán. Phải xét lúc chạy: hai bản
+         dùng CHUNG một URL, khác nhau đúng tham số này — đặt meta tĩnh vào file là
+         chặn nhầm cả bản mẫu. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Be+Vietnam+Pro:wght@300;400;500&family=Great+Vibes&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
+    <script src="../../../core/helpers/no-inspect.js"></script>
+  </head>
+
+  <!-- Duyên Lành Gõ Cửa — đỏ son + nhũ vàng kiểu thiệp hỷ truyền thống. Đi theo trình tự
+       thiệp báo hỷ: thiệp mời → báo tin + hai họ → lễ → tiệc + đường đến → hồi âm → mừng cưới → album. -->
+  <body class="cx-screen-h flex justify-center items-start md:py-5">
+    <div id="cx-music-mount"></div>
+
+    <!-- ═══ MỤC: Màn bìa — nền son, khung nhũ hai lớp, hai ảnh lồng nhau, chữ Hỷ ở giữa là nút mở thiệp.
+         Mở thiệp thì index.js tách màn này làm hai cánh, hai ảnh bị đẩy ra hai bên. ═══ -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
+      <div class="dl-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
+        <div class="dl-cover-in">
+          <div class="dl-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="dl-cover-guest">
+            <div data-cx-invite class="dl-eyebrow cx-t">Trân trọng kính mời</div>
+            <div class="dl-gold cx-h" id="cover-guest-name">Quý khách</div>
+          </div>
+
+          <!-- Ảnh trái: ảnh bìa · ảnh phải: ảnh đầu album (không có thì ảnh bìa) -->
+          <div class="dl-duo">
+            <div class="dl-photo dl-duo-pic dl-duo-pic--l">
+              <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" fetchpriority="high" />
+            </div>
+            <div class="dl-photo dl-duo-pic dl-duo-pic--r">
+              <img id="dl-cover-photo-2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            </div>
+            <!-- Chữ Hỷ là nút mở thiệp -->
+            <x-button variant="bare" onclick="openInvitation()" aria-label="Mở thiệp" class="open-btn dl-xi dl-duo-xi touch-manipulation [-webkit-tap-highlight-color:transparent]">
+              <span class="pointer-events-none" aria-hidden="true">囍</span>
+            </x-button>
+          </div>
+
+          <div class="dl-cover-names dl-gold">
+            <span id="cover-groom-name">----------</span>
+            <span class="dl-amp">&amp;</span>
+            <span id="cover-bride-name">----------</span>
+          </div>
+
+          <div class="dl-cover-meta cx-t">
+            <span class="dl-rule"></span>
+            <span>Thiệp mời</span>
+            <span class="dl-rule"></span>
+          </div>
+          <div class="dl-cover-date cx-h" id="dl-cover-date">--.--.----</div>
+
+          <div class="dl-open-hint cx-t">Chạm vào chữ Hỷ để mở thiệp</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ THÂN THIỆP — #main-card + ĐÚNG MỘT thẻ con flex-column ═══ -->
+    <div id="main-card" class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden" style="display: none">
+      <div class="dl-body flex flex-col text-center">
+        <!-- ═══ MỤC: Mở đầu — dải son, ảnh khung viền nhũ, tên đôi và ngày ═══ -->
+        <section id="section-hero" class="dl-hero">
+          <div class="dl-eyebrow dl-hero-kicker cx-t">Thiệp mời</div>
+          <div class="dl-photo dl-photo--hero">
+            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" />
+          </div>
+          <h1 class="dl-hero-names dl-gold">
+            <span id="couple-names-groom">----------</span>
+            <span class="dl-amp">&amp;</span>
+            <span id="couple-names-bride">----------</span>
+          </h1>
+          <div class="dl-hero-when cx-t">
+            <span id="dl-hero-weekday">------</span>
+            <span id="dl-hero-date" class="cx-h">--.--.----</span>
+            <span id="dl-hero-time">--:--</span>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Báo tin + hai họ ═══ -->
+        <section id="section-family" class="dl-sec">
+          <div class="dl-eyebrow cx-t cx-a">Trân trọng báo tin</div>
+          <h2 class="dl-h2 cx-h">Lễ Thành Hôn của</h2>
+          <div class="dl-couple">
+            <div class="dl-person cx-h" id="groom-name-label">----------</div>
+            <div class="dl-xi dl-xi--sm" aria-hidden="true">囍</div>
+            <div class="dl-person cx-h" id="bride-name-label">----------</div>
+          </div>
+          <div class="dl-family">
+            <div class="dl-house">
+              <div class="dl-label cx-t cx-a">Nhà trai</div>
+              <div class="dl-parents cx-h">
+                <div id="groom-father">--------------------</div>
+                <div id="groom-mother">--------------------</div>
+              </div>
+              <div class="dl-addr cx-t" id="groom-address">--------------------</div>
+            </div>
+            <div class="dl-house">
+              <div class="dl-label cx-t cx-a">Nhà gái</div>
+              <div class="dl-parents cx-h">
+                <div id="bride-father">--------------------</div>
+                <div id="bride-mother">--------------------</div>
+              </div>
+              <div class="dl-addr cx-t" id="bride-address">--------------------</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Thư mời dự lễ — khối ngày ba cột ═══ -->
+        <section id="section-ceremony" class="dl-sec dl-invite">
+          <div class="dl-eyebrow cx-t">Trân trọng kính mời quý khách tới dự</div>
+          <h2 class="dl-h2 dl-h2--big cx-h cx-a" id="ceremony-event-name">Lễ Thành Hôn</h2>
+          <div class="dl-time cx-t">Vào lúc <span class="cx-h" id="invite-time">--:--</span></div>
+          <div class="dl-date">
+            <div class="dl-date-side cx-t" id="invite-weekday">------</div>
+            <div class="dl-date-day cx-h cx-a" id="invite-day">--</div>
+            <div class="dl-date-side cx-t" id="invite-month-year">Tháng -- · ----</div>
+          </div>
+          <div class="dl-lunar cx-h" id="invite-lunar">--------------------</div>
+          <div id="ceremony-location-wrap" class="hidden dl-addr cx-t">
+            Tại <span id="ceremony-location-text"></span>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Tiệc mừng — tấm son viền nhũ + lịch tháng cưới ═══ -->
+        <section id="section-party" class="dl-sec">
+          <div class="dl-party">
+            <div id="party-section-label" class="dl-eyebrow cx-t">Tiệc mừng lễ thành hôn</div>
+            <div class="dl-party-dt cx-h" id="party-datetime">--:-- - --.--.----</div>
+            <div class="dl-lunar cx-h" id="party-lunar">(Ngày âm lịch)</div>
+            <div class="dl-party-at cx-t">Buổi tiệc được tổ chức tại</div>
+            <div class="dl-party-loc cx-h" id="party-location">------------------------</div>
+          </div>
+          <div id="mini-calendar" class="dl-cal"></div>
+        </section>
+
+        <!-- ═══ MỤC: Đường đến — #map-location-name + #map-link phải đứng CUỐI mục ═══ -->
+        <section id="section-map" class="dl-sec">
+          <h2 class="dl-h2 cx-h">Đường đến</h2>
+          <div class="dl-addr cx-t" id="map-location-name">------------------------</div>
+          <a id="map-link" href="#" target="_blank" class="dl-map block">
+            <div class="dl-map-view relative overflow-hidden">
+              <iframe id="map-thumbnail-iframe" src="" width="100%" height="100%" class="border-0 pointer-events-none" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
+                <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
+                <span class="cx-t text-[11px] uppercase tracking-[2px]">Chưa có bản đồ</span>
+              </div>
+            </div>
+            <div class="dl-map-bar cx-t">
+              <span>Xem chỉ đường</span>
+              <i data-lucide="arrow-up-right" class="cx-ic"></i>
+            </div>
+          </a>
+        </section>
+
+        <!-- ═══ MỤC: Hồi âm — xác nhận tham dự + lời chúc chung một tấm.
+             #cx-wish-sec do wishes-helper dựng ở cuối thân thiệp; index.js dời nó vào .dl-reply-wish. ═══ -->
+        <section id="section-rsvp" class="dl-sec dl-reply">
+          <div id="rsvp-section" class="dl-rsvp" style="display: none">
+            <h2 class="dl-h2 cx-h">Hồi âm</h2>
+            <div class="dl-label cx-t">Bạn có thể tới chung vui chứ?</div>
+            <div class="dl-choices">
+              <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="dl-choice cx-t">Chắc chắn rồi</x-button>
+              <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="dl-choice cx-t">Rất tiếc, không đến được</x-button>
+            </div>
+            <div id="attend-msg" class="cx-a cx-h italic text-[16px] hidden"></div>
+          </div>
+          <div class="dl-reply-wish"></div>
+        </section>
+
+        <!-- ═══ MỤC: Hộp mừng cưới — hộp do gift-box-helper.js vẽ ═══ -->
+        <section id="section-gift" class="dl-sec">
+          <h2 class="dl-h2 cx-h">Gửi mừng cưới</h2>
+          <div data-cx-gift="qr" class="dl-gifts grid grid-cols-2 gap-4">
+            <div class="dl-bank">
+              <div class="dl-label cx-t cx-a">Chú rể · <span id="groom-bank-label">----------</span></div>
+              <div class="dl-qr cx-bg-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="groom-qr-img" alt="QR chú rể" /></div>
+              <div class="dl-bank-line cx-t" id="groom-bank-name">----------------</div>
+              <div class="dl-bank-num cx-h" id="groom-bank-number">------------</div>
+              <div class="dl-bank-line cx-t" id="groom-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="dl-save cx-t">Lưu mã QR</x-button>
+            </div>
+            <div class="dl-bank">
+              <div class="dl-label cx-t cx-a">Cô dâu · <span id="bride-bank-label">----------</span></div>
+              <div class="dl-qr cx-bg-qr"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" id="bride-qr-img" alt="QR cô dâu" /></div>
+              <div class="dl-bank-line cx-t" id="bride-bank-name">----------------</div>
+              <div class="dl-bank-num cx-h" id="bride-bank-number">------------</div>
+              <div class="dl-bank-line cx-t" id="bride-bank-owner">--------------------</div>
+              <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="dl-save cx-t">Lưu mã QR</x-button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Album hình cưới ═══ -->
+        <section id="section-photos" class="dl-sec">
+          <h2 class="dl-h2 cx-h">Album hình cưới</h2>
+          <div id="gallery-grid" class="dl-gallery"></div>
+        </section>
+
+        <!-- ═══ MỤC: Lời cảm ơn — dải son khép thiệp ═══ -->
+        <section id="section-footer" class="dl-footer">
+          <div class="dl-xi" aria-hidden="true">囍</div>
+          <p id="footer-text" class="dl-quote cx-h">Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng tôi</p>
+          <div class="dl-footer-sign dl-gold">Hân hạnh đón tiếp</div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
+      </x-button>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
+      <div class="w-full h-full flex items-center justify-center px-[8px]">
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
+      </div>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
+      </x-button>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — GIỮ NGUYÊN khi chép sang mẫu mới ═══════════ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/dal/templates-dal.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- DAL → BL → khởi tạo instance -->
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/helpers/vh-lock.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <!-- Helper dùng chung -->
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper
+         (runtime thành phần ở đó đọc window.CX_ELEMENTS) -->
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
+    <script src="../../../core/helpers/wishes-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <!-- Bản khai của mẫu + renderWedding -->
+    <script src="index.js"></script>
+    <!-- Chrome giả lập điện thoại của khung xem thử trên máy tính. -->
+    <script src="../../../core/helpers/phone-chrome.js"></script>
+    <!-- Khởi động. Phải nạp SAU index.js. -->
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>

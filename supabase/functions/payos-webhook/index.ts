@@ -112,6 +112,57 @@ async function confirmWithPayOS(orderCode: unknown, amount: unknown, log: Logger
   }
 }
 
+const jsonRes = (body: unknown, status: number) =>
+  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+/**
+ * Chốt đơn mua thêm khách (guest_addons) theo order_id. null = không có đơn đó (bên gọi
+ * xử lý tiếp như đơn gói thiệp). Chỉ chuyển từ `pending` nên PayOS gửi lặp không cộng hai lần.
+ */
+// deno-lint-ignore no-explicit-any
+async function applyGuestAddon(db: any, paymentData: any, orderId: string, log: Logger): Promise<Response | null> {
+  const { data: addon, error } = await db
+    .from("guest_addons")
+    .select("id, wedding_id, side, guests, amount, status")
+    .eq("order_id", orderId)
+    .maybeSingle();
+  if (error) {
+    log.error("guest_addon.webhook_read_failed", { order_id: orderId, code: error.code, message: error.message });
+    return jsonRes({ error: "Failed to read order" }, 500);
+  }
+  if (!addon) return null;
+  if (addon.status !== "pending") {
+    log.info("guest_addon.already_applied", { order_id: orderId, status: addon.status });
+    return jsonRes({ success: true, message: "Already processed" }, 200);
+  }
+  if (paymentData.amount !== addon.amount) {
+    log.error("guest_addon.amount_mismatch", { order_id: orderId, expected: addon.amount, received: paymentData.amount });
+    return jsonRes({ error: "Amount mismatch" }, 400);
+  }
+  const status = paymentData.code === "00" ? "completed" : "failed";
+  const { data: updated, error: upErr } = await db
+    .from("guest_addons")
+    .update({ status, paid_at: status === "completed" ? new Date().toISOString() : null })
+    .eq("id", addon.id)
+    .eq("status", "pending")
+    .select("id");
+  if (upErr) {
+    log.error("guest_addon.update_failed", { order_id: orderId, manage_id: addon.wedding_id, code: upErr.code, message: upErr.message });
+    return jsonRes({ error: "Failed to update order" }, 500);
+  }
+  if (!updated?.length) return jsonRes({ success: true, message: "Already processed" }, 200);
+
+  const { error: logErr } = await db.from("payment_logs").insert({
+    order_id: paymentData.orderCode,
+    manage_id: addon.wedding_id,
+    event_type: "webhook_received",
+    payload: { ...paymentData, kind: "guest_addon", side: addon.side, guests: addon.guests },
+  });
+  if (logErr) log.error("guest_addon.log_failed", { order_id: orderId, code: logErr.code, message: logErr.message });
+  log.info("guest_addon.applied", { order_id: orderId, manage_id: addon.wedding_id, side: addon.side, guests: addon.guests, status });
+  return jsonRes({ success: true, message: "Webhook processed successfully" }, 200);
+}
+
 serve(withAxiom("payos-webhook", async (req, log) => {
   // Handle OPTIONS for CORS
   if (req.method === "OPTIONS") {
@@ -218,6 +269,8 @@ serve(withAxiom("payos-webhook", async (req, log) => {
         .single();
 
       if (weddingError || !weddingData) {
+        const addonRes = await applyGuestAddon(supabaseClient, paymentData, fullOrderId, log);
+        if (addonRes) return addonRes;
         console.error("Wedding not found:", weddingError);
         // Khách đã trả tiền nhưng không tìm ra thiệp tương ứng → tiền vào mà thiệp
         // không mở. Phải cảnh báo được, không để lẫn trong console.
@@ -332,7 +385,45 @@ serve(withAxiom("payos-webhook", async (req, log) => {
           });
           updateFields.theme = weddingData.pending_theme;
         }
+        // Nâng gói: cộng phần GÓI của đơn (trừ khách mua kèm, chỉnh ở khối guest_addons bên dưới).
         if (isUpgrade) updateFields.payment_amount = (weddingData.payment_amount ?? 0) + paymentData.amount;
+      }
+
+      // Khách mua thêm kèm đơn gói (guest_addons.plan_order_id) — chốt TRƯỚC hàng weddings:
+      // hỏng thì trả 500 để PayOS gửi lại; chốt weddings trước mà bước này hỏng thì lượt gửi lại
+      // rơi vào nhánh "đã áp" và khách trả tiền mà không có chỗ. Chỉ đổi hàng `pending` nên
+      // chạy lại an toàn. Số tiền đã đối chiếu ở trên (pending_amount gồm cả phần này).
+      {
+        // Tiền khách mua kèm (mọi trạng thái — lượt gửi lại thì hàng đã `completed`) để
+        // payment_amount chỉ giữ tiền gói. Đọc hỏng là dừng: đoán 0 là ghi lẫn hai loại tiền.
+        const { data: bundled, error: bundledErr } = await supabaseClient
+          .from("guest_addons")
+          .select("amount")
+          .eq("plan_order_id", fullOrderId);
+        if (bundledErr) {
+          log.error("payos.addon_read_failed", { manage_id, order_id: fullOrderId, code: bundledErr.code, message: bundledErr.message });
+          return new Response(JSON.stringify({ error: "Failed to read guest add-ons" }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const bundledAmount = (bundled ?? []).reduce((n: number, r: { amount: number }) => n + (Number(r.amount) || 0), 0);
+        if (typeof updateFields.payment_amount === "number") {
+          updateFields.payment_amount = Math.max(0, updateFields.payment_amount - bundledAmount);
+        }
+
+        const { error: addonErr } = await supabaseClient
+          .from("guest_addons")
+          .update({ status: payment_status, paid_at: payment_status === "completed" ? new Date().toISOString() : null })
+          .eq("plan_order_id", fullOrderId)
+          .eq("status", "pending");
+        if (addonErr) {
+          log.error("payos.addon_update_failed", { manage_id, order_id: fullOrderId, code: addonErr.code, message: addonErr.message });
+          return new Response(JSON.stringify({ error: "Failed to update guest add-ons" }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
 
       // Khoá theo đúng đơn + trạng thái vừa đọc: hai lượt webhook chạy song song thì

@@ -192,6 +192,7 @@ document.addEventListener("keydown", (e) => {
   if (document.getElementById("cx-alert-backdrop")?.classList.contains("visible")) return;
   if (document.getElementById("wishes-modal")) { _closeWishesModal(); return; }
   if (!document.getElementById("import-mapping-modal").classList.contains("hidden")) { closeMappingModal(); return; }
+  if (!document.getElementById("addon-modal").classList.contains("hidden")) { closeAddonModal(); return; }
   // Menu nút "+" đang mở thì Esc chỉ đóng menu.
   const attach = document.getElementById("ai-attach-pop");
   if (attach?.isOpen) { attach.close(); return; }
@@ -403,12 +404,176 @@ function _syncCap() {
   bar.setAttribute("aria-valuenow", String(Math.min(n, max)));
   const paid = CONFIG.guestImport.maxPerSide;
   const hint = document.getElementById("gs-cap-hint");
+  const canBuy = guestBL.canBuyAddon(_wedding?.guest_addon, side);
   const limited = max < paid;
   hint.classList.toggle("hidden", !limited);
   if (limited)
     hint.textContent = _wedding?.is_free
-      ? `Gói Free mời được tối đa ${max} khách. Nâng gói để mời tới ${paid} khách mỗi bên.`
+      ? `Gói Free đang mời được tối đa ${max} khách. Mua thêm khách hoặc nâng gói để mời tới ${paid} khách mỗi bên.`
       : `Thiệp chưa thanh toán chỉ thêm được ${max} khách mỗi bên. Thanh toán để mở tới ${paid} khách.`;
+  document.getElementById("gs-cap-buy")?.classList.toggle("hidden", !canBuy);
+}
+
+// ─── Mua thêm khách ───────────────────────────────────────────────────────────
+// Giá + số khách mỗi gói lấy từ `_wedding.guest_addon` (server). Đơn PayOS riêng, hỏi
+// trạng thái mỗi ADDON_POLL_MS tới khi xong rồi nạp lại trần (side_caps) của thiệp.
+
+const ADDON_POLL_MS = 3000;
+const ADDON_POLL_MAX_MS = 15 * 60 * 1000;
+const _addon = { side: null, packs: 1, orderId: null, timer: null, busy: false };
+
+const _addonSideName = (s) => (s === "groom" ? "nhà trai" : "nhà gái");
+const _addonVnd = (v) => `${Number(v).toLocaleString("vi-VN")}đ`;
+
+function openAddonModal() {
+  const a = _wedding?.guest_addon;
+  const side = _currentTab;
+  if (!guestBL.canBuyAddon(a, side)) return;
+  _addon.side = side;
+  _addon.packs = 1;
+  _addonStopPoll();
+  document.getElementById("addon-sub").textContent =
+    `Thêm chỗ cho khách ${_addonSideName(side)} · ${_addonVnd(a.price)} / ${a.guests} khách`;
+  _addonView("pick");
+  _addonRender();
+  const modal = document.getElementById("addon-modal");
+  _modalShow(modal, modal.querySelector(".gs-sheet"));
+}
+
+function closeAddonModal() {
+  _addonStopPoll();
+  _modalHide(document.getElementById("addon-modal"));
+}
+
+function addonStep(d) {
+  _addon.packs += d;
+  _addonRender();
+}
+
+function _addonRender() {
+  const a = _wedding?.guest_addon;
+  const q = guestBL.addonQuote(a, _addon.packs);
+  if (!q) return;
+  _addon.packs = q.packs;
+  document.getElementById("addon-guests").textContent = `+${q.guests}`;
+  document.getElementById("addon-amount").textContent = _addonVnd(q.amount);
+  document.getElementById("addon-cap").textContent =
+    `Trần khách ${_addonSideName(_addon.side)}: ${_maxPerSide(_addon.side)} → ${_maxPerSide(_addon.side) + q.guests} khách`;
+  _addonDisable("addon-minus", q.packs <= 1);
+  _addonDisable("addon-plus", q.packs >= (a.max_packs || 1));
+}
+
+// Đặt bằng attribute: nút có thể còn là <x-button> chưa dựng.
+function _addonDisable(id, off) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (off) el.setAttribute("disabled", "");
+  else el.removeAttribute("disabled");
+}
+
+function _addonView(step) {
+  ["pick", "pay", "done"].forEach((s) =>
+    document.getElementById(`addon-${s}`).classList.toggle("hidden", s !== step));
+  document.getElementById("addon-foot").classList.toggle("hidden", step !== "pick");
+  document.getElementById("addon-err").classList.add("hidden");
+}
+
+function _addonError(msg) {
+  const el = document.getElementById("addon-err");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
+
+async function addonPay() {
+  if (_addon.busy) return;
+  _addon.busy = true;
+  _addonDisable("addon-go", true);
+  try {
+    const res = await guestBL.buyAddon(WEDDING_ID, _addon.side, _addon.packs);
+    _addon.orderId = res.order_id;
+    document.getElementById("addon-pay-amount").textContent = _addonVnd(res.addon?.amount ?? res.payment_info?.amount);
+    _addonView("pay");
+    await _addonDrawQr(res.qr_code, res.checkout_url);
+    _addonStartPoll();
+  } catch (e) {
+    _addonError(e.message || "Không tạo được đơn, vui lòng thử lại");
+  } finally {
+    _addon.busy = false;
+    _addonDisable("addon-go", false);
+  }
+}
+
+// qrcodejs nạp khi cần (cùng bản với màn thanh toán); nạp hỏng thì đưa link trang PayOS.
+let _addonQrLib = null;
+async function _addonDrawQr(text, checkoutUrl) {
+  const box = document.getElementById("addon-qr");
+  box.innerHTML = "";
+  try {
+    if (!window.QRCode) {
+      _addonQrLib ||= new Promise((ok, fail) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js";
+        s.onload = ok;
+        s.onerror = () => { _addonQrLib = null; fail(new Error("qrcodejs")); };
+        document.head.appendChild(s);
+      });
+      await _addonQrLib;
+    }
+    new QRCode(box, { text, width: 220, height: 220, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+  } catch (e) {
+    box.innerHTML = "";
+    const a = document.createElement("a");
+    a.href = checkoutUrl;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.className = "gs-addon-link";
+    a.textContent = "Mở trang thanh toán";
+    box.appendChild(a);
+  }
+}
+
+function _addonStartPoll() {
+  _addonStopPoll();
+  const started = Date.now();
+  const orderId = _addon.orderId;
+  const tick = async () => {
+    if (_addon.orderId !== orderId) return;
+    let st = "pending";
+    try {
+      st = await guestBL.addonStatus(orderId);
+    } catch (e) {
+      console.warn("addon status:", e);
+    }
+    if (_addon.orderId !== orderId) return;
+    if (st === "completed") return _addonPaid();
+    if (st === "failed") return _addonError("Thanh toán không thành công. Đóng lại và thử lần nữa nhé.");
+    if (Date.now() - started > ADDON_POLL_MAX_MS)
+      return _addonError("Mã đã hết hạn. Nếu bạn đã chuyển khoản, chỗ thêm sẽ hiện sau ít phút.");
+    _addon.timer = setTimeout(tick, ADDON_POLL_MS);
+  };
+  _addon.timer = setTimeout(tick, ADDON_POLL_MS);
+}
+
+function _addonStopPoll() {
+  clearTimeout(_addon.timer);
+  _addon.timer = null;
+  _addon.orderId = null;
+}
+
+async function _addonPaid() {
+  _addonStopPoll();
+  // Nạp xong mới thay: xoá trước thì trong lúc chờ mọi phép tính trần rơi về mức chưa thanh toán.
+  try {
+    const w = await guestDAL.getWedding(WEDDING_ID);
+    if (w) _wedding = { ..._wedding, ...w };
+  } catch (e) {
+    console.warn("reload wedding:", e);
+  }
+  document.getElementById("addon-done-txt").textContent =
+    `Đã thêm chỗ cho khách ${_addonSideName(_addon.side)}. Bây giờ bên này mời được tối đa ${_maxPerSide(_addon.side)} khách.`;
+  _addonView("done");
+  _syncCap();
+  showToast("Đã mua thêm khách mời", "success");
 }
 
 // ─── Add Single Guest ─────────────────────────────────────────────────────────
