@@ -1309,6 +1309,8 @@ const CX_PLAYER_STATE = { UNSTARTED: -1, ENDED: 0, PLAYING: 1, PAUSED: 2, BUFFER
 // vào kho không tua được — cần cho giây bắt đầu `opts.start`. Bấm phát lúc file chưa về thì phát
 // CÂM bản trên kho để giữ quyền phát của cú chạm (iOS chặn play() ngoài cú chạm), file về mới ra
 // tiếng từ đúng giây đó. opts.onMeta(dur) = đã biết độ dài bản tua được (0 = tải hỏng).
+// WebKit (Safari, WebView của Messenger/Zalo trên iPhone) hay bỏ lệnh tua đặt lúc mới có metadata
+// rồi phát từ giây 0 → giữ câm và tua lại ở mỗi mốc tới khi thấy ĐANG PHÁT đúng chỗ (settle).
 function cxAudioPlayer(src, opts = {}) {
   const S = CX_PLAYER_STATE;
   const a = new Audio();
@@ -1318,12 +1320,14 @@ function cxAudioPlayer(src, opts = {}) {
   let whole = !!opts.whole; // true = còn chờ file
   let at = Math.max(0, opts.start || 0); // giây áp vào khi file về
   let want = false; // đã bấm phát (chờ file về thì phát tiếp)
+  let seekWait = whole && at > 0; // chưa thấy phát tới `at` → còn câm
+  let seekTries = 0;
   let objUrl = "";
   const meta = { title: opts.title || "", author: opts.author || "" };
   const p = {
     playVideo() {
       want = true;
-      if (whole) a.muted = true;
+      if (whole || seekWait) a.muted = true;
       a.play()?.catch?.(() => {});
     },
     pauseVideo() {
@@ -1332,10 +1336,8 @@ function cxAudioPlayer(src, opts = {}) {
     },
     seekTo(sec) {
       sec = Math.max(0, sec || 0);
-      if (whole) {
-        at = sec;
-        return;
-      }
+      if (whole || seekWait) at = sec;
+      if (whole) return;
       try {
         a.currentTime = sec;
       } catch (e) {}
@@ -1347,7 +1349,7 @@ function cxAudioPlayer(src, opts = {}) {
     setVolume(v) {
       a.volume = Math.max(0, Math.min(1, (Number(v) || 0) / 100));
     },
-    getCurrentTime: () => (whole ? at : a.currentTime || 0),
+    getCurrentTime: () => (whole || seekWait ? at : a.currentTime || 0),
     getDuration: () => (!whole && Number.isFinite(a.duration) ? a.duration : 0),
     getPlayerState: () => state,
     getVideoData: () => ({ title: meta.title, author: meta.author, video_id: "" }),
@@ -1356,6 +1358,7 @@ function cxAudioPlayer(src, opts = {}) {
     },
     destroy() {
       whole = false;
+      seekWait = false;
       want = false;
       a.pause();
       a.removeAttribute("src");
@@ -1372,6 +1375,26 @@ function cxAudioPlayer(src, opts = {}) {
   a.addEventListener("pause", () => a.ended || fire(S.PAUSED));
   a.addEventListener("ended", () => fire(S.ENDED));
   a.addEventListener("waiting", () => fire(S.BUFFERING));
+  const unmute = () => {
+    seekWait = false;
+    a.muted = false;
+  };
+  // Chỉ tin vị trí khi đang phát thật: currentTime đọc ngay sau lệnh tua có thể đúng rồi bị
+  // trả về 0 lúc bắt đầu phát. Trình duyệt nhất quyết không cho tua thì thà phát từ đầu còn hơn câm.
+  const settle = () => {
+    if (!seekWait || whole) return;
+    const t = a.currentTime || 0;
+    if (!a.paused && t >= at - 1 && t < at + 5) return unmute();
+    if (t >= at - 1 && t < at + 5) return; // đã tới chỗ, chờ phát
+    if (++seekTries > 12) {
+      console.warn("cxAudioPlayer: không tua được tới giây", at);
+      return unmute();
+    }
+    try {
+      a.currentTime = at;
+    } catch (e) {}
+  };
+  ["loadeddata", "canplay", "playing", "seeked", "timeupdate"].forEach((ev) => a.addEventListener(ev, settle));
   a.src = src;
   if (!opts.whole) {
     a.addEventListener("loadedmetadata", () => opts.onMeta?.(p.getDuration()), { once: true });
@@ -1386,10 +1409,11 @@ function cxAudioPlayer(src, opts = {}) {
           () => {
             whole = false;
             const dur = p.getDuration();
+            if (dur) at = Math.min(at, dur - 1);
             try {
-              a.currentTime = dur ? Math.min(at, dur - 1) : at;
+              a.currentTime = at;
             } catch (e) {}
-            a.muted = false;
+            if (!seekWait) a.muted = false;
             opts.onMeta?.(dur);
             if (want) a.play()?.catch?.(() => {});
           },
@@ -1403,7 +1427,7 @@ function cxAudioPlayer(src, opts = {}) {
         console.error("cxAudioPlayer: không tải được file nhạc", e);
         if (!whole) return;
         whole = false;
-        a.muted = false;
+        unmute();
         a.preload = "auto";
         opts.onMeta?.(0);
         if (want) a.play()?.catch?.(() => {});
