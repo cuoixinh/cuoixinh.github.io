@@ -310,17 +310,17 @@ const RESPONSE_SCHEMA = {
 // Ngân sách "suy nghĩ" của Gemini 2.5 Flash — model bật thinking mặc định và hay
 // tiêu vài nghìn token trước khi trả lời, đó là phần chờ lâu nhất. Output ở đây đã
 // bị ép theo responseSchema nên gần như không cần suy luận:
-//   • 0   → tắt hẳn (viết lại 1 ô, tách mốc chuyện tình, bịa dữ liệu demo)
-//   • 512 → chừa một ít cho luồng sinh thiệp thật (suy tên rút gọn, ước giờ vu quy)
+//   • 0    → tắt hẳn cho việc thuần sáng tác (viết lại 1 ô, tách mốc chuyện tình, dữ liệu demo)
+//   • 1024 → việc cần chính xác (đọc danh sách khách từ ảnh/PDF/Excel)
 const THINK_OFF = { thinkingBudget: 0 }
-const THINK_LOW = { thinkingBudget: 512 }
+const THINK_ON = { thinkingBudget: 1024 }
 
 // generationConfig của Gemini theo từng tác vụ.
 const GEN_CFG_BLOCKS = {
   temperature: 0.9,
   responseMimeType: 'application/json',
   responseSchema: RESPONSE_SCHEMA,
-  thinkingConfig: THINK_LOW,
+  thinkingConfig: THINK_ON,
   // Nới trần token: tránh JSON bị cắt ngang khiến block cuối (slogan) bị mất.
   maxOutputTokens: 65536,
 }
@@ -335,13 +335,13 @@ const GEN_CFG_LOVE = {
   maxOutputTokens: 16384,
 }
 
-// Trích xuất thuần (không sáng tác) → nhiệt độ thấp, tắt thinking. Danh sách dài
-// thì output cũng dài nên nới trần token + thời gian chờ.
+// Trích xuất thuần (không sáng tác) → nhiệt độ thấp, bật thinking cho đọc đúng tên/xưng hô/bên.
+// Danh sách dài thì output cũng dài nên nới trần token + thời gian chờ.
 const GEN_CFG_GUESTS = {
   temperature: 0.2,
   responseMimeType: 'application/json',
   responseSchema: GUEST_ITEM_SCHEMA,
-  thinkingConfig: THINK_OFF,
+  thinkingConfig: THINK_ON,
   maxOutputTokens: 32768,
 }
 const GUESTS_TIMEOUT_MS = 45000
