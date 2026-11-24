@@ -1077,6 +1077,7 @@
                   </label>
                 </div>
               </fieldset>
+              </div>
             </div>
 
             <!-- Bảng so sánh gói (_renderCompare): khối riêng dưới các thẻ gói. -->
@@ -1122,6 +1123,10 @@
                   <span>Ưu đãi ra mắt</span><span class="cx-ord-lead"></span>
                   <span id="payment-sale-amount" class="font-semibold">-0đ</span>
                 </div>
+                <div id="payment-addon-row" class="cx-ord-line" style="display:none;">
+                  <span id="payment-addon-label" class="text-gray-600">Thêm khách mời</span><span class="cx-ord-lead"></span>
+                  <span id="payment-addon-amount" class="font-semibold" style="color:rgb(var(--text-heading-rgb));">0đ</span>
+                </div>
               </div>
               <!-- Mã giảm giá là MỘT HÀNG của chi tiết thanh toán, dáng phiếu cắt
                    viền đứt: vừa là nút mở ô nhập, vừa là chỗ báo kết quả — mã
@@ -1158,6 +1163,52 @@
                   ></x-input>
                 </div>
                 <p id="promo-msg" class="cx-ord-msg hidden" role="status" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <!-- Mua thêm khách kèm gói (_syncAddon): cuối bước 1, ngay trên dải trả tiền. Mỗi
+                 bên một hàng: sức chứa "100 → 150" + vạch (phần có sẵn / phần mua thêm) và bộ
+                 đếm. Giá từ báo giá (guest_addon); ẩn khi chọn Free. Không áp mã giảm giá. -->
+            <div id="payment-addon-box" class="px-6 pb-5" style="display:none;">
+              <div class="cx-ord-addon">
+                <div class="cx-ord-addon-head">
+                  <span class="cx-ord-addon-ico"><i data-lucide="users-round" style="width:18px;height:18px"></i></span>
+                  <div class="min-w-0">
+                    <p class="cx-ord-addon-title">Cần mời thêm khách?</p>
+                    <p id="payment-addon-hint" class="cx-ord-addon-hint"></p>
+                  </div>
+                </div>
+                <div class="cx-ord-addon-rows">
+                  <div class="cx-ord-addon-row" data-addon-row="groom">
+                    <div class="cx-ord-addon-info">
+                      <span class="cx-ord-addon-name">Nhà trai</span>
+                      <span id="payment-addon-cap-groom" class="cx-ord-addon-cap"></span>
+                      <span class="cx-ord-addon-meter" aria-hidden="true"><i id="payment-addon-bar-groom"></i></span>
+                    </div>
+                    <div class="cx-ord-addon-step" role="group" aria-label="Khách mua thêm nhà trai">
+                      <button type="button" data-addon-btn="groom-1" onclick="cxAddonStep('groom', -1)"
+                        aria-label="Bớt khách nhà trai"><i data-lucide="minus" style="width:16px;height:16px"></i></button>
+                      <output id="payment-addon-n-groom" class="cx-ord-addon-n is-zero" aria-live="polite">0</output>
+                      <button type="button" data-addon-btn="groom1" onclick="cxAddonStep('groom', 1)"
+                        aria-label="Thêm khách nhà trai"><i data-lucide="plus" style="width:16px;height:16px"></i></button>
+                    </div>
+                  </div>
+                  <div class="cx-ord-addon-row" data-addon-row="bride">
+                    <div class="cx-ord-addon-info">
+                      <span class="cx-ord-addon-name">Nhà gái</span>
+                      <span id="payment-addon-cap-bride" class="cx-ord-addon-cap"></span>
+                      <span class="cx-ord-addon-meter" aria-hidden="true"><i id="payment-addon-bar-bride"></i></span>
+                    </div>
+                    <div class="cx-ord-addon-step" role="group" aria-label="Khách mua thêm nhà gái">
+                      <button type="button" data-addon-btn="bride-1" onclick="cxAddonStep('bride', -1)"
+                        aria-label="Bớt khách nhà gái"><i data-lucide="minus" style="width:16px;height:16px"></i></button>
+                      <output id="payment-addon-n-bride" class="cx-ord-addon-n is-zero" aria-live="polite">0</output>
+                      <button type="button" data-addon-btn="bride1" onclick="cxAddonStep('bride', 1)"
+                        aria-label="Thêm khách nhà gái"><i data-lucide="plus" style="width:16px;height:16px"></i></button>
+                    </div>
+                  </div>
+                </div>
+                <p class="cx-ord-addon-note">Không áp mã giảm giá. Cần thêm sau vẫn mua được ở trang Khách mời.</p>
               </div>
             </div>
 
@@ -1511,6 +1562,74 @@
     return Math.max(originalPrice || 0, price || 0);
   }
 
+  // ── Thêm khách mời kèm gói ──
+  // Giá + số khách/gói + trần số gói lấy từ báo giá (window._planQuote.guest_addon); server
+  // tính lại tiền lúc tạo đơn (guest_addons của create-payment). Mã giảm giá không áp phần này.
+  window._addonPacks = { groom: 0, bride: 0 };
+  const _addonVnd = (v) => `${v.toLocaleString("vi-VN")}đ`;
+  const _addonInfo = () => {
+    const a = window._planQuote?.guest_addon;
+    return a && a.price > 0 && a.guests > 0 ? a : null;
+  };
+  const _addonShown = () => !!_addonInfo() && !!window._paymentPlan && window._paymentPlan !== "free";
+  function _addonAmount() {
+    if (!_addonShown()) return 0;
+    return (window._addonPacks.groom + window._addonPacks.bride) * _addonInfo().price;
+  }
+
+  function _syncAddon() {
+    const box = document.getElementById("payment-addon-box");
+    const row = document.getElementById("payment-addon-row");
+    const a = _addonInfo();
+    const on = _addonShown();
+    const base = CONFIG.guestImport.maxPerSide;
+    if (box) box.style.display = on ? "" : "none";
+    if (!on) {
+      if (row) row.style.display = "none";
+      return;
+    }
+    const hint = document.getElementById("payment-addon-hint");
+    if (hint) hint.textContent = `Mỗi bên có sẵn ${base} khách, thêm ${a.guests} khách giá ${_addonVnd(a.price)}.`;
+    let guests = 0;
+    ["groom", "bride"].forEach((side) => {
+      const n = window._addonPacks[side];
+      const extra = n * a.guests;
+      guests += extra;
+      const el = document.getElementById(`payment-addon-n-${side}`);
+      if (el) {
+        el.textContent = String(extra);
+        el.classList.toggle("is-zero", !extra);
+      }
+      const cap = document.getElementById(`payment-addon-cap-${side}`);
+      if (cap) cap.innerHTML = extra ? `${base} <span aria-hidden="true">→</span><b>${base + extra}</b> khách` : `${base} khách`;
+      // Vạch: phần mua thêm trên tổng khi mua tối đa — cả hai bên cùng thước đo.
+      const bar = document.getElementById(`payment-addon-bar-${side}`);
+      const full = base + a.max_packs * a.guests;
+      if (bar) {
+        bar.style.width = `${(extra / full) * 100}%`;
+        bar.parentElement.style.setProperty("--cx-addon-base", `${(base / full) * 100}%`);
+      }
+      document.querySelector(`[data-addon-row="${side}"]`)?.classList.toggle("is-on", extra > 0);
+      const minus = document.querySelector(`[data-addon-btn="${side}-1"]`);
+      const plus = document.querySelector(`[data-addon-btn="${side}1"]`);
+      if (minus) minus.disabled = n <= 0;
+      if (plus) plus.disabled = n >= a.max_packs;
+    });
+    const amount = _addonAmount();
+    if (row) row.style.display = amount ? "flex" : "none";
+    const label = document.getElementById("payment-addon-label");
+    if (label) label.textContent = `Thêm ${guests} khách mời`;
+    const amt = document.getElementById("payment-addon-amount");
+    if (amt) amt.textContent = _addonVnd(amount);
+  }
+
+  window.cxAddonStep = function (side, d) {
+    const a = _addonInfo();
+    if (!a || !(side in window._addonPacks)) return;
+    window._addonPacks[side] = Math.min(Math.max(0, window._addonPacks[side] + d), a.max_packs || 0);
+    _renderPrices();
+  };
+
   function _renderPrices() {
     const { price, originalPrice } = window._paymentPricing || {};
     const known = Number.isFinite(price);
@@ -1536,9 +1655,10 @@
       ? null
       : window._paymentPlan === "free"
         ? 0
-        : window._appliedPromo
-        ? _promoBase() - _discountOf(window._appliedPromo, _promoBase())
-        : price;
+        : (window._appliedPromo
+            ? _promoBase() - _discountOf(window._appliedPromo, _promoBase())
+            : price) + _addonAmount();
+    _syncAddon();
     const totalEl = document.getElementById("payment-total-price");
     if (totalEl) totalEl.textContent = known ? fmt(total) : blank;
 
@@ -1556,6 +1676,7 @@
     const seq = ++_pricingSeq;
     window._pricingPending = true;
     window._planQuote = null;
+    window._addonPacks = { groom: 0, bride: 0 };
     _renderPlans();
     _renderPrices();
 
@@ -2410,6 +2531,7 @@
         if (window._appliedPromo) {
           paymentData.promo_code = window._appliedPromo.code;
         }
+        if (_addonAmount()) paymentData.guest_addons = { ...window._addonPacks };
 
         const paymentResult = await createPayment(paymentData);
 

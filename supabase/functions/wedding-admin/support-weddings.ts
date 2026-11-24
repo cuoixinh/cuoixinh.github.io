@@ -79,6 +79,28 @@ export async function handleSupportWeddings(
     }
   }
 
+  // Đơn mua thêm khách đã trả (PayOS + nhân viên thu tay) — doanh thu tính riêng với gói thiệp
+  // (payment_amount chỉ là tiền gói).
+  const addonBy = new Map<string, { guests: number; amount: number }>()
+  let addonRevenue = 0
+  let addonOrders = 0
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db.from('guest_addons').select('wedding_id, guests, amount').eq('status', 'completed').order('id').range(from, from + PAGE - 1)
+    if (error) {
+      log.error('support_weddings.addons_failed', { from, code: error.code, message: error.message })
+      return json({ error: 'Không đọc được đơn mua thêm khách' }, 500)
+    }
+    for (const a of data ?? []) {
+      const cur = addonBy.get(a.wedding_id) ?? { guests: 0, amount: 0 }
+      cur.guests += Number(a.guests) || 0
+      cur.amount += Number(a.amount) || 0
+      addonBy.set(a.wedding_id, cur)
+      addonRevenue += Number(a.amount) || 0
+      addonOrders++
+    }
+    if (!data || data.length < PAGE) break
+  }
+
   // Email chủ thiệp: chỉ để hiện + tìm. Đọc hỏng thì danh sách vẫn đủ, chỉ thiếu cột này.
   const emails = new Map<string, string>()
   try {
@@ -151,6 +173,8 @@ export async function handleSupportWeddings(
       hidden: w.is_active === false,
       views: v,
       amount,
+      extra_guests: addonBy.get(w.id)?.guests ?? 0,
+      addon_amount: addonBy.get(w.id)?.amount ?? 0,
       owner: w.user_id ? emails.get(w.user_id) ?? null : null,
       created_at: w.created_at,
       paid_at: paid ? w.payment_time : null,
@@ -175,6 +199,9 @@ export async function handleSupportWeddings(
       paid: paidCount,
       published_unpaid: publishedUnpaid,
       revenue,
+      addon_revenue: addonRevenue,
+      addon_orders: addonOrders,
+      addon_weddings: addonBy.size,
       hidden,
       near_view_cap: nearViewCap,
       owners: owners.size,

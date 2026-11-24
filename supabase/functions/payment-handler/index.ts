@@ -9,7 +9,9 @@ import {
 } from "../_shared/wedding-limits.ts";
 import { getUniqueSlug } from "../_shared/slug-holds.ts";
 import {
+  addonBuyableSides,
   currentPlan,
+  GUEST_ADDON,
   isPlanId,
   planExpiry,
   PLANS,
@@ -173,6 +175,8 @@ serve(withAxiom("payment-handler", async (req, log) => {
 
     if (req.method === "POST" && path.endsWith("/create-payment")) {
       return await handleCreatePayment(req, supabaseClient, log);
+    } else if (req.method === "POST" && path.endsWith("/create-guest-addon")) {
+      return await handleCreateGuestAddon(req, supabaseClient, log);
     } else if (req.method === "POST" && path.endsWith("/quote")) {
       return await handleQuote(req, supabaseClient, log);
     } else if (req.method === "GET" && path.endsWith("/check-payment-status")) {
@@ -263,6 +267,8 @@ async function handleQuote(req: Request, supabaseClient: any, log: Logger) {
     plan_expires_at: from ? curExpires : null,
     plans: quotePlans(pricing.price, pricing.original_price, from, curExpires),
     free,
+    // Khối "Thêm khách mời" của màn thanh toán (mua kèm đơn gói, cộng vào cùng mã QR).
+    guest_addon: { guests: GUEST_ADDON.guests, price: GUEST_ADDON.price, max_packs: GUEST_ADDON.maxPacks },
   }), { status: 200, headers: JSON_HEADERS });
 }
 
@@ -288,6 +294,15 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     // Ô "cho hiện thiệp ở trang chủ" của màn thanh toán. Chỉ ghi khi mua lần đầu (nhánh
     // nâng gói không đụng) — đã thanh toán thì chỉ admin-support đổi. Client cũ không gửi = false.
     const showcaseConsent = body.showcase_consent === true;
+    // Khách mua thêm kèm đơn gói ({groom, bride} = số gói mỗi bên). Giá cố định, KHÔNG áp
+    // mã giảm giá; cộng vào cùng đơn PayOS, payos-webhook chốt theo plan_order_id.
+    const addonPacks = parseAddonPacks(body.guest_addons);
+    if (!addonPacks) {
+      return new Response(JSON.stringify({
+        error: `Số gói thêm khách mỗi bên từ 0 tới ${GUEST_ADDON.maxPacks}`,
+      }), { status: 400, headers: JSON_HEADERS });
+    }
+    const addonAmount = (addonPacks.groom + addonPacks.bride) * GUEST_ADDON.price;
 
     // Client cũ (chưa có bước chọn gói) không gửi plan: đừng đoán thay khách — đoán
     // sai gói là QR khác số đang hiện.
@@ -506,7 +521,10 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       reservedOrderId = fullOrderId;
     }
 
-    const paymentAmount = Math.max(0, promoBase - discountAmount);
+    // Phần của GÓI (sau mã) tách khỏi phần khách mua thêm: mọi luật về mã giảm giá chỉ xét
+    // phần gói; đơn còn khách mua thêm thì luôn có tiền để thu → luôn qua PayOS.
+    const planPay = Math.max(0, promoBase - discountAmount);
+    const paymentAmount = planPay + addonAmount;
 
     // Generate slug from customer name (remove Vietnamese accents) and ensure it's unique
     const removeVietnameseAccents = (str: string): string => {
@@ -536,6 +554,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       plan,
       upgrade_from: upgrade?.from ?? null,
       discount_amount: discountAmount,
+      guest_addons: addonAmount ? { ...addonPacks, guests_per_pack: GUEST_ADDON.guests, amount: addonAmount } : null,
       final_price: paymentAmount,
     };
 
@@ -544,7 +563,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     // hoàn tất và gỡ hạn dùng thử (expires_at = null) đúng như webhook vẫn làm.
     // Áp mã là BỎ ưu đãi ra mắt; mã nhỏ hơn ưu đãi đó thì khách trả ĐẮT hơn không
     // dùng mã → từ chối và nhả lượt, đừng thu tiền nhiều hơn giá đang bán.
-    if (appliedPromoCode && promoBase > basePrice && paymentAmount >= basePrice) {
+    if (appliedPromoCode && promoBase > basePrice && planPay >= basePrice) {
       await releasePromo();
       return new Response(JSON.stringify({
         error: `Mã này ít ưu đãi hơn giá đang giảm (${basePrice.toLocaleString("vi-VN")}đ) nên không áp dụng`,
@@ -671,7 +690,9 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
           slug: finalSlug,
           payment_status: "pending",
           payment_order_id: fullOrderId,
-          payment_amount: paymentAmount,
+          // payment_amount = tiền GÓI; khách mua thêm chỉ nằm ở guest_addons.amount.
+          // pending_amount = tổng cả đơn PayOS (webhook đối chiếu số tiền theo cột này).
+          payment_amount: planPay,
           showcase_consent: showcaseConsent,
           pending_plan: plan,
           pending_amount: paymentAmount,
@@ -689,11 +710,33 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       throw new Error("Failed to save payment information");
     }
 
+    // Hàng khách mua thêm ghi SAU hàng weddings (khoá ngoại) và trước khi trả QR: hỏng thì
+    // rơi xuống catch, khách không thấy mã nên không trả được đơn thiếu phần khách.
+    const addonRows = (["groom", "bride"] as const)
+      .filter((side) => addonPacks[side] > 0)
+      .map((side) => ({
+        wedding_id: manage_id,
+        order_id: `${fullOrderId}-${side}`,
+        plan_order_id: fullOrderId,
+        side,
+        packs: addonPacks[side],
+        guests: addonPacks[side] * GUEST_ADDON.guests,
+        amount: addonPacks[side] * GUEST_ADDON.price,
+        user_id: buyerId,
+      }));
+    if (addonRows.length) {
+      const { error: addonErr } = await supabaseClient.from("guest_addons").insert(addonRows);
+      if (addonErr) {
+        log.error("payment.addon_insert_failed", { order_id: fullOrderId, manage_id, code: addonErr.code, message: addonErr.message });
+        throw new Error("Failed to save payment information");
+      }
+    }
+
     await supabaseClient.from("payment_logs").insert({
       order_id: fullOrderId,
       manage_id,
       event_type: "created",
-      payload: { customer_name, customer_phone, customer_email, template_name, amount: paymentAmount, promo_code: appliedPromoCode, plan, upgrade_from: upgrade?.from ?? null },
+      payload: { customer_name, customer_phone, customer_email, template_name, amount: paymentAmount, promo_code: appliedPromoCode, plan, upgrade_from: upgrade?.from ?? null, guest_addons: addonAmount ? addonPacks : null },
     });
 
     return new Response(JSON.stringify({
@@ -724,6 +767,139 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
   }
 }
 
+// {groom, bride} số gói thêm khách mua kèm đơn gói; thiếu = 0. Sai kiểu / ngoài khoảng → null.
+function parseAddonPacks(v: unknown): { groom: number; bride: number } | null {
+  if (v == null) return { groom: 0, bride: 0 };
+  if (typeof v !== "object" || Array.isArray(v)) return null;
+  const o = v as Record<string, unknown>;
+  const out = { groom: 0, bride: 0 };
+  for (const side of ["groom", "bride"] as const) {
+    const n = o[side] == null ? 0 : Number(o[side]);
+    if (!Number.isInteger(n) || n < 0 || n > GUEST_ADDON.maxPacks) return null;
+    out[side] = n;
+  }
+  return out;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Trần đơn mua thêm khách còn treo của một thiệp trong một khung thời gian.
+const ADDON_PENDING_MAX = 5;
+const ADDON_PENDING_WINDOW_MS = 30 * 60 * 1000;
+
+// Đơn mua thêm khách mời cho MỘT bên (bảng guest_addons). Giá = số gói × GUEST_ADDON.price,
+// không nhận mã giảm giá, không đụng hàng weddings — payos-webhook chốt đơn theo order_id.
+async function handleCreateGuestAddon(req: Request, supabaseClient: any, log: Logger) {
+  const body = await req.json().catch(() => ({}));
+  const manage_id = typeof body.manage_id === "string" ? body.manage_id : "";
+  const side = body.side;
+  const packs = Number(body.packs);
+  if (!UUID_RE.test(manage_id) || (side !== "groom" && side !== "bride")) {
+    return new Response(JSON.stringify({ error: "Thiếu thiệp hoặc bên mua thêm không hợp lệ" }), { status: 400, headers: JSON_HEADERS });
+  }
+  if (!Number.isInteger(packs) || packs < 1 || packs > GUEST_ADDON.maxPacks) {
+    return new Response(JSON.stringify({ error: `Mỗi lần mua từ 1 tới ${GUEST_ADDON.maxPacks} gói` }), { status: 400, headers: JSON_HEADERS });
+  }
+
+  const buyerId = await resolveAuthUserId(req, supabaseClient);
+  if (!buyerId) {
+    return new Response(JSON.stringify({ error: "Vui lòng đăng nhập để thanh toán", code: "AUTH_REQUIRED" }), { status: 401, headers: JSON_HEADERS });
+  }
+
+  const { data: w, error: wErr } = await supabaseClient
+    .from("weddings")
+    .select("id, user_id, payment_status, free_side, plan, plan_expires_at, expires_at, is_active")
+    .eq("id", manage_id)
+    .maybeSingle();
+  if (wErr) {
+    log.error("guest_addon.wedding_read_failed", { manage_id, code: wErr.code, message: wErr.message });
+    return new Response(JSON.stringify({ error: "Không kiểm tra được thiệp, vui lòng thử lại" }), { status: 500, headers: JSON_HEADERS });
+  }
+  if (!w) return new Response(JSON.stringify({ error: "Thiệp không tồn tại" }), { status: 404, headers: JSON_HEADERS });
+  if (w.user_id !== buyerId) {
+    log.warn("guest_addon.forbidden", { manage_id, buyerId });
+    return new Response(JSON.stringify({ error: "Chỉ chủ thiệp mua thêm khách được", code: "FORBIDDEN" }), { status: 403, headers: JSON_HEADERS });
+  }
+  const buyable = addonBuyableSides(w);
+  if (!buyable.includes(side)) {
+    const reason = buyable.length
+      ? "Gói Free chỉ mua thêm khách cho bên đã mở thiệp"
+      : "Thiệp chưa có gói hoặc đã hết hạn, chưa mua thêm khách được";
+    return new Response(JSON.stringify({ error: reason, code: "ADDON_UNAVAILABLE" }), { status: 409, headers: JSON_HEADERS });
+  }
+
+  // Mỗi lần bấm là một đơn PayOS + một hàng `pending` (đơn bỏ ngang không bao giờ chốt) →
+  // chặn bấm dồn. Đếm hỏng là dừng, đừng mở cửa tạo đơn vô hạn.
+  const since = new Date(Date.now() - ADDON_PENDING_WINDOW_MS).toISOString();
+  const { count: pendingCount, error: pendErr } = await supabaseClient
+    .from("guest_addons")
+    .select("id", { count: "exact", head: true })
+    .eq("wedding_id", manage_id)
+    .eq("status", "pending")
+    .gte("created_at", since);
+  if (pendErr) {
+    log.error("guest_addon.pending_count_failed", { manage_id, code: pendErr.code, message: pendErr.message });
+    return new Response(JSON.stringify({ error: "Không kiểm tra được đơn, vui lòng thử lại" }), { status: 500, headers: JSON_HEADERS });
+  }
+  if ((pendingCount ?? 0) >= ADDON_PENDING_MAX) {
+    log.warn("guest_addon.too_many_pending", { manage_id, pending: pendingCount });
+    return new Response(JSON.stringify({ error: "Bạn vừa tạo nhiều mã thanh toán, vui lòng đợi ít phút rồi thử lại", code: "TOO_MANY" }), { status: 429, headers: JSON_HEADERS });
+  }
+
+  const amount = packs * GUEST_ADDON.price;
+  const guests = packs * GUEST_ADDON.guests;
+  const orderCode = newOrderCode();
+  const orderId = `ORDER-${orderCode}`;
+
+  // Ghi đơn TRƯỚC khi gọi PayOS: webhook tới sớm vẫn tìm ra đơn.
+  const { data: row, error: insErr } = await supabaseClient
+    .from("guest_addons")
+    .insert({ wedding_id: manage_id, order_id: orderId, side, packs, guests, amount, user_id: buyerId })
+    .select("id")
+    .single();
+  if (insErr) {
+    log.error("guest_addon.insert_failed", { order_id: orderId, manage_id, code: insErr.code, message: insErr.message });
+    return new Response(JSON.stringify({ error: "Không tạo được đơn, vui lòng thử lại" }), { status: 500, headers: JSON_HEADERS });
+  }
+
+  let paymentResponse: any;
+  try {
+    const creds = getPayOSCredentials();
+    const baseUrl = allowedBaseUrl(req.headers.get("origin"));
+    paymentResponse = await createPaymentRequest(
+      { orderCode, amount, returnUrl: `${baseUrl}/payment-success`, cancelUrl: `${baseUrl}/payment-cancel` },
+      creds.apiKey, creds.clientId, creds.checksumKey,
+    );
+  } catch (error) {
+    log.error("guest_addon.payos_failed", { order_id: orderId, manage_id, message: error instanceof Error ? error.message : String(error) });
+    const { error: failErr } = await supabaseClient.from("guest_addons").update({ status: "failed" }).eq("id", row.id);
+    if (failErr) log.error("guest_addon.mark_failed_failed", { order_id: orderId, code: failErr.code, message: failErr.message });
+    return new Response(JSON.stringify({ error: "Không tạo được mã thanh toán, vui lòng thử lại" }), { status: 502, headers: JSON_HEADERS });
+  }
+
+  const { error: logErr } = await supabaseClient.from("payment_logs").insert({
+    order_id: orderId,
+    manage_id,
+    event_type: "created",
+    payload: { kind: "guest_addon", side, packs, guests, amount },
+  });
+  if (logErr) log.error("guest_addon.log_failed", { order_id: orderId, code: logErr.code, message: logErr.message });
+
+  return new Response(JSON.stringify({
+    success: true,
+    order_id: orderId,
+    qr_code: paymentResponse.data.qrCode,
+    payment_info: {
+      bank_name: "PayOS",
+      account_number: paymentResponse.data.accountNumber,
+      account_name: paymentResponse.data.accountName,
+      amount: paymentResponse.data.amount,
+      content: paymentResponse.data.description,
+    },
+    addon: { side, packs, guests, amount },
+    checkout_url: paymentResponse.data.checkoutUrl,
+  }), { status: 200, headers: JSON_HEADERS });
+}
+
 async function handleCheckPaymentStatus(req: Request, supabaseClient: any, log: Logger) {
   try {
     const url = new URL(req.url);
@@ -742,7 +918,21 @@ async function handleCheckPaymentStatus(req: Request, supabaseClient: any, log: 
       .eq("payment_order_id", order_id)
       .single();
 
+    // Không phải đơn gói thiệp → có thể là đơn mua thêm khách (guest_addons).
     if (error || !data) {
+      const { data: addon, error: addonErr } = await supabaseClient
+        .from("guest_addons")
+        .select("status")
+        .eq("order_id", order_id)
+        .maybeSingle();
+      if (addonErr) {
+        log.error("guest_addon.status_read_failed", { order_id, code: addonErr.code, message: addonErr.message });
+        return new Response(JSON.stringify({ error: "Không kiểm tra được đơn" }), { status: 500, headers: JSON_HEADERS });
+      }
+      if (addon) {
+        // Chỉ trạng thái: ai có order_id cũng hỏi được đường này (không cần đăng nhập).
+        return new Response(JSON.stringify({ status: addon.status, kind: "guest_addon" }), { status: 200, headers: JSON_HEADERS });
+      }
       return new Response(JSON.stringify({ status: "not_found", error: "Payment not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

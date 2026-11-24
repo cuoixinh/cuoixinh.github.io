@@ -1,7 +1,8 @@
 import type { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
-import { countsViews, currentPlan, FREE_PLAN, freeSide, isFreePlan, isPlanExpired } from '../_shared/plans.ts'
+import { addonBuyableSides, addonSides, countsViews, currentPlan, FREE_PLAN, freeSide, GUEST_ADDON, isFreePlan, isPlanExpired } from '../_shared/plans.ts'
+import { extraGuests, type ExtraGuests } from '../_shared/guest-addons.ts'
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*' (danh sách giống ai-invitation). CORS chỉ ràng
@@ -45,22 +46,29 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 // Trần khách mỗi bên: đã thanh toán 100; gói Miễn phí FREE_PLAN.guests ở bên đã chọn,
 // 0 ở bên kia; chưa chọn gói (nháp, dùng thử) 5. Bản sao ở CONFIG.guestImport
-// (maxPerSide / maxPerSideUnpaid) — đổi phải đổi cả hai.
+// (maxPerSide / maxPerSideUnpaid) — đổi phải đổi cả hai. Bên mua thêm được (addonSides)
+// cộng thêm số chỗ đã mua (extraGuests).
 const MAX_PER_SIDE = 100
 const MAX_PER_SIDE_UNPAID = 5
+// Số dòng tối đa của MỘT lần import (khác trần khách: mua thêm thì trần vượt số này).
+const MAX_IMPORT_ROWS = 100
 type CapRow = { payment_status?: string | null; free_side?: string | null }
-function sideCap(row: CapRow, side: string): number {
+function baseCap(row: CapRow, side: string): number {
   if (row.payment_status === 'completed') return MAX_PER_SIDE
   const open = freeSide(row)
   if (!open) return MAX_PER_SIDE_UNPAID
   return side === open ? FREE_PLAN.guests : 0
 }
+function sideCap(row: CapRow, side: string, extra: ExtraGuests): number {
+  const base = baseCap(row, side)
+  return addonSides(row).includes(side as 'groom' | 'bride') ? base + extra[side as 'groom' | 'bride'] : base
+}
 function capMessage(row: CapRow, side: string, cap: number): string {
-  if (row.payment_status === 'completed') return `Đã đạt giới hạn ${cap} khách mời mỗi bên`
+  if (row.payment_status === 'completed') return `Đã đạt giới hạn ${cap} khách mời bên này. Mua thêm khách để mời tiếp.`
   const open = freeSide(row)
   if (open && side !== open)
     return `Gói Free chỉ mở thiệp ${open === 'groom' ? 'nhà trai' : 'nhà gái'}. Nâng gói để mời khách bên này.`
-  if (open) return `Gói Free mời được tối đa ${cap} khách. Nâng gói để mời tới ${MAX_PER_SIDE} khách mỗi bên.`
+  if (open) return `Gói Free đang mời được tối đa ${cap} khách. Mua thêm khách hoặc nâng gói để mời tiếp.`
   return `Thiệp chưa thanh toán chỉ thêm được ${cap} khách mời mỗi bên. Thanh toán để mở tới ${MAX_PER_SIDE} khách.`
 }
 const MAX_WISHES_PER_GUEST = 3
@@ -504,17 +512,29 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (action === 'wedding') {
       const { data, error } = await supabase
         .from('weddings')
-        .select('slug, share_message_template, payment_status, free_side')
+        .select('slug, share_message_template, payment_status, free_side, plan_expires_at, expires_at, is_active')
         .eq('id', wedding_id)
         .single()
       if (error) return fail('Thiệp không tồn tại', 404)
-      // Trả trần đã suy ra, không trả payment_status (dữ liệu thanh toán).
-      const { payment_status, free_side, ...rest } = data
-      const row = { payment_status, free_side }
+      // Trả trần đã suy ra, không trả payment_status / hạn (dữ liệu thanh toán).
+      const { payment_status, free_side, plan_expires_at, expires_at, is_active, ...rest } = data
+      const row = { payment_status, free_side, plan_expires_at, expires_at, is_active }
+      const extra = await extraGuests(supabase, wedding_id, log)
+      if (!extra) return fail('Không đọc được số khách đã mua thêm, vui lòng thử lại', 500)
+      const caps = { groom: sideCap(row, 'groom', extra), bride: sideCap(row, 'bride', extra) }
       return ok({
         ...rest,
-        max_per_side: Math.max(sideCap(row, 'groom'), sideCap(row, 'bride')),
-        side_caps: { groom: sideCap(row, 'groom'), bride: sideCap(row, 'bride') },
+        max_per_side: Math.max(caps.groom, caps.bride),
+        side_caps: caps,
+        extra_guests: extra,
+        // Gói thêm khách: bên nào mua được + giá (màn mua thêm KHÔNG giữ giá riêng).
+        // Thành viên không thanh toán được nên không nhận mục này.
+        guest_addon: access.role === 'member' ? null : {
+          sides: addonBuyableSides(row),
+          guests: GUEST_ADDON.guests,
+          price: GUEST_ADDON.price,
+          max_packs: GUEST_ADDON.maxPacks,
+        },
         free_side: freeSide(row),
         is_free: isFreePlan(row),
         // Trang Khách mời: owner thấy nút Thành viên; member chỉ thấy bên member_side.
@@ -889,7 +909,9 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (wErr) return fail('Không đọc được thiệp, vui lòng thử lại', 500)
     if (!wedding) return fail('Thiệp không tồn tại', 404)
 
-    const cap = sideCap(wedding, side)
+    const extra = await extraGuests(supabase, wedding_id, log)
+    if (!extra) return fail('Không đọc được số khách đã mua thêm, vui lòng thử lại', 500)
+    const cap = sideCap(wedding, side, extra)
     const capMsg = capMessage(wedding, side, cap)
 
     // Đếm hiện tại của bên này
@@ -929,7 +951,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       const raw: Record<string, unknown>[] = body.guests ?? []
 
       if (!Array.isArray(raw) || raw.length === 0) return fail('Không có dữ liệu')
-      if (raw.length > MAX_PER_SIDE) return fail(`File vượt quá ${MAX_PER_SIDE} dòng`)
+      if (raw.length > MAX_IMPORT_ROWS) return fail(`File vượt quá ${MAX_IMPORT_ROWS} dòng`)
 
       const guests = raw
         .map(g => sanitizeGuest(g, wedding_id, side))

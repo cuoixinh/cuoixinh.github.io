@@ -42,6 +42,29 @@ export function freeSide(row: FreeRow): 'groom' | 'bride' | null {
   return isFreePlan(row) ? (row.free_side as 'groom' | 'bride') : null
 }
 
+// Gói thêm khách mời (bảng guest_addons): mỗi gói +`guests` chỗ cho MỘT bên, giá cố định,
+// không áp mã giảm giá. Bán ở trang Khách mời, ở màn thanh toán (kèm đơn gói) và Thanh toán hộ.
+export const GUEST_ADDON = { guests: 50, price: 20000, maxPacks: 10 }
+
+/** Bên được cộng chỗ đã mua: đã thanh toán → cả hai; gói Free → bên đã mở; dùng thử → không. */
+export function addonSides(row: FreeRow): ('groom' | 'bride')[] {
+  if (row.payment_status === 'completed') return ['groom', 'bride']
+  const open = freeSide(row)
+  return open ? [open] : []
+}
+
+type AddonRow = FreeRow & { plan_expires_at?: string | null; expires_at?: string | null; is_active?: boolean | null }
+
+/**
+ * Bên MUA thêm được lúc này: như addonSides nhưng thiệp đã xoá / hết hạn gói / hết hạn Free
+ * thì không bán (thiệp đang khoá, trả tiền xong cũng không mời được). Chỗ đã mua vẫn giữ.
+ */
+export function addonBuyableSides(row: AddonRow, now = Date.now()): ('groom' | 'bride')[] {
+  if (row.is_active === false || isPlanExpired(row, now)) return []
+  if (row.payment_status !== 'completed' && row.expires_at && new Date(row.expires_at).getTime() < now) return []
+  return addonSides(row)
+}
+
 // Phần CHỈ link của một bên mới thấy: tiệc của bên đó, lễ vu quy (nhà gái), mốc lịch trình.
 const SIDE_ONLY = ['party_date', 'party_time', 'party_lunar', 'party_location', 'party_map_embed_url', 'party_use_embed']
 const VU_QUY = ['vu_quy_date', 'vu_quy_time', 'vu_quy_lunar', 'vu_quy_location', 'vu_quy_map_embed_url', 'vu_quy_use_embed']

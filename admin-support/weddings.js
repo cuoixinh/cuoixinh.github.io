@@ -76,6 +76,7 @@ function stRenderKpis() {
     ["Khách có thiệp", stNum(s.owners), `${stNum(s.paid_owners)} khách đã trả tiền, ${stNum(s.multi_owners)} khách có từ 2 thiệp`],
     ["Đã thanh toán", stNum(s.paid), `Tỉ lệ chuyển đổi ${stPct(s.paid, s.paid + s.published_unpaid)} trên thiệp đã xuất bản`],
     ["Doanh thu", stVnd(s.revenue), s.paid ? `Trung bình ${stVnd(Math.round(s.revenue / s.paid))} mỗi thiệp` : "Chưa có thiệp trả tiền"],
+    ["Mua thêm khách", stVnd(s.addon_revenue || 0), s.addon_orders ? `${stNum(s.addon_orders)} đơn trên ${stNum(s.addon_weddings)} thiệp, chưa tính vào Doanh thu` : "Chưa có đơn nào"],
     ["Lượt xem thiệp", stNum(s.total_views), `${stNum(unpaidViews)} lượt trên thiệp chưa thanh toán`],
   ];
   stEl("st-kpis").innerHTML = tiles
@@ -245,7 +246,10 @@ function stRenderList() {
         <td class="py-3 px-4 text-sm text-right tabular-nums text-gray-700">
           ${stNum(w.views)}${cap ? `<span class="text-[11px] text-gray-400">/${stNum(stCap())}</span>` : ""}
         </td>
-        <td class="py-3 px-4 text-sm text-right tabular-nums text-gray-700">${w.amount ? stVnd(w.amount) : "—"}</td>
+        <td class="py-3 px-4 text-sm text-right tabular-nums text-gray-700">
+          ${w.amount ? stVnd(w.amount) : "—"}
+          ${w.extra_guests ? `<div class="text-[11px] text-gray-400">+${stNum(w.extra_guests)} khách (${stVnd(w.addon_amount)})</div>` : ""}
+        </td>
         <td class="py-3 px-4 text-sm text-gray-600">
           ${w.status === "lifetime" ? "Không hết hạn" : exp ? `${stDate(w.expires_at)}<div class="text-[11px] ${days < 0 ? "text-gray-400" : days <= 7 ? "text-amber-600" : "text-gray-400"}">${days < 0 ? `quá ${-days} ngày` : `còn ${days} ngày`}</div>` : "—"}
         </td>

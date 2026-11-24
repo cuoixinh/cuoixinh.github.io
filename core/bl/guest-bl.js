@@ -192,4 +192,26 @@ class GuestBL {
     if (!guests.length) return { inserted: 0, skipped: 0 };
     return this.dal.importGuestsViaEdge(weddingId, side, guests);
   }
+
+  // Báo giá gói thêm khách theo `guest_addon` server trả kèm thông tin thiệp (giá không giữ
+  // ở client). Số gói kẹp trong [1, max_packs] — server kiểm lại lúc tạo đơn.
+  addonQuote(addon, packs) {
+    if (!addon?.price || !addon?.guests) return null;
+    const n = Math.min(Math.max(1, Math.round(Number(packs) || 1)), addon.max_packs || 1);
+    return { packs: n, guests: n * addon.guests, amount: n * addon.price };
+  }
+
+  canBuyAddon(addon, side) {
+    return !!addon?.sides?.includes(side);
+  }
+
+  async buyAddon(weddingId, side, packs) {
+    if (side !== "groom" && side !== "bride") throw new Error("Chưa chọn bên mua thêm khách");
+    if (!(await window.CXAuth?.getUser())) throw new Error("Vui lòng đăng nhập để thanh toán");
+    return this.dal.createGuestAddon(weddingId, side, packs);
+  }
+
+  addonStatus(orderId) {
+    return this.dal.guestAddonStatus(orderId);
+  }
 }

@@ -395,8 +395,138 @@ function payRender() {
               w.plans.length ? "Thiệp đã ở gói cao nhất, không còn gói nào để nâng." : "Mẫu này chưa có giá nên không xác nhận được."
             }</p>`
       }
+      ${payAddonHtml(w)}
     </div>`;
   window.lucide?.createIcons({ root: box });
+}
+
+// ── Mua thêm khách (POST support-pay kind=guest_addon) ──
+// Giá/số khách mỗi gói + bên còn bán đều do server trả (w.guest_addon). `payAddonReq` là mã
+// yêu cầu của lượt xác nhận này: bấm lặp thì server nhận ra trùng, không cộng chỗ hai lần.
+let payAddonReq = null;
+const PAY_SIDE = { groom: "Nhà trai", bride: "Nhà gái" };
+const PAY_ADDON_ST = { completed: "Đã trả", pending: "Chờ PayOS", failed: "Không thành công" };
+
+function payAddonHtml(w) {
+  const a = w.guest_addon;
+  if (!a)
+    return w.guest_addon_error
+      ? `<p class="border-t border-gray-100 pt-4 text-sm text-red-500">Không tải được phần mua thêm khách, tra lại thiệp sau ít phút.</p>`
+      : "";
+  payAddonReq = crypto.randomUUID();
+  const sides = a.sides || [];
+  const orders = (a.orders || [])
+    .map(
+      (o) => `<tr class="border-t border-gray-100">
+        <td class="py-1.5 pr-3 text-gray-500">${escapeHtml(payDate(o.paid_at || o.created_at))}</td>
+        <td class="py-1.5 pr-3">${escapeHtml(PAY_SIDE[o.side] || o.side)}</td>
+        <td class="py-1.5 pr-3 tabular-nums">+${Number(o.guests)}</td>
+        <td class="py-1.5 pr-3 tabular-nums">${payMoney(o.amount)}</td>
+        <td class="py-1.5 pr-3">${escapeHtml(PAY_ADDON_ST[o.status] || o.status)}</td>
+        <td class="py-1.5 text-gray-500 break-all">${escapeHtml(o.confirmed_by || "PayOS")}</td>
+      </tr>`,
+    )
+    .join("");
+  const form = sides.length
+    ? `<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label for="pay-addon-side" class="block h-7 leading-7 mb-1 text-xs font-medium text-gray-600">Bên</label>
+          <select id="pay-addon-side" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400">
+            ${sides.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(PAY_SIDE[s] || s)}</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label for="pay-addon-packs" class="block h-7 leading-7 mb-1 text-xs font-medium text-gray-600">Số gói (${Number(a.guests)} khách/gói)</label>
+          <input id="pay-addon-packs" type="number" min="1" max="${Number(a.max_packs)}" step="1" value="1"
+            oninput="payAddonSync()"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+        </div>
+        <div>
+          <div class="flex items-center gap-1 h-7 mb-1">
+            <label for="pay-addon-amount" class="text-xs font-medium text-gray-600">Số tiền thực nhận (đ)</label>
+            ${supInfoHtml("<p>Mặc định là giá niêm yết. Giảm tay hoặc tặng khách thì sửa số ở đây (được để 0).</p>")}
+          </div>
+          <input id="pay-addon-amount" type="number" min="0" step="1000" value="${Number(a.price)}"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+        </div>
+      </div>
+      <input id="pay-addon-note" type="text" maxlength="300" placeholder="Ghi chú, vd. CK Vietcombank lúc 14:20"
+        class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-rose-400" />
+      <x-button id="pay-addon-btn" variant="outline" icon="user-round-plus" onclick="payAddonConfirm()">Xác nhận đã thu tiền thêm khách</x-button>`
+    : `<p class="text-sm text-gray-500">Thiệp chưa mua thêm khách được: cần đã thanh toán hoặc đang ở gói Free còn hạn.</p>`;
+  return `
+    <div class="space-y-3 border-t border-gray-100 pt-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <p class="text-sm font-semibold text-gray-800">Mua thêm khách mời</p>
+        <p class="text-xs text-gray-500">${payMoney(a.price)} / ${Number(a.guests)} khách · đã mua:
+          nhà trai <strong>+${Number(a.extra?.groom || 0)}</strong>, nhà gái <strong>+${Number(a.extra?.bride || 0)}</strong></p>
+      </div>
+      ${
+        // Đơn bỏ ngang treo `pending` mãi → chỉ xét đơn tạo trong 30 phút gần đây.
+        sides.length && (a.orders || []).some((o) => o.status === "pending" && Date.now() - new Date(o.created_at).getTime() < 30 * 60 * 1000)
+          ? `<p class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700">
+              Thiệp có đơn mua thêm khách qua PayOS đang chờ. Thu tay ở đây thì dặn khách KHÔNG quét mã QR cũ nữa,
+              quét rồi là trả hai lần (chỗ vẫn cộng cả hai đơn).
+            </p>`
+          : ""
+      }
+      ${form}
+      ${
+        orders
+          ? `<div class="overflow-x-auto"><table class="w-full text-xs text-gray-700">
+              <thead><tr class="text-left text-gray-400"><th class="py-1 pr-3 font-medium">Ngày</th><th class="py-1 pr-3 font-medium">Bên</th>
+              <th class="py-1 pr-3 font-medium">Khách</th><th class="py-1 pr-3 font-medium">Tiền</th><th class="py-1 pr-3 font-medium">Trạng thái</th>
+              <th class="py-1 font-medium">Xác nhận</th></tr></thead><tbody>${orders}</tbody></table></div>`
+          : ""
+      }
+    </div>`;
+}
+
+// Đổi số gói thì số tiền về giá niêm yết của số gói đó.
+function payAddonSync() {
+  const a = payWedding?.guest_addon;
+  const packs = Number(document.getElementById("pay-addon-packs").value);
+  if (a && Number.isInteger(packs) && packs > 0) document.getElementById("pay-addon-amount").value = packs * a.price;
+}
+
+async function payAddonConfirm() {
+  const w = payWedding;
+  const a = w?.guest_addon;
+  if (!a) return;
+  const side = document.getElementById("pay-addon-side").value;
+  const packs = Number(document.getElementById("pay-addon-packs").value);
+  const amount = Number(document.getElementById("pay-addon-amount").value);
+  if (!Number.isInteger(packs) || packs < 1 || packs > a.max_packs) return showToast(`Số gói từ 1 tới ${a.max_packs}`, "error");
+  if (!Number.isInteger(amount) || amount < 0) return showToast("Số tiền không hợp lệ", "error");
+  const quoted = packs * a.price;
+  const ok = await showConfirm(
+    "Xác nhận đã thu tiền thêm khách?",
+    `Thiệp ${w.couple || w.slug}: ${PAY_SIDE[side] || side} +${packs * a.guests} khách, đã nhận ${payMoney(amount)}` +
+      (amount !== quoted ? ` (giá niêm yết ${payMoney(quoted)})` : "") +
+      ". Thao tác này không hoàn tác được ở đây.",
+    { confirmText: "Xác nhận" },
+  );
+  if (!ok) return;
+  const btn = document.getElementById("pay-addon-btn");
+  btn.disabled = true;
+  try {
+    await supRequest("support-pay", "POST", {
+      payload: {
+        kind: "guest_addon",
+        id: w.id,
+        side,
+        packs,
+        amount,
+        request_id: payAddonReq,
+        note: document.getElementById("pay-addon-note").value.trim(),
+      },
+    });
+    showToast(`Đã thêm ${packs * a.guests} khách cho ${(PAY_SIDE[side] || side).toLowerCase()}`, "success");
+    payLookup();
+  } catch (e) {
+    showAlert("Không xác nhận được", e.message);
+    btn.disabled = false;
+  }
 }
 
 // Bật/tắt hiện thiệp ở trang chủ; ghi hỏng thì trả công tắc về như cũ.

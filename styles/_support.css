@@ -499,9 +499,15 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   overflow: hidden;
 }
+/* 6 ô (weddings.js stRenderKpis): 2 → 3 → 6 cột để hàng nào cũng đủ ô. */
 @media (min-width: 1024px) {
   .sup-kpis {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1536px) {
+  .sup-kpis {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 .sup-kpi {

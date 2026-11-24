@@ -52,6 +52,8 @@ Hết dùng thử, hết 3 tháng Free hay hết 200 lượt xem mà chưa nâng
 sẽ thấy màn "Thiệp đang tạm khoá"; nâng gói là mở lại ngay, nội dung còn nguyên. Hết hạn
 quá 30 ngày nữa thì thiệp bị xoá vĩnh viễn. Gói trả phí mở cả hai thiệp, 100 khách mời mỗi
 thiệp, không giới hạn lượt xem; sửa nội dung, ảnh, bảng màu và font lúc nào cũng được.
+Cần mời nhiều hơn thì mua thêm khách mời ở trang Khách mời: 20.000đ mỗi 50 khách, mua riêng
+cho nhà trai hoặc nhà gái (gói Free cũng mua được, nhưng chỉ cho bên đã mở thiệp).
 RIÊNG MẪU THIỆP thì chốt: giá tính theo mẫu đã chọn lúc thanh toán nên sau khi trả tiền
 không đổi sang mẫu khác được nữa — muốn đổi mẫu thì phải đổi TRƯỚC khi thanh toán.
 
