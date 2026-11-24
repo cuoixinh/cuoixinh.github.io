@@ -420,7 +420,7 @@ function _syncCap() {
 
 const ADDON_POLL_MS = 3000;
 const ADDON_POLL_MAX_MS = 15 * 60 * 1000;
-const _addon = { side: null, packs: 1, orderId: null, timer: null, busy: false };
+const _addon = { side: null, packs: 1, orderId: null, timer: null, clock: null, busy: false };
 
 const _addonSideName = (s) => (s === "groom" ? "nhà trai" : "nhà gái");
 const _addonVnd = (v) => `${Number(v).toLocaleString("vi-VN")}đ`;
@@ -432,8 +432,10 @@ function openAddonModal() {
   _addon.side = side;
   _addon.packs = 1;
   _addonStopPoll();
-  document.getElementById("addon-sub").textContent =
-    `Thêm chỗ cho khách ${_addonSideName(side)} · ${_addonVnd(a.price)} / ${a.guests} khách`;
+  const chip = document.getElementById("addon-side");
+  chip.textContent = side === "groom" ? "Nhà trai" : "Nhà gái";
+  chip.dataset.side = side;
+  document.getElementById("addon-unit").textContent = `${a.guests} khách giá ${_addonVnd(a.price)}`;
   _addonView("pick");
   _addonRender();
   const modal = document.getElementById("addon-modal");
@@ -455,12 +457,21 @@ function _addonRender() {
   const q = guestBL.addonQuote(a, _addon.packs);
   if (!q) return;
   _addon.packs = q.packs;
-  document.getElementById("addon-guests").textContent = `+${q.guests}`;
+  const now = _maxPerSide(_addon.side);
+  document.getElementById("addon-guests").textContent = String(q.guests);
+  document.getElementById("addon-cap-now").textContent = now;
+  document.getElementById("addon-cap-new").textContent = now + q.guests;
+  document.getElementById("addon-line-label").textContent = `Thêm ${q.guests} khách mời`;
+  document.getElementById("addon-line-amount").textContent = _addonVnd(q.amount);
   document.getElementById("addon-amount").textContent = _addonVnd(q.amount);
-  document.getElementById("addon-cap").textContent =
-    `Trần khách ${_addonSideName(_addon.side)}: ${_maxPerSide(_addon.side)} → ${_maxPerSide(_addon.side) + q.guests} khách`;
-  _addonDisable("addon-minus", q.packs <= 1);
-  _addonDisable("addon-plus", q.packs >= (a.max_packs || 1));
+  document.getElementById("addon-go-label").textContent = `Thanh toán ${_addonVnd(q.amount)}`;
+  // Vạch: phần đang có (nhạt) + phần mua thêm (màu nhấn) trên thước "đang có + mua tối đa".
+  const full = now + (a.max_packs || 1) * a.guests;
+  const bar = document.getElementById("addon-bar");
+  bar.style.width = `${(q.guests / full) * 100}%`;
+  bar.parentElement.style.setProperty("--cx-addon-base", `${(now / full) * 100}%`);
+  document.getElementById("addon-minus").disabled = q.packs <= 1;
+  document.getElementById("addon-plus").disabled = q.packs >= (a.max_packs || 1);
 }
 
 // Đặt bằng attribute: nút có thể còn là <x-button> chưa dựng.
@@ -474,7 +485,8 @@ function _addonDisable(id, off) {
 function _addonView(step) {
   ["pick", "pay", "done"].forEach((s) =>
     document.getElementById(`addon-${s}`).classList.toggle("hidden", s !== step));
-  document.getElementById("addon-foot").classList.toggle("hidden", step !== "pick");
+  // style.display: .gs-sheet-foot (display:flex) đứng sau .hidden trong build.css, gắn class không ẩn được.
+  document.getElementById("addon-foot").style.display = step === "pick" ? "" : "none";
   document.getElementById("addon-err").classList.add("hidden");
 }
 
@@ -491,8 +503,7 @@ async function addonPay() {
   try {
     const res = await guestBL.buyAddon(WEDDING_ID, _addon.side, _addon.packs);
     _addon.orderId = res.order_id;
-    document.getElementById("addon-pay-amount").textContent = _addonVnd(res.addon?.amount ?? res.payment_info?.amount);
-    _addonView("pay");
+    _addonShowPay(res);
     await _addonDrawQr(res.qr_code, res.checkout_url);
     _addonStartPoll();
   } catch (e) {
@@ -500,6 +511,32 @@ async function addonPay() {
   } finally {
     _addon.busy = false;
     _addonDisable("addon-go", false);
+  }
+}
+
+// Đổ màn QR: số tiền, đơn hàng, thông tin chuyển khoản thủ công (cùng các trường màn
+// thanh toán thiệp hiện). Mọi giá trị qua textContent — dữ liệu từ PayOS.
+function _addonShowPay(res) {
+  const info = res.payment_info || {};
+  const set = (id, v) => (document.getElementById(id).textContent = v ?? "—");
+  set("addon-pay-amount", _addonVnd(res.addon?.amount ?? info.amount ?? 0));
+  set("addon-pay-what", `Thêm ${res.addon?.guests ?? ""} khách ${_addonSideName(_addon.side)}`);
+  set("addon-pay-bank", info.bank_name);
+  set("addon-pay-owner", info.account_name);
+  set("addon-pay-acc", info.account_number);
+  set("addon-pay-content", info.content);
+  _addonView("pay");
+}
+
+// Sao chép số tài khoản / nội dung; icon đổi thành dấu tick 2 giây.
+async function addonCopy(btn) {
+  const text = document.getElementById(btn.dataset.addonCopy)?.textContent || "";
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("Đã sao chép", "success");
+  } catch (e) {
+    showToast("Không sao chép được, hãy chép tay", "warning");
   }
 }
 
@@ -532,10 +569,21 @@ async function _addonDrawQr(text, checkoutUrl) {
   }
 }
 
+// Chỉ huỷ hẹn giờ cũ — _addonStopPoll xoá luôn orderId, gọi ở đây là hỏi `order_id=null`.
 function _addonStartPoll() {
-  _addonStopPoll();
+  clearTimeout(_addon.timer);
   const started = Date.now();
   const orderId = _addon.orderId;
+  if (!orderId) return;
+  // Đồng hồ đếm ngược chạy từng giây, tách khỏi nhịp hỏi trạng thái (3 giây).
+  const timer = document.getElementById("addon-timer");
+  const showLeft = () => {
+    const left = Math.max(0, ADDON_POLL_MAX_MS - (Date.now() - started));
+    timer.textContent = `${String(Math.floor(left / 60000)).padStart(2, "0")}:${String(Math.floor((left % 60000) / 1000)).padStart(2, "0")}`;
+  };
+  clearInterval(_addon.clock);
+  showLeft();
+  _addon.clock = setInterval(showLeft, 1000);
   const tick = async () => {
     if (_addon.orderId !== orderId) return;
     let st = "pending";
@@ -546,9 +594,14 @@ function _addonStartPoll() {
     }
     if (_addon.orderId !== orderId) return;
     if (st === "completed") return _addonPaid();
-    if (st === "failed") return _addonError("Thanh toán không thành công. Đóng lại và thử lần nữa nhé.");
-    if (Date.now() - started > ADDON_POLL_MAX_MS)
+    if (st === "failed") {
+      clearInterval(_addon.clock);
+      return _addonError("Thanh toán không thành công. Đóng lại rồi tạo mã mới để thử lại.");
+    }
+    if (Date.now() - started > ADDON_POLL_MAX_MS) {
+      clearInterval(_addon.clock);
       return _addonError("Mã đã hết hạn. Nếu bạn đã chuyển khoản, chỗ thêm sẽ hiện sau ít phút.");
+    }
     _addon.timer = setTimeout(tick, ADDON_POLL_MS);
   };
   _addon.timer = setTimeout(tick, ADDON_POLL_MS);
@@ -556,7 +609,9 @@ function _addonStartPoll() {
 
 function _addonStopPoll() {
   clearTimeout(_addon.timer);
+  clearInterval(_addon.clock);
   _addon.timer = null;
+  _addon.clock = null;
   _addon.orderId = null;
 }
 
@@ -570,7 +625,7 @@ async function _addonPaid() {
     console.warn("reload wedding:", e);
   }
   document.getElementById("addon-done-txt").textContent =
-    `Đã thêm chỗ cho khách ${_addonSideName(_addon.side)}. Bây giờ bên này mời được tối đa ${_maxPerSide(_addon.side)} khách.`;
+    `Khách ${_addonSideName(_addon.side)} giờ mời được tối đa ${_maxPerSide(_addon.side)} người.`;
   _addonView("done");
   _syncCap();
   showToast("Đã mua thêm khách mời", "success");

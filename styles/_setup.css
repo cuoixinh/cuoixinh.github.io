@@ -4502,61 +4502,171 @@ html.cx-rail-off {
   margin-top: 12px;
 }
 
-/* Popup mua thêm khách (openAddonModal): bộ đếm số khách · tổng tiền · QR chờ thanh toán. */
-.gs-addon-step {
-  @apply flex items-center justify-center;
-  gap: 24px;
-  padding: 8px 0 4px;
+/* Popup mua thêm khách (openAddonModal). Bộ đếm (.cx-ord-addon-step), vạch sức chứa
+   (.cx-ord-addon-meter) và dòng hoá đơn (.cx-ord-line) lấy từ màn thanh toán ở
+   styles/_common.css; ở đây chỉ phần riêng của popup + màn QR (y màn QR luồng thiệp). */
+.gs-addon-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  margin-top: 6px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
 }
-.gs-addon-n {
-  @apply flex flex-col items-center;
-  min-width: 96px;
-  font-size: 13px;
+.gs-addon-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgb(var(--surface-brand-soft-rgb));
+}
+.gs-addon-read {
+  @apply flex items-end justify-between;
+  gap: 12px;
+}
+.gs-addon-k {
+  font-size: 12px;
   color: rgb(var(--text-caption-rgb));
 }
-.gs-addon-n b {
-  font-size: 32px;
+.gs-addon-v {
+  margin-top: 2px;
+  font-size: 14px;
+  color: rgb(var(--text-body-rgb));
+}
+.gs-addon-v span {
+  font-size: 24px;
   font-weight: 700;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
   color: rgb(var(--text-heading-rgb));
 }
-.gs-addon-cap {
-  margin-top: 8px;
-  text-align: center;
-  font-size: 13px;
-  color: rgb(var(--text-body-rgb));
+.gs-addon-v--new span {
+  color: rgb(var(--action-primary-deep-rgb));
 }
-.gs-addon-total {
-  @apply flex items-baseline justify-between;
+.gs-addon-arrow {
+  margin-bottom: 6px;
+  color: rgb(var(--brand-accent-rgb));
+}
+.gs-addon-card .gs-addon-meter {
+  height: 6px;
+  margin-top: 12px;
+  background: rgb(var(--white-rgb));
+}
+.gs-addon-pickrow {
+  @apply flex items-center justify-between;
+  gap: 12px;
   margin-top: 16px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  font-size: 14px;
-  color: rgb(var(--text-body-rgb));
-  background: rgb(var(--surface-section-rgb));
+  padding: 12px 12px 12px 16px;
+  border-radius: 12px;
+  background: rgb(var(--white-rgb));
 }
-.gs-addon-total b {
-  font-size: 20px;
+.gs-addon-pick-t {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-addon-pick-s {
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-addon-totalline {
+  font-size: 15px;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-addon-totalline b {
+  font-size: 18px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
   color: rgb(var(--action-primary-deep-rgb));
 }
 .gs-addon-note {
-  margin-top: 8px;
+  margin-top: 12px;
   font-size: 12px;
   line-height: 1.5;
   color: rgb(var(--text-muted-rgb));
 }
-.gs-addon-qr {
-  @apply flex items-center justify-center;
+
+/* Màn QR */
+.gs-addon-pay-t {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-addon-pay-s {
+  margin-top: 2px;
+  text-align: center;
+  font-size: 12px;
+  color: rgb(var(--text-muted-rgb));
+}
+.gs-addon-amountpill {
+  @apply mx-auto flex w-max items-baseline;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgb(var(--surface-brand-rgb));
+}
+.gs-addon-amountpill span {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgb(var(--text-body-rgb));
+}
+.gs-addon-amountpill b {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--brand-accent-rgb));
+}
+/* Mã QR: viền góc thay khung kín (giống màn QR luồng thiệp). Nền trắng là bắt buộc để quét. */
+.gs-addon-qrwrap {
+  position: relative;
   width: 236px;
-  height: 236px;
-  margin: 0 auto;
+  margin: 16px auto 0;
   padding: 8px;
   border-radius: 16px;
-  border: 1px solid rgb(var(--divider-rgb));
   background: #fff;
+}
+.gs-addon-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 0 solid rgb(var(--brand-primary-rgb));
+}
+.gs-addon-corner.is-tl {
+  top: -4px;
+  left: -4px;
+  border-top-width: 3px;
+  border-left-width: 3px;
+  border-top-left-radius: 4px;
+}
+.gs-addon-corner.is-tr {
+  top: -4px;
+  right: -4px;
+  border-top-width: 3px;
+  border-right-width: 3px;
+  border-top-right-radius: 4px;
+}
+.gs-addon-corner.is-bl {
+  bottom: -4px;
+  left: -4px;
+  border-bottom-width: 3px;
+  border-left-width: 3px;
+  border-bottom-left-radius: 4px;
+}
+.gs-addon-corner.is-br {
+  right: -4px;
+  bottom: -4px;
+  border-right-width: 3px;
+  border-bottom-width: 3px;
+  border-bottom-right-radius: 4px;
+}
+.gs-addon-qr {
+  @apply flex items-center justify-center;
+  width: 220px;
+  height: 220px;
 }
 .gs-addon-qr img,
 .gs-addon-qr canvas {
@@ -4569,38 +4679,81 @@ html.cx-rail-off {
   text-decoration: underline;
   color: rgb(var(--action-primary-deep-rgb));
 }
-.gs-addon-paytxt {
-  margin-top: 12px;
-  text-align: center;
-  font-size: 13px;
-  color: rgb(var(--text-body-rgb));
-}
-.gs-addon-paytxt b {
-  color: rgb(var(--text-heading-rgb));
-}
 .gs-addon-wait {
   @apply flex items-center justify-center;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 12px;
   font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--text-body-rgb));
+}
+.gs-addon-spin {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(var(--surface-brand-rgb));
+  border-top-color: rgb(var(--brand-primary-rgb));
+  border-radius: 999px;
+  animation: cx-gs-addon-spin 0.8s linear infinite;
+}
+@keyframes cx-gs-addon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.gs-addon-timer {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
   color: rgb(var(--text-muted-rgb));
 }
-.gs-addon-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgb(var(--action-primary-rgb));
-  animation: cx-gs-addon-pulse 1.2s ease-in-out infinite;
+/* Chuyển khoản thủ công: mỗi trường một hàng, trường phải gõ lại có nút sao chép. */
+.gs-addon-bank {
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid rgb(var(--divider-rgb));
+  border-radius: 16px;
 }
-@keyframes cx-gs-addon-pulse {
-  50% {
-    opacity: 0.3;
-  }
+.gs-addon-bank-h {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--text-muted-rgb));
+  background: rgb(var(--surface-tint-rgb));
+}
+.gs-addon-bank-r {
+  @apply flex items-center;
+  gap: 12px;
+  min-height: 40px;
+  padding: 6px 12px 6px 16px;
+  border-top: 1px solid rgb(var(--divider-rgb));
+  font-size: 12px;
+}
+.gs-addon-bank-r span {
+  width: 96px;
+  flex-shrink: 0;
+  color: rgb(var(--text-muted-rgb));
+}
+.gs-addon-bank-r b {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-addon-bank-n {
+  padding: 10px 16px;
+  border-top: 1px solid rgb(var(--divider-rgb));
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgb(var(--text-muted-rgb));
+}
+.gs-addon-bank-n b {
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
 }
 .gs-addon-done {
   @apply flex flex-col items-center;
-  gap: 12px;
-  padding: 8px 0;
+  gap: 8px;
+  padding: 16px 0 8px;
   text-align: center;
   font-size: 14px;
   line-height: 1.5;
@@ -4613,6 +4766,11 @@ html.cx-rail-off {
   font-size: 13px;
   color: rgb(var(--state-error-text-rgb));
   background: rgb(var(--state-error-bg-rgb));
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-addon-spin {
+    animation-duration: 2.4s;
+  }
 }
 
 /* Dưới sm: bốn ô thống kê gộp thành MỘT dải mảnh 4 cột ngăn bằng vạch (lưới 2×2 chiếm
