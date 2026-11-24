@@ -293,13 +293,11 @@ const EDIT_SCHEMA = {
   required: ['text', 'fields'],
 }
 
-// Tắt thinking: output đã bị schema ép, phần trích xuất chủ yếu là chép lại thứ khách
-// vừa gõ. Bật lên (512) sẽ khiến MỌI câu — kể cả "giá bao nhiêu" — chờ thêm vài giây,
-// nên chỉ nới nếu thấy chất lượng lượt dựng thiệp thật sự kém.
+// Không khai thinkingConfig = thinking động mặc định của model (tự quyết nghĩ bao nhiêu theo
+// độ khó của câu). Câu khó có thể nghĩ lâu — CHAT_TIMEOUT_MS phải đủ rộng cho trường hợp đó.
 const GEN_BASE = {
   temperature: 0.7,
   responseMimeType: 'application/json',
-  thinkingConfig: { thinkingBudget: 0 },
 }
 // Trần output để ở mức tối đa model cho phép: trần thấp là JSON đứt giữa chừng, parse
 // hỏng, mất trắng cả lượt; câu ngắn thì model tự dừng sớm nên không tốn thêm.
@@ -1296,7 +1294,7 @@ async function streamStage(
           const cand = j?.candidates?.[0]
           if (cand?.finishReason) finishReason = String(cand.finishReason)
           const parts = cand?.content?.parts ?? []
-          const chunk = parts.map((p: any) => p?.text ?? '').join('')
+          const chunk = parts.map((p: any) => (p?.thought ? '' : p?.text ?? '')).join('')
           if (!chunk) return
           acc += chunk
           pump()

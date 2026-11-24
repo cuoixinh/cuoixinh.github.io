@@ -15,7 +15,7 @@ import type { Logger } from './axiom.ts'
 // cho model đó — đổi model thì soát lại số này.
 //   GEMINI_MODEL         — model chung (chat XuXi, sinh/tối ưu nội dung thiệp…)
 //   GEMINI_MODEL_GUESTS  — riêng "Nhập khách bằng AI" (đọc ảnh/PDF/Excel)
-const DEFAULT_GEMINI_MODEL = 'gemini-3.6-flash'
+const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
 const DEFAULT_GEMINI_MODEL_GUESTS = 'gemini-2.5-flash'
 const DEFAULT_GEMINI_MAX_OUTPUT_TOKENS = 65536
 // Tên model nằm trong URL gọi API — chỉ nhận ký tự của tên model, chặn chèn đường dẫn/tham số.
@@ -222,8 +222,9 @@ export async function callGemini(
     if (usageOut) Object.assign(usageOut, readUsage(data?.usageMetadata))
     const cand = data?.candidates?.[0]
     // Nối MỌI part: một candidate có thể mang nhiều part, bỏ sót là mất nội dung.
+    // Part `thought` là phần suy nghĩ của model (chỉ có khi bật includeThoughts), không phải kết quả.
     const text = (cand?.content?.parts ?? [])
-      .map((p: { text?: string }) => p?.text ?? '')
+      .map((p: { text?: string; thought?: boolean }) => (p?.thought ? '' : p?.text ?? ''))
       .join('')
     if (!text) {
       // finishReason là thứ nói thẳng vì sao rỗng: MAX_TOKENS (chạm trần), SAFETY,
