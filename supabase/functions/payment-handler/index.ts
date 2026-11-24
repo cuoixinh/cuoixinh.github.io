@@ -85,9 +85,10 @@ async function createPaymentRequest(orderData: any, apiKey: string, clientId: st
     orderCode,
     amount: orderData.amount,
     // PayOS chặn description quá 25 ký tự, orderCode đã chiếm 14 → tiền tố tối đa
-    // 11 ký tự. "TT Thiep " (9) + 14 = 23. Đổi tiền tố phải đếm lại, KHÔNG cắt
-    // chuỗi: description là nội dung chuyển khoản, mất số là mất căn cứ đối soát.
-    description: `TT Thiep ${orderCode}`,
+    // 10 ký tự (+ dấu cách). "TT Thiep"/"TT Khach" (8) + " " + 14 = 23. Đổi tiền tố phải
+    // đếm lại, KHÔNG cắt chuỗi: description là nội dung chuyển khoản, mất số là mất căn
+    // cứ đối soát. Không chỗ nào đọc lại tiền tố — đối soát theo orderCode.
+    description: `${orderData.prefix || "TT Thiep"} ${orderCode}`,
     returnUrl: orderData.returnUrl,
     cancelUrl: orderData.cancelUrl,
   };
@@ -835,6 +836,7 @@ async function handleCreateGuestAddon(req: Request, supabaseClient: any, log: Lo
     .select("id", { count: "exact", head: true })
     .eq("wedding_id", manage_id)
     .eq("status", "pending")
+    .is("plan_order_id", null) // chỉ đơn mua thêm riêng; hàng mua kèm đơn gói không tính
     .gte("created_at", since);
   if (pendErr) {
     log.error("guest_addon.pending_count_failed", { manage_id, code: pendErr.code, message: pendErr.message });
@@ -866,7 +868,7 @@ async function handleCreateGuestAddon(req: Request, supabaseClient: any, log: Lo
     const creds = getPayOSCredentials();
     const baseUrl = allowedBaseUrl(req.headers.get("origin"));
     paymentResponse = await createPaymentRequest(
-      { orderCode, amount, returnUrl: `${baseUrl}/payment-success`, cancelUrl: `${baseUrl}/payment-cancel` },
+      { orderCode, amount, prefix: "TT Khach", returnUrl: `${baseUrl}/payment-success`, cancelUrl: `${baseUrl}/payment-cancel` },
       creds.apiKey, creds.clientId, creds.checksumKey,
     );
   } catch (error) {
