@@ -310,9 +310,9 @@
 
           <div
             id="ceremony-location-wrap"
-            class="hidden flex items-start justify-center gap-2 mt-4"
+            class="hidden vf-where"
           >
-            <i data-lucide="map-pin" class="cx-ic cx-ac text-[14px] mt-0.5"></i>
+            <i data-lucide="map-pin" class="cx-ic cx-ac text-[16px]"></i>
             <span id="ceremony-location-text" class="cx-t vf-addr"></span>
           </div>
 
@@ -420,24 +420,22 @@
             <h2 class="vf-title cx-h">Tiệc Mừng</h2>
           </div>
 
-          <!-- Thẻ trắng: ảnh đầu thẻ + khối ngày serif cùng ngôn ngữ với phần lễ.
-               Ảnh lấy một tấm GIỮA album (index.js); không có thì khối tự ẩn. -->
+          <!-- Thẻ trắng: ảnh đầu thẻ + khối ngày y như phần lễ (thứ · NGÀY lớn · giờ,
+               dưới là tháng · năm). Ảnh lấy một tấm GIỮA album (index.js); không có
+               thì khối tự ẩn. -->
           <div class="vf-pcard">
             <div id="party-photo" class="hidden"></div>
             <div class="flex flex-col items-center px-5 pt-6 pb-6">
-              <div class="cx-t vf-eb">
-                <span id="party-weekday">------</span> ·
-                <span id="party-month-year">Tháng -- · ----</span>
+              <div class="vf-when vf-when-sm w-full">
+                <span class="cx-h vf-when-side" id="party-weekday">------</span>
+                <span class="cx-h vf-when-d" id="party-day">--</span>
+                <span class="cx-h vf-when-side" id="party-time">--:--</span>
               </div>
-              <div class="vf-tline cx-h">
-                <span id="party-day">--</span>
-                <small class="cx-t">lúc</small>
-                <span id="party-time">--:--</span>
-              </div>
+              <div class="cx-t vf-when-sub" id="party-month-year">Tháng -- · ----</div>
               <div class="cx-h vf-lunar" id="party-lunar">(Ngày âm lịch)</div>
 
-              <div class="flex items-start justify-center gap-2 mt-4">
-                <i data-lucide="map-pin" class="cx-ic cx-ac text-[14px] mt-[4px]"></i>
+              <div class="vf-where">
+                <i data-lucide="map-pin" class="cx-ic cx-ac text-[16px]"></i>
                 <div class="cx-t vf-addr" id="party-location">
                   ------------------------
                 </div>
