@@ -26,6 +26,9 @@ romantic-gold/
 ```jsonc
 {
   "cover_image_url": "cover.jpg",        // tên file, KHÔNG phải đường dẫn
+  "fallback_cover": true,                // (tuỳ chọn, khai tay) thiệp THẬT không có ảnh nào thì
+                                         // worker lấy ảnh bìa này làm og:image — mẫu phải tự hiện
+                                         // đúng ảnh đó trên thiệp (xem khong-can-anh/index.js)
   "groom_image_url": "groom.jpg",
   "bride_image_url": "bride.jpg",
   "groom_qr_url": "groom-qr.png",
