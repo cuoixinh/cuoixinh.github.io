@@ -1638,6 +1638,13 @@ async function saveSampleImages({ scan = true } = {}) {
     // vẫn trỏ tới đúng bộ ảnh còn nguyên vẹn.
     const removed = await siWipeOtherImages(siThemeHandle, keepFiles);
 
+    // `fallback_cover` (worker lấy ảnh bìa mẫu làm og:image cho thiệp không ảnh) khai tay,
+    // tab này không có ô cho nó → chép từ bản trên đĩa, không thì lưu lại là mất cờ.
+    try {
+      const fh = await siThemeHandle.getFileHandle("data.json");
+      if (JSON.parse(await (await fh.getFile()).text())?.fallback_cover === true) json.fallback_cover = true;
+    } catch (e) {}
+
     json.updated_at = new Date().toISOString();
     const jsonBlob = new Blob([JSON.stringify(json, null, 2)], {
       type: "application/json",

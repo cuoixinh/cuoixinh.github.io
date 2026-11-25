@@ -629,16 +629,21 @@ async function ogMeta(env, w, guest, url, rel) {
   const path = storagePath(env, ref);
   const mine = !!path;
   const fp = mine ? coverFocal(w, ref) : null;
-  const img = mine
+  let img = mine
     ? `${url.origin}${OG_IMG_PREFIX}${path}${fp ? `?fx=${fp.x}&fy=${fp.y}` : ""}`
     : src;
   // Đo trên ĐÚNG luồng byte crawler sẽ tải (gọi thẳng hàm phát ảnh), nên khổ khai
   // ra luôn khớp dù zone đã bật Transformations hay còn lùi về file gốc.
-  const dim = mine
+  let dim = mine
     ? await imageMeta(await ogImage(env, new URL(img)))
     : src
       ? await imageMeta(src)
       : null;
+  // Thiệp không có ảnh nào: mẫu có ảnh dự phòng thì thẻ lấy ảnh đó (Messenger không ảnh là mất ô xem trước).
+  if (w && !img) {
+    const fb = await fallbackCover(env, url, String(w.theme || DEFAULT_THEME));
+    if (fb) ({ img, dim } = fb);
+  }
 
   const meta = w ? ogTags({ title, desc, img, dim, url, noindex: true }) : "";
   return { title, meta };
@@ -680,6 +685,47 @@ function ogTags({ title, desc, img, dim, url, noindex }) {
     }`;
 }
 
+// Tên file ảnh trong bộ dữ liệu mẫu — data.json chỉ ghi tên trần, không đường dẫn.
+const SAMPLE_FILE = /^[A-Za-z0-9._-]+$/;
+
+/** Bộ dữ liệu mẫu assets/data-template/<mẫu>/data.json (file tĩnh trong dist/); không có/hỏng → null. */
+function sampleData(env, url, theme) {
+  return env.ASSETS.fetch(new Request(new URL(`/assets/data-template/${theme}/data.json`, url.origin)))
+    .then((r) => (r.ok ? r.json() : null))
+    .catch(() => null);
+}
+
+/**
+ * URL /__og-tpl/ của một ảnh tĩnh. `pick` = tên ảnh bìa trong bộ mẫu (rỗng nếu `path` là ảnh
+ * chụp mẫu): cắt khổ ngang theo điểm lấy nét của nó, không thì Messenger cắt ảnh dọc quanh tâm.
+ * ?v= theo updated_at: tên file mẫu cố định, đổi ảnh phải đổi URL.
+ */
+function tplOgUrl(url, path, sample, pick) {
+  const fp = pick ? coverFocal(sample, pick) : null;
+  const q = new URLSearchParams();
+  if (fp) {
+    q.set("fx", fp.x);
+    q.set("fy", fp.y);
+  }
+  if (sample?.updated_at) q.set("v", String(Date.parse(sample.updated_at) || sample.updated_at));
+  const qs = q.toString();
+  return `${url.origin}${OG_TPL_PREFIX}${path.slice(1)}${qs ? `?${qs}` : ""}`;
+}
+
+/**
+ * Thiệp không có ảnh nào: bộ mẫu khai `fallback_cover: true` thì lấy ảnh bìa mẫu làm og:image —
+ * mẫu đó cũng tự hiện đúng ảnh này trên thiệp (vd "Không cần ảnh"). Không khai → null, thẻ không ảnh.
+ */
+async function fallbackCover(env, url, theme) {
+  if (!THEME_NAME.test(theme)) return null;
+  const sample = await sampleData(env, url, theme);
+  const pick = sample?.fallback_cover === true ? sample.cover_image_url : "";
+  if (typeof pick !== "string" || !SAMPLE_FILE.test(pick)) return null;
+  const img = tplOgUrl(url, `/assets/data-template/${theme}/${pick}`, sample, pick);
+  const res = await ogTemplateImage(env, new URL(img));
+  return res.ok ? { img, dim: await imageMeta(res) } : null;
+}
+
 /**
  * Bản xem thử mẫu (?preview=true): thẻ dựng y như link thiệp thật — tiêu đề, câu
  * mời mặc định, ảnh bìa — từ bộ dữ liệu mẫu của chính mẫu đó
@@ -692,9 +738,7 @@ async function templatePage(env, url, theme, res) {
   if (res.status !== 200 || !/text\/html/.test(res.headers.get("Content-Type") || "")) return null;
 
   const base = `/assets/data-template/${theme}/`;
-  const sample = await env.ASSETS.fetch(new Request(new URL(`${base}data.json`, url.origin)))
-    .then((r) => (r.ok ? r.json() : null))
-    .catch(() => null);
+  const sample = await sampleData(env, url, theme);
   const c = (sample && sample.content) || {};
   const w = {
     groom_name: c.groom_name,
@@ -704,7 +748,7 @@ async function templatePage(env, url, theme, res) {
 
   // Ảnh: bìa mẫu → tấm đầu album mẫu → ảnh chụp cả mẫu (assets/images/templates).
   const pick = [sample?.cover_image_url, sample?.gallery_images?.[0]].find(
-    (v) => typeof v === "string" && /^[A-Za-z0-9._-]+$/.test(v),
+    (v) => typeof v === "string" && SAMPLE_FILE.test(v),
   );
   let path = pick ? base + pick : `/assets/images/templates/${theme}.jpg`;
   let found = await env.ASSETS.fetch(new Request(new URL(path, url.origin), { method: "HEAD" }));
@@ -712,17 +756,7 @@ async function templatePage(env, url, theme, res) {
     path = `/assets/images/templates/${theme}.jpg`;
     found = await env.ASSETS.fetch(new Request(new URL(path, url.origin), { method: "HEAD" }));
   }
-  // Cắt sẵn khổ ngang theo điểm lấy nét của bộ mẫu (như thiệp thật), không thì Messenger
-  // cắt ảnh dọc quanh tâm. ?v= theo updated_at: tên file mẫu cố định, đổi ảnh phải đổi URL.
-  const fp = path.startsWith(base) ? coverFocal(sample, pick) : null;
-  const q = new URLSearchParams();
-  if (fp) {
-    q.set("fx", fp.x);
-    q.set("fy", fp.y);
-  }
-  if (sample?.updated_at) q.set("v", String(Date.parse(sample.updated_at) || sample.updated_at));
-  const qs = q.toString();
-  const img = found.ok ? `${url.origin}${OG_TPL_PREFIX}${path.slice(1)}${qs ? `?${qs}` : ""}` : "";
+  const img = found.ok ? tplOgUrl(url, path, sample, path.startsWith(base) ? pick : "") : "";
   // Đo trên đúng luồng byte crawler sẽ tải (như ogMeta).
   const dim = img ? await imageMeta(await ogTemplateImage(env, new URL(img))) : null;
 

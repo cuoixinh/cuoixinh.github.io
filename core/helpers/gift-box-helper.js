@@ -43,6 +43,13 @@
       src: "/assets/gifts/lixi_hong_mai.webp",
     },
     {
+      id: "lixi_xanh_hy",
+      group: "lixi",
+      name: "Lì xì xanh Song Hỷ",
+      desc: "Phong bao xanh lam, chữ Hỷ ánh vàng",
+      src: "/assets/gifts/lixi_xanh_hy.webp",
+    },
+    {
       id: "lixi_cap_doi",
       group: "lixi",
       name: "Cặp lì xì",
