@@ -4,7 +4,10 @@
 (function () {
   window.CX_THEME = {
     id: "duyen-lanh-go-cua",
-    wishesMode: "card",
+    // Lời chúc vẽ riêng thành trang thư tay (theme.css, khối Hồi âm) trên nền dạng "paged" — cố định
+    // dạng để lựa chọn ở trang Thiết lập không làm vỡ bản vẽ đó.
+    wishesMode: "paged",
+    wishesFixed: true,
     giftBox: "lixi_do_hy",
     music: { variant: "disc", chrome: "fixed-corner", art: "couple" },
 
@@ -44,12 +47,12 @@
 
     swatches: ["#b5141e", "#8c0c14", "#6e0d13", "#c9a14a", "#f8de90", "#b8862b", "#5e4239", "#e5c98c", "#fffaf1", "#ffffff"],
 
-    // Tên khoá bộ màu thay mã hex → lời chúc đổi tông theo bộ màu khách chọn.
-    wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
+    // Tên khoá bộ màu thay mã hex → lời chúc đổi tông theo bộ màu khách chọn. Nhấn = màu tiêu đề
+    // (đỏ rượu sẫm) cho cùng tông các mảng đỏ rượu của thiệp, không dùng đỏ son.
+    wishes: { bubble: "panel", text: "body", accent: "heading", btn: "heading" },
 
     // Trừ hero: nó hiện sẵn sau cánh cửa lúc mở bìa, không bay vào lần nữa.
     reveal: [".dl-body > section:not(#section-hero)"],
-    revealItems: ["#gallery-grid > div"],
 
     skipSteps: ["timeline", "love_story"],
 
@@ -66,6 +69,8 @@
     // Ảnh màn đầu nhận src TRƯỚC setupMusic (YouTube API đi sau).
     renderCover(w);
     renderHero(w, false);
+    _plan = _planPhotos(w);
+    _renderHeroPhotos();
     _fitHeroNames();
     _watchCoverOpen();
 
@@ -98,13 +103,21 @@
     setText("dl-hero-date", dmy, "--.--.----");
     setText("dl-hero-time", ceremonyTime, "--:--");
 
+    // Mục Lễ: ba ảnh + khối ngày ba cột "14 giờ 00 | thứ · ngày · tháng | Năm 2027".
+    _renderTrio();
+    const okDate = cd && !isNaN(cd);
+    setText("dl-inv-time", _fmtGio(ceremonyTime), "--");
+    setText("dl-inv-month", okDate ? "Tháng " + (cd.getMonth() + 1) : "", "Tháng --");
+    setText("dl-inv-year", okDate ? "Năm " + cd.getFullYear() : "", "Năm ----");
+
     renderMusicSummary(w, { ceremonyName, ceremonyTime, ceremonyLocation: ceremonyLoc });
 
     // --- Tiệc ---
     const partyLunar = w[`${side}_party_lunar`];
     setText("party-section-label", "Tiệc mừng " + ceremonyName.toLowerCase());
-    renderPartyDate(w[`${side}_party_date`], w[`${side}_party_time`], partyLunar, w[`${side}_party_location`], "full");
+    renderPartyDate(w[`${side}_party_date`], w[`${side}_party_time`], partyLunar, w[`${side}_party_location`], "split");
     cxToggle("party-lunar", !!partyLunar);
+    setText("dl-party-dmy", _fmtDMY(w[`${side}_party_date`]), "--.--.----");
     _renderCalendar(w);
     cxToggle("section-party", cxEnabled(w.enable_party));
 
@@ -123,18 +136,54 @@
     cxToggle("section-gift", cxEnabled(w.enable_gift));
 
     // --- Album ---
-    if (cxEnabled(w.enable_photos)) {
-      renderGallery(w.gallery_images, w.image_focal_points?.gallery_images);
+    // Album chỉ nhận những tấm chưa dùng ở chỗ khác; mọi tấm đã dùng hết thì giấu mục.
+    const albumLeft = _plan.album.length || !_plan.total;
+    if (cxEnabled(w.enable_photos) && albumLeft) {
+      renderGallery(
+        _plan.album.map((p) => p.f),
+        w.image_focal_points?.gallery_images,
+      );
     } else {
       cxToggle("section-photos", false);
     }
 
     // --- Lời cảm ơn ---
+    _renderFootPhoto();
     if (w.footer_text) setText("footer-text", w.footer_text);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
+
+    _unveilPhotos();
   }
 
   window.renderWedding = renderWedding;
+
+  // Lời mời đích danh ở mục Lễ: chép danh xưng + tên khách mà helper đã đổ vào màn bìa (link ?g=,
+  // link mã hoá cũ, ?name=&rel= của bản xem thử) — một nguồn cho mọi đường. Danh xưng = phần
+  // greet() nối thêm sau câu gốc (dataset.cxInvite) của dòng [data-cx-invite] trên bìa.
+  function _syncGuestLine() {
+    const out = document.getElementById("dl-guest-name");
+    if (!out) return;
+    const nameEl = document.getElementById("cover-guest-name");
+    const inv = document.querySelector("#cover-screen [data-cx-invite]");
+    const base = inv?.dataset.cxInvite || "";
+    const text = (inv?.textContent || "").trim();
+    const rel = base && text.startsWith(base) ? text.slice(base.length).trim() : "";
+    const name = (nameEl?.textContent || "").trim();
+    const generic = document.documentElement.classList.contains("cx-guest-generic");
+    out.textContent = !generic && base && name ? `${rel} ${name}`.trim() : "Quý Khách";
+  }
+
+  (function _watchGuest() {
+    _syncGuestLine();
+    if (typeof MutationObserver !== "function") return;
+    const mo = new MutationObserver(_syncGuestLine);
+    const opts = { childList: true, characterData: true, subtree: true };
+    const nameEl = document.getElementById("cover-guest-name");
+    const inv = document.querySelector("#cover-screen [data-cx-invite]");
+    if (nameEl) mo.observe(nameEl, opts);
+    if (inv) mo.observe(inv, opts);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+  })();
 
   // Mở thiệp kiểu tách đôi: openInvitation (helper) gắn .closing lên #cover-screen rồi 600ms sau giấu nó.
   // Bắt đúng lúc đó (nút mở có cả đường touchend riêng nên không nghe click), chép màn bìa vào hai
@@ -179,6 +228,7 @@
           xi.after(half);
         });
       }
+      _heroAt = Date.now() + DL_OPEN_MS * 0.45;
       const main = document.getElementById("main-card");
       if (main) {
         main.classList.add("dl-shown");
@@ -193,6 +243,87 @@
       }, DL_OPEN_MS);
     });
     mo.observe(screen, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  // Mọi khung ảnh bay vào khi cuộn tới (CSS .dl-uv ở theme.css): khung lệch trái bay từ trái, lệch phải
+  // bay từ phải, khung giữa/tràn khổ bay từ dưới lên. Ảnh mở đầu chờ cửa bìa mở được nửa chừng
+  // (_heroAt). Khung đã nằm trên màn (cuộn tới bằng liên kết) thì hiện luôn.
+  const DL_UV = ".dl-pic, .dl-trio-pic, .dl-wall-photo, .dl-gal, .dl-foot-photo";
+  let _uvIO = null;
+  let _heroAt = 0;
+  function _unveilPhotos() {
+    const els = [...document.querySelectorAll(DL_UV)].filter((el) => !el.classList.contains("dl-uv"));
+    const open = (el) => el.classList.add("dl-uv-in");
+    els.forEach((el) => el.classList.add("dl-uv"));
+    if (typeof IntersectionObserver !== "function") return els.forEach(open);
+    _uvIO ||= new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const r = entry.boundingClientRect;
+          // Cao 0 = #main-card còn ẩn sau bìa; nằm dưới màn mà chưa chạm thì chờ.
+          if (!r.height || (!entry.isIntersecting && r.top > 0)) return;
+          const el = entry.target;
+          _uvIO.unobserve(el);
+          // Hướng bay đo lúc khung đã có khổ thật. Đổi điểm xuất phát với transition tắt + đọc lại style,
+          // không thì trình duyệt coi đó là một lần chuyển động và ảnh bay thẳng từ hướng mặc định.
+          const vw = document.documentElement.clientWidth || 1;
+          const mid = (r.left + r.width / 2) / vw;
+          el.style.transition = "none";
+          el.dataset.dlFrom = r.width / vw > 0.7 ? "b" : mid < 0.42 ? "l" : mid > 0.58 ? "r" : "b";
+          void getComputedStyle(el).translate;
+          el.style.transition = "";
+          const wait = el.closest(".dl-hero") ? _heroAt - Date.now() : 0;
+          if (wait > 0) setTimeout(() => open(el), wait);
+          else open(el);
+        });
+      },
+      { threshold: 0, rootMargin: "0px 0px -10% 0px" },
+    );
+    els.forEach((el) => _uvIO.observe(el));
+  }
+
+  // Phân ảnh cho cả thiệp, mỗi tấm dùng đúng MỘT lần từ đầu tới cuối — trừ ảnh bìa (ảnh đôi), dùng chung
+  // cho màn bìa và ảnh lớn mở đầu. Ảnh album lần lượt vào: ảnh chân thiệp → ảnh nhỏ mở đầu → ba ảnh mục
+  // Lễ (đủ ba mới hiện) → ảnh lịch treo tường; còn lại vào Album. Thiếu ảnh thì chỗ xếp sau để trống
+  // (ẩn) chứ không dùng lại tấm đã dùng.
+  let _plan = { album: [], total: 0 };
+  function _planPhotos(w) {
+    const fps = w.image_focal_points || {};
+    const seen = new Set();
+    const pool = [];
+    const add = (f, fp) => {
+      if (!f || seen.has(f)) return;
+      seen.add(f);
+      pool.push({ f, fp });
+    };
+    add(w.cover_image_url, fps.cover_image_url);
+    (Array.isArray(w.gallery_images) ? w.gallery_images : []).forEach((f) => add(f, fps.gallery_images?.[f]));
+    let i = w.cover_image_url ? 1 : 0;
+    const take = (n) => {
+      if (pool.length - i < n) return null;
+      i += n;
+      return pool.slice(i - n, i);
+    };
+    const heroMain = w.cover_image_url ? pool[0] : take(1)?.[0] || null;
+    const foot = take(1)?.[0] || null;
+    const heroSub = take(1)?.[0] || null;
+    const trio = take(3) || [];
+    const wall = take(1)?.[0] || null;
+    return { heroMain, foot, heroSub, trio, wall, album: pool.slice(i), total: pool.length };
+  }
+
+  function _setPhoto(img, p) {
+    if (!img || !p) return;
+    img.src = cxImgSrc(getImageUrl(p.f));
+    img.style.objectPosition = cxFocal(p.fp);
+  }
+
+  // Mở đầu: ảnh lớn là ảnh bìa (thiệp không có ảnh bìa thì tấm album đầu); không có ảnh nhỏ thì
+  // .dl-solo, chỉ còn ảnh lớn ở giữa.
+  function _renderHeroPhotos() {
+    _setPhoto(document.getElementById("main-photo"), _plan.heroMain);
+    _setPhoto(document.getElementById("dl-hero-photo2"), _plan.heroSub);
+    document.querySelector(".dl-hero-pics")?.classList.toggle("dl-solo", !_plan.heroSub);
   }
 
   // Tên đôi ở mở đầu luôn một hàng: tràn thì thu cỡ chữ theo tỉ lệ. Lúc dựng #main-card còn ẩn (rộng 0)
@@ -216,6 +347,18 @@
     }
   }
 
+  // "14:00" → "14 giờ 00"; chuỗi khác khuôn thì giữ nguyên.
+  function _fmtGio(t) {
+    const m = /^(\d{1,2}):(\d{2})/.exec(String(t || "").trim());
+    return m ? `${m[1]} giờ ${m[2]}` : t || "";
+  }
+
+  // Ba ảnh mục Lễ: không đủ ba tấm chưa dùng thì ẩn cả dải.
+  function _renderTrio() {
+    [1, 2, 3].forEach((n, i) => _setPhoto(document.getElementById(`dl-trio-${n}`), _plan.trio[i]));
+    document.querySelector(".dl-trio")?.classList.toggle("hidden", _plan.trio.length < 3);
+  }
+
   function _fmtDMY(d) {
     if (!d) return "";
     const t = new Date(d);
@@ -228,7 +371,9 @@
   function _renderCalendar(w) {
     const box = document.getElementById("mini-calendar");
     const t = w.ceremony_date ? new Date(w.ceremony_date) : null;
+    cxToggle("dl-wall", !!t && !isNaN(t));
     if (!box || !t || isNaN(t)) return;
+    _renderWall();
     const y = t.getFullYear();
     const m = t.getMonth();
     const party = w[`${_isGroom ? "groom" : "bride"}_party_date`];
@@ -246,6 +391,18 @@
       `<div class="dl-cal-title cx-h">Tháng ${m + 1} · ${y}</div>` +
       `<div class="dl-cal-grid dl-cal-head cx-t">${["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((n) => `<span>${n}</span>`).join("")}</div>` +
       `<div class="dl-cal-grid cx-t">${cells}</div>`;
+  }
+
+  // Ảnh chân thiệp; hết ảnh thì .dl-foot--bare: bỏ ảnh, dải chữ thành tấm đỏ rượu đứng riêng.
+  function _renderFootPhoto() {
+    _setPhoto(document.getElementById("dl-foot-img"), _plan.foot);
+    document.getElementById("section-footer")?.classList.toggle("dl-foot--bare", !_plan.foot);
+  }
+
+  // Ảnh lịch treo tường; hết ảnh thì bỏ khung ảnh, chỉ còn tờ lịch.
+  function _renderWall() {
+    _setPhoto(document.getElementById("dl-wall-img"), _plan.wall);
+    document.querySelector(".dl-wall-photo")?.classList.toggle("hidden", !_plan.wall);
   }
 
   // Hồi âm: mục lời chúc (wishes-helper dựng ở cuối thân thiệp, dựng lại khi đổi dạng) dời vào
@@ -275,8 +432,8 @@
     mo.observe(slot, { childList: true });
   }
 
-  // Album: lưới 2 cột — tấm đầu mỗi cụm 3 ảnh tràn ngang, hai tấm sau đứng cạnh nhau.
-  // Cụm cuối thiếu một ảnh thì tấm lẻ tràn ngang cho khỏi hở.
+  // Album: tấm đầu rộng hết khổ (.dl-gal--lead), còn lại xếp hai cột so le bằng CSS columns —
+  // tỉ lệ khung đan xen theo vị trí ở theme.css, nên chỉ đánh dấu tấm đầu.
   function renderGallery(images, focalPoints) {
     const grid = document.getElementById("gallery-grid");
     if (!grid) return;
@@ -290,12 +447,11 @@
     lightboxImages.push(...urls);
 
     grid.innerHTML = "";
-    const n = urls.length;
     urls.forEach((url, i) => {
-      const wide = i % 3 === 0 || (i === n - 1 && i % 3 === 1);
       const fp = focalPoints?.[images?.[i]];
       const cell = document.createElement("div");
-      cell.className = "dl-gal" + (wide ? " dl-gal--wide" : "");
+      // Tấm đầu tràn khổ chỉ khi số ảnh lẻ — phần còn lại luôn đủ cặp cho hai cột.
+      cell.className = "dl-gal" + (i === 0 && urls.length % 2 ? " dl-gal--lead" : "");
       cell.innerHTML = `<img src="${cxImgSrc(url)}" alt="" style="object-position:${cxFocal(fp)}">`;
       cell.addEventListener("click", () => openLightbox(i));
       grid.appendChild(cell);

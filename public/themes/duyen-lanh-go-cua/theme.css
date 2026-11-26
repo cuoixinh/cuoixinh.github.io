@@ -37,6 +37,10 @@
   --dl-on-red-rgb: var(--cx-on-fill-rgb, var(--cx-on-accent-rgb));
   /* Nền đỏ rượu của màn bìa: --cx-cover-rgb của bộ màu là tông nhạt nên có bộ thì theo khối tô. */
   --dl-wine-rgb: var(--cx-fill-rgb, var(--cx-cover-rgb));
+  /* Ba vòng đồng tiền đan nhau giữa hai đường chỉ — hoa văn dưới tiêu đề mục (chỉ dùng làm mặt nạ). */
+  --dl-rings: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='14' fill='none' stroke='%23000' stroke-width='1'%3E%3Cpath d='M0 7H42M78 7H120'/%3E%3Ccircle cx='50' cy='7' r='6'/%3E%3Ccircle cx='60' cy='7' r='6'/%3E%3Ccircle cx='70' cy='7' r='6'/%3E%3C/svg%3E");
+  /* Hoa văn đồng tiền (lưới vòng tròn đan nhau) — chỉ dùng làm mặt nạ: bìa và tấm lót ảnh mở đầu. */
+  --dl-coin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' fill='none' stroke='%23000' stroke-width='1'%3E%3Ccircle cx='0' cy='0' r='20'/%3E%3Ccircle cx='40' cy='0' r='20'/%3E%3Ccircle cx='0' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='20' cy='20' r='20'/%3E%3C/svg%3E");
   --dl-gold: linear-gradient(
     100deg,
     rgb(var(--cx-shine-from-rgb)) 0%,
@@ -44,12 +48,6 @@
     rgb(var(--cx-shine-from-rgb)) 70%,
     rgb(var(--cx-shine-mid-rgb)) 100%
   );
-  /* Nền son có vân chấm nhũ thưa + quầng tối ở mép. */
-  --dl-red-bg:
-    radial-gradient(circle at 50% 40%, transparent 40%, rgb(var(--cx-cover-veil-rgb) / 0.55) 100%),
-    radial-gradient(circle, rgb(var(--cx-deco-rgb) / 0.22) 0 1px, transparent 1.5px) 0 0 / 16px 16px,
-    linear-gradient(180deg, rgb(var(--dl-red-rgb)), rgb(var(--dl-red-deep-rgb)));
-
   --music-bar-fg-rgb: var(--cx-body-rgb);
   --music-bar-bg-rgb: var(--cx-surface-rgb);
   --music-widget-fg-rgb: var(--cx-heading-rgb);
@@ -85,31 +83,36 @@ body {
   font-weight: 300;
 }
 
-/* Chữ trên mảng son (bìa, tấm tiệc, chân thiệp): đè màu chữ mặc định của .cx-h/.cx-t. */
+/* Chữ trên mảng đỏ rượu (bìa, tấm tiệc, chân thiệp): đè màu chữ mặc định của .cx-h/.cx-t. */
 .dl-cover .cx-h,
 .dl-cover .cx-t,
-.dl-party .cx-h,
-.dl-party .cx-t,
-.dl-footer .cx-h,
-.dl-footer .cx-t {
+.dl-wine .cx-h,
+.dl-wine .cx-t {
   color: rgb(var(--dl-on-red-rgb));
 }
 
+/* Tấm đỏ rượu phủ hoa văn đồng tiền nhũ — cùng chất liệu màn bìa. isolation để lớp hoa văn
+   (z -1) nằm trên nền tấm mà vẫn dưới chữ. */
+.dl-wine {
+  position: relative;
+  isolation: isolate;
+  background: rgb(var(--dl-wine-rgb));
+  color: rgb(var(--dl-on-red-rgb));
+}
+
+.dl-wine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: rgb(var(--cx-deco-rgb) / 0.2);
+  -webkit-mask: var(--dl-coin) 0 0 / 40px 40px;
+  mask: var(--dl-coin) 0 0 / 40px 40px;
+  pointer-events: none;
+}
+
 /* ── Chữ dùng chung ── */
-
-.dl-eyebrow {
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-}
-
-.dl-label {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-}
 
 /* Chữ nhũ: chữ viết tay tô dải vàng. */
 .dl-gold {
@@ -122,30 +125,32 @@ body {
 }
 
 .dl-h2 {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.25;
   color: rgb(var(--cx-heading-rgb));
 }
 
-/* Hoa văn dưới tiêu đề: hai vạch nhũ kẹp một hình thoi. */
+/* Hoa văn dưới tiêu đề: ba vòng đồng tiền đan nhau giữa hai đường chỉ nhũ. */
 .dl-h2::after {
   content: "";
   display: block;
   width: 120px;
-  height: 8px;
-  margin: 12px auto 0;
-  background:
-    linear-gradient(45deg, transparent 40%, rgb(var(--cx-deco-rgb)) 40% 60%, transparent 60%) center / 8px 8px no-repeat,
-    linear-gradient(-45deg, transparent 40%, rgb(var(--cx-deco-rgb)) 40% 60%, transparent 60%) center / 8px 8px no-repeat,
-    linear-gradient(rgb(var(--cx-deco-rgb)), rgb(var(--cx-deco-rgb))) left center / 48px 1px no-repeat,
-    linear-gradient(rgb(var(--cx-deco-rgb)), rgb(var(--cx-deco-rgb))) right center / 48px 1px no-repeat;
+  height: 14px;
+  margin: 14px auto 0;
+  background: rgb(var(--cx-deco-rgb));
+  -webkit-mask: var(--dl-rings) center / 120px 14px no-repeat;
+  mask: var(--dl-rings) center / 120px 14px no-repeat;
 }
 
-.dl-h2--big {
-  font-size: 36px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+/* Lời dẫn (báo tin, kính mời): chữ có chân nghiêng, câu thường — không viết hoa giãn chữ. */
+.dl-announce {
+  max-width: 320px;
+  font-size: 16px;
+  font-style: italic;
+  line-height: 1.5;
+  text-wrap: balance;
+  color: rgb(var(--cx-body-rgb));
 }
 
 .dl-lunar {
@@ -162,7 +167,7 @@ body {
   font-family: "Great Vibes", cursive;
 }
 
-/* Chữ Hỷ trong huy hiệu tròn nhũ. */
+/* Chữ Hỷ trong huy hiệu tròn nhũ — nút mở thiệp ở màn bìa. */
 .dl-xi {
   display: inline-flex;
   align-items: center;
@@ -182,12 +187,6 @@ body {
   color: rgb(var(--dl-red-rgb));
 }
 
-.dl-xi--sm {
-  width: 36px;
-  height: 36px;
-  font-size: 19px;
-}
-
 /* ── Màn bìa: nền đỏ rượu, hoa văn đồng tiền mờ ở hai mép trên/dưới, chữ nhũ, một ảnh ── */
 
 #cover-screen,
@@ -203,7 +202,6 @@ body {
   inset: 0;
   z-index: -1;
   background: rgb(var(--cx-deco-rgb) / 0.28);
-  --dl-coin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' fill='none' stroke='%23000' stroke-width='1'%3E%3Ccircle cx='0' cy='0' r='20'/%3E%3Ccircle cx='40' cy='0' r='20'/%3E%3Ccircle cx='0' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='20' cy='20' r='20'/%3E%3C/svg%3E");
   -webkit-mask: var(--dl-coin) 0 0 / 40px 40px, linear-gradient(#000, #0000 24%, #0000 76%, #000);
   -webkit-mask-composite: source-in;
   mask: var(--dl-coin) 0 0 / 40px 40px, linear-gradient(#000, #0000 24%, #0000 76%, #000);
@@ -431,18 +429,24 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 48px 24px;
+  gap: 20px;
+  padding: 64px max(24px, calc((100% - 480px) / 2));
 }
 
-/* Mở đầu: nền giấy sáng, chữ mực sẫm (màu tiêu đề pha đen — vẫn theo bộ màu). */
+/* Mở đầu: nền giấy sáng, chữ mực sẫm (màu tiêu đề pha đen — vẫn theo bộ màu).
+   Cao ĐÚNG một màn (qua --vh): phần chữ thu theo bậc chiều cao màn (media cuối khối), khối ảnh
+   .dl-hero-stage ăn phần còn lại và tự co giữ tỉ lệ — máy ngắn hay dài cũng thấy trọn mục. */
 .dl-hero {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 24px 72px;
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
+  min-height: 560px;
+  padding: 48px 24px 32px;
   background: rgb(var(--cx-card-bg-rgb));
+  --dl-xi: 72px;
 }
 
 .dl-hero .cx-h,
@@ -480,8 +484,8 @@ body {
 
 /* Chữ Hỷ tròn: ảnh chỉ dùng làm mặt nạ (kênh alpha), màu lấy từ màu son của bộ màu. */
 .dl-hero-xi {
-  width: 72px;
-  height: 72px;
+  width: var(--dl-xi);
+  height: var(--dl-xi);
   background: rgb(var(--dl-red-rgb));
   -webkit-mask: url("/assets/images/decor/xi-tron.png") center / contain no-repeat;
   mask: url("/assets/images/decor/xi-tron.png") center / contain no-repeat;
@@ -510,7 +514,7 @@ body {
 
 .dl-knot {
   position: absolute;
-  top: 52px;
+  top: calc(var(--dl-xi) - 20px);
   width: 32px;
   height: 76px;
 }
@@ -539,30 +543,161 @@ body {
   stroke-width: 1;
 }
 
-/* Ảnh khung son dày; đèn lồng thòng xuống quá mép dưới phải. */
-.dl-hero-frame {
-  position: relative;
-  width: min(68%, 320px);
-  aspect-ratio: 2 / 3;
-  margin-top: 40px;
-  border: 8px solid rgb(var(--dl-red-deep-rgb));
-  box-shadow: 0 12px 28px rgb(var(--cx-shadow-rgb) / 0.2);
+/* Hai ảnh chữ nhật so le trên nền một vầng trăng nhũ nhạt (.dl-hero-pics::before): ảnh lớn bên trái,
+   ảnh nhỏ đè góc dưới phải, viền màu nền giấy như ảnh dán; đèn lồng treo trước vầng trăng. */
+/* Khung chứa đo bằng container query: khối ảnh rộng hết ngang (trần 400px), cao theo chỗ còn lại
+   nhưng không quá 1.4 lần bề ngang — máy dài thì ảnh cao ra, máy ngắn thì dẹt lại. Ảnh bên trong
+   đặt theo %, object-fit cắt bớt chứ không méo. Trình duyệt chưa có cq thì lùi về khung 5:6. */
+.dl-hero-stage {
+  flex: 1 1 0;
+  align-self: stretch;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 32px;
+  container-type: size;
 }
 
-.dl-hero-frame img {
+.dl-hero-pics {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 360px);
+  aspect-ratio: 5 / 6;
+  width: min(100cqw, 400px);
+  height: min(100cqh, min(100cqw, 400px) * 1.4);
+}
+
+/* Vầng trăng: isolation ở trên giữ nó (z -1) sau ảnh mà không lọt ra sau nền hero. Album trống
+   (.dl-solo) thì dời vào giữa theo ảnh lớn. */
+.dl-hero-pics::before {
+  content: "";
+  position: absolute;
+  top: 2%;
+  left: 20%;
+  z-index: -1;
+  width: 78%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 35%,
+    rgb(var(--cx-deco-soft-rgb) / 0.95),
+    rgb(var(--cx-deco-soft-rgb) / 0.45) 70%
+  );
+}
+
+.dl-hero-pics.dl-solo::before {
+  left: 11%;
+}
+
+.dl-pic {
+  position: absolute;
+  border-radius: 4px;
+}
+
+.dl-pic img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: inherit;
+}
+
+.dl-pic--main {
+  top: 12px;
+  left: 6%;
+  width: 60%;
+  height: 82%;
+}
+
+.dl-pic--main img {
+  box-shadow: 0 12px 28px rgb(var(--cx-shadow-rgb) / 0.22);
+}
+
+.dl-pic--sub {
+  right: 4%;
+  bottom: 0;
+  z-index: 1;
+  width: 42%;
+  height: 52%;
+}
+
+.dl-pic--sub img {
+  box-shadow:
+    0 0 0 8px rgb(var(--cx-card-bg-rgb)),
+    0 16px 32px rgb(var(--cx-shadow-rgb) / 0.25);
+}
+
+.dl-hero-pics.dl-solo .dl-pic--sub {
+  display: none;
+}
+
+.dl-hero-pics.dl-solo .dl-pic--main {
+  left: 18%;
+  width: 64%;
+  height: calc(100% - 16px);
 }
 
 .dl-lanterns {
   position: absolute;
-  right: -24px;
-  bottom: -48px;
+  top: -8px;
+  right: 6%;
   width: 52px;
   height: 108px;
   pointer-events: none;
+}
+
+/* Máy màn thấp (iPhone SE, mini…): thu phần chữ để khối ảnh còn chỗ. */
+@media (max-height: 799px) {
+  .dl-hero {
+    padding: 32px 24px 24px;
+    --dl-xi: 60px;
+  }
+
+  .dl-hero-names {
+    font-size: 40px;
+  }
+
+  .dl-hero-when {
+    margin-top: 12px;
+  }
+
+  .dl-hero-stage {
+    margin-top: 24px;
+  }
+}
+
+@media (max-height: 699px) {
+  .dl-hero {
+    padding: 24px 24px 16px;
+    --dl-xi: 52px;
+  }
+
+  .dl-hero-kicker {
+    font-size: 16px;
+  }
+
+  .dl-hero-names {
+    margin-top: 8px;
+    font-size: 34px;
+  }
+
+  .dl-hero-mid {
+    margin-top: 8px;
+  }
+
+  .dl-hero-when {
+    margin-top: 8px;
+    font-size: 14px;
+  }
+
+  .dl-hero .dl-hero-date.cx-h {
+    font-size: 20px;
+  }
+
+  .dl-hero-stage {
+    margin-top: 20px;
+  }
 }
 
 .dl-ln-thread {
@@ -590,150 +725,342 @@ body {
   stroke-width: 1;
 }
 
-/* Báo tin + hai họ */
-
-.dl-couple {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin: 8px 0;
-}
-
-.dl-person {
-  font-size: 26px;
-  font-weight: 500;
-  color: rgb(var(--cx-accent-rgb));
-}
+/* Báo tin + hai họ: hai cột ngăn bằng chỉ nhũ dọc mờ hai đầu, không đóng hộp. */
 
 .dl-family {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  column-gap: 32px;
   width: 100%;
-  margin-top: 8px;
+}
+
+.dl-family::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(transparent, rgb(var(--cx-deco-rgb)) 20% 80%, transparent);
 }
 
 .dl-house {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
-  padding: 20px 12px;
-  border: 1px solid rgb(var(--cx-line-rgb));
-  border-radius: 12px;
-  background: rgb(var(--cx-panel-warm-rgb));
 }
 
-.dl-parents {
+.dl-label {
   font-size: 15px;
-  line-height: 1.6;
+  font-style: italic;
+  color: rgb(var(--dl-wine-rgb));
+}
+
+/* Tên bố mẹ viết hoa toàn bộ (cả danh xưng Ông/Bà) — chữ hoa rộng hơn nên thu cỡ, giãn nhẹ. */
+.dl-parents {
+  font-size: 14px;
+  line-height: 1.7;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   color: rgb(var(--cx-heading-rgb));
 }
 
 .dl-house .dl-addr {
   font-size: 12px;
+  color: rgb(var(--cx-body-rgb));
 }
 
-/* Thư mời dự lễ */
-
-.dl-invite {
-  background: rgb(var(--cx-surface-rgb));
-  border-top: 1px solid rgb(var(--cx-line-rgb));
-  border-bottom: 1px solid rgb(var(--cx-line-rgb));
+#section-family .dl-announce {
+  margin-top: 16px;
 }
 
-.dl-time {
-  font-size: 14px;
-  letter-spacing: 1px;
+/* Tên đôi chữ viết tay (font tự host ở styles/_fonts.css), dấu & nhỏ màu nhũ ở giữa. */
+.dl-couple {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
-.dl-time .cx-h {
+.dl-person.cx-h {
+  font-family: "TheMoritza", cursive;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: rgb(var(--dl-wine-rgb));
+}
+
+.dl-person-amp {
+  font-family: "Playfair Display", serif;
+  font-size: 28px;
+  font-style: italic;
+  line-height: 1;
+  color: rgb(var(--cx-deco-rgb));
+}
+
+/* Thư mời dự lễ: ba ảnh mở mục — giữa nhô cao, hai bên thấp hơn, nằm gọn trong lề mục — làm khoảng nghỉ giữa tên đôi viết tay của mục trên và lời mời viết tay; rồi
+   hoa văn (bông hoa giữa hai chỉ đôi), "Trân Trọng Kính Mời", khối ngày ba cột ngăn vạch đỏ rượu. */
+
+#section-ceremony {
+  gap: 12px;
+  padding-top: 24px;
+  padding-bottom: 12px;
+}
+
+.dl-flourish {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  color: rgb(var(--cx-deco-rgb));
+}
+
+.dl-flourish::before,
+.dl-flourish::after {
+  content: "";
+  width: 72px;
+  height: 4px;
+  border-top: 1px solid rgb(var(--cx-deco-rgb));
+  border-bottom: 1px solid rgb(var(--cx-deco-rgb));
+}
+
+/* Nét bút mảnh đều, cố ý KHÁC chữ đậm thanh TheMoritza của tên đôi ngay phía trên. */
+.dl-invite-script.cx-h {
+  font-family: "FaugllinBalseyn", cursive;
+  font-size: 40px;
+  line-height: 1.3;
+}
+
+.dl-trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+.dl-trio-pic {
+  overflow: hidden;
+  aspect-ratio: 5 / 7;
+}
+
+.dl-trio-pic:nth-child(odd) {
+  margin-top: 36px;
+}
+
+.dl-trio-pic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Tên khách mời trên dòng chấm nhũ — như ô điền tên của thiệp in. */
+.dl-guest {
+  min-width: 220px;
+  max-width: 100%;
+  padding: 0 16px 6px;
+  border-bottom: 2px dotted rgb(var(--cx-deco-rgb));
+}
+
+.dl-guest .cx-h {
+  font-size: 24px;
+  font-style: italic;
+  line-height: 1.3;
+  color: rgb(var(--dl-wine-rgb));
+}
+
+#section-ceremony .dl-guest + .dl-at {
+  margin: 4px 0 8px;
+}
+
+/* Tên lễ / tên tiệc: chữ không chân đậm viết hoa. */
+.dl-event.cx-t {
   font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   color: rgb(var(--cx-heading-rgb));
 }
 
-.dl-date {
+.dl-at.cx-t {
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.dl-when3 {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   width: 100%;
-  max-width: 320px;
+  max-width: 360px;
 }
 
-.dl-date-side {
-  padding: 8px 4px;
-  border-top: 1px solid rgb(var(--cx-deco-rgb));
-  border-bottom: 1px solid rgb(var(--cx-deco-rgb));
-  font-size: 12px;
+.dl-when3-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 24px;
+  border-left: 1px solid rgb(var(--dl-wine-rgb) / 0.6);
+  border-right: 1px solid rgb(var(--dl-wine-rgb) / 0.6);
+}
+
+.dl-when3 .cx-t {
+  font-size: 15px;
   font-weight: 400;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.dl-when3-wd.cx-t,
+.dl-when3-mo.cx-t {
+  letter-spacing: 2px;
+}
+
+.dl-when3 .dl-when3-day.cx-t {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: rgb(var(--dl-wine-rgb));
+}
+
+/* Âm lịch trong ngoặc: dữ liệu chỉ có câu trần, ngoặc thêm bằng CSS. */
+.dl-lunar-p.cx-t {
+  font-size: 13px;
+  font-weight: 400;
+  font-style: italic;
   letter-spacing: 1px;
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 
-.dl-date-day {
-  padding: 0 20px;
-  font-size: 64px;
-  font-weight: 500;
-  line-height: 1;
+.dl-lunar-p::before {
+  content: "(";
 }
 
-/* Tiệc mừng */
+.dl-lunar-p::after {
+  content: ")";
+}
+
+.dl-place.cx-t {
+  margin-top: 4px;
+  font-size: 17px;
+  font-weight: 400;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Tiệc mừng: thẻ bo góc viền đỏ rượu trên nền giấy ấm. */
 
 .dl-party {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 36px 24px;
+  padding: 28px 16px;
+  border: 1px solid rgb(var(--dl-wine-rgb));
   border-radius: 16px;
-  background: var(--dl-red-bg);
-  color: rgb(var(--dl-on-red-rgb));
-  box-shadow: 0 12px 32px rgb(var(--cx-shadow-rgb) / 0.25);
+  background: rgb(var(--cx-surface-rgb));
 }
 
-.dl-party::before {
+.dl-party .dl-event {
+  margin-bottom: 8px;
+}
+
+.dl-party-when.cx-t {
+  font-size: 16px;
+  font-weight: 400;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.dl-party-dmy.cx-t {
+  margin-right: -6px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Lịch treo tường có ảnh: tờ giấy treo bằng sợi dây chữ V vào một chiếc đinh (::before dây,
+   ::after đinh), gáy đỏ rượu với hàng khoen nhũ, ảnh nửa trên, lưới ngày nửa dưới. Cột Chủ nhật màu
+   đỏ rượu như lịch thật, ngày cưới đóng dấu đỏ rượu viền nhũ, ngày tiệc khoanh chỉ nhũ. */
+
+.dl-wall {
+  position: relative;
+  width: min(100%, 340px);
+  margin-top: 80px;
+  padding-bottom: 20px;
+  border-radius: 4px;
+  background: rgb(var(--cx-panel-rgb));
+  box-shadow:
+    0 2px 0 rgb(var(--cx-line-rgb)),
+    0 24px 44px rgb(var(--cx-shadow-rgb) / 0.18);
+}
+
+.dl-wall::before {
   content: "";
   position: absolute;
-  inset: 8px;
-  border: 1px solid rgb(var(--cx-deco-rgb) / 0.8);
-  border-radius: 10px;
-  pointer-events: none;
+  bottom: 100%;
+  left: 50%;
+  width: 120px;
+  height: 52px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(to top left, transparent calc(50% - 1px), rgb(var(--cx-deco-rgb)) 50%, transparent calc(50% + 1px)) left / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 1px), rgb(var(--cx-deco-rgb)) 50%, transparent calc(50% + 1px)) right / 50% 100% no-repeat;
 }
 
-.dl-party .dl-eyebrow.cx-t,
-.dl-party-at.cx-t {
-  color: rgb(var(--cx-deco-soft-rgb));
+.dl-wall::after {
+  content: "";
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: rgb(var(--cx-deco-rgb));
+  box-shadow:
+    inset 0 -2px 0 rgb(var(--cx-shadow-rgb) / 0.3),
+    0 2px 4px rgb(var(--cx-shadow-rgb) / 0.3);
 }
 
-.dl-party-dt {
-  font-size: 30px;
-  font-weight: 500;
-  letter-spacing: 1px;
+/* Gáy: dải đỏ rượu, hàng khoen nhũ (vòng tròn rỗng lặp ngang) đè lên mép trên. */
+.dl-wall-bind {
+  position: relative;
+  height: 24px;
+  border-radius: 4px 4px 0 0;
+  background: rgb(var(--dl-wine-rgb));
 }
 
-.dl-party-at {
-  margin-top: 8px;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+.dl-wall-bind::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 20px;
+  right: 20px;
+  height: 16px;
+  background: radial-gradient(circle, transparent 3px, rgb(var(--cx-deco-rgb)) 3.5px 5px, transparent 5.5px) center / 16px 16px repeat-x;
 }
 
-.dl-party-loc {
-  font-size: 17px;
-  line-height: 1.5;
+.dl-wall-photo {
+  overflow: hidden;
+  margin: 12px 12px 0;
+  aspect-ratio: 4 / 3;
 }
 
-/* Lịch tháng cưới */
+.dl-wall-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 .dl-cal {
   width: 100%;
-  padding: 20px 16px;
-  border: 1px solid rgb(var(--cx-line-rgb));
-  border-radius: 16px;
-  background: rgb(var(--cx-panel-rgb));
+  padding: 16px 16px 0;
 }
 
 .dl-cal:empty {
@@ -741,8 +1068,9 @@ body {
 }
 
 .dl-cal-title {
-  margin-bottom: 12px;
-  font-size: 20px;
+  margin-bottom: 16px;
+  font-size: 22px;
+  font-style: italic;
   color: rgb(var(--cx-heading-rgb));
 }
 
@@ -753,112 +1081,251 @@ body {
 }
 
 .dl-cal-head {
-  margin-bottom: 4px;
-  font-size: 11px;
-  font-weight: 500;
-  color: rgb(var(--cx-accent-rgb));
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgb(var(--cx-line-rgb));
+  font-size: 12px;
+}
+
+.dl-cal .cx-t {
+  font-weight: 400;
+}
+
+.dl-cal-grid > span:nth-child(7n) {
+  color: rgb(var(--dl-wine-rgb));
 }
 
 .dl-cal-d {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
-  font-size: 13px;
+  height: 40px;
+  font-size: 14px;
 }
 
 .dl-cal-d b {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   font-weight: 400;
 }
 
 .dl-cal-d.is-wed b {
-  background: rgb(var(--dl-red-rgb));
+  background: rgb(var(--dl-wine-rgb));
   color: rgb(var(--dl-on-red-rgb));
   font-weight: 600;
-  box-shadow: 0 0 0 2px rgb(var(--cx-card-bg-rgb)), 0 0 0 3px rgb(var(--cx-deco-rgb));
+  box-shadow:
+    0 0 0 3px rgb(var(--cx-card-bg-rgb)),
+    0 0 0 4px rgb(var(--cx-deco-rgb));
 }
 
 .dl-cal-d.is-party b {
-  border: 1px solid rgb(var(--cx-deco-rgb));
+  box-shadow: inset 0 0 0 1px rgb(var(--cx-deco-rgb));
 }
 
-/* Đường đến (cả bản đồ thứ hai, id đuôi -2) */
+/* Đường đến (cả bản đồ thứ hai, id đuôi -2): bản đồ trên nền vầng trăng nhũ ló ở góc trên-trái
+   (hero đặt trăng bên phải — đổi bên cho có nhịp); nút chỉ đường dạng viên đỏ rượu. */
 
 .dl-map {
   width: 100%;
-  overflow: hidden;
-  border: 1px solid rgb(var(--cx-line-rgb));
-  border-radius: 12px;
-  background: rgb(var(--cx-panel-rgb));
+}
+
+.dl-map-frame {
+  position: relative;
+  isolation: isolate;
+  margin-top: 24px;
+}
+
+.dl-map-frame::before {
+  content: "";
+  position: absolute;
+  top: -40px;
+  left: -20px;
+  z-index: -1;
+  width: 180px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 35%,
+    rgb(var(--cx-deco-soft-rgb) / 0.95),
+    rgb(var(--cx-deco-soft-rgb) / 0.45) 70%
+  );
+  pointer-events: none;
 }
 
 .dl-map-view {
-  height: 184px;
+  height: 200px;
+  border-radius: 4px;
+  background: rgb(var(--cx-panel-rgb));
+  box-shadow: 0 12px 28px rgb(var(--cx-shadow-rgb) / 0.22);
 }
 
-.dl-map-bar {
-  display: flex;
+.dl-map-bar.cx-t {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  padding: 12px 16px;
-  background: rgb(var(--dl-red-rgb));
-  font-size: 12px;
+  margin-top: 28px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: rgb(var(--dl-wine-rgb));
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: 3px;
-  text-transform: uppercase;
   color: rgb(var(--dl-on-red-rgb));
 }
 
-/* Hồi âm */
+/* Hồi âm: một lá thư — tấm thiệp trắng khung chỉ nhũ đôi, nắp phong bì đỏ rượu hoa văn (.dl-flap,
+   cắt tam giác) đậy phía trên, dấu sáp nhũ ở mũi nắp. z-index của nắp/dấu sáp để đè lên hai khung. */
 
 .dl-reply {
-  margin: 0 16px;
-  padding: 40px 20px 32px;
-  border: 1px solid rgb(var(--cx-line-rgb));
-  border-radius: 16px;
-  background: rgb(var(--cx-surface-rgb));
+  position: relative;
+  width: min(calc(100% - 32px), 480px);
+  margin: 24px auto;
+  padding: 116px 28px 36px;
+  border-radius: 2px;
+  background: rgb(var(--cx-panel-rgb));
+  box-shadow: 0 16px 40px rgb(var(--cx-shadow-rgb) / 0.14);
+}
+
+.dl-reply::before,
+.dl-reply::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.dl-reply::before {
+  inset: 10px;
+  border: 1px solid rgb(var(--cx-deco-rgb) / 0.8);
+}
+
+.dl-reply::after {
+  inset: 14px;
+  border: 1px solid rgb(var(--cx-deco-rgb) / 0.35);
+}
+
+.dl-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 84px;
+  isolation: isolate;
+  background: rgb(var(--dl-wine-rgb));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  filter: drop-shadow(0 2px 0 rgb(var(--cx-deco-rgb)));
+}
+
+.dl-flap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgb(var(--cx-deco-rgb) / 0.22);
+  -webkit-mask: var(--dl-coin) 0 0 / 40px 40px;
+  mask: var(--dl-coin) 0 0 / 40px 40px;
+}
+
+/* Dấu sáp: đĩa nhũ mép răng cưa nhẹ (hai vòng bóng), trái tim đỏ rượu ở giữa. */
+.dl-wax {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 50%;
+  background: var(--dl-gold);
+  box-shadow:
+    0 0 0 3px rgb(var(--cx-deco-rgb) / 0.35),
+    0 4px 10px rgb(var(--cx-shadow-rgb) / 0.35);
+  font-size: 18px;
+  color: rgb(var(--dl-wine-rgb));
+}
+
+.dl-wax svg {
+  fill: currentColor;
 }
 
 .dl-rsvp {
   flex-direction: column;
   align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.dl-reply-title.cx-h {
+  font-family: "FaugllinBalseyn", cursive;
+  font-size: 44px;
+  line-height: 1.2;
+  color: rgb(var(--dl-wine-rgb));
+}
+
+.dl-ask {
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-style: italic;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Hai lựa chọn = hai dòng của phiếu hồi âm: ô vuông để tích + chữ, gạch chấm nhũ ngăn dòng.
+   confirmAttend() gắn nền/viền inline + .btn-selected khi chọn → !important giữ đúng hình phiếu,
+   ô vuông tô đỏ rượu thay cho việc đổi màu cả dòng. */
+.dl-choices {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-top: 1px dotted rgb(var(--cx-deco-rgb));
+}
+
+.dl-reply .dl-choice {
+  justify-content: flex-start;
   gap: 14px;
   width: 100%;
-}
-
-.dl-choices {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  width: 100%;
-}
-
-.dl-choice {
-  padding: 14px 12px;
-  border: 1px solid rgb(var(--cx-deco-rgb));
-  border-radius: 999px;
-  background: rgb(var(--cx-panel-rgb));
-  font-size: 13px;
-  line-height: 1.35;
+  padding: 16px 4px;
+  border: 0 !important;
+  border-bottom: 1px dotted rgb(var(--cx-deco-rgb)) !important;
+  border-radius: 0;
+  background: transparent !important;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
   color: rgb(var(--cx-heading-rgb));
-  transition: border-color 0.2s, background-color 0.2s;
+  animation: none;
 }
 
-#btn-attend.dl-choice {
-  background: rgb(var(--dl-red-rgb));
-  color: rgb(var(--dl-on-red-rgb));
+.dl-choice::before {
+  content: "";
+  flex: 0 0 18px;
+  height: 18px;
+  border: 1.5px solid rgb(var(--dl-wine-rgb));
+  border-radius: 3px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.dl-choice.btn-selected::before {
+  background: rgb(var(--dl-wine-rgb));
+  box-shadow: inset 0 0 0 3px rgb(var(--cx-panel-rgb));
 }
 
 .dl-reply-wish {
   width: 100%;
 }
+
+.dl-has-rsvp .dl-reply-wish {
+  margin-top: 32px;
+}
+
+/* Lời chúc như trang thư tay: không bong bóng, không chữ cái đầu; mỗi lời là đoạn chữ nghiêng mở bằng
+   ngoặc kép nhũ, tên khách ký bên phải bằng chữ viết tay, dòng chấm nhũ ngăn các lời. */
 
 .dl-reply-wish #cx-wish-sec {
   max-width: none;
@@ -866,13 +1333,87 @@ body {
   text-align: left;
 }
 
-.dl-reply-wish .cx-wsec-list {
-  padding-bottom: 28px;
-  margin-bottom: -12px;
+.dl-reply .cx-wsec-head::before,
+.dl-reply .cx-wsec-head::after {
+  background: rgb(var(--cx-deco-rgb) / 0.6);
 }
 
-.dl-has-rsvp .dl-reply-wish {
-  margin-top: 16px;
+.dl-reply .cx-wsec-title {
+  font-family: "Playfair Display", serif;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.dl-reply .cx-wdock-card {
+  border-radius: 4px;
+  background: rgb(var(--cx-card-bg-rgb));
+  border: 1px solid rgb(var(--cx-deco-rgb) / 0.7);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* _common.css bo lại 20px khi ô mở (.cx-wsec .cx-wdock-card.is-open, đặc hiệu cao hơn) → khai lại
+   ở đúng trạng thái đó để ô giữ góc vuông như lúc chưa bấm. */
+.dl-reply .cx-wsec .cx-wdock-card.is-open {
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px rgb(var(--cx-deco-rgb) / 0.18);
+}
+
+.dl-reply .cx-wsec-list {
+  gap: 0;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.dl-reply .cx-wsec .cx-wish-item {
+  padding: 18px 4px 14px;
+  border: 0;
+  border-bottom: 1px dotted rgb(var(--cx-deco-rgb));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dl-reply .cx-wsec .cx-wish-av {
+  display: none;
+}
+
+.dl-reply .cx-wish-body {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.dl-reply .cx-wish-text {
+  font-family: "Playfair Display", serif;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.65;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.dl-reply .cx-wish-text::before {
+  content: "\201C";
+  margin-right: 4px;
+  font-size: 28px;
+  line-height: 0;
+  vertical-align: -10px;
+  color: rgb(var(--cx-deco-rgb));
+}
+
+.dl-reply .cx-wish-name {
+  align-self: flex-end;
+  margin: 4px 0 0;
+  font-family: "FaugllinBalseyn", cursive;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgb(var(--dl-wine-rgb));
 }
 
 /* Mừng cưới */
@@ -895,7 +1436,7 @@ body {
   margin: 6px 0;
   padding: 10px;
   border: 1px solid rgb(var(--cx-deco-rgb));
-  border-radius: 12px;
+  border-radius: 4px;
 }
 
 .cx-gift-solo .dl-qr {
@@ -925,56 +1466,188 @@ body {
   font-size: 12px;
 }
 
-/* Album: 2 cột, ô tràn ngang tỉ lệ 3:2, ô đứng 3:4. */
+/* Album: tấm đầu rộng hết khổ, còn lại hai cột so le (CSS columns) với tỉ lệ đan xen 3:4 · 1:1 · 4:5
+   để hai cột lệch nhịp nhau như trang ảnh tạp chí. Thứ tự đọc đi dọc từng cột. */
 
 .dl-gallery {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
   width: 100%;
+  columns: 2;
+  column-gap: 8px;
 }
 
 .dl-gal {
   overflow: hidden;
+  margin-bottom: 8px;
   aspect-ratio: 3 / 4;
-  border-radius: 8px;
+  border-radius: 2px;
+  break-inside: avoid;
   cursor: pointer;
 }
 
-.dl-gal--wide {
-  grid-column: span 2;
-  aspect-ratio: 3 / 2;
+.dl-gal:nth-child(3n + 3) {
+  aspect-ratio: 1 / 1;
+}
+
+.dl-gal:nth-child(3n + 4) {
+  aspect-ratio: 4 / 5;
+}
+
+.dl-gal--lead {
+  column-span: all;
+  aspect-ratio: 4 / 5;
 }
 
 .dl-gal img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* Lời cảm ơn: dải son cong ở đỉnh. */
+/* Lời cảm ơn: ảnh đôi phủ trọn mục (khổ 2:3) phủ một lớp sáng mỏng cho ảnh dịu lại; dải tối trong suốt
+   vắt ngang phần dưới ảnh, chữ trắng: "thankyou" nét mảnh hai đuôi cong (::before/::after), dưới là
+   lời cảm ơn chữ nghiêng viết tay. Dải cao theo chữ — khách nhập lời dài thì dải dày ra, không tràn. */
 
 .dl-footer {
+  position: relative;
+  overflow: hidden;
+  margin-top: 32px;
+}
+
+.dl-foot-photo {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 2 / 3;
+}
+
+.dl-foot-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dl-foot-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--cx-card-bg-rgb) / 0.16);
+}
+
+.dl-foot-band {
+  position: absolute;
+  top: 56%;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  margin-top: 24px;
-  padding: 56px 32px 64px;
-  background: var(--dl-red-bg);
-  color: rgb(var(--dl-on-red-rgb));
-  border-radius: 50% 50% 0 0 / 48px 48px 0 0;
+  gap: 4px;
+  padding: 20px 24px 28px;
+  background: rgb(var(--cx-scrim-rgb) / 0.45);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
 }
 
-.dl-quote {
-  font-size: 17px;
-  font-style: italic;
-  line-height: 1.6;
+.dl-foot-thanks.cx-on-image {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: "ClairePalmerScript", cursive;
+  font-size: 56px;
+  line-height: 1.3;
 }
 
-.dl-footer-sign {
-  font-size: 40px;
-  line-height: 1.2;
+/* Hai đuôi: nét cong nhẹ mảnh dần ra ngoài (viền dưới của khung bo tròn dẹt). */
+.dl-foot-thanks::before,
+.dl-foot-thanks::after {
+  content: "";
+  width: 56px;
+  height: 12px;
+  margin-top: 12px;
+  border-bottom: 1.5px solid currentColor;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+}
+
+.dl-foot-thanks::before {
+  -webkit-mask: linear-gradient(to right, transparent, #000 70%);
+  mask: linear-gradient(to right, transparent, #000 70%);
+}
+
+.dl-foot-thanks::after {
+  -webkit-mask: linear-gradient(to left, transparent, #000 70%);
+  mask: linear-gradient(to left, transparent, #000 70%);
+}
+
+.dl-quote.cx-on-image {
+  max-width: 320px;
+  font-family: "Great Vibes", cursive;
+  font-size: 28px;
+  line-height: 1.4;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* Thiệp hết ảnh cho chân thiệp (index.js .dl-foot--bare): bỏ khung ảnh, dải chữ đứng riêng trên nền đỏ rượu. */
+.dl-foot--bare .dl-foot-photo {
+  display: none;
+}
+
+.dl-foot--bare .dl-foot-band {
+  position: static;
+  padding: 48px 24px 56px;
+  background: rgb(var(--dl-wine-rgb));
+}
+
+/* Ảnh chân thiệp phủ trọn mục nên không bay ngang/lên (lộ nền dưới dải chữ) — chỉ lắng từ cỡ phóng. */
+.dl-foot-photo.dl-uv {
+  translate: none;
+  scale: 1.12;
+  transition:
+    opacity 1.2s ease-out,
+    scale 2.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dl-foot-photo.dl-uv.dl-uv-in {
+  scale: none;
+}
+
+/* ── Ảnh bay vào ──
+   index.js gắn .dl-uv lên mọi khung ảnh kèm hướng bay (data-dl-from: l trái · r phải · b dưới, theo vị trí
+   khung trên màn), cuộn tới thì thêm .dl-uv-in. Dùng translate/scale riêng — không đụng transform của
+   khung; #main-card cắt tràn ngang nên ảnh bay từ ngoài mép không đẩy trang ra thanh cuộn ngang. */
+
+.dl-uv {
+  opacity: 0;
+  translate: 0 56px;
+  scale: 0.92;
+  transition:
+    opacity 0.9s ease-out,
+    translate 1.3s cubic-bezier(0.22, 1, 0.36, 1),
+    scale 1.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dl-uv[data-dl-from="l"] {
+  translate: -72px 16px;
+}
+
+.dl-uv[data-dl-from="r"] {
+  translate: 72px 16px;
+}
+
+.dl-uv.dl-uv-in {
+  opacity: 1;
+  translate: none;
+  scale: none;
+}
+
+.dl-pic--sub.dl-uv,
+.dl-trio-pic:nth-child(3).dl-uv {
+  transition-delay: 0.3s;
+}
+
+.dl-trio-pic:nth-child(2).dl-uv {
+  transition-delay: 0.15s;
 }
 
 /* ── Hiện dần khi cuộn ──
@@ -995,5 +1668,12 @@ body {
 
   .dl-body > section.reveal {
     transform: none;
+  }
+
+  .dl-uv {
+    opacity: 1;
+    translate: none;
+    scale: none;
+    transition: none;
   }
 }
