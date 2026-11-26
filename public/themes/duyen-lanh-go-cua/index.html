@@ -48,26 +48,18 @@
   <body class="cx-screen-h flex justify-center items-start md:py-5">
     <div id="cx-music-mount"></div>
 
-    <!-- ═══ MỤC: Màn bìa — nền son, khung nhũ hai lớp, hai ảnh lồng nhau, chữ Hỷ ở giữa là nút mở thiệp.
-         Mở thiệp thì index.js tách màn này làm hai cánh, hai ảnh bị đẩy ra hai bên. ═══ -->
+    <!-- ═══ MỤC: Màn bìa — nền son trơn: lời mời, một ảnh, chữ Hỷ ở mép dưới ảnh là nút mở thiệp.
+         Mở thiệp thì index.js tách màn này làm hai cánh trượt ra hai bên. ═══ -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="dl-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
         <div class="dl-cover-in">
-          <div class="dl-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div class="dl-cover-guest">
-            <div data-cx-invite class="dl-eyebrow cx-t">Trân trọng kính mời</div>
-            <div class="dl-gold cx-h" id="cover-guest-name">Quý khách</div>
+            <div data-cx-invite class="cx-t">Trân trọng kính mời</div>
+            <div class="dl-gold" id="cover-guest-name">Quý khách</div>
           </div>
 
-          <!-- Ảnh trái: ảnh bìa · ảnh phải: ảnh đầu album (không có thì ảnh bìa) -->
           <div class="dl-duo">
-            <div class="dl-photo dl-duo-pic dl-duo-pic--l">
-              <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" fetchpriority="high" />
-            </div>
-            <div class="dl-photo dl-duo-pic dl-duo-pic--r">
-              <img id="dl-cover-photo-2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
-            </div>
-            <!-- Chữ Hỷ là nút mở thiệp -->
+            <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" fetchpriority="high" />
             <x-button variant="bare" onclick="openInvitation()" aria-label="Mở thiệp" class="open-btn dl-xi dl-duo-xi touch-manipulation [-webkit-tap-highlight-color:transparent]">
               <span class="pointer-events-none" aria-hidden="true">囍</span>
             </x-button>
@@ -77,12 +69,6 @@
             <span id="cover-groom-name">----------</span>
             <span class="dl-amp">&amp;</span>
             <span id="cover-bride-name">----------</span>
-          </div>
-
-          <div class="dl-cover-meta cx-t">
-            <span class="dl-rule"></span>
-            <span>Thiệp mời</span>
-            <span class="dl-rule"></span>
           </div>
           <div class="dl-cover-date cx-h" id="dl-cover-date">--.--.----</div>
 

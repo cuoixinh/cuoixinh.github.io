@@ -65,7 +65,6 @@
     // Ảnh màn đầu nhận src TRƯỚC setupMusic (YouTube API đi sau).
     renderCover(w);
     renderHero(w, false);
-    _renderCoverPhoto2(w);
     _watchCoverOpen();
 
     setupMusic(w.music_url, w.enable_music);
@@ -160,13 +159,10 @@
           if (hidden[i]) el.style.display = "none";
           el.removeAttribute("id");
         });
-        // Hai ảnh không tách theo cánh: bản gốc tự bay ra hai bên (theme.css).
-        copy.querySelectorAll(".dl-duo-pic").forEach((el) => (el.style.visibility = "hidden"));
         door.appendChild(copy);
         cover.appendChild(door);
       });
-      // Chữ Hỷ nằm dưới hai ảnh nên nửa trên cánh cửa bị ảnh che: tách nó thành hai nửa ngay
-      // trên lớp ảnh, trượt đúng quãng của cánh cửa (--dl-shift).
+      // Chữ Hỷ nổi trên mép ảnh: tách nó thành hai nửa ở lớp trên cùng, trượt đúng quãng của cánh cửa (--dl-shift).
       const xi = leaf.querySelector(".dl-duo-xi");
       if (xi) {
         cover.style.setProperty("--dl-shift", Math.round(cover.offsetWidth * 0.51) + "px");
@@ -182,17 +178,6 @@
       cover.classList.add("dl-split");
     });
     mo.observe(screen, { attributes: true, attributeFilter: ["class"] });
-  }
-
-  // Ảnh thứ hai ở bìa: ảnh đầu album, không có thì ảnh bìa.
-  function _renderCoverPhoto2(w) {
-    const first = w.gallery_images?.[0];
-    const file = first || w.cover_image_url;
-    const fp = first ? w.image_focal_points?.gallery_images?.[first] : w.image_focal_points?.cover_image_url;
-    const img = document.getElementById("dl-cover-photo-2");
-    if (!img || !file) return;
-    img.src = getImageUrl(file);
-    img.style.objectPosition = cxFocal(fp);
   }
 
   function _fmtDMY(d) {
