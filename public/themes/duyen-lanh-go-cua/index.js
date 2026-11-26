@@ -26,7 +26,7 @@
       band: "#fff4e6",
       panel: "#ffffff",
       panel_warm: "#fff7ec",
-      cover: "#b5141e",
+      cover: "#6d1628",
       cover_mid: "#8c0c14",
       cover_veil: "#4a060a",
       lightbox_bg: "#000000",
