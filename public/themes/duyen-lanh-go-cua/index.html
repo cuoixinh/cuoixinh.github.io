@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Be+Vietnam+Pro:wght@300;400;500&family=Great+Vibes&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Be+Vietnam+Pro:wght@300;400;500;700&family=Great+Vibes&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../../../styles/themes.css" />
@@ -48,26 +48,18 @@
   <body class="cx-screen-h flex justify-center items-start md:py-5">
     <div id="cx-music-mount"></div>
 
-    <!-- ═══ MỤC: Màn bìa — nền son, khung nhũ hai lớp, hai ảnh lồng nhau, chữ Hỷ ở giữa là nút mở thiệp.
-         Mở thiệp thì index.js tách màn này làm hai cánh, hai ảnh bị đẩy ra hai bên. ═══ -->
+    <!-- ═══ MỤC: Màn bìa — nền son trơn: lời mời, một ảnh, chữ Hỷ ở mép dưới ảnh là nút mở thiệp.
+         Mở thiệp thì index.js tách màn này làm hai cánh trượt ra hai bên. ═══ -->
     <div id="cover-screen" class="fixed inset-0 z-50 flex justify-center items-center md:py-5">
       <div class="dl-cover relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px]">
         <div class="dl-cover-in">
-          <div class="dl-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div class="dl-cover-guest">
-            <div data-cx-invite class="dl-eyebrow cx-t">Trân trọng kính mời</div>
-            <div class="dl-gold cx-h" id="cover-guest-name">Quý khách</div>
+            <div data-cx-invite class="cx-t">Trân trọng kính mời</div>
+            <div class="dl-gold" id="cover-guest-name">Quý khách</div>
           </div>
 
-          <!-- Ảnh trái: ảnh bìa · ảnh phải: ảnh đầu album (không có thì ảnh bìa) -->
           <div class="dl-duo">
-            <div class="dl-photo dl-duo-pic dl-duo-pic--l">
-              <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" fetchpriority="high" />
-            </div>
-            <div class="dl-photo dl-duo-pic dl-duo-pic--r">
-              <img id="dl-cover-photo-2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
-            </div>
-            <!-- Chữ Hỷ là nút mở thiệp -->
+            <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" fetchpriority="high" />
             <x-button variant="bare" onclick="openInvitation()" aria-label="Mở thiệp" class="open-btn dl-xi dl-duo-xi touch-manipulation [-webkit-tap-highlight-color:transparent]">
               <span class="pointer-events-none" aria-hidden="true">囍</span>
             </x-button>
@@ -75,14 +67,8 @@
 
           <div class="dl-cover-names dl-gold">
             <span id="cover-groom-name">----------</span>
-            <span class="dl-amp">&amp;</span>
+            <i data-lucide="heart" class="cx-ic dl-heart" aria-hidden="true"></i>
             <span id="cover-bride-name">----------</span>
-          </div>
-
-          <div class="dl-cover-meta cx-t">
-            <span class="dl-rule"></span>
-            <span>Thiệp mời</span>
-            <span class="dl-rule"></span>
           </div>
           <div class="dl-cover-date cx-h" id="dl-cover-date">--.--.----</div>
 
@@ -94,21 +80,59 @@
     <!-- ═══ THÂN THIỆP — #main-card + ĐÚNG MỘT thẻ con flex-column ═══ -->
     <div id="main-card" class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden" style="display: none">
       <div class="dl-body flex flex-col text-center">
-        <!-- ═══ MỤC: Mở đầu — dải son, ảnh khung viền nhũ, tên đôi và ngày ═══ -->
+        <!-- ═══ MỤC: Mở đầu — nền giấy sáng (khác màn bìa son): tên đôi một hàng, chữ Hỷ, giờ + ngày
+             kẹp giữa hai nút thắt dây, ảnh khung son treo đèn lồng ═══ -->
         <section id="section-hero" class="dl-hero">
-          <div class="dl-eyebrow dl-hero-kicker cx-t">Thiệp mời</div>
-          <div class="dl-photo dl-photo--hero">
-            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" />
-          </div>
-          <h1 class="dl-hero-names dl-gold">
+          <div class="dl-hero-kicker cx-h">Thiệp mời</div>
+          <h1 class="dl-hero-names cx-h">
             <span id="couple-names-groom">----------</span>
             <span class="dl-amp">&amp;</span>
             <span id="couple-names-bride">----------</span>
           </h1>
-          <div class="dl-hero-when cx-t">
-            <span id="dl-hero-weekday">------</span>
-            <span id="dl-hero-date" class="cx-h">--.--.----</span>
-            <span id="dl-hero-time">--:--</span>
+          <div class="dl-hero-mid">
+            <svg class="dl-knot dl-knot--l" viewBox="0 0 40 96" aria-hidden="true">
+              <path class="dl-knot-cord" d="M20 0V13M20 52V57M20 24L34 38L20 52L6 38ZM15.3 28.7L29.3 42.7M10.7 33.3L24.7 47.3M24.7 28.7L10.7 42.7M29.3 33.3L15.3 47.3" />
+              <circle class="dl-knot-cord" cx="20" cy="17" r="3.5" />
+              <circle class="dl-knot-cord" cx="5" cy="38" r="3" />
+              <circle class="dl-knot-cord" cx="35" cy="38" r="3" />
+              <circle class="dl-knot-bead" cx="20" cy="60" r="2.5" />
+              <path class="dl-knot-bead" d="M16 63H24L25 66H15Z" />
+              <path class="dl-knot-tassel" d="M16 66L14.5 90M18 66L17.5 93M20 66V94M22 66L22.5 93M24 66L25.5 90" />
+            </svg>
+            <div class="dl-hero-xi" aria-hidden="true"></div>
+            <div class="dl-hero-when cx-t">
+              <span id="dl-hero-time">--:--</span>
+              <span>-</span>
+              <span id="dl-hero-weekday">------</span>
+            </div>
+            <div id="dl-hero-date" class="dl-hero-date cx-h">--.--.----</div>
+            <svg class="dl-knot dl-knot--r" viewBox="0 0 40 96" aria-hidden="true">
+              <path class="dl-knot-cord" d="M20 0V13M20 52V57M20 24L34 38L20 52L6 38ZM15.3 28.7L29.3 42.7M10.7 33.3L24.7 47.3M24.7 28.7L10.7 42.7M29.3 33.3L15.3 47.3" />
+              <circle class="dl-knot-cord" cx="20" cy="17" r="3.5" />
+              <circle class="dl-knot-cord" cx="5" cy="38" r="3" />
+              <circle class="dl-knot-cord" cx="35" cy="38" r="3" />
+              <circle class="dl-knot-bead" cx="20" cy="60" r="2.5" />
+              <path class="dl-knot-bead" d="M16 63H24L25 66H15Z" />
+              <path class="dl-knot-tassel" d="M16 66L14.5 90M18 66L17.5 93M20 66V94M22 66L22.5 93M24 66L25.5 90" />
+            </svg>
+          </div>
+          <div class="dl-hero-frame">
+            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" />
+            <!-- Hai đèn lồng treo ở góc dưới phải khung ảnh. -->
+            <svg class="dl-lanterns" viewBox="0 0 64 132" aria-hidden="true">
+              <path class="dl-ln-thread" d="M50 0V24M22 0V58" />
+              <rect class="dl-ln-cap" x="45" y="24" width="10" height="4" rx="1" />
+              <ellipse class="dl-ln-body" cx="50" cy="40" rx="12" ry="12" />
+              <ellipse class="dl-ln-rib" cx="50" cy="40" rx="6" ry="12" />
+              <rect class="dl-ln-cap" x="46" y="52" width="8" height="3" rx="1" />
+              <path class="dl-ln-tassel" d="M48 55V68M50 55V70M52 55V68" />
+              <rect class="dl-ln-cap" x="14" y="58" width="16" height="5" rx="1" />
+              <ellipse class="dl-ln-body" cx="22" cy="82" rx="20" ry="20" />
+              <ellipse class="dl-ln-rib" cx="22" cy="82" rx="12" ry="20" />
+              <ellipse class="dl-ln-rib" cx="22" cy="82" rx="4" ry="20" />
+              <rect class="dl-ln-cap" x="15" y="100" width="14" height="5" rx="1" />
+              <path class="dl-ln-tassel" d="M18 105L17 128M20 105V130M22 105V131M24 105V130M26 105L27 128" />
+            </svg>
           </div>
         </section>
 

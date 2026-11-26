@@ -15,7 +15,7 @@
   --cx-band-rgb: 255 244 230;
   --cx-panel-rgb: 255 255 255;
   --cx-panel-warm-rgb: 255 247 236;
-  --cx-cover-rgb: 181 20 30;
+  --cx-cover-rgb: 109 22 40;
   --cx-cover-mid-rgb: 140 12 20;
   --cx-cover-veil-rgb: 74 6 10;
   --cx-lightbox-bg-rgb: 0 0 0;
@@ -35,6 +35,8 @@
   --dl-red-rgb: var(--cx-fill-rgb, var(--cx-accent-rgb));
   --dl-red-deep-rgb: var(--cx-fill-rgb, var(--cx-cover-mid-rgb));
   --dl-on-red-rgb: var(--cx-on-fill-rgb, var(--cx-on-accent-rgb));
+  /* Nền đỏ rượu của màn bìa: --cx-cover-rgb của bộ màu là tông nhạt nên có bộ thì theo khối tô. */
+  --dl-wine-rgb: var(--cx-fill-rgb, var(--cx-cover-rgb));
   --dl-gold: linear-gradient(
     100deg,
     rgb(var(--cx-shine-from-rgb)) 0%,
@@ -83,11 +85,9 @@ body {
   font-weight: 300;
 }
 
-/* Chữ trên mảng son (bìa, mở đầu, tấm tiệc, chân thiệp): đè màu chữ mặc định của .cx-h/.cx-t. */
+/* Chữ trên mảng son (bìa, tấm tiệc, chân thiệp): đè màu chữ mặc định của .cx-h/.cx-t. */
 .dl-cover .cx-h,
 .dl-cover .cx-t,
-.dl-hero .cx-h,
-.dl-hero .cx-t,
 .dl-party .cx-h,
 .dl-party .cx-t,
 .dl-footer .cx-h,
@@ -188,10 +188,27 @@ body {
   font-size: 19px;
 }
 
-/* ── Màn bìa: đôi cánh cửa son ── */
+/* ── Màn bìa: nền đỏ rượu, hoa văn đồng tiền mờ ở hai mép trên/dưới, chữ nhũ, một ảnh ── */
 
+#cover-screen,
 .dl-cover {
-  background: var(--dl-red-bg);
+  background: rgb(var(--dl-wine-rgb));
+}
+
+/* Hoa văn nằm trong .dl-cover-in để tách đôi cùng hai cánh khi mở thiệp. Mặt nạ: lưới vòng
+   tròn đan nhau, nhân với dải mờ dần vào giữa (chỉ dùng kênh alpha). */
+.dl-cover-in::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgb(var(--cx-deco-rgb) / 0.28);
+  --dl-coin: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' fill='none' stroke='%23000' stroke-width='1'%3E%3Ccircle cx='0' cy='0' r='20'/%3E%3Ccircle cx='40' cy='0' r='20'/%3E%3Ccircle cx='0' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='20' cy='20' r='20'/%3E%3C/svg%3E");
+  -webkit-mask: var(--dl-coin) 0 0 / 40px 40px, linear-gradient(#000, #0000 24%, #0000 76%, #000);
+  -webkit-mask-composite: source-in;
+  mask: var(--dl-coin) 0 0 / 40px 40px, linear-gradient(#000, #0000 24%, #0000 76%, #000);
+  mask-composite: intersect;
+  pointer-events: none;
 }
 
 .dl-cover-in {
@@ -202,7 +219,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
   padding: 32px;
   text-align: center;
 }
@@ -211,209 +228,124 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  margin-bottom: 12px;
 }
 
+.dl-cover-guest .cx-t {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgb(var(--cx-deco-soft-rgb));
+}
 
-/* Ô hộc khuyết bốn góc như ô cửa bức bàn: viền nhũ mảnh, khe son, rồi ảnh. Hai lớp cùng
-   một kiểu mặt nạ, bán kính lệch nhau đúng bề dày viền nên đường khuyết song song. */
-/* Ảnh khung chữ nhật: viền nhũ, đường chỉ mảnh bên trong. */
-.dl-photo {
+/* Tên khách: chữ có chân nghiêng — đọc rõ cả tên dài, tách bạch với chữ ký của tên đôi. */
+#cover-guest-name {
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+  font-size: 26px;
+  line-height: 1.3;
+}
+
+/* Ảnh bìa; chữ Hỷ (nút mở) đóng giữa mép dưới — đúng đường giữa, nơi màn bìa tách đôi. */
+/* Máy màn thấp thì ảnh thu lại theo chiều cao; tên khách dài xuống dòng thì ảnh còn co thêm
+   (flex-shrink) để cả bìa vẫn vừa một màn — ảnh object-fit nên chỉ cắt bớt, không méo. */
+.dl-duo {
   position: relative;
-  border-radius: 4px;
-  padding: 6px;
-  background: var(--dl-gold);
-  box-shadow: 0 12px 32px rgb(var(--cx-shadow-rgb) / 0.35);
+  flex: 0 1 min(320px, calc(var(--vh, 1vh) * 40));
+  min-height: 160px;
+  width: min(240px, calc(var(--vh, 1vh) * 30));
+  margin-bottom: 32px;
 }
 
-.dl-photo img {
+.dl-duo img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 2px;
-}
-
-.dl-photo::after {
-  content: "";
-  position: absolute;
-  inset: 12px;
-  border: 1px solid rgb(var(--cx-deco-soft-rgb) / 0.8);
-  pointer-events: none;
-}
-
-/* Khung nhũ hai lớp + bốn góc hoa thị (nằm trong lá bìa để tách đôi cùng cánh cửa). */
-.dl-frame {
-  position: absolute;
-  inset: 16px;
-  border: 1px solid rgb(var(--cx-deco-rgb) / 0.9);
-  pointer-events: none;
-}
-
-.dl-frame::after {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border: 1px solid rgb(var(--cx-deco-rgb) / 0.45);
-}
-
-.dl-frame i {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  background: rgb(var(--cx-deco-rgb));
-  transform: rotate(45deg);
-  box-shadow: 0 0 0 4px rgb(var(--dl-red-deep-rgb));
-}
-
-.dl-frame i:nth-child(1) {
-  top: -8px;
-  left: -8px;
-}
-
-.dl-frame i:nth-child(2) {
-  top: -8px;
-  right: -8px;
-}
-
-.dl-frame i:nth-child(3) {
-  bottom: -8px;
-  left: -8px;
-}
-
-.dl-frame i:nth-child(4) {
-  bottom: -8px;
-  right: -8px;
-}
-
-.dl-cover-guest .dl-eyebrow.cx-t {
-  color: rgb(var(--cx-deco-soft-rgb));
-}
-
-#cover-guest-name {
-  font-family: "Great Vibes", cursive;
-  font-size: 36px;
-  line-height: 1.3;
-}
-
-/* Hai ảnh lồng nhau: ảnh phải thấp hơn, đè lên mép ảnh trái; chữ Hỷ đóng ở chỗ giao nhau
-   — đúng đường giữa, nơi màn bìa tách đôi. */
-.dl-duo {
-  position: relative;
-  width: 300px;
-  height: 320px;
-  margin: 4px 0 12px;
-}
-
-.dl-duo-pic {
-  position: absolute;
-  width: 172px;
-  height: 260px;
-}
-
-.dl-duo-pic--l {
-  top: 0;
-  left: 0;
-  transform: rotate(-4deg);
-}
-
-.dl-duo-pic--r {
-  right: 0;
-  bottom: 0;
-  transform: rotate(4deg);
+  border-radius: 4px;
 }
 
 .dl-duo-xi {
   position: absolute;
-  top: 50%;
+  bottom: -32px;
   left: 50%;
   z-index: 1;
+  width: 64px;
+  height: 64px;
+  margin-left: -32px;
+  font-size: 34px;
+  cursor: pointer;
+  animation: cx-dl-pulse 2.4s ease-in-out infinite;
 }
 
+/* Ba dòng: tên chú rể · trái tim nhũ · tên cô dâu. */
 .dl-cover-names {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  column-gap: 12px;
-  margin-top: 4px;
-  font-size: 44px;
-  line-height: 1.2;
-}
-
-.dl-cover-names .dl-amp {
-  font-size: 32px;
-}
-
-.dl-cover-meta {
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 6px;
-  text-transform: uppercase;
+  font-family: "Lovebird", cursive;
+  font-size: 40px;
+  line-height: 1.3;
 }
 
-.dl-cover-meta.cx-t {
-  color: rgb(var(--cx-deco-soft-rgb));
+/* Trái tim là SVG: không ăn dải nhũ của chữ (background-clip) nên tô đặc màu nhũ sáng. */
+.dl-cover-names .dl-heart {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0;
+  fill: rgb(var(--cx-shine-mid-rgb));
+  stroke: rgb(var(--cx-shine-from-rgb));
 }
 
-.dl-rule {
-  width: 36px;
-  height: 1px;
-  background: rgb(var(--cx-deco-rgb));
-}
-
+/* Hoa văn dưới tên: hai vạch nhũ kẹp một hình thoi, như tiêu đề trong thân thiệp. */
 .dl-cover-date {
-  margin-top: -8px;
-  font-size: 22px;
+  font-size: 20px;
   letter-spacing: 4px;
 }
 
+.dl-cover-date::before {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 8px;
+  margin: 0 auto 12px;
+  /* Hình thoi 8px giữa dải = bốn tam giác 4px ghép lại. */
+  background:
+    linear-gradient(to bottom right, transparent 50%, rgb(var(--cx-deco-rgb)) 50%) 56px 0 / 4px 4px no-repeat,
+    linear-gradient(to bottom left, transparent 50%, rgb(var(--cx-deco-rgb)) 50%) 60px 0 / 4px 4px no-repeat,
+    linear-gradient(to top right, transparent 50%, rgb(var(--cx-deco-rgb)) 50%) 56px 4px / 4px 4px no-repeat,
+    linear-gradient(to top left, transparent 50%, rgb(var(--cx-deco-rgb)) 50%) 60px 4px / 4px 4px no-repeat,
+    linear-gradient(rgb(var(--cx-deco-rgb)), rgb(var(--cx-deco-rgb))) left center / 48px 1px no-repeat,
+    linear-gradient(rgb(var(--cx-deco-rgb)), rgb(var(--cx-deco-rgb))) right center / 48px 1px no-repeat;
+}
+
 .dl-open-hint {
-  margin-top: 4px;
+  margin-top: 16px;
   font-size: 12px;
   font-weight: 400;
-  letter-spacing: 1px;
 }
 
 .dl-open-hint.cx-t {
   color: rgb(var(--cx-deco-soft-rgb));
 }
 
-/* Chữ Hỷ ở bìa là nút mở: to hơn, nhịp phồng khẽ để khách biết chạm vào đó. */
-.dl-duo-xi {
-  width: 64px;
-  height: 64px;
-  margin: -32px 0 0 -32px;
-  font-size: 34px;
-  cursor: pointer;
-  animation: cx-dl-pulse 2.4s ease-in-out infinite;
-}
-/* Mở thiệp: index.js chép màn bìa vào hai .dl-door, mỗi cánh giữ một nửa rồi trượt ra.
-   Hai ảnh không bị cắt: bản gốc của chúng nổi trên hai cánh và bị đẩy chéo ra theo phía của mình
-   (chéo để không che chữ Hỷ); chữ Hỷ thì tách đôi cùng cánh cửa. Sau cánh cửa lộ nền thân thiệp, rồi thân thiệp hiện lên. */
+/* Mở thiệp: index.js chép màn bìa vào hai .dl-door, mỗi cánh giữ một nửa (cả ảnh) rồi trượt ra.
+   Chữ Hỷ tách đôi riêng ở lớp trên cùng. Thân thiệp hiện SẴN sau cánh cửa (.dl-shown) nên nền bìa
+   trong suốt — cửa mở là thấy màn hero. Helper giấu bìa sau 600ms bằng style inline; display
+   !important giữ bìa tới khi index.js gỡ cờ. Đổi thời lượng cánh cửa thì đổi cả DL_OPEN_MS ở index.js. */
 #cover-screen.dl-opening {
+  display: flex !important;
   animation: none;
+  pointer-events: none;
+  background: transparent;
+}
+
+/* Helper đặt opacity 0 rồi mờ dần thân thiệp lúc 600ms — trong lúc mở cửa thì giữ nó hiện hẳn. */
+#main-card.dl-shown {
+  opacity: 1 !important;
 }
 
 .dl-cover.dl-split {
-  background: rgb(var(--cx-card-bg-rgb));
-}
-
-.dl-cover.dl-split::before {
-  content: "囍";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  font-family: serif;
-  font-size: 96px;
-  font-weight: 700;
-  line-height: 1;
-  color: rgb(var(--dl-red-rgb));
-  transform: translate(-50%, -50%) scale(0.6);
-  opacity: 0;
-  animation: cx-dl-xi 0.6s ease-out 0.2s forwards;
+  background: transparent;
 }
 
 .dl-split > .dl-cover-in {
@@ -421,23 +353,10 @@ body {
   visibility: hidden;
 }
 
-.dl-split > .dl-cover-in .dl-duo-pic {
-  visibility: visible;
-  animation: 0.62s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-}
-
-.dl-split > .dl-cover-in .dl-duo-pic--l {
-  animation-name: cx-dl-pic-l;
-}
-
-.dl-split > .dl-cover-in .dl-duo-pic--r {
-  animation-name: cx-dl-pic-r;
-}
-
 .dl-split > .dl-cover-in .dl-xi-half {
   visibility: visible;
   z-index: 2;
-  animation: 0.62s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation: 1.8s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
 
 .dl-split > .dl-cover-in .dl-xi-half--l {
@@ -462,24 +381,12 @@ body {
   }
 }
 
-@keyframes cx-dl-pic-l {
-  to {
-    transform: translate(-130%, -60%) rotate(-14deg);
-  }
-}
-
-@keyframes cx-dl-pic-r {
-  to {
-    transform: translate(130%, 60%) rotate(14deg);
-  }
-}
-
 .dl-door {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: var(--dl-red-bg);
-  animation: 0.62s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  background: rgb(var(--dl-wine-rgb));
+  animation: 1.8s cubic-bezier(0.65, 0, 0.35, 1) forwards;
 }
 
 .dl-door--l {
@@ -501,13 +408,6 @@ body {
 @keyframes cx-dl-door-r {
   to {
     transform: translateX(51%);
-  }
-}
-
-@keyframes cx-dl-xi {
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
   }
 }
 
@@ -535,63 +435,159 @@ body {
   padding: 48px 24px;
 }
 
-/* Mở đầu: dải son cong ở đáy. */
+/* Mở đầu: nền giấy sáng, chữ mực sẫm (màu tiêu đề pha đen — vẫn theo bộ màu). */
 .dl-hero {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 48px 24px 56px;
-  background: var(--dl-red-bg);
-  color: rgb(var(--dl-on-red-rgb));
-  border-radius: 0 0 50% 50% / 0 0 48px 48px;
+  padding: 48px 24px 72px;
+  background: rgb(var(--cx-card-bg-rgb));
+}
+
+.dl-hero .cx-h,
+.dl-hero .cx-t {
+  color: color-mix(in srgb, rgb(var(--cx-heading-rgb)) 30%, #000);
 }
 
 .dl-hero-kicker {
-  color: rgb(var(--cx-deco-soft-rgb));
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 6px;
+  text-transform: uppercase;
 }
 
-.dl-photo--hero {
-  width: 248px;
-  height: 336px;
-}
-
+/* Tên đôi luôn MỘT hàng: tên dài thì index.js (_fitHeroNames) thu cỡ chữ cho vừa. */
 .dl-hero-names {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  column-gap: 12px;
-  margin-top: 8px;
-  font-size: 48px;
-  line-height: 1.2;
+  align-self: stretch;
+  margin-top: 16px;
+  font-family: "Great Vibes", cursive;
+  font-size: 44px;
+  font-weight: 400;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
-.dl-hero-names .dl-amp {
-  font-size: 34px;
+/* Khối giữa: chữ Hỷ, giờ, ngày — hai nút thắt dây treo hai bên dòng giờ/ngày. */
+.dl-hero-mid {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: stretch;
+  margin-top: 12px;
+}
+
+/* Chữ Hỷ tròn: ảnh chỉ dùng làm mặt nạ (kênh alpha), màu lấy từ màu son của bộ màu. */
+.dl-hero-xi {
+  width: 72px;
+  height: 72px;
+  background: rgb(var(--dl-red-rgb));
+  -webkit-mask: url("/assets/images/decor/xi-tron.png") center / contain no-repeat;
+  mask: url("/assets/images/decor/xi-tron.png") center / contain no-repeat;
 }
 
 .dl-hero-when {
   display: flex;
-  align-items: center;
-  font-size: 13px;
+  gap: 6px;
+  margin-top: 16px;
+  font-size: 16px;
+}
+
+.dl-hero .dl-hero-when.cx-t {
   font-weight: 400;
-  letter-spacing: 2px;
-  text-transform: uppercase;
 }
 
-.dl-hero-when > span {
-  padding: 0 12px;
+.dl-hero .dl-hero-date.cx-h {
+  margin-top: 4px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  /* Bù khoảng giãn sau chữ cuối để cụm số đứng đúng giữa. */
+  margin-right: -6px;
 }
 
-.dl-hero-when > span + span {
-  border-left: 1px solid rgb(var(--cx-deco-rgb));
+.dl-knot {
+  position: absolute;
+  top: 52px;
+  width: 32px;
+  height: 76px;
 }
 
-#dl-hero-date {
-  font-size: 20px;
-  letter-spacing: 2px;
-  text-transform: none;
+.dl-knot--l {
+  left: calc(50% - 144px);
+}
+
+.dl-knot--r {
+  right: calc(50% - 144px);
+}
+
+.dl-knot-cord {
+  fill: none;
+  stroke: rgb(var(--cx-deco-rgb));
+  stroke-width: 1.6;
+}
+
+.dl-knot-bead {
+  fill: rgb(var(--dl-red-rgb));
+}
+
+.dl-knot-tassel {
+  fill: none;
+  stroke: rgb(var(--dl-red-rgb));
+  stroke-width: 1;
+}
+
+/* Ảnh khung son dày; đèn lồng thòng xuống quá mép dưới phải. */
+.dl-hero-frame {
+  position: relative;
+  width: min(68%, 320px);
+  aspect-ratio: 2 / 3;
+  margin-top: 40px;
+  border: 8px solid rgb(var(--dl-red-deep-rgb));
+  box-shadow: 0 12px 28px rgb(var(--cx-shadow-rgb) / 0.2);
+}
+
+.dl-hero-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dl-lanterns {
+  position: absolute;
+  right: -24px;
+  bottom: -48px;
+  width: 52px;
+  height: 108px;
+  pointer-events: none;
+}
+
+.dl-ln-thread {
+  stroke: rgb(var(--cx-deco-rgb));
+  stroke-width: 1;
+}
+
+.dl-ln-cap {
+  fill: rgb(var(--cx-deco-rgb));
+}
+
+.dl-ln-body {
+  fill: rgb(var(--dl-red-rgb));
+}
+
+.dl-ln-rib {
+  fill: none;
+  stroke: rgb(var(--dl-red-deep-rgb));
+  stroke-width: 1.2;
+}
+
+.dl-ln-tassel {
+  fill: none;
+  stroke: rgb(var(--dl-red-rgb));
+  stroke-width: 1;
 }
 
 /* Báo tin + hai họ */
@@ -708,8 +704,7 @@ body {
 }
 
 .dl-party .dl-eyebrow.cx-t,
-.dl-party-at.cx-t,
-.dl-hero-kicker.cx-t {
+.dl-party-at.cx-t {
   color: rgb(var(--cx-deco-soft-rgb));
 }
 

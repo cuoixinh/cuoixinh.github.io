@@ -26,7 +26,7 @@
       band: "#fff4e6",
       panel: "#ffffff",
       panel_warm: "#fff7ec",
-      cover: "#b5141e",
+      cover: "#6d1628",
       cover_mid: "#8c0c14",
       cover_veil: "#4a060a",
       lightbox_bg: "#000000",
@@ -47,7 +47,8 @@
     // Tên khoá bộ màu thay mã hex → lời chúc đổi tông theo bộ màu khách chọn.
     wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
 
-    reveal: [".dl-body > section"],
+    // Trừ hero: nó hiện sẵn sau cánh cửa lúc mở bìa, không bay vào lần nữa.
+    reveal: [".dl-body > section:not(#section-hero)"],
     revealItems: ["#gallery-grid > div"],
 
     skipSteps: ["timeline", "love_story"],
@@ -65,7 +66,7 @@
     // Ảnh màn đầu nhận src TRƯỚC setupMusic (YouTube API đi sau).
     renderCover(w);
     renderHero(w, false);
-    _renderCoverPhoto2(w);
+    _fitHeroNames();
     _watchCoverOpen();
 
     setupMusic(w.music_url, w.enable_music);
@@ -138,6 +139,9 @@
   // Mở thiệp kiểu tách đôi: openInvitation (helper) gắn .closing lên #cover-screen rồi 600ms sau giấu nó.
   // Bắt đúng lúc đó (nút mở có cả đường touchend riêng nên không nghe click), chép màn bìa vào hai
   // cánh, mỗi cánh cắt một nửa rồi trượt ra hai bên. Bản chép bỏ id để không trùng phần tử gốc.
+  // Thân thiệp hiện sẵn sau cánh cửa (cửa mở là thấy hero); cờ .dl-opening giữ bìa hiện quá mốc
+  // 600ms đó, cánh mở hết mới gỡ.
+  const DL_OPEN_MS = 1800; // = thời lượng .dl-door ở theme.css
   let _coverWatched = false;
   function _watchCoverOpen() {
     const screen = document.getElementById("cover-screen");
@@ -160,13 +164,10 @@
           if (hidden[i]) el.style.display = "none";
           el.removeAttribute("id");
         });
-        // Hai ảnh không tách theo cánh: bản gốc tự bay ra hai bên (theme.css).
-        copy.querySelectorAll(".dl-duo-pic").forEach((el) => (el.style.visibility = "hidden"));
         door.appendChild(copy);
         cover.appendChild(door);
       });
-      // Chữ Hỷ nằm dưới hai ảnh nên nửa trên cánh cửa bị ảnh che: tách nó thành hai nửa ngay
-      // trên lớp ảnh, trượt đúng quãng của cánh cửa (--dl-shift).
+      // Chữ Hỷ nổi trên mép ảnh: tách nó thành hai nửa ở lớp trên cùng, trượt đúng quãng của cánh cửa (--dl-shift).
       const xi = leaf.querySelector(".dl-duo-xi");
       if (xi) {
         cover.style.setProperty("--dl-shift", Math.round(cover.offsetWidth * 0.51) + "px");
@@ -178,21 +179,41 @@
           xi.after(half);
         });
       }
+      const main = document.getElementById("main-card");
+      if (main) {
+        main.classList.add("dl-shown");
+        main.style.display = "";
+      }
+      window.scrollTo({ top: 0 });
       screen.classList.add("dl-opening");
       cover.classList.add("dl-split");
+      setTimeout(() => {
+        screen.classList.remove("dl-opening");
+        main?.classList.remove("dl-shown");
+      }, DL_OPEN_MS);
     });
     mo.observe(screen, { attributes: true, attributeFilter: ["class"] });
   }
 
-  // Ảnh thứ hai ở bìa: ảnh đầu album, không có thì ảnh bìa.
-  function _renderCoverPhoto2(w) {
-    const first = w.gallery_images?.[0];
-    const file = first || w.cover_image_url;
-    const fp = first ? w.image_focal_points?.gallery_images?.[first] : w.image_focal_points?.cover_image_url;
-    const img = document.getElementById("dl-cover-photo-2");
-    if (!img || !file) return;
-    img.src = getImageUrl(file);
-    img.style.objectPosition = cxFocal(fp);
+  // Tên đôi ở mở đầu luôn một hàng: tràn thì thu cỡ chữ theo tỉ lệ. Lúc dựng #main-card còn ẩn (rộng 0)
+  // nên đo lại qua ResizeObserver khi nó hiện, và khi font viết tay tải xong.
+  let _namesRO = null;
+  function _fitHeroNames() {
+    const h = document.querySelector(".dl-hero-names");
+    if (!h) return;
+    const fit = () => {
+      h.style.fontSize = "";
+      const w = h.clientWidth;
+      if (!w || h.scrollWidth <= w) return;
+      const base = parseFloat(getComputedStyle(h).fontSize);
+      h.style.fontSize = Math.max(20, Math.floor((base * w) / h.scrollWidth)) + "px";
+    };
+    fit();
+    document.fonts?.ready.then(fit);
+    if (!_namesRO && typeof ResizeObserver === "function") {
+      _namesRO = new ResizeObserver(fit);
+      _namesRO.observe(h);
+    }
   }
 
   function _fmtDMY(d) {
