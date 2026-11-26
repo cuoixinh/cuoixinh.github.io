@@ -116,9 +116,17 @@
               <path class="dl-knot-tassel" d="M16 66L14.5 90M18 66L17.5 93M20 66V94M22 66L22.5 93M24 66L25.5 90" />
             </svg>
           </div>
-          <div class="dl-hero-frame">
-            <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" />
-            <!-- Hai đèn lồng treo ở góc dưới phải khung ảnh. -->
+          <!-- Hai ảnh so le trên nền vầng trăng nhũ: ảnh bìa (lớn) + tấm đầu album (nhỏ, đè góc dưới
+               phải); album trống thì index.js gắn .dl-solo, chỉ còn ảnh lớn ở giữa. -->
+          <div class="dl-hero-stage">
+          <div class="dl-hero-pics">
+            <div class="dl-pic dl-pic--main">
+              <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" />
+            </div>
+            <div class="dl-pic dl-pic--sub">
+              <img id="dl-hero-photo2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+            </div>
+            <!-- Hai đèn lồng treo từ mép trên bên phải. -->
             <svg class="dl-lanterns" viewBox="0 0 64 132" aria-hidden="true">
               <path class="dl-ln-thread" d="M50 0V24M22 0V58" />
               <rect class="dl-ln-cap" x="45" y="24" width="10" height="4" rx="1" />
@@ -134,20 +142,15 @@
               <path class="dl-ln-tassel" d="M18 105L17 128M20 105V130M22 105V131M24 105V130M26 105L27 128" />
             </svg>
           </div>
+          </div>
         </section>
 
-        <!-- ═══ MỤC: Báo tin + hai họ ═══ -->
+        <!-- ═══ MỤC: Báo tin + hai họ — bố cục thiệp báo hỷ: hai cột nhà trai / nhà gái ngăn bằng chỉ
+             nhũ dọc, rồi lời báo tin và tên đôi chữ viết tay ═══ -->
         <section id="section-family" class="dl-sec">
-          <div class="dl-eyebrow cx-t cx-a">Trân trọng báo tin</div>
-          <h2 class="dl-h2 cx-h">Lễ Thành Hôn của</h2>
-          <div class="dl-couple">
-            <div class="dl-person cx-h" id="groom-name-label">----------</div>
-            <div class="dl-xi dl-xi--sm" aria-hidden="true">囍</div>
-            <div class="dl-person cx-h" id="bride-name-label">----------</div>
-          </div>
           <div class="dl-family">
             <div class="dl-house">
-              <div class="dl-label cx-t cx-a">Nhà trai</div>
+              <div class="dl-label cx-h">Nhà trai</div>
               <div class="dl-parents cx-h">
                 <div id="groom-father">--------------------</div>
                 <div id="groom-mother">--------------------</div>
@@ -155,7 +158,7 @@
               <div class="dl-addr cx-t" id="groom-address">--------------------</div>
             </div>
             <div class="dl-house">
-              <div class="dl-label cx-t cx-a">Nhà gái</div>
+              <div class="dl-label cx-h">Nhà gái</div>
               <div class="dl-parents cx-h">
                 <div id="bride-father">--------------------</div>
                 <div id="bride-mother">--------------------</div>
@@ -163,46 +166,77 @@
               <div class="dl-addr cx-t" id="bride-address">--------------------</div>
             </div>
           </div>
+          <p class="dl-announce cx-h">Trân Trọng Báo Tin Lễ Thành Hôn Của</p>
+          <div class="dl-couple">
+            <div class="dl-person cx-h" id="groom-name-label">----------</div>
+            <div class="dl-person-amp" aria-hidden="true">&amp;</div>
+            <div class="dl-person cx-h" id="bride-name-label">----------</div>
+          </div>
         </section>
 
-        <!-- ═══ MỤC: Thư mời dự lễ — khối ngày ba cột ═══ -->
-        <section id="section-ceremony" class="dl-sec dl-invite">
-          <div class="dl-eyebrow cx-t">Trân trọng kính mời quý khách tới dự</div>
-          <h2 class="dl-h2 dl-h2--big cx-h cx-a" id="ceremony-event-name">Lễ Thành Hôn</h2>
-          <div class="dl-time cx-t">Vào lúc <span class="cx-h" id="invite-time">--:--</span></div>
-          <div class="dl-date">
-            <div class="dl-date-side cx-t" id="invite-weekday">------</div>
-            <div class="dl-date-day cx-h cx-a" id="invite-day">--</div>
-            <div class="dl-date-side cx-t" id="invite-month-year">Tháng -- · ----</div>
+        <!-- ═══ MỤC: Thư mời dự lễ — ba ảnh mở mục (giữa nhô cao, hai bên thấp hơn; tách chữ viết tay
+             của tên đôi phía trên khỏi "Trân Trọng Kính Mời"), hoa văn + lời mời viết tay, khối ngày ba
+             cột: giờ | thứ · ngày · tháng | năm ═══ -->
+        <section id="section-ceremony" class="dl-sec">
+          <!-- Ba tấm album kế sau tấm ở mở đầu (index.js _renderTrio); album trống thì ẩn cả dải. -->
+          <div class="dl-trio">
+            <div class="dl-trio-pic"><img id="dl-trio-1" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" /></div>
+            <div class="dl-trio-pic"><img id="dl-trio-2" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" /></div>
+            <div class="dl-trio-pic"><img id="dl-trio-3" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" /></div>
           </div>
-          <div class="dl-lunar cx-h" id="invite-lunar">--------------------</div>
-          <div id="ceremony-location-wrap" class="hidden dl-addr cx-t">
+          <div class="dl-flourish" aria-hidden="true"><i data-lucide="flower" class="cx-ic"></i></div>
+          <div class="dl-invite-script cx-h">Trân Trọng Kính Mời</div>
+          <!-- Danh xưng + tên khách chép từ màn bìa (index.js _syncGuestLine); link chung thì "Quý Khách". -->
+          <div class="dl-guest"><span id="dl-guest-name" class="cx-h" data-cx-bound="1">Quý Khách</span></div>
+          <div class="dl-at cx-t">Tới Dự</div>
+          <h2 class="dl-event cx-t" id="ceremony-event-name">Lễ Thành Hôn</h2>
+          <div class="dl-at cx-t">Vào Lúc</div>
+          <div class="dl-when3">
+            <div class="dl-when3-side cx-t" id="dl-inv-time">--</div>
+            <div class="dl-when3-mid">
+              <div class="dl-when3-wd cx-t" id="invite-weekday">------</div>
+              <div class="dl-when3-day cx-t" id="invite-day">--</div>
+              <div class="dl-when3-mo cx-t" id="dl-inv-month">Tháng --</div>
+            </div>
+            <div class="dl-when3-side cx-t" id="dl-inv-year">Năm ----</div>
+          </div>
+          <div class="dl-lunar-p cx-t" id="invite-lunar">--------------------</div>
+          <div id="ceremony-location-wrap" class="hidden dl-place cx-t">
             Tại <span id="ceremony-location-text"></span>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Tiệc mừng — tấm son viền nhũ + lịch tháng cưới ═══ -->
+        <!-- ═══ MỤC: Tiệc mừng — thẻ bo góc viền đỏ rượu: tiêu đề, giờ · thứ, ngày giãn chữ, âm lịch, nơi ═══ -->
         <section id="section-party" class="dl-sec">
           <div class="dl-party">
-            <div id="party-section-label" class="dl-eyebrow cx-t">Tiệc mừng lễ thành hôn</div>
-            <div class="dl-party-dt cx-h" id="party-datetime">--:-- - --.--.----</div>
-            <div class="dl-lunar cx-h" id="party-lunar">(Ngày âm lịch)</div>
-            <div class="dl-party-at cx-t">Buổi tiệc được tổ chức tại</div>
-            <div class="dl-party-loc cx-h" id="party-location">------------------------</div>
+            <div id="party-section-label" class="dl-event cx-t">Tiệc mừng lễ thành hôn</div>
+            <div class="dl-party-when cx-t"><span id="party-time">--:--</span> - <span id="party-weekday">------</span></div>
+            <div class="dl-party-dmy cx-t" id="dl-party-dmy">--.--.----</div>
+            <div class="dl-lunar-p cx-t" id="party-lunar">--------------------</div>
+            <div class="dl-place cx-t">Tại <span id="party-location">------------------------</span></div>
           </div>
-          <div id="mini-calendar" class="dl-cal"></div>
+          <!-- Lịch treo tường: dây treo vào đinh, gáy đỏ rượu có khoen nhũ, ảnh (index.js _renderWall)
+               rồi lưới ngày. Không có ngày cưới thì index.js ẩn cả tờ. -->
+          <div id="dl-wall" class="dl-wall">
+            <div class="dl-wall-bind" aria-hidden="true"></div>
+            <div class="dl-wall-photo"><img id="dl-wall-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" /></div>
+            <div id="mini-calendar" class="dl-cal"></div>
+          </div>
         </section>
 
-        <!-- ═══ MỤC: Đường đến — #map-location-name + #map-link phải đứng CUỐI mục ═══ -->
+        <!-- ═══ MỤC: Đường đến — bản đồ trên nền vầng trăng nhũ ló góc trên-trái.
+             #map-location-name + #map-link phải đứng CUỐI mục ═══ -->
         <section id="section-map" class="dl-sec">
           <h2 class="dl-h2 cx-h">Đường đến</h2>
           <div class="dl-addr cx-t" id="map-location-name">------------------------</div>
           <a id="map-link" href="#" target="_blank" class="dl-map block">
-            <div class="dl-map-view relative overflow-hidden">
-              <iframe id="map-thumbnail-iframe" src="" width="100%" height="100%" class="border-0 pointer-events-none" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-              <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
-                <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
-                <span class="cx-t text-[11px] uppercase tracking-[2px]">Chưa có bản đồ</span>
+            <div class="dl-map-frame">
+              <div class="dl-map-view relative overflow-hidden">
+                <iframe id="map-thumbnail-iframe" src="" width="100%" height="100%" class="border-0 pointer-events-none" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                <div id="map-placeholder" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface">
+                  <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
+                  <span class="cx-t text-[12px]">Chưa có bản đồ</span>
+                </div>
               </div>
             </div>
             <div class="dl-map-bar cx-t">
@@ -212,12 +246,15 @@
           </a>
         </section>
 
-        <!-- ═══ MỤC: Hồi âm — xác nhận tham dự + lời chúc chung một tấm.
-             #cx-wish-sec do wishes-helper dựng ở cuối thân thiệp; index.js dời nó vào .dl-reply-wish. ═══ -->
+        <!-- ═══ MỤC: Hồi âm — một lá thư: nắp phong bì đỏ rượu + dấu sáp phía trên, phiếu hồi âm có ô
+             tích, rồi lời chúc vẽ như trang thư tay. #cx-wish-sec do wishes-helper dựng ở cuối thân thiệp;
+             index.js dời nó vào .dl-reply-wish. ═══ -->
         <section id="section-rsvp" class="dl-sec dl-reply">
+          <div class="dl-flap" aria-hidden="true"></div>
+          <span class="dl-wax" aria-hidden="true"><i data-lucide="heart" class="cx-ic"></i></span>
           <div id="rsvp-section" class="dl-rsvp" style="display: none">
-            <h2 class="dl-h2 cx-h">Hồi âm</h2>
-            <div class="dl-label cx-t">Bạn có thể tới chung vui chứ?</div>
+            <div class="dl-reply-title cx-h">Hồi Âm</div>
+            <div class="dl-ask cx-h">Bạn có thể tới chung vui chứ?</div>
             <div class="dl-choices">
               <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="dl-choice cx-t">Chắc chắn rồi</x-button>
               <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="dl-choice cx-t">Rất tiếc, không đến được</x-button>
@@ -250,17 +287,22 @@
           </div>
         </section>
 
-        <!-- ═══ MỤC: Album hình cưới ═══ -->
+        <!-- ═══ MỤC: Album hình cưới — ảnh đầu rộng hết khổ, còn lại hai cột so le tỉ lệ đan xen ═══ -->
         <section id="section-photos" class="dl-sec">
           <h2 class="dl-h2 cx-h">Album hình cưới</h2>
           <div id="gallery-grid" class="dl-gallery"></div>
         </section>
 
-        <!-- ═══ MỤC: Lời cảm ơn — dải son khép thiệp ═══ -->
+        <!-- ═══ MỤC: Lời cảm ơn — ảnh đôi phủ cả mục (index.js _renderFootPhoto), dải tối trong suốt vắt ngang
+             phần dưới ảnh: "thankyou" viết tay có đuôi, dưới là lời cảm ơn (footer_text) ═══ -->
         <section id="section-footer" class="dl-footer">
-          <div class="dl-xi" aria-hidden="true">囍</div>
-          <p id="footer-text" class="dl-quote cx-h">Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng tôi</p>
-          <div class="dl-footer-sign dl-gold">Hân hạnh đón tiếp</div>
+          <div class="dl-foot-photo">
+            <img id="dl-foot-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" />
+          </div>
+          <div class="dl-foot-band">
+            <div class="dl-foot-thanks cx-on-image">thankyou</div>
+            <p id="footer-text" class="dl-quote cx-on-image">Rất hân hạnh được đón tiếp!</p>
+          </div>
         </section>
       </div>
     </div>
