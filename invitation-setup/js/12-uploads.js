@@ -38,24 +38,37 @@ async function _runPool(jobs, limit, onDone) {
   await Promise.all(Array.from({ length: Math.min(limit, jobs.length) }, worker));
 }
 
-// Trả thêm `keep` (ảnh lỗi mạng/máy chủ — giữ lại cho lần lưu sau thử tiếp) và `lost`
-// (số ảnh hỏng hẳn, code UNREADABLE của StorageDAL — bỏ khỏi hàng chờ, khách phải chọn lại).
+// Tên ảnh hiện cho khách trong hộp thoại "ảnh chưa tải lên được" của saveAll.
+const _UPLOAD_LABELS = {
+  cover_image_url: "Ảnh bìa",
+  groom_image_url: "Ảnh chú rể",
+  bride_image_url: "Ảnh cô dâu",
+  groom_qr_url: "Mã QR chú rể",
+  bride_qr_url: "Mã QR cô dâu",
+};
+
+// Trả thêm `keep` (ảnh lỗi mạng/máy chủ — giữ lại cho lần lưu sau thử tiếp), `lost`
+// (số ảnh hỏng hẳn, code UNREADABLE của StorageDAL — bỏ khỏi hàng chờ, khách phải chọn lại)
+// và `failed` (tên dễ đọc của từng ảnh lỗi, kèm cờ `lost`).
 async function uploadAllPendingImages() {
   const uploadedFilenames = {};
   const errors = [];
+  const failed = [];
   const keep = { singles: [], gallery: [] };
   let lost = 0;
   // Ảnh hỏng hẳn thì đếm vào `lost`, còn lại `onRetry` ghi ảnh vào `keep`.
-  const fail = (label, error, onRetry) => {
+  const fail = (label, name, error, onRetry) => {
     console.error(`Error uploading ${label}:`, error);
     errors.push(`${label}: ${error.message}`);
-    if (error.code === "UNREADABLE") lost++;
+    const isLost = error.code === "UNREADABLE";
+    failed.push({ name, lost: isLost });
+    if (isLost) lost++;
     else onRetry();
   };
 
   // `skipped` để nơi gọi biết KHÔNG được dọn pendingUploads/IndexedDB sau đó:
   // ảnh chưa lên Storage nên dọn là mất hẳn (xem Step 6 của saveAll).
-  if (!IS_LOGIN) return { uploadedFilenames, errors, skipped: true, keep, lost };
+  if (!IS_LOGIN) return { uploadedFilenames, errors, failed, skipped: true, keep, lost };
 
   // Mỗi ảnh một việc, chạy chung một hàng đợi song song (_runPool). Album giữ mảng
   // THƯA theo đúng vị trí trong pendingUploads.galleryImages — saveAll tra tên file
@@ -70,14 +83,14 @@ async function uploadAllPendingImages() {
         if (filename !== previous) _queueReplacedImage(previous);
         uploadedFilenames[fieldName] = filename;
       } catch (error) {
-        fail(fieldName, error, () => keep.singles.push(fieldName));
+        fail(fieldName, _UPLOAD_LABELS[fieldName] || "Ảnh", error, () => keep.singles.push(fieldName));
       }
     }),
     ...pendingUploads.galleryImages.map((file, i) => async () => {
       try {
         gallery[i] = await uploadSingleImage(`gallery-${i}`, file);
       } catch (error) {
-        fail(`Gallery ${i + 1}`, error, () => keep.gallery.push(file));
+        fail(`Gallery ${i + 1}`, `Ảnh album ${i + 1}`, error, () => keep.gallery.push(file));
       }
     }),
     ...Object.entries(_loveStoryPendingImages).map(([idxStr, file]) => async () => {
@@ -89,7 +102,7 @@ async function uploadAllPendingImages() {
         _loveStoryItems[idx].image_url = filename;
         delete _loveStoryPendingImages[idxStr];
       } catch (error) {
-        fail(`Love story ảnh ${idx + 1}`, error, () => {});
+        fail(`Love story ảnh ${idx + 1}`, `Ảnh chuyện tình ${idx + 1}`, error, () => {});
         if (error.code === "UNREADABLE") delete _loveStoryPendingImages[idxStr];
       }
     }),
@@ -112,7 +125,7 @@ async function uploadAllPendingImages() {
   // nằm lại _loveStoryPendingImages cho lần lưu sau.
   if (hadLoveStory) _syncLoveStoryHidden();
 
-  return { uploadedFilenames, errors, skipped: false, keep, lost };
+  return { uploadedFilenames, errors, failed, skipped: false, keep, lost };
 }
 
 // ============= REMOVE FUNCTIONS =============

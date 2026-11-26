@@ -737,13 +737,56 @@ function saveAll(overrides = {}, label = "Đang lưu...") {
   if (_saveLast && _saveLast.key === key) return _saveLast.promise;
   const entry = { key, promise: null };
   entry.promise = _saveChain
-    .then(() => _saveAllOnce(overrides, label))
+    .then(() => _saveWithImageRetry(overrides, label))
     .finally(() => {
       if (_saveLast === entry) _saveLast = null;
     });
   _saveChain = entry.promise.catch(() => {});
   _saveLast = entry;
   return entry.promise;
+}
+
+// Ảnh lỗi của lượt lưu vừa xong ([{name, lost}]) — _saveAllOnce ghi, _saveWithImageRetry đọc.
+let _imageFail = null;
+
+// Lưu xong mà còn ảnh lỗi thì HỎI bằng hộp thoại (toast trôi mất, khách rời trang không biết
+// thiệp thiếu ảnh). "Tải lại" chạy lại cả lượt lưu ngay trong cùng mắt xích _saveChain — gọi
+// saveAll() từ đây là tự chờ chính mình. Nơi gọi (Xuất bản) chỉ nhận kết quả sau khi hộp
+// thoại đóng, nên popup chúc mừng không đè lên nó.
+async function _saveWithImageRetry(overrides, label) {
+  let ok = await _saveAllOnce(overrides, label);
+  while (ok && _imageFail) {
+    const failed = _imageFail;
+    _imageFail = null;
+    if (!(await _askImageRetry(failed))) break;
+    ok = await _saveAllOnce(overrides, label);
+  }
+  return ok;
+}
+
+// true = khách chọn tải lại. Ảnh hỏng hẳn (`lost`) không thử lại được — chỉ nhắc chọn lại.
+async function _askImageRetry(failed) {
+  const list = (items) => {
+    const shown = items.slice(0, 6).map((f) => `• ${f.name}`);
+    if (items.length > 6) shown.push(`• … và ${items.length - 6} ảnh khác`);
+    return shown.join("\n");
+  };
+  const retry = failed.filter((f) => !f.lost);
+  const lost = failed.filter((f) => f.lost);
+  const lostText = lost.length
+    ? `Ảnh không còn đọc được, bạn chọn lại giúp mình:\n${list(lost)}`
+    : "";
+  if (!retry.length) {
+    await showAlert("Có ảnh cần chọn lại", `Thiệp đã lưu. ${lostText}`, "warning");
+    return false;
+  }
+  const msg =
+    `Thiệp đã lưu nhưng còn thiếu các ảnh này (mạng chập chờn hoặc máy chủ bận):\n${list(retry)}` +
+    (lostText ? `\n\n${lostText}` : "");
+  return showConfirm(`${retry.length} ảnh chưa tải lên được`, msg, {
+    confirmText: "Tải lại",
+    cancelText: "Để sau",
+  });
 }
 
 // Ghi hàng DB đầu tiên cho nháp đang nằm trên máy. Slug theo tên cô dâu chú rể
@@ -793,6 +836,7 @@ async function _saveAllOnce(overrides, label) {
   // Chụp lại kết quả: IS_LOGIN là cờ toàn cục, onChange có thể lật nó giữa lúc
   // upload ảnh — quyết định "ghi DB hay chỉ local" phải theo đúng một lần hỏi.
   const loggedIn = await _refreshLoginState();
+  _imageFail = null;
 
   try {
     // Xuất bản mà phiên đã mất và thiệp chưa có trên DB thì không có gì để xuất
@@ -811,22 +855,13 @@ async function _saveAllOnce(overrides, label) {
     // Step 1: Upload pending images
     const hadLoveStoryImages = Object.keys(_loveStoryPendingImages).length > 0;
     showLoading(true, "Đang tải ảnh lên...");
-    const { uploadedFilenames, errors, skipped: uploadSkipped, keep, lost } =
+    const { uploadedFilenames, errors, failed, skipped: uploadSkipped, keep } =
       await uploadAllPendingImages();
     showLoading(true, label);
 
-    // Hiện ở CUỐI hàm (toast chỉ có một ô, câu "Đã lưu" sau sẽ đè mất).
+    // Ảnh lỗi báo bằng hộp thoại SAU khi lưu xong (_saveWithImageRetry), không phải toast.
     const kept = keep.singles.length + keep.gallery.length + Object.keys(_loveStoryPendingImages).length;
-    let imageWarn = "";
-    if (errors.length > 0) {
-      console.error("Upload errors:", errors);
-      imageWarn = [
-        lost ? `${lost} ảnh không còn đọc được, bạn chọn lại giúp mình nhé` : "",
-        !uploadSkipped && kept ? `${kept} ảnh chưa tải lên được, bấm Lưu lần nữa để thử lại` : "",
-      ]
-        .filter(Boolean)
-        .join(". ");
-    }
+    if (errors.length > 0) console.error("Upload errors:", errors);
 
     // Step 2: Prepare form data
     const form = document.getElementById("wedding-form");
@@ -1048,10 +1083,11 @@ async function _saveAllOnce(overrides, label) {
         `Đã lưu nháp — thiệp nháp tự động xoá sau ${CONFIG.retention.serverDraftDays} ngày nếu chưa xuất bản`,
         "success",
       );
-    } else {
+    } else if (!failed.length) {
+      // Có ảnh lỗi thì hộp thoại của _saveWithImageRetry nói thay — "thành công" lúc đó là sai.
       showToast("Đã lưu thành công!", "success");
     }
-    if (imageWarn) showToast(imageWarn, "warning");
+    if (failed.length) _imageFail = failed;
     _setDirty(false);
     // Lịch sử tab Giao diện: thay đổi vừa lưu chuyển sang nhóm "Đã lưu".
     window.cxThemeHistCommit?.();

@@ -174,12 +174,18 @@ function accRowHtml(a) {
 }
 
 // Lời nhắn chép sẵn để gửi khách qua Zalo/Messenger — xưng "em", gọi khách "anh/chị".
+// Tên nút trong hướng dẫn phải khớp giao diện thật (navbar, /my-invitations/, /guest-list/).
 function accShowResult({ username, password }) {
   accLastResult =
-    `Dạ em gửi anh/chị tài khoản Cưới Xinh ạ:\n` +
+    `Dạ em gửi anh/chị tài khoản Cưới Xinh ạ:\n\n` +
+    `I. ĐĂNG NHẬP\n` +
     `• Tên đăng nhập: ${username}\n` +
-    `• Mật khẩu: ${password}\n\n` +
-    `Cách đăng nhập: anh/chị vào ${ACC_SITE}, bấm "Đăng nhập" rồi chọn "Đăng nhập bằng tài khoản Cưới Xinh" và nhập hai thông tin trên.`;
+    `• Mật khẩu: ${password}\n` +
+    `Vào ${ACC_SITE} → "Đăng nhập" → "Đăng nhập bằng tài khoản Cưới Xinh".\n\n` +
+    `II. CHỈNH SỬA THIỆP\n` +
+    `Vào "Thiệp của tôi" → "Chỉnh sửa" ở thiệp → sửa xong bấm "Lưu & Xuất bản".\n\n` +
+    `III. TẠO KHÁCH MỜI\n` +
+    `Vào "Khách mời" → "Quản lý khách mời" → "Thêm khách" (hoặc nhập từ Excel) → bấm nút sao chép cạnh tên khách để lấy link mời riêng gửi cho từng người.`;
   document.getElementById("acc-result-text").textContent = accLastResult;
   document.getElementById("acc-result").classList.remove("hidden");
 }
