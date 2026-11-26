@@ -85,22 +85,34 @@ function applyFocalPoint(elementId, focalPoint) {
 }
 
 // Danh xưng bố/mẹ do thiệp tự thêm — dữ liệu chỉ lưu tên trần; khách lỡ gõ sẵn "Ông/Bà" thì gỡ để khỏi lặp.
-function parentName(title, name) {
+// Dòng bố/mẹ = <span>danh xưng</span> + " " + <span>tên</span>. Chỉ span tên khoá (bound); danh
+// xưng sửa được ở tab Giao diện (vd "Bố/Mẹ") qua text_overrides theo selector `#id > span:nth-child(1)`
+// — giữ nguyên thứ tự hai span này, đảo là chữ đã sửa rơi nhầm chỗ.
+function renderParentLine(id, title, name) {
+  const el = document.getElementById(id);
+  if (!el) return;
   const bare = String(name || "").trim().replace(/^(ông|bà)\s+/i, "");
-  return bare ? `${title} ${bare}` : "";
+  el.textContent = "";
+  if (!bare) return;
+  const t = document.createElement("span");
+  t.textContent = title;
+  const n = document.createElement("span");
+  n.textContent = bare;
+  n.setAttribute("data-cx-bound", "1");
+  el.append(t, " ", n);
 }
 
 // Bố/mẹ, địa chỉ khách cố ý xoá (bố/mẹ đã mất…) thì để TRỐNG, không vẽ gạch giữ chỗ.
 function renderCoupleInfo(wedding) {
   // Groom info
-  setText("groom-father", parentName("Ông", wedding.groom_father));
-  setText("groom-mother", parentName("Bà", wedding.groom_mother));
+  renderParentLine("groom-father", "Ông", wedding.groom_father);
+  renderParentLine("groom-mother", "Bà", wedding.groom_mother);
   setText("groom-address", wedding.groom_address);
   setText("groom-name-label", wedding.groom_name, "----------");
 
   // Bride info
-  setText("bride-father", parentName("Ông", wedding.bride_father));
-  setText("bride-mother", parentName("Bà", wedding.bride_mother));
+  renderParentLine("bride-father", "Ông", wedding.bride_father);
+  renderParentLine("bride-mother", "Bà", wedding.bride_mother);
   setText("bride-address", wedding.bride_address);
   setText("bride-name-label", wedding.bride_name, "----------");
 
