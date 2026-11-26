@@ -301,20 +301,23 @@ body {
   animation: cx-dl-pulse 2.4s ease-in-out infinite;
 }
 
+/* Ba dòng: tên chú rể · trái tim nhũ · tên cô dâu. */
 .dl-cover-names {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  column-gap: 12px;
+  flex-direction: column;
+  align-items: center;
   font-family: "Lovebird", cursive;
   font-size: 40px;
   line-height: 1.3;
 }
 
-.dl-cover-names .dl-amp {
-  font-family: inherit;
-  font-size: 32px;
+/* Trái tim là SVG: không ăn dải nhũ của chữ (background-clip) nên tô đặc màu nhũ sáng. */
+.dl-cover-names .dl-heart {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0;
+  fill: rgb(var(--cx-shine-mid-rgb));
+  stroke: rgb(var(--cx-shine-from-rgb));
 }
 
 /* Hoa văn dưới tên: hai vạch nhũ kẹp một hình thoi, như tiêu đề trong thân thiệp. */
