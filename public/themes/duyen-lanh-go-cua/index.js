@@ -47,7 +47,8 @@
     // Tên khoá bộ màu thay mã hex → lời chúc đổi tông theo bộ màu khách chọn.
     wishes: { bubble: "panel", text: "body", accent: "accent", btn: "accent" },
 
-    reveal: [".dl-body > section"],
+    // Trừ hero: nó hiện sẵn sau cánh cửa lúc mở bìa, không bay vào lần nữa.
+    reveal: [".dl-body > section:not(#section-hero)"],
     revealItems: ["#gallery-grid > div"],
 
     skipSteps: ["timeline", "love_story"],
@@ -65,6 +66,7 @@
     // Ảnh màn đầu nhận src TRƯỚC setupMusic (YouTube API đi sau).
     renderCover(w);
     renderHero(w, false);
+    _fitHeroNames();
     _watchCoverOpen();
 
     setupMusic(w.music_url, w.enable_music);
@@ -137,6 +139,9 @@
   // Mở thiệp kiểu tách đôi: openInvitation (helper) gắn .closing lên #cover-screen rồi 600ms sau giấu nó.
   // Bắt đúng lúc đó (nút mở có cả đường touchend riêng nên không nghe click), chép màn bìa vào hai
   // cánh, mỗi cánh cắt một nửa rồi trượt ra hai bên. Bản chép bỏ id để không trùng phần tử gốc.
+  // Thân thiệp hiện sẵn sau cánh cửa (cửa mở là thấy hero); cờ .dl-opening giữ bìa hiện quá mốc
+  // 600ms đó, cánh mở hết mới gỡ.
+  const DL_OPEN_MS = 1800; // = thời lượng .dl-door ở theme.css
   let _coverWatched = false;
   function _watchCoverOpen() {
     const screen = document.getElementById("cover-screen");
@@ -174,10 +179,41 @@
           xi.after(half);
         });
       }
+      const main = document.getElementById("main-card");
+      if (main) {
+        main.classList.add("dl-shown");
+        main.style.display = "";
+      }
+      window.scrollTo({ top: 0 });
       screen.classList.add("dl-opening");
       cover.classList.add("dl-split");
+      setTimeout(() => {
+        screen.classList.remove("dl-opening");
+        main?.classList.remove("dl-shown");
+      }, DL_OPEN_MS);
     });
     mo.observe(screen, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  // Tên đôi ở mở đầu luôn một hàng: tràn thì thu cỡ chữ theo tỉ lệ. Lúc dựng #main-card còn ẩn (rộng 0)
+  // nên đo lại qua ResizeObserver khi nó hiện, và khi font viết tay tải xong.
+  let _namesRO = null;
+  function _fitHeroNames() {
+    const h = document.querySelector(".dl-hero-names");
+    if (!h) return;
+    const fit = () => {
+      h.style.fontSize = "";
+      const w = h.clientWidth;
+      if (!w || h.scrollWidth <= w) return;
+      const base = parseFloat(getComputedStyle(h).fontSize);
+      h.style.fontSize = Math.max(20, Math.floor((base * w) / h.scrollWidth)) + "px";
+    };
+    fit();
+    document.fonts?.ready.then(fit);
+    if (!_namesRO && typeof ResizeObserver === "function") {
+      _namesRO = new ResizeObserver(fit);
+      _namesRO.observe(h);
+    }
   }
 
   function _fmtDMY(d) {
