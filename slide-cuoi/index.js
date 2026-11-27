@@ -2080,13 +2080,20 @@ _scEl("sc-tabs").addEventListener("keydown", (e) => {
 // bàn phím mọc lên — vuốt trang làm thanh địa chỉ ẩn/hiện cũng đổi khổ visualViewport, cuộn theo
 // đó là kéo trang về ô mãi. Bàn phím cụp xuống (ô vẫn focus — nút Back của Android) = gõ xong:
 // bỏ chọn ô, trả khung chiếu về chỗ.
+// Bàn phím đo so với chiều cao khung nhìn CHỤP LÚC VỪA FOCUS (_scKbBase), không so với innerHeight:
+// trình duyệt co cả webview khi bàn phím bung (Zalo/Facebook, Chrome ở vài chế độ) co visualViewport
+// TRƯỚC rồi innerHeight mới co theo — so hai số đó thì nhịp sau tưởng bàn phím đã cụp, blur ô, bàn
+// phím đóng ngay lúc vừa mở. Bàn phím phải mở đủ _SC_KB_HOLD mới tính chuyện "đã cụp".
 const _SC_TYPE_SEL = "textarea, input[type=text], input[type=search], input:not([type])";
-const _SC_KB_MIN = 120; // vùng nhìn thấy hụt hơn chừng này px so với cửa sổ = đang có bàn phím
+const _SC_KB_MIN = 120; // vùng nhìn thấy hụt hơn chừng này px so với lúc focus = đang có bàn phím
+const _SC_KB_HOLD = 600; // ms
 let _scTypeT = 0;
 let _scKbOn = false;
+let _scKbBase = 0;
+let _scKbAt = 0; // lúc bàn phím được thấy bung
 let _scTypeScroll = false; // còn nợ một lần cuộn ô vào giữa (đặt khi focus)
 const _scTyping = () => document.documentElement.classList.contains("sc-typing");
-const _scKbNow = () => !!window.visualViewport && innerHeight - visualViewport.height > _SC_KB_MIN;
+const _scKbNow = () => !!window.visualViewport && _scKbBase - visualViewport.height > _SC_KB_MIN;
 
 function _scTypeFit() {
   const el = document.activeElement;
@@ -2095,12 +2102,16 @@ function _scTypeFit() {
   document.documentElement.style.setProperty("--sc-kb-h", `${Math.round(vv ? vv.height : innerHeight)}px`);
   const kb = _scKbNow();
   if (_scKbOn && !kb) {
+    if (performance.now() - _scKbAt < _SC_KB_HOLD) return; // số đo chập chờn lúc bàn phím đang bung
     _scKbOn = false;
     el.blur();
     return;
   }
   // Cuộn MỘT lần: lúc bàn phím vừa mọc (hoặc máy không đo được bàn phím — ngay sau focus).
-  if (kb && !_scKbOn) _scTypeScroll = true;
+  if (kb && !_scKbOn) {
+    _scTypeScroll = true;
+    _scKbAt = performance.now();
+  }
   _scKbOn = kb;
   if (!_scTypeScroll || (window.visualViewport && !kb)) return;
   _scTypeScroll = false;
@@ -2110,6 +2121,8 @@ document.addEventListener("focusin", (e) => {
   if (!e.target.matches?.(_SC_TYPE_SEL) || !e.target.closest(".sc-panel")) return;
   if (!matchMedia("(max-width: 1023px)").matches) return;
   clearTimeout(_scTypeT);
+  // Chuyển ô khi bàn phím đang mở thì giữ mốc cũ (lúc đó khung nhìn đã hụt vì bàn phím).
+  if (!_scTyping()) _scKbBase = Math.max(innerHeight, window.visualViewport?.height || 0);
   document.documentElement.classList.add("sc-typing");
   _scTypeScroll = true;
   // Bàn phím mọc lên sau focus một nhịp (iPhone còn trượt trang) — đo lại vài lần.

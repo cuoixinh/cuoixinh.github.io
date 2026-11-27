@@ -176,7 +176,7 @@ const CXNavbar = (function () {
       if (!e.target.matches?.(_KB_FIELD) || e.target.readOnly) return;
       clearTimeout(t);
       if (!root.classList.contains("cx-kb-open")) {
-        h0 = vv ? vv.height : innerHeight;
+        h0 = Math.max(innerHeight, vv ? vv.height : 0);
         seen = false;
       }
       root.classList.add("cx-kb-open");
