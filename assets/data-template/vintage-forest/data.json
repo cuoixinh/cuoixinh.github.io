@@ -97,8 +97,8 @@
     "ceremony_date": "2026-10-31",
     "ceremony_time": "11:00",
     "ceremony_lunar": "Tức ngày 22 tháng 9 năm Bính Ngọ",
-    "ceremony_location": "Vườn thông Dalat Retreat, Đường Khe Sanh, TP. Đà Lạt",
-    "ceremony_map_embed_url": "https://maps.google.com/maps?q=11.9538,108.4586&output=embed&hl=vi",
+    "ceremony_location": "Tư gia nhà trai — Số 27 Trần Hưng Đạo, Phường Xuân Hương, TP. Đà Lạt",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=11.9367,108.4443&output=embed&hl=vi",
     "vu_quy_enabled": true,
     "vu_quy_time": "07:00",
     "vu_quy_location": "Tư gia nhà gái — Số 14 Lê Duẩn, Phường Tân Lập, TP. Buôn Ma Thuột",
@@ -107,8 +107,8 @@
     "groom_party_time": "16:00",
     "groom_party_lunar": "Tức ngày 21 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Vườn thông Dalat Retreat, Đường Khe Sanh, TP. Đà Lạt",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=11.9538,108.4586&output=embed&hl=vi",
+    "groom_party_location": "Trung tâm Tiệc cưới Hoàng Lan, 12 Bùi Thị Xuân, Phường Xuân Hương, TP. Đà Lạt",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=11.9446,108.4412&output=embed&hl=vi",
     "bride_party_date": "2026-10-30",
     "bride_party_time": "17:00",
     "bride_party_lunar": "Tức ngày 21 tháng 9 năm Bính Ngọ",
@@ -121,9 +121,9 @@
     "bride_bank_name": "Nam A Bank",
     "bride_bank_number": "998877665544",
     "bride_bank_owner": "TRAN LAN CHI",
-    "story_quote": "Có những chuyện tình lớn lên chậm rãi như rừng thông — không ồn ào, nhưng đứng vững qua mọi mùa gió.",
+    "story_quote": "Có những chuyện tình lớn lên thật chậm rãi — không ồn ào, nhưng đủ vững để cùng nhau đi qua mọi mùa.",
     "rsvp_enabled": true,
-    "rsvp_message": "Đường lên rừng thông hơi xa, nên bạn xác nhận sớm giúp tụi mình để còn giữ chỗ nhé.",
+    "rsvp_message": "Bạn xác nhận sớm giúp tụi mình để gia đình chuẩn bị chỗ ngồi thật chu đáo nhé.",
     "footer_text": "Cảm ơn bạn đã đi một quãng đường dài đến với ngày vui của chúng mình.",
     "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=IOe0tNoUGv8&t=26",
@@ -148,17 +148,17 @@
       },
       {
         "time": "11:00",
-        "title": "Lễ Thành Hôn giữa rừng thông",
+        "title": "Lễ Thành Hôn tại tư gia nhà trai",
         "type": "ceremony"
       },
       {
         "time": "16:00",
-        "title": "Tiệc chiều ngoài trời",
+        "title": "Đón khách dự tiệc cưới",
         "type": "party"
       },
       {
         "time": "18:00",
-        "title": "Đốt lửa trại và hát cùng nhau",
+        "title": "Khai tiệc, cắt bánh và nâng ly chúc mừng",
         "type": "party"
       }
     ]
