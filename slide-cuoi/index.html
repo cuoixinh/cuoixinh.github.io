@@ -223,7 +223,11 @@
           <div id="sc-import" class="sc-time hidden" role="group" aria-labelledby="sc-import-l">
             <div class="sc-time-head">
               <span id="sc-import-l" class="sc-time-l"><i data-lucide="images"></i>Ảnh của bạn</span>
-              <output id="sc-import-n" class="sc-import-n"></output>
+              <span class="sc-import-tools">
+                <output id="sc-import-n" class="sc-import-n"></output>
+                <!-- Đổi thứ tự bộ ảnh chung (scPhotosSortOpen) — chỉ hiện khi có từ 2 ảnh. -->
+                <x-button id="sc-sort-open" variant="bare" icon="arrow-up-down" onclick="scPhotosSortOpen()" class="sc-time-reset hidden" title="Đổi thứ tự ảnh">Sắp xếp</x-button>
+              </span>
             </div>
             <p class="sc-import-desc">Chọn ảnh một lần, slide tự điền từ ô đầu tới ô cuối.</p>
             <div class="sc-import-acts">

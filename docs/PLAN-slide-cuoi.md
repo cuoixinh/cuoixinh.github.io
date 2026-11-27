@@ -36,6 +36,8 @@
 > sau vẫn giữ, quay lại mẫu nhiều ô là đủ. Nhập ảnh thay danh sách từ đầu (tối đa = số ô mẫu đang mở),
 > sửa một ô ở mẫu nào cũng ghi đúng vị trí đó. Nút **Reset** (có hỏi lại) xoá cả danh sách + đưa chữ
 > mẫu đang mở về lời mẫu; "Về ảnh của thiệp" xoá danh sách, giữ chữ. Cả hai không hoàn tác được.
+> Nút **Sắp xếp** (cạnh số ô) mở lưới ảnh của danh sách, kéo thả đổi thứ tự (điện thoại: chạm giữ rồi kéo),
+> thêm Đảo ngược / Theo tên file; Lưu áp cho mọi mẫu và xoá lịch sử Ctrl+Z (đổi cả phần vượt số ô).
 > Mẫu thứ ba: `templates/ngay-chung-doi/` ("Ngày Chung Đôi") — nền trắng tối giản, ẢNH LÀ CHÍNH:
 > 20 cảnh / 60 ô ảnh khác nhau (khách đổ một lần ở thẻ "Ảnh của bạn" đầu tab Cảnh), mỗi cảnh một bố cục ghép 1–6 ảnh, chữ chỉ một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần,
 > ảnh in viền trắng đổ bóng (`mat`/`drop` của engine), tiêu đề vắt qua mép ảnh đổi màu (`clip`).

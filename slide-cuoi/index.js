@@ -914,6 +914,7 @@ function _scPhRender() {
   _scToggle("sc-import", slots.length > 0);
   const own = slots.filter((p) => _scPh.map[p.key]).length;
   _scEl("sc-import-n").textContent = own ? `Đã có ${own}/${slots.length} ô` : `${slots.length} ô ảnh`;
+  _scToggle("sc-sort-open", _scSet.items.filter(Boolean).length > 1);
   if (sig === _scPhSig) return;
   _scPhSig = sig;
   const lis = _scEl("sc-cues").children;
@@ -1297,6 +1298,183 @@ async function scResetAll() {
   if (!ok || !(await _scPhWipe())) return;
   _scTextsApply({});
   window.showToast?.("Đã reset slide: xoá hết ảnh của bạn, chữ về lời mẫu", "success");
+}
+
+// ── Sắp xếp bộ ảnh (nút "Sắp xếp" cạnh số ô): lưới ảnh nhỏ đánh số theo thứ tự trong danh sách
+// chung, kéo thả để đổi chỗ — chuột kéo ngay, chạm thì GIỮ một nhịp rồi mới kéo (vuốt thường vẫn
+// cuộn lưới). Ô trống (null) cũng kéo được. "Lưu" mới áp cho mọi mẫu; đổi thứ tự là đổi cả danh
+// sách (kể cả phần vượt số ô mẫu đang mở) nên không đi vào lịch sử Ctrl+Z — xoá lịch sử như Reset.
+const _SC_SORT_HOLD = 300; // ms giữ ngón tay trước khi bắt đầu kéo
+let _scSort = null; // {sheet, order: [item|null], urls: Map id→url}
+
+function scPhotosSortOpen() {
+  if (_scPhBusy() || _scSort || _scSet.items.filter(Boolean).length < 2) return;
+  const sheet = openBottomSheet({
+    id: "sc-sort-sheet",
+    title: '<i data-lucide="arrow-up-down" style="width:18px;height:18px"></i>Sắp xếp ảnh',
+    height: 88,
+    cardClass: "cx-sheet-fit sm:max-w-2xl",
+    onClose: () => {
+      _scSort?.urls.forEach((u) => URL.revokeObjectURL(u));
+      _scSort = null;
+    },
+  });
+  if (!sheet) return;
+  const urls = new Map();
+  _scSet.items.forEach((x) => {
+    const b = x && (_scSetImg.get(x.id) || _scPhBank.get(x.id));
+    if (b && !urls.has(x.id)) urls.set(x.id, URL.createObjectURL(b.blob));
+  });
+  _scSort = { sheet, order: _scSet.items.slice(), urls };
+  sheet.body.className = "sc-sort";
+  sheet.body.innerHTML = `
+    <p class="sc-sort-sub">Kéo ảnh để đổi chỗ (trên điện thoại: chạm giữ rồi kéo). Ảnh số 1 chiếu ở ô đầu của mọi mẫu.</p>
+    <div id="sc-sort-scroll" class="sc-sort-scroll"><div id="sc-sort-grid" class="sc-sort-grid"></div></div>`;
+  sheet.footer.innerHTML = `
+    <div class="sc-sort-foot">
+      <x-button variant="bare" icon="arrow-down-up" class="sc-time-reset" data-sort="rev">Đảo ngược</x-button>
+      <x-button variant="bare" icon="arrow-down-a-z" class="sc-time-reset" data-sort="name">Theo tên file</x-button>
+      <span class="sc-sort-gap"></span>
+      <x-button variant="soft" tone="neutral" size="md" data-sort="cancel">Huỷ</x-button>
+      <x-button variant="fill" tone="brand" size="md" data-sort="save">Lưu</x-button>
+    </div>`;
+  const modal = _scEl("sc-sort-sheet");
+  modal.addEventListener("click", (e) => e.target === modal && sheet.close()); // bấm ra nền mờ
+  sheet.footer.addEventListener("click", (e) => {
+    const k = e.target.closest("[data-sort]")?.dataset.sort;
+    const o = _scSort?.order;
+    if (!k || !o) return;
+    if (k === "cancel") return sheet.close();
+    if (k === "save") return _scSortSave();
+    if (k === "rev") _scSort.order = _scTrim(o.slice().reverse());
+    if (k === "name") {
+      const nm = (x) => (x && (_scSetImg.get(x.id) || _scPhBank.get(x.id))?.name) || "";
+      _scSort.order = o.filter(Boolean).sort((a, b) => nm(a).localeCompare(nm(b), undefined, { numeric: true }));
+    }
+    _scSortRender();
+  });
+  _scSortRender();
+  _scSortBind(_scEl("sc-sort-grid"));
+  window.lucide?.createIcons({ root: modal });
+}
+
+function _scSortRender() {
+  const grid = _scEl("sc-sort-grid");
+  if (!grid || !_scSort) return;
+  grid.innerHTML = _scSort.order
+    .map((x, i) => {
+      const url = x && _scSort.urls.get(x.id);
+      const pos = x?.focal ? ` style="object-position:${Number(x.focal.x)}% ${Number(x.focal.y)}%"` : "";
+      return `<div class="sc-sort-tile${x ? "" : " is-empty"}" data-i="${i}">
+        ${url ? `<img src="${url}" alt="" draggable="false"${pos} />` : `<span class="sc-sort-none">Trống</span>`}
+        <span class="sc-sort-n">${i + 1}</span>
+      </div>`;
+    })
+    .join("");
+}
+
+function _scSortSave() {
+  if (!_scSort) return;
+  const items = _scTrim(_scSort.order.slice());
+  const same = JSON.stringify(items) === JSON.stringify(_scSet.items);
+  _scSort.sheet.close();
+  if (same || _scSet.ds !== _scDs()) return;
+  _scSet.items = items;
+  _scSetSave();
+  _scSetProject();
+  if (typeof _scTlReset === "function") _scTlReset();
+  window.showToast?.("Đã sắp xếp lại ảnh cho mọi mẫu", "success");
+}
+
+// Kéo thả trong lưới bằng pointer events: ô đang kéo để mờ tại chỗ, một bản nổi đi theo con trỏ;
+// rê qua ô nào thì dời ô đang kéo tới vị trí đó (đổi mảng order + DOM, đánh số lại). Gần mép trên /
+// dưới khung cuộn (lớp bọc ngoài lưới) thì tự cuộn.
+function _scSortBind(grid) {
+  const box = grid.parentElement;
+  let d = null; // {tile, from, ghost, dx, dy, pid}
+  let hold = null; // {t, x, y, tile, e} — chạm đang chờ đủ nhịp giữ
+  let scrollT = 0;
+  const renumber = () => grid.querySelectorAll(".sc-sort-tile").forEach((t, i) => {
+    t.dataset.i = String(i);
+    t.querySelector(".sc-sort-n").textContent = String(i + 1);
+  });
+  const start = (tile, x, y, pid) => {
+    const r = tile.getBoundingClientRect();
+    const ghost = tile.cloneNode(true);
+    ghost.className = "sc-sort-tile sc-sort-ghost";
+    Object.assign(ghost.style, { width: `${r.width}px`, height: `${r.height}px`, left: `${r.left}px`, top: `${r.top}px` });
+    document.body.appendChild(ghost);
+    tile.classList.add("is-drag");
+    d = { tile, from: Number(tile.dataset.i), ghost, dx: x - r.left, dy: y - r.top, pid };
+    try {
+      grid.setPointerCapture(pid);
+    } catch (e) {}
+    navigator.vibrate?.(10);
+  };
+  const autoScroll = (y) => {
+    clearInterval(scrollT);
+    const r = box.getBoundingClientRect();
+    const v = y < r.top + 48 ? -12 : y > r.bottom - 48 ? 12 : 0;
+    if (v) scrollT = setInterval(() => (box.scrollTop += v), 16);
+  };
+  const move = (x, y) => {
+    d.ghost.style.left = `${x - d.dx}px`;
+    d.ghost.style.top = `${y - d.dy}px`;
+    autoScroll(y);
+    const over = document.elementFromPoint(x, y)?.closest?.(".sc-sort-tile:not(.sc-sort-ghost)");
+    if (!over || over === d.tile || !grid.contains(over)) return;
+    const a = Number(d.tile.dataset.i);
+    const b = Number(over.dataset.i);
+    const [it] = _scSort.order.splice(a, 1);
+    _scSort.order.splice(b, 0, it);
+    grid.insertBefore(d.tile, b > a ? over.nextSibling : over);
+    renumber();
+  };
+  const end = () => {
+    clearTimeout(hold?.t);
+    hold = null;
+    clearInterval(scrollT);
+    if (!d) return;
+    d.ghost.remove();
+    d.tile.classList.remove("is-drag");
+    d = null;
+  };
+  grid.addEventListener("pointerdown", (e) => {
+    const tile = e.target.closest(".sc-sort-tile");
+    if (!tile || e.button > 0 || !_scSort) return;
+    if (e.pointerType === "mouse") {
+      hold = { x: e.clientX, y: e.clientY, tile, mouse: true, pid: e.pointerId };
+      return;
+    }
+    hold = { x: e.clientX, y: e.clientY, tile, pid: e.pointerId };
+    tile.classList.add("is-hold");
+    hold.t = setTimeout(() => {
+      tile.classList.remove("is-hold");
+      if (hold) start(tile, hold.x, hold.y, hold.pid);
+      hold = null;
+    }, _SC_SORT_HOLD);
+  });
+  grid.addEventListener("pointermove", (e) => {
+    if (d) return move(e.clientX, e.clientY);
+    if (!hold) return;
+    const far = Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > (hold.mouse ? 4 : 8);
+    if (!far) return;
+    if (hold.mouse) {
+      const h = hold;
+      hold = null;
+      start(h.tile, h.x, h.y, h.pid);
+      move(e.clientX, e.clientY);
+    } else {
+      // Ngón tay đi trước khi đủ nhịp giữ = đang vuốt cuộn, không kéo.
+      clearTimeout(hold.t);
+      hold.tile.classList.remove("is-hold");
+      hold = null;
+    }
+  });
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach((t) => grid.addEventListener(t, end));
+  // Đang kéo bằng ngón tay thì chặn trình duyệt cuộn trang theo.
+  grid.addEventListener("touchmove", (e) => d && e.cancelable && e.preventDefault(), { passive: false });
+  grid.addEventListener("contextmenu", (e) => e.preventDefault());
 }
 
 // Nút "Về ảnh của thiệp" (chân tab Cảnh): như Reset nhưng giữ chữ.
