@@ -22,9 +22,10 @@
 > uyên ương là lời cô dâu (~1 phút, gửi quan khách · bố mẹ · anh) chạy chữ kiểu máy chữ ở nhịp
 > nói để cô dâu thu âm theo ở tab Âm thanh; phần dài quá khung tự chia thêm cảnh nối tiếp (không cố
 > định 3 cảnh). Chú rể chỉ có "My groom" ngắn, không có cảnh "My bride". KHÔNG hiện tên bố mẹ.
-> Mẫu thứ tư: `templates/tram-nam-hanh-phuc/` ("Trăm Năm Hạnh Phúc") — CHỈ CÓ ẢNH, không chữ: nền tối,
-> đa số màn một ảnh (hiện trọn trên nền mờ của chính nó — `fit: "contain"` + `soft` của engine — hoặc
-> tràn khung lia máy `kb: "pan-*"`), xen màn 2–3 ảnh; 60 ô, 16:9 và 1:1.
+> Mẫu thứ tư: `templates/tram-nam-hanh-phuc/` ("Trăm Năm Hạnh Phúc") — CHỈ CÓ ẢNH, không chữ, mọi ảnh
+> phủ kín ô của nó (Ken Burns / lia máy `kb: "pan-*"` của engine): khung ngang ghép 2–3 ảnh mỗi màn,
+> thỉnh thoảng một ảnh tràn khung; khung vuông đa số một ảnh một khung, xen màn 2–3 ảnh. 60 ô khoá
+> theo SỐ THỨ TỰ ảnh (`p1`…`p60`, không theo cảnh) nên đổi tỉ lệ — chia cảnh khác nhau — không lạc ảnh.
 > **Nhập ảnh cả slide** (thẻ "Ảnh của bạn" đầu tab Cảnh, mọi mẫu): ảnh chọn điền lần lượt từ ô ĐẦU tới ô
 > cuối theo thứ tự chiếu, đè cả ô đã đổi; thừa thì bỏ. Ít ảnh hơn số ô: công tắc "Cho phép lặp ảnh khi
 > thiếu" (nhớ ở localStorage) tắt thì các ô sau giữ nguyên, bật thì các ô sau lặp vòng loạt ảnh đó —

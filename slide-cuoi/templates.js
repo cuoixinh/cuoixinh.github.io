@@ -29,7 +29,7 @@ window.CX_SLIDE_TEMPLATES = [
   {
     id: "tram-nam-hanh-phuc",
     name: "Trăm Năm Hạnh Phúc",
-    desc: "Chỉ có ảnh, không chữ — mỗi màn một ảnh, xen màn 2–3 ảnh",
+    desc: "Chỉ có ảnh, không chữ — ảnh phủ kín khung, ghép 2–3 ảnh mỗi màn",
     ratio: "16 / 9",
     ratios: ["16 / 9", "1 / 1"],
     thumb: "/slide-cuoi/templates/tram-nam-hanh-phuc/thumb.jpg",

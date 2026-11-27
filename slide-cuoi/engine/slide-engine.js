@@ -649,11 +649,7 @@ window.CXSlideEngine = (() => {
   // "pan-l" · "pan-r" · "pan-u" · "pan-d" = phóng 1.15 rồi LIA khung cắt sang trái/phải/lên/xuống.
   // el.shape cắt ảnh theo hình: "circle" (elip nội tiếp khung) · "arch" (vòm, đỉnh bán nguyệt) ·
   // "chamfer" (vát bốn góc `cut` px); el.radius = bo góc. el.mat / el.drop: xem _mat.
-  // el.fit = "contain": ảnh hiện TRỌN, canh giữa trong khung (không cắt) — viền/bóng ôm đúng ảnh.
-  // el.soft: vẽ bản mờ của ảnh (nền phía sau ảnh chính, xem _softOf).
   function _image(ctx, img, el, lt, dur) {
-    if (el.soft && img?.naturalWidth) img = _softOf(img);
-    if (el.fit === "contain") return _imageFit(ctx, img, el, lt, dur);
     if (el.mat || el.drop) _mat(ctx, el);
     if (!el.shape && !el.radius) return _imageRect(ctx, img, el, lt, dur);
     ctx.save();
@@ -704,54 +700,6 @@ window.CXSlideEngine = (() => {
     } else if (el.radius && ctx.roundRect) ctx.roundRect(x, y, w, h, el.radius);
     else ctx.rect(x, y, w, h);
   }
-  // Ảnh hiện trọn trong khung: thu cho vừa, canh giữa; Ken Burns phóng quanh tâm ảnh.
-  function _imageFit(ctx, img, el, lt, dur) {
-    if (!img || !img.naturalWidth) {
-      ctx.fillStyle = el.empty || "#eee";
-      ctx.fillRect(el.x, el.y, el.w, el.h);
-      return;
-    }
-    const q = _clamp(lt / dur);
-    const z = !el.kb ? 1 : el.kb === true ? 1.06 - 0.06 * q : 1 + 0.06 * q;
-    const k = Math.min(el.w / img.naturalWidth, el.h / img.naturalHeight) * z;
-    const w = img.naturalWidth * k;
-    const h = img.naturalHeight * k;
-    const r = { ...el, x: el.x + (el.w - w) / 2, y: el.y + (el.h - h) / 2, w, h };
-    if (el.mat || el.drop) _mat(ctx, r);
-    if (!el.radius) return ctx.drawImage(img, r.x, r.y, w, h);
-    ctx.save();
-    _shapePath(ctx, r);
-    ctx.clip();
-    ctx.drawImage(img, r.x, r.y, w, h);
-    ctx.restore();
-  }
-
-  // Bản mờ của ảnh để làm nền: thu nhỏ hai nhịp (24px → 96px cạnh dài) rồi để phép phóng của
-  // drawImage làm mịn — chạy được cả trên trình duyệt không có ctx.filter (Safari cũ). Giữ theo ảnh.
-  const _softs = new WeakMap();
-  function _softOf(img) {
-    let c = _softs.get(img);
-    if (c) return c;
-    const iw = img.naturalWidth;
-    const ih = img.naturalHeight;
-    const dims = (n) => {
-      const k = n / Math.max(iw, ih);
-      return [Math.max(2, Math.round(iw * k)), Math.max(2, Math.round(ih * k))];
-    };
-    const t = document.createElement("canvas");
-    [t.width, t.height] = dims(24);
-    t.getContext("2d").drawImage(img, 0, 0, t.width, t.height);
-    c = document.createElement("canvas");
-    [c.width, c.height] = dims(96);
-    const x = c.getContext("2d");
-    x.imageSmoothingQuality = "high";
-    x.drawImage(t, 0, 0, c.width, c.height);
-    c.naturalWidth = c.width;
-    c.naturalHeight = c.height;
-    _softs.set(img, c);
-    return c;
-  }
-
   function _imageRect(ctx, img, el, lt, dur) {
     if (!img || !img.naturalWidth) {
       ctx.fillStyle = el.empty || "#eee";
