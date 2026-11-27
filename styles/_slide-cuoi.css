@@ -1392,6 +1392,29 @@ html.sc-typing .sc-tx-in {
   line-height: 1.6;
   color: rgb(var(--text-caption-rgb));
 }
+.sc-import-acts {
+  display: flex;
+  gap: 8px;
+}
+.sc-import-acts > .sc-import-btn {
+  flex: 1 1 auto;
+  width: auto;
+}
+.sc-import-reset {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding-inline: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-import-reset:hover {
+  background: rgb(var(--brand-primary-rgb) / 0.45);
+}
 .sc-import-btn {
   display: flex;
   align-items: center;

@@ -226,7 +226,11 @@
               <output id="sc-import-n" class="sc-import-n"></output>
             </div>
             <p class="sc-import-desc">Chọn ảnh một lần, slide tự điền từ ô đầu tới ô cuối.</p>
-            <x-button id="sc-ph-bulk" variant="bare" icon="image-up" onclick="scPhotosBulk()" class="sc-import-btn">Chọn ảnh</x-button>
+            <div class="sc-import-acts">
+              <x-button id="sc-ph-bulk" variant="bare" icon="image-up" onclick="scPhotosBulk()" class="sc-import-btn">Chọn ảnh</x-button>
+              <!-- Xoá mọi ảnh đã chọn (mọi mẫu của thiệp) + chữ về lời mẫu, có hỏi lại (scResetAll). -->
+              <x-button id="sc-reset-all" variant="bare" icon="rotate-ccw" onclick="scResetAll()" class="sc-import-reset" title="Xoá hết ảnh đã chọn và đưa chữ về lời mẫu">Reset</x-button>
+            </div>
             <label class="sc-check sc-import-rep">
               <span class="sc-check-text">
                 <span class="sc-check-title">Cho phép lặp ảnh khi thiếu</span>

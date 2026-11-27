@@ -31,6 +31,10 @@
 > thiếu" (nhớ ở localStorage) tắt thì các ô sau giữ nguyên, bật thì các ô sau lặp vòng loạt ảnh đó —
 > bật/tắt sau khi nhập cũng áp ngay cho loạt vừa nhập. Ảnh xếp
 > theo tên file. Ô chưa điền vẫn là ảnh thiệp / ảnh mẫu, lặp vòng như cũ.
+> **Ảnh đi theo qua các mẫu:** đổi mẫu thì bộ ảnh khách đã chọn ở mẫu cũ (theo thứ tự chiếu, bỏ ảnh trùng
+> do lặp) được điền sang mẫu mới từ ô đầu; mẫu mới đã có ảnh riêng thì chỉ bị thay khi ảnh mẫu cũ mới hơn
+> (mốc ở localStorage `cx_slide_ph_at`). Nút **Reset** (có hỏi lại) xoá ảnh khách ở MỌI mẫu của thiệp
+> đang dùng + đưa chữ mẫu đang mở về lời mẫu, không hoàn tác được.
 > Mẫu thứ ba: `templates/ngay-chung-doi/` ("Ngày Chung Đôi") — nền trắng tối giản, ẢNH LÀ CHÍNH:
 > 20 cảnh / 60 ô ảnh khác nhau (khách đổ một lần ở thẻ "Ảnh của bạn" đầu tab Cảnh), mỗi cảnh một bố cục ghép 1–6 ảnh, chữ chỉ một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần,
 > ảnh in viền trắng đổ bóng (`mat`/`drop` của engine), tiêu đề vắt qua mép ảnh đổi màu (`clip`).
