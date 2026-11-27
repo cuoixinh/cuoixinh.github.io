@@ -91,11 +91,25 @@ window.CXSlideEngine = (() => {
   // trong [top, bottom]. Khối: {text, font, color, lh, mt, anim} · {line, w, color, mt, anim}
   // · {cols: [[khối…], …], gap, mt, anim}. Trả mảng phần tử để vẽ. Khối chữ có `key` thì
   // phần tử chữ giữ lại key đó (bộ phát dùng để bấm lên slide là sửa đúng dòng).
-  function column(blocks, { x, w, top, bottom }) {
-    const laid = _lay(blocks, x, w);
+  // fit: chữ dài quá khoảng [top, bottom] (khách sửa lời dài, khung dọc hẹp) thì thu cả cỡ chữ lẫn
+  // khoảng cách từng bậc 6%, nhỏ nhất còn 70% — thay vì tràn ra ngoài khung.
+  function column(blocks, { x, w, top, bottom, fit }) {
+    let laid = _lay(blocks, x, w);
+    for (let k = 0.94; fit && laid.h > bottom - top && k > 0.69; k -= 0.06) laid = _lay(_scaleBlocks(blocks, k), x, w);
     const y0 = top + Math.max(0, (bottom - top - laid.h) / 2);
     laid.els.forEach((el) => _shift(el, y0));
     return laid.els;
+  }
+
+  function _scaleBlocks(blocks, k) {
+    return blocks.map((b) => {
+      if (!b) return b;
+      const o = { ...b, mt: (b.mt || 0) * k };
+      if (b.font) o.font = { ...b.font, size: Math.round(b.font.size * k) };
+      if (b.ls) o.ls = b.ls * k;
+      if (b.cols) o.cols = b.cols.map((col) => _scaleBlocks(col, k));
+      return o;
+    });
   }
 
   function _lay(blocks, x, w) {

@@ -656,7 +656,7 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   Thiết lập và bảng thư viện của Slide cưới; trang chỉ khai hai cú bấm (`onPick`, `onPreview`).
 - **Slide cưới (`slide-cuoi/`):** mẫu slide ở `templates/<id>/` chỉ KHAI cảnh dưới dạng dữ
   liệu (`CX_SLIDE.scenes`); vẽ bằng canvas ở `engine/slide-engine.js` — xem trước, trình chiếu
-  và xuất MP4 1080p/4K + bản "TikTok" dọc 2K đặt trên ảnh hội trường (đăng mạng xã hội;
+  và xuất MP4 1080p/4K + bản "TikTok" dọc 2K đặt trên ảnh hội trường (slide dọc 9:16 thì chiếm trọn khung; đăng mạng xã hội;
   ô màn chiếu khai ở `HALL`, CSS `.sc-stage.is-hall` theo cùng số) (`engine/slide-export.js`, WebCodecs, chạy trên máy khách) dùng CHUNG
   bộ vẽ đó, đừng vẽ riêng cho một bên. Trang cha lấy thiệp (mọi thiệp của tài khoản) rồi
   `postMessage` vào iframe — mẫu không tự gọi API. Mọi chữ trên slide phải sửa được ở mục

@@ -1,13 +1,15 @@
 // Slide sân khấu "Trăm Năm Hạnh Phúc": CHỈ CÓ ẢNH, không chữ — mọi ảnh PHỦ KÍN ô của nó, chỉ có
 // hiệu ứng vào + Ken Burns/lia máy + chuyển cảnh; nền trắng cùng tông "Ngày Chung Đôi". Khung ngang 16:9 (1280×720): ảnh cưới đa số dọc
 // nên mỗi màn ghép 2–3 ảnh lấp kín khung, thỉnh thoảng một ảnh tràn khung lia dọc. Khung vuông 1:1
-// (1080×1080, `?ratio=1x1`): đa số một ảnh một khung, xen màn 2–3 ảnh. 60 ô ảnh, thiệp ít ảnh thì
-// lặp vòng. Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime.
+// (1080×1080, `?ratio=1x1`) và dọc 9:16 (1080×1920, `?ratio=9x16`): đa số một ảnh một khung, xen màn
+// 2–3 ảnh. 60 ô ảnh, thiệp ít ảnh thì lặp vòng. Chỉ KHAI cảnh; vẽ/chạy/xuất là việc của engine + runtime.
 
 (function () {
-  const SQ = new URLSearchParams(location.search).get("ratio") === "1x1";
-  const W = SQ ? 1080 : 1280;
-  const H = SQ ? 1080 : 720;
+  const RT = new URLSearchParams(location.search).get("ratio");
+  const SQ = RT === "1x1";
+  const TALL = RT === "9x16";
+  const W = SQ || TALL ? 1080 : 1280;
+  const H = TALL ? 1920 : SQ ? 1080 : 720;
   const C = { bg: "#FFFFFF", empty: "#EEECEA" };
   const SLOTS = 60;
   const GAP = 6; // khe giữa các ảnh ghép (lộ nền trắng)
@@ -91,9 +93,16 @@
     return S.done(5, TR[k % TR.length]);
   };
 
-  // Hai ảnh: chia đôi (cột), hoặc chia lệch 60/40 đổi bên xen kẽ. Hai ô mở ngược chiều nhau.
+  // Hai ảnh: chia đôi (cột; khung dọc thì hàng), hoặc chia lệch 60/40 đổi bên xen kẽ. Hai ô mở ngược chiều nhau.
   const duo = (k, wide) => (S) => {
-    const a = Math.round((W - GAP) * (wide ? (k % 2 ? 0.4 : 0.6) : 0.5));
+    const f = wide ? (k % 2 ? 0.4 : 0.6) : 0.5;
+    if (TALL) {
+      const a = Math.round((H - GAP) * f);
+      S.img({ x: 0, y: 0, w: W, h: a, kb: "in" }, A("reveal", 0, { from: "left", t: 1.4, drift: 80 }));
+      S.img({ x: 0, y: a + GAP, w: W, h: H - a - GAP, kb: true }, A("reveal", 3, { from: "right", t: 1.4, drift: 80 }));
+      return S.done(5.5, k % 2 ? "slide-up" : "fade");
+    }
+    const a = Math.round((W - GAP) * f);
     S.img({ x: 0, y: 0, w: a, h: H, kb: "in" }, A("reveal", 0, { from: "top", t: 1.4, drift: 80 }));
     S.img({ x: a + GAP, y: 0, w: W - a - GAP, h: H, kb: true }, A("reveal", 3, { from: "bottom", t: 1.4, drift: 80 }));
     return S.done(5.5, k % 2 ? "split" : "fade");
@@ -113,8 +122,21 @@
     return S.done(6, k % 2 ? "slide-up" : "slide");
   };
 
-  // Ảnh lớn một bên + hai ảnh xếp chồng bên kia (đổi bên xen kẽ).
+  // Ảnh lớn một bên + hai ảnh xếp chồng bên kia (đổi bên xen kẽ); khung dọc: ảnh lớn trên/dưới +
+  // hai ảnh dọc kề nhau.
   const trioMain = (k) => (S) => {
+    if (TALL) {
+      const bh = Math.round((H - GAP) * 0.56);
+      const sh = H - GAP - bh;
+      const sw = (W - GAP) / 2;
+      const top = k % 2 === 0;
+      const by = top ? 0 : sh + GAP;
+      const sy = top ? bh + GAP : 0;
+      S.img({ x: 0, y: by, w: W, h: bh, kb: "in" }, A("zoom", 0, { s0: 1.15, t: 1.6, keep: true }));
+      S.img({ x: 0, y: sy, w: sw, h: sh }, A("reveal", 4, { from: top ? "bottom" : "top", t: 1.3, drift: 60 }));
+      S.img({ x: sw + GAP, y: sy, w: sw, h: sh }, A("reveal", 6, { from: top ? "bottom" : "top", t: 1.3, drift: 60 }));
+      return S.done(6, "fade");
+    }
     const bw = Math.round((W - GAP) * (SQ ? 0.6 : 0.62));
     const sw = W - GAP - bw;
     const sh = (H - GAP) / 2;
@@ -129,7 +151,9 @@
 
   // Nhịp màn theo khổ khung: ngang thì đa số ghép 2–3 ảnh (ảnh dọc lấp kín khung ngang), thỉnh
   // thoảng một ảnh tràn khung; vuông thì đa số một ảnh một khung, xen màn 2–3 ảnh.
-  const RHYTHM = SQ
+  const RHYTHM = TALL
+    ? ["one", "one", "one", "trioMain", "one", "one", "duo", "one", "one", "one", "trioMain", "one", "one", "duoWide"]
+    : SQ
     ? ["one", "one", "one", "duo", "one", "one", "trioMain", "one", "one", "one", "duo", "one", "one", "trioMain"]
     : ["trioCols", "duo", "trioMain", "one", "duoWide", "trioMid", "duo", "trioMain", "trioCols", "one", "duoWide", "trioMid"];
   const SIZE = { one: 1, duo: 2, duoWide: 2, trioCols: 3, trioMid: 3, trioMain: 3 };
@@ -156,7 +180,7 @@
       const first = slot.n;
       const label = n === 1 ? `Ảnh ${first}` : `Ảnh ${first}–${first + n - 1}`;
       // Id cảnh theo khổ: hai tỉ lệ chia cảnh khác nhau nên thời lượng/thứ tự khách chỉnh không lẫn.
-      const sid = `${SQ ? "q" : "w"}${scenes.length + 1}`;
+      const sid = `${TALL ? "t" : SQ ? "q" : "w"}${scenes.length + 1}`;
       // Ảnh bìa mở màn khi màn đầu là một ảnh (gọi own() ở chỗ khác là ăn mất một ảnh album).
       const fn = MAKE[kind](k, first === 1 && kind === "one" ? pool.own("cover_image_url") : null);
       scenes.push(fn(_stage(sid, label, L, pool, slot)));
