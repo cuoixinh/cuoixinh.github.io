@@ -23,7 +23,8 @@
 > nói để cô dâu thu âm theo ở tab Âm thanh; phần dài quá khung tự chia thêm cảnh nối tiếp (không cố
 > định 3 cảnh). Chú rể chỉ có "My groom" ngắn, không có cảnh "My bride". KHÔNG hiện tên bố mẹ.
 > Mẫu thứ ba: `templates/ngay-chung-doi/` ("Ngày Chung Đôi") — nền trắng tối giản, ẢNH LÀ CHÍNH:
-> mỗi cảnh một bố cục ghép 1–4 ảnh, chữ chỉ một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần,
+> 20 cảnh / 60 ô ảnh khác nhau (khách đổ một lần bằng nút "Tải nhiều ảnh" ở tab Cảnh — điền ô trống
+> theo thứ tự chiếu, ảnh xếp theo tên file), mỗi cảnh một bố cục ghép 1–6 ảnh, chữ chỉ một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần,
 > ảnh in viền trắng đổ bóng (`mat`/`drop` của engine), tiêu đề vắt qua mép ảnh đổi màu (`clip`).
 >
 > **Vẽ bằng canvas + xuất video bằng WebCodecs (chốt 2026-11-06)**, chạy trọn trên máy khách:

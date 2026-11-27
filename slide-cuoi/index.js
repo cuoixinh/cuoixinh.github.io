@@ -1024,6 +1024,82 @@ _scEl("sc-ph-file").addEventListener("change", async (e) => {
   _scPhSend(pick.index);
 });
 
+// "Tải nhiều ảnh": đổ một loạt ảnh vào các ô theo thứ tự chiếu, chỉ vào ô chưa có ảnh của khách;
+// ảnh xếp theo tên file (IMG_0001…) nên giữ đúng thứ tự chụp. Không hỏi lấy nét từng tấm (ảnh canh
+// giữa, ô nào lệch thì bấm Lấy nét). Cả lượt là MỘT bước hoàn tác.
+function scPhotosBulk() {
+  if (_scPhBusy()) return;
+  if (!_scCues.some((c) => c.photos.length)) return window.showToast?.("Mẫu này không có ô ảnh nào", "warning");
+  const input = _scEl("sc-ph-files");
+  input.value = "";
+  input.click();
+}
+
+_scEl("sc-ph-files").addEventListener("change", async (e) => {
+  const files = [...(e.target.files || [])].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  e.target.value = "";
+  if (!files.length || _scPhBusy()) return;
+  const H = window.ImageHelper;
+  const txKey = _scTxKey();
+  const slots = _scCues.flatMap((c) => c.photos.map((p) => p.key)).filter((k) => !_scPh.map[k]);
+  if (!slots.length) {
+    window.showToast?.("Mọi ô ảnh đã có ảnh của bạn — bấm “Về ảnh của thiệp” rồi tải lại", "warning");
+    return;
+  }
+  const ok = files.filter((f) => !H || H.isAllowedType(f));
+  const use = ok.slice(0, slots.length);
+  const done = [];
+  let failed = files.length - ok.length;
+  let unsaved = false;
+  await _scPhQ;
+  try {
+    for (let i = 0; i < use.length; i++) {
+      if (_scPh.key !== txKey) return; // đã đổi mẫu / thiệp giữa chừng
+      window.showLoading?.(true, `Đang xử lý ảnh ${i + 1}/${use.length}...`);
+      const f = use[i];
+      let buf;
+      let type;
+      try {
+        const out = H ? (await H.prepareImage(f, _SC_PH_LIMITS)).file : f;
+        buf = await out.arrayBuffer();
+        type = out.type || f.type;
+        if (!buf.byteLength) throw new Error("empty");
+      } catch (err) {
+        failed++;
+        continue;
+      }
+      const key = slots[done.length];
+      const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+      try {
+        await _scDbDo("readwrite", (st) => st.put({ id, buf, type, name: f.name, focal: null }, `${txKey}|${key}`));
+      } catch (err) {
+        console.warn("Không lưu được ảnh slide:", err);
+        unsaved = true;
+      }
+      done.push({ key, id, name: f.name, blob: new Blob([buf], { type }) });
+    }
+  } finally {
+    window.showLoading?.(false);
+  }
+  if (_scPh.key !== txKey || !done.length) {
+    if (failed) window.showToast?.("Không đọc được ảnh nào — hãy dùng JPG, PNG hoặc WebP (ảnh iPhone .HEIC cần đổi sang JPG).", "error");
+    return;
+  }
+  done.forEach((d) => _scPhBank.set(d.id, { blob: d.blob, name: d.name }));
+  _scHistDo("Tải nhiều ảnh", () =>
+    done.forEach((d) => (_scPh.map[d.key] = { id: d.id, blob: d.blob, url: URL.createObjectURL(d.blob), focal: null })),
+  );
+  _scPhRender();
+  _scPhSend();
+  const extra = ok.length - use.length;
+  const notes = [
+    extra > 0 && `${extra} ảnh thừa (mẫu còn ${slots.length} ô trống)`,
+    failed > 0 && `${failed} ảnh không đọc được`,
+  ].filter(Boolean);
+  window.showToast?.(`Đã đưa ${done.length} ảnh vào slide${notes.length ? ` · ${notes.join(" · ")}` : ""}`, notes.length ? "warning" : "success");
+  if (unsaved) window.showToast?.("Máy không cho lưu ảnh (bộ nhớ trình duyệt đầy hoặc đang ở chế độ ẩn danh)", "warning");
+});
+
 // Chỉnh lại điểm lấy nét của ảnh đã tải lên.
 async function scPhotoFocal(key, index, w, h) {
   const txKey = _scTxKey();

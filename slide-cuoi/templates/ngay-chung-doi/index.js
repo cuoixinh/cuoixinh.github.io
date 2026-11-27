@@ -1,7 +1,7 @@
-// Slide sân khấu "Ngày Chung Đôi" (1280×720): nền trắng tối giản, ẢNH LÀ CHÍNH — mỗi cảnh một bố
-// cục ghép 1–4 ảnh, chữ chỉ là một cụm ngắn (tiêu đề mảnh, chữ ký, câu trích) hoặc không có chữ.
-// Trang trí bằng cành lá nét chì tự vẽ dần, ảnh in viền trắng đổ bóng. Thiệp ít ảnh thì ảnh lặp
-// vòng cho đủ khung. Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime.
+// Slide sân khấu "Ngày Chung Đôi" (1280×720): nền trắng tối giản, ẢNH LÀ CHÍNH — đủ 60 ô ảnh khác
+// nhau (khách đổ một lần bằng "Tải nhiều ảnh"), mỗi cảnh ghép 1–6 ảnh, chữ chỉ một cụm ngắn hoặc
+// không có. Cành lá nét chì tự vẽ dần, ảnh in viền trắng đổ bóng. Thiệp ít ảnh thì ảnh lặp vòng
+// cho đủ khung. Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime.
 
 (function () {
   const W = 1280;
@@ -210,11 +210,9 @@
     const pool = _pool(w);
     const cd = _day(w.ceremony_date);
     const date = cd ? `${_pad(cd.getDate())} . ${_pad(cd.getMonth() + 1)} . ${cd.getFullYear()}` : "";
-    const scenes = [];
-    const add = (sid, label, fn) => {
-      const S = _stage(sid, label, L, pool);
-      scenes.push(fn(S));
-    };
+    // Cảnh đăng ký theo id rồi dựng theo ORDER ở cuối — ô ảnh lấy từ kho theo đúng thứ tự chiếu.
+    const lay = new Map();
+    const add = (sid, label, fn) => lay.set(sid, [label, fn]);
     const print = { mat: 8, drop: C.drop };
 
     // ── Mở đầu: mảng kem trái, ảnh lớn, tiêu đề mảnh viết hoa, ảnh ngang nhỏ dưới ──
@@ -233,17 +231,18 @@
       return S.done(8, "fade");
     });
 
+    // Bố cục chỉ có ảnh, dùng hai lượt (lượt hai `flip` đổi hướng bay / lật trái phải) cho đủ 60 ô.
     // ── Bốn khung dọc thẳng hàng, cành lá phác chì ở hai góc trên ──
-    add("frames", "Bốn khung ảnh", (S) => {
+    const frames = (flip) => (S) => {
       S.sprig(-6, 96, -24, 300, 0, { leaf: 0.2 });
       S.sprig(36, -6, 62, 200, 2, { leaves: 7, leaf: 0.2 });
       S.sprig(1286, 96, 204, 300, 1, { leaf: 0.2 });
       S.sprig(1244, -6, 118, 200, 3, { leaves: 7, leaf: 0.2 });
       [0, 1, 2, 3].forEach((k) =>
-        S.img(k, { x: 28 + k * 314, y: 92, w: 284, h: 572 }, A("fly", 2 + k * 2, { from: k % 2 ? "top" : "bottom" })),
+        S.img(k, { x: 28 + k * 314, y: 92, w: 284, h: 572 }, A("fly", 2 + k * 2, { from: (k % 2) ^ flip ? "top" : "bottom" })),
       );
       return S.done(7, "slide");
-    });
+    };
 
     // ── Ảnh dọc tràn mép trái, chữ ký giữa, hai ảnh so le, câu trích nhạt ──
     add("married", "Hạnh phúc", (S) => {
@@ -267,13 +266,15 @@
       return S.done(7, "slide");
     });
 
-    // ── Ảnh lớn trái + hai ảnh xếp chồng phải, không chữ ──
-    add("duo", "Ảnh lớn", (S) => {
-      S.img(0, { x: 0, y: 0, w: 930, h: H }, A("reveal", 0, { from: "left", t: 1.6, drift: 140 }));
-      S.img(1, { x: 940, y: 0, w: 340, h: 355 }, A("fly", 4, { from: "right" }));
-      S.img(2, { x: 940, y: 365, w: 340, h: 355 }, A("fly", 6, { from: "br" }));
+    // ── Ảnh lớn + hai ảnh xếp chồng một bên, không chữ ──
+    const duo = (flip) => (S) => {
+      const big = flip ? 350 : 0;
+      const side = flip ? 0 : 940;
+      S.img(0, { x: big, y: 0, w: 930, h: H }, A("reveal", 0, { from: flip ? "right" : "left", t: 1.6, drift: 140 }));
+      S.img(1, { x: side, y: 0, w: 340, h: 355 }, A("fly", 4, { from: flip ? "left" : "right" }));
+      S.img(2, { x: side, y: 365, w: 340, h: 355 }, A("fly", 6, { from: flip ? "bl" : "br" }));
       return S.done(7, "split");
-    });
+    };
 
     // ── Ba ảnh bo góc, dây hoa hồng phấn, chữ ký Happy Wedding ──
     add("happy", "Happy Wedding", (S) => {
@@ -298,13 +299,13 @@
     });
 
     // ── Hai ảnh dọc bo góc giữa hai mảng kem, không chữ ──
-    add("pair", "Hai khung", (S) => {
+    const pair = (S) => {
       S.rect(0, 0, 418, H, C.cream, A("reveal", 0, { from: "top", t: 1.2 }));
       S.rect(988, 0, 292, H, C.cream, A("reveal", 0, { from: "bottom", t: 1.2 }));
       S.img(0, { x: 160, y: 76, w: 428, h: 568, radius: 10 }, A("fly", 3, { from: "left" }));
       S.img(1, { x: 692, y: 76, w: 428, h: 568, radius: 10 }, A("fly", 5, { from: "right" }));
       return S.done(7, "fade");
-    });
+    };
 
     // ── Ảnh ngang lớn, tiêu đề vắt qua mép ảnh (phần trên ảnh thành chữ trắng) ──
     add("begin", "The Beginning", (S) => {
@@ -325,12 +326,32 @@
     });
 
     // ── Ba ảnh dọc chia đều cả khung, không chữ ──
-    add("trio", "Ba ảnh", (S) => {
+    const trio = (flip) => (S) => {
       [0, 1, 2].forEach((k) =>
-        S.img(k, { x: k * 430, y: 0, w: 420, h: H }, A("reveal", k * 3, { from: k % 2 ? "bottom" : "top", t: 1.4, drift: 80 })),
+        S.img(k, { x: k * 430, y: 0, w: 420, h: H }, A("reveal", (flip ? 2 - k : k) * 3, { from: (k % 2) ^ flip ? "bottom" : "top", t: 1.4, drift: 80 })),
       );
       return S.done(7, "split");
-    });
+    };
+
+    // ── Lưới sáu ảnh ba cột hai hàng tràn khung, không chữ ──
+    const grid = (S) => {
+      [0, 1, 2, 3, 4, 5].forEach((k) => {
+        const c = k % 3;
+        const r = Math.floor(k / 3);
+        S.img(k, { x: c * 430, y: r * 365, w: 420, h: 355 }, A("fly", 1 + k * 1.5, { from: r ? "bottom" : "top", s0: 0.9 }));
+      });
+      return S.done(8, "zoom");
+    };
+
+    // ── Năm ảnh: ảnh dọc lớn giữa, hai ảnh xếp chồng mỗi bên, không chữ ──
+    const mosaic = (S) => {
+      S.img(0, { x: 310, y: 0, w: 660, h: H }, A("zoom", 0, { s0: 1.2, t: 2.2 }));
+      S.img(1, { x: 0, y: 0, w: 300, h: 355 }, A("fly", 4, { from: "left" }));
+      S.img(2, { x: 0, y: 365, w: 300, h: 355 }, A("fly", 6, { from: "bl" }));
+      S.img(3, { x: 980, y: 0, w: 300, h: 355 }, A("fly", 5, { from: "right" }));
+      S.img(4, { x: 980, y: 365, w: 300, h: 355 }, A("fly", 7, { from: "br" }));
+      return S.done(8, "fade");
+    };
 
     // ── Ba ảnh, ảnh giữa nhô cao, chữ ký dưới; cành lá phác chì hai góc ──
     add("mine", "You are mine", (S) => {
@@ -369,6 +390,25 @@
       return S.done(8, "zoom");
     });
 
-    return scenes;
+    add("frames", "Bốn khung ảnh", frames(0));
+    add("frames2", "Bốn khung ảnh 2", frames(1));
+    add("duo", "Ảnh lớn", duo(0));
+    add("duo2", "Ảnh lớn 2", duo(1));
+    add("pair", "Hai khung", pair);
+    add("pair2", "Hai khung 2", pair);
+    add("trio", "Ba ảnh", trio(0));
+    add("trio2", "Ba ảnh 2", trio(1));
+    add("grid", "Lưới sáu ảnh", grid);
+    add("mosaic", "Năm ảnh", mosaic);
+
+    // 20 cảnh, 60 ô ảnh; cảnh có chữ xen giữa các cảnh chỉ có ảnh.
+    const ORDER = [
+      "open", "frames", "married", "memory", "duo", "happy", "grid", "story", "pair", "begin",
+      "mosaic", "forever", "trio", "frames2", "mine", "duo2", "trio2", "forever2", "pair2", "thanks",
+    ];
+    return ORDER.map((sid) => {
+      const [label, fn] = lay.get(sid);
+      return fn(_stage(sid, label, L, pool));
+    });
   }
 })();
