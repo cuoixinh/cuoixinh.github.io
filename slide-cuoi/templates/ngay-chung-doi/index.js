@@ -251,7 +251,7 @@
       S.img(1, { x: 556, y: 300, w: 316, h: 368 }, A("fly", 3, { from: "bottom" }));
       S.img(2, { x: 915, y: 92, w: 317, h: 372 }, A("fly", 5, { from: "top" }));
       S.col(
-        [S.t("quote", "“Forever,\ntogether\nbegins\ntoday”", { font: F.quote, color: C.quote, lh: 1.05, align: "center", anim: A("lines", 12) })],
+        [S.t("quote", "“Our forever\nbegins\ntoday”", { font: F.quote, color: C.quote, lh: 1.05, align: "center", anim: A("lines", 12) })],
         915, 317, 494, 690,
       );
       return S.done(8, "fade");
@@ -262,7 +262,7 @@
       S.img(0, { x: 36, y: 0, w: 560, h: 556 }, A("fly", 0, { from: "top" }));
       S.img(1, { x: 616, y: 196, w: 316, h: 476 }, A("fly", 3, { from: "bottom" }));
       S.img(2, { x: 952, y: 18, w: 292, h: 470 }, A("fly", 5, { from: "right" }));
-      S.col([S.t("title", "Our memory", caps(F.serif, C.grey, { ls: 2, anim: A("track", 8, { ls0: 24 }) }))], 44, 560, 594, 700);
+      S.col([S.t("title", "Our memories", caps(F.serif, C.grey, { ls: 2, anim: A("track", 8, { ls0: 24 }) }))], 44, 560, 594, 700);
       return S.done(7, "slide");
     });
 
@@ -276,15 +276,15 @@
       return S.done(7, "split");
     };
 
-    // ── Ba ảnh bo góc, dây hoa hồng phấn, chữ ký Happy Wedding ──
-    add("happy", "Happy Wedding", (S) => {
+    // ── Ba ảnh bo góc, dây hoa hồng phấn, chữ ký Just Married ──
+    add("happy", "Just Married", (S) => {
       const r = { radius: 14 };
       S.img(0, { x: 50, y: 64, w: 316, h: 452, ...r }, A("fly", 1, { from: "left" }));
       S.img(1, { x: 420, y: 64, w: 316, h: 452, ...r }, A("fly", 3, { from: "top" }));
       S.img(2, { x: 792, y: 64, w: 438, h: 620, ...r }, A("fly", 5, { from: "right" }));
       S.vine(30, 330, -72, 260, 8);
       S.vine(760, 380, 118, 230, 10);
-      S.col([S.t("script", "Happy Wedding", { font: F.scriptL, color: C.ink, lh: 1.1, align: "center", anim: A("wipe", 9, { t: 2.4 }) })], 40, 706, 560, 700);
+      S.col([S.t("script", "Just Married", { font: F.scriptL, color: C.ink, lh: 1.1, align: "center", anim: A("wipe", 9, { t: 2.4 }) })], 40, 706, 560, 700);
       return S.done(8, "fade");
     });
 
