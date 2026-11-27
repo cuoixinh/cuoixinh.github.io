@@ -54,43 +54,43 @@
             allow="autoplay; fullscreen"
             allowfullscreen
           ></iframe>
+          <!-- Bàn điều khiển NỔI trong khung xem, kiểu trình phát video: ẩn sẵn, bấm vào slide (hoặc rê
+               chuột trên máy tính) thì hiện, bấm ra ngoài hay để yên 3 giây thì ẩn (index.js _scOv).
+               Dải cảnh (mỗi đoạn một cảnh, dài theo thời lượng, bấm là chiếu cảnh đó) · cụm phát (lệnh
+               vào khung, trạng thái khung báo về qua cx-slide-ui / cx-slide-time) · nút hành động. -->
+          <div class="sc-bar">
+            <div class="sc-line">
+              <div id="sc-track" class="sc-track" role="group" aria-label="Các cảnh"></div>
+              <p class="sc-ctl-time"><output id="sc-now">0:00</output><span class="sc-ctl-sep">/</span><span id="sc-total">–:––</span></p>
+            </div>
+            <div id="sc-ctl" class="sc-ctl" role="group" aria-label="Điều khiển trình chiếu">
+              <x-button variant="bare" icon-only icon="skip-back" class="sc-ctl-btn" data-ctl="prev" aria-label="Cảnh trước" title="Cảnh trước"></x-button>
+              <x-button variant="bare" icon-only class="sc-ctl-btn sc-ctl-play" data-ctl="play" aria-label="Phát / tạm dừng" title="Phát / tạm dừng">
+                <span class="sc-ctl-i-pause"><i data-lucide="pause"></i></span><span class="sc-ctl-i-play"><i data-lucide="play"></i></span>
+              </x-button>
+              <x-button variant="bare" icon-only icon="skip-forward" class="sc-ctl-btn" data-ctl="next" aria-label="Cảnh sau" title="Cảnh sau"></x-button>
+              <x-button variant="bare" icon-only class="sc-ctl-btn sc-ctl-music" data-ctl="music" aria-label="Bật / tắt nhạc" title="Bật / tắt nhạc" aria-pressed="false">
+                <span class="sc-ctl-i-on"><i data-lucide="volume-2"></i></span><span class="sc-ctl-i-off"><i data-lucide="volume-x"></i></span>
+              </x-button>
+            </div>
+            <div class="sc-acts">
+              <!-- Đặt slide lên màn chiếu của ảnh hội trường — đúng khung của video TikTok. -->
+              <x-button id="sc-hall-btn" variant="bare" icon="projector" onclick="scHall()" class="sc-ghost sc-hall-btn" aria-pressed="false" aria-label="Xem trên màn chiếu hội trường" title="Màn chiếu hội trường">
+                <span class="sc-act-t">Màn chiếu</span>
+              </x-button>
+              <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="sc-ghost sc-ex-btn" aria-expanded="false" aria-controls="sc-export" title="Xuất video">
+                <span id="sc-ex-btn-label" class="sc-act-t">Xuất video</span>
+              </x-button>
+              <!-- Chỉ hiện khi đang xuất (_scExportBtn), để huỷ được cả khi thẻ nổi đã đóng. -->
+              <x-button id="sc-ex-stop" variant="bare" icon="x" onclick="scExportCancel()" class="sc-ghost sc-ex-stop hidden" aria-label="Huỷ xuất video">
+                <span class="sc-act-t">Huỷ</span>
+              </x-button>
+              <x-button variant="bare" icon="maximize" onclick="scFullscreen()" class="sc-play" title="Trình chiếu toàn màn hình">
+                <span class="sc-act-t">Trình chiếu</span>
+              </x-button>
+            </div>
+          </div>
         </div>
-        <!-- Bàn điều khiển dưới slide: dải cảnh (mỗi đoạn một cảnh, dài theo thời lượng, tô theo giờ
-             đang chiếu, bấm là chiếu cảnh đó) · cụm phát (lệnh vào khung, trạng thái khung báo về qua
-             cx-slide-ui / cx-slide-time) · các nút hành động, "Trình chiếu" là nút chính ở cuối. -->
-        <div class="sc-bar">
-          <div class="sc-line">
-            <div id="sc-track" class="sc-track" role="group" aria-label="Các cảnh"></div>
-            <p class="sc-ctl-time"><output id="sc-now">0:00</output><span class="sc-ctl-sep">/</span><span id="sc-total">–:––</span></p>
-          </div>
-          <div id="sc-ctl" class="sc-ctl" role="group" aria-label="Điều khiển trình chiếu">
-            <x-button variant="bare" icon-only icon="skip-back" class="sc-ctl-btn" data-ctl="prev" aria-label="Cảnh trước" title="Cảnh trước"></x-button>
-            <x-button variant="bare" icon-only class="sc-ctl-btn sc-ctl-play" data-ctl="play" aria-label="Phát / tạm dừng" title="Phát / tạm dừng">
-              <span class="sc-ctl-i-pause"><i data-lucide="pause"></i></span><span class="sc-ctl-i-play"><i data-lucide="play"></i></span>
-            </x-button>
-            <x-button variant="bare" icon-only icon="skip-forward" class="sc-ctl-btn" data-ctl="next" aria-label="Cảnh sau" title="Cảnh sau"></x-button>
-            <x-button variant="bare" icon-only class="sc-ctl-btn sc-ctl-music" data-ctl="music" aria-label="Bật / tắt nhạc" title="Bật / tắt nhạc" aria-pressed="false">
-              <span class="sc-ctl-i-on"><i data-lucide="volume-2"></i></span><span class="sc-ctl-i-off"><i data-lucide="volume-x"></i></span>
-            </x-button>
-          </div>
-          <div class="sc-acts">
-            <!-- Đặt slide lên màn chiếu của ảnh hội trường — đúng khung của video TikTok. -->
-            <x-button id="sc-hall-btn" variant="bare" icon="projector" onclick="scHall()" class="sc-ghost sc-hall-btn" aria-pressed="false" aria-label="Xem trên màn chiếu hội trường">
-              <span class="sc-act-t">Màn chiếu</span>
-            </x-button>
-            <x-button id="sc-export-open" variant="bare" icon="download" onclick="scExportOpen()" class="sc-ghost sc-ex-btn" aria-expanded="false" aria-controls="sc-export">
-              <span id="sc-ex-btn-label" class="sc-act-t">Xuất video</span>
-            </x-button>
-            <!-- Chỉ hiện khi đang xuất (_scExportBtn), để huỷ được cả khi thẻ nổi đã đóng. -->
-            <x-button id="sc-ex-stop" variant="bare" icon="x" onclick="scExportCancel()" class="sc-ghost sc-ex-stop hidden" aria-label="Huỷ xuất video">
-              <span class="sc-act-t">Huỷ</span>
-            </x-button>
-            <x-button variant="bare" icon="maximize" onclick="scFullscreen()" class="sc-play">
-              <span class="sc-act-t">Trình chiếu</span>
-            </x-button>
-          </div>
-        </div>
-
       </section>
 
 

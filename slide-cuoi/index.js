@@ -153,7 +153,10 @@ async function _scPush(force) {
 addEventListener("message", (e) => {
   if (e.source !== _scFrame.contentWindow || e.origin !== location.origin) return;
   const t = e.data?.type;
-  if (t === "cx-slide-ready") _scPush(true);
+  if (t === "cx-slide-ready") {
+    _scPush(true);
+    _scOv(true); // slide vừa lên: hiện thanh một lượt cho khách biết nó nằm ở đây
+  }
   else if (t === "cx-slide-full") scFullscreen();
   else if (t === "cx-slide-state") {
     if (Array.isArray(e.data?.scenes) && _scWaitFrame) {
@@ -165,6 +168,8 @@ addEventListener("message", (e) => {
   else if (t === "cx-slide-caps") _scCaps(e.data);
   else if (t === "cx-slide-export-state") _scExportMsg(e.data);
   else if (t === "cx-slide-edit") _scEditFromSlide(e.data);
+  else if (t === "cx-slide-tap") _scOv(e.data?.mouse || !_scBox.classList.contains("sc-ov-on"));
+  else if (t === "cx-slide-wake") _scOv(true);
   else if (t === "cx-slide-ui") _scCtlUi(e.data);
   else if (t === "cx-slide-time") {
     _scCtlTime(e.data);
@@ -172,7 +177,7 @@ addEventListener("message", (e) => {
   }
 });
 
-// ── Cụm điều khiển ở hàng nút dưới slide: lệnh vào khung, trạng thái khung báo về ──
+// ── Cụm điều khiển trong bàn điều khiển nổi trên khung: lệnh vào khung, trạng thái khung báo về ──
 const _scCtl = _scEl("sc-ctl");
 let _scCtlPlaying = false; // slide mở ra đứng yên (slide-runtime.js), bấm phát mới chạy
 function _scCtlUi(m) {
@@ -222,6 +227,41 @@ _scCtl.addEventListener("click", (e) => {
   // Phát qua cx-slide-play (cũng là lúc bật tiếng — trình duyệt cần một cú bấm của người dùng).
   if (k === "play") win?.postMessage({ type: "cx-slide-play", on: !_scCtlPlaying }, location.origin);
   else win?.postMessage({ type: "cx-slide-act", k }, location.origin);
+});
+
+// Bàn điều khiển nổi trong khung xem (kiểu trình phát video): khung báo cú chạm lên slide
+// (cx-slide-tap — chạm thì bật/tắt, chuột thì luôn hiện) và chuột rê trên slide (cx-slide-wake).
+// Hiện rồi tự ẩn sau _SC_OV_MS; bấm ra ngoài khung là ẩn. Không ẩn khi chuột đang nằm trên
+// thanh, đang focus một nút trong đó, đang mở thẻ "Xuất video" hay đang xuất.
+const _SC_OV_MS = 3000;
+const _scOvBar = _scBox.querySelector(".sc-bar");
+let _scOvT = 0;
+let _scOvHover = false;
+const _scOvHold = () =>
+  _scOvHover ||
+  _scOvBar.contains(document.activeElement) ||
+  _scOvBar.classList.contains("is-run") ||
+  !!_scEl("sc-export")?.isOpen;
+function _scOv(on) {
+  clearTimeout(_scOvT);
+  _scBox.classList.toggle("sc-ov-on", on);
+  if (on) _scOvLater();
+}
+function _scOvLater() {
+  clearTimeout(_scOvT);
+  _scOvT = setTimeout(() => (_scOvHold() ? _scOvLater() : _scOv(false)), _SC_OV_MS);
+}
+_scOvBar.addEventListener("pointerenter", (e) => e.pointerType === "mouse" && (_scOvHover = true));
+_scOvBar.addEventListener("pointerleave", () => {
+  _scOvHover = false;
+  if (_scBox.classList.contains("sc-ov-on")) _scOvLater();
+});
+// Bấm nút trong thanh (kể cả chạm) cũng tính là thao tác: đếm lại 3 giây.
+_scOvBar.addEventListener("pointerdown", () => _scOv(true));
+_scOvBar.addEventListener("focusin", () => _scOv(true));
+document.addEventListener("pointerdown", (e) => {
+  if (!_scBox.classList.contains("sc-ov-on") || _scBox.contains(e.target) || _scEl("sc-export")?.contains(e.target)) return;
+  _scOv(false);
 });
 
 // Phím cách ở bất kỳ đâu trên trang = phát / tạm dừng, kể cả khi đang đứng trên một nút (bắt ở

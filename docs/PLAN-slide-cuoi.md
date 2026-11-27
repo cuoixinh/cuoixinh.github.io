@@ -176,7 +176,7 @@ slide-cuoi/
 - **Bản TikTok** (lựa chọn "TikTok" trong ô Xuất video, mặc định): video DỌC 2K 1440×2560
   ~12 Mbps (H.264 level 5.0+), slide vẽ riêng rồi đặt vào ô màn chiếu của ảnh hội trường
   `slide-cuoi/assets/hall.jpg`, `cuoixinh.com` ở đáy — để đăng TikTok/mạng xã hội. Ô màn chiếu khai MỘT chỗ (`HALL` ở
-  `engine/slide-export.js`); nút "Màn chiếu" dưới slide dựng đúng bố cục đó bằng CSS
+  `engine/slide-export.js`); nút "Màn chiếu" ở bàn điều khiển dựng đúng bố cục đó bằng CSS
   (`.sc-stage.is-hall`) — đổi ảnh hội trường thì sửa cả hai bộ số. 1080p/4K hiện CHƯA khoá theo
   thanh toán (xem dòng dưới).
 - Bán mẫu (chưa làm): khoá theo MẪU slide chứ không theo thiệp. Lúc làm thì phải kiểm ở
