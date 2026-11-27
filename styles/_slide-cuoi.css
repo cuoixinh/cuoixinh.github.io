@@ -1412,6 +1412,14 @@ html.sc-typing .sc-tx-in {
   padding: 12px 16px;
 }
 
+/* Thẻ "Tỉ lệ khung hình" đầu tab Mẫu (cùng khung .sc-time). */
+.sc-ratio {
+  margin-top: 8px;
+}
+.sc-ratio-note {
+  margin: 8px 0 0;
+}
+
 /* Thời gian riêng của cảnh: đầu phần mở rộng của dòng cảnh. */
 .sc-dur {
   margin-bottom: 8px;

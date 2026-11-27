@@ -4,7 +4,8 @@
 // (getWeddingById, chỉ chủ thiệp) rồi gửi sang bằng postMessage mỗi khi khung báo sẵn sàng.
 // Ảnh khách tự thay cho từng cảnh nằm trong IndexedDB của máy, gửi sang dạng Blob.
 
-const _scS = { tpl: CX_SLIDE_TEMPLATES[0]?.id || "", real: false, wid: null, user: null };
+// ratios: {id mẫu: tỉ lệ khách chọn} — chỉ với mẫu khai `ratios` (templates.js).
+const _scS = { tpl: CX_SLIDE_TEMPLATES[0]?.id || "", real: false, wid: null, user: null, ratios: {} };
 let _scList = null; // thiệp của tài khoản; null = chưa tải
 let _scSeq = 0; // đổi phiên làm scLoadList chạy chồng; chỉ lần MỚI NHẤT được vẽ
 let _scSent = ""; // bộ dữ liệu khung đang chiếu — trùng thì khỏi gửi lại (gửi là chạy lại từ đầu)
@@ -29,7 +30,7 @@ const _scIco = (name) => `<i data-lucide="${name}"></i>`;
 const _SC_PREF = "cx_slide_prefs";
 function _scSave() {
   try {
-    localStorage.setItem(_SC_PREF, JSON.stringify({ tpl: _scS.tpl, real: _scS.real, wid: _scS.wid }));
+    localStorage.setItem(_SC_PREF, JSON.stringify({ tpl: _scS.tpl, real: _scS.real, wid: _scS.wid, ratios: _scS.ratios }));
   } catch (e) {}
 }
 function _scRestore() {
@@ -39,6 +40,7 @@ function _scRestore() {
     if (CX_SLIDE_TEMPLATES.some((t) => t.id === p.tpl)) _scS.tpl = p.tpl;
     _scS.real = !!p.real;
     _scS.wid = typeof p.wid === "string" ? p.wid : null;
+    _scS.ratios = p.ratios && typeof p.ratios === "object" ? p.ratios : {};
   } catch (e) {}
 }
 
@@ -53,7 +55,39 @@ function _scRenderTpls() {
       <span class="sc-tpl-desc">${_scEsc(t.desc)}</span>
     </button>`,
   ).join("");
+  _scRenderRatio();
 }
+
+// ── Tỉ lệ khung hình: mẫu khai `ratios` thì cho chọn, lựa chọn nhớ theo từng mẫu. Đổi là nạp lại
+// khung với ?ratio= — chữ/ảnh/thời lượng khách sửa dùng chung mọi tỉ lệ (cùng khoá theo mẫu + thiệp).
+const _SC_RATIO_LABEL = { "16 / 9": "16:9 · Ngang", "1 / 1": "1:1 · Vuông" };
+const _scTpl = () => CX_SLIDE_TEMPLATES.find((x) => x.id === _scS.tpl);
+function _scRatio(t = _scTpl()) {
+  const own = _scS.ratios[t?.id];
+  return t?.ratios?.includes(own) ? own : t?.ratio || "16 / 9";
+}
+function _scRenderRatio() {
+  const t = _scTpl();
+  const list = t?.ratios || [];
+  _scToggle("sc-ratio-box", list.length > 1);
+  if (list.length < 2) return;
+  const cur = _scRatio(t);
+  const seg = _scEl("sc-ratio");
+  seg.style.setProperty("--n", String(list.length));
+  seg.style.setProperty("--i", String(Math.max(0, list.indexOf(cur))));
+  seg.innerHTML = list
+    .map((r) => `<button type="button" class="cx-seg-btn${r === cur ? " is-on" : ""}" data-ratio="${_scEsc(r)}" aria-pressed="${r === cur}">${_scEsc(_SC_RATIO_LABEL[r] || r.replace(/\s/g, ""))}</button>`)
+    .join("");
+}
+_scEl("sc-ratio").addEventListener("click", (e) => {
+  const r = e.target.closest("[data-ratio]")?.dataset.ratio;
+  if (!r || r === _scRatio()) return;
+  if (_scExState === "run") return window.showToast?.("Đang xuất video, đợi xong rồi hãy đổi tỉ lệ", "warning");
+  _scS.ratios[_scS.tpl] = r;
+  _scSave();
+  _scRenderRatio();
+  _scFrameLoad();
+});
 
 _scEl("sc-tpls").addEventListener("click", (e) => {
   const b = e.target.closest("[data-tpl]");
@@ -106,14 +140,13 @@ function _scFrameLoad() {
   _scEl("sc-total").textContent = "–:––";
   _scEl("sc-now").textContent = "0:00";
   _scEl("sc-track").innerHTML = "";
-  const t = CX_SLIDE_TEMPLATES.find((x) => x.id === _scS.tpl);
   // Tỉ lệ dạng chữ cho aspect-ratio của khung, dạng số cho phép tính bề ngang (hàng nút, ô xuất
   // video canh theo bề ngang slide) — đặt ở .sc-app để cả sân khấu cùng đọc.
-  const ratio = t?.ratio || "16 / 9";
+  const ratio = _scRatio();
   const [rw, rh] = ratio.split("/").map(Number);
   _scBox.style.setProperty("--sc-ratio", ratio);
   _scBox.closest(".sc-app")?.style.setProperty("--sc-ratio-n", String(rw > 0 && rh > 0 ? rw / rh : 16 / 9));
-  _scFrame.src = `/slide-cuoi/templates/${encodeURIComponent(_scS.tpl)}/?embed=1`;
+  _scFrame.src = `/slide-cuoi/templates/${encodeURIComponent(_scS.tpl)}/?embed=1&ratio=${rw}x${rh}`;
 }
 
 // ── Gửi dữ liệu sang khung ──
