@@ -1029,9 +1029,65 @@ _scEl("sc-ph-file").addEventListener("change", async (e) => {
 });
 
 // Thẻ "Ảnh của bạn" đầu tab Cảnh: ảnh chọn điền lần lượt từ ô ĐẦU tới ô cuối theo thứ tự chiếu (đè
-// cả ô đã đổi); ít ảnh hơn số ô thì các ô sau giữ nguyên, thừa thì bỏ. Ảnh xếp theo tên file
-// (IMG_0001…) cho đúng thứ tự chụp; không hỏi lấy nét từng tấm. Cả lượt là MỘT bước hoàn tác.
-// Ô chưa được điền vẫn hiện ảnh thiệp / ảnh mẫu (mẫu tự lặp vòng cho đủ khung).
+// cả ô đã đổi), thừa thì bỏ. Ít ảnh hơn số ô: công tắc "lặp ảnh" tắt thì các ô sau giữ nguyên, bật
+// thì các ô sau lặp vòng chính loạt ảnh đó. Ảnh xếp theo tên file (IMG_0001…) cho đúng thứ tự chụp;
+// không hỏi lấy nét từng tấm. Mỗi lượt là MỘT bước hoàn tác (áp qua _scPhApply như hoàn tác).
+const _SC_PH_REPEAT = "cx_slide_ph_repeat";
+// Loạt ảnh vừa nhập (chỉ trong bộ nhớ): bật/tắt công tắc sau khi nhập vẫn lặp / gỡ lặp được cho loạt
+// này. before = ảnh các ô sau TRƯỚC khi bị lặp đè (null = đang là ảnh thiệp / ảnh mẫu).
+let _scPhLast = null; // {txKey, ids, keys, rest, before}
+
+function _scPhRepeatOn() {
+  try {
+    return localStorage.getItem(_SC_PH_REPEAT) === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
+_scEl("sc-ph-repeat").checked = _scPhRepeatOn();
+
+const _scPhRefs = () => {
+  const out = {};
+  Object.entries(_scPh.map).forEach(([k, p]) => (out[k] = { id: p.id, focal: p.focal || null }));
+  return out;
+};
+
+// Lặp loạt ảnh `ids` vào các ô `rest` (ghi lại ảnh cũ của các ô đó vào `before`).
+function _scPhFillRest(refs, last) {
+  last.before = {};
+  last.rest.forEach((k, i) => {
+    last.before[k] = refs[k] || null;
+    refs[k] = { id: last.ids[i % last.ids.length], focal: null };
+  });
+}
+
+// Loạt ảnh vừa nhập còn nằm nguyên ở các ô đầu (chưa hoàn tác / đổi mẫu / trả về ảnh thiệp).
+const _scPhLastLive = () =>
+  _scPhLast && _scPhLast.txKey === _scTxKey() && _scPhLast.keys.every((k, i) => _scPh.map[k]?.id === _scPhLast.ids[i]);
+
+function scPhotosRepeat(on) {
+  try {
+    localStorage.setItem(_SC_PH_REPEAT, on ? "1" : "0");
+  } catch (e) {}
+  const last = _scPhLast;
+  if (!_scPhLastLive() || !last.rest.length || _scPhBusy()) return;
+  const refs = _scPhRefs();
+  if (on) {
+    _scPhFillRest(refs, last);
+    _scHistDo("Lặp ảnh khi thiếu", () => _scPhApply(refs));
+  } else if (last.before) {
+    // Chỉ trả những ô còn đúng ảnh lặp — ô khách đã tự đổi sau đó thì để yên.
+    last.rest.forEach((k, i) => {
+      if (refs[k]?.id !== last.ids[i % last.ids.length]) return;
+      if (last.before[k]) refs[k] = last.before[k];
+      else delete refs[k];
+    });
+    last.before = null;
+    _scHistDo("Bỏ lặp ảnh", () => _scPhApply(refs));
+  }
+}
+
 function scPhotosBulk() {
   if (_scPhBusy()) return;
   if (!_scCues.some((c) => c.photos.length)) return window.showToast?.("Mẫu này không có ô ảnh nào", "warning");
@@ -1052,33 +1108,20 @@ _scEl("sc-ph-files").addEventListener("change", async (e) => {
   const use = ok.slice(0, slots.length);
   const done = [];
   let failed = files.length - ok.length;
-  let unsaved = false;
-  await _scPhQ;
   try {
     for (let i = 0; i < use.length; i++) {
       if (_scPh.key !== txKey) return; // đã đổi mẫu / thiệp giữa chừng
       window.showLoading?.(true, `Đang xử lý ảnh ${i + 1}/${use.length}...`);
       const f = use[i];
-      let buf;
-      let type;
       try {
         const out = H ? (await H.prepareImage(f, _SC_PH_LIMITS)).file : f;
-        buf = await out.arrayBuffer();
-        type = out.type || f.type;
+        const buf = await out.arrayBuffer();
         if (!buf.byteLength) throw new Error("empty");
+        const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+        done.push({ id, name: f.name, blob: new Blob([buf], { type: out.type || f.type }) });
       } catch (err) {
         failed++;
-        continue;
       }
-      const key = slots[done.length];
-      const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-      try {
-        await _scDbDo("readwrite", (st) => st.put({ id, buf, type, name: f.name, focal: null }, `${txKey}|${key}`));
-      } catch (err) {
-        console.warn("Không lưu được ảnh slide:", err);
-        unsaved = true;
-      }
-      done.push({ key, id, name: f.name, blob: new Blob([buf], { type }) });
     }
   } finally {
     window.showLoading?.(false);
@@ -1087,24 +1130,27 @@ _scEl("sc-ph-files").addEventListener("change", async (e) => {
     if (failed) window.showToast?.("Không đọc được ảnh nào — hãy dùng JPG, PNG hoặc WebP (ảnh iPhone .HEIC cần đổi sang JPG).", "error");
     return;
   }
-  done.forEach((d) => {
-    _scPhBank.set(d.id, { blob: d.blob, name: d.name });
-    if (_scPh.map[d.key]) URL.revokeObjectURL(_scPh.map[d.key].url);
-  });
-  _scHistDo("Tải nhiều ảnh", () =>
-    done.forEach((d) => (_scPh.map[d.key] = { id: d.id, blob: d.blob, url: URL.createObjectURL(d.blob), focal: null })),
-  );
-  _scPhRender();
-  _scPhSend();
+  done.forEach((d) => _scPhBank.set(d.id, { blob: d.blob, name: d.name }));
+  const last = {
+    txKey,
+    ids: done.map((d) => d.id),
+    keys: slots.slice(0, done.length),
+    rest: slots.slice(done.length),
+    before: null,
+  };
+  const refs = _scPhRefs();
+  last.keys.forEach((k, i) => (refs[k] = { id: last.ids[i], focal: null }));
+  const repeat = _scPhRepeatOn() && last.rest.length > 0;
+  if (repeat) _scPhFillRest(refs, last);
+  _scPhLast = last;
+  _scHistDo("Nhập ảnh", () => _scPhApply(refs));
   const extra = ok.length - use.length;
-  const rest = slots.length - done.length;
   const notes = [
-    rest > 0 && `${rest} ô sau giữ nguyên`,
+    last.rest.length > 0 && (repeat ? `${last.rest.length} ô sau lặp lại các ảnh này` : `${last.rest.length} ô sau giữ nguyên`),
     extra > 0 && `${extra} ảnh thừa (slide có ${slots.length} ô)`,
     failed > 0 && `${failed} ảnh không đọc được`,
   ].filter(Boolean);
   window.showToast?.(`Đã điền ${done.length} ảnh vào ${done.length} ô đầu${notes.length ? ` · ${notes.join(" · ")}` : ""}`, extra > 0 || failed > 0 ? "warning" : "success");
-  if (unsaved) window.showToast?.("Máy không cho lưu ảnh (bộ nhớ trình duyệt đầy hoặc đang ở chế độ ẩn danh)", "warning");
 });
 
 // Chỉnh lại điểm lấy nét của ảnh đã tải lên.
@@ -1153,6 +1199,7 @@ async function scPhotosReset() {
     await _scDbDo("readwrite", (st) => st.delete(IDBKeyRange.bound(prefix, prefix + "\uffff")));
   } catch (e) {}
   if (_scPh.key !== txKey) return;
+  _scPhLast = null;
   _scHistDo("Về ảnh của thiệp", _scPhClear);
   _scPhRender();
   _scPhSend();

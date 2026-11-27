@@ -1297,6 +1297,10 @@ html.sc-typing .sc-tx-in {
 .sc-import-btn:hover {
   background: rgb(var(--action-primary-deep-rgb));
 }
+.sc-import-rep {
+  margin-top: 12px;
+  padding: 12px 16px;
+}
 
 /* Thời gian riêng của cảnh: đầu phần mở rộng của dòng cảnh. */
 .sc-dur {

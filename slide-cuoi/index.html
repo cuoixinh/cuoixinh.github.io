@@ -225,8 +225,15 @@
               <span id="sc-import-l" class="sc-time-l"><i data-lucide="images"></i>Ảnh của bạn</span>
               <output id="sc-import-n" class="sc-import-n"></output>
             </div>
-            <p class="sc-import-desc">Chọn ảnh một lần, slide tự điền từ ô đầu tới ô cuối. Ít ảnh hơn số ô thì các ô sau giữ nguyên.</p>
+            <p class="sc-import-desc">Chọn ảnh một lần, slide tự điền từ ô đầu tới ô cuối.</p>
             <x-button id="sc-ph-bulk" variant="bare" icon="image-up" onclick="scPhotosBulk()" class="sc-import-btn">Chọn ảnh</x-button>
+            <label class="sc-check sc-import-rep">
+              <span class="sc-check-text">
+                <span class="sc-check-title">Cho phép lặp ảnh khi thiếu</span>
+                <span class="sc-check-desc">Ít ảnh hơn số ô thì các ô sau lặp lại ảnh của bạn. Tắt thì các ô sau giữ nguyên.</span>
+              </span>
+              <input id="sc-ph-repeat" type="checkbox" role="switch" class="cx-switch" onchange="scPhotosRepeat(this.checked)" />
+            </label>
           </div>
           <div class="sc-time" role="group" aria-labelledby="sc-time-l">
             <div class="sc-time-head">

@@ -23,7 +23,9 @@
 > nói để cô dâu thu âm theo ở tab Âm thanh; phần dài quá khung tự chia thêm cảnh nối tiếp (không cố
 > định 3 cảnh). Chú rể chỉ có "My groom" ngắn, không có cảnh "My bride". KHÔNG hiện tên bố mẹ.
 > **Nhập ảnh cả slide** (thẻ "Ảnh của bạn" đầu tab Cảnh, mọi mẫu): ảnh chọn điền lần lượt từ ô ĐẦU tới ô
-> cuối theo thứ tự chiếu, đè cả ô đã đổi; ít ảnh hơn số ô thì các ô sau giữ nguyên, thừa thì bỏ. Ảnh xếp
+> cuối theo thứ tự chiếu, đè cả ô đã đổi; thừa thì bỏ. Ít ảnh hơn số ô: công tắc "Cho phép lặp ảnh khi
+> thiếu" (nhớ ở localStorage) tắt thì các ô sau giữ nguyên, bật thì các ô sau lặp vòng loạt ảnh đó —
+> bật/tắt sau khi nhập cũng áp ngay cho loạt vừa nhập. Ảnh xếp
 > theo tên file. Ô chưa điền vẫn là ảnh thiệp / ảnh mẫu, lặp vòng như cũ.
 > Mẫu thứ ba: `templates/ngay-chung-doi/` ("Ngày Chung Đôi") — nền trắng tối giản, ẢNH LÀ CHÍNH:
 > 20 cảnh / 60 ô ảnh khác nhau (khách đổ một lần ở thẻ "Ảnh của bạn" đầu tab Cảnh), mỗi cảnh một bố cục ghép 1–6 ảnh, chữ chỉ một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần,
