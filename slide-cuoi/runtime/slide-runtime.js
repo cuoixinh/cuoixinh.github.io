@@ -176,7 +176,10 @@
     draw();
     if (P) {
       const tt = ((t % P.total) + P.total) % P.total;
-      Music.tick(tt, playing && !exporting && Music.wanted());
+      // Nhạc là đồng hồ chính: lệch nhỏ thì kéo đồng hồ slide về phía nhạc (không tua nhạc, tua
+      // trên iPhone là hụt tiếng một nhịp rồi lại lệch — nghe giật giật).
+      const drift = Music.tick(tt, playing && !exporting && Music.wanted());
+      if (drift) t += drift * 0.15;
       Voice.tick(tt, playing && !exporting && Music.wanted());
       // Vị trí đang phát cho dòng thời gian của trang cha (~10 lần/giây).
       if (EMBED && now - sentAt > 100) {
@@ -193,6 +196,7 @@
     if (stop) pause();
     fresh = false;
     t = Math.min(Math.max(0, Number(at) || 0), P.total - 0.01);
+    Music.resync();
     snap = null;
     idx = -1;
     draw();
@@ -217,6 +221,7 @@
     jumpIdx = i;
     fresh = false;
     t = rest ? settled(i) : P.starts[i];
+    Music.resync();
     idx = -1; // để draw() báo cảnh mới
     draw();
   }
@@ -234,6 +239,7 @@
     if (fresh && P) t = 0;
     fresh = false;
     playing = true;
+    Music.resync();
     Music.play();
     sync();
     report();
@@ -468,7 +474,12 @@
         if (run && !quiet && !c.mute && tt >= c.start && tt < c.start + c.len) {
           any = true;
           const want = c.in + (tt - c.start);
-          if (!x.el.seeking && Math.abs(x.el.currentTime - want) > 0.35) {
+          const off = Math.abs(x.el.currentTime - want);
+          // Lúc bắt đầu đoạn thì đặt đúng chỗ; đang phát thì chỉ tua khi lệch xa và cách lần tua
+          // trước ≥ 1 giây — iPhone mất vài trăm ms mới phát tiếp sau khi tua, tua dồn là giật.
+          const now = performance.now();
+          if (!x.el.seeking && (x.el.paused ? off > 0.05 : off > 0.6 && now - (x.at || 0) > 1000)) {
+            x.at = now;
             try {
               x.el.currentTime = want;
             } catch (e) {}
@@ -509,6 +520,7 @@
     let blocked = false; // trình duyệt từ chối phát (chưa có cú chạm) — chờ cú chạm đầu tiên
     let vol = 1; // mức nhạc hiện tại (Voice hạ xuống khi có giọng đọc)
     let env = 1; // hệ số to dần / nhỏ dần ở hai mép đoạn
+    let resync = true; // vừa tua / nhảy cảnh / bấm phát: tick sau đặt nhạc khớp đúng đồng hồ
     const apply = () => {
       if (audio) audio.volume = Math.min(1, Math.max(0, vol * env));
     };
@@ -570,31 +582,38 @@
     addEventListener("pointerdown", first, true);
     addEventListener("keydown", first, true);
 
-    // tt = giây trong slide; run = đang phát và đang bật tiếng. Ngoài đoạn thì im; trong đoạn lệch
-    // quá 0,35 giây thì tua lại (tính vòng lặp của bài).
+    // tt = giây trong slide; run = đang phát và đang bật tiếng. Ngoài đoạn thì im. Trả độ lệch
+    // (giây, nhạc − slide) để đồng hồ slide bám theo; chỉ tua nhạc khi vừa tua/nhảy cảnh hoặc
+    // lệch quá 1,5 giây (tính vòng lặp của bài).
     function tick(tt, run) {
-      if (!audio) return;
+      if (!audio) return 0;
       const end = cut.len == null ? (P ? P.total : Infinity) : cut.start + cut.len;
       if (!run || tt < cut.start || tt >= end) {
         if (!audio.paused) audio.pause();
-        return;
+        resync = true;
+        return 0;
       }
       const e = cut.vol * fadeGain(tt - cut.start, end - cut.start, cut.fi, cut.fo) * envGain(cut.env, cut.in + tt - cut.start);
       if (Math.abs(e - env) >= 0.005 || (e !== env && (e === 0 || e === 1))) {
         env = e;
         apply();
       }
+      let drift = 0;
       const d = audio.duration;
       if (Number.isFinite(d) && d > 0 && !audio.seeking) {
         const want = (cut.in + tt - cut.start) % d;
-        const off = Math.abs(audio.currentTime - want);
-        if (off > 0.35 && off < d - 0.35) {
+        let off = audio.currentTime - want;
+        if (off > d / 2) off -= d;
+        else if (off < -d / 2) off += d;
+        if (Math.abs(off) > (resync ? 0.05 : 1.5)) {
           try {
             audio.currentTime = want;
           } catch (e) {}
-        }
+        } else if (!audio.paused && audio.readyState >= 3) drift = off;
+        resync = false;
       }
       if (audio.paused && !blocked) audio.play().catch(refused);
+      return drift;
     }
 
     return {
@@ -602,6 +621,7 @@
       play,
       pause,
       tick,
+      resync: () => (resync = true),
       setCut(c) {
         const n = (v) => Math.max(0, Number(v) || 0);
         // vol: mức của track Nhạc nền (đã tính tắt tiếng / solo ở trang cha); env: đường âm lượng.
