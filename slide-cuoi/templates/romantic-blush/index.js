@@ -1,6 +1,6 @@
 // Slide sân khấu "Mãi mãi về sau" (1280×720, hồng pastel, khối màu phẳng): năm kiểu bố cục (_LAYOUTS)
 // luân phiên, hai cảnh liền nhau không trùng kiểu và đổi bên trái/phải xen kẽ; tiêu đề viết hoa chữ
-// không chân, mọi khối bay từ ngoài vào, quầng sáng trôi trên ảnh + đốm sáng lấp lánh. Từ thiệp
+// không chân, mọi khối bay từ ngoài vào, ảnh không phủ hiệu ứng sáng. Từ thiệp
 // chỉ lấy ảnh, họ tên, ngày cưới, chuyện tình — không tên cha mẹ, không địa chỉ (khách đã ở tiệc).
 // Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime + slide-export.js.
 
@@ -17,7 +17,6 @@
     roseDeep: "#9C5A6E",
     ink: "#4A3A40",
     body: "rgba(74, 58, 64, 0.9)",
-    glow: "rgba(255, 222, 232, 0.55)",
   };
   const SANS = '"Montserrat", "Segoe UI", sans-serif';
   const CORM = '"Cormorant Infant", "Times New Roman", serif';
@@ -58,8 +57,6 @@
     h: H,
     bg: C.paper,
     fade: 0.9,
-    // Đốm sáng lấp lánh trôi lên phủ cả slide (chỉ thấy rõ trên ảnh và mảng hồng).
-    fx: { sparkle: { n: 16, size: 8, alpha: 0.6, seed: 5 } },
     // Thư mục assets/data-template/ làm dữ liệu mẫu khi chưa chọn thiệp.
     demo: "romantic-blush",
     fonts: [
@@ -276,9 +273,8 @@
       type: "group", x: mx(x, s), y, w: s, h: s, anim: _flipAnim(anim, flip),
       kids: [box(x, y, s, s, C.paper), pic(`${sid}.p1`, strip, x + 8, y + 8, s - 16, s - 16)],
     });
-    const glow = (x, y, r) => ({ type: "orb", x: rev ? W - x : x, y, r, color: C.glow, dx: 60, dy: 34, pulse: 0.08 });
     const outline = (x, y, w, h, anim) => ({ type: "frame", x: mx(x, w), y, w, h, stroke: C.band, lw: 2, anim: _flipAnim(anim, flip) });
-    const back = G.build({ sid, photo, strip, pic, box, framed, glow, outline });
+    const back = G.build({ sid, photo, strip, pic, box, framed, outline });
 
     // Cột chữ, canh giữa theo chiều dọc. Khối có `indent` (dấu &) lùi vào; khối `pill` có nền nhãn
     // bo tròn ôm theo chữ, mở ra cùng nhịp với chữ; bố cục canh giữa thì vạch ngắn cũng canh giữa.
@@ -321,9 +317,8 @@
       from: "right",
       compact: true,
       col: { x: 704, w: 472, top: 80, bottom: 640 },
-      build: ({ sid, photo, pic, framed, glow, outline }) => [
+      build: ({ sid, photo, pic, framed, outline }) => [
         pic(sid, photo, 0, 0, 560, 720, { k: "reveal", from: "left", drift: 120, t: 1.5, d: 0 }),
-        glow(160, 140, 320),
         outline(624, 48, 608, 624, { k: "reveal", from: "top", t: 1.4, d: 0.4 }),
         framed(456, 456, 216, { k: "fly", from: "bottom", t: 1.5, d: 0.6 }),
       ],
@@ -333,12 +328,11 @@
     band: {
       from: "right",
       col: { x: 608, w: 512, top: 56, bottom: 664 },
-      build: ({ sid, photo, strip, pic, box, glow }) => [
+      build: ({ sid, photo, strip, pic, box }) => [
         box(0, 0, 400, 720, C.band, { k: "fly", from: "left", t: 1.3, d: 0 }),
         box(1184, 0, 96, 720, C.peach, { k: "fly", from: "right", t: 1.3, d: 0.15 }),
         pic(`${sid}.p1`, strip, 1184, 360, 96, 360, { k: "reveal", from: "bottom", drift: 60, t: 1.4, d: 0.7 }, { kb: "in" }),
         pic(sid, photo, 136, 64, 400, 592, { k: "fly", from: "left", rot: -5, t: 1.6, d: 0.3 }),
-        glow(300, 200, 280),
       ],
     },
     // Thẻ chữ: ảnh lớn chiếm hai phần ba bên phải, thẻ trắng chứa chữ đè lên mép ảnh, mảng hồng
@@ -348,9 +342,8 @@
       compact: true,
       delay: 0.6,
       col: { x: 104, w: 504, top: 96, bottom: 624 },
-      build: ({ sid, photo, pic, box, glow }) => [
+      build: ({ sid, photo, pic, box }) => [
         pic(sid, photo, 520, 0, 760, 720, { k: "fly", from: "right", t: 1.6, d: 0 }),
-        glow(1060, 180, 340),
         box(32, 88, 600, 600, C.band, { k: "fly", from: "bl", t: 1.5, d: 0.2 }),
         box(56, 56, 600, 608, C.paper, { k: "fly", from: "left", t: 1.5, d: 0.35 }),
       ],
@@ -361,10 +354,9 @@
       from: "left",
       compact: true,
       col: { x: 80, w: 480, top: 64, bottom: 656 },
-      build: ({ sid, photo, pic, box, framed, glow }) => [
+      build: ({ sid, photo, pic, box, framed }) => [
         box(600, 128, 680, 464, C.band, { k: "fly", from: "right", t: 1.3, d: 0 }),
         pic(sid, photo, 836, 48, 360, 624, { k: "fly", from: "top", t: 1.6, d: 0.2 }),
-        glow(980, 140, 300),
         framed(616, 404, 256, { k: "fly", from: "bottom", t: 1.6, d: 0.45 }),
       ],
     },
@@ -374,11 +366,10 @@
       from: "bottom",
       center: true,
       col: { x: 448, w: 384, top: 80, bottom: 640 },
-      build: ({ sid, photo, strip, pic, box, glow }) => [
+      build: ({ sid, photo, strip, pic, box }) => [
         box(400, 0, 480, 720, C.band, { k: "reveal", from: "top", t: 1.2, d: 0 }),
         pic(sid, photo, 0, 0, 400, 720, { k: "fly", from: "left", t: 1.6, d: 0.15 }),
         pic(`${sid}.p1`, strip, 880, 0, 400, 720, { k: "fly", from: "right", t: 1.6, d: 0.3 }, { kb: "in" }),
-        glow(200, 120, 280),
       ],
     },
   };
