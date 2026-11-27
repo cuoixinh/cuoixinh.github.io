@@ -1,5 +1,5 @@
 // Slide sân khấu "Trăm Năm Hạnh Phúc": CHỈ CÓ ẢNH, không chữ — mọi ảnh PHỦ KÍN ô của nó, chỉ có
-// hiệu ứng vào + Ken Burns/lia máy + chuyển cảnh. Khung ngang 16:9 (1280×720): ảnh cưới đa số dọc
+// hiệu ứng vào + Ken Burns/lia máy + chuyển cảnh; nền trắng cùng tông "Ngày Chung Đôi". Khung ngang 16:9 (1280×720): ảnh cưới đa số dọc
 // nên mỗi màn ghép 2–3 ảnh lấp kín khung, thỉnh thoảng một ảnh tràn khung lia dọc. Khung vuông 1:1
 // (1080×1080, `?ratio=1x1`): đa số một ảnh một khung, xen màn 2–3 ảnh. 60 ô ảnh, thiệp ít ảnh thì
 // lặp vòng. Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime.
@@ -8,9 +8,9 @@
   const SQ = new URLSearchParams(location.search).get("ratio") === "1x1";
   const W = SQ ? 1080 : 1280;
   const H = SQ ? 1080 : 720;
-  const C = { bg: "#0E0D0C", empty: "#2A2725" };
+  const C = { bg: "#FFFFFF", empty: "#EEECEA" };
   const SLOTS = 60;
-  const GAP = 6; // khe giữa các ảnh ghép (lộ nền tối)
+  const GAP = 6; // khe giữa các ảnh ghép (lộ nền trắng)
   // Nhịp trễ: 1 = 0.15 giây.
   const A = (k, n, o) => ({ k, d: n * 0.15, ...o });
 
@@ -21,7 +21,6 @@
     bg: C.bg,
     fade: 1,
     demo: "hen-uoc",
-    fx: { sparkle: { n: 14, size: 8, alpha: 0.4, seed: 11 } },
     fonts: [],
     scenes: buildScenes,
   };
