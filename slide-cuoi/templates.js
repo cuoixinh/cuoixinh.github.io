@@ -17,4 +17,11 @@ window.CX_SLIDE_TEMPLATES = [
     ratio: "16 / 9",
     thumb: "/slide-cuoi/templates/mai-ben-nhau/thumb.jpg",
   },
+  {
+    id: "ngay-chung-doi",
+    name: "Ngày Chung Đôi",
+    desc: "Nền trắng tối giản, ảnh là chính, ít chữ",
+    ratio: "16 / 9",
+    thumb: "/slide-cuoi/templates/ngay-chung-doi/thumb.jpg",
+  },
 ];
