@@ -153,7 +153,10 @@ async function _scPush(force) {
 addEventListener("message", (e) => {
   if (e.source !== _scFrame.contentWindow || e.origin !== location.origin) return;
   const t = e.data?.type;
-  if (t === "cx-slide-ready") _scPush(true);
+  if (t === "cx-slide-ready") {
+    _scPush(true);
+    _scOv(true); // slide vừa lên: hiện thanh một lượt cho khách biết nó nằm ở đây
+  }
   else if (t === "cx-slide-full") scFullscreen();
   else if (t === "cx-slide-state") {
     if (Array.isArray(e.data?.scenes) && _scWaitFrame) {
@@ -165,6 +168,8 @@ addEventListener("message", (e) => {
   else if (t === "cx-slide-caps") _scCaps(e.data);
   else if (t === "cx-slide-export-state") _scExportMsg(e.data);
   else if (t === "cx-slide-edit") _scEditFromSlide(e.data);
+  else if (t === "cx-slide-tap") _scOv(e.data?.mouse || !_scBox.classList.contains("sc-ov-on"));
+  else if (t === "cx-slide-wake") _scOv(true);
   else if (t === "cx-slide-ui") _scCtlUi(e.data);
   else if (t === "cx-slide-time") {
     _scCtlTime(e.data);
@@ -172,7 +177,7 @@ addEventListener("message", (e) => {
   }
 });
 
-// ── Cụm điều khiển ở hàng nút dưới slide: lệnh vào khung, trạng thái khung báo về ──
+// ── Cụm điều khiển trong bàn điều khiển nổi trên khung: lệnh vào khung, trạng thái khung báo về ──
 const _scCtl = _scEl("sc-ctl");
 let _scCtlPlaying = false; // slide mở ra đứng yên (slide-runtime.js), bấm phát mới chạy
 function _scCtlUi(m) {
@@ -222,6 +227,41 @@ _scCtl.addEventListener("click", (e) => {
   // Phát qua cx-slide-play (cũng là lúc bật tiếng — trình duyệt cần một cú bấm của người dùng).
   if (k === "play") win?.postMessage({ type: "cx-slide-play", on: !_scCtlPlaying }, location.origin);
   else win?.postMessage({ type: "cx-slide-act", k }, location.origin);
+});
+
+// Bàn điều khiển nổi trong khung xem (kiểu trình phát video): khung báo cú chạm lên slide
+// (cx-slide-tap — chạm thì bật/tắt, chuột thì luôn hiện) và chuột rê trên slide (cx-slide-wake).
+// Hiện rồi tự ẩn sau _SC_OV_MS; bấm ra ngoài khung là ẩn. Không ẩn khi chuột đang nằm trên
+// thanh, đang focus một nút trong đó, đang mở thẻ "Xuất video" hay đang xuất.
+const _SC_OV_MS = 3000;
+const _scOvBar = _scBox.querySelector(".sc-bar");
+let _scOvT = 0;
+let _scOvHover = false;
+const _scOvHold = () =>
+  _scOvHover ||
+  _scOvBar.contains(document.activeElement) ||
+  _scOvBar.classList.contains("is-run") ||
+  !!_scEl("sc-export")?.isOpen;
+function _scOv(on) {
+  clearTimeout(_scOvT);
+  _scBox.classList.toggle("sc-ov-on", on);
+  if (on) _scOvLater();
+}
+function _scOvLater() {
+  clearTimeout(_scOvT);
+  _scOvT = setTimeout(() => (_scOvHold() ? _scOvLater() : _scOv(false)), _SC_OV_MS);
+}
+_scOvBar.addEventListener("pointerenter", (e) => e.pointerType === "mouse" && (_scOvHover = true));
+_scOvBar.addEventListener("pointerleave", () => {
+  _scOvHover = false;
+  if (_scBox.classList.contains("sc-ov-on")) _scOvLater();
+});
+// Bấm nút trong thanh (kể cả chạm) cũng tính là thao tác: đếm lại 3 giây.
+_scOvBar.addEventListener("pointerdown", () => _scOv(true));
+_scOvBar.addEventListener("focusin", () => _scOv(true));
+document.addEventListener("pointerdown", (e) => {
+  if (!_scBox.classList.contains("sc-ov-on") || _scBox.contains(e.target) || _scEl("sc-export")?.contains(e.target)) return;
+  _scOv(false);
 });
 
 // Phím cách ở bất kỳ đâu trên trang = phát / tạm dừng, kể cả khi đang đứng trên một nút (bắt ở
@@ -831,6 +871,10 @@ function _scPhRender() {
     )
     .join("|");
   _scToggle("sc-ph-reset", _scCues.some((c) => c.photos.some((p) => _scPh.map[p.key])));
+  const slots = _scCues.flatMap((c) => c.photos);
+  _scToggle("sc-import", slots.length > 0);
+  const own = slots.filter((p) => _scPh.map[p.key]).length;
+  _scEl("sc-import-n").textContent = own ? `Đã có ${own}/${slots.length} ô` : `${slots.length} ô ảnh`;
   if (sig === _scPhSig) return;
   _scPhSig = sig;
   const lis = _scEl("sc-cues").children;
@@ -1024,6 +1068,131 @@ _scEl("sc-ph-file").addEventListener("change", async (e) => {
   _scPhSend(pick.index);
 });
 
+// Thẻ "Ảnh của bạn" đầu tab Cảnh: ảnh chọn điền lần lượt từ ô ĐẦU tới ô cuối theo thứ tự chiếu (đè
+// cả ô đã đổi), thừa thì bỏ. Ít ảnh hơn số ô: công tắc "lặp ảnh" tắt thì các ô sau giữ nguyên, bật
+// thì các ô sau lặp vòng chính loạt ảnh đó. Ảnh xếp theo tên file (IMG_0001…) cho đúng thứ tự chụp;
+// không hỏi lấy nét từng tấm. Mỗi lượt là MỘT bước hoàn tác (áp qua _scPhApply như hoàn tác).
+const _SC_PH_REPEAT = "cx_slide_ph_repeat";
+// Loạt ảnh vừa nhập (chỉ trong bộ nhớ): bật/tắt công tắc sau khi nhập vẫn lặp / gỡ lặp được cho loạt
+// này. before = ảnh các ô sau TRƯỚC khi bị lặp đè (null = đang là ảnh thiệp / ảnh mẫu).
+let _scPhLast = null; // {txKey, ids, keys, rest, before}
+
+function _scPhRepeatOn() {
+  try {
+    return localStorage.getItem(_SC_PH_REPEAT) === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
+_scEl("sc-ph-repeat").checked = _scPhRepeatOn();
+
+const _scPhRefs = () => {
+  const out = {};
+  Object.entries(_scPh.map).forEach(([k, p]) => (out[k] = { id: p.id, focal: p.focal || null }));
+  return out;
+};
+
+// Lặp loạt ảnh `ids` vào các ô `rest` (ghi lại ảnh cũ của các ô đó vào `before`).
+function _scPhFillRest(refs, last) {
+  last.before = {};
+  last.rest.forEach((k, i) => {
+    last.before[k] = refs[k] || null;
+    refs[k] = { id: last.ids[i % last.ids.length], focal: null };
+  });
+}
+
+// Loạt ảnh vừa nhập còn nằm nguyên ở các ô đầu (chưa hoàn tác / đổi mẫu / trả về ảnh thiệp).
+const _scPhLastLive = () =>
+  _scPhLast && _scPhLast.txKey === _scTxKey() && _scPhLast.keys.every((k, i) => _scPh.map[k]?.id === _scPhLast.ids[i]);
+
+function scPhotosRepeat(on) {
+  try {
+    localStorage.setItem(_SC_PH_REPEAT, on ? "1" : "0");
+  } catch (e) {}
+  const last = _scPhLast;
+  if (!_scPhLastLive() || !last.rest.length || _scPhBusy()) return;
+  const refs = _scPhRefs();
+  if (on) {
+    _scPhFillRest(refs, last);
+    _scHistDo("Lặp ảnh khi thiếu", () => _scPhApply(refs));
+  } else if (last.before) {
+    // Chỉ trả những ô còn đúng ảnh lặp — ô khách đã tự đổi sau đó thì để yên.
+    last.rest.forEach((k, i) => {
+      if (refs[k]?.id !== last.ids[i % last.ids.length]) return;
+      if (last.before[k]) refs[k] = last.before[k];
+      else delete refs[k];
+    });
+    last.before = null;
+    _scHistDo("Bỏ lặp ảnh", () => _scPhApply(refs));
+  }
+}
+
+function scPhotosBulk() {
+  if (_scPhBusy()) return;
+  if (!_scCues.some((c) => c.photos.length)) return window.showToast?.("Mẫu này không có ô ảnh nào", "warning");
+  const input = _scEl("sc-ph-files");
+  input.value = "";
+  input.click();
+}
+
+_scEl("sc-ph-files").addEventListener("change", async (e) => {
+  const files = [...(e.target.files || [])].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  e.target.value = "";
+  if (!files.length || _scPhBusy()) return;
+  const H = window.ImageHelper;
+  const txKey = _scTxKey();
+  const slots = _scCues.flatMap((c) => c.photos.map((p) => p.key));
+  if (!slots.length) return;
+  const ok = files.filter((f) => !H || H.isAllowedType(f));
+  const use = ok.slice(0, slots.length);
+  const done = [];
+  let failed = files.length - ok.length;
+  try {
+    for (let i = 0; i < use.length; i++) {
+      if (_scPh.key !== txKey) return; // đã đổi mẫu / thiệp giữa chừng
+      window.showLoading?.(true, `Đang xử lý ảnh ${i + 1}/${use.length}...`);
+      const f = use[i];
+      try {
+        const out = H ? (await H.prepareImage(f, _SC_PH_LIMITS)).file : f;
+        const buf = await out.arrayBuffer();
+        if (!buf.byteLength) throw new Error("empty");
+        const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+        done.push({ id, name: f.name, blob: new Blob([buf], { type: out.type || f.type }) });
+      } catch (err) {
+        failed++;
+      }
+    }
+  } finally {
+    window.showLoading?.(false);
+  }
+  if (_scPh.key !== txKey || !done.length) {
+    if (failed) window.showToast?.("Không đọc được ảnh nào — hãy dùng JPG, PNG hoặc WebP (ảnh iPhone .HEIC cần đổi sang JPG).", "error");
+    return;
+  }
+  done.forEach((d) => _scPhBank.set(d.id, { blob: d.blob, name: d.name }));
+  const last = {
+    txKey,
+    ids: done.map((d) => d.id),
+    keys: slots.slice(0, done.length),
+    rest: slots.slice(done.length),
+    before: null,
+  };
+  const refs = _scPhRefs();
+  last.keys.forEach((k, i) => (refs[k] = { id: last.ids[i], focal: null }));
+  const repeat = _scPhRepeatOn() && last.rest.length > 0;
+  if (repeat) _scPhFillRest(refs, last);
+  _scPhLast = last;
+  _scHistDo("Nhập ảnh", () => _scPhApply(refs));
+  const extra = ok.length - use.length;
+  const notes = [
+    last.rest.length > 0 && (repeat ? `${last.rest.length} ô sau lặp lại các ảnh này` : `${last.rest.length} ô sau giữ nguyên`),
+    extra > 0 && `${extra} ảnh thừa (slide có ${slots.length} ô)`,
+    failed > 0 && `${failed} ảnh không đọc được`,
+  ].filter(Boolean);
+  window.showToast?.(`Đã điền ${done.length} ảnh vào ${done.length} ô đầu${notes.length ? ` · ${notes.join(" · ")}` : ""}`, extra > 0 || failed > 0 ? "warning" : "success");
+});
+
 // Chỉnh lại điểm lấy nét của ảnh đã tải lên.
 async function scPhotoFocal(key, index, w, h) {
   const txKey = _scTxKey();
@@ -1070,6 +1239,7 @@ async function scPhotosReset() {
     await _scDbDo("readwrite", (st) => st.delete(IDBKeyRange.bound(prefix, prefix + "\uffff")));
   } catch (e) {}
   if (_scPh.key !== txKey) return;
+  _scPhLast = null;
   _scHistDo("Về ảnh của thiệp", _scPhClear);
   _scPhRender();
   _scPhSend();
@@ -1552,8 +1722,8 @@ _scEl("sc-tabs").addEventListener("keydown", (e) => {
 });
 
 // ── Gõ chữ trên điện thoại: bàn phím ảo chiếm nửa dưới màn, khung chiếu dính đầu trang chiếm phần
-// trên → ô đang gõ hết chỗ. Lúc gõ (dưới lg) đặt cờ html.sc-typing: khung chiếu thôi dính, thanh
-// tab dưới ẩn, ô gõ cao tối đa bằng phần còn nhìn thấy (--sc-kb-h). Chỉ cuộn ô vào giữa ĐÚNG lúc
+// trên → ô đang gõ hết chỗ. Lúc gõ (dưới lg) đặt cờ html.sc-typing: khung chiếu thôi dính, ô gõ
+// cao tối đa bằng phần còn nhìn thấy (--sc-kb-h). Thanh tab dưới thì navbar.js tự giấu khi gõ. Chỉ cuộn ô vào giữa ĐÚNG lúc
 // bàn phím mọc lên — vuốt trang làm thanh địa chỉ ẩn/hiện cũng đổi khổ visualViewport, cuộn theo
 // đó là kéo trang về ô mãi. Bàn phím cụp xuống (ô vẫn focus — nút Back của Android) = gõ xong:
 // bỏ chọn ô, trả khung chiếu về chỗ.

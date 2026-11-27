@@ -468,6 +468,119 @@ html.sc-lock .cx-navmore-pop {
   flex-shrink: 0;
 }
 
+/* Bàn điều khiển NỔI trong khung xem (Slide cưới đặt .sc-bar trong .sc-screen), kiểu trình phát
+   video: dải tối mờ đáy khung, chữ + biểu tượng trắng (--sc-on đổi thành trắng cho mọi nút con),
+   nút hành động chỉ còn biểu tượng. Ẩn sẵn — cờ .sc-ov-on trên khung (index.js _scOv) mới hiện;
+   lúc ẩn không nhận cú bấm để chạm xuyên vào slide. Toàn màn bằng CSS thì khung tự lo điều khiển. */
+.sc-screen > .sc-bar {
+  --sc-on: 255 255 255;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  gap: 0 4px;
+  width: auto;
+  margin: 0;
+  padding: 32px 8px 4px;
+  border-radius: 0 0 var(--sc-r) var(--sc-r);
+  color: rgb(var(--white-rgb));
+  background: linear-gradient(to top, rgb(0 0 0 / 0.72) 0, rgb(0 0 0 / 0.45) 55%, rgb(0 0 0 / 0) 100%);
+  box-shadow: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.sc-screen.sc-ov-on > .sc-bar {
+  opacity: 1;
+  pointer-events: auto;
+}
+.sc-screen.is-full > .sc-bar {
+  display: none;
+}
+.sc-stage.is-hall .sc-screen > .sc-bar {
+  border-radius: 0;
+}
+.sc-screen > .sc-bar .sc-line {
+  padding-inline: 4px;
+}
+.sc-screen > .sc-bar .sc-seg i {
+  background: rgb(var(--white-rgb) / 0.3);
+}
+.sc-screen > .sc-bar .sc-ctl-time {
+  color: rgb(var(--white-rgb) / 0.75);
+}
+/* Nút phát không còn nền đặc tròn: biểu tượng trắng to hơn các nút cạnh nó, như trình phát video. */
+.sc-screen > .sc-bar .sc-ctl-play {
+  color: inherit;
+  background: none;
+  font-size: 20px;
+}
+.sc-screen > .sc-bar .sc-ctl-btn:hover,
+.sc-screen > .sc-bar .sc-ctl-play:hover {
+  background: rgb(var(--white-rgb) / 0.16);
+}
+.sc-screen > .sc-bar .sc-acts {
+  gap: 2px;
+}
+.sc-screen > .sc-bar .sc-acts > button {
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding-inline: 0;
+  font-size: 18px;
+  color: inherit;
+  background: none;
+  box-shadow: none;
+}
+.sc-screen > .sc-bar .sc-acts > button:hover,
+.sc-screen > .sc-bar .sc-ghost[aria-expanded="true"],
+.sc-screen > .sc-bar .sc-hall-btn[aria-pressed="true"] {
+  color: inherit;
+  background: rgb(var(--white-rgb) / 0.16);
+}
+.sc-screen > .sc-bar .sc-act-t {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+/* Đang xuất video: nút giữ nhãn tiến độ ("Đang xuất 45%") và thanh luôn hiện (cờ .is-run). */
+.sc-screen > .sc-bar .sc-acts > .sc-ex-btn.is-run {
+  width: auto;
+  padding-inline: 12px;
+  font-size: 13px;
+}
+.sc-screen > .sc-bar .sc-ex-btn.is-run .sc-act-t {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+}
+/* Khung nhỏ (điện thoại): dải tối thấp hơn, nút 32px để thanh không che quá nửa slide. */
+@container sc-bar (max-width: 479px) {
+  .sc-screen > .sc-bar .sc-ctl {
+    height: 32px;
+  }
+  .sc-screen > .sc-bar .sc-ctl-btn,
+  .sc-screen > .sc-bar .sc-acts > button {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  .sc-screen > .sc-bar .sc-ctl-play {
+    font-size: 18px;
+  }
+}
+@media (max-width: 639px) {
+  .sc-screen > .sc-bar {
+    padding: 24px 4px 2px;
+  }
+}
+
 /* Thẻ nổi xuất video (x-popover neo vào nút "Xuất video"): bốn trạng thái chọn khổ · đang
    xuất · xong · lỗi. Thẻ nổi nên slide không đổi cỡ. */
 .sc-export {
@@ -1029,9 +1142,6 @@ html.sc-typing .sc-stage {
   position: relative;
   top: auto;
 }
-html.sc-typing .cx-tabbar {
-  display: none;
-}
 html.sc-typing .sc-tx-in {
   max-height: calc(var(--sc-kb-h, 320px) - 96px);
   overflow-y: auto;
@@ -1268,6 +1378,38 @@ html.sc-typing .sc-tx-in {
 .sc-time-def {
   font-size: 13px;
   color: rgb(var(--text-caption-rgb));
+}
+
+/* Thẻ "Ảnh của bạn" (cùng khung với .sc-time): số ô + lời dặn + nút chọn ảnh trải hết bề ngang. */
+.sc-import-n {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-import-desc {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-import-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+}
+.sc-import-btn:hover {
+  background: rgb(var(--action-primary-deep-rgb));
+}
+.sc-import-rep {
+  margin-top: 12px;
+  padding: 12px 16px;
 }
 
 /* Thời gian riêng của cảnh: đầu phần mở rộng của dòng cảnh. */
@@ -2346,9 +2488,9 @@ html.sc-typing .sc-tx-in {
   .sc-studio-only {
     display: inline;
   }
-  /* Sân khấu vừa khít vùng trên: slide co theo cả hai chiều (76px = hàng nút dưới slide + khe). */
+  /* Sân khấu vừa khít vùng trên: slide co theo cả hai chiều (bàn điều khiển nổi trong khung). */
   .sc-studio .sc-stage {
-    --sc-max-h: max(120px, calc(var(--sc-upper-h) - 32px - 76px));
+    --sc-max-h: max(120px, calc(var(--sc-upper-h) - 32px));
     align-self: stretch;
     position: relative;
     top: auto;
@@ -2358,10 +2500,6 @@ html.sc-typing .sc-tx-in {
   /* Dải cảnh + đồng hồ dưới slide trùng với làn Cảnh + thước của dock → bỏ, chừa chỗ cho slide. */
   .sc-studio .sc-line {
     display: none;
-  }
-  .sc-studio .sc-bar {
-    margin-top: 12px;
-    padding: 4px 8px;
   }
   /* Cột phải: tiêu đề đứng yên, dải tab ghim đầu khung cuộn riêng của bảng chỉnh. */
   .sc-studio .sc-head-pin {

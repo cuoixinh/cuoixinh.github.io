@@ -22,6 +22,14 @@
 > uyên ương là lời cô dâu (~1 phút, gửi quan khách · bố mẹ · anh) chạy chữ kiểu máy chữ ở nhịp
 > nói để cô dâu thu âm theo ở tab Âm thanh; phần dài quá khung tự chia thêm cảnh nối tiếp (không cố
 > định 3 cảnh). Chú rể chỉ có "My groom" ngắn, không có cảnh "My bride". KHÔNG hiện tên bố mẹ.
+> **Nhập ảnh cả slide** (thẻ "Ảnh của bạn" đầu tab Cảnh, mọi mẫu): ảnh chọn điền lần lượt từ ô ĐẦU tới ô
+> cuối theo thứ tự chiếu, đè cả ô đã đổi; thừa thì bỏ. Ít ảnh hơn số ô: công tắc "Cho phép lặp ảnh khi
+> thiếu" (nhớ ở localStorage) tắt thì các ô sau giữ nguyên, bật thì các ô sau lặp vòng loạt ảnh đó —
+> bật/tắt sau khi nhập cũng áp ngay cho loạt vừa nhập. Ảnh xếp
+> theo tên file. Ô chưa điền vẫn là ảnh thiệp / ảnh mẫu, lặp vòng như cũ.
+> Mẫu thứ ba: `templates/ngay-chung-doi/` ("Ngày Chung Đôi") — nền trắng tối giản, ẢNH LÀ CHÍNH:
+> 20 cảnh / 60 ô ảnh khác nhau (khách đổ một lần ở thẻ "Ảnh của bạn" đầu tab Cảnh), mỗi cảnh một bố cục ghép 1–6 ảnh, chữ chỉ một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần,
+> ảnh in viền trắng đổ bóng (`mat`/`drop` của engine), tiêu đề vắt qua mép ảnh đổi màu (`clip`).
 >
 > **Vẽ bằng canvas + xuất video bằng WebCodecs (chốt 2026-11-06)**, chạy trọn trên máy khách:
 > xem trước, trình chiếu và xuất video dùng CÙNG một bộ vẽ nên video ra y hệt bản xem.
@@ -168,7 +176,7 @@ slide-cuoi/
 - **Bản TikTok** (lựa chọn "TikTok" trong ô Xuất video, mặc định): video DỌC 2K 1440×2560
   ~12 Mbps (H.264 level 5.0+), slide vẽ riêng rồi đặt vào ô màn chiếu của ảnh hội trường
   `slide-cuoi/assets/hall.jpg`, `cuoixinh.com` ở đáy — để đăng TikTok/mạng xã hội. Ô màn chiếu khai MỘT chỗ (`HALL` ở
-  `engine/slide-export.js`); nút "Màn chiếu" dưới slide dựng đúng bố cục đó bằng CSS
+  `engine/slide-export.js`); nút "Màn chiếu" ở bàn điều khiển dựng đúng bố cục đó bằng CSS
   (`.sc-stage.is-hall`) — đổi ảnh hội trường thì sửa cả hai bộ số. 1080p/4K hiện CHƯA khoá theo
   thanh toán (xem dòng dưới).
 - Bán mẫu (chưa làm): khoá theo MẪU slide chứ không theo thiệp. Lúc làm thì phải kiểm ở

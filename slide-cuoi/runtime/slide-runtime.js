@@ -81,10 +81,19 @@
     clearTimeout(wakeT);
     wakeT = setTimeout(() => root.classList.remove("sl-ui-on"), 2600);
   }
+  // Trong khung xem của trang /slide-cuoi/ thanh điều khiển nằm ở trang cha (nổi đè lên khung):
+  // báo lên cho nó hiện — chuột rê (cx-slide-wake, thưa lại 250ms) và cú chạm không trúng vùng sửa
+  // (cx-slide-tap). Toàn màn thì khung tự lo bằng thanh của chính nó.
+  const parentCtrl = () => EMBED && !fsEl() && !pseudoFull;
+  let wokeAt = 0;
   addEventListener("pointermove", (e) => {
     if (e.pointerType !== "mouse") return;
     wake();
     pointer = toDesign(e);
+    if (parentCtrl() && performance.now() - wokeAt > 250) {
+      wokeAt = performance.now();
+      post({ type: "cx-slide-wake" });
+    }
   });
   document.documentElement.addEventListener("pointerleave", () => (pointer = null));
   // Chạm vào sân khấu: thanh đang ẩn thì hiện, đang hiện thì ẩn.
@@ -96,6 +105,7 @@
       edit(h);
       return;
     }
+    if (parentCtrl()) post({ type: "cx-slide-tap", mouse: e.pointerType === "mouse" });
     if (root.classList.contains("sl-ui-on")) {
       clearTimeout(wakeT);
       root.classList.remove("sl-ui-on");
@@ -119,7 +129,7 @@
     root.classList.toggle("sl-is-full", !!fsEl() || pseudoFull);
     root.classList.toggle("sl-can-edit", canEdit());
     // Nút điều khiển riêng của khung chỉ khi mở thẳng hoặc đang toàn màn; còn lại trang cha có cụm
-    // điều khiển ở hàng nút dưới slide (nhận trạng thái qua cx-slide-ui, gửi lệnh qua cx-slide-act).
+    // điều khiển nổi đè lên khung (nhận trạng thái qua cx-slide-ui, gửi lệnh qua cx-slide-act).
     root.classList.toggle("sl-own-ctrl", !EMBED || !!fsEl() || pseudoFull);
     post({ type: "cx-slide-ui", playing, music: Music.has() || Voice.has(), musicOn: Music.isOn() });
   }

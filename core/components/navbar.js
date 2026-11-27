@@ -152,9 +152,47 @@ const CXNavbar = (function () {
         `</div></nav>`;
       document.body.insertAdjacentHTML("beforeend", bar);
       _bindMore(document.body.lastElementChild.firstElementChild, "tab");
+      _bindKeyboard();
     }
     _queueReflow();
     document.fonts?.ready.then(_queueReflow); // font về muộn là bề ngang nhãn đổi
+  }
+
+  // ===== Thanh tab dưới nằm DƯỚI bàn phím ảo =====
+  // Bàn phím bung là trình duyệt đẩy thứ neo đáy lên theo (Android co webview, iPhone kéo
+  // theo khung nhìn) → thanh tab chiếm mất chỗ ngay trên ô đang gõ. Có ô nhập chữ ở BẤT KỲ đâu
+  // đang focus thì cờ html.cx-kb-open giấu thanh đi; bàn phím cụp xuống (nút Back của Android,
+  // ô vẫn focus) hoặc rời ô thì trả lại. Ô chọn/công tắc/thanh kéo không gọi bàn phím nên bỏ qua.
+  const _KB_FIELD =
+    'textarea, [contenteditable=""], [contenteditable="true"], input:not([type=button], [type=checkbox], [type=radio], [type=range], [type=file], [type=submit], [type=reset], [type=color])';
+  const _KB_MIN = 120; // khung nhìn hụt hơn chừng này px so với lúc focus = đang có bàn phím
+  function _bindKeyboard() {
+    const root = document.documentElement;
+    const vv = window.visualViewport;
+    let h0 = 0; // chiều cao khung nhìn lúc vừa focus (chưa có bàn phím)
+    let seen = false; // đã thấy bàn phím bung trong lần focus này
+    let t = 0;
+    document.addEventListener("focusin", (e) => {
+      if (!e.target.matches?.(_KB_FIELD) || e.target.readOnly) return;
+      clearTimeout(t);
+      if (!root.classList.contains("cx-kb-open")) {
+        h0 = vv ? vv.height : innerHeight;
+        seen = false;
+      }
+      root.classList.add("cx-kb-open");
+    });
+    // Rời ô: đợi một nhịp — nhảy sang ô kế tiếp thì thanh không nháy hiện rồi ẩn.
+    document.addEventListener("focusout", () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        if (!document.activeElement?.matches?.(_KB_FIELD)) root.classList.remove("cx-kb-open");
+      }, 150);
+    });
+    vv?.addEventListener("resize", () => {
+      if (!root.classList.contains("cx-kb-open")) return;
+      if (h0 - vv.height > _KB_MIN) seen = true;
+      else if (seen) root.classList.remove("cx-kb-open");
+    });
   }
 
   // ===== Gom mục thừa vào "…" =====

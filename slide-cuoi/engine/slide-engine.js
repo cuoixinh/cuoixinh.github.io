@@ -387,6 +387,15 @@ window.CXSlideEngine = (() => {
     const at = lt - (a?.d || 0);
     if (a && at <= 0) return;
     ctx.save();
+    // el.clip = {x, y, w, h, out}: chỉ vẽ phần nằm TRONG khung (out: phần nằm NGOÀI) — hai bản của
+    // một dòng chữ vắt qua mép ảnh, mỗi bản một màu, thành chữ đổi màu đúng chỗ chạm ảnh.
+    if (el.clip) {
+      const c = el.clip;
+      ctx.beginPath();
+      if (c.out) ctx.rect(-P.W, -P.H, P.W * 3, P.H * 3);
+      ctx.rect(c.x, c.y, c.w, c.h);
+      ctx.clip(c.out ? "evenodd" : "nonzero");
+    }
     if (el.alpha != null) ctx.globalAlpha *= el.alpha;
     // anim.out (giây): mờ dần trong quãng cuối cảnh — mẫu một cảnh chạy vòng thì chữ tan đi rồi mới
     // hiện lại từ đầu, không biến mất đột ngột ở chỗ nối vòng.
@@ -638,13 +647,31 @@ window.CXSlideEngine = (() => {
   // Ảnh phủ kín khung theo điểm lấy nét (như object-fit: cover + object-position). el.kb: Ken
   // Burns suốt cảnh, giữ điểm lấy nét đứng yên — true thu từ 1.1 về 1, "in" phóng từ 1 lên 1.12.
   // el.shape cắt ảnh theo hình: "circle" (elip nội tiếp khung) · "arch" (vòm, đỉnh bán nguyệt) ·
-  // "chamfer" (vát bốn góc `cut` px); el.radius = bo góc.
+  // "chamfer" (vát bốn góc `cut` px); el.radius = bo góc. el.mat / el.drop: xem _mat.
   function _image(ctx, img, el, lt, dur) {
+    if (el.mat || el.drop) _mat(ctx, el);
     if (!el.shape && !el.radius) return _imageRect(ctx, img, el, lt, dur);
     ctx.save();
     _shapePath(ctx, el);
     ctx.clip();
     _imageRect(ctx, img, el, lt, dur);
+    ctx.restore();
+  }
+  // Ảnh như tấm ảnh in đặt lên nền: el.mat = viền giấy dày bấy nhiêu px quanh ảnh (màu el.matColor,
+  // mặc định trắng) · el.drop = màu bóng đổ mềm dưới tấm ảnh (dropBlur, dropY tính theo px mẫu).
+  function _mat(ctx, el) {
+    const m = el.mat || 0;
+    const tf = ctx.getTransform();
+    const k = Math.hypot(tf.a, tf.b);
+    ctx.save();
+    if (el.drop) {
+      ctx.shadowColor = el.drop;
+      ctx.shadowBlur = (el.dropBlur ?? 28) * k;
+      ctx.shadowOffsetY = (el.dropY ?? 10) * k;
+    }
+    ctx.fillStyle = el.matColor || "#fff";
+    _shapePath(ctx, { ...el, x: el.x - m, y: el.y - m, w: el.w + m * 2, h: el.h + m * 2, radius: el.radius ? el.radius + m : 0 });
+    ctx.fill();
     ctx.restore();
   }
   function _shapePath(ctx, el) {

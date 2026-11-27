@@ -1940,6 +1940,11 @@ x-button {
   pointer-events: auto;
 }
 
+/* Đang gõ (cờ do navbar.js đặt): thanh nằm dưới bàn phím thay vì bị đẩy lên đè ô nhập. */
+html.cx-kb-open .cx-tabbar {
+  display: none;
+}
+
 .cx-tabbar-card {
   display: flex;
   align-items: center;
