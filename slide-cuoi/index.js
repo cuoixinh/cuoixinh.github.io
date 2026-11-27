@@ -92,9 +92,7 @@ _scEl("sc-ratio").addEventListener("click", (e) => {
 _scEl("sc-tpls").addEventListener("click", (e) => {
   const b = e.target.closest("[data-tpl]");
   if (!b || b.dataset.tpl === _scS.tpl) return;
-  const carry = _scPhCarryFrom(); // ảnh khách chọn ở mẫu đang mở — mang sang mẫu mới
   _scS.tpl = b.dataset.tpl;
-  _scPhCarry = carry && { ...carry, dst: _scTxKey() };
   _scSave();
   _scRenderTpls();
   _scFrameLoad();
@@ -199,7 +197,7 @@ addEventListener("message", (e) => {
       _scWaitSync();
     }
     _scCueState(e.data);
-    if (Array.isArray(e.data?.scenes)) _scPhCarryApply();
+    if (Array.isArray(e.data?.scenes)) _scSetEnter();
   }
   else if (t === "cx-slide-caps") _scCaps(e.data);
   else if (t === "cx-slide-export-state") _scExportMsg(e.data);
@@ -841,11 +839,15 @@ async function _scPhLoad() {
     _scPh.map[String(k).slice(prefix.length)] = { id: v.id, blob, url: URL.createObjectURL(blob), focal: v.focal || null };
     _scPhBank.set(v.id, { blob, name: v.name || "" });
   });
+  await _scSetLoad();
+  if (_scPh.key !== key) return;
+  _scSetImg.forEach((b, id) => _scPhBank.set(id, b));
+  _scSetDue = true; // khung mẫu này báo cảnh lên là đặt bộ ảnh chung vào các ô (_scSetEnter)
 }
 
 // Hoàn tác / làm lại: đặt ô ảnh theo refs = {id cảnh: {id ảnh, focal}} (byte lấy từ _scPhBank),
 // vẽ + gửi khung ngay, rồi ghi IndexedDB ở nền.
-function _scPhApply(refs, at) {
+function _scPhApply(refs) {
   const txKey = _scTxKey();
   if (_scPh.key !== txKey) return;
   const map = {};
@@ -862,7 +864,7 @@ function _scPhApply(refs, at) {
   Object.entries(_scPh.map).forEach(([k, p]) => map[k] !== p && URL.revokeObjectURL(p.url));
   const old = _scPh.map;
   _scPh.map = map;
-  _scPhTouch(at);
+  _scSetSync();
   _scPhRender();
   _scPhSend();
   const keys = new Set([...Object.keys(old), ...Object.keys(map)]);
@@ -1101,119 +1103,30 @@ _scEl("sc-ph-file").addEventListener("change", async (e) => {
   if (old) URL.revokeObjectURL(old.url);
   _scPhBank.set(id, { blob, name: file.name });
   _scHistDo("Đổi ảnh", () => (_scPh.map[pick.key] = { id, blob, url, focal }));
-  _scPhTouch();
+  _scSetSync();
   _scPhRender();
   _scPhSend(pick.index);
 });
 
-// ── Ảnh đi theo khách qua các mẫu ──
-// Mỗi mẫu cất ảnh theo ô của riêng nó (khoá IndexedDB <mẫu>|<thiệp>|<ô>), mà mỗi mẫu một bộ ô. Đổi
-// mẫu thì lấy ảnh khách đã chọn ở mẫu cũ theo THỨ TỰ CHIẾU (bỏ ảnh trùng do lặp vòng → đúng bộ gốc)
-// rồi điền vào mẫu mới từ ô đầu như "Chọn ảnh" (công tắc lặp ảnh áp như thường). Mẫu mới đã có ảnh
-// riêng thì chỉ bị thay khi ảnh mẫu cũ MỚI HƠN — mốc đổi ảnh gần nhất của từng mẫu nằm ở
-// localStorage `cx_slide_ph_at` ({<mẫu>|<thiệp>: ms}); mẫu nhận ảnh mang mốc của nguồn nên quay
-// về mẫu cũ không ghi đè ngược lại.
-const _SC_PH_AT = "cx_slide_ph_at";
-let _scPhCarry = null; // {at, list: [{id, blob, name, focal}], dst: khoá mẫu đích} chờ khung mới báo cảnh
-const _scDs = () => (_scS.real && _scS.wid ? _scS.wid : "demo");
-function _scPhAts() {
-  try {
-    const v = JSON.parse(localStorage.getItem(_SC_PH_AT) || "{}");
-    return v && typeof v === "object" ? v : {};
-  } catch (e) {
-    return {};
-  }
-}
-function _scPhAtsSave(v) {
-  try {
-    localStorage.setItem(_SC_PH_AT, JSON.stringify(v));
-  } catch (e) {}
-}
-function _scPhTouch(at = Date.now()) {
-  const v = _scPhAts();
-  v[_scTxKey()] = at;
-  _scPhAtsSave(v);
-}
-
-function _scPhCarryFrom() {
-  if (_scPh.key !== _scTxKey()) return null;
-  const seen = new Set();
-  const list = [];
-  _scCues.forEach((c) =>
-    c.photos.forEach((p) => {
-      const own = _scPh.map[p.key];
-      if (!own || seen.has(own.id)) return;
-      seen.add(own.id);
-      list.push({ id: own.id, blob: own.blob, name: _scPhBank.get(own.id)?.name || "", focal: own.focal || null });
-    }),
-  );
-  return list.length ? { at: _scPhAts()[_scTxKey()] || 0, list } : null;
-}
-
-// Gọi khi khung mẫu mới đã dựng xong cảnh (biết bộ ô) — ảnh của mẫu đích đã đọc xong từ trước đó.
-// Bước tự động nên không vào lịch sử hoàn tác.
-function _scPhCarryApply() {
-  const c = _scPhCarry;
-  if (!c || c.dst !== _scTxKey() || _scPh.key !== c.dst) return;
-  _scPhCarry = null;
-  if ((_scPhAts()[c.dst] || 0) >= c.at) return; // ảnh ở mẫu này mới hơn → giữ
-  const slots = _scCues.flatMap((x) => x.photos.map((p) => p.key));
-  if (!slots.length) return;
-  c.list.forEach((d) => _scPhBank.set(d.id, { blob: d.blob, name: d.name }));
-  const n = Math.min(c.list.length, slots.length);
-  const last = { txKey: c.dst, ids: c.list.slice(0, n).map((d) => d.id), keys: slots.slice(0, n), rest: slots.slice(n), before: null };
-  const refs = {};
-  last.keys.forEach((k, i) => (refs[k] = { id: last.ids[i], focal: c.list[i].focal }));
-  if (_scPhRepeatOn() && last.rest.length) _scPhFillRest(refs, last);
-  _scPhLast = last;
-  _scPhApply(refs, c.at);
-  window.showToast?.(`Đã mang ${n} ảnh của bạn sang mẫu này`, "success");
-}
-
-// Nút "Reset" (thẻ "Ảnh của bạn"): xoá MỌI ảnh khách chọn ở mọi mẫu của thiệp đang dùng (ảnh đi
-// theo qua các mẫu nên xoá một mẫu là nó quay lại từ mẫu khác) + đưa chữ mẫu đang mở về lời mẫu.
-// Không hoàn tác được — xoá luôn lịch sử để Ctrl+Z không dựng lại ảnh đã xoá.
-async function scResetAll() {
-  if (_scPhBusy()) return;
-  const ok = await window.showConfirm?.(
-    "Reset slide?",
-    "Mọi ảnh bạn đã chọn (ở tất cả các mẫu của thiệp này) sẽ bị xoá, chữ trong slide trở về lời mẫu. Không hoàn tác được.",
-    { confirmText: "Reset", cancelText: "Huỷ" },
-  );
-  if (!ok) return;
-  const ds = _scDs();
-  const txKey = _scTxKey();
-  await _scPhQ;
-  try {
-    for (const t of CX_SLIDE_TEMPLATES) {
-      const pre = `${t.id}|${ds}|`;
-      await _scDbDo("readwrite", (st) => st.delete(IDBKeyRange.bound(pre, pre + "\uffff")));
-    }
-  } catch (e) {
-    console.warn("Không xoá được ảnh slide:", e);
-  }
-  const ats = _scPhAts();
-  Object.keys(ats).forEach((k) => k.endsWith(`|${ds}`) && delete ats[k]);
-  _scPhAtsSave(ats);
-  _scPhCarry = null;
-  if (_scPh.key !== txKey) return;
-  _scPhLast = null;
-  _scPhClear();
-  _scTextsApply({});
-  if (typeof _scTlReset === "function") _scTlReset();
-  _scPhRender();
-  _scPhSend();
-  window.showToast?.("Đã reset slide: xoá hết ảnh của bạn, chữ về lời mẫu", "success");
-}
-
-// Thẻ "Ảnh của bạn" đầu tab Cảnh: ảnh chọn điền lần lượt từ ô ĐẦU tới ô cuối theo thứ tự chiếu (đè
-// cả ô đã đổi), thừa thì bỏ. Ít ảnh hơn số ô: công tắc "lặp ảnh" tắt thì các ô sau giữ nguyên, bật
-// thì các ô sau lặp vòng chính loạt ảnh đó. Ảnh xếp theo tên file (IMG_0001…) cho đúng thứ tự chụp;
-// không hỏi lấy nét từng tấm. Mỗi lượt là MỘT bước hoàn tác (áp qua _scPhApply như hoàn tác).
+// ── Bộ ảnh của khách, dùng chung mọi mẫu ──
+// Mỗi thiệp (hoặc dữ liệu mẫu) giữ MỘT danh sách ảnh có thứ tự: `@set|<thiệp>` = {items: [{id,
+// focal} | null]} (null = ô để trống → ảnh thiệp / ảnh mẫu), byte từng ảnh một lần ở `@img|<thiệp>|<id>`.
+// Mẫu chỉ là cách CHIẾU danh sách đó: ô thứ i (thứ tự chiếu) = ảnh thứ i; mẫu ít ô hơn chỉ hiện phần
+// đầu, phần sau vẫn nằm nguyên trong danh sách — đổi sang mẫu 10 ô rồi quay lại mẫu 60 ô vẫn đủ 60.
+// Ô quá cuối danh sách: công tắc "lặp ảnh" bật thì lặp vòng các ảnh đã có, tắt thì để trống. Sửa ở
+// mẫu nào (đổi / bỏ / lấy nét một ô, hoàn tác) cũng ghi ngược vào ĐÚNG vị trí đó (_scSetSync). Bản ghi
+// theo ô của từng mẫu (<mẫu>|<thiệp>|<ô>) vẫn giữ làm bản dựng sẵn để tải trang hiện ngay đúng ảnh.
 const _SC_PH_REPEAT = "cx_slide_ph_repeat";
-// Loạt ảnh vừa nhập (chỉ trong bộ nhớ): bật/tắt công tắc sau khi nhập vẫn lặp / gỡ lặp được cho loạt
-// này. before = ảnh các ô sau TRƯỚC khi bị lặp đè (null = đang là ảnh thiệp / ảnh mẫu).
-let _scPhLast = null; // {txKey, ids, keys, rest, before}
+let _scSet = { ds: null, items: [] };
+let _scSetImg = new Map(); // id → {blob, name} của mọi ảnh trong danh sách (sống qua lần đổi mẫu)
+let _scSetStored = new Set(); // id ảnh đã có bản `@img` trong IndexedDB
+let _scSetDue = false; // vừa nạp mẫu / thiệp: chờ khung báo cảnh để đặt danh sách vào ô
+const _scDs = () => (_scS.real && _scS.wid ? _scS.wid : "demo");
+const _scSlots = () => _scCues.flatMap((c) => c.photos.map((p) => p.key));
+const _scTrim = (a) => {
+  while (a.length && !a[a.length - 1]) a.pop();
+  return a;
+};
 
 function _scPhRepeatOn() {
   try {
@@ -1222,48 +1135,189 @@ function _scPhRepeatOn() {
     return false;
   }
 }
-
 _scEl("sc-ph-repeat").checked = _scPhRepeatOn();
 
-const _scPhRefs = () => {
-  const out = {};
-  Object.entries(_scPh.map).forEach(([k, p]) => (out[k] = { id: p.id, focal: p.focal || null }));
-  return out;
-};
+async function _scSetLoad() {
+  const ds = _scDs();
+  if (_scSet.ds === ds) return;
+  _scSet = { ds, items: [] };
+  _scSetImg = new Map();
+  _scSetStored = new Set();
+  const pre = `@img|${ds}|`;
+  try {
+    const range = IDBKeyRange.bound(pre, pre + "￿");
+    const [rec, keys, vals] = await Promise.all([
+      _scDbDo("readonly", (st) => st.get(`@set|${ds}`)),
+      _scDbDo("readonly", (st) => st.getAllKeys(range)),
+      _scDbDo("readonly", (st) => st.getAll(range)),
+    ]);
+    if (_scSet.ds !== ds) return;
+    (keys || []).forEach((k, i) => {
+      const v = vals[i];
+      if (!v?.buf?.byteLength) return;
+      const id = String(k).slice(pre.length);
+      _scSetImg.set(id, { blob: new Blob([v.buf], { type: v.type || "image/jpeg" }), name: v.name || "" });
+      _scSetStored.add(id);
+    });
+    const items = Array.isArray(rec?.items) ? rec.items : [];
+    _scSet.items = _scTrim(items.map((x) => (x && _scSetImg.has(x.id) ? { id: x.id, focal: x.focal || null } : null)));
+  } catch (e) {
+    console.warn("Không đọc được bộ ảnh slide:", e);
+  }
+}
 
-// Lặp loạt ảnh `ids` vào các ô `rest` (ghi lại ảnh cũ của các ô đó vào `before`).
-function _scPhFillRest(refs, last) {
-  last.before = {};
-  last.rest.forEach((k, i) => {
-    last.before[k] = refs[k] || null;
-    refs[k] = { id: last.ids[i % last.ids.length], focal: null };
+// Ghi danh sách + byte ảnh mới vào IndexedDB (nền, nối đuôi _scPhQ); dọn byte ảnh không còn dùng.
+function _scSetSave() {
+  const ds = _scSet.ds;
+  const items = _scSet.items.map((x) => x && { id: x.id, focal: x.focal || null });
+  const ids = new Set(items.filter(Boolean).map((x) => x.id));
+  const fresh = [...ids].filter((id) => !_scSetStored.has(id)).map((id) => [id, _scSetImg.get(id) || _scPhBank.get(id)]);
+  fresh.forEach(([id, b]) => b && _scSetImg.set(id, b));
+  _scPhQ = _scPhQ.then(async () => {
+    try {
+      for (const [id, b] of fresh) {
+        if (!b) continue;
+        const buf = await b.blob.arrayBuffer();
+        await _scDbDo("readwrite", (st) => st.put({ buf, type: b.blob.type, name: b.name || "" }, `@img|${ds}|${id}`));
+        _scSetStored.add(id);
+      }
+      await _scDbDo("readwrite", (st) => st.put({ items }, `@set|${ds}`));
+      const pre = `@img|${ds}|`;
+      const keys = await _scDbDo("readonly", (st) => st.getAllKeys(IDBKeyRange.bound(pre, pre + "￿")));
+      for (const k of keys || []) {
+        const id = String(k).slice(pre.length);
+        if (ids.has(id)) continue;
+        await _scDbDo("readwrite", (st) => st.delete(k));
+        _scSetStored.delete(id);
+        if (_scSet.ds === ds && !_scSet.items.some((x) => x?.id === id)) _scSetImg.delete(id);
+      }
+    } catch (e) {
+      console.warn("Không lưu được bộ ảnh slide:", e);
+    }
   });
 }
 
-// Loạt ảnh vừa nhập còn nằm nguyên ở các ô đầu (chưa hoàn tác / đổi mẫu / trả về ảnh thiệp).
-const _scPhLastLive = () =>
-  _scPhLast && _scPhLast.txKey === _scTxKey() && _scPhLast.keys.every((k, i) => _scPh.map[k]?.id === _scPhLast.ids[i]);
+// Ảnh danh sách chiếu vào n ô (theo thứ tự chiếu): [{id, focal} | null].
+function _scSetProj(n) {
+  const items = _scSet.items;
+  const list = items.filter(Boolean);
+  const rep = _scPhRepeatOn() && list.length > 0;
+  return Array.from({ length: n }, (_, i) => (i < items.length ? items[i] : rep ? list[(i - items.length) % list.length] : null));
+}
 
+// Ghi ô của mẫu đang mở ngược vào danh sách: ô thứ i < độ dài danh sách thay đúng vị trí i (bỏ ảnh →
+// lỗ trống); ô sau đó chỉ ghi khi khách tự đặt một ảnh KHÁC ảnh lặp vòng. Phần danh sách vượt số ô của
+// mẫu giữ nguyên.
+function _scSetSync() {
+  if (_scPh.key !== _scTxKey() || _scSet.ds !== _scDs()) return;
+  const slots = _scSlots();
+  if (!slots.length) return;
+  const len = _scSet.items.length;
+  const proj = _scSetProj(slots.length);
+  const items = _scSet.items.slice();
+  slots.forEach((k, i) => {
+    const own = _scPh.map[k];
+    const ref = own && { id: own.id, focal: own.focal || null };
+    if (i < len) return (items[i] = ref || null);
+    if (!own || own.id === proj[i]?.id) return;
+    while (items.length < i) items.push(null);
+    items[i] = ref;
+  });
+  _scTrim(items);
+  if (JSON.stringify(items) === JSON.stringify(_scSet.items)) return;
+  _scSet.items = items;
+  _scSetSave();
+}
+
+// Đặt danh sách vào các ô của mẫu đang mở; label = tên bước hoàn tác (bỏ trống = bước tự động). Ô của
+// cảnh đang ẩn giữ nguyên. Trả về số ô đổi ảnh.
+function _scSetProject(label) {
+  const slots = _scSlots();
+  const proj = _scSetProj(slots.length);
+  const refs = {};
+  Object.entries(_scPh.map).forEach(([k, p]) => (refs[k] = { id: p.id, focal: p.focal || null }));
+  let changed = 0;
+  slots.forEach((k, i) => {
+    const p = proj[i] && _scPhBank.has(proj[i].id) ? proj[i] : null;
+    const cur = refs[k];
+    if ((cur?.id || "") !== (p?.id || "") || (p && JSON.stringify(cur.focal) !== JSON.stringify(p.focal || null))) changed++;
+    if (p) refs[k] = { id: p.id, focal: p.focal || null };
+    else delete refs[k];
+  });
+  if (!changed) return 0;
+  if (label) _scHistDo(label, () => _scPhApply(refs));
+  else _scPhApply(refs);
+  return changed;
+}
+
+// Khung vừa báo cảnh của mẫu / thiệp mới nạp. Danh sách còn trống mà mẫu có ảnh riêng (bản lưu cũ,
+// trước khi có danh sách chung) thì lấy ảnh mẫu làm danh sách; còn lại đặt danh sách vào ô.
+function _scSetEnter() {
+  if (!_scSetDue || _scPh.key !== _scTxKey() || _scSet.ds !== _scDs()) return;
+  _scSetDue = false;
+  if (!_scSet.items.length) return _scSetSync();
+  const n = _scSetProject();
+  if (n) window.showToast?.(`Đã đặt ảnh của bạn vào mẫu này`, "success");
+}
+
+// Xoá MỌI ảnh khách chọn của thiệp đang dùng: danh sách chung + bản ghi ô của mọi mẫu. Không hoàn
+// tác được — xoá luôn lịch sử để Ctrl+Z không dựng lại ảnh đã xoá.
+async function _scPhWipe() {
+  const ds = _scDs();
+  const txKey = _scTxKey();
+  await _scPhQ;
+  try {
+    const pres = [...CX_SLIDE_TEMPLATES.map((t) => `${t.id}|${ds}|`), `@img|${ds}|`];
+    for (const pre of pres) await _scDbDo("readwrite", (st) => st.delete(IDBKeyRange.bound(pre, pre + "￿")));
+    await _scDbDo("readwrite", (st) => st.delete(`@set|${ds}`));
+  } catch (e) {
+    console.warn("Không xoá được ảnh slide:", e);
+  }
+  if (_scSet.ds === ds) {
+    _scSet.items = [];
+    _scSetImg = new Map();
+    _scSetStored = new Set();
+  }
+  if (_scPh.key !== txKey) return false;
+  _scPhClear();
+  if (typeof _scTlReset === "function") _scTlReset();
+  _scPhRender();
+  _scPhSend();
+  return true;
+}
+
+// Nút "Reset" (thẻ "Ảnh của bạn"): xoá mọi ảnh khách chọn + đưa chữ mẫu đang mở về lời mẫu.
+async function scResetAll() {
+  if (_scPhBusy()) return;
+  const ok = await window.showConfirm?.(
+    "Reset slide?",
+    "Mọi ảnh bạn đã chọn (dùng chung cho tất cả các mẫu của thiệp này) sẽ bị xoá, chữ trong slide trở về lời mẫu. Không hoàn tác được.",
+    { confirmText: "Reset", cancelText: "Huỷ" },
+  );
+  if (!ok || !(await _scPhWipe())) return;
+  _scTextsApply({});
+  window.showToast?.("Đã reset slide: xoá hết ảnh của bạn, chữ về lời mẫu", "success");
+}
+
+// Nút "Về ảnh của thiệp" (chân tab Cảnh): như Reset nhưng giữ chữ.
+async function scPhotosReset() {
+  if (_scPhBusy()) return;
+  const ok = await window.showConfirm?.(
+    "Bỏ hết ảnh của bạn?",
+    "Mọi ảnh bạn đã chọn (dùng chung cho tất cả các mẫu của thiệp này) sẽ bị xoá, slide quay về ảnh của thiệp. Không hoàn tác được.",
+    { confirmText: "Xoá ảnh", cancelText: "Huỷ" },
+  );
+  if (ok) await _scPhWipe();
+}
+
+// Thẻ "Ảnh của bạn" đầu tab Cảnh: ảnh chọn thay danh sách từ vị trí ĐẦU (tối đa bằng số ô của mẫu
+// đang mở — 65 ảnh vào mẫu 60 ô thì giữ 60), phần sau của danh sách giữ nguyên; rồi đặt vào ô. Ảnh xếp
+// theo tên file (IMG_0001…) cho đúng thứ tự chụp; không hỏi lấy nét từng tấm. Một bước hoàn tác.
 function scPhotosRepeat(on) {
   try {
     localStorage.setItem(_SC_PH_REPEAT, on ? "1" : "0");
   } catch (e) {}
-  const last = _scPhLast;
-  if (!_scPhLastLive() || !last.rest.length || _scPhBusy()) return;
-  const refs = _scPhRefs();
-  if (on) {
-    _scPhFillRest(refs, last);
-    _scHistDo("Lặp ảnh khi thiếu", () => _scPhApply(refs));
-  } else if (last.before) {
-    // Chỉ trả những ô còn đúng ảnh lặp — ô khách đã tự đổi sau đó thì để yên.
-    last.rest.forEach((k, i) => {
-      if (refs[k]?.id !== last.ids[i % last.ids.length]) return;
-      if (last.before[k]) refs[k] = last.before[k];
-      else delete refs[k];
-    });
-    last.before = null;
-    _scHistDo("Bỏ lặp ảnh", () => _scPhApply(refs));
-  }
+  if (!_scPhBusy()) _scSetProject(on ? "Lặp ảnh khi thiếu" : "Bỏ lặp ảnh");
 }
 
 function scPhotosBulk() {
@@ -1280,7 +1334,7 @@ _scEl("sc-ph-files").addEventListener("change", async (e) => {
   if (!files.length || _scPhBusy()) return;
   const H = window.ImageHelper;
   const txKey = _scTxKey();
-  const slots = _scCues.flatMap((c) => c.photos.map((p) => p.key));
+  const slots = _scSlots();
   if (!slots.length) return;
   const ok = files.filter((f) => !H || H.isAllowedType(f));
   const use = ok.slice(0, slots.length);
@@ -1304,27 +1358,23 @@ _scEl("sc-ph-files").addEventListener("change", async (e) => {
   } finally {
     window.showLoading?.(false);
   }
-  if (_scPh.key !== txKey || !done.length) {
+  if (_scPh.key !== txKey || _scSet.ds !== _scDs() || !done.length) {
     if (failed) window.showToast?.("Không đọc được ảnh nào — hãy dùng JPG, PNG hoặc WebP (ảnh iPhone .HEIC cần đổi sang JPG).", "error");
     return;
   }
-  done.forEach((d) => _scPhBank.set(d.id, { blob: d.blob, name: d.name }));
-  const last = {
-    txKey,
-    ids: done.map((d) => d.id),
-    keys: slots.slice(0, done.length),
-    rest: slots.slice(done.length),
-    before: null,
-  };
-  const refs = _scPhRefs();
-  last.keys.forEach((k, i) => (refs[k] = { id: last.ids[i], focal: null }));
-  const repeat = _scPhRepeatOn() && last.rest.length > 0;
-  if (repeat) _scPhFillRest(refs, last);
-  _scPhLast = last;
-  _scHistDo("Nhập ảnh", () => _scPhApply(refs));
+  done.forEach((d) => {
+    _scPhBank.set(d.id, { blob: d.blob, name: d.name });
+    _scSetImg.set(d.id, { blob: d.blob, name: d.name });
+  });
+  _scSet.items = done.map((d) => ({ id: d.id, focal: null })).concat(_scSet.items.slice(done.length));
+  _scSetSave();
+  _scSetProject("Nhập ảnh");
+  const rest = slots.length - done.length;
   const extra = ok.length - use.length;
+  const kept = Math.min(rest, Math.max(0, _scSet.items.length - done.length));
   const notes = [
-    last.rest.length > 0 && (repeat ? `${last.rest.length} ô sau lặp lại các ảnh này` : `${last.rest.length} ô sau giữ nguyên`),
+    kept > 0 && `${kept} ô sau giữ ảnh cũ của bạn`,
+    rest - kept > 0 && (_scPhRepeatOn() ? `${rest - kept} ô cuối lặp lại ảnh của bạn` : `${rest - kept} ô cuối giữ ảnh mẫu`),
     extra > 0 && `${extra} ảnh thừa (slide có ${slots.length} ô)`,
     failed > 0 && `${failed} ảnh không đọc được`,
   ].filter(Boolean);
@@ -1339,6 +1389,7 @@ async function scPhotoFocal(key, index, w, h) {
   const focal = await _scPhFocal(own.url, own.focal, w, h);
   if (!focal || _scPh.key !== txKey || _scPh.map[key] !== own) return;
   _scHistDo("Lấy nét ảnh", () => (own.focal = focal));
+  _scSetSync();
   await _scPhQ;
   try {
     const dbKey = `${txKey}|${key}`;
@@ -1364,25 +1415,9 @@ async function scPhotoRemove(key, index) {
   const old = _scPh.map[key];
   if (old) URL.revokeObjectURL(old.url);
   _scHistDo(txKey.endsWith("|demo") ? "Dùng ảnh mẫu" : "Dùng ảnh thiệp", () => delete _scPh.map[key]);
-  _scPhTouch();
+  _scSetSync();
   _scPhRender();
   _scPhSend(index);
-}
-
-async function scPhotosReset() {
-  if (_scPhBusy()) return;
-  const txKey = _scTxKey();
-  await _scPhQ;
-  try {
-    const prefix = txKey + "|";
-    await _scDbDo("readwrite", (st) => st.delete(IDBKeyRange.bound(prefix, prefix + "\uffff")));
-  } catch (e) {}
-  if (_scPh.key !== txKey) return;
-  _scPhLast = null;
-  _scHistDo("Về ảnh của thiệp", _scPhClear);
-  _scPhTouch();
-  _scPhRender();
-  _scPhSend();
 }
 
 // ── Nhạc: file khách chọn từ máy · bài trong thư viện (CONFIG.slideMusic.library, kho ở
