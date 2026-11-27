@@ -1270,6 +1270,34 @@ html.sc-typing .sc-tx-in {
   color: rgb(var(--text-caption-rgb));
 }
 
+/* Thẻ "Ảnh của bạn" (cùng khung với .sc-time): số ô + lời dặn + nút chọn ảnh trải hết bề ngang. */
+.sc-import-n {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-import-desc {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-import-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+}
+.sc-import-btn:hover {
+  background: rgb(var(--action-primary-deep-rgb));
+}
+
 /* Thời gian riêng của cảnh: đầu phần mở rộng của dòng cảnh. */
 .sc-dur {
   margin-bottom: 8px;

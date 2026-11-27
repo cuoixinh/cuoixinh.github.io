@@ -662,7 +662,7 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `postMessage` vào iframe — mẫu không tự gọi API. Mọi chữ trên slide phải sửa được ở mục
   "Chữ trong slide" (khoá gán ở `_scene` của mẫu), chữ sửa và thời lượng khách kéo CHỈ lưu
   localStorage (cảnh cần `id` ổn định làm khoá thời lượng). Mọi ô ảnh
-  khai trong `photos` của cảnh (khách đổi riêng từng ô, ảnh nằm ở IndexedDB); giọng đọc khách
+  khai trong `photos` của cảnh (khách đổi riêng từng ô, hoặc điền cả loạt từ ô ĐẦU ở thẻ "Ảnh của bạn" — thứ tự ô = thứ tự chiếu; ảnh nằm ở IndexedDB); giọng đọc khách
   thu âm (dòng thời gian kiểu bàn dựng phim — dữ liệu ở `voice.js`, vẽ + thao tác ở `timeline.js`; thao tác MỚI đổi track/clip/nhạc/`timing`/chữ/ảnh phải bọc `_scTlDo` (index.js: `_scHistDo`), không thì Ctrl+Z bỏ sót) cũng chỉ ở IndexedDB/localStorage; thiệp ít ảnh hơn
   số khung thì ảnh LẶP VÒNG cho đủ, không bớt cảnh/khung. Mục menu
   ẩn/hiện bằng `CONFIG.features.slides` (navbar khai `feature: "slides"`, trang nào có mục đó

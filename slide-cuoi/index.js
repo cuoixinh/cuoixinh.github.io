@@ -831,6 +831,10 @@ function _scPhRender() {
     )
     .join("|");
   _scToggle("sc-ph-reset", _scCues.some((c) => c.photos.some((p) => _scPh.map[p.key])));
+  const slots = _scCues.flatMap((c) => c.photos);
+  _scToggle("sc-import", slots.length > 0);
+  const own = slots.filter((p) => _scPh.map[p.key]).length;
+  _scEl("sc-import-n").textContent = own ? `Đã có ${own}/${slots.length} ô` : `${slots.length} ô ảnh`;
   if (sig === _scPhSig) return;
   _scPhSig = sig;
   const lis = _scEl("sc-cues").children;
@@ -1024,9 +1028,10 @@ _scEl("sc-ph-file").addEventListener("change", async (e) => {
   _scPhSend(pick.index);
 });
 
-// "Tải nhiều ảnh": đổ một loạt ảnh vào các ô theo thứ tự chiếu, chỉ vào ô chưa có ảnh của khách;
-// ảnh xếp theo tên file (IMG_0001…) nên giữ đúng thứ tự chụp. Không hỏi lấy nét từng tấm (ảnh canh
-// giữa, ô nào lệch thì bấm Lấy nét). Cả lượt là MỘT bước hoàn tác.
+// Thẻ "Ảnh của bạn" đầu tab Cảnh: ảnh chọn điền lần lượt từ ô ĐẦU tới ô cuối theo thứ tự chiếu (đè
+// cả ô đã đổi); ít ảnh hơn số ô thì các ô sau giữ nguyên, thừa thì bỏ. Ảnh xếp theo tên file
+// (IMG_0001…) cho đúng thứ tự chụp; không hỏi lấy nét từng tấm. Cả lượt là MỘT bước hoàn tác.
+// Ô chưa được điền vẫn hiện ảnh thiệp / ảnh mẫu (mẫu tự lặp vòng cho đủ khung).
 function scPhotosBulk() {
   if (_scPhBusy()) return;
   if (!_scCues.some((c) => c.photos.length)) return window.showToast?.("Mẫu này không có ô ảnh nào", "warning");
@@ -1041,11 +1046,8 @@ _scEl("sc-ph-files").addEventListener("change", async (e) => {
   if (!files.length || _scPhBusy()) return;
   const H = window.ImageHelper;
   const txKey = _scTxKey();
-  const slots = _scCues.flatMap((c) => c.photos.map((p) => p.key)).filter((k) => !_scPh.map[k]);
-  if (!slots.length) {
-    window.showToast?.("Mọi ô ảnh đã có ảnh của bạn — bấm “Về ảnh của thiệp” rồi tải lại", "warning");
-    return;
-  }
+  const slots = _scCues.flatMap((c) => c.photos.map((p) => p.key));
+  if (!slots.length) return;
   const ok = files.filter((f) => !H || H.isAllowedType(f));
   const use = ok.slice(0, slots.length);
   const done = [];
@@ -1085,18 +1087,23 @@ _scEl("sc-ph-files").addEventListener("change", async (e) => {
     if (failed) window.showToast?.("Không đọc được ảnh nào — hãy dùng JPG, PNG hoặc WebP (ảnh iPhone .HEIC cần đổi sang JPG).", "error");
     return;
   }
-  done.forEach((d) => _scPhBank.set(d.id, { blob: d.blob, name: d.name }));
+  done.forEach((d) => {
+    _scPhBank.set(d.id, { blob: d.blob, name: d.name });
+    if (_scPh.map[d.key]) URL.revokeObjectURL(_scPh.map[d.key].url);
+  });
   _scHistDo("Tải nhiều ảnh", () =>
     done.forEach((d) => (_scPh.map[d.key] = { id: d.id, blob: d.blob, url: URL.createObjectURL(d.blob), focal: null })),
   );
   _scPhRender();
   _scPhSend();
   const extra = ok.length - use.length;
+  const rest = slots.length - done.length;
   const notes = [
-    extra > 0 && `${extra} ảnh thừa (mẫu còn ${slots.length} ô trống)`,
+    rest > 0 && `${rest} ô sau giữ nguyên`,
+    extra > 0 && `${extra} ảnh thừa (slide có ${slots.length} ô)`,
     failed > 0 && `${failed} ảnh không đọc được`,
   ].filter(Boolean);
-  window.showToast?.(`Đã đưa ${done.length} ảnh vào slide${notes.length ? ` · ${notes.join(" · ")}` : ""}`, notes.length ? "warning" : "success");
+  window.showToast?.(`Đã điền ${done.length} ảnh vào ${done.length} ô đầu${notes.length ? ` · ${notes.join(" · ")}` : ""}`, extra > 0 || failed > 0 ? "warning" : "success");
   if (unsaved) window.showToast?.("Máy không cho lưu ảnh (bộ nhớ trình duyệt đầy hoặc đang ở chế độ ẩn danh)", "warning");
 });
 
