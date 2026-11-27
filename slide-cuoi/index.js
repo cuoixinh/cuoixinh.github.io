@@ -1920,6 +1920,8 @@ function _scExportMsg(m) {
         music: " Video có giọng đọc nhưng thiếu nhạc nền vì không đọc được file nhạc.",
         voice: " Có lớp giọng đọc không đọc được nên bị bỏ khỏi video. Hãy đổi file đó sang MP3 rồi tải lại.",
         codec: " Video không có tiếng vì trình duyệt này không ghép được tiếng. Hãy dùng Chrome hoặc Edge bản mới.",
+        encode: " Video không có tiếng vì máy mã hoá tiếng bị lỗi. Hãy xuất lại, hoặc dùng Chrome trên máy tính.",
+        silent: " Video không có tiếng vì đọc file nhạc ra toàn im lặng. Hãy xuất lại, hoặc đổi file nhạc sang MP3.",
         decode:
           _scMu.pick?.mode === "lib"
             ? " Video không có tiếng vì không tải được bài nhạc trong thư viện. Hãy thử lại sau hoặc chọn file từ máy."

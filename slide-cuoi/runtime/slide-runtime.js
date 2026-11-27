@@ -521,6 +521,10 @@
     let vol = 1; // mức nhạc hiện tại (Voice hạ xuống khi có giọng đọc)
     let env = 1; // hệ số to dần / nhỏ dần ở hai mép đoạn
     let resync = true; // vừa tua / nhảy cảnh / bấm phát: tick sau đặt nhạc khớp đúng đồng hồ
+    let lastCT = -1; // canh nhạc kẹt: đang phát mà currentTime đứng yên quá STALL_MS thì nạp lại
+    let movedAt = 0;
+    let revivedAt = 0;
+    const STALL_MS = 2000;
     const apply = () => {
       if (audio) audio.volume = Math.min(1, Math.max(0, vol * env));
     };
@@ -611,6 +615,18 @@
           } catch (e) {}
         } else if (!audio.paused && audio.readyState >= 3) drift = off;
         resync = false;
+      }
+      // iPhone đôi khi kẹt hẳn sau một lần tua (seeking mãi không xong, nhất là file blob:) — nạp
+      // lại CHÍNH thẻ đó (thẻ mới phải có cú chạm mới phát được) rồi tua lại.
+      const now = performance.now();
+      const ct = audio.currentTime;
+      if (audio.paused || ct !== lastCT) {
+        lastCT = ct;
+        movedAt = now;
+      } else if (now - movedAt > STALL_MS && now - revivedAt > STALL_MS * 2) {
+        revivedAt = movedAt = now;
+        resync = true;
+        audio.load();
       }
       if (audio.paused && !blocked) audio.play().catch(refused);
       return drift;
