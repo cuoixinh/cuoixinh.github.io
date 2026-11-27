@@ -24,7 +24,7 @@
   };
   const CG = '"Cormorant Garamond", "Times New Roman", serif';
   const PF = '"Playfair Display", "Times New Roman", serif';
-  const GV = '"Great Vibes", cursive';
+  const GV = '"Pinyon Script", cursive';
   const F = {
     title: { family: CG, size: 66, weight: 300 },
     titleS: { family: CG, size: 40, weight: 400 },
