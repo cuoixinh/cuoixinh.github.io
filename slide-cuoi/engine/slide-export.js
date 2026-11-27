@@ -68,9 +68,23 @@ window.CXSlideExport = (() => {
   async function _mix({ music, cut, voices = [], duck = 1 }, seconds) {
     const frames = Math.ceil(seconds * AUDIO_RATE);
     const off = new OfflineAudioContext(2, frames, AUDIO_RATE);
+    // Bài thư viện tải lại qua mạng — hỏng thì thử thêm một lần trước khi chịu xuất không tiếng.
+    const get = async (url) => {
+      for (let k = 0; ; k++) {
+        try {
+          const r = await fetch(url, { cache: "force-cache" });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return await r.arrayBuffer();
+        } catch (e) {
+          if (k) throw e;
+          await new Promise((ok) => setTimeout(ok, 800));
+        }
+      }
+    };
     const dec = async (from) => {
       try {
-        const buf = from instanceof Blob ? await from.arrayBuffer() : await (await fetch(from)).arrayBuffer();
+        const buf = from instanceof Blob ? await from.arrayBuffer() : await get(from);
+        if (!buf.byteLength) return null;
         return await off.decodeAudioData(buf);
       } catch (e) {
         return null;
@@ -166,7 +180,20 @@ window.CXSlideExport = (() => {
       src.stop(mEnd);
     }
     if (!mbuf && !spans.length) return null;
-    return { buf: await off.startRendering(), music: !!mbuf, voices: spans.length, lost: vs.length - spans.length };
+    const buf = await off.startRendering();
+    // Kết xuất ra toàn số 0 (đã gặp trên Safari) thì coi như không đọc được, báo lý do cho khách.
+    if (_peak(buf) < 1e-4) return { buf: null, silent: true };
+    return { buf, music: !!mbuf, voices: spans.length, lost: vs.length - spans.length };
+  }
+
+  // Biên độ lớn nhất (lấy mẫu thưa cho nhanh) — 0 nghĩa là im hẳn.
+  function _peak(buf, from = 0, to = buf.length) {
+    let m = 0;
+    for (let c = 0; c < buf.numberOfChannels; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = from; i < to; i += 7) m = Math.max(m, Math.abs(d[i]));
+    }
+    return m;
   }
 
   // Mã tiếng: AAC trước (phát được ở mọi nơi). Máy không có bộ mã AAC (Chromium mã nguồn mở,
@@ -182,6 +209,120 @@ window.CXSlideExport = (() => {
       const cfg = { codec: a.codec, sampleRate: AUDIO_RATE, numberOfChannels: 2, bitrate: a.bitrate };
       try {
         if ((await AudioEncoder.isConfigSupported(cfg)).supported) return { cfg, mux: a.mux };
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  // AudioSpecificConfig của AAC-LC 48kHz stereo — dùng khi bộ mã không trả `description` (thiếu là
+  // MP4 có track tiếng nhưng máy phát không giải mã được: video "câm" dù xuất báo đủ tiếng).
+  const _ASC = new Uint8Array([0x11, 0x90]);
+
+  // Đưa PCM vào AudioEncoder theo dạng `format`, trả {chunks:[{data,type,ts,dur}], config}.
+  // Gỡ khung ADTS nếu bộ mã tự gắn, timestamp kẹp ≥ 0 (mp4-muxer từ chối số âm).
+  async function _encodePcm(pcm, acfg, format, from = 0, to = pcm.length) {
+    const chunks = [];
+    let config = null;
+    let fail = null;
+    const enc = new AudioEncoder({
+      output: (c, meta) => {
+        if (meta?.decoderConfig && !config) config = meta.decoderConfig;
+        let data = new Uint8Array(c.byteLength);
+        c.copyTo(data);
+        if (data[0] === 0xff && (data[1] & 0xf6) === 0xf0 && data.length > 9) data = data.subarray(data[1] & 1 ? 7 : 9);
+        chunks.push({ data, type: c.type, ts: Math.max(0, c.timestamp - Math.round((from / AUDIO_RATE) * 1e6)), dur: c.duration || 0 });
+      },
+      error: (e) => (fail = e),
+    });
+    enc.configure(acfg);
+    const L = pcm.getChannelData(0);
+    const R = pcm.getChannelData(1);
+    const SLICE = AUDIO_RATE / 2;
+    for (let at = from; at < to; at += SLICE) {
+      const n = Math.min(SLICE, to - at);
+      let data;
+      if (format === "f32-planar") {
+        data = new Float32Array(n * 2);
+        data.set(L.subarray(at, at + n), 0);
+        data.set(R.subarray(at, at + n), n);
+      } else {
+        data = format === "s16" ? new Int16Array(n * 2) : new Float32Array(n * 2);
+        for (let i = 0; i < n; i++) {
+          const l = L[at + i];
+          const r = R[at + i];
+          data[i * 2] = format === "s16" ? Math.max(-32768, Math.min(32767, Math.round(l * 32767))) : l;
+          data[i * 2 + 1] = format === "s16" ? Math.max(-32768, Math.min(32767, Math.round(r * 32767))) : r;
+        }
+      }
+      const ad = new AudioData({ format, sampleRate: AUDIO_RATE, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round((at / AUDIO_RATE) * 1e6), data });
+      enc.encode(ad);
+      ad.close();
+      if (fail) break;
+    }
+    if (!fail) await enc.flush().catch((e) => (fail = e));
+    if (enc.state !== "closed") enc.close();
+    if (fail) throw fail;
+    return { chunks, config };
+  }
+
+  // Giải mã lại vài giây vừa mã hoá xem có ra tiếng không — Safari có lúc mã hoá ra toàn im lặng
+  // mà không báo lỗi. null = máy không có AudioDecoder để kiểm (coi như được).
+  async function _audible(res, acfg) {
+    if (typeof AudioDecoder !== "function" || !res.chunks.length) return res.chunks.length ? null : false;
+    const cfg = { codec: acfg.codec, sampleRate: AUDIO_RATE, numberOfChannels: 2 };
+    if (res.config?.description) cfg.description = res.config.description;
+    else if (acfg.codec.startsWith("mp4a")) cfg.description = _ASC;
+    try {
+      if (!(await AudioDecoder.isConfigSupported(cfg)).supported) return null;
+    } catch (e) {
+      return null;
+    }
+    let m = 0;
+    let n = 0;
+    const dec = new AudioDecoder({
+      output: (ad) => {
+        n++;
+        const ch = new Float32Array(ad.numberOfFrames);
+        try {
+          ad.copyTo(ch, { planeIndex: 0, format: "f32-planar" });
+          for (let i = 0; i < ch.length; i += 5) m = Math.max(m, Math.abs(ch[i]));
+        } catch (e) {
+          m = Math.max(m, 1); // không đọc được mẫu thì chỉ dựa vào việc có khung ra
+        }
+        ad.close();
+      },
+      error: () => {},
+    });
+    try {
+      dec.configure(cfg);
+      res.chunks.forEach((c) => dec.decode(new EncodedAudioChunk({ type: c.type, timestamp: c.ts, duration: c.dur || undefined, data: c.data })));
+      await dec.flush();
+    } catch (e) {
+      return false;
+    } finally {
+      if (dec.state !== "closed") dec.close();
+    }
+    return n > 0 && m > 1e-4;
+  }
+
+  // Chọn dạng PCM bộ mã của máy này mã hoá ĐÚNG (thử trên ~3 giây to nhất của bản trộn) rồi mã hoá
+  // cả bản. Trả {chunks, config} hoặc null khi không dạng nào ra tiếng.
+  async function _encodeAudio(pcm, acfg) {
+    const win = Math.min(pcm.length, AUDIO_RATE * 3);
+    let best = 0;
+    let bestAt = 0;
+    for (let at = 0; at + win <= pcm.length; at += AUDIO_RATE * 3) {
+      const p = _peak(pcm, at, at + win);
+      if (p > best) (best = p), (bestAt = at);
+    }
+    for (const format of ["f32-planar", "f32", "s16"]) {
+      try {
+        const probe = await _encodePcm(pcm, acfg, format, bestAt, bestAt + win);
+        if ((await _audible(probe, acfg)) === false) continue;
+        const res = await _encodePcm(pcm, acfg, format);
+        if (!res.chunks.length) continue;
+        if (!res.config?.description && acfg.codec.startsWith("mp4a")) res.config = { ...res.config, codec: acfg.codec, sampleRate: AUDIO_RATE, numberOfChannels: 2, description: _ASC };
+        return res;
       } catch (e) {}
     }
     return null;
@@ -235,14 +376,22 @@ window.CXSlideExport = (() => {
     // không dừng cả việc.
     let pcm = null;
     let audio = null;
+    let enc = null; // tiếng đã mã hoá sẵn {chunks, config}
     const voices = (opts.voices || []).filter((v) => v && !v.mute);
     if (opts.audioUrl || voices.length) {
       audio = await _audioCfg();
-      const mix = audio ? await _mix({ music: opts.audioUrl, cut: opts.musicCut, voices, duck: opts.duck ?? 1 }, P.total).catch(() => null) : null;
+      const mixIt = () => _mix({ music: opts.audioUrl, cut: opts.musicCut, voices, duck: opts.duck ?? 1 }, P.total).catch(() => null);
+      let mix = audio ? await mixIt() : null;
+      if (audio && !mix?.buf) mix = (await mixIt()) || mix; // lần đầu hỏng (mạng chập chờn, Safari) thì trộn lại
       pcm = mix?.buf || null;
+      // Mã hoá tiếng TRƯỚC hình: biết chắc có tiếng hay không thì mới khai track tiếng cho MP4.
+      if (pcm) {
+        enc = await _encodeAudio(pcm, audio.cfg);
+        if (!enc) pcm = null;
+      }
       opts.onAudio?.({
         ok: !!pcm,
-        reason: !audio ? "codec" : !pcm ? "decode" : "",
+        reason: !audio ? "codec" : !mix?.buf ? (mix?.silent ? "silent" : "decode") : !enc ? "encode" : "",
         music: !!mix?.music,
         voices: mix?.voices || 0,
         lost: mix?.lost || 0,
@@ -293,42 +442,17 @@ window.CXSlideExport = (() => {
         // Giữ hàng đợi bộ mã hoá ngắn: dồn khung 4K là đầy bộ nhớ.
         while (venc.encodeQueueSize > 4) await new Promise((r) => setTimeout(r, 4));
         if (i % 12 === 0) {
-          opts.onProgress?.((i / frames) * (acfg ? 0.95 : 1));
+          opts.onProgress?.(i / frames);
           await _yield();
         }
       }
       await venc.flush();
       if (fail) throw fail;
 
-      if (acfg) {
-        const aenc = new AudioEncoder({
-          output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
-          error: (e) => (fail = e),
-        });
-        aenc.configure(acfg);
-        const total = pcm.length;
-        const L = pcm.getChannelData(0);
-        const R = pcm.getChannelData(1);
-        const SLICE = AUDIO_RATE; // 1 giây một lần đưa vào
-        for (let at = 0; at < total; at += SLICE) {
-          const n = Math.min(SLICE, total - at);
-          const data = new Float32Array(n * 2);
-          data.set(L.subarray(at, at + n), 0);
-          data.set(R.subarray(at, at + n), n);
-          const ad = new AudioData({
-            format: "f32-planar",
-            sampleRate: AUDIO_RATE,
-            numberOfFrames: n,
-            numberOfChannels: 2,
-            timestamp: Math.round((at / AUDIO_RATE) * 1e6),
-            data,
-          });
-          aenc.encode(ad);
-          ad.close();
-        }
-        await aenc.flush();
-        aenc.close();
-        if (fail) throw fail;
+      if (acfg && enc) {
+        enc.chunks.forEach((c, k) =>
+          muxer.addAudioChunkRaw(c.data, c.type, c.ts, c.dur, k ? undefined : { decoderConfig: enc.config }),
+        );
       }
     } finally {
       if (venc.state !== "closed") venc.close();
