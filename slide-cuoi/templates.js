@@ -26,4 +26,12 @@ window.CX_SLIDE_TEMPLATES = [
     ratios: ["16 / 9", "1 / 1"],
     thumb: "/slide-cuoi/templates/ngay-chung-doi/thumb.jpg",
   },
+  {
+    id: "tram-nam-hanh-phuc",
+    name: "Trăm Năm Hạnh Phúc",
+    desc: "Chỉ có ảnh, không chữ — mỗi màn một ảnh, xen màn 2–3 ảnh",
+    ratio: "16 / 9",
+    ratios: ["16 / 9", "1 / 1"],
+    thumb: "/slide-cuoi/templates/tram-nam-hanh-phuc/thumb.jpg",
+  },
 ];

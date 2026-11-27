@@ -849,6 +849,9 @@
     fit();
     report(true);
     sync();
+    // Mẫu không có chữ nào (chỉ ảnh) thì chip gợi ý chỉ nói tới ảnh.
+    const anyText = P.all.some((s) => s.texts?.length);
+    hint.querySelector("span").textContent = anyText ? "Bấm vào chữ hoặc ảnh để sửa" : "Bấm vào ảnh để đổi ảnh";
     if (EMBED && !hinted) {
       hinted = true;
       hintUntil = performance.now() + 2600;
