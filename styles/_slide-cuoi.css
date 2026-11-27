@@ -1029,9 +1029,6 @@ html.sc-typing .sc-stage {
   position: relative;
   top: auto;
 }
-html.sc-typing .cx-tabbar {
-  display: none;
-}
 html.sc-typing .sc-tx-in {
   max-height: calc(var(--sc-kb-h, 320px) - 96px);
   overflow-y: auto;

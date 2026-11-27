@@ -1682,8 +1682,8 @@ _scEl("sc-tabs").addEventListener("keydown", (e) => {
 });
 
 // ── Gõ chữ trên điện thoại: bàn phím ảo chiếm nửa dưới màn, khung chiếu dính đầu trang chiếm phần
-// trên → ô đang gõ hết chỗ. Lúc gõ (dưới lg) đặt cờ html.sc-typing: khung chiếu thôi dính, thanh
-// tab dưới ẩn, ô gõ cao tối đa bằng phần còn nhìn thấy (--sc-kb-h). Chỉ cuộn ô vào giữa ĐÚNG lúc
+// trên → ô đang gõ hết chỗ. Lúc gõ (dưới lg) đặt cờ html.sc-typing: khung chiếu thôi dính, ô gõ
+// cao tối đa bằng phần còn nhìn thấy (--sc-kb-h). Thanh tab dưới thì navbar.js tự giấu khi gõ. Chỉ cuộn ô vào giữa ĐÚNG lúc
 // bàn phím mọc lên — vuốt trang làm thanh địa chỉ ẩn/hiện cũng đổi khổ visualViewport, cuộn theo
 // đó là kéo trang về ô mãi. Bàn phím cụp xuống (ô vẫn focus — nút Back của Android) = gõ xong:
 // bỏ chọn ô, trả khung chiếu về chỗ.
