@@ -223,10 +223,18 @@
           <div id="sc-import" class="sc-time hidden" role="group" aria-labelledby="sc-import-l">
             <div class="sc-time-head">
               <span id="sc-import-l" class="sc-time-l"><i data-lucide="images"></i>Ảnh của bạn</span>
-              <output id="sc-import-n" class="sc-import-n"></output>
+              <span class="sc-import-tools">
+                <output id="sc-import-n" class="sc-import-n"></output>
+                <!-- Đổi thứ tự bộ ảnh chung (scPhotosSortOpen) — chỉ hiện khi có từ 2 ảnh. -->
+                <x-button id="sc-sort-open" variant="bare" icon="arrow-up-down" onclick="scPhotosSortOpen()" class="sc-time-reset hidden" title="Đổi thứ tự ảnh">Sắp xếp</x-button>
+              </span>
             </div>
             <p class="sc-import-desc">Chọn ảnh một lần, slide tự điền từ ô đầu tới ô cuối.</p>
-            <x-button id="sc-ph-bulk" variant="bare" icon="image-up" onclick="scPhotosBulk()" class="sc-import-btn">Chọn ảnh</x-button>
+            <div class="sc-import-acts">
+              <x-button id="sc-ph-bulk" variant="bare" icon="image-up" onclick="scPhotosBulk()" class="sc-import-btn">Chọn ảnh</x-button>
+              <!-- Xoá mọi ảnh đã chọn (mọi mẫu của thiệp) + chữ về lời mẫu, có hỏi lại (scResetAll). -->
+              <x-button id="sc-reset-all" variant="bare" icon="rotate-ccw" onclick="scResetAll()" class="sc-import-reset" title="Xoá hết ảnh đã chọn và đưa chữ về lời mẫu">Reset</x-button>
+            </div>
             <label class="sc-check sc-import-rep">
               <span class="sc-check-text">
                 <span class="sc-check-title">Cho phép lặp ảnh khi thiếu</span>
@@ -344,6 +352,14 @@
         </section>
 
         <section id="sc-tab-tpl" class="sc-tab hidden" role="tabpanel" aria-labelledby="sc-tabbtn-tpl">
+          <!-- Tỉ lệ khung hình của mẫu đang chọn — chỉ hiện khi mẫu khai nhiều tỉ lệ (index.js _scRenderRatio). -->
+          <div id="sc-ratio-box" class="sc-time hidden" role="group" aria-labelledby="sc-ratio-l">
+            <div class="sc-time-head">
+              <span id="sc-ratio-l" class="sc-time-l"><i data-lucide="ratio"></i>Tỉ lệ khung hình</span>
+            </div>
+            <div id="sc-ratio" class="cx-seg sc-ratio" style="--n: 2; --i: 0"></div>
+            <p class="sc-import-desc sc-ratio-note">Ảnh và chữ bạn đã sửa giữ nguyên khi đổi tỉ lệ, chỉ bố cục đổi theo.</p>
+          </div>
           <div id="sc-tpls" class="sc-tpls"></div>
         </section>
       </div>

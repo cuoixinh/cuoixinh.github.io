@@ -6,6 +6,8 @@
 window.CXSlideExport = (() => {
   // Mỗi khổ: bitrate + danh sách codec H.264 cho TỪNG nhịp khung — level quyết định số macroblock/giây
   // tối đa nên 60fps cần level cao hơn 30fps (1080p60 ≥ 4.2, 4K60 = 5.2, 1440×2560@60 ≥ 5.1).
+  // w/h của 1080/2160 là khổ 16:9; slide tỉ lệ khác giữ chiều cao, bề ngang theo tỉ lệ (_size) —
+  // vuông 1080×1080 / 2160×2160 ít điểm ảnh hơn nên cùng bộ codec vẫn đủ.
   const SIZES = {
     1080: {
       w: 1920, h: 1080,
@@ -38,9 +40,16 @@ window.CXSlideExport = (() => {
 
   // Cấu hình H.264 đầu tiên máy mã hoá được ở khổ này, thử 60fps trước rồi 30fps; null = không
   // xuất được khổ đó.
-  async function pickCodec(height) {
-    if (!supported()) return null;
+  // Khổ video theo tỉ lệ slide (ratio = W/H, mặc định 16:9); TikTok luôn dọc 1440×2560. Cạnh chẵn: H.264 đòi.
+  function _size(height, ratio) {
     const S = SIZES[height];
+    if (height === "tiktok" || !ratio) return S;
+    return { ...S, w: Math.round((S.h * ratio) / 2) * 2 };
+  }
+
+  async function pickCodec(height, ratio) {
+    if (!supported()) return null;
+    const S = _size(height, ratio);
     for (const fps of FPS_STEPS) {
       for (const codec of S[fps].codecs) {
         const cfg = { codec, width: S.w, height: S.h, bitrate: S[fps].bitrate, framerate: fps, avc: { format: "avc" } };
@@ -339,17 +348,26 @@ window.CXSlideExport = (() => {
 
   // Một khung video TikTok: ảnh hội trường → slide (vẽ sẵn ở `slide`) đặt vào ô màn chiếu, hắt
   // chút sáng ra tường → tên miền ở đáy. Mọi cỡ tính theo khổ khung nên đổi độ phân giải vẫn đúng.
+  // Slide khác tỉ lệ ô màn (16:9) — vd. vuông — đứng giữa màn, hai bên là màn đen như LED thật.
   function _hallFrame(ctx, hall, slide) {
     const W = ctx.canvas.width;
     const H = ctx.canvas.height;
     const r = { x: HALL.x * W, y: HALL.y * H, w: HALL.w * W, h: HALL.h * H };
+    const k = Math.min(r.w / slide.width, r.h / slide.height);
+    const sw = slide.width * k;
+    const sh = slide.height * k;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
     ctx.drawImage(hall, 0, 0, W, H);
     ctx.save();
     ctx.shadowColor = "rgba(255, 236, 224, 0.28)";
     ctx.shadowBlur = W * 0.033;
-    ctx.drawImage(slide, r.x, r.y, r.w, r.h);
+    if (sw < r.w - 1 || sh < r.h - 1) {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.shadowColor = "transparent";
+    }
+    ctx.drawImage(slide, r.x + (r.w - sw) / 2, r.y + (r.h - sh) / 2, sw, sh);
     ctx.restore();
     ctx.textBaseline = "middle";
     ctx.font = `600 ${Math.round(H * 0.018)}px Inter, "Segoe UI", Roboto, Arial, sans-serif`;
@@ -365,9 +383,9 @@ window.CXSlideExport = (() => {
   // duck, loop (video nối vòng liền mạch — Nền sân khấu), signal, onProgress(p 0..1), onAudio({ok, reason: "codec"|"decode"|"", music, voices, lost})
   // — báo trước khi mã hoá: ghép được những tiếng nào } → Blob MP4.
   async function run(P, opts) {
-    const vcfg = await pickCodec(opts.height);
+    const vcfg = await pickCodec(opts.height, P.W / P.H);
     if (!vcfg) throw Object.assign(new Error("Máy này không mã hoá được video khổ này"), { code: "UNSUPPORTED" });
-    const S = SIZES[opts.height];
+    const S = _size(opts.height, P.W / P.H);
     const fps = vcfg.framerate;
     const tiktok = opts.height === "tiktok";
     const hall = tiktok ? await _img(HALL.src) : null;
@@ -418,12 +436,13 @@ window.CXSlideExport = (() => {
     canvas.width = S.w;
     canvas.height = S.h;
     const ctx = canvas.getContext("2d", { alpha: false });
-    // TikTok: slide vẽ lên canvas riêng (khổ ô màn ×1.5 cho nét) rồi mới ghép vào hội trường.
+    // TikTok: slide vẽ lên canvas riêng (vừa khít ô màn ×1.5 cho nét) rồi mới ghép vào hội trường.
     let sctx = ctx;
     if (tiktok) {
       const sc = document.createElement("canvas");
-      sc.width = Math.round(HALL.w * S.w * 1.5);
-      sc.height = Math.round((sc.width * P.H) / P.W);
+      const fitK = Math.min((HALL.w * S.w) / P.W, (HALL.h * S.h) / P.H) * 1.5;
+      sc.width = Math.round(P.W * fitK);
+      sc.height = Math.round(P.H * fitK);
       sctx = sc.getContext("2d", { alpha: false });
     }
 

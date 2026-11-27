@@ -645,7 +645,8 @@ window.CXSlideEngine = (() => {
   }
 
   // Ảnh phủ kín khung theo điểm lấy nét (như object-fit: cover + object-position). el.kb: Ken
-  // Burns suốt cảnh, giữ điểm lấy nét đứng yên — true thu từ 1.1 về 1, "in" phóng từ 1 lên 1.12.
+  // Burns suốt cảnh, giữ điểm lấy nét đứng yên — true thu từ 1.1 về 1, "in" phóng từ 1 lên 1.12;
+  // "pan-l" · "pan-r" · "pan-u" · "pan-d" = phóng 1.15 rồi LIA khung cắt sang trái/phải/lên/xuống.
   // el.shape cắt ảnh theo hình: "circle" (elip nội tiếp khung) · "arch" (vòm, đỉnh bán nguyệt) ·
   // "chamfer" (vát bốn góc `cut` px); el.radius = bo góc. el.mat / el.drop: xem _mat.
   function _image(ctx, img, el, lt, dur) {
@@ -718,11 +719,12 @@ window.CXSlideEngine = (() => {
     let cy = (ih - ch) * fy;
     if (el.kb) {
       const q = _clamp(lt / dur);
-      const z = el.kb === "in" ? 1 + 0.12 * q : 1.1 - 0.1 * q;
+      const pan = typeof el.kb === "string" && el.kb.startsWith("pan-") ? el.kb.slice(4) : "";
+      const z = pan ? 1.15 : el.kb === "in" ? 1 + 0.12 * q : 1.1 - 0.1 * q;
       const zw = cw / z;
       const zh = ch / z;
-      cx += (cw - zw) * fx;
-      cy += (ch - zh) * fy;
+      cx += (cw - zw) * (pan === "r" ? q : pan === "l" ? 1 - q : fx);
+      cy += (ch - zh) * (pan === "d" ? q : pan === "u" ? 1 - q : fy);
       cw = zw;
       ch = zh;
     }

@@ -766,7 +766,7 @@
   // Khổ nào máy mã hoá được — trang cha khoá lựa chọn 4K khi máy không làm nổi.
   async function caps() {
     const X = window.CXSlideExport;
-    const ok = X?.supported() ? await Promise.all([X.pickCodec(1080), X.pickCodec(2160), X.pickCodec("tiktok")]) : [];
+    const ok = X?.supported() ? await Promise.all([X.pickCodec(1080, W / H), X.pickCodec(2160, W / H), X.pickCodec("tiktok")]) : [];
     const audio = X?.audioCodec ? await X.audioCodec().catch(() => "") : "";
     post({ type: "cx-slide-caps", h1080: !!ok[0], h2160: !!ok[1], tiktok: !!ok[2], audio });
   }
@@ -849,6 +849,9 @@
     fit();
     report(true);
     sync();
+    // Mẫu không có chữ nào (chỉ ảnh) thì chip gợi ý chỉ nói tới ảnh.
+    const anyText = P.all.some((s) => s.texts?.length);
+    hint.querySelector("span").textContent = anyText ? "Bấm vào chữ hoặc ảnh để sửa" : "Bấm vào ảnh để đổi ảnh";
     if (EMBED && !hinted) {
       hinted = true;
       hintUntil = performance.now() + 2600;

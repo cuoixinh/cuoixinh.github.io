@@ -22,11 +22,22 @@
 > uyên ương là lời cô dâu (~1 phút, gửi quan khách · bố mẹ · anh) chạy chữ kiểu máy chữ ở nhịp
 > nói để cô dâu thu âm theo ở tab Âm thanh; phần dài quá khung tự chia thêm cảnh nối tiếp (không cố
 > định 3 cảnh). Chú rể chỉ có "My groom" ngắn, không có cảnh "My bride". KHÔNG hiện tên bố mẹ.
+> Mẫu thứ tư: `templates/tram-nam-hanh-phuc/` ("Trăm Năm Hạnh Phúc") — CHỈ CÓ ẢNH, không chữ, mọi ảnh
+> phủ kín ô của nó (Ken Burns / lia máy `kb: "pan-*"` của engine): khung ngang ghép 2–3 ảnh mỗi màn,
+> thỉnh thoảng một ảnh tràn khung; khung vuông đa số một ảnh một khung, xen màn 2–3 ảnh. 60 ô khoá
+> theo SỐ THỨ TỰ ảnh (`p1`…`p60`, không theo cảnh) nên đổi tỉ lệ — chia cảnh khác nhau — không lạc ảnh.
 > **Nhập ảnh cả slide** (thẻ "Ảnh của bạn" đầu tab Cảnh, mọi mẫu): ảnh chọn điền lần lượt từ ô ĐẦU tới ô
 > cuối theo thứ tự chiếu, đè cả ô đã đổi; thừa thì bỏ. Ít ảnh hơn số ô: công tắc "Cho phép lặp ảnh khi
 > thiếu" (nhớ ở localStorage) tắt thì các ô sau giữ nguyên, bật thì các ô sau lặp vòng loạt ảnh đó —
 > bật/tắt sau khi nhập cũng áp ngay cho loạt vừa nhập. Ảnh xếp
 > theo tên file. Ô chưa điền vẫn là ảnh thiệp / ảnh mẫu, lặp vòng như cũ.
+> **Bộ ảnh chung mọi mẫu:** mỗi thiệp một DANH SÁCH ảnh có thứ tự (IndexedDB `@set|<thiệp>` + byte ở
+> `@img|<thiệp>|<id>`); mẫu chỉ chiếu danh sách đó vào ô theo thứ tự chiếu — mẫu ít ô hiện phần đầu, phần
+> sau vẫn giữ, quay lại mẫu nhiều ô là đủ. Nhập ảnh thay danh sách từ đầu (tối đa = số ô mẫu đang mở),
+> sửa một ô ở mẫu nào cũng ghi đúng vị trí đó. Nút **Reset** (có hỏi lại) xoá cả danh sách + đưa chữ
+> mẫu đang mở về lời mẫu; "Về ảnh của thiệp" xoá danh sách, giữ chữ. Cả hai không hoàn tác được.
+> Nút **Sắp xếp** (cạnh số ô) mở lưới ảnh của danh sách, kéo thả đổi thứ tự (điện thoại: chạm giữ rồi kéo),
+> thêm Đảo ngược / Theo tên file; Lưu áp cho mọi mẫu và xoá lịch sử Ctrl+Z (đổi cả phần vượt số ô).
 > Mẫu thứ ba: `templates/ngay-chung-doi/` ("Ngày Chung Đôi") — nền trắng tối giản, ẢNH LÀ CHÍNH:
 > 20 cảnh / 60 ô ảnh khác nhau (khách đổ một lần ở thẻ "Ảnh của bạn" đầu tab Cảnh), mỗi cảnh một bố cục ghép 1–6 ảnh, chữ chỉ một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần,
 > ảnh in viền trắng đổ bóng (`mat`/`drop` của engine), tiêu đề vắt qua mép ảnh đổi màu (`clip`).

@@ -1386,11 +1386,153 @@ html.sc-typing .sc-tx-in {
   font-variant-numeric: tabular-nums;
   color: rgb(var(--text-caption-rgb));
 }
+.sc-import-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Bảng "Sắp xếp ảnh" (openBottomSheet): lưới ảnh nhỏ đánh số, cuộn riêng; chân bảng thao tác nhanh +
+   Huỷ / Lưu. Ô dùng touch-action mặc định để vuốt vẫn cuộn — chạm GIỮ mới kéo (index.js). */
+.sc-sort {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px 20px 0;
+}
+.sc-sort-sub {
+  flex: none;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(var(--text-caption-rgb));
+}
+/* Khung cuộn là lớp bọc; lưới bên trong cao tự nhiên — lưới tự làm khung cuộn thì hàng bị ép thấp
+   (ô aspect-ratio + overflow hidden có chiều cao tối thiểu 0) và ảnh chồng lên nhau. */
+.sc-sort-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sc-sort-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+  padding-bottom: 16px;
+}
+.sc-sort-tile {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 12px;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  background: rgb(var(--surface-brand-subtle-rgb));
+  transition: transform 0.15s ease;
+}
+.sc-sort-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.sc-sort-tile.is-hold {
+  transform: scale(0.94);
+}
+.sc-sort-tile.is-drag {
+  opacity: 0.3;
+  outline: 2px dashed rgb(var(--action-primary-rgb));
+  outline-offset: -2px;
+}
+.sc-sort-tile.is-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc-sort-none {
+  font-size: 12px;
+  color: rgb(var(--text-caption-rgb));
+}
+.sc-sort-n {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  min-width: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--white-rgb));
+  background: rgb(0 0 0 / 0.55);
+}
+.sc-sort-ghost {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  cursor: grabbing;
+  transform: scale(1.06);
+  box-shadow: 0 16px 32px -12px rgb(0 0 0 / 0.45);
+}
+.sc-sort-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
+}
+.sc-sort-gap {
+  flex: 1 1 auto;
+}
+/* Điện thoại: thao tác nhanh một hàng, Huỷ / Lưu chia đều hàng dưới. */
+@media (max-width: 479px) {
+  .sc-sort-gap {
+    flex-basis: 100%;
+    height: 0;
+  }
+  .sc-sort-foot > [data-sort="cancel"],
+  .sc-sort-foot > [data-sort="save"] {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}
+
 .sc-import-desc {
   margin: 4px 0 12px;
   font-size: 13px;
   line-height: 1.6;
   color: rgb(var(--text-caption-rgb));
+}
+.sc-import-acts {
+  display: flex;
+  gap: 8px;
+}
+.sc-import-acts > .sc-import-btn {
+  flex: 1 1 auto;
+  width: auto;
+}
+.sc-import-reset {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding-inline: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.sc-import-reset:hover {
+  background: rgb(var(--brand-primary-rgb) / 0.45);
 }
 .sc-import-btn {
   display: flex;
@@ -1410,6 +1552,14 @@ html.sc-typing .sc-tx-in {
 .sc-import-rep {
   margin-top: 12px;
   padding: 12px 16px;
+}
+
+/* Thẻ "Tỉ lệ khung hình" đầu tab Mẫu (cùng khung .sc-time). */
+.sc-ratio {
+  margin-top: 8px;
+}
+.sc-ratio-note {
+  margin: 8px 0 0;
 }
 
 /* Thời gian riêng của cảnh: đầu phần mở rộng của dòng cảnh. */
