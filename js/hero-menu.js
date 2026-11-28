@@ -40,6 +40,9 @@ function cxHeroMenu(btn) {
     const pages = [
       { icon: _cxHeroMenuIcon("home"), label: "Trang chủ", active: true, onClick: go("/") },
       { icon: _cxHeroMenuIcon("layers"), label: "Mẫu thiệp", onClick: go("/theme-template/") },
+      ...(typeof CONFIG === "undefined" || CONFIG.features?.slideDemos !== false
+        ? [{ icon: _cxHeroMenuIcon("clapperboard"), label: "Mẫu Slide", onClick: go("/mau-slide/") }]
+        : []),
       { icon: _cxHeroMenuIcon("cart"), label: `${loggedIn ? "Thiệp của tôi" : "Đã chọn"}${n ? ` (${n})` : ""}`, onClick: go("/my-invitations/") },
       // Khách mời chỉ có nghĩa khi đã đăng nhập — cùng luật mục `login: true` ở navbar.
       ...(loggedIn

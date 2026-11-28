@@ -1,0 +1,178 @@
+/* ── Trang "Mẫu Slide" (mau-slide/) ─────────────────────────────────────────────
+   Lưới thẻ: mỗi thẻ một khung video 16:9 (ảnh bìa + nút phát, bấm mới chèn trình phát YouTube)
+   và chân thẻ tên + mô tả + nút "Gửi Messenger". Một cột trên điện thoại, hai cột từ md. */
+.ms-app {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+.ms-head {
+  margin-bottom: 20px;
+}
+.ms-sub {
+  margin-top: 8px;
+  max-width: 640px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(var(--text-caption-rgb));
+}
+.ms-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+@media (min-width: 768px) {
+  .ms-app {
+    padding: 32px 24px 64px;
+  }
+  .ms-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+  }
+}
+
+.ms-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid rgb(var(--brand-accent-rgb) / 0.18);
+  box-shadow: 0 12px 32px -20px rgb(var(--text-heading-rgb) / 0.45);
+}
+
+.ms-video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+.ms-poster,
+.ms-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.ms-poster {
+  object-fit: cover;
+}
+.ms-frame {
+  z-index: 2;
+}
+.ms-video.is-on .ms-play {
+  display: none;
+}
+
+/* Nút phát: phủ cả khung (bấm đâu trên ảnh cũng phát), vòng tròn trắng mờ ở giữa. */
+.ms-play {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border-radius: 0;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0) 55%, rgb(0 0 0 / 0.28));
+  cursor: pointer;
+}
+.ms-play-ic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.9);
+  color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  transition: transform 0.2s ease;
+}
+.ms-play-ic svg {
+  width: 28px;
+  height: 28px;
+  margin-left: 4px; /* tam giác lệch trái về mặt thị giác */
+  fill: currentColor;
+}
+.ms-play:hover .ms-play-ic {
+  transform: scale(1.08);
+}
+.ms-play:focus-visible {
+  outline: 3px solid rgb(var(--brand-accent-rgb));
+  outline-offset: -3px;
+}
+
+/* Mẫu chưa có video: nhãn góc trên trái trên ảnh chụp mẫu. */
+.ms-soon {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(4px);
+}
+.ms-soon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ms-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px 20px;
+}
+.ms-text {
+  flex: 1;
+}
+.ms-name {
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgb(var(--text-heading-rgb));
+}
+.ms-desc {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(var(--text-caption-rgb));
+}
+
+/* Nút Messenger: màu nhận diện của Messenger (token chung ở _colors.css). */
+.ms-msg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, rgb(var(--social-messenger-from-rgb)), rgb(var(--social-messenger-to-rgb)));
+  box-shadow: 0 8px 20px -10px rgb(var(--social-messenger-to-rgb) / 0.8);
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+.ms-msg:hover {
+  filter: brightness(1.06);
+}
+.ms-msg:active {
+  transform: scale(0.98);
+}
+@media (min-width: 768px) {
+  .ms-msg {
+    align-self: flex-start;
+  }
+}
