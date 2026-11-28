@@ -1,4 +1,4 @@
-// Slide sân khấu "Ngày Chung Đôi": nền trắng tối giản, ẢNH LÀ CHÍNH — 20 cảnh, 60 ô ảnh, chữ chỉ
+// Slide sân khấu "Mẫu 01" (ngay-chung-doi): nền trắng tối giản, ẢNH LÀ CHÍNH — 20 cảnh, 60 ô ảnh, chữ chỉ
 // một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần, ảnh in viền trắng đổ bóng. Ba tỉ lệ:
 // 16:9 (1280×720, mặc định), vuông 1:1 (1080×1080, `?ratio=1x1`) và dọc 9:16 (1080×1920, `?ratio=9x16`)
 // — cảnh mỗi tỉ lệ giữ ĐÚNG khoá chữ + số ô ảnh của cảnh 16:9 cùng id, ảnh/chữ khách sửa dùng chung.

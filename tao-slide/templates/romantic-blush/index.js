@@ -1,4 +1,4 @@
-// Slide sân khấu "Mãi mãi về sau" (1280×720; vuông 960×960 `?ratio=1x1`, dọc 720×1280 `?ratio=9x16` thì
+// Slide sân khấu "Mẫu 02" (romantic-blush) (1280×720; vuông 960×960 `?ratio=1x1`, dọc 720×1280 `?ratio=9x16` thì
 // ảnh trên chữ dưới — _VLAYOUTS) (hồng pastel, khối màu phẳng): năm kiểu bố cục (_LAYOUTS)
 // luân phiên, hai cảnh liền nhau không trùng kiểu và đổi bên trái/phải xen kẽ; tiêu đề viết hoa chữ
 // không chân, mọi khối bay từ ngoài vào, ảnh không phủ hiệu ứng sáng. Từ thiệp

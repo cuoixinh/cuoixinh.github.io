@@ -118,21 +118,6 @@
   outline-offset: -3px;
 }
 
-/* Mẫu chưa có video: nhãn hồng nhạt góc dưới trái ảnh chụp mẫu. */
-.ms-soon {
-  position: absolute;
-  left: 12px;
-  bottom: 12px;
-  z-index: 1;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgb(var(--ms-ink));
-  background: rgb(255 255 255 / 0.9);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
-}
-
 /* Chân mỗi mẫu: tên + mô tả bên trái, nút gửi bên phải (từ sm); dưới sm nút xuống dòng, rộng hết. */
 .ms-cap {
   display: flex;
@@ -149,6 +134,12 @@
   font-weight: 600;
   line-height: 1.25;
   color: rgb(var(--ms-ink));
+}
+.ms-empty {
+  max-width: 560px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgb(var(--text-caption-rgb));
 }
 .ms-desc {
   margin-top: 4px;

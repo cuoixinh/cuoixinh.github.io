@@ -1,4 +1,4 @@
-// Slide sân khấu "Mãi Bên Nhau" (1280×720; vuông 960×960 `?ratio=1x1`, dọc 720×1280 `?ratio=9x16` — mỗi
+// Slide sân khấu "Mẫu 03" (mai-ben-nhau) (1280×720; vuông 960×960 `?ratio=1x1`, dọc 720×1280 `?ratio=9x16` — mỗi
 // cảnh rẽ nhánh `V`, cùng khoá chữ + ô ảnh với bản ngang): bố cục tạp chí — nền hồng xám, mảng nâu be đặt
 // lệch sau ảnh, tiêu đề tiếng Anh viết hoa dãn rộng, dải chữ dọc sát mép. Mỗi cảnh nhiều ảnh
 // bay từ ngoài khung vào; thiệp ít ảnh thì ảnh lặp vòng cho đủ mọi khung. Chỉ KHAI cảnh

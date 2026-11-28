@@ -1,6 +1,6 @@
 // Trang "Mẫu Slide": danh sách mẫu slide, mỗi mẫu một video YouTube khung ngang + nút "Gửi Messenger".
 // Video nạp kiểu "mặt tiền": chỉ có ảnh bìa, bấm Phát mới chèn trình phát (~1 MB mã mỗi cái), cùng
-// lúc một video phát. Mẫu chưa có mã video thì hiện ảnh chụp mẫu kèm nhãn "Video sắp có".
+// lúc một video phát. Chỉ liệt kê mẫu ĐÃ có mã video (`youtube` ở tao-slide/templates.js).
 // `?mau=<id>` trên URL (link trong lời nhắn) cuộn tới đúng mẫu đó.
 
 // Cùng link "Nhắn tin qua Messenger" ở chân trang chủ — đổi page thì đổi cả hai.
@@ -10,22 +10,17 @@ const _msEsc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 // Mã video 11 ký tự của YouTube — chặn chuỗi lạ lọt vào URL nhúng.
 const _msYt = (id) => (/^[\w-]{11}$/.test(String(id || "")) ? id : "");
-const _msVer = typeof CX_VERSION === "string" ? CX_VERSION : "";
-const _msTpls = () => window.CX_SLIDE_TEMPLATES || [];
+const _msTpls = () => (window.CX_SLIDE_TEMPLATES || []).filter((t) => _msYt(t.youtube));
 
 function _msItem(t, i) {
   const yt = _msYt(t.youtube);
-  // Ảnh bìa: hqdefault luôn có (maxres chỉ có khi video gốc ≥ 720p); ảnh chụp mẫu cache 3 ngày nên kèm ?v=.
-  const poster = yt ? `https://i.ytimg.com/vi/${yt}/hqdefault.jpg` : `${t.thumb}?v=${encodeURIComponent(_msVer)}`;
-  const media = yt
-    ? `<x-button variant="bare" class="ms-play" data-yt="${yt}" aria-label="Phát video mẫu ${_msEsc(t.name)}">
-         <span class="ms-play-ic"><i data-lucide="play"></i></span>
-       </x-button>`
-    : `<span class="ms-soon">Video sắp có</span>`;
+  // Ảnh bìa nét (maxres, chỉ có khi video gốc ≥ 720p) — thiếu thì _msPosterFix lùi về hqdefault.
   return `<article class="ms-item" id="mau-${_msEsc(t.id)}">
       <div class="ms-video">
-        <img class="ms-poster" src="${_msEsc(poster)}" alt="Mẫu slide ${_msEsc(t.name)}" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} />
-        ${media}
+        <img class="ms-poster" src="https://i.ytimg.com/vi/${yt}/maxresdefault.jpg" data-yt="${yt}" alt="Slide cưới ${_msEsc(t.name)}" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} />
+        <x-button variant="bare" class="ms-play" data-yt="${yt}" aria-label="Phát video ${_msEsc(t.name)}">
+          <span class="ms-play-ic"><i data-lucide="play"></i></span>
+        </x-button>
       </div>
       <div class="ms-cap">
         <div class="ms-text">
@@ -41,11 +36,25 @@ function _msItem(t, i) {
 
 function _msRender() {
   const list = document.getElementById("ms-list");
-  list.innerHTML = _msTpls().map(_msItem).join("");
+  const tpls = _msTpls();
+  list.innerHTML = tpls.length
+    ? tpls.map(_msItem).join("")
+    : `<p class="ms-empty">Video mẫu đang được cập nhật. Bạn có thể nhắn Cưới Xinh qua Messenger để xem trước.</p>`;
+  list.querySelectorAll("img.ms-poster").forEach(_msPosterFix);
   window.lucide?.createIcons({ root: list });
   window.cxRenderIcons?.(list);
   const want = new URLSearchParams(location.search).get("mau");
   if (want) document.getElementById(`mau-${want}`)?.scrollIntoView({ block: "center" });
+}
+
+// Video không có bản maxres: YouTube trả ảnh xám 120×90 (hoặc lỗi) — đổi sang hqdefault (luôn có;
+// viền đen trên dưới của nó bị object-fit: cover cắt mất).
+function _msPosterFix(img) {
+  const low = () => {
+    if (!img.src.includes("hqdefault")) img.src = `https://i.ytimg.com/vi/${img.dataset.yt}/hqdefault.jpg`;
+  };
+  img.addEventListener("error", low, { once: true });
+  img.addEventListener("load", () => img.naturalWidth <= 120 && low());
 }
 
 // Bấm Phát: thay ảnh bìa bằng trình phát (youtube-nocookie, tự phát); video đang phát ở mẫu
@@ -111,7 +120,7 @@ function _msAsk(id) {
   const t = _msTpls().find((x) => x.id === id);
   if (!t) return;
   const link = `${location.origin}/mau-slide/?mau=${encodeURIComponent(t.id)}`;
-  _msText = `Chào Cưới Xinh, mình muốn làm slide cưới theo mẫu "${t.name}".\n${link}`;
+  _msText = `Chào Cưới Xinh, mình muốn làm slide cưới theo ${t.name}.\n${link}`;
   document.getElementById("ms-dlg-msg").textContent = _msText;
   document.getElementById("ms-dlg-go").href = MS_MESSENGER;
   _msNote(true);

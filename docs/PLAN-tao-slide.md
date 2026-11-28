@@ -3,7 +3,8 @@
 > **Hiện tại (2026-11-28):** "Tạo Slide" (`/tao-slide/`) là công cụ NỘI BỘ — nhân viên dựng slide
 > cho khách, mục menu ẩn bằng `CONFIG.features.slides`. Khách chỉ xem video demo từng mẫu ở
 > **"Mẫu Slide"** (`/mau-slide/`, mã YouTube ở khoá `youtube` của `tao-slide/templates.js`) rồi
-> bấm "Gửi Messenger" nhắn Cưới Xinh đặt làm.
+> bấm "Gửi Messenger" nhắn Cưới Xinh đặt làm. Tên mẫu hiện cho khách đánh số "Mẫu 01…" (ngay-chung-doi
+> là Mẫu 01); mẫu chưa có video thì không hiện ở /mau-slide/.
 
 > **Hướng hiện tại (chốt 2026-11-05):** chưa làm trình tạo slide từ ảnh của khách. Thay vào đó
 > là **mẫu slide dựng sẵn** (phong cách do mình thiết kế) chạy bằng **dữ liệu của thiệp thật**:
