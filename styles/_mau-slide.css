@@ -156,16 +156,23 @@
   outline-offset: -3px;
 }
 
-/* Chân mỗi mẫu: tên + mô tả bên trái, nút gửi nhỏ bên phải (mọi khổ màn). */
+/* Chân mỗi mẫu: hàng trên là tên + nút gửi (nút cao ĐÚNG bằng dòng tên, canh giữa theo dòng đó),
+   mô tả chạy hết bề ngang bên dưới. .ms-text mở ra (display: contents) để tên/mô tả vào thẳng lưới. */
 .ms-cap {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name send" "desc desc";
+  column-gap: 12px;
   padding-top: 14px;
 }
 .ms-text {
-  min-width: 0;
+  display: contents;
+}
+.ms-cap .ms-name {
+  grid-area: name;
+}
+.ms-cap .ms-desc {
+  grid-area: desc;
 }
 .ms-name {
   font-family: "Playfair Display", serif;
@@ -186,19 +193,19 @@
   line-height: 1.6;
   color: rgb(var(--text-caption-rgb));
 }
-/* Nút gửi trong danh sách: bản nhỏ của .ms-msg, canh theo dòng tên mẫu. */
+/* Nút gửi trong danh sách: cao bằng dòng tên mẫu (24px × 1.25 = 30px). */
 .ms-cap .ms-send {
-  flex-shrink: 0;
+  grid-area: send;
+  align-self: center;
   gap: 6px;
-  height: 34px;
-  margin-top: 1px;
-  padding: 0 14px 0 12px;
+  height: 30px;
+  padding: 0 12px 0 10px;
   font-size: 13px;
-  box-shadow: 0 6px 14px -8px rgb(var(--social-messenger-to-rgb) / 0.8);
+  box-shadow: none;
 }
 .ms-cap .ms-send svg {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
 }
 
 /* Nút Messenger (cả nút ở danh sách lẫn "Mở Messenger" trong hộp): màu nhận diện của Messenger. */
