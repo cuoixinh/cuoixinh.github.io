@@ -43,14 +43,37 @@
          /tao-slide/templates.js (khoá `youtube`); dựng thẻ ở index.js. -->
     <main class="ms-app">
       <header class="ms-head">
-        <h1 class="tg-title">Mẫu Slide</h1>
+        <h1 class="ms-title">Mẫu Slide</h1>
         <p class="ms-sub">
-          Video trình chiếu màn LED tiệc cưới. Ưng mẫu nào, bấm “Gửi Messenger” để Cưới Xinh làm
-          slide với ảnh cưới của bạn.
+          Slide trình chiếu màn LED trong tiệc cưới. Xem video từng mẫu, ưng mẫu nào thì nhắn
+          Cưới Xinh để làm slide với ảnh cưới của bạn.
         </p>
       </header>
-      <div id="ms-list" class="ms-list" aria-live="polite"></div>
+      <div id="ms-list" class="ms-list"></div>
     </main>
+
+    <!-- Hộp "Gửi Messenger": mở ra là lời nhắn đã được chép sẵn (kèm toast), khách bấm "Mở
+         Messenger" sang khung chat của page rồi dán. Nội dung điền ở _msAsk (index.js). -->
+    <dialog id="ms-dlg" class="ms-dlg" aria-labelledby="ms-dlg-t" aria-describedby="ms-dlg-note">
+      <div class="ms-dlg-in">
+      <div class="ms-dlg-head">
+        <span class="ms-dlg-ic"><i data-icon="messenger" data-size="24"></i></span>
+        <x-button id="ms-dlg-x" variant="ghost" tone="neutral" size="sm" icon-only icon="x" aria-label="Đóng"></x-button>
+      </div>
+      <h2 id="ms-dlg-t" class="ms-dlg-t">Nhắn Cưới Xinh qua Messenger</h2>
+      <p id="ms-dlg-note" class="ms-dlg-note"></p>
+      <div class="ms-dlg-box">
+        <p id="ms-dlg-msg" class="ms-dlg-msg"></p>
+        <x-button id="ms-dlg-copy" variant="soft" tone="neutral" size="xs" icon="copy">Chép lại</x-button>
+      </div>
+      <div class="ms-dlg-acts">
+        <x-button id="ms-dlg-later" variant="ghost" tone="neutral">Để sau</x-button>
+        <a id="ms-dlg-go" class="ms-msg" href="#" target="_blank" rel="noopener">
+          <i data-icon="messenger" data-size="18"></i>Mở Messenger
+        </a>
+      </div>
+      </div>
+    </dialog>
 
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <!-- Logo Messenger trên nút gửi (lucide không có). -->
