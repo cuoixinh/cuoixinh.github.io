@@ -1,4 +1,4 @@
-// Dòng thời gian kiểu bàn dựng phim của /slide-cuoi/: vẽ thước · track Cảnh · track Nhạc nền · các
+// Dòng thời gian kiểu bàn dựng phim của /tao-slide/: vẽ thước · track Cảnh · track Nhạc nền · các
 // track giọng đọc và mọi thao tác trên đó — chọn nhiều, kéo dời / đổi track, cắt mép, tách, nhân bản,
 // sao chép, xoá kéo theo, fade, đường âm lượng, tắt / solo / khoá / âm lượng track, đổi thứ tự +
 // thời lượng + chuyển cảnh — kèm lịch sử hoàn tác. Dữ liệu ở voice.js (_scVo), cảnh + thời gian ở

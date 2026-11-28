@@ -19,6 +19,8 @@
 
   CONFIG.env = "staging";
   CONFIG.noInspect = false;
+  // Mục menu "Mẫu Slide" chỉ hiện ở staging (production đang tắt ở core/config.js).
+  CONFIG.features.slideDemos = true;
 
   CONFIG.supabase = {
     url: BASE,

@@ -16,14 +16,15 @@
    này — không phải chỉ build thiệp. */
 @import "./_music-player.css";
 @import "./_progress.css";
-/* Thư viện nhạc dùng chung (Thiết lập + Slide cưới) — trước _setup.css để .cx-song .cx-disc đè được. */
+/* Thư viện nhạc dùng chung (Thiết lập + Tạo Slide) — trước _setup.css để .cx-song .cx-disc đè được. */
 @import "./_music-lib.css";
 @import "./_setup.css";
 @import "./_time-picker.css";
 @import "./_ai-chat.css";
-@import "./_slide-cuoi.css";
+@import "./_tao-slide.css";
 @import "./_hinh-nen-led.css";
 @import "./_poster.css";
+@import "./_mau-slide.css";
 @import "./_support.css";
 
 /* Ô ảnh bìa bài hát của thanh nhạc (core/components/music-player.js) — nền dự

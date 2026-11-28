@@ -40,6 +40,9 @@ function cxHeroMenu(btn) {
     const pages = [
       { icon: _cxHeroMenuIcon("home"), label: "Trang chủ", active: true, onClick: go("/") },
       { icon: _cxHeroMenuIcon("layers"), label: "Mẫu thiệp", onClick: go("/theme-template/") },
+      ...(typeof CONFIG === "undefined" || CONFIG.features?.slideDemos !== false
+        ? [{ icon: _cxHeroMenuIcon("clapperboard"), label: "Mẫu Slide", onClick: go("/mau-slide/") }]
+        : []),
       { icon: _cxHeroMenuIcon("cart"), label: `${loggedIn ? "Thiệp của tôi" : "Đã chọn"}${n ? ` (${n})` : ""}`, onClick: go("/my-invitations/") },
       // Khách mời chỉ có nghĩa khi đã đăng nhập — cùng luật mục `login: true` ở navbar.
       ...(loggedIn
@@ -55,7 +58,7 @@ function cxHeroMenu(btn) {
       } },
       // Theo cờ CONFIG.features.slides — cùng cờ với mục `feature: "slides"` ở navbar.
       ...(typeof CONFIG === "undefined" || CONFIG.features?.slides !== false
-        ? [{ icon: _cxHeroMenuIcon("film"), label: "Slide cưới", onClick: go("/slide-cuoi/") }]
+        ? [{ icon: _cxHeroMenuIcon("film"), label: "Tạo Slide", onClick: go("/tao-slide/") }]
         : []),
     ];
     // 4 trang thì 2 + 2, 5 thì 3 + 2, 6 thì 3 + 3, 7 thì 4 + 3 — không để ô lẻ trơ một mình.

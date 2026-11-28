@@ -1,5 +1,5 @@
 // Danh sách bài của THƯ VIỆN NHẠC — dùng chung cho tab Cấu hình của trang Thiết lập
-// (invitation-setup/js/11-youtube.js) và bảng thư viện của Slide cưới (slide-cuoi/index.js).
+// (invitation-setup/js/11-youtube.js) và bảng thư viện của Tạo Slide (tao-slide/index.js).
 // Mỗi hàng: [đĩa than + tên/ca sĩ] = nút CHỌN · [▶ / vạch sóng] = nút NGHE THỬ; trang tự quyết
 // hai cú bấm làm gì (CXMusicLib.bind). Style .cx-mlib-* / .cx-disc ở styles/_music-lib.css.
 (function () {

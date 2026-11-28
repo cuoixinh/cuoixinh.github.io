@@ -122,7 +122,7 @@
   }
 
   // Một cảnh đang dựng (sid = id cảnh): gom phần tử, cột chữ canh giữa dọc trong [top, bottom].
-  // Sửa được cả ảnh lẫn chữ ở tab "Cảnh" của trang, cùng quy ước với mẫu Slide cưới:
+  // Sửa được cả ảnh lẫn chữ ở tab "Cảnh" của trang, cùng quy ước với mẫu Tạo Slide:
   // · img(…, slot): ô ảnh, L.photos[slot] đè ảnh thiệp; khai vào `photos` của cảnh {key, def, w, h}
   //   và mang `edit: slot` để bấm thẳng lên ảnh trên màn là mở đúng ô.
   // · MỌI khối chữ mang khoá `<sid>.<vị trí trong mảng khai>` (tính cả ô rỗng nên không xê dịch theo

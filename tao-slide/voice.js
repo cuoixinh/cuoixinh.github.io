@@ -1,4 +1,4 @@
-// Âm thanh của slide (/slide-cuoi/): dữ liệu các TRACK giọng đọc + nạp / lưu / gửi khung, thêm file,
+// Âm thanh của slide (/tao-slide/): dữ liệu các TRACK giọng đọc + nạp / lưu / gửi khung, thêm file,
 // thu âm. Mỗi clip trỏ tới một NGUỒN (`src` = file đã cất) — tách / nhân bản tạo clip mới cùng nguồn nên
 // không nhân đôi byte. Byte cất IndexedDB (kho "voice", khoá `<bộ dữ liệu>|<src>`), track + clip cất
 // localStorage — chỉ trên máy, theo mẫu + thiệp. Vẽ + thao tác dòng thời gian ở timeline.js (nạp SAU

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Mẫu Slide cưới - Cưới Xinh</title>
+    <link rel="canonical" href="https://cuoixinh.com/mau-slide/" />
+    <meta
+      name="description"
+      content="Xem video các mẫu slide trình chiếu màn LED tiệc cưới của Cưới Xinh. Ưng mẫu nào, nhắn Cưới Xinh để làm slide với ảnh cưới của bạn."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Cưới Xinh" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:url" content="https://cuoixinh.com/mau-slide/" />
+    <meta property="og:title" content="Mẫu slide cưới trình chiếu màn LED - Cưới Xinh" />
+    <meta
+      property="og:description"
+      content="Xem video các mẫu slide cưới. Ưng mẫu nào, nhắn Cưới Xinh để làm slide với ảnh cưới của bạn."
+    />
+    <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/build.css" />
+    <script src="../core/helpers/no-zoom.js"></script>
+    <script src="../core/helpers/no-inspect.js"></script>
+  </head>
+  <body class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20">
+    <!-- "Mẫu Slide": trang QUẢNG CÁO mẫu slide — mỗi mẫu một video YouTube khung ngang + nút
+         "Gửi Messenger" để khách nhắn Cưới Xinh đặt làm. Danh mục + mã video lấy ở
+         /tao-slide/templates.js (khoá `youtube`); dựng thẻ ở index.js. -->
+    <main class="ms-app">
+      <header class="ms-head">
+        <h1 class="ms-title">Mẫu Slide</h1>
+        <p class="ms-sub">
+          Slide trình chiếu màn LED trong tiệc cưới. Xem video từng mẫu, ưng mẫu nào thì nhắn
+          Cưới Xinh để làm slide với ảnh cưới của bạn.
+        </p>
+      </header>
+      <div id="ms-list" class="ms-list"></div>
+    </main>
+
+    <!-- Hộp "Gửi Messenger": mở ra là lời nhắn đã được chép sẵn (kèm toast), khách bấm "Mở
+         Messenger" sang khung chat của page rồi dán. Nội dung điền ở _msAsk (index.js). -->
+    <dialog id="ms-dlg" class="ms-dlg" aria-labelledby="ms-dlg-t" aria-describedby="ms-dlg-note">
+      <div class="ms-dlg-in">
+      <div class="ms-dlg-head">
+        <span class="ms-dlg-ic"><i data-icon="messenger" data-size="24"></i></span>
+        <x-button id="ms-dlg-x" variant="ghost" tone="neutral" size="sm" icon-only icon="x" aria-label="Đóng"></x-button>
+      </div>
+      <h2 id="ms-dlg-t" class="ms-dlg-t">Nhắn Cưới Xinh qua Messenger</h2>
+      <p id="ms-dlg-note" class="ms-dlg-note"></p>
+      <div class="ms-dlg-box">
+        <p id="ms-dlg-msg" class="ms-dlg-msg"></p>
+        <x-button id="ms-dlg-copy" variant="soft" tone="neutral" size="xs" icon="copy">Chép lại</x-button>
+      </div>
+      <div class="ms-dlg-acts">
+        <x-button id="ms-dlg-later" variant="ghost" tone="neutral">Để sau</x-button>
+        <a id="ms-dlg-go" class="ms-msg" href="#" target="_blank" rel="noopener">
+          <i data-icon="messenger" data-size="18"></i>Mở Messenger
+        </a>
+      </div>
+      </div>
+    </dialog>
+
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- Logo Messenger trên nút gửi (lucide không có). -->
+    <script src="../core/helpers/icon.js"></script>
+    <script src="../core/x-button.js"></script>
+    <script src="../core/x-logo.js"></script>
+    <script src="../core/x-popover.js"></script>
+    <script src="../core/helpers/account-menu.js"></script>
+    <!-- config.js TRƯỚC navbar: mục có `feature` đọc CONFIG.features lúc mount. -->
+    <script src="../core/config.js"></script>
+    <!-- auth.js TRƯỚC navbar: navbar vẽ nhãn/mục theo phiên ngay lần đầu, khỏi nháy. -->
+    <script src="../core/auth.js"></script>
+    <script src="../core/components/navbar.js"></script>
+    <script>
+      CXNavbar.mount({
+        active: "slideDemos",
+        items: [
+          { id: "home", label: "Trang chủ", icon: "home", href: "/" },
+          { id: "templates", label: "Mẫu thiệp", icon: "layers", href: "/theme-template/" },
+          { id: "slideDemos", label: "Mẫu Slide", icon: "clapperboard", href: "/mau-slide/", feature: "slideDemos" },
+          {
+            id: "cart",
+            label: "Đã chọn",
+            loginLabel: "Thiệp của tôi",
+            icon: "cart",
+            href: "/my-invitations/",
+            count: true,
+          },
+          { id: "guests", label: "Khách mời", icon: "users", href: "/guest-list/", login: true },
+          { id: "led", label: "Nền sân khấu", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
+          { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
+          { id: "slides", label: "Tạo Slide", icon: "film", href: "/tao-slide/", feature: "slides" },
+          { id: "account", label: "Tài khoản", icon: "user", onClick: "CXAccount.open(this)" },
+        ],
+      });
+      CXAccount.mountChip();
+    </script>
+    <script src="../core/cache-util.js"></script>
+    <script src="../core/helpers/alert.js"></script>
+    <script src="../core/auth-ui.js"></script>
+    <script src="../tao-slide/templates.js"></script>
+    <script src="index.js"></script>
+    <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
+    <script src="../core/helpers/nav-cart-count.js"></script>
+  </body>
+</html>

@@ -1,4 +1,10 @@
-# Plan: Phân hệ "Slide cưới" (video trình chiếu ảnh cưới)
+# Plan: Phân hệ "Tạo Slide" (video trình chiếu ảnh cưới)
+
+> **Hiện tại (2026-11-28):** "Tạo Slide" (`/tao-slide/`) là công cụ NỘI BỘ — nhân viên dựng slide
+> cho khách, mục menu ẩn bằng `CONFIG.features.slides`. Khách chỉ xem video demo từng mẫu ở
+> **"Mẫu Slide"** (`/mau-slide/`, mã YouTube ở khoá `youtube` của `tao-slide/templates.js`) rồi
+> bấm "Gửi Messenger" nhắn Cưới Xinh đặt làm. Tên mẫu hiện cho khách đánh số "Mẫu 01…" (ngay-chung-doi
+> là Mẫu 01); mẫu chưa có video thì không hiện ở /mau-slide/.
 
 > **Hướng hiện tại (chốt 2026-11-05):** chưa làm trình tạo slide từ ảnh của khách. Thay vào đó
 > là **mẫu slide dựng sẵn** (phong cách do mình thiết kế) chạy bằng **dữ liệu của thiệp thật**:
@@ -59,7 +65,7 @@
 ### Cấu trúc hiện tại
 
 ```
-slide-cuoi/
+tao-slide/
   index.html, index.js     Sân khấu (khung xem iframe trên nền hồng phấn + Trình chiếu / Xuất
                            video, GHIM khi cuộn: từ lg là cột trái, dưới lg ghim đầu màn) +
                            bảng chỉnh ba tab: Cảnh (mỗi dòng một cảnh — ảnh nhỏ, tên, mốc giờ;
@@ -191,7 +197,7 @@ slide-cuoi/
   thẳng Blob cho bộ xuất: CSP chặn `fetch` URL `blob:`.
 - **Bản TikTok** (lựa chọn "TikTok" trong ô Xuất video, mặc định): video DỌC 2K 1440×2560
   ~12 Mbps (H.264 level 5.0+), slide vẽ riêng rồi đặt vào ô màn chiếu của ảnh hội trường
-  `slide-cuoi/assets/hall.jpg`, `cuoixinh.com` ở đáy — để đăng TikTok/mạng xã hội. Ô màn chiếu khai MỘT chỗ (`HALL` ở
+  `tao-slide/assets/hall.jpg`, `cuoixinh.com` ở đáy — để đăng TikTok/mạng xã hội. Ô màn chiếu khai MỘT chỗ (`HALL` ở
   `engine/slide-export.js`); nút "Màn chiếu" ở bàn điều khiển dựng đúng bố cục đó bằng CSS
   (`.sc-stage.is-hall`) — đổi ảnh hội trường thì sửa cả hai bộ số. 1080p/4K hiện CHƯA khoá theo
   thanh toán (xem dòng dưới).
@@ -251,7 +257,7 @@ hiệu ứng/nhạc), **ffmpeg.wasm** (xem §3.3).
 
 ```mermaid
 flowchart LR
-  A[Trang chủ: menu 'Slide cưới'] --> B["/slide-cuoi/ — giới thiệu + trình tạo"]
+  A[Trang chủ: menu 'Slide cưới'] --> B["/tao-slide/ — giới thiệu + trình tạo"]
   B --> C[1. Chọn ảnh]
   C --> D[2. Sắp xếp + điểm nhìn]
   D --> E[3. Chọn mẫu slide]
@@ -272,7 +278,7 @@ flowchart LR
 5. **Chữ** — tên cô dâu chú rể, ngày cưới, câu mở đầu/kết thúc (khách tự gõ).
 6. **Xuất** — chọn khổ + định dạng → thanh tiến độ → tải về / chia sẻ → khối mời làm thiệp.
 
-Trang `/slide-cuoi/` vừa là trang giới thiệu (cho SEO: "làm video slide ảnh cưới miễn phí")
+Trang `/tao-slide/` vừa là trang giới thiệu (cho SEO: "làm video slide ảnh cưới miễn phí")
 vừa chứa trình tạo — khách vào là dùng được ngay, không qua thêm trang nào.
 
 ---
@@ -287,7 +293,7 @@ trạng thái ẩn). Nhờ vậy xuất video là lặp `t = 0, 1/30, 2/30…` c
 thuộc máy nhanh hay chậm, và video ra y hệt bản xem trước.
 
 ```
-slide-cuoi/
+tao-slide/
   index.html            Trang giới thiệu + trình tạo
   js/slide-model.js     Dự án → timeline (cảnh, thời lượng, chuyển cảnh); validate
   js/slide-engine.js    renderFrame(ctx, project, t) — Canvas 2D: Ken Burns, chuyển cảnh, chữ
@@ -299,7 +305,7 @@ slide-cuoi/
   templates/<tên>.js    Bản khai mẫu slide (chỉ khai báo)
 ```
 
-Để trọn trong `slide-cuoi/` (không rải vào `core/`) vì không trang nào khác dùng — đúng tinh
+Để trọn trong `tao-slide/` (không rải vào `core/`) vì không trang nào khác dùng — đúng tinh
 thần "không gắn với thiệp". Thư mục đã khai ở `INCLUDE` nên file mới bên trong tự ra web.
 
 **Mẫu slide là bản khai**, không phải mã vẽ riêng: danh sách cảnh (1 ảnh / 2 ảnh ghép / ảnh +
@@ -313,7 +319,7 @@ P1; hiệu ứng nặng (blur động, lật trang 3D) để sau, lúc đó mớ
 - **WebCodecs** `VideoEncoder` (H.264 `avc1.640028`, ~8 Mbps cho 1080p) + `AudioEncoder`
   (AAC `mp4a.40.2`, 128 kbps), đóng gói bằng **Mediabunny** (muxer MP4/WebM thuần JS, kế nhiệm
   `mp4-muxer`/`webm-muxer`, không cần SharedArrayBuffer). Pin phiên bản, nạp từ jsdelivr kèm
-  `integrity` (CSP đã cho phép miền này) hoặc tự host trong `slide-cuoi/vendor/`.
+  `integrity` (CSP đã cho phép miền này) hoặc tự host trong `tao-slide/vendor/`.
 - Chọn codec bằng `VideoEncoder.isConfigSupported()`: H.264 → MP4; không được thì VP9 → WebM;
   không có WebCodecs (trình duyệt quá cũ) thì **dự phòng `MediaRecorder`** quay canvas theo
   thời gian thực (chậm bằng độ dài video) — hoặc báo "Hãy mở bằng Chrome/Safari mới".
@@ -368,14 +374,14 @@ Không có bản trên server, nên không có "mở trên máy khác" — chấ
 ### P0 — Lối vào (ĐÃ LÀM)
 - Mục **"Slide cưới"** cạnh "Bảng giá" ở navbar trang chủ + menu màn mở đầu trên điện thoại
   (`js/hero-menu.js`).
-- Trang `/slide-cuoi/` giới thiệu + nhãn "Sắp ra mắt"; khai vào `INCLUDE` của
+- Trang `/tao-slide/` giới thiệu + nhãn "Sắp ra mắt"; khai vào `INCLUDE` của
   `scripts/deploy-public.mjs` và `content` của `tailwind.config.js`.
 
 ### P1 — MVP
 - **Làm thử trước (spike):** xuất 60s video MP4 có nhạc trên iPhone thật + Android tầm trung.
   Đây là rủi ro lớn nhất — qua được mới dựng giao diện.
 - Engine Canvas 2D + 3 mẫu slide (một nhẹ nhàng, một điện ảnh, một vui tươi).
-- Trình tạo 5 bước ngay trên `/slide-cuoi/`, nháp IndexedDB.
+- Trình tạo 5 bước ngay trên `/tao-slide/`, nháp IndexedDB.
 - Nhạc: 10–15 bài tự host + tải mp3 từ máy.
 - Xuất **MP4 1080p 9:16 + 16:9 + 1:1**, dự phòng WebM/MediaRecorder; nút chia sẻ; khối mời xem
   mẫu thiệp.
@@ -390,21 +396,21 @@ Không có bản trên server, nên không có "mở trên máy khác" — chấ
 
 ## 5. Việc phải nhớ (ràng buộc của repo)
 
-- Class Tailwind mới trong `slide-cuoi/` → `npm run build` và commit `styles/build.css`
+- Class Tailwind mới trong `tao-slide/` → `npm run build` và commit `styles/build.css`
   (thư mục đã có trong `content`). Trang nạp `no-zoom.js`, `no-inspect.js`, `x-button.js`,
   lucide (pin + `integrity`) — đã có sẵn.
 - Thư viện ngoài (Mediabunny, gifenc, zip) — pin phiên bản + `integrity` (LINT-24 gác).
-- **Trùng slug:** `/slide-cuoi/` là thư mục tĩnh nên **che mất** thiệp nào có slug trùng tên.
+- **Trùng slug:** `/tao-slide/` là thư mục tĩnh nên **che mất** thiệp nào có slug trùng tên.
   Hiện chưa có danh sách slug cấm — nên thêm danh sách "tên đã dành" ở luật slug phía server
   (`wedding-admin`) + bản client `core/bl/wedding-bl.js`, gồm mọi thư mục ở gốc (kiểm trên
-  production xem đã có thiệp nào dùng `slide-cuoi` chưa).
+  production xem đã có thiệp nào dùng `tao-slide` chưa).
 - Deploy là đổi `CX_VERSION`.
 
 ---
 
 ## 6. Câu hỏi cần chốt trước P1
 
-Đã chốt: **không màn kết/logo** · **giữ đường dẫn `/slide-cuoi/`** · nhạc chọn từ **YouTube**.
+Đã chốt: **không màn kết/logo** · **đường dẫn `/tao-slide/`** (trang khách xem: `/mau-slide/`) · nhạc chọn từ **YouTube**.
 
 Còn mở — cách đưa nhạc YouTube vào video: trình duyệt KHÔNG lấy được luồng tiếng của
 YouTube (iframe khác miền, và điều khoản YouTube cấm tải/tách tiếng), nên chỉ PHÁT được khi

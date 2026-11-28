@@ -1,5 +1,5 @@
 /* Thư viện nhạc dùng chung (core/components/music-lib.js): đĩa than + danh sách bài. Dùng ở tab
-   Cấu hình của trang Thiết lập và bảng thư viện của Slide cưới — sửa hình thức là sửa ở đây. */
+   Cấu hình của trang Thiết lập và bảng thư viện của Tạo Slide — sửa hình thức là sửa ở đây. */
 
 /* Đĩa than: rãnh + nhãn giữa, khổ và màu qua biến; vệt sáng ở ::after lệch một phía để thấy
    đĩa quay. Nhãn tính theo % bán kính (closest-side) nên đĩa to nhỏ đều cân. */

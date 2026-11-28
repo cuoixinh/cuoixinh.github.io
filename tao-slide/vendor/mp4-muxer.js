@@ -1,5 +1,5 @@
 /*! mp4-muxer 5.2.2 — MIT License, Copyright (c) 2023 Vanilagy — https://github.com/Vanilagy/mp4-muxer
-    Bản gốc build/mp4-muxer.js của gói npm, tự host cho slide-cuoi (đừng sửa tay). */
+    Bản gốc build/mp4-muxer.js của gói npm, tự host cho tao-slide (đừng sửa tay). */
 "use strict";
 var Mp4Muxer = (() => {
   var __defProp = Object.defineProperty;

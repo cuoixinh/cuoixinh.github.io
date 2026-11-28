@@ -27,9 +27,9 @@ window.CXSlideExport = (() => {
       30: { bitrate: 12e6, codecs: ["avc1.640032", "avc1.4d0032", "avc1.640033"] },
     },
   };
-  // Ảnh hội trường 941×1672 + ô màn chiếu (tỉ lệ 0–1 của ảnh, đúng 16:9, tràn hết bề ngang ảnh) — trang /slide-cuoi/
-  // và /hinh-nen-led/ dựng khung "Màn chiếu" theo CÙNG số này (.sc-stage.is-hall ở styles/_slide-cuoi.css).
-  const HALL = { src: "/slide-cuoi/assets/hall.jpg", x: 0, y: 406.84 / 1672, w: 1, h: 529.31 / 1672 };
+  // Ảnh hội trường 941×1672 + ô màn chiếu (tỉ lệ 0–1 của ảnh, đúng 16:9, tràn hết bề ngang ảnh) — trang /tao-slide/
+  // và /hinh-nen-led/ dựng khung "Màn chiếu" theo CÙNG số này (.sc-stage.is-hall ở styles/_tao-slide.css).
+  const HALL = { src: "/tao-slide/assets/hall.jpg", x: 0, y: 406.84 / 1672, w: 1, h: 529.31 / 1672 };
   // Mặc định 60fps; máy không mã hoá nổi 60fps ở khổ đó (4K trên máy yếu…) thì lùi 30fps cho khổ đó
   // chứ không bỏ cả khổ — nhịp thật của lần xuất nằm ở `framerate` của cấu hình pickCodec trả về.
   const FPS = 60;
