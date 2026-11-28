@@ -1,6 +1,6 @@
 // Đồ nghề dùng chung cho mẫu Nền sân khấu (window.CXLedKit): kho ảnh của thiệp, ngày cưới, dựng
 // một cảnh có ô ảnh/khối chữ sửa được ở tab "Cảnh", điểm vẽ đường viền cho phần tử `stroke`.
-// Nạp TRƯỚC mọi file mẫu. Chỉ dựng dữ liệu cảnh — vẽ là việc của slide-cuoi/engine/.
+// Nạp TRƯỚC mọi file mẫu. Chỉ dựng dữ liệu cảnh — vẽ là việc của tao-slide/engine/.
 
 window.CXLedKit = (() => {
   // Nhịp trễ: 1 = 0.15 giây.

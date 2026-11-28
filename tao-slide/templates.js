@@ -1,4 +1,4 @@
-// Danh mục mẫu slide của trang /slide-cuoi/. Thêm mẫu = thư mục templates/<id>/
+// Danh mục mẫu slide của trang /tao-slide/. Thêm mẫu = thư mục templates/<id>/
 // (index.html + index.js + slide.css, chạy bằng runtime/slide-runtime.js) + một mục ở
 // đây; `id` trùng tên thư mục, `ratio` = tỉ lệ khung xem mặc định (khớp CX_SLIDE.w/h của mẫu), `thumb` chụp từ chính slide
 // bằng `npm run capture:slides -- <id>`. `ratios` (tuỳ chọn): các tỉ lệ khách chọn được — trang gửi
@@ -11,7 +11,7 @@ window.CX_SLIDE_TEMPLATES = [
     desc: "Hồng pastel, mỗi cảnh một bố cục, ảnh bay từ ngoài vào",
     ratio: "16 / 9",
     ratios: ["16 / 9", "1 / 1", "9 / 16"],
-    thumb: "/slide-cuoi/templates/romantic-blush/thumb.jpg",
+    thumb: "/tao-slide/templates/romantic-blush/thumb.jpg",
     youtube: "",
   },
   {
@@ -20,7 +20,7 @@ window.CX_SLIDE_TEMPLATES = [
     desc: "Bố cục tạp chí, ảnh bay từ ngoài vào",
     ratio: "16 / 9",
     ratios: ["16 / 9", "1 / 1", "9 / 16"],
-    thumb: "/slide-cuoi/templates/mai-ben-nhau/thumb.jpg",
+    thumb: "/tao-slide/templates/mai-ben-nhau/thumb.jpg",
     youtube: "",
   },
   {
@@ -29,7 +29,7 @@ window.CX_SLIDE_TEMPLATES = [
     desc: "Nền trắng tối giản, ảnh là chính, ít chữ",
     ratio: "16 / 9",
     ratios: ["16 / 9", "1 / 1", "9 / 16"],
-    thumb: "/slide-cuoi/templates/ngay-chung-doi/thumb.jpg",
+    thumb: "/tao-slide/templates/ngay-chung-doi/thumb.jpg",
     youtube: "",
   },
   {
@@ -38,7 +38,7 @@ window.CX_SLIDE_TEMPLATES = [
     desc: "Chỉ có ảnh, không chữ — ảnh phủ kín khung, ghép 2–3 ảnh mỗi màn",
     ratio: "16 / 9",
     ratios: ["16 / 9", "1 / 1", "9 / 16"],
-    thumb: "/slide-cuoi/templates/tram-nam-hanh-phuc/thumb.jpg",
+    thumb: "/tao-slide/templates/tram-nam-hanh-phuc/thumb.jpg",
     youtube: "",
   },
 ];

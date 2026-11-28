@@ -1,4 +1,4 @@
-// Trang "Slide cưới": chọn mẫu slide (CX_SLIDE_TEMPLATES) → tuỳ chọn lấy dữ liệu từ một
+// Trang "Tạo Slide": chọn mẫu slide (CX_SLIDE_TEMPLATES) → tuỳ chọn lấy dữ liệu từ một
 // thiệp của tài khoản → xem trước, trình chiếu toàn màn, xuất video MP4 (1080p/4K).
 // Mẫu chạy trong iframe templates/<id>/?embed=1 và KHÔNG tự gọi API: trang này lấy thiệp
 // (getWeddingById, chỉ chủ thiệp) rồi gửi sang bằng postMessage mỗi khi khung báo sẵn sàng.
@@ -153,7 +153,7 @@ function _scFrameLoad() {
   _scBox.closest(".sc-app")?.style.setProperty("--sc-ratio-n", String(rw > 0 && rh > 0 ? rw / rh : 16 / 9));
   _scToggle("sc-hall-btn", !_scTall());
   if (_scTall()) scHall(false);
-  _scFrame.src = `/slide-cuoi/templates/${encodeURIComponent(_scS.tpl)}/?embed=1&ratio=${rw}x${rh}`;
+  _scFrame.src = `/tao-slide/templates/${encodeURIComponent(_scS.tpl)}/?embed=1&ratio=${rw}x${rh}`;
 }
 
 // ── Gửi dữ liệu sang khung ──
@@ -2008,7 +2008,7 @@ if (typeof ResizeObserver === "function") {
 }
 
 // Bố cục bàn dựng phim (dòng thời gian ở dock đáy) — chuỗi phải khớp @media của .sc-studio ở
-// styles/_slide-cuoi.css.
+// styles/_tao-slide.css.
 const _SC_STUDIO = matchMedia("(min-width: 1024px) and (min-height: 600px)");
 
 // ── Các tab của bảng chỉnh (Cảnh · Thiệp · Âm thanh · Mẫu): một dải .cx-seg, con trượt theo --i. ──

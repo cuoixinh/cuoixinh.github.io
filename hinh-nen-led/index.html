@@ -32,7 +32,7 @@
     <script src="../core/helpers/no-inspect.js"></script>
   </head>
   <body class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20">
-    <!-- "Nền sân khấu": cùng bố cục + tông màu với Slide cưới (lớp .sc-* dùng chung) — đầu trang ·
+    <!-- "Nền sân khấu": cùng bố cục + tông màu với Tạo Slide (lớp .sc-* dùng chung) — đầu trang ·
          sân khấu (màn LED vẽ mẫu đang chọn + nút chiếu/tải, GHIM khi cuộn) · bảng chỉnh ba tab
          (Cảnh · Mẫu · Thiệp — mới vào mở Mẫu). Từ lg sân khấu bên trái, bảng chỉnh bên phải. Logic ở index.js. -->
     <main id="led-app" class="sc-app led-app">
@@ -44,13 +44,13 @@
       <section class="sc-stage" aria-label="Màn LED">
         <div id="led-screen" class="sc-screen led-screen">
           <canvas id="led-canvas" role="img" aria-label="Xem trước hình nền"></canvas>
-          <!-- Chip gợi ý (như #sl-hint của Slide cưới): hiện khi rê chuột lên màn, không bắt chuột. -->
+          <!-- Chip gợi ý (như #sl-hint của Tạo Slide): hiện khi rê chuột lên màn, không bắt chuột. -->
           <div class="led-hint" aria-hidden="true"><i data-lucide="mouse-pointer-click"></i><span>Bấm vào chữ hoặc ảnh để sửa</span></div>
           <button type="button" class="led-full-x" onclick="ledFull(false)" aria-label="Thoát toàn màn hình" title="Thoát (Esc)">
             <i data-lucide="x"></i>
           </button>
         </div>
-        <!-- Bàn điều khiển dưới màn (cùng kiểu Slide cưới, không có nút nhạc): dải cảnh (bấm là chiếu
+        <!-- Bàn điều khiển dưới màn (cùng kiểu Tạo Slide, không có nút nhạc): dải cảnh (bấm là chiếu
              cảnh đó) · cụm phát · Tải xuống (lúc tạo video kiêm thanh tiến độ) · Trình chiếu. -->
         <div class="sc-bar">
           <div class="sc-line">
@@ -138,11 +138,11 @@
           <div id="led-grid" class="sc-tpls"></div>
         </section>
 
-        <!-- Tab Cảnh (y như tab Cảnh của Slide cưới): mỗi cảnh một dòng, mở ra là khối đổi ảnh + ô sửa
+        <!-- Tab Cảnh (y như tab Cảnh của Tạo Slide): mỗi cảnh một dòng, mở ra là khối đổi ảnh + ô sửa
              chữ của cảnh đó (index.js vẽ). Ảnh/chữ khách đổi chỉ cất trên máy (IndexedDB + localStorage). -->
         <section id="led-tab-scenes" class="sc-tab hidden" role="tabpanel" aria-labelledby="led-tabbtn-scenes">
           <p class="sc-lead">Bấm thẳng vào chữ hoặc ảnh trên màn, hoặc chọn một cảnh dưới đây để đổi ảnh, sửa chữ và chỉnh thời gian cảnh. Xoá trắng một dòng chữ là bỏ dòng đó.</p>
-          <!-- Thời lượng cả vòng (hệ số 0,5×–2× thời lượng mẫu), cùng khối .sc-time của Slide cưới. -->
+          <!-- Thời lượng cả vòng (hệ số 0,5×–2× thời lượng mẫu), cùng khối .sc-time của Tạo Slide. -->
           <div class="sc-time" role="group" aria-labelledby="led-time-l">
             <div class="sc-time-head">
               <span id="led-time-l" class="sc-time-l"><i data-lucide="clock"></i>Thời lượng cả vòng</span>
@@ -201,7 +201,7 @@
           { id: "guests", label: "Khách mời", icon: "users", href: "/guest-list/", login: true },
           { id: "led", label: "Nền sân khấu", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
           { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
-          { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/", feature: "slides" },
+          { id: "slides", label: "Tạo Slide", icon: "film", href: "/tao-slide/", feature: "slides" },
           { id: "account", label: "Tài khoản", icon: "user", onClick: "CXAccount.open(this)" },
         ],
       });
@@ -222,10 +222,10 @@
     <!-- Nén ảnh khách tự chọn ở tab "Cảnh" (ImageHelper). -->
     <script src="../core/helpers/image-helper.js"></script>
     <script src="../public/themes/preview-data.js"></script>
-    <!-- Bộ vẽ canvas + bộ xuất MP4 dùng CHUNG với Slide cưới (đừng chép riêng một bản). -->
-    <script src="../slide-cuoi/engine/slide-engine.js"></script>
-    <script src="../slide-cuoi/vendor/mp4-muxer.js"></script>
-    <script src="../slide-cuoi/engine/slide-export.js"></script>
+    <!-- Bộ vẽ canvas + bộ xuất MP4 dùng CHUNG với Tạo Slide (đừng chép riêng một bản). -->
+    <script src="../tao-slide/engine/slide-engine.js"></script>
+    <script src="../tao-slide/vendor/mp4-muxer.js"></script>
+    <script src="../tao-slide/engine/slide-export.js"></script>
     <!-- Danh mục mẫu: mỗi file tự đăng ký vào CX_LED_TEMPLATES. Thêm mẫu = thêm một thẻ ở đây
          (sau led-kit.js — đồ nghề dùng chung của các mẫu). -->
     <script src="templates/led-kit.js"></script>

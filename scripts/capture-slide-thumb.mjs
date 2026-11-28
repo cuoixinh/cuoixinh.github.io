@@ -1,4 +1,4 @@
-// Chụp thumb.jpg (640×360) cho mẫu slide: mở slide-cuoi/templates/<id>/ bằng Chrome không giao
+// Chụp thumb.jpg (640×360) cho mẫu slide: mở tao-slide/templates/<id>/ bằng Chrome không giao
 // diện (dữ liệu mẫu theo CX_SLIDE.demo), dựng lại bằng CXSlideEngine rồi vẽ đúng một khung hình.
 // node scripts/capture-slide-thumb.mjs [id…] [--scene=open] [--at=<giây trong cảnh>]
 // Không khai --at thì lấy lúc mọi thứ trong cảnh đã hiện đủ (scene.still).
@@ -9,7 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const TPL_DIR = path.join(ROOT, "slide-cuoi", "templates");
+const TPL_DIR = path.join(ROOT, "tao-slide", "templates");
 const PORT = 3003;
 const OUT_W = 640;
 const MIME = {
@@ -53,7 +53,7 @@ try {
     const page = await browser.newPage();
     page.on("pageerror", (e) => console.warn(`  [${id}] lỗi trang:`, e.message));
     await page.setViewport({ width: 1280, height: 720 });
-    await page.goto(`http://127.0.0.1:${PORT}/slide-cuoi/templates/${id}/index.html`, { waitUntil: "networkidle0" });
+    await page.goto(`http://127.0.0.1:${PORT}/tao-slide/templates/${id}/index.html`, { waitUntil: "networkidle0" });
     const out = await page.evaluate(
       async (sceneId, at, outW) => {
         const D = window.CX_SLIDE;

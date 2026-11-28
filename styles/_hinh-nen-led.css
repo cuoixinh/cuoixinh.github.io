@@ -1,5 +1,5 @@
 /* ── Trang "Nền sân khấu" (hinh-nen-led/) ─────────────────────────────────────
-   Bố cục + tông màu là của Slide cưới (lớp .sc-* ở _slide-cuoi.css — file này nạp SAU nó). Ở đây
+   Bố cục + tông màu là của Tạo Slide (lớp .sc-* ở _tao-slide.css — file này nạp SAU nó). Ở đây
    chỉ có phần riêng: màn là canvas thay vì iframe, và chế độ toàn màn tự làm. */
 .led-screen {
   cursor: zoom-in;
@@ -13,7 +13,7 @@
   border-radius: inherit;
 }
 
-/* Chip gợi ý sửa chữ / đổi ảnh: góc trên trái, cùng kiểu #sl-hint của Slide cưới; chỉ hiện khi rê chuột lên
+/* Chip gợi ý sửa chữ / đổi ảnh: góc trên trái, cùng kiểu #sl-hint của Tạo Slide; chỉ hiện khi rê chuột lên
    màn (máy có chuột) và không ở toàn màn. Không bắt chuột: bấm xuyên xuống màn. */
 .led-hint {
   position: absolute;

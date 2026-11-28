@@ -1,4 +1,4 @@
-/* ── Trang "Slide cưới" (slide-cuoi/) ─────────────────────────────────────────
+/* ── Trang "Tạo Slide" (tao-slide/) ─────────────────────────────────────────
    Lưới ba vùng: đầu trang · sân khấu (khung xem + nút chiếu/xuất, GHIM khi cuộn) · bảng
    chỉnh ba tab. Từ lg: sân khấu cột trái, đầu trang + bảng chỉnh cột phải. Dưới lg xếp
    chồng, sân khấu ghim đầu màn. Nền sân khấu hồng nhạt pastel chuyển chéo, không hiệu ứng. */
@@ -21,7 +21,7 @@
   padding: 20px 16px 16px;
 }
 /* Dưới md (điện thoại) giấu đầu trang cho sân khấu lên sát mép trên — giấu kiểu "chỉ cho máy đọc
-   màn hình" chứ không display:none, trang vẫn giữ tiêu đề h1. Dùng cho cả Slide cưới lẫn Nền sân khấu. */
+   màn hình" chứ không display:none, trang vẫn giữ tiêu đề h1. Dùng cho cả Tạo Slide lẫn Nền sân khấu. */
 @media (max-width: 767px) {
   .sc-head {
     position: absolute;
@@ -101,7 +101,7 @@
   width: min(100%, calc(var(--sc-max-h) * 941 / 1672));
   aspect-ratio: 941 / 1672;
   overflow: hidden;
-  background: rgb(0 0 0) url("/slide-cuoi/assets/hall.jpg") center / 100% 100% no-repeat;
+  background: rgb(0 0 0) url("/tao-slide/assets/hall.jpg") center / 100% 100% no-repeat;
 }
 .sc-stage.is-hall .sc-screen iframe,
 .sc-stage.is-hall .sc-screen canvas {
@@ -169,7 +169,7 @@ html.sc-lock .cx-navmore-pop {
    đang chiếu / tổng ở cuối (như thanh tiến độ trình phát video); hàng dưới là cụm phát (trái) và
    các nút hành động (phải, "Trình chiếu" là nút chính đứng cuối). Hết chỗ thì cụm nút hành động
    xuống dòng, vẫn dồn phải. Dưới sm (điện thoại) nút hành động chỉ còn biểu tượng tròn để cả bàn
-   gọn trong hai dòng. Dùng chung cho Slide cưới và Nền sân khấu. */
+   gọn trong hai dòng. Dùng chung cho Tạo Slide và Nền sân khấu. */
 .sc-bar {
   position: relative;
   z-index: 1;
@@ -468,7 +468,7 @@ html.sc-lock .cx-navmore-pop {
   flex-shrink: 0;
 }
 
-/* Bàn điều khiển NỔI trong khung xem (Slide cưới đặt .sc-bar trong .sc-screen), kiểu trình phát
+/* Bàn điều khiển NỔI trong khung xem (Tạo Slide đặt .sc-bar trong .sc-screen), kiểu trình phát
    video: dải tối mờ đáy khung, chữ + biểu tượng trắng (--sc-on đổi thành trắng cho mọi nút con),
    nút hành động chỉ còn biểu tượng. Ẩn sẵn — cờ .sc-ov-on trên khung (index.js _scOv) mới hiện;
    lúc ẩn không nhận cú bấm để chạm xuyên vào slide. Toàn màn bằng CSS thì khung tự lo điều khiển. */
@@ -1864,7 +1864,7 @@ html.sc-typing .sc-tx-in {
   -webkit-appearance: none;
   appearance: none;
 }
-/* ── Tab Giọng đọc (slide-cuoi/voice.js) ── */
+/* ── Tab Giọng đọc (tao-slide/voice.js) ── */
 /* Thanh trên: phát/tạm dừng · đồng hồ đầu phát / tổng · thu phóng. */
 .sc-vo-bar {
   display: flex;
@@ -2616,10 +2616,10 @@ html.sc-typing .sc-tx-in {
   pointer-events: none;
 }
 
-/* ── Bố cục bàn dựng phim (chỉ Slide cưới, cờ .sc-studio trên .sc-app) ─────────────────────────
+/* ── Bố cục bàn dựng phim (chỉ Tạo Slide, cờ .sc-studio trên .sc-app) ─────────────────────────
    Máy tính: trang KHÔNG cuộn — sân khấu trái + bảng chỉnh phải (tự cuộn) ở trên, dock dòng thời
    gian trải ngang đáy (voice.js _scVoDock chuyển dòng thời gian vào #sc-dock). Chuỗi @media phải
-   khớp _SC_STUDIO ở slide-cuoi/index.js. Dưới ngưỡng: dock ẩn, bố cục xếp chồng như trên. */
+   khớp _SC_STUDIO ở tao-slide/index.js. Dưới ngưỡng: dock ẩn, bố cục xếp chồng như trên. */
 .sc-dock,
 .sc-studio-only {
   display: none;
@@ -2734,7 +2734,7 @@ html.sc-typing .sc-tx-in {
   }
 }
 
-/* ── Dòng thời gian kiểu bàn dựng phim (slide-cuoi/timeline.js) ────────────────────────────────
+/* ── Dòng thời gian kiểu bàn dựng phim (tao-slide/timeline.js) ────────────────────────────────
    Track giọng đọc nhiều clip, đầu track hai dòng (số · tên · ⋯ / M · S · khoá · micro), khung chọn,
    tay nắm fade, dây âm lượng, track Cảnh kéo đổi thứ tự / thời lượng, dấu chuyển cảnh. */
 .sc-vo-row.is-voice {

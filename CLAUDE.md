@@ -49,10 +49,11 @@ assets/background/       Ảnh nền WebP do tab "Ảnh nền" của admin chụ
 supabase/functions/      Edge Functions
 changelogs/              Lịch sử thay đổi DB
 cloudflare-worker/       Workers proxy/cache
-hinh-nen-led/            "Nền sân khấu" — mẫu màn chờ chiếu lặp lên LED sân khấu, tải video/ảnh (vẽ bằng bộ vẽ của slide-cuoi/)
-mau-slide/               "Mẫu Slide" — trang quảng cáo: video YouTube khung ngang từng mẫu slide (mã ở `youtube` của slide-cuoi/templates.js) + nút "Gửi Messenger"
+hinh-nen-led/            "Nền sân khấu" — mẫu màn chờ chiếu lặp lên LED sân khấu, tải video/ảnh (vẽ bằng bộ vẽ của tao-slide/)
+tao-slide/               "Tạo Slide" — công cụ NỘI BỘ dựng slide trình chiếu cho khách (mẫu ở templates/, bộ vẽ canvas ở engine/)
+mau-slide/               "Mẫu Slide" — trang quảng cáo: video YouTube khung ngang từng mẫu slide (mã ở `youtube` của tao-slide/templates.js) + nút "Gửi Messenger"
 poster/                  "Ảnh TikTok" — loạt ảnh ghép lời lên ảnh cưới để đăng bài nhiều ảnh (canvas riêng, không dùng bộ vẽ slide)
-cloudflare-media/        Kho nhạc thư viện của Slide cưới (Worker file tĩnh ở tài khoản Cloudflare phụ, cuoixinh-media.cx-music.workers.dev) — file nhạc KHÔNG vào git
+cloudflare-media/        Kho nhạc thư viện của Tạo Slide (Worker file tĩnh ở tài khoản Cloudflare phụ, cuoixinh-media.cx-music.workers.dev) — file nhạc KHÔNG vào git
 worker/                  Worker của site chính — trả trang thiệp tại /<slug> + thẻ og:*
 ```
 
@@ -77,8 +78,8 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 
   | Build    | Config                      | Nguồn → Kết quả                  | Trang dùng                                                                   |
   | -------- | --------------------------- | -------------------------------- | ---------------------------------------------------------------------------- |
-  | Ứng dụng | `tailwind.config.js`        | `tailwind-src.css` → `build.css` | `index`, `admin/`, `invitation-setup/`, `my-invitations/`, `guest-list/`, `theme-template/`, `slide-cuoi/` |
-  | Thiệp    | `tailwind.themes.config.js` | `themes-src.css` → `themes.css`  | `public/themes/*`, `slide-cuoi/templates/*`                                  |
+  | Ứng dụng | `tailwind.config.js`        | `tailwind-src.css` → `build.css` | `index`, `admin/`, `invitation-setup/`, `my-invitations/`, `guest-list/`, `theme-template/`, `tao-slide/` |
+  | Thiệp    | `tailwind.themes.config.js` | `themes-src.css` → `themes.css`  | `public/themes/*`, `tao-slide/templates/*`                                  |
 
 - Thêm thư mục/trang mới → **thêm vào `content`** của config tương ứng, không thì bị purge.
 - **Không ghép tên class từ chuỗi** (`` `bg-${c}` ``) — purge quét văn bản thô.
@@ -654,8 +655,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   viết `onclick` vào markup.
 - **Danh sách thư viện nhạc:** `core/components/music-lib.js` (`CXMusicLib.render/bind/setPlaying`),
   style `.cx-mlib-*`/`.cx-disc` ở `styles/_music-lib.css` — dùng CHUNG cho tab Cấu hình của trang
-  Thiết lập và bảng thư viện của Slide cưới; trang chỉ khai hai cú bấm (`onPick`, `onPreview`).
-- **Slide cưới (`slide-cuoi/`):** mẫu slide ở `templates/<id>/` chỉ KHAI cảnh dưới dạng dữ
+  Thiết lập và bảng thư viện của Tạo Slide; trang chỉ khai hai cú bấm (`onPick`, `onPreview`).
+- **Tạo Slide (`tao-slide/`) — công cụ NỘI BỘ nhân viên dựng slide cho khách** (khách chỉ xem video mẫu ở `mau-slide/` rồi nhắn Messenger): mẫu slide ở `templates/<id>/` chỉ KHAI cảnh dưới dạng dữ
   liệu (`CX_SLIDE.scenes`); vẽ bằng canvas ở `engine/slide-engine.js` — xem trước, trình chiếu
   và xuất MP4 1080p/4K + bản "TikTok" dọc 2K đặt trên ảnh hội trường (slide dọc 9:16 thì chiếm trọn khung; đăng mạng xã hội;
   ô màn chiếu khai ở `HALL`, CSS `.sc-stage.is-hall` theo cùng số) (`engine/slide-export.js`, WebCodecs, chạy trên máy khách) dùng CHUNG
@@ -669,13 +670,13 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   ẩn/hiện bằng `CONFIG.features.slides` (navbar khai `feature: "slides"`, trang nào có mục đó
   phải nạp `config.js` TRƯỚC navbar) — chỉ ẩn lối vào, URL vẫn mở được. Ảnh phải tải `crossOrigin="anonymous"`,
   thiếu là không xuất được video. Slide là màn SÂN KHẤU, không phải bản sao thiệp. Xem
-  `docs/PLAN-slide-cuoi.md`.
+  `docs/PLAN-tao-slide.md`.
 - **Nền sân khấu (`hinh-nen-led/`):** phân hệ RIÊNG (mục navbar `feature: "led"`), chỉ có lấy
   thông tin từ thiệp + màn xem to + dải mẫu, tải video MP4 4K NỐI VÒNG (máy không mã hoá nổi 4K thì 1080p) (`loop` của `CXSlideExport.run`:
-  khung đầu là lúc cảnh cuối chuyển sang cảnh đầu), video dọc TikTok y như Slide cưới (nút "Màn chiếu" xem trước cùng khung) hoặc ảnh PNG 4K. Mẫu là MỘT file
+  khung đầu là lúc cảnh cuối chuyển sang cảnh đầu), video dọc TikTok y như Tạo Slide (nút "Màn chiếu" xem trước cùng khung) hoặc ảnh PNG 4K. Mẫu là MỘT file
   `templates/<id>.js` tự đăng ký vào `CX_LED_TEMPLATES` + một thẻ `<script>` ở `index.html`
   (sau `templates/led-kit.js` — đồ nghề dựng cảnh dùng chung); font Google mẫu dùng phải có trong
-  thẻ `<link>` của trang (canvas không tự tải font). Vẽ bằng bộ vẽ của `slide-cuoi/engine/` (cùng
+  thẻ `<link>` của trang (canvas không tự tải font). Vẽ bằng bộ vẽ của `tao-slide/engine/` (cùng
   định dạng cảnh) — đừng chép bộ vẽ sang đây; chuyển động nền mới thì thêm kiểu phần tử vào bộ vẽ đó.
 - **Ảnh TikTok (`poster/`):** công cụ NỘI BỘ làm ảnh quảng cáo đăng TikTok — KHÔNG có mục navbar/menu, vào thẳng URL — loạt 1–10 ảnh tĩnh
   (mặc định 5, LUÔN khổ dọc 3:4 (1080×1440), xuất JPEG chất lượng tối đa theo độ nét ảnh gốc, ảnh khách chọn cất nguyên file).

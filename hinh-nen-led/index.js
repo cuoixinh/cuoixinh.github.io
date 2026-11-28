@@ -84,7 +84,7 @@ function _ledThumb(tpl, P) {
   img.src = cv.toDataURL("image/jpeg", 0.85);
 }
 
-// Thẻ mẫu cùng kiểu thẻ mẫu của Slide cưới; ảnh là khung tĩnh do _ledThumb vẽ.
+// Thẻ mẫu cùng kiểu thẻ mẫu của Tạo Slide; ảnh là khung tĩnh do _ledThumb vẽ.
 function _ledRenderGrid() {
   _ledEl("led-grid").innerHTML = _LED_TPLS.map(
     (t) => `
@@ -114,7 +114,7 @@ function _ledSyncTpl() {
   const P = _ledP.get(_ledS.tpl);
   _ledEl("led-total").textContent = P ? _ledMin(Math.round(P.total)) : "–:––";
   _ledCueSync();
-  // Dải cảnh của bàn điều khiển (cùng kiểu Slide cưới): mỗi cảnh một đoạn dài theo thời lượng.
+  // Dải cảnh của bàn điều khiển (cùng kiểu Tạo Slide): mỗi cảnh một đoạn dài theo thời lượng.
   _ledEl("led-track").innerHTML = P
     ? P.scenes
         .map(
@@ -183,7 +183,7 @@ _ledEl("led-ctl").addEventListener("click", (e) => {
   else if (k === "prev" || k === "next") ledStep(k === "next" ? 1 : -1);
 });
 
-// ── Tab "Cảnh": y như tab Cảnh của Slide cưới — mỗi cảnh một dòng (ảnh nhỏ · tên · mốc giờ ·
+// ── Tab "Cảnh": y như tab Cảnh của Tạo Slide — mỗi cảnh một dòng (ảnh nhỏ · tên · mốc giờ ·
 // thời lượng), bấm là chiếu cảnh đó, dừng lại và mở khối đổi ảnh + các ô sửa chữ của nó.
 // · Chữ sửa: localStorage theo <mẫu>|<thiệp hoặc demo>, mẫu áp theo khoá (L.texts); sửa thành rỗng
 //   là bỏ dòng đó. Gõ thì dựng lại màn (giữ nguyên giờ đang chiếu), dòng cảnh không vẽ lại nên
@@ -214,7 +214,7 @@ function _ledTexts(tplId = _ledS.tpl) {
     return {};
   }
 }
-// ── Thời lượng (y như Slide cưới): thanh "cả vòng" (hệ số nhân thời lượng mẫu, 0,5×–2×) + thanh
+// ── Thời lượng (y như Tạo Slide): thanh "cả vòng" (hệ số nhân thời lượng mẫu, 0,5×–2×) + thanh
 // riêng từng cảnh (giây, đè hệ số). Lưu ở localStorage `cx_led_timing` theo <mẫu>|<thiệp hoặc demo>,
 // dạng {scale, scenes: {id cảnh: giây}}; đổi thì chỉ retime dự án đang có (bộ vẽ tự kẹp mỗi cảnh
 // trong [min, max] — min = đủ cho mọi hiệu ứng chạy xong), không dựng lại.
@@ -902,13 +902,13 @@ function _ledWake() {
 }
 document.addEventListener("pointermove", _ledWake);
 document.addEventListener("pointerdown", _ledWake);
-// ── Sửa ngay trên màn (y như Slide cưới): rê chuột lên chữ/ảnh của cảnh đang chiếu thì vẽ khung
+// ── Sửa ngay trên màn (y như Tạo Slide): rê chuột lên chữ/ảnh của cảnh đang chiếu thì vẽ khung
 // nét đứt + nhãn ("Sửa chữ" / "Đổi ảnh"), bấm (hoặc chạm) thì dừng ở cảnh đó với chữ đã hiện đủ,
 // mở tab Cảnh đúng ô sửa và làm nổi nó (_ledEditFromScreen). Lần dựng đầu, viền mọi vùng sửa được
 // nhấp nháy một nhịp cho khách biết bấm được. Khung vẽ thẳng lên canvas xem trước, KHÔNG qua engine
 // nên ảnh/video tải xuống không dính. Vùng = chữ có `key` và ảnh có `edit` (mẫu khai); bấm chỗ
 // khác trên màn là mở toàn màn như cũ.
-const _LED_EDIT_RGB = "225, 29, 72"; // hồng nhấn của Cưới Xinh, cùng màu khung sửa của Slide cưới
+const _LED_EDIT_RGB = "225, 29, 72"; // hồng nhấn của Cưới Xinh, cùng màu khung sửa của Tạo Slide
 const _LED_EDIT_LABEL = { text: "Sửa chữ", photo: "Đổi ảnh" };
 const _LED_EDIT_PAD = 6; // px màn hình, nhân đơn vị mẫu lúc vẽ
 let _ledPtr = null; // vị trí chuột theo toạ độ mẫu; null = ngoài màn
@@ -1084,7 +1084,7 @@ async function ledVideo(kind) {
     _ledProg(0);
   }
 }
-// Nút "Tải xuống" kiêm thanh tiến độ (cùng kiểu nút Xuất video của Slide cưới) + nút Huỷ cạnh bên.
+// Nút "Tải xuống" kiêm thanh tiến độ (cùng kiểu nút Xuất video của Tạo Slide) + nút Huỷ cạnh bên.
 function _ledProg(p) {
   const run = !!_ledJob;
   const v = Math.round(p * 100);
@@ -1126,7 +1126,7 @@ function ledHall(on) {
   _ledEl("led-hall-btn")?.setAttribute("aria-pressed", String(on));
 }
 
-// ── Nguồn thông tin: công tắc "Dùng thiệp của tôi" + dải thẻ thiệp (cùng kiểu Slide cưới) ──
+// ── Nguồn thông tin: công tắc "Dùng thiệp của tôi" + dải thẻ thiệp (cùng kiểu Tạo Slide) ──
 function _ledState(state) {
   ["loading", "guest", "empty", "error"].forEach((k) => _ledEl(`led-st-${k}`).classList.toggle("hidden", k !== state));
   _ledEl("led-weddings").classList.toggle("hidden", state !== "list");

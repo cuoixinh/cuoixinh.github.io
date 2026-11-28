@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Slide cưới - Cưới Xinh</title>
+    <title>Tạo Slide - Cưới Xinh</title>
     <!-- Trang ứng dụng cần đăng nhập: không đưa lên kết quả tìm kiếm. -->
     <meta name="robots" content="noindex" />
     <meta
@@ -35,14 +35,14 @@
   <body
     class="sc-body font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
   >
-    <!-- "Slide cưới": màn chiếu cho sân khấu tiệc cưới. Vùng: đầu trang · sân khấu (khung xem
+    <!-- "Tạo Slide": màn chiếu cho sân khấu tiệc cưới. Vùng: đầu trang · sân khấu (khung xem
          iframe templates/<id>/ + nút chiếu/xuất) · bảng chỉnh bốn tab (Cảnh · Thiệp · Âm thanh ·
          Mẫu) · dock dòng thời gian. Máy tính (_SC_STUDIO): bố cục bàn dựng phim, trang không cuộn —
          sân khấu trái, bảng chỉnh phải, dòng thời gian trải ngang đáy. Nhỏ hơn: xếp chồng, sân khấu
          ghim đầu màn, dòng thời gian nằm trong tab Âm thanh. Logic ở index.js. -->
     <main class="sc-app sc-studio">
       <header id="sc-head" class="sc-head sc-head-pin">
-        <h1 class="tg-title">Slide cưới</h1>
+        <h1 class="tg-title">Tạo Slide</h1>
         <p class="sc-sub">Xem trước rồi chiếu lên màn hình sân khấu tiệc cưới.</p>
       </header>
 
@@ -208,7 +208,7 @@
       </x-popover>
 
       <div class="sc-panel">
-        <!-- Dải tab luôn ghim: dưới lg ngay dưới khung chiếu, từ lg đầu cột phải (_slide-cuoi.css). -->
+        <!-- Dải tab luôn ghim: dưới lg ngay dưới khung chiếu, từ lg đầu cột phải (_tao-slide.css). -->
         <div class="sc-tabs-bar">
         <div id="sc-tabs" class="cx-seg sc-tabs" role="tablist" aria-label="Chỉnh slide" style="--n: 4; --i: 0">
           <button type="button" class="cx-seg-btn is-on" role="tab" id="sc-tabbtn-scenes" data-tab="scenes" aria-selected="true" aria-controls="sc-tab-scenes">Cảnh</button>
@@ -309,7 +309,7 @@
           </div>
         </section>
 
-        <!-- Âm thanh = nhạc nền + giọng đọc trên CÙNG một dòng thời gian (slide-cuoi/timeline.js vẽ):
+        <!-- Âm thanh = nhạc nền + giọng đọc trên CÙNG một dòng thời gian (tao-slide/timeline.js vẽ):
              track Cảnh · track Nhạc nền · các track giọng đọc (mỗi track nhiều clip), hàng "Track mới"
              có nút + (thêm file), micro (thu âm) và bấm thẳng vào làn = thêm file đúng mốc đó. Dưới
              dòng thời gian (khi nó nằm trong tab — màn nhỏ) là bảng thư viện
@@ -415,7 +415,7 @@
           { id: "guests", label: "Khách mời", icon: "users", href: "/guest-list/", login: true },
           { id: "led", label: "Nền sân khấu", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
           { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
-          { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/", feature: "slides" },
+          { id: "slides", label: "Tạo Slide", icon: "film", href: "/tao-slide/", feature: "slides" },
           {
             id: "account",
             label: "Tài khoản",

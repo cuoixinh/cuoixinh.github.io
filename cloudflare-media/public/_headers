@@ -1,5 +1,5 @@
 # Kho nhạc thư viện — Worker file tĩnh "cuoixinh-media" ở tài khoản Cloudflare phụ (wrangler.jsonc cạnh
-# thư mục này), đẩy bằng `npm run deploy:media`. Trang /slide-cuoi/ nghe thử
+# thư mục này), đẩy bằng `npm run deploy:media`. Trang /tao-slide/ nghe thử
 # và bộ xuất video fetch file nhạc từ miền khác nên MỌI file phải có CORS.
 /*
   Access-Control-Allow-Origin: *

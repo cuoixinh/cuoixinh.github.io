@@ -72,7 +72,7 @@ html.sl-paused body {
 }
 
 /* Dải cảnh trên slide: như .sl-ctrl, chỉ có khi khung tự lo điều khiển (.sl-own-ctrl) — trong trang
-   /slide-cuoi/ dải cảnh nằm ở bàn điều khiển dưới slide. */
+   /tao-slide/ dải cảnh nằm ở bàn điều khiển dưới slide. */
 .sl-segs {
   display: none;
 }
@@ -104,7 +104,7 @@ html.sl-paused body {
 }
 
 /* Chỉ hiện khi khung tự lo điều khiển (cờ .sl-own-ctrl: mở thẳng hoặc đang toàn màn) — trong
-   trang /slide-cuoi/ cụm điều khiển nằm ở hàng nút dưới slide. */
+   trang /tao-slide/ cụm điều khiển nằm ở hàng nút dưới slide. */
 .sl-ctrl {
   display: none;
 }
@@ -185,7 +185,7 @@ html.sl-paused body {
 }
 
 /* Chip gợi ý "Bấm vào chữ hoặc ảnh để sửa": góc trên trái, chỉ trong khung xem của trang
-   /slide-cuoi/ (.sl-can-edit — runtime tắt cờ này khi trình chiếu / xuất video), hiện cùng
+   /tao-slide/ (.sl-can-edit — runtime tắt cờ này khi trình chiếu / xuất video), hiện cùng
    lúc với thanh điều khiển. Không bắt chuột: bấm xuyên qua xuống slide. */
 #sl-hint {
   position: fixed;

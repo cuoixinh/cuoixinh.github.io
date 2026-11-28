@@ -1,7 +1,7 @@
-// Bộ phát chung của mọi mẫu slide (slide-cuoi/templates/<mẫu>/): dựng dự án bằng
+// Bộ phát chung của mọi mẫu slide (tao-slide/templates/<mẫu>/): dựng dự án bằng
 // CXSlideEngine.build từ CX_SLIDE của mẫu, vẽ lên canvas theo đồng hồ riêng (tạm dừng = dừng
 // đồng hồ), quay vòng, thanh điều khiển tự ẩn, nhạc nền + giọng đọc khách chọn, và XUẤT VIDEO
-// (CXSlideExport) khi trang cha yêu cầu. ?embed=1 thì đợi trang /slide-cuoi/ gửi dữ liệu qua
+// (CXSlideExport) khi trang cha yêu cầu. ?embed=1 thì đợi trang /tao-slide/ gửi dữ liệu qua
 // postMessage, mở thẳng thì dùng dữ liệu mẫu. Nạp CUỐI trang, sau index.js của mẫu.
 
 (function () {
@@ -49,7 +49,7 @@
     </div>`;
   document.body.appendChild(ui);
   window.lucide?.createIcons({ root: ui });
-  // Chip gợi ý sửa ngay trên slide — chỉ hiện trong khung xem của trang /slide-cuoi/ (CSS theo
+  // Chip gợi ý sửa ngay trên slide — chỉ hiện trong khung xem của trang /tao-slide/ (CSS theo
   // cờ .sl-can-edit), không bao giờ ở màn trình chiếu.
   const hint = document.createElement("div");
   hint.id = "sl-hint";
@@ -81,7 +81,7 @@
     clearTimeout(wakeT);
     wakeT = setTimeout(() => root.classList.remove("sl-ui-on"), 2600);
   }
-  // Trong khung xem của trang /slide-cuoi/ thanh điều khiển nằm ở trang cha (nổi đè lên khung):
+  // Trong khung xem của trang /tao-slide/ thanh điều khiển nằm ở trang cha (nổi đè lên khung):
   // báo lên cho nó hiện — chuột rê (cx-slide-wake, thưa lại 250ms) và cú chạm không trúng vùng sửa
   // (cx-slide-tap). Toàn màn thì khung tự lo bằng thanh của chính nó.
   const parentCtrl = () => EMBED && !fsEl() && !pseudoFull;
@@ -294,7 +294,7 @@
   }
 
   // ── Sửa ngay trên slide ──
-  // Chỉ trong khung xem của trang /slide-cuoi/ (EMBED), không khi trình chiếu toàn màn hay đang
+  // Chỉ trong khung xem của trang /tao-slide/ (EMBED), không khi trình chiếu toàn màn hay đang
   // xuất video: rê chuột lên chữ/ảnh của cảnh đang chiếu thì vẽ khung nét đứt + nhãn, bấm
   // (hoặc chạm) thì dừng ở cảnh đó với chữ đã hiện đủ và báo trang cha mở đúng ô sửa
   // (cx-slide-edit). Khung vẽ thẳng lên canvas xem trước, KHÔNG qua engine nên video xuất ra
@@ -685,7 +685,7 @@
   })();
 
   // ── Toàn màn hình ──
-  // Trong khung của trang /slide-cuoi/ thì nhờ trang cha phóng cả iframe (cú bấm ở đây
+  // Trong khung của trang /tao-slide/ thì nhờ trang cha phóng cả iframe (cú bấm ở đây
   // cũng kích hoạt trang cha); iPhone không có Fullscreen API → trang cha phủ kín bằng CSS.
   const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
   const CAN_FS =

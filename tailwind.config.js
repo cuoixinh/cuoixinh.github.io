@@ -16,7 +16,7 @@ module.exports = {
     "./admin/**/*.{html,js}",
     "./my-invitations/**/*.{html,js}",
     "./guest-list/**/*.{html,js}",
-    "./slide-cuoi/**/*.{html,js}",
+    "./tao-slide/**/*.{html,js}",
     "./hinh-nen-led/**/*.{html,js}",
     "./poster/**/*.{html,js}",
     "./mau-slide/**/*.{html,js}",

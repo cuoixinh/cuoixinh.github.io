@@ -13,7 +13,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.11.28-1";
+const CX_VERSION = "2026.11.28-2";
  
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -215,12 +215,12 @@ const CONFIG = {
   // Bật/tắt mục MENU của từng phân hệ (navbar + menu trang chủ). Chỉ ẩn lối vào —
   // trang vẫn mở được bằng URL. Mục navbar khai `feature: "<khoá>"` để đi theo cờ này.
   features: {
-    slides: false, // "Slide cưới" (/slide-cuoi/)
+    slides: false, // "Tạo Slide" (/tao-slide/)
     led: true, // "Nền sân khấu" (/hinh-nen-led/)
     slideDemos: true, // "Mẫu Slide" (/mau-slide/) — video mẫu slide + nút nhắn Messenger
   },
 
-  // Thư viện nhạc (Slide cưới + nhạc nền thiệp) — Worker file tĩnh ở tài khoản Cloudflare PHỤ
+  // Thư viện nhạc (Tạo Slide + nhạc nền thiệp) — Worker file tĩnh ở tài khoản Cloudflare PHỤ
   // (thư mục cloudflare-media/, `npm run deploy:media`), dùng chung cho mọi môi trường. Đường
   // dẫn bài trong file danh mục tính theo chính file đó; thiệp chỉ lưu đường dẫn tương đối
   // ("lib:songs/…", cxIsLibMusic) nên đổi địa chỉ ở đây là mọi thiệp đi theo. Đổi địa chỉ thì

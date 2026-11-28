@@ -40,7 +40,7 @@
   <body class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20">
     <!-- "Mẫu Slide": trang QUẢNG CÁO mẫu slide — mỗi mẫu một video YouTube khung ngang + nút
          "Gửi Messenger" để khách nhắn Cưới Xinh đặt làm. Danh mục + mã video lấy ở
-         /slide-cuoi/templates.js (khoá `youtube`); dựng thẻ ở index.js. -->
+         /tao-slide/templates.js (khoá `youtube`); dựng thẻ ở index.js. -->
     <main class="ms-app">
       <header class="ms-head">
         <h1 class="tg-title">Mẫu Slide</h1>
@@ -82,7 +82,7 @@
           { id: "guests", label: "Khách mời", icon: "users", href: "/guest-list/", login: true },
           { id: "led", label: "Nền sân khấu", icon: "monitor", href: "/hinh-nen-led/", feature: "led" },
           { id: "pricing", label: "Bảng giá", icon: "tag", href: "/#pricing" },
-          { id: "slides", label: "Slide cưới", icon: "film", href: "/slide-cuoi/", feature: "slides" },
+          { id: "slides", label: "Tạo Slide", icon: "film", href: "/tao-slide/", feature: "slides" },
           { id: "account", label: "Tài khoản", icon: "user", onClick: "CXAccount.open(this)" },
         ],
       });
@@ -91,7 +91,7 @@
     <script src="../core/cache-util.js"></script>
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/auth-ui.js"></script>
-    <script src="../slide-cuoi/templates.js"></script>
+    <script src="../tao-slide/templates.js"></script>
     <script src="index.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="../core/helpers/nav-cart-count.js"></script>

@@ -58,7 +58,7 @@ function cxHeroMenu(btn) {
       } },
       // Theo cờ CONFIG.features.slides — cùng cờ với mục `feature: "slides"` ở navbar.
       ...(typeof CONFIG === "undefined" || CONFIG.features?.slides !== false
-        ? [{ icon: _cxHeroMenuIcon("film"), label: "Slide cưới", onClick: go("/slide-cuoi/") }]
+        ? [{ icon: _cxHeroMenuIcon("film"), label: "Tạo Slide", onClick: go("/tao-slide/") }]
         : []),
     ];
     // 4 trang thì 2 + 2, 5 thì 3 + 2, 6 thì 3 + 3, 7 thì 4 + 3 — không để ô lẻ trơ một mình.

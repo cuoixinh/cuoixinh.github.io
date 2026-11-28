@@ -546,7 +546,7 @@ function _musicLibLoad() {
   });
 }
 
-// Danh sách bài vẽ bằng component dùng chung với Slide cưới (core/components/music-lib.js).
+// Danh sách bài vẽ bằng component dùng chung với Tạo Slide (core/components/music-lib.js).
 // Admin (tab Dữ liệu mẫu) nạp file này mà không có khung danh sách → hàm tự bỏ qua.
 function _musicLibRender() {
   const box = document.getElementById("music-lib-list");

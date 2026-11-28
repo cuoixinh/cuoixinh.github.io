@@ -1,5 +1,5 @@
 /* ── Trang "Ảnh TikTok" (poster/) ─────────────────────────────────────────────
-   Bố cục + tông màu là của Slide cưới (lớp .sc-* ở _slide-cuoi.css — file này nạp SAU nó). Ở đây
+   Bố cục + tông màu là của Tạo Slide (lớp .sc-* ở _tao-slide.css — file này nạp SAU nó). Ở đây
    chỉ có phần riêng: ảnh lớn là canvas chỉnh trực tiếp (kéo/bấm/thả file), thanh kiểu chữ, dải ảnh
    của loạt. --po-ratio (luôn 3 / 4) khai thẳng trên .po-app trong index.html. */
 .po-screen canvas {
@@ -55,7 +55,7 @@
 
 /* Cả trang là MỘT sân khấu, không bảng bên: ảnh 3:4 cao vừa khít phần màn còn lại sau navbar + bàn
    điều khiển (≈ 180px kể cả lề), để máy tính lẫn điện thoại đều thấy trọn ảnh đang chỉnh. Đầu trang
-   chỉ còn cho máy đọc màn hình. Đè lại bố cục hai cột / ghim của .sc-app ở _slide-cuoi.css. */
+   chỉ còn cho máy đọc màn hình. Đè lại bố cục hai cột / ghim của .sc-app ở _tao-slide.css. */
 .po-app {
   grid-template-areas: "stage";
   padding-bottom: 0;

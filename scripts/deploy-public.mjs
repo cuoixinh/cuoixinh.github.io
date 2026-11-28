@@ -46,7 +46,7 @@ const INCLUDE = [
   "theme-template/",
   "my-invitations/",
   "guest-list/",
-  "slide-cuoi/",
+  "tao-slide/",
   "hinh-nen-led/",
   "poster/",
   "mau-slide/",
