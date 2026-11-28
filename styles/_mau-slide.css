@@ -193,7 +193,8 @@
   line-height: 1.6;
   color: rgb(var(--text-caption-rgb));
 }
-/* Nút gửi trong danh sách: cao bằng dòng tên mẫu (24px × 1.25 = 30px). */
+/* Nút gửi trong danh sách: chip nhẹ (nền xanh Messenger rất nhạt, chữ + logo xanh, không bóng) cao
+   đúng bằng dòng tên mẫu (24px × 1.25 = 30px) — nút đặc chỉ dành cho "Mở Messenger" trong hộp. */
 .ms-cap .ms-send {
   grid-area: send;
   align-self: center;
@@ -201,11 +202,18 @@
   height: 30px;
   padding: 0 12px 0 10px;
   font-size: 13px;
+  color: rgb(var(--social-messenger-to-rgb));
+  background: rgb(var(--social-messenger-from-rgb) / 0.1);
   box-shadow: none;
+  transition: background-color 0.2s ease;
+}
+.ms-cap .ms-send:hover {
+  filter: none;
+  background: rgb(var(--social-messenger-from-rgb) / 0.18);
 }
 .ms-cap .ms-send svg {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
 }
 
 /* Nút Messenger (cả nút ở danh sách lẫn "Mở Messenger" trong hộp): màu nhận diện của Messenger. */
