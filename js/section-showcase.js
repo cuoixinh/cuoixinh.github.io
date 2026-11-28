@@ -1,7 +1,7 @@
 // Mục "Thiệp của khách" ở trang chủ: thiệp đã thanh toán, ai trả sau đứng đầu
 // (Edge Function wedding-admin?resource=public-showcase&offset= sắp sẵn, theo trang) —
 // cuộn gần mép phải thì tải trang sau. Trang ĐẦU đọc qua worker cache (CONFIG.cloudflare.cacheProxy,
-// KV 10 phút), trang sau đi thẳng Edge Function. Trang đầu rỗng hoặc hỏng thì mục giữ `hidden`.
+// KV 1 ngày), trang sau đi thẳng Edge Function. Trang đầu rỗng hoặc hỏng thì mục giữ `hidden`.
 // Cần CONFIG + core/dal/storage-dal.js.
 (function () {
   const esc = (s) =>
@@ -52,7 +52,7 @@
   const PREFETCH_PX = 600;
   let next = 0; // offset trang sau; null = hết
   let busy = false;
-  // Trang đầu là bản cache (trễ tới 10 phút) còn trang sau là bản sống: có thiệp mới thanh
+  // Trang đầu là bản cache (trễ tới 1 ngày) còn trang sau là bản sống: có thiệp mới thanh
   // toán xen giữa thì hàng bị đẩy lùi, trang sau lặp lại thẻ cuối trang đầu → lọc theo slug.
   const seen = new Set();
 

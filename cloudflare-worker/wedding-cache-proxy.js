@@ -6,9 +6,10 @@ var __name = (target, value) =>
 var CACHE_TTL = 300;
 // Trang ĐẦU mục "Thiệp của khách" ở trang chủ (resource=public-showcase&offset=0) — mọi lượt
 // vào trang chủ đều hỏi nó. Dữ liệu công khai, không phụ thuộc người gọi nên cache chung một
-// key. Không xoá chủ động được (thanh toán/đổi đồng ý đi đường khác) → TTL quyết định độ trễ.
-// Trang cuộn tiếp (offset > 0) vẫn đi thẳng Edge Function.
-var SHOWCASE_TTL = 600;
+// key. Không có lệnh xoá (thanh toán/đổi đồng ý đi đường khác) → thiệp mới, thiệp rút đồng ý
+// trễ tới hết TTL; cần gỡ ngay thì xoá tay key này trong KV. Trang cuộn tiếp (offset > 0)
+// vẫn đi thẳng Edge Function.
+var SHOWCASE_TTL = 86400; // 1 ngày
 var SHOWCASE_KEY = "showcase:page0";
 var worker_default = {
   async fetch(request, env, ctx) {
@@ -108,7 +109,7 @@ var worker_default = {
         }),
       );
     }
-    // Chỉ cache bản đúng dạng trang `{ items, next }`: lỗi hay dạng lạ mà đóng băng 10 phút là
+    // Chỉ cache bản đúng dạng trang `{ items, next }`: lỗi hay dạng lạ mà đóng băng cả ngày là
     // mục biến mất khỏi trang chủ suốt chừng đó.
     if (
       isShowcaseHead &&
