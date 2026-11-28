@@ -9,6 +9,7 @@ window.CX_SLIDE_TEMPLATES = [
     name: "Mãi mãi về sau",
     desc: "Hồng pastel, mỗi cảnh một bố cục, ảnh bay từ ngoài vào",
     ratio: "16 / 9",
+    ratios: ["16 / 9", "1 / 1", "9 / 16"],
     thumb: "/slide-cuoi/templates/romantic-blush/thumb.jpg",
   },
   {
@@ -16,6 +17,7 @@ window.CX_SLIDE_TEMPLATES = [
     name: "Mãi Bên Nhau",
     desc: "Bố cục tạp chí, ảnh bay từ ngoài vào",
     ratio: "16 / 9",
+    ratios: ["16 / 9", "1 / 1", "9 / 16"],
     thumb: "/slide-cuoi/templates/mai-ben-nhau/thumb.jpg",
   },
   {
@@ -23,7 +25,7 @@ window.CX_SLIDE_TEMPLATES = [
     name: "Ngày Chung Đôi",
     desc: "Nền trắng tối giản, ảnh là chính, ít chữ",
     ratio: "16 / 9",
-    ratios: ["16 / 9", "1 / 1"],
+    ratios: ["16 / 9", "1 / 1", "9 / 16"],
     thumb: "/slide-cuoi/templates/ngay-chung-doi/thumb.jpg",
   },
   {
@@ -31,7 +33,7 @@ window.CX_SLIDE_TEMPLATES = [
     name: "Trăm Năm Hạnh Phúc",
     desc: "Chỉ có ảnh, không chữ — ảnh phủ kín khung, ghép 2–3 ảnh mỗi màn",
     ratio: "16 / 9",
-    ratios: ["16 / 9", "1 / 1"],
+    ratios: ["16 / 9", "1 / 1", "9 / 16"],
     thumb: "/slide-cuoi/templates/tram-nam-hanh-phuc/thumb.jpg",
   },
 ];

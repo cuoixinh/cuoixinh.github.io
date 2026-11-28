@@ -60,7 +60,12 @@ function _scRenderTpls() {
 
 // ── Tỉ lệ khung hình: mẫu khai `ratios` thì cho chọn, lựa chọn nhớ theo từng mẫu. Đổi là nạp lại
 // khung với ?ratio= — chữ/ảnh/thời lượng khách sửa dùng chung mọi tỉ lệ (cùng khoá theo mẫu + thiệp).
-const _SC_RATIO_LABEL = { "16 / 9": "16:9 · Ngang", "1 / 1": "1:1 · Vuông" };
+const _SC_RATIO_LABEL = { "16 / 9": "16:9 · Ngang", "1 / 1": "1:1 · Vuông", "9 / 16": "9:16 · Dọc" };
+// Khung dọc (cao hơn rộng): không có chế độ Màn chiếu — màn LED hội trường là màn ngang.
+const _scTall = () => {
+  const [rw, rh] = _scRatio().split("/").map(Number);
+  return rh > rw;
+};
 const _scTpl = () => CX_SLIDE_TEMPLATES.find((x) => x.id === _scS.tpl);
 function _scRatio(t = _scTpl()) {
   const own = _scS.ratios[t?.id];
@@ -146,6 +151,8 @@ function _scFrameLoad() {
   const [rw, rh] = ratio.split("/").map(Number);
   _scBox.style.setProperty("--sc-ratio", ratio);
   _scBox.closest(".sc-app")?.style.setProperty("--sc-ratio-n", String(rw > 0 && rh > 0 ? rw / rh : 16 / 9));
+  _scToggle("sc-hall-btn", !_scTall());
+  if (_scTall()) scHall(false);
   _scFrame.src = `/slide-cuoi/templates/${encodeURIComponent(_scS.tpl)}/?embed=1&ratio=${rw}x${rh}`;
 }
 
@@ -2371,7 +2378,7 @@ function _scExportNote() {
   else {
     if (_scCapsOk && !_scCapsOk.h2160) notes.push("Máy này không mã hoá được 4K, chỉ xuất được 1080p.");
     if (_scExRes === "tiktok")
-      notes.push("Video dọc 2K (1440×2560) để đăng TikTok, slide đặt trên màn chiếu hội trường.");
+      notes.push(_scTall() ? "Video dọc 2K (1440×2560) để đăng TikTok." : "Video dọc 2K (1440×2560) để đăng TikTok, slide đặt trên màn chiếu hội trường.");
     if (_scExRes === 2160) notes.push("4K xuất lâu hơn và file nặng hơn khoảng 2,5 lần.");
     const voice = typeof _scVo !== "undefined" && _scVo.clips.some((c) => !c.mute);
     if (!_scMusic && !voice) notes.push("Slide chưa có nhạc nên video xuất ra sẽ không có tiếng. Chọn nhạc hoặc thêm giọng đọc ở tab Âm thanh.");

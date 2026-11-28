@@ -24,8 +24,13 @@
 > định 3 cảnh). Chú rể chỉ có "My groom" ngắn, không có cảnh "My bride". KHÔNG hiện tên bố mẹ.
 > Mẫu thứ tư: `templates/tram-nam-hanh-phuc/` ("Trăm Năm Hạnh Phúc") — CHỈ CÓ ẢNH, không chữ, mọi ảnh
 > phủ kín ô của nó (Ken Burns / lia máy `kb: "pan-*"` của engine): khung ngang ghép 2–3 ảnh mỗi màn,
-> thỉnh thoảng một ảnh tràn khung; khung vuông đa số một ảnh một khung, xen màn 2–3 ảnh. 60 ô khoá
+> thỉnh thoảng một ảnh tràn khung; khung vuông/dọc đa số một ảnh một khung, xen màn 2–3 ảnh. 60 ô khoá
 > theo SỐ THỨ TỰ ảnh (`p1`…`p60`, không theo cảnh) nên đổi tỉ lệ — chia cảnh khác nhau — không lạc ảnh.
+> **Tỉ lệ khung:** mọi mẫu có ba tỉ lệ 16:9 · 1:1 · 9:16 (`ratios` ở templates.js, trang gửi `?ratio=`);
+> mỗi tỉ lệ một bộ bố cục riêng nhưng GIỮ ĐÚNG khoá chữ + ô ảnh (cùng thứ tự) của bản ngang. Khung
+> vuông/dọc chữ to hơn một bậc; cột chữ khai `fit` (engine `column`) tự thu chữ khi lời dài quá chỗ.
+> Video theo cạnh ngắn 1080/2160 (dọc = 1080×1920); khung dọc không có "Màn chiếu" và bản TikTok là
+> chính slide 1440×2560, không đặt lên ảnh hội trường.
 > **Nhập ảnh cả slide** (thẻ "Ảnh của bạn" đầu tab Cảnh, mọi mẫu): ảnh chọn điền lần lượt từ ô ĐẦU tới ô
 > cuối theo thứ tự chiếu, đè cả ô đã đổi; thừa thì bỏ. Ít ảnh hơn số ô: công tắc "Cho phép lặp ảnh khi
 > thiếu" (nhớ ở localStorage) tắt thì các ô sau giữ nguyên, bật thì các ô sau lặp vòng loạt ảnh đó —

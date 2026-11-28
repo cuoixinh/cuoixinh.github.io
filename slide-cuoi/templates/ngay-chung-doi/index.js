@@ -1,13 +1,15 @@
 // Slide sân khấu "Ngày Chung Đôi": nền trắng tối giản, ẢNH LÀ CHÍNH — 20 cảnh, 60 ô ảnh, chữ chỉ
-// một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần, ảnh in viền trắng đổ bóng. Hai tỉ lệ:
-// 16:9 (1280×720, mặc định) và vuông 1:1 (1080×1080, `?ratio=1x1` trên URL khung) — cảnh vuông
-// giữ ĐÚNG khoá chữ + số ô ảnh của cảnh 16:9 cùng id, nên ảnh/chữ khách sửa dùng chung hai tỉ lệ.
+// một cụm ngắn hoặc không có; cành lá nét chì tự vẽ dần, ảnh in viền trắng đổ bóng. Ba tỉ lệ:
+// 16:9 (1280×720, mặc định), vuông 1:1 (1080×1080, `?ratio=1x1`) và dọc 9:16 (1080×1920, `?ratio=9x16`)
+// — cảnh mỗi tỉ lệ giữ ĐÚNG khoá chữ + số ô ảnh của cảnh 16:9 cùng id, ảnh/chữ khách sửa dùng chung.
 // Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime.
 
 (function () {
-  const SQ = new URLSearchParams(location.search).get("ratio") === "1x1";
-  const W = SQ ? 1080 : 1280;
-  const H = SQ ? 1080 : 720;
+  const RT = new URLSearchParams(location.search).get("ratio");
+  const SQ = RT === "1x1";
+  const TALL = RT === "9x16";
+  const W = SQ || TALL ? 1080 : 1280;
+  const H = TALL ? 1920 : SQ ? 1080 : 720;
   const C = {
     paper: "#FFFFFF",
     cream: "#FBF6EE",
@@ -27,6 +29,8 @@
   const CG = '"Cormorant Garamond", "Times New Roman", serif';
   const PF = '"Playfair Display", "Times New Roman", serif';
   const GV = '"Pinyon Script", cursive';
+  // Khung dọc xem trên điện thoại là chính nên chữ to hơn một bậc.
+  const K = TALL ? 1.3 : 1;
   const F = {
     title: { family: CG, size: 66, weight: 300 },
     titleS: { family: CG, size: 40, weight: 400 },
@@ -39,6 +43,7 @@
     scriptL: { family: GV, size: 88 },
     small: { family: CG, size: 22, weight: 400 },
   };
+  Object.values(F).forEach((f) => (f.size = Math.round(f.size * K)));
   // Nhịp trễ: 1 = 0.15 giây.
   const A = (k, n, o) => ({ k, d: n * 0.15, ...o });
   const caps = (font, color, o) => ({ font, color, lh: 1.15, caps: true, ls: 4, ...o });
@@ -537,22 +542,168 @@
         return S.done(8, "zoom");
       },
     };
-    // Cảnh có chữ đã đăng ký bản 16:9 ở trên — khung vuông thì thay hàm dựng, giữ nguyên nhãn.
-    if (SQ) {
+    // ── Bố cục dọc 1080×1920: cùng quy ước với bản vuông (cùng khoá chữ, cùng số ô ảnh). ──
+    const TALL_LAY = {
+      open: (S) => {
+        S.rect(0, 0, 700, H, C.cream, A("reveal", 0, { from: "top", t: 1.2 }));
+        S.img(0, { x: 0, y: 140, w: 880, h: 1000 }, A("fly", 2, { from: "left" }), pool.own("cover_image_url"));
+        S.col(
+          [
+            S.t("title", "To new\nbeginnings", caps(F.title, C.brown, { ls: 3, anim: A("track", 7, { ls0: 30 }) })),
+            S.t("sub", "My Love Story", { font: F.italic, color: C.ink, lh: 1.4, mt: 22, anim: A("fade", 12) }),
+            date && S.t("date", date, { font: F.small, color: C.grey, lh: 1.4, ls: 3, mt: 6, anim: A("fade", 14) }),
+          ],
+          80, 640, 1210,
+        );
+        S.img(1, { x: 400, y: 1540, w: 620, h: 320 }, A("fly", 5, { from: "right" }));
+        return S.done(8, "fade");
+      },
+      frames: (flip) => (S) => {
+        S.sprig(-6, 96, -24, 300, 0, { leaf: 0.2 });
+        S.sprig(36, -6, 62, 200, 2, { leaves: 7, leaf: 0.2 });
+        S.sprig(W + 6, H - 96, 156, 300, 1, { leaf: 0.2 });
+        S.sprig(W - 36, H + 6, 242, 200, 3, { leaves: 7, leaf: 0.2 });
+        [0, 1, 2, 3].forEach((k) =>
+          S.img(k, { x: 70 + (k % 2) * 490, y: 160 + Math.floor(k / 2) * 820, w: 450, h: 780 }, A("fly", 2 + k * 2, { from: (k % 2) ^ flip ? "top" : "bottom" })),
+        );
+        return S.done(7, "slide");
+      },
+      married: (S) => {
+        S.img(0, { x: 0, y: 0, w: W, h: 900 }, A("reveal", 0, { from: "top", t: 1.6, drift: 120 }));
+        S.col([S.t("script", "We are happily\nmarried", { font: F.script, color: C.ink, lh: 1.05, align: "center", anim: A("wipe", 8, { t: 2.2 }) })], 60, 960, 940, 1190);
+        S.img(1, { x: 60, y: 1230, w: 470, h: 640 }, A("fly", 3, { from: "left" }));
+        S.img(2, { x: 560, y: 1230, w: 460, h: 440 }, A("fly", 5, { from: "right" }));
+        S.col(
+          [S.t("quote", "“Our forever\nbegins\ntoday”", { font: F.quote, color: C.quote, lh: 1.05, align: "center", anim: A("lines", 12) })],
+          560, 460, 1690, 1890,
+        );
+        return S.done(8, "fade");
+      },
+      memory: (S) => {
+        S.img(0, { x: 40, y: 0, w: 1000, h: 900 }, A("fly", 0, { from: "top" }));
+        S.img(1, { x: 40, y: 930, w: 490, h: 680 }, A("fly", 3, { from: "left" }));
+        S.img(2, { x: 550, y: 1010, w: 490, h: 680 }, A("fly", 5, { from: "right" }));
+        S.col([S.t("title", "Our memories", caps(F.serif, C.grey, { ls: 2, anim: A("track", 8, { ls0: 24 }) }))], 44, 1000, 1720, 1880);
+        return S.done(7, "slide");
+      },
+      duo: (flip) => (S) => {
+        const big = flip ? 720 : 0;
+        const side = flip ? 0 : 1210;
+        S.img(0, { x: 0, y: big, w: W, h: 1200 }, A("reveal", 0, { from: flip ? "bottom" : "top", t: 1.6, drift: 140 }));
+        S.img(1, { x: 0, y: side, w: 535, h: 710 }, A("fly", 4, { from: flip ? "tl" : "bl" }));
+        S.img(2, { x: 545, y: side, w: 535, h: 710 }, A("fly", 6, { from: flip ? "tr" : "br" }));
+        return S.done(7, "split");
+      },
+      happy: (S) => {
+        const r = { radius: 14 };
+        S.img(0, { x: 60, y: 80, w: 470, h: 620, ...r }, A("fly", 1, { from: "left" }));
+        S.img(1, { x: 550, y: 80, w: 470, h: 620, ...r }, A("fly", 3, { from: "top" }));
+        S.img(2, { x: 60, y: 730, w: 960, h: 900, ...r }, A("fly", 5, { from: "bottom" }));
+        S.vine(36, 1700, -70, 320, 8);
+        S.vine(1044, 760, 112, 260, 10);
+        S.col([S.t("script", "Just Married", { font: F.scriptL, color: C.ink, lh: 1.1, align: "center", anim: A("wipe", 9, { t: 2.4 }) })], 40, 1000, 1660, 1880);
+        return S.done(8, "fade");
+      },
+      story: (S) => {
+        S.img(0, { x: 0, y: 0, w: W, h: 1060 }, A("zoom", 0, { s0: 1.25, t: 2.2, keep: true }));
+        S.rect(0, 1060, W, 10, C.paper);
+        const inset = S.img(1, { x: 160, y: 1140, w: 760, h: 560, ...print }, A("fly", 5, { from: "bottom" }));
+        S.echo(inset, { x: 0, y: 1070, w: W, h: 850, alpha: 0.3 }, A("fade", 2));
+        S.col([S.t("title", "A love story", caps(F.titleS, C.grey, { ls: 8, align: "center", anim: A("track", 10, { ls0: 30 }) }))], 0, W, 1750, 1870);
+        return S.done(7, "slide-up");
+      },
+      pair: (S) => {
+        S.rect(0, 0, W, 700, C.cream, A("reveal", 0, { from: "left", t: 1.2 }));
+        S.rect(0, 1220, W, 700, C.cream, A("reveal", 0, { from: "right", t: 1.2 }));
+        S.img(0, { x: 60, y: 100, w: 700, h: 860, radius: 10 }, A("fly", 3, { from: "left" }));
+        S.img(1, { x: 320, y: 960, w: 700, h: 860, radius: 10 }, A("fly", 5, { from: "right" }));
+        return S.done(7, "fade");
+      },
+      begin: (S) => {
+        const box = { x: 0, y: 0, w: W, h: 1460 };
+        S.img(0, box, A("reveal", 0, { from: "top", t: 1.6, drift: 120 }));
+        S.knock(S.t("title", "The\nbeginning", caps(F.serifS, C.ink, { ls: 1, lh: 1.2, anim: A("fade", 10) })), 64, 900, 1370, box, C.white);
+        S.col([S.t("sub", "My Love Story", { font: F.italic, color: C.ink, lh: 1.4, anim: A("fade", 14) })], 66, 600, 1600);
+        S.sprig(W + 6, H - 40, 196, 340, 12, { leaf: 0.2 });
+        return S.done(7, "slide");
+      },
+      forever: (S) => {
+        S.img(0, { x: 0, y: 0, w: W, h: 900 }, A("reveal", 0, { from: "top", t: 1.6 }));
+        S.img(1, { x: 540, y: 940, w: 540, h: 980 }, A("reveal", 2, { from: "bottom", t: 1.6 }));
+        S.col([S.t("quote", "“Forever\n&\ntogether”", { font: F.quoteL, color: C.quote, lh: 1.05, align: "center", anim: A("lines", 6) })], 0, 540, 940, 1360);
+        S.img(2, { x: 120, y: 1390, w: 520, h: 460, ...print, mat: 6 }, A("fly", 8, { from: "bottom" }));
+        return S.done(8, "fade");
+      },
+      trio: (flip) => (S) => {
+        [0, 1, 2].forEach((k) =>
+          S.img(k, { x: 0, y: k * 643, w: W, h: 634 }, A("reveal", (flip ? 2 - k : k) * 3, { from: (k % 2) ^ flip ? "right" : "left", t: 1.4, drift: 80 })),
+        );
+        return S.done(7, "split");
+      },
+      grid: (S) => {
+        [0, 1, 2, 3, 4, 5].forEach((k) => {
+          const r = Math.floor(k / 2);
+          S.img(k, { x: (k % 2) * 545, y: r * 645, w: 535, h: 630 }, A("fly", 1 + k * 1.5, { from: k % 2 ? "right" : "left", s0: 0.9 }));
+        });
+        return S.done(8, "zoom");
+      },
+      mosaic: (S) => {
+        S.img(0, { x: 0, y: 465, w: W, h: 990 }, A("zoom", 0, { s0: 1.2, t: 2.2 }));
+        S.img(1, { x: 0, y: 0, w: 535, h: 455 }, A("fly", 4, { from: "tl" }));
+        S.img(2, { x: 0, y: 1465, w: 535, h: 455 }, A("fly", 6, { from: "bl" }));
+        S.img(3, { x: 545, y: 0, w: 535, h: 455 }, A("fly", 5, { from: "tr" }));
+        S.img(4, { x: 545, y: 1465, w: 535, h: 455 }, A("fly", 7, { from: "br" }));
+        return S.done(8, "fade");
+      },
+      mine: (S) => {
+        S.sprig(-6, 40, 30, 260, 0);
+        S.sprig(W + 6, 40, 150, 260, 1);
+        S.img(0, { x: 60, y: 1040, w: 470, h: 620 }, A("fly", 2, { from: "left" }));
+        S.img(1, { x: 190, y: 110, w: 700, h: 900 }, A("fly", 4, { from: "top" }));
+        S.img(2, { x: 550, y: 1040, w: 470, h: 620 }, A("fly", 6, { from: "right" }));
+        S.col([S.t("script", "You are mine", { font: F.scriptL, color: C.ink, lh: 1.1, align: "center", anim: A("wipe", 10, { t: 2 }) })], 40, 1000, 1690, 1890);
+        return S.done(7, "fade");
+      },
+      forever2: (S) => {
+        const box = { x: 40, y: 0, w: 1000, h: 1180 };
+        S.img(0, box, A("fly", 0, { from: "top" }));
+        S.img(1, { x: 580, y: 1210, w: 460, h: 660 }, A("fly", 3, { from: "right" }));
+        S.knock(S.t("title", "Our\nforever", caps(F.serifS, C.ink, { ls: 1, lh: 1.25, anim: A("fade", 9) })), 80, 480, 1090, box, C.white);
+        S.sprig(-6, H - 60, -30, 320, 11, { leaf: 0.2 });
+        return S.done(7, "slide-up");
+      },
+      thanks: (S) => {
+        S.img(0, { x: 0, y: 0, w: W, h: H, kb: true }, A("zoom", 0, { s0: 1.2, t: 2.4, keep: true }), pool.own("cover_image_url"));
+        S.grad(0, 1240, W, 680, "rgba(30,24,20,0)", "rgba(30,24,20,0.45)", A("fade", 3));
+        S.img(1, { x: 60, y: 80, w: 360, h: 360, ...print, mat: 6 }, A("fly", 4, { from: "left" }));
+        S.img(2, { x: 60, y: 480, w: 360, h: 360, ...print, mat: 6 }, A("fly", 6, { from: "bl" }));
+        S.col(
+          [
+            S.t("script", "Thank you", { font: F.scriptL, color: C.white, lh: 1.1, align: "right", shadow: C.shade, anim: A("wipe", 9, { t: 2.2 }) }),
+            S.t("names", `${G} & ${B}`, caps(F.small, C.white, { ls: 4, lh: 1.4, mt: 4, align: "right", shadow: C.shade, anim: A("fade", 14) })),
+          ],
+          240, 780, 1640, 1840,
+        );
+        return S.done(8, "zoom");
+      },
+    };
+    // Cảnh có chữ đã đăng ký bản 16:9 ở trên — khung khác thì thay hàm dựng, giữ nguyên nhãn.
+    const ALT = TALL ? TALL_LAY : SQ ? SQ_LAY : null;
+    if (ALT) {
       ["open", "married", "memory", "happy", "story", "begin", "forever", "mine", "forever2", "thanks"].forEach((sid) =>
-        add(sid, lay.get(sid)[0], SQ_LAY[sid]),
+        add(sid, lay.get(sid)[0], ALT[sid]),
       );
     }
-    const pick = (sid, fn16) => (SQ ? SQ_LAY[sid] : fn16);
+    const pick = (sid, fn16) => (ALT ? ALT[sid] : fn16);
 
-    add("frames", "Bốn khung ảnh", (SQ ? SQ_LAY.frames : frames)(0));
-    add("frames2", "Bốn khung ảnh 2", (SQ ? SQ_LAY.frames : frames)(1));
-    add("duo", "Ảnh lớn", (SQ ? SQ_LAY.duo : duo)(0));
-    add("duo2", "Ảnh lớn 2", (SQ ? SQ_LAY.duo : duo)(1));
+    add("frames", "Bốn khung ảnh", pick("frames", frames)(0));
+    add("frames2", "Bốn khung ảnh 2", pick("frames", frames)(1));
+    add("duo", "Ảnh lớn", pick("duo", duo)(0));
+    add("duo2", "Ảnh lớn 2", pick("duo", duo)(1));
     add("pair", "Hai khung", pick("pair", pair));
     add("pair2", "Hai khung 2", pick("pair", pair));
-    add("trio", "Ba ảnh", (SQ ? SQ_LAY.trio : trio)(0));
-    add("trio2", "Ba ảnh 2", (SQ ? SQ_LAY.trio : trio)(1));
+    add("trio", "Ba ảnh", pick("trio", trio)(0));
+    add("trio2", "Ba ảnh 2", pick("trio", trio)(1));
     add("grid", "Lưới sáu ảnh", pick("grid", grid));
     add("mosaic", "Năm ảnh", pick("mosaic", mosaic));
 

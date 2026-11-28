@@ -1,12 +1,16 @@
-// Slide sân khấu "Mãi mãi về sau" (1280×720, hồng pastel, khối màu phẳng): năm kiểu bố cục (_LAYOUTS)
+// Slide sân khấu "Mãi mãi về sau" (1280×720; vuông 960×960 `?ratio=1x1`, dọc 720×1280 `?ratio=9x16` thì
+// ảnh trên chữ dưới — _VLAYOUTS) (hồng pastel, khối màu phẳng): năm kiểu bố cục (_LAYOUTS)
 // luân phiên, hai cảnh liền nhau không trùng kiểu và đổi bên trái/phải xen kẽ; tiêu đề viết hoa chữ
 // không chân, mọi khối bay từ ngoài vào, ảnh không phủ hiệu ứng sáng. Từ thiệp
 // chỉ lấy ảnh, họ tên, ngày cưới, chuyện tình — không tên cha mẹ, không địa chỉ (khách đã ở tiệc).
 // Chỉ KHAI cảnh (CX_SLIDE.scenes); vẽ/chạy/xuất là việc của engine + runtime + slide-export.js.
 
 (function () {
-  const W = 1280;
-  const H = 720;
+  const RT = new URLSearchParams(location.search).get("ratio");
+  const SQ = RT === "1x1";
+  const TALL = RT === "9x16";
+  const W = TALL ? 720 : SQ ? 960 : 1280;
+  const H = TALL ? 1280 : SQ ? 960 : 720;
   const C = {
     paper: "#FFFDFD",
     band: "#F6DCE2",
@@ -34,6 +38,9 @@
     bodyLong: { family: SANS, size: 20, weight: 300 },
     sign: { family: CORM, size: 34, style: "italic", weight: 500 },
   };
+  // Khung vuông/dọc xem trên điện thoại nhiều hơn nên chữ to hơn một bậc.
+  const K = TALL ? 1.25 : SQ ? 1.3 : 1;
+  Object.values(F).forEach((f) => (f.size = Math.round(f.size * K)));
   // Nhịp trễ hiệu ứng: 1 = 0.15 giây.
   const d = (n) => n * 0.15;
 
@@ -231,7 +238,8 @@
     };
     blocks = blocks.map((b, k) => apply(b, `${sid}.${k}`)).filter(Boolean);
     const rev = !!opt.rev;
-    const G = _LAYOUTS[opt.lay] || _LAYOUTS.band;
+    const LAY = TALL || SQ ? _VLAYOUTS : _LAYOUTS;
+    const G = LAY[opt.lay] || LAY.band;
     // Hướng theo bản chưa lật gương; bố cục lật (rev) thì đổi trái ↔ phải.
     const flip = (dir) => (rev ? _MIRROR[dir] || dir : dir);
     // Chữ bay vào từ phía cột chữ (G.from), chờ thêm G.delay khi phải đợi nền chữ bay vào trước;
@@ -279,7 +287,7 @@
     // Cột chữ, canh giữa theo chiều dọc. Khối có `indent` (dấu &) lùi vào; khối `pill` có nền nhãn
     // bo tròn ôm theo chữ, mở ra cùng nhịp với chữ; bố cục canh giữa thì vạch ngắn cũng canh giữa.
     const col = G.col;
-    const text = L.column(blocks, { x: mx(col.x, col.w), w: col.w, top: col.top, bottom: col.bottom });
+    const text = L.column(blocks, { x: mx(col.x, col.w), w: col.w, top: col.top, bottom: col.bottom, fit: true });
     const pills = [];
     blocks.forEach((b, k) => {
       const el = text[k];
@@ -372,5 +380,74 @@
         pic(`${sid}.p1`, strip, 880, 0, 400, 720, { k: "fly", from: "right", t: 1.6, d: 0.3 }, { kb: "in" }),
       ],
     },
+  };
+
+  // Năm kiểu đó cho khung vuông/dọc: ảnh chiếm phần trên (cao P), chữ ở dưới. Cùng ô ảnh với bản
+  // ngang (`<id>` + `<id>.p1` ở đúng những kiểu có ảnh phụ) — đổi tỉ lệ không lạc ảnh khách đã đặt.
+  const P = TALL ? 600 : 440;
+  const _VLAYOUTS = {
+    split: {
+      from: "right",
+      compact: true,
+      col: { x: 88, w: W - 176, top: P + (TALL ? 120 : 96), bottom: H - 72 },
+      build: ({ sid, photo, pic, framed, outline }) => [
+        pic(sid, photo, 0, 0, W, P, { k: "reveal", from: "top", drift: 120, t: 1.5, d: 0 }),
+        outline(40, P + 40, W - 80, H - P - 80, { k: "reveal", from: "left", t: 1.4, d: 0.4 }),
+        framed(W - (TALL ? 248 : 236), P - (TALL ? 112 : 96), TALL ? 200 : 180, { k: "fly", from: "right", t: 1.5, d: 0.6 }),
+      ],
+    },
+    band: {
+      from: "right",
+      col: { x: 64, w: W - 184, top: P + 48, bottom: H - 56 },
+      build: ({ sid, photo, strip, pic, box }) => [
+        box(0, 0, W, P - 120, C.band, { k: "fly", from: "top", t: 1.3, d: 0 }),
+        box(W - 80, P - 120, 80, H - P + 120, C.peach, { k: "fly", from: "right", t: 1.3, d: 0.15 }),
+        pic(`${sid}.p1`, strip, W - 80, (H + P) / 2, 80, (H - P) / 2, { k: "reveal", from: "bottom", drift: 60, t: 1.4, d: 0.7 }, { kb: "in" }),
+        pic(sid, photo, TALL ? 96 : 120, 48, TALL ? 460 : 560, P - 64, { k: "fly", from: "left", rot: -5, t: 1.6, d: 0.3 }),
+      ],
+    },
+    card: {
+      from: "left",
+      compact: true,
+      delay: 0.6,
+      col: { x: 104, w: W - 208, top: P + 24, bottom: H - 96 },
+      build: ({ sid, photo, pic, box }) => [
+        pic(sid, photo, 0, 0, W, P + 120, { k: "fly", from: "top", t: 1.6, d: 0 }),
+        box(32, P + 16, W - 112, H - P - 56, C.band, { k: "fly", from: "bl", t: 1.5, d: 0.2 }),
+        box(56, P - 16, W - 112, H - P - 40, C.paper, { k: "fly", from: "bottom", t: 1.5, d: 0.35 }),
+      ],
+    },
+    stack: {
+      from: "left",
+      compact: true,
+      col: { x: 64, w: W - 128, top: P + 64, bottom: H - 56 },
+      build: ({ sid, photo, pic, box, framed }) => [
+        box(W * 0.2, 56, W * 0.8, P - 96, C.band, { k: "fly", from: "right", t: 1.3, d: 0 }),
+        pic(sid, photo, W - (TALL ? 400 : 380), 16, TALL ? 340 : 320, P + 8, { k: "fly", from: "top", t: 1.6, d: 0.2 }),
+        framed(48, P - (TALL ? 236 : 216), TALL ? 260 : 240, { k: "fly", from: "bottom", t: 1.6, d: 0.45 }),
+      ],
+    },
+    // Bộ đôi: dọc thì hai ảnh trên/dưới, câu trích giữa trên nền hồng; vuông thì hai cột ảnh hai bên.
+    duo: TALL
+      ? {
+          from: "bottom",
+          center: true,
+          col: { x: 64, w: W - 128, top: 480, bottom: 800 },
+          build: ({ sid, photo, strip, pic, box }) => [
+            box(0, 460, W, 360, C.band, { k: "reveal", from: "left", t: 1.2, d: 0 }),
+            pic(sid, photo, 0, 0, W, 460, { k: "fly", from: "top", t: 1.6, d: 0.15 }),
+            pic(`${sid}.p1`, strip, 0, 820, W, 460, { k: "fly", from: "bottom", t: 1.6, d: 0.3 }, { kb: "in" }),
+          ],
+        }
+      : {
+          from: "bottom",
+          center: true,
+          col: { x: 316, w: 328, top: 80, bottom: 880 },
+          build: ({ sid, photo, strip, pic, box }) => [
+            box(290, 0, 380, H, C.band, { k: "reveal", from: "top", t: 1.2, d: 0 }),
+            pic(sid, photo, 0, 0, 290, H, { k: "fly", from: "left", t: 1.6, d: 0.15 }),
+            pic(`${sid}.p1`, strip, 670, 0, 290, H, { k: "fly", from: "right", t: 1.6, d: 0.3 }, { kb: "in" }),
+          ],
+        },
   };
 })();

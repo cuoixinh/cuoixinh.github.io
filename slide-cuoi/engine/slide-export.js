@@ -6,8 +6,8 @@
 window.CXSlideExport = (() => {
   // Mỗi khổ: bitrate + danh sách codec H.264 cho TỪNG nhịp khung — level quyết định số macroblock/giây
   // tối đa nên 60fps cần level cao hơn 30fps (1080p60 ≥ 4.2, 4K60 = 5.2, 1440×2560@60 ≥ 5.1).
-  // w/h của 1080/2160 là khổ 16:9; slide tỉ lệ khác giữ chiều cao, bề ngang theo tỉ lệ (_size) —
-  // vuông 1080×1080 / 2160×2160 ít điểm ảnh hơn nên cùng bộ codec vẫn đủ.
+  // w/h của 1080/2160 là khổ 16:9; slide tỉ lệ khác giữ CẠNH NGẮN, cạnh kia theo tỉ lệ (_size) —
+  // vuông 1080×1080 ít điểm ảnh hơn, dọc 1080×1920 bằng đúng số điểm ảnh nên cùng bộ codec vẫn đủ.
   const SIZES = {
     1080: {
       w: 1920, h: 1080,
@@ -40,12 +40,16 @@ window.CXSlideExport = (() => {
 
   // Cấu hình H.264 đầu tiên máy mã hoá được ở khổ này, thử 60fps trước rồi 30fps; null = không
   // xuất được khổ đó.
-  // Khổ video theo tỉ lệ slide (ratio = W/H, mặc định 16:9); TikTok luôn dọc 1440×2560. Cạnh chẵn: H.264 đòi.
+  // Khổ video theo tỉ lệ slide (ratio = W/H, mặc định 16:9): cạnh ngắn = 1080/2160; TikTok luôn dọc
+  // 1440×2560. Cạnh chẵn: H.264 đòi.
+  const _even = (n) => Math.round(n / 2) * 2;
   function _size(height, ratio) {
     const S = SIZES[height];
     if (height === "tiktok" || !ratio) return S;
-    return { ...S, w: Math.round((S.h * ratio) / 2) * 2 };
+    return ratio >= 1 ? { ...S, w: _even(S.h * ratio) } : { ...S, w: S.h, h: _even(S.h / ratio) };
   }
+  // Slide dọc đăng TikTok thì chiếm trọn khung video, không đặt lên màn chiếu hội trường (màn LED ngang).
+  const _onHall = (P) => P.W >= P.H;
 
   async function pickCodec(height, ratio) {
     if (!supported()) return null;
@@ -387,7 +391,7 @@ window.CXSlideExport = (() => {
     if (!vcfg) throw Object.assign(new Error("Máy này không mã hoá được video khổ này"), { code: "UNSUPPORTED" });
     const S = _size(opts.height, P.W / P.H);
     const fps = vcfg.framerate;
-    const tiktok = opts.height === "tiktok";
+    const tiktok = opts.height === "tiktok" && _onHall(P);
     const hall = tiktok ? await _img(HALL.src) : null;
 
     // Nhạc + giọng đọc (nếu có và máy mã hoá được tiếng). Hỏng thì xuất video không tiếng,
