@@ -37,9 +37,10 @@
 }
 .ms-sub {
   margin-top: 2px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
-  text-wrap: balance; /* xuống dòng không để trơ một chữ ở dòng cuối */
+  /* Trải hết bề ngang; máy hẹp phải xuống dòng thì chỉ tránh trơ một chữ ở dòng cuối. */
+  text-wrap: pretty;
   color: rgb(var(--text-caption-rgb));
 }
 /* Ba bước: số tròn hồng + nhãn ngắn, một hàng (hẹp quá thì xuống dòng). */
