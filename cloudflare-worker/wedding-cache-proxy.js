@@ -4,6 +4,12 @@ var __name = (target, value) =>
 
 // worker.js
 var CACHE_TTL = 300;
+// Trang ĐẦU mục "Thiệp của khách" ở trang chủ (resource=public-showcase&offset=0) — mọi lượt
+// vào trang chủ đều hỏi nó. Dữ liệu công khai, không phụ thuộc người gọi nên cache chung một
+// key. Không xoá chủ động được (thanh toán/đổi đồng ý đi đường khác) → TTL quyết định độ trễ.
+// Trang cuộn tiếp (offset > 0) vẫn đi thẳng Edge Function.
+var SHOWCASE_TTL = 600;
+var SHOWCASE_KEY = "showcase:page0";
 var worker_default = {
   async fetch(request, env, ctx) {
     // Edge Function đích lấy từ [vars] của wrangler.toml, KHÔNG có mặc định:
@@ -38,6 +44,24 @@ var worker_default = {
     // Request mang mã quản trị nhận về BẢN ĐẦY ĐỦ (gồm dữ liệu thanh toán) —
     // cache nó là đem bản đó phát cho mọi người trong 5 phút.
     const isPrivileged = !!request.headers.get("x-admin-token");
+    const isShowcaseHead =
+      method === "GET" &&
+      !isPrivileged &&
+      url.searchParams.get("resource") === "public-showcase" &&
+      url.searchParams.get("offset") === "0";
+    if (isShowcaseHead) {
+      const cached = await env.WEDDING_CACHE.get(SHOWCASE_KEY, { type: "json" });
+      if (cached) {
+        return new Response(JSON.stringify(cached), {
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "X-Cache": "HIT",
+            "Cache-Control": `public, max-age=${CACHE_TTL}`,
+          },
+        });
+      }
+    }
     const isCacheable = method === "GET" && !!slug && !isList && !isPrivileged;
     if (isCacheable) {
       const cacheKey = buildCacheKey(slug, id);
@@ -81,6 +105,19 @@ var worker_default = {
       ctx.waitUntil(
         env.WEDDING_CACHE.put(cacheKey, JSON.stringify(responseData), {
           expirationTtl: CACHE_TTL,
+        }),
+      );
+    }
+    // Chỉ cache bản đúng dạng trang `{ items, next }`: lỗi hay dạng lạ mà đóng băng 10 phút là
+    // mục biến mất khỏi trang chủ suốt chừng đó.
+    if (
+      isShowcaseHead &&
+      supabaseResponse.ok &&
+      Array.isArray(responseData?.items)
+    ) {
+      ctx.waitUntil(
+        env.WEDDING_CACHE.put(SHOWCASE_KEY, JSON.stringify(responseData), {
+          expirationTtl: SHOWCASE_TTL,
         }),
       );
     }

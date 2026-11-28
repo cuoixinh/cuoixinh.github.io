@@ -1,6 +1,7 @@
 // Mục "Thiệp của khách" ở trang chủ: thiệp đã thanh toán, ai trả sau đứng đầu
 // (Edge Function wedding-admin?resource=public-showcase&offset= sắp sẵn, theo trang) —
-// cuộn gần mép phải thì tải trang sau. Trang đầu rỗng hoặc hỏng thì mục giữ `hidden`.
+// cuộn gần mép phải thì tải trang sau. Trang ĐẦU đọc qua worker cache (CONFIG.cloudflare.cacheProxy,
+// KV 10 phút), trang sau đi thẳng Edge Function. Trang đầu rỗng hoặc hỏng thì mục giữ `hidden`.
 // Cần CONFIG + core/dal/storage-dal.js.
 (function () {
   const esc = (s) =>
@@ -51,13 +52,29 @@
   const PREFETCH_PX = 600;
   let next = 0; // offset trang sau; null = hết
   let busy = false;
+  // Trang đầu là bản cache (trễ tới 10 phút) còn trang sau là bản sống: có thiệp mới thanh
+  // toán xen giữa thì hàng bị đẩy lùi, trang sau lặp lại thẻ cuối trang đầu → lọc theo slug.
+  const seen = new Set();
 
-  async function fetchPage(offset) {
-    const res = await fetch(CONFIG.supabase.edgeUrl + "?resource=public-showcase&offset=" + offset, {
+  async function getJSON(base, offset) {
+    const res = await fetch(base + "?resource=public-showcase&offset=" + offset, {
       headers: { Authorization: "Bearer " + CONFIG.supabase.anonKey },
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const body = await res.json();
+    return res.json();
+  }
+
+  async function fetchPage(offset) {
+    const cache = offset === 0 ? CONFIG.cloudflare?.cacheProxy : null;
+    let body;
+    if (cache) {
+      try {
+        body = await getJSON(cache, offset);
+      } catch (err) {
+        console.warn("Worker cache thiệp của khách hỏng, đọc thẳng:", err);
+      }
+    }
+    if (body === undefined) body = await getJSON(CONFIG.supabase.edgeUrl, offset);
     // Edge Function bản cũ bỏ qua `offset`, trả mảng một lần — coi như trang duy nhất.
     if (Array.isArray(body)) return { items: body, next: null };
     return { items: Array.isArray(body?.items) ? body.items : [], next: body?.next ?? null };
@@ -72,9 +89,11 @@
       while (next !== null && !added) {
         const page = await fetchPage(next);
         next = page.next;
-        if (page.items.length) {
-          row.insertAdjacentHTML("beforeend", page.items.map((w) => cardHTML(w, storage)).join(""));
-          added = page.items.length;
+        const fresh = page.items.filter((w) => w?.slug && !seen.has(w.slug));
+        fresh.forEach((w) => seen.add(w.slug));
+        if (fresh.length) {
+          row.insertAdjacentHTML("beforeend", fresh.map((w) => cardHTML(w, storage)).join(""));
+          added = fresh.length;
         }
       }
     } catch (err) {
