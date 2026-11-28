@@ -1,7 +1,6 @@
 /* ── Trang "Mẫu Slide" (mau-slide/) ─────────────────────────────────────────────
-   Danh sách mẫu: video 16:9 là thứ chính của mỗi mẫu (bo góc, nền mận khi chưa có ảnh), tên +
-   mô tả + nút "Gửi Messenger" nằm thẳng trên nền trang ngay dưới video — không đóng khung thẻ.
-   Một cột trên điện thoại, hai cột từ md. Hộp "Gửi Messenger" là <dialog> (.ms-dlg): giữa màn
+   Danh sách mẫu: mỗi mẫu một khối (nền + viền + bóng cho cả khối) gồm video 16:9 lồng bên trong và
+   chân khối tên + mô tả + nút "Gửi Messenger". Một cột trên điện thoại, hai cột từ md. Hộp "Gửi Messenger" là <dialog> (.ms-dlg): giữa màn
    từ sm, dưới sm thành tấm trượt từ đáy lên. */
 .ms-app {
   --ms-ink: var(--text-heading-rgb);
@@ -69,7 +68,7 @@
 .ms-list {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 40px;
+  gap: 24px;
 }
 @media (min-width: 768px) {
   .ms-app {
@@ -86,8 +85,22 @@
   }
   .ms-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 48px 32px;
+    gap: 32px;
   }
+}
+
+/* Mỗi mẫu là MỘT khối: nền trắng ngả hồng ở đáy, viền hồng mảnh, bóng mận nhẹ cho cả khối; video lồng
+   bên trong (bo góc nhỏ hơn đúng bằng lề khối, KHÔNG bóng riêng), chân khối là tên + mô tả + nút gửi. */
+.ms-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border-radius: 28px;
+  border: 1px solid rgb(var(--ms-rose) / 0.14);
+  background: linear-gradient(180deg, #fff 60%, rgb(var(--surface-tint-warm-rgb)));
+  box-shadow:
+    0 1px 2px rgb(var(--ms-ink) / 0.06),
+    0 24px 48px -28px rgb(var(--ms-ink) / 0.35);
 }
 
 /* Khung video: ảnh bìa → (bấm Phát) trình phát YouTube chồng lên trên. */
@@ -95,9 +108,8 @@
   position: relative;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  border-radius: 16px;
+  border-radius: 18px;
   background: rgb(var(--ms-plum));
-  box-shadow: 0 20px 40px -28px rgb(var(--ms-ink) / 0.7);
 }
 .ms-poster,
 .ms-frame {
@@ -107,8 +119,10 @@
   height: 100%;
   border: 0;
 }
+/* Ảnh bìa YouTube hay dính viền đen mảnh ở mép — phóng nhẹ để cắt mất. */
 .ms-poster {
   object-fit: cover;
+  transform: scale(1.03);
 }
 .ms-frame {
   z-index: 2;
@@ -127,24 +141,25 @@
   justify-content: center;
   width: 100%;
   border-radius: 0;
-  background: rgb(var(--ms-plum) / 0.12);
+  background: transparent;
   cursor: pointer;
 }
 .ms-play-ic {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.94);
-  color: rgb(var(--ms-ink));
-  box-shadow: 0 12px 28px rgb(0 0 0 / 0.28);
+  /* Nền mận đặc: slide hay nền trắng, nút trắng sẽ chìm mất. */
+  background: rgb(var(--ms-ink) / 0.88);
+  color: #fff;
+  box-shadow: 0 0 0 6px rgb(255 255 255 / 0.35);
   transition: transform 0.2s ease;
 }
 .ms-play-ic svg {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   margin-left: 4px; /* tam giác lệch trái về mặt thị giác */
   fill: currentColor;
 }
@@ -156,27 +171,20 @@
   outline-offset: -3px;
 }
 
-/* Chân mỗi mẫu: hàng trên là tên + nút gửi (nút cao ĐÚNG bằng dòng tên, canh giữa theo dòng đó),
-   mô tả chạy hết bề ngang bên dưới. .ms-text mở ra (display: contents) để tên/mô tả vào thẳng lưới. */
+/* Chân khối: tên + mô tả bên trái, nút gửi bên phải canh giữa theo cả cụm chữ. */
 .ms-cap {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "name send" "desc desc";
-  column-gap: 12px;
-  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 8px 6px 10px;
 }
 .ms-text {
-  display: contents;
-}
-.ms-cap .ms-name {
-  grid-area: name;
-}
-.ms-cap .ms-desc {
-  grid-area: desc;
+  flex: 1;
+  min-width: 0;
 }
 .ms-name {
   font-family: "Playfair Display", serif;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
   line-height: 1.25;
   color: rgb(var(--ms-ink));
@@ -188,28 +196,19 @@
   color: rgb(var(--text-caption-rgb));
 }
 .ms-desc {
-  margin-top: 4px;
-  font-size: 14px;
-  line-height: 1.6;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.55;
   color: rgb(var(--text-caption-rgb));
 }
-/* Nút gửi trong danh sách: chip nhẹ (nền xanh Messenger rất nhạt, chữ + logo xanh, không bóng) cao
-   đúng bằng dòng tên mẫu (24px × 1.25 = 30px) — nút đặc chỉ dành cho "Mở Messenger" trong hộp. */
+/* Nút gửi trong khối: viên nhỏ màu Messenger, không bóng (khối đã có bóng). */
 .ms-cap .ms-send {
-  grid-area: send;
-  align-self: center;
+  flex-shrink: 0;
   gap: 6px;
-  height: 30px;
-  padding: 0 12px 0 10px;
+  height: 36px;
+  padding: 0 14px 0 12px;
   font-size: 13px;
-  color: rgb(var(--social-messenger-to-rgb));
-  background: rgb(var(--social-messenger-from-rgb) / 0.1);
   box-shadow: none;
-  transition: background-color 0.2s ease;
-}
-.ms-cap .ms-send:hover {
-  filter: none;
-  background: rgb(var(--social-messenger-from-rgb) / 0.18);
 }
 .ms-cap .ms-send svg {
   width: 15px;
