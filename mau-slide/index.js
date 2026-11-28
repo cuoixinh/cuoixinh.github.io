@@ -1,6 +1,8 @@
 // Trang "Mẫu Slide": danh sách mẫu slide, mỗi mẫu một video YouTube khung ngang + nút "Gửi Messenger".
-// Video nạp kiểu "mặt tiền": chỉ có ảnh bìa, bấm Phát mới chèn trình phát (~1 MB mã mỗi cái), cùng
-// lúc một video phát. Chỉ liệt kê mẫu ĐÃ có mã video (`youtube` ở tao-slide/templates.js).
+// Trình phát YouTube nạp SẴN (iframe lazy, dưới lớp ảnh bìa + nút Phát chỉ để nhìn) để cú bấm đầu
+// tiên rơi thẳng vào trình phát → phát ngay CÓ TIẾNG: điện thoại chặn video nhúng tự phát có tiếng,
+// chèn iframe sau cú bấm là khách phải bấm lần hai. Cùng lúc một video phát. Chỉ liệt kê mẫu ĐÃ có
+// mã video (`youtube` ở tao-slide/templates.js).
 // `?mau=<id>` trên URL (link trong lời nhắn) cuộn tới đúng mẫu đó.
 
 // Cùng link "Nhắn tin qua Messenger" ở chân trang chủ — đổi page thì đổi cả hai.
@@ -17,10 +19,10 @@ function _msItem(t, i) {
   // Ảnh bìa nét (maxres, chỉ có khi video gốc ≥ 720p) — thiếu thì _msPosterFix lùi về hqdefault.
   return `<article class="ms-item" id="mau-${_msEsc(t.id)}">
       <div class="ms-video">
-        <img class="ms-poster" src="https://i.ytimg.com/vi/${yt}/maxresdefault.jpg" data-yt="${yt}" alt="Slide cưới ${_msEsc(t.name)}" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} />
-        <x-button variant="bare" class="ms-play" data-yt="${yt}" aria-label="Phát video ${_msEsc(t.name)}">
-          <span class="ms-play-ic"><i data-lucide="play"></i></span>
-        </x-button>
+        <iframe class="ms-frame" src="${_msEmbed(yt)}" title="Video ${_msEsc(t.name)}" loading="lazy"
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
+        <img class="ms-poster" src="https://i.ytimg.com/vi/${yt}/maxresdefault.jpg" data-yt="${yt}" alt="" ${i ? 'fetchpriority="high"' : 'loading="lazy"'} />
+        <span class="ms-play" aria-hidden="true"><span class="ms-play-ic"><i data-lucide="play"></i></span></span>
       </div>
       <div class="ms-cap">
         <div class="ms-text">
@@ -57,25 +59,47 @@ function _msPosterFix(img) {
   img.addEventListener("load", () => img.naturalWidth <= 120 && low());
 }
 
-// Bấm Phát: thay ảnh bìa bằng trình phát (youtube-nocookie, tự phát); video đang phát ở mẫu
-// khác trả về ảnh bìa để không có hai video cùng kêu.
-let _msPlaying = null;
-function _msPlay(btn) {
-  const box = btn.closest(".ms-video");
-  if (_msPlaying && _msPlaying !== box) {
-    _msPlaying.querySelector("iframe")?.remove();
-    _msPlaying.classList.remove("is-on");
-  }
-  const f = document.createElement("iframe");
-  f.className = "ms-frame";
-  f.src = `https://www.youtube-nocookie.com/embed/${btn.dataset.yt}?autoplay=1&rel=0&playsinline=1`;
-  f.title = btn.getAttribute("aria-label") || "Video mẫu slide";
-  f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-  f.allowFullscreen = true;
-  box.appendChild(f);
-  box.classList.add("is-on");
-  _msPlaying = box;
+// ── Trình phát: ảnh bìa + nút Phát nằm TRÊN iframe nhưng không bắt chuột (pointer-events: none),
+// cú bấm xuyên xuống trình phát YouTube. Video bắt đầu chạy thì gỡ lớp bìa (.is-on) và dừng video
+// đang phát ở mẫu khác — biết qua IFrame API (enablejsapi), dự phòng bằng sự kiện blur của cửa sổ
+// (bấm vào iframe là trang mất focus) khi API chưa/không nạp được.
+const _msEmbed = (yt) =>
+  `https://www.youtube-nocookie.com/embed/${yt}?enablejsapi=1&rel=0&playsinline=1&origin=${encodeURIComponent(location.origin)}`;
+const _msPlayers = [];
+const _msOn = (frame) => frame?.closest(".ms-video")?.classList.add("is-on");
+
+function _msBindPlayers() {
+  document.querySelectorAll("iframe.ms-frame").forEach((frame) => {
+    const p = new YT.Player(frame, {
+      events: {
+        onStateChange: (e) => {
+          if (e.data !== YT.PlayerState.PLAYING && e.data !== YT.PlayerState.BUFFERING) return;
+          _msOn(frame);
+          _msPlayers.forEach((o) => o !== p && o.pauseVideo?.());
+        },
+      },
+    });
+    _msPlayers.push(p);
+  });
 }
+
+function _msLoadApi() {
+  if (!document.querySelector("iframe.ms-frame")) return;
+  const prev = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = () => {
+    prev?.();
+    _msBindPlayers();
+  };
+  const s = document.createElement("script");
+  s.src = "https://www.youtube.com/iframe_api";
+  s.async = true;
+  document.head.appendChild(s);
+}
+
+window.addEventListener("blur", () => {
+  const f = document.activeElement;
+  if (f?.classList?.contains("ms-frame")) _msOn(f);
+});
 
 async function _msCopy(text) {
   try {
@@ -138,8 +162,6 @@ function _msToastIn(on) {
 _msDlg.addEventListener("close", () => _msToastIn(false));
 
 document.getElementById("ms-list").addEventListener("click", (e) => {
-  const play = e.target.closest(".ms-play");
-  if (play) return _msPlay(play);
   const send = e.target.closest(".ms-send");
   if (send) _msAsk(send.dataset.id);
 });
@@ -156,3 +178,4 @@ _msDlg.addEventListener("click", (e) => {
 });
 
 _msRender();
+_msLoadApi();
