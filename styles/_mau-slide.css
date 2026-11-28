@@ -156,12 +156,13 @@
   outline-offset: -3px;
 }
 
-/* Chân mỗi mẫu: tên + mô tả bên trái, nút gửi bên phải (từ sm); dưới sm nút xuống dòng, rộng hết. */
+/* Chân mỗi mẫu: tên + mô tả bên trái, nút gửi nhỏ bên phải (mọi khổ màn). */
 .ms-cap {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding-top: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
 }
 .ms-text {
   min-width: 0;
@@ -185,15 +186,19 @@
   line-height: 1.6;
   color: rgb(var(--text-caption-rgb));
 }
-@media (min-width: 640px) {
-  .ms-cap {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-  .ms-cap .ms-msg {
-    flex-shrink: 0;
-  }
+/* Nút gửi trong danh sách: bản nhỏ của .ms-msg, canh theo dòng tên mẫu. */
+.ms-cap .ms-send {
+  flex-shrink: 0;
+  gap: 6px;
+  height: 34px;
+  margin-top: 1px;
+  padding: 0 14px 0 12px;
+  font-size: 13px;
+  box-shadow: 0 6px 14px -8px rgb(var(--social-messenger-to-rgb) / 0.8);
+}
+.ms-cap .ms-send svg {
+  width: 15px;
+  height: 15px;
 }
 
 /* Nút Messenger (cả nút ở danh sách lẫn "Mở Messenger" trong hộp): màu nhận diện của Messenger. */
