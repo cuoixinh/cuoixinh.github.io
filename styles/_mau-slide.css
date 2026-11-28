@@ -13,21 +13,56 @@
 }
 
 .ms-head {
-  max-width: 640px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 .ms-title {
   font-family: "Playfair Display", serif;
-  font-size: 36px;
+  font-size: 44px;
   font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   color: rgb(var(--ms-ink));
 }
+/* Thanh tiến độ: rãnh hồng nhạt, phần đã chạy hồng nhấn, đầu phát là chấm tròn viền hồng. */
+.ms-scrub {
+  position: relative;
+  width: 192px;
+  height: 4px;
+  margin-top: 20px;
+  border-radius: 999px;
+  background: rgb(var(--brand-primary-rgb) / 0.45);
+}
+.ms-scrub span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 36%;
+  border-radius: inherit;
+  background: rgb(var(--ms-rose));
+  animation: cx-ms-scrub 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
+}
+.ms-scrub span::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid rgb(var(--ms-rose));
+  box-shadow: 0 2px 6px rgb(var(--ms-rose) / 0.4);
+}
+@keyframes cx-ms-scrub {
+  from {
+    width: 0;
+  }
+}
 .ms-sub {
-  margin-top: 12px;
-  font-size: 15px;
-  line-height: 1.65;
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 1.6;
+  text-wrap: balance; /* xuống dòng không để trơ một chữ ở dòng cuối */
   color: rgb(var(--text-caption-rgb));
 }
 
@@ -41,10 +76,13 @@
     padding: 40px 24px 80px;
   }
   .ms-head {
-    margin-bottom: 40px;
+    margin-bottom: 48px;
   }
   .ms-title {
-    font-size: 48px;
+    font-size: 64px;
+  }
+  .ms-sub {
+    font-size: 17px;
   }
   .ms-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -296,6 +334,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .ms-scrub span {
+    animation: none;
+  }
   .ms-dlg[open] .ms-dlg-in {
     animation: none;
   }
