@@ -42,11 +42,18 @@
          "Gửi Messenger" để khách nhắn Cưới Xinh đặt làm. Danh mục + mã video lấy ở
          /tao-slide/templates.js (khoá `youtube`); dựng thẻ ở index.js. -->
     <main class="ms-app">
+      <!-- Đầu trang: một tấm nền hồng nhạt — tên trang + một câu giới thiệu, và ba bước đặt làm
+           (đúng thứ tự khách đi: xem video → nhắn Messenger → nhận slide). -->
       <header class="ms-head">
-        <h1 class="ms-title">Mẫu Slide</h1>
-        <!-- Thanh tiến độ video trang trí: chạy một lần khi mở trang. -->
-        <div class="ms-scrub" aria-hidden="true"><span></span></div>
-        <p class="ms-sub">Slide chiếu màn LED tiệc cưới, làm từ ảnh của bạn.</p>
+        <div class="ms-head-text">
+          <h1 class="ms-title">Mẫu Slide</h1>
+          <p class="ms-sub">Slide chiếu màn LED tiệc cưới, làm từ ảnh của bạn.</p>
+        </div>
+        <ol class="ms-steps" aria-label="Cách đặt làm slide">
+          <li><span class="ms-step-n">1</span>Xem video mẫu</li>
+          <li><span class="ms-step-n">2</span>Gửi Messenger cho Cưới Xinh</li>
+          <li><span class="ms-step-n">3</span>Nhận slide làm từ ảnh cưới của bạn</li>
+        </ol>
       </header>
       <div id="ms-list" class="ms-list"></div>
     </main>
