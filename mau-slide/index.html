@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../styles/build.css" />
@@ -42,12 +42,17 @@
          "Gửi Messenger" để khách nhắn Cưới Xinh đặt làm. Danh mục + mã video lấy ở
          /tao-slide/templates.js (khoá `youtube`); dựng thẻ ở index.js. -->
     <main class="ms-app">
+      <!-- Đầu trang: một tấm nền hồng nhạt — tên trang và ba bước đặt làm
+           (đúng thứ tự khách đi: xem video → nhắn Messenger → nhận slide). -->
       <header class="ms-head">
-        <h1 class="ms-title">Mẫu Slide</h1>
-        <p class="ms-sub">
-          Slide trình chiếu màn LED trong tiệc cưới. Xem video từng mẫu, ưng mẫu nào thì nhắn
-          Cưới Xinh để làm slide với ảnh cưới của bạn.
-        </p>
+        <div class="ms-head-text">
+          <h1 class="ms-title">Mẫu Slide</h1>
+        </div>
+        <ol class="ms-steps" aria-label="Cách đặt làm slide">
+          <li><span class="ms-step-n">1</span>Xem video</li>
+          <li><span class="ms-step-n">2</span>Nhắn Messenger</li>
+          <li><span class="ms-step-n">3</span>Nhận slide</li>
+        </ol>
       </header>
       <div id="ms-list" class="ms-list"></div>
     </main>

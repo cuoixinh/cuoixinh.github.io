@@ -1,55 +1,126 @@
 /* ── Trang "Mẫu Slide" (mau-slide/) ─────────────────────────────────────────────
-   Danh sách mẫu: video 16:9 là thứ chính của mỗi mẫu (bo góc, nền mận khi chưa có ảnh), tên +
-   mô tả + nút "Gửi Messenger" nằm thẳng trên nền trang ngay dưới video — không đóng khung thẻ.
-   Một cột trên điện thoại, hai cột từ md. Hộp "Gửi Messenger" là <dialog> (.ms-dlg): giữa màn
+   Danh sách mẫu: mỗi mẫu một khối (nền + viền + bóng cho cả khối) gồm video 16:9 lồng bên trong và
+   chân khối tên + mô tả + nút "Gửi Messenger". Một cột trên điện thoại, hai cột từ md. Hộp "Gửi Messenger" là <dialog> (.ms-dlg): giữa màn
    từ sm, dưới sm thành tấm trượt từ đáy lên. */
 .ms-app {
   --ms-ink: var(--text-heading-rgb);
   --ms-rose: var(--brand-accent-rgb);
   --ms-plum: 58 34 44; /* nền khung video khi ảnh chưa về */
+  /* Chữ tiêu đề của trang: Be Vietnam Pro — dấu tiếng Việt rõ, số "01" đứng thẳng dễ đọc. */
+  --ms-head: "Be Vietnam Pro", Inter, system-ui, sans-serif;
   max-width: 1152px;
   margin: 0 auto;
   padding: 28px 16px 56px;
 }
 
+/* Đầu trang: tấm nền hồng nhạt phẳng, thấp (không bóng — bóng dành cho khối mẫu bên dưới): tên trang +
+   ba bước đặt làm xếp NGANG một hàng (từ md đứng bên phải chữ). */
 .ms-head {
-  max-width: 640px;
-  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgb(var(--ms-rose) / 0.14);
+  background:
+    radial-gradient(120% 160% at 100% 0%, rgb(var(--brand-primary-rgb) / 0.35), transparent 60%),
+    rgb(var(--surface-tint-warm-rgb));
 }
 .ms-title {
-  font-family: "Playfair Display", serif;
-  font-size: 36px;
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-family: var(--ms-head);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   color: rgb(var(--ms-ink));
 }
-.ms-sub {
-  margin-top: 12px;
-  font-size: 15px;
-  line-height: 1.65;
-  color: rgb(var(--text-caption-rgb));
+/* Ba bước: số tròn hồng + nhãn ngắn, một hàng (hẹp quá thì xuống dòng). */
+.ms-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ms-steps li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: rgb(var(--ms-ink));
+}
+.ms-step-n {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  font-family: var(--ms-head);
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: rgb(var(--ms-rose));
 }
 
 .ms-list {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 40px;
+  gap: 24px;
 }
 @media (min-width: 768px) {
   .ms-app {
     padding: 40px 24px 80px;
   }
   .ms-head {
-    margin-bottom: 40px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+    padding: 20px 28px;
+    border-radius: 24px;
   }
   .ms-title {
-    font-size: 48px;
+    font-size: 28px;
+  }
+    .ms-steps {
+    flex-shrink: 0;
+    gap: 20px;
+  }
+  .ms-steps li {
+    gap: 6px;
+    font-size: 14px;
+  }
+  .ms-step-n {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
   }
   .ms-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 48px 32px;
+    gap: 32px;
   }
+}
+
+/* Mỗi mẫu là MỘT khối: nền trắng ngả hồng ở đáy, viền hồng mảnh, bóng mận nhẹ cho cả khối; video lồng
+   bên trong (bo góc nhỏ hơn đúng bằng lề khối, KHÔNG bóng riêng), chân khối là tên + mô tả + nút gửi. */
+.ms-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border-radius: 28px;
+  border: 1px solid rgb(var(--ms-rose) / 0.14);
+  background: linear-gradient(180deg, #fff 60%, rgb(var(--surface-tint-warm-rgb)));
+  box-shadow:
+    0 1px 2px rgb(var(--ms-ink) / 0.06),
+    0 24px 48px -28px rgb(var(--ms-ink) / 0.35);
 }
 
 /* Khung video: ảnh bìa → (bấm Phát) trình phát YouTube chồng lên trên. */
@@ -57,9 +128,8 @@
   position: relative;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  border-radius: 16px;
+  border-radius: 18px;
   background: rgb(var(--ms-plum));
-  box-shadow: 0 20px 40px -28px rgb(var(--ms-ink) / 0.7);
 }
 .ms-poster,
 .ms-frame {
@@ -69,8 +139,10 @@
   height: 100%;
   border: 0;
 }
+/* Ảnh bìa YouTube hay dính viền đen mảnh ở mép — phóng nhẹ để cắt mất. */
 .ms-poster {
   object-fit: cover;
+  transform: scale(1.03);
 }
 .ms-frame {
   z-index: 2;
@@ -89,24 +161,25 @@
   justify-content: center;
   width: 100%;
   border-radius: 0;
-  background: rgb(var(--ms-plum) / 0.12);
+  background: transparent;
   cursor: pointer;
 }
 .ms-play-ic {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.94);
-  color: rgb(var(--ms-ink));
-  box-shadow: 0 12px 28px rgb(0 0 0 / 0.28);
+  /* Nền mận đặc: slide hay nền trắng, nút trắng sẽ chìm mất. */
+  background: rgb(var(--ms-ink) / 0.88);
+  color: #fff;
+  box-shadow: 0 0 0 6px rgb(255 255 255 / 0.35);
   transition: transform 0.2s ease;
 }
 .ms-play-ic svg {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   margin-left: 4px; /* tam giác lệch trái về mặt thị giác */
   fill: currentColor;
 }
@@ -118,21 +191,23 @@
   outline-offset: -3px;
 }
 
-/* Chân mỗi mẫu: tên + mô tả bên trái, nút gửi bên phải (từ sm); dưới sm nút xuống dòng, rộng hết. */
+/* Chân khối: tên + mô tả bên trái, nút gửi bên phải canh giữa theo cả cụm chữ. */
 .ms-cap {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 16px;
-  padding-top: 16px;
+  padding: 14px 8px 6px 10px;
 }
 .ms-text {
+  flex: 1;
   min-width: 0;
 }
 .ms-name {
-  font-family: "Playfair Display", serif;
-  font-size: 24px;
+  font-family: var(--ms-head);
+  font-size: 18px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
   color: rgb(var(--ms-ink));
 }
 .ms-empty {
@@ -142,20 +217,23 @@
   color: rgb(var(--text-caption-rgb));
 }
 .ms-desc {
-  margin-top: 4px;
-  font-size: 14px;
-  line-height: 1.6;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.55;
   color: rgb(var(--text-caption-rgb));
 }
-@media (min-width: 640px) {
-  .ms-cap {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-  .ms-cap .ms-msg {
-    flex-shrink: 0;
-  }
+/* Nút gửi trong khối: viên nhỏ màu Messenger, không bóng (khối đã có bóng). */
+.ms-cap .ms-send {
+  flex-shrink: 0;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px 0 12px;
+  font-size: 13px;
+  box-shadow: none;
+}
+.ms-cap .ms-send svg {
+  width: 15px;
+  height: 15px;
 }
 
 /* Nút Messenger (cả nút ở danh sách lẫn "Mở Messenger" trong hộp): màu nhận diện của Messenger. */
@@ -225,8 +303,8 @@
   background: linear-gradient(135deg, rgb(var(--social-messenger-from-rgb)), rgb(var(--social-messenger-to-rgb)));
 }
 .ms-dlg-t {
-  font-family: "Playfair Display", serif;
-  font-size: 22px;
+  font-family: "Be Vietnam Pro", Inter, system-ui, sans-serif;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.3;
   color: rgb(var(--text-heading-rgb));

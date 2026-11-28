@@ -28,7 +28,7 @@ function _msItem(t, i) {
           <p class="ms-desc">${_msEsc(t.desc)}</p>
         </div>
         <x-button variant="bare" class="ms-msg ms-send" data-id="${_msEsc(t.id)}">
-          <i data-icon="messenger" data-size="18"></i>Gửi Messenger
+          <i data-icon="messenger" data-size="14"></i>Gửi Messenger
         </x-button>
       </div>
     </article>`;
