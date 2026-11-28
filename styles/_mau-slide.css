@@ -144,21 +144,14 @@
   object-fit: cover;
   transform: scale(1.03);
 }
-/* Lớp bìa (ảnh + nút Phát) nằm trên trình phát nhưng KHÔNG bắt chuột — cú bấm xuyên xuống iframe;
-   video chạy thì .is-on gỡ lớp bìa. */
 .ms-frame {
-  z-index: 0;
+  z-index: 2;
 }
-.ms-poster,
-.ms-play {
-  pointer-events: none;
-}
-.ms-video.is-on .ms-poster,
 .ms-video.is-on .ms-play {
   display: none;
 }
 
-/* Nút Phát chỉ để nhìn (vòng mận ở giữa) — bấm thật là bấm vào trình phát bên dưới. */
+/* Nút phát phủ cả khung (bấm đâu trên ảnh cũng phát), vòng trắng ở giữa. */
 .ms-play {
   position: absolute;
   inset: 0;
@@ -167,7 +160,9 @@
   align-items: center;
   justify-content: center;
   width: 100%;
+  border-radius: 0;
   background: transparent;
+  cursor: pointer;
 }
 .ms-play-ic {
   display: flex;
@@ -188,8 +183,12 @@
   margin-left: 4px; /* tam giác lệch trái về mặt thị giác */
   fill: currentColor;
 }
-.ms-video:hover .ms-play-ic {
+.ms-play:hover .ms-play-ic {
   transform: scale(1.06);
+}
+.ms-play:focus-visible {
+  outline: 3px solid rgb(var(--ms-rose));
+  outline-offset: -3px;
 }
 
 /* Chân khối: tên + mô tả bên trái, nút gửi bên phải canh giữa theo cả cụm chữ. */
