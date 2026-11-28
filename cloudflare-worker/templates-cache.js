@@ -134,8 +134,7 @@ export default {
 // Xoá bản lưu ở edge. Hai giới hạn cố hữu, admin phải biết để không truy nhầm:
 // Cache API là RIÊNG TỪNG COLO nên chỉ xoá được ở colo nhận request này, và nó
 // hoàn toàn không chạm tới cache trên trình duyệt khách (chỗ đó chờ CLIENT_TTL).
-// Trên deployment *.workers.dev thì Cache API còn không lưu gì, deletedCount sẽ
-// luôn là 0 — đó là bình thường, không phải lỗi.
+// deletedCount = 0 chỉ nghĩa là colo này chưa giữ bản nào — colo khác vẫn có thể còn.
 async function handlePurge(request, env, corsHeaders) {
   try {
     // Verify secret
